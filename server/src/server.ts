@@ -17,7 +17,9 @@ import {
 import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
-import { Client, runServer } from '@fivetrandevelopers/zetasql';
+import { Client, runServer, SimpleCatalog, SimpleColumn, SimpleTable, SimpleType, TypeKind } from '@fivetrandevelopers/zetasql';
+import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
+import { ZetaSQLBuiltinFunctionOptions } from '@fivetrandevelopers/zetasql/lib/ZetaSQLBuiltinFunctionOptions';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -27,9 +29,10 @@ let connection = createConnection(ProposedFeatures.all);
 let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
 let hasConfigurationCapability: boolean = false;
+const catalog = new SimpleCatalog('catalog');
 
-connection.onInitialize((params: InitializeParams) => {
-	initizelizeZetasql();
+connection.onInitialize(async (params: InitializeParams) => {
+	await initizelizeZetasql();
 
 	let capabilities = params.capabilities;
 
@@ -54,6 +57,35 @@ connection.onInitialize((params: InitializeParams) => {
 async function initizelizeZetasql() {
 	runServer().catch(err => console.error(err));
 	await Client.INSTANCE.testConnection();
+	await initializeCatalog();
+}
+
+async function initializeCatalog() {
+	const projectCatalog = new SimpleCatalog('digital-arbor-400');
+	const datasetCatalog = new SimpleCatalog('pg_public');
+	projectCatalog.addSimpleCatalog(datasetCatalog);
+	catalog.addSimpleCatalog(projectCatalog);
+	datasetCatalog.addSimpleTable('transformations',
+	  new SimpleTable('`digital-arbor-400`.pg_public.transformations', undefined, [
+		new SimpleColumn('transformations', 'id', new SimpleType(TypeKind.TYPE_STRING)),
+		new SimpleColumn('transformations', 'name', new SimpleType(TypeKind.TYPE_STRING)),
+		new SimpleColumn('transformations', 'group_id', new SimpleType(TypeKind.TYPE_STRING)),
+		new SimpleColumn('transformations', 'paused', new SimpleType(TypeKind.TYPE_BOOL)),
+		new SimpleColumn('transformations', 'trigger', new SimpleType(TypeKind.TYPE_STRING)),
+		new SimpleColumn('transformations', 'created_at', new SimpleType(TypeKind.TYPE_TIMESTAMP)),
+		new SimpleColumn('transformations', 'created_by_id', new SimpleType(TypeKind.TYPE_STRING)),
+		new SimpleColumn(
+		  'transformations',
+		  'last_started_at',
+		  new SimpleType(TypeKind.TYPE_TIMESTAMP),
+		),
+		new SimpleColumn('transformations', 'status', new SimpleType(TypeKind.TYPE_STRING)),
+		new SimpleColumn('transformations', '_fivetran_deleted', new SimpleType(TypeKind.TYPE_BOOL)),
+	  ]),
+	);
+	const options = await new LanguageOptions().enableMaximumLanguageFeatures();
+	await catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions(options));
+	await catalog.register();
 }
 
 connection.onInitialized(() => {
