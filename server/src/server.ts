@@ -17,6 +17,7 @@ import {
 import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
+import { Client, runServer } from '@fivetrandevelopers/zetasql';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -28,6 +29,8 @@ let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 let hasConfigurationCapability: boolean = false;
 
 connection.onInitialize((params: InitializeParams) => {
+	initizelizeZetasql();
+
 	let capabilities = params.capabilities;
 
 	// Does the client support the `workspace/configuration` request?
@@ -47,6 +50,11 @@ connection.onInitialize((params: InitializeParams) => {
 	};
 	return result;
 });
+
+async function initizelizeZetasql() {
+	runServer().catch(err => console.error(err));
+	await Client.INSTANCE.testConnection();
+}
 
 connection.onInitialized(() => {
 	if (hasConfigurationCapability) {
