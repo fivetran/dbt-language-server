@@ -11,15 +11,19 @@ import {
 	InitializeResult,
 	Hover,
 	HoverParams,
-	Range
+	Range,
+	Diagnostic,
+	DiagnosticSeverity,
+	Position
 } from 'vscode-languageserver/node';
 
 import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
-import { Client, runServer, SimpleCatalog, SimpleColumn, SimpleTable, SimpleType, TypeKind } from '@fivetrandevelopers/zetasql';
+import { AnalyzeRequest, Client, runServer, SimpleCatalog, SimpleColumn, SimpleTable, SimpleType, TypeKind } from '@fivetrandevelopers/zetasql';
 import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
 import { ZetaSQLBuiltinFunctionOptions } from '@fivetrandevelopers/zetasql/lib/ZetaSQLBuiltinFunctionOptions';
+import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -48,7 +52,7 @@ connection.onInitialize(async (params: InitializeParams) => {
 			completionProvider: {
 				resolveProvider: true
 			},
-			hoverProvider : true,
+			hoverProvider : false,
 		}
 	};
 	return result;
@@ -88,6 +92,43 @@ async function initializeCatalog() {
 	await catalog.register();
 }
 
+// This event is emitted when the document first opened or when its content has changed.
+documents.onDidChangeContent(change => {
+	validateDocument(change.document);
+});
+
+async function validateDocument(document: TextDocument): Promise<void> {
+	const analyzeRequest: AnalyzeRequest = {
+		sqlStatement: document.getText(),
+		registeredCatalogId: catalog.registeredId,
+		options: {
+			errorMessageMode: ErrorMessageMode.ERROR_MESSAGE_ONE_LINE,
+		},
+	};
+
+	const diagnostics: Diagnostic[] = [];
+	try {
+		await Client.INSTANCE.analyze(analyzeRequest);
+	} catch (e) {
+		// parse string like 'Unrecognized name: paused1; Did you mean paused? [at 9:3]'
+		if (e.code == 3) {
+			let matchResults = e.details.match(/(.*?) \[at (\d+):(\d+)\]/);
+			let position = Position.create(matchResults[2] - 1, matchResults[3] - 1);
+
+			const diagnostic: Diagnostic = {
+				severity: DiagnosticSeverity.Error,
+				range: {
+					start: position,
+					end: position,
+				},
+				message: matchResults[1],
+			};
+			diagnostics.push(diagnostic);
+		}
+	}
+	connection.sendDiagnostics({ uri: document.uri, diagnostics });
+}
+
 connection.onInitialized(() => {
 	if (hasConfigurationCapability) {
 		// Register for all configuration changes.
@@ -116,17 +157,17 @@ connection.onCompletion(
 	}
 );
 
-connection.onHover(
-	(hoverParams: HoverParams): Hover => {
-		let text = documents.get(hoverParams.textDocument.uri)?.getText(Range.create(hoverParams.position.line, hoverParams.position.character, hoverParams.position.line, hoverParams.position.character + 1));
-		return {
-			contents: {
-				kind: 'markdown',
-				value: `This is hover for \`${text}\``
-			}
-		}
-	}
-);
+// connection.onHover(
+// 	(hoverParams: HoverParams): Hover => {
+// 		let text = documents.get(hoverParams.textDocument.uri)?.getText(Range.create(hoverParams.position.line, hoverParams.position.character, hoverParams.position.line, hoverParams.position.character + 1));
+// 		return {
+// 			contents: {
+// 				kind: 'markdown',
+// 				value: `This is hover for \`${text}\``
+// 			}
+// 		}
+// 	}
+// );
 
 // This handler resolves additional information for the item selected in
 // the completion list.
