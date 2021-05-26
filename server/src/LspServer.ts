@@ -2,19 +2,20 @@ import { AnalyzeRequest, Client, runServer, SimpleCatalog, SimpleColumn, SimpleT
 import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { ZetaSQLBuiltinFunctionOptions } from '@fivetrandevelopers/zetasql/lib/ZetaSQLBuiltinFunctionOptions';
-import { Diagnostic, DiagnosticSeverity, DidChangeConfigurationNotification, Hover, HoverParams, InitializeParams, InitializeResult, Position, Range, TextDocumentChangeEvent, TextDocuments, TextDocumentSyncKind, _Connection } from 'vscode-languageserver';
+import { Diagnostic, DiagnosticSeverity, DidChangeConfigurationNotification, DidOpenTextDocumentParams, Hover, HoverParams, InitializeParams, InitializeResult, Position, Range, TextDocumentChangeEvent, TextDocuments, TextDocumentSyncKind, _Connection } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { Documents } from './Document';
 
 export class LspServer {
     connection: _Connection;
-    documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
+    documents: Documents;
     catalog = new SimpleCatalog('catalog');
     hasConfigurationCapability: boolean = false;
     ast = {};
 
     constructor(connection: _Connection, documents: TextDocuments<TextDocument>) {
         this.connection = connection;
-        this.documents = documents;
+        this.documents = new Documents(documents);
     }
 
     async initialize(params: InitializeParams) {
@@ -93,13 +94,11 @@ export class LspServer {
             if (e.code == 3) {
                 let matchResults = e.details.match(/(.*?) \[at (\d+):(\d+)\]/);
                 let position = Position.create(matchResults[2] - 1, matchResults[3] - 1);
-    
+                const range = this.documents.getIdentifierRangeAtPosition(document.uri, position);
+
                 const diagnostic: Diagnostic = {
                     severity: DiagnosticSeverity.Error,
-                    range: {
-                        start: position,
-                        end: position,
-                    },
+                    range: range,
                     message: matchResults[1],
                 };
                 diagnostics.push(diagnostic);
@@ -116,12 +115,12 @@ export class LspServer {
     }
 
     hover(hoverParams: HoverParams): Hover {
-		let document = this.documents.get(hoverParams.textDocument.uri);
-		let text = this.documents.get(hoverParams.textDocument.uri)?.getText(Range.create(hoverParams.position.line, hoverParams.position.character, hoverParams.position.line, hoverParams.position.character));
+        const range = this.documents.getIdentifierRangeAtPosition(hoverParams.textDocument.uri, hoverParams.position);
+        const text = this.documents.getText(hoverParams.textDocument.uri, range);
 		return {
 			contents: {
-				kind: 'markdown',
-				value: `This is hover for \`${text}\``
+				kind: 'plaintext',
+				value: `This is hover for ${text}`
 			}
 		}
     }
