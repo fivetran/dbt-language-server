@@ -1,6 +1,7 @@
 import { AnalyzeRequest, Client, runServer, SimpleCatalog, SimpleColumn, SimpleTable, SimpleType, TypeKind } from '@fivetrandevelopers/zetasql';
 import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
+import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ZetaSQLBuiltinFunctionOptions } from '@fivetrandevelopers/zetasql/lib/ZetaSQLBuiltinFunctionOptions';
 import { Diagnostic, DiagnosticSeverity, DidChangeConfigurationNotification, DidOpenTextDocumentParams, Hover, HoverParams, InitializeParams, InitializeResult, Position, Range, TextDocumentChangeEvent, TextDocuments, TextDocumentSyncKind, _Connection } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -11,7 +12,7 @@ export class LspServer {
     documents: Documents;
     catalog = new SimpleCatalog('catalog');
     hasConfigurationCapability: boolean = false;
-    ast = {};
+    ast: Map<string, AnalyzeResponse> = new Map();
 
     constructor(connection: _Connection, documents: TextDocuments<TextDocument>) {
         this.connection = connection;
@@ -50,7 +51,7 @@ export class LspServer {
         projectCatalog.addSimpleCatalog(datasetCatalog);
         this.catalog.addSimpleCatalog(projectCatalog);
         datasetCatalog.addSimpleTable('transformations',
-          new SimpleTable('`digital-arbor-400`.pg_public.transformations', undefined, [
+          new SimpleTable('transformations', undefined, [
             new SimpleColumn('transformations', 'id', new SimpleType(TypeKind.TYPE_STRING)),
             new SimpleColumn('transformations', 'name', new SimpleType(TypeKind.TYPE_STRING)),
             new SimpleColumn('transformations', 'group_id', new SimpleType(TypeKind.TYPE_STRING)),
@@ -87,7 +88,7 @@ export class LspServer {
     
         const diagnostics: Diagnostic[] = [];
         try {
-            this.ast = await Client.INSTANCE.analyze(analyzeRequest);
+            this.ast.set(document.uri, await Client.INSTANCE.analyze(analyzeRequest));
             // console.log(JSON.stringify(this.ast, null, "    ") );
         } catch (e) {
             // Parse string like 'Unrecognized name: paused1; Did you mean paused? [at 9:3]'
@@ -117,11 +118,31 @@ export class LspServer {
     hover(hoverParams: HoverParams): Hover {
         const range = this.documents.getIdentifierRangeAtPosition(hoverParams.textDocument.uri, hoverParams.position);
         const text = this.documents.getText(hoverParams.textDocument.uri, range);
+        const outputColumn = this.ast.get(hoverParams.textDocument.uri)?.resolvedStatement?.resolvedQueryStmtNode?.outputColumnList?.find(c => c.name === text);
+        let hint;
+        if (outputColumn) {
+            if (outputColumn?.column?.tableName === '$query' || outputColumn?.column?.name !== outputColumn?.name) {
+                hint = `Alias: ${outputColumn?.name}`;
+            } else if (outputColumn?.name) {
+                hint = this.getColumnHint(outputColumn?.column?.tableName, outputColumn?.name, <TypeKind>outputColumn?.column?.type?.typeKind);
+            }
+        }
+        if (!hint) {
+            const column = this.ast.get(hoverParams.textDocument.uri)?.resolvedStatement?.resolvedQueryStmtNode?.query?.resolvedProjectScanNode?.inputScan?.resolvedFilterScanNode?.inputScan?.resolvedTableScanNode?.parent?.columnList?.find(c => c.name === text);
+            if (column) {
+                hint = this.getColumnHint(column?.tableName, column?.name, <TypeKind>column?.type?.typeKind);
+            }
+        }
 		return {
 			contents: {
 				kind: 'plaintext',
-				value: `This is hover for ${text}`
+				value: hint ?? ''
 			}
 		}
+    }
+
+    getColumnHint(tableName?: string, columnName?: string, columnTypeKind?: TypeKind) {
+        const type = new SimpleType(<TypeKind>columnTypeKind).getTypeName(); 
+        return `Table: ${tableName}\nColumn: ${columnName}\nType: ${type}`;
     }
 }
