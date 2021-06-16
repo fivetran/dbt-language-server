@@ -1,5 +1,5 @@
 {
-  "name": "dbt-extension",
+  "name": "dbt-language-server",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.54.0"

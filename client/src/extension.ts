@@ -11,7 +11,7 @@ import {
 let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
-	console.log('Congratulations, your extension "dbt-extension" is now active!');
+	console.log('Congratulations, your extension "dbt-language-server" is now active!');
 	// The server is implemented in node
 	let serverModule = context.asAbsolutePath(
 		path.join('server', 'out', 'server.js')

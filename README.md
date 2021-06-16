@@ -1,4 +1,4 @@
-# dbt-extension README
+# dbt-language-server README
 
 The repository contains dbt extension for Visual Studio Code.
 
