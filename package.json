@@ -32,19 +32,17 @@
     "compile": "tsc -b",
     "watch": "tsc -b -w",
     "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
-    "electron-rebuild": "electron-rebuild -v 12.0.4",
-    "test": "sh ./scripts/e2e.sh"
+    "electron-rebuild": "electron-rebuild -v 12.0.9"
   },
   "devDependencies": {
-    "@types/mocha": "^8.0.3",
-    "@types/node": "^12.12.0",
+    "@types/node": "^12.20.16",
     "@typescript-eslint/parser": "^2.3.0",
     "electron-rebuild": "^2.3.5",
     "eslint": "^6.4.0",
-    "mocha": "^8.1.1",
-    "typescript": "^4.2.2"
+    "ts-jest": "^27.0.3",
+    "typescript": "^4.3.5"
   },
   "dependencies": {
-    "@fivetrandevelopers/zetasql": "1.0.0-alpha.2"
+    "@fivetrandevelopers/zetasql": "1.0.0-alpha.4"
   }
 }

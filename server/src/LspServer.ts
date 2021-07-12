@@ -1,26 +1,30 @@
-import { AnalyzeRequest, Client, runServer, SimpleCatalog, SimpleColumn, SimpleTable, SimpleType, TypeKind } from '@fivetrandevelopers/zetasql';
+import { Client, runServer, terminateServer, SimpleCatalog, SimpleColumn, SimpleTable, SimpleType, TypeKind } from '@fivetrandevelopers/zetasql';
 import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
-import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ZetaSQLBuiltinFunctionOptions } from '@fivetrandevelopers/zetasql/lib/ZetaSQLBuiltinFunctionOptions';
-import { Diagnostic, DiagnosticSeverity, DidChangeConfigurationNotification, DidOpenTextDocumentParams, Hover, HoverParams, InitializeParams, InitializeResult, Position, Range, TextDocumentChangeEvent, TextDocuments, TextDocumentSyncKind, _Connection } from 'vscode-languageserver';
-import { TextDocument } from 'vscode-languageserver-textdocument';
-import { Documents } from './Document';
+import { DidChangeConfigurationNotification, DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams, DidSaveTextDocumentParams, Hover, HoverParams, InitializeParams, InitializeResult, TextDocumentSyncKind, _Connection } from 'vscode-languageserver';
+import { DbtServer as DbtServer } from './DbtServer';
+import { DbtTextDocument } from './DbtTextDocument';
 
 export class LspServer {
     connection: _Connection;
-    documents: Documents;
     catalog = new SimpleCatalog('catalog');
     hasConfigurationCapability: boolean = false;
-    ast: Map<string, AnalyzeResponse> = new Map();
+    ast = new Map<string, AnalyzeResponse>();
+    dbtServer = new DbtServer();
+    openedDocuments = new Map<string, DbtTextDocument>();
 
-    constructor(connection: _Connection, documents: TextDocuments<TextDocument>) {
+    constructor(connection: _Connection) {
         this.connection = connection;
-        this.documents = new Documents(documents);
     }
 
-    async initialize(params: InitializeParams) {
-        await this.initizelizeZetasql();
+    async onInitialize(params: InitializeParams) {
+        process.on('SIGTERM', this.gracefulShutdown)
+        process.on('SIGINT', this.gracefulShutdown)
+    
+        console.log(process.versions)
+        await this.initizelizeZetaSql();
+        this.dbtServer.startDbtRpc();
 
         let capabilities = params.capabilities;
     
@@ -39,7 +43,7 @@ export class LspServer {
         return result;
     }
 
-    async initizelizeZetasql() {
+    async initizelizeZetaSql() {
         runServer().catch(err => console.error(err));
         await Client.INSTANCE.testConnection();
         await this.initializeCatalog();
@@ -73,76 +77,45 @@ export class LspServer {
         await this.catalog.register();
     }
 
-    didChangeContent(change: TextDocumentChangeEvent<TextDocument>) {
-        this.validateDocument(change.document);
+    async onDidSaveTextDocument(params: DidSaveTextDocumentParams) {
+        this.dbtServer.refreshServer();
     }
 
-    async validateDocument(document: TextDocument): Promise<void> {
-        const analyzeRequest: AnalyzeRequest = {
-            sqlStatement: document.getText(),
-            registeredCatalogId: this.catalog.registeredId,
-            options: {
-                errorMessageMode: ErrorMessageMode.ERROR_MESSAGE_ONE_LINE,
-            },
-        };
-    
-        const diagnostics: Diagnostic[] = [];
-        try {
-            this.ast.set(document.uri, await Client.INSTANCE.analyze(analyzeRequest));
-            // console.log(JSON.stringify(this.ast, null, "    ") );
-        } catch (e) {
-            // Parse string like 'Unrecognized name: paused1; Did you mean paused? [at 9:3]'
-            if (e.code == 3) {
-                let matchResults = e.details.match(/(.*?) \[at (\d+):(\d+)\]/);
-                let position = Position.create(matchResults[2] - 1, matchResults[3] - 1);
-                const range = this.documents.getIdentifierRangeAtPosition(document.uri, position);
-
-                const diagnostic: Diagnostic = {
-                    severity: DiagnosticSeverity.Error,
-                    range: range,
-                    message: matchResults[1],
-                };
-                diagnostics.push(diagnostic);
-            }
+    async onDidOpenTextDocument(params: DidOpenTextDocumentParams) {
+        const uri = params.textDocument.uri;
+        let document = this.openedDocuments.get(uri);
+        if (!document) {
+            document = new DbtTextDocument(params.textDocument, this.dbtServer, this.catalog, this.connection);
+            this.openedDocuments.set(uri, document);
         }
-        this.connection.sendDiagnostics({ uri: document.uri, diagnostics });
     }
 
-    initialized() {
+    async onDidChangeTextDocument(params: DidChangeTextDocumentParams) {
+        const document = this.openedDocuments.get(params.textDocument.uri);
+        if (document) {
+            await document.didChangeTextDocument(params);
+        }
+    }
+
+    async onDidCloseTextDocument(params: DidCloseTextDocumentParams): Promise<void> {
+        this.openedDocuments.delete(params.textDocument.uri);
+    }
+
+    onInitialized() {
         if (this.hasConfigurationCapability) {
             // Register for all configuration changes.
             this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
         }    
     }
 
-    hover(hoverParams: HoverParams): Hover {
-        const range = this.documents.getIdentifierRangeAtPosition(hoverParams.textDocument.uri, hoverParams.position);
-        const text = this.documents.getText(hoverParams.textDocument.uri, range);
-        const outputColumn = this.ast.get(hoverParams.textDocument.uri)?.resolvedStatement?.resolvedQueryStmtNode?.outputColumnList?.find(c => c.name === text);
-        let hint;
-        if (outputColumn) {
-            if (outputColumn?.column?.tableName === '$query' || outputColumn?.column?.name !== outputColumn?.name) {
-                hint = `Alias: ${outputColumn?.name}`;
-            } else if (outputColumn?.name) {
-                hint = this.getColumnHint(outputColumn?.column?.tableName, outputColumn?.name, <TypeKind>outputColumn?.column?.type?.typeKind);
-            }
-        }
-        if (!hint) {
-            const column = this.ast.get(hoverParams.textDocument.uri)?.resolvedStatement?.resolvedQueryStmtNode?.query?.resolvedProjectScanNode?.inputScan?.resolvedFilterScanNode?.inputScan?.resolvedTableScanNode?.parent?.columnList?.find(c => c.name === text);
-            if (column) {
-                hint = this.getColumnHint(column?.tableName, column?.name, <TypeKind>column?.type?.typeKind);
-            }
-        }
-		return {
-			contents: {
-				kind: 'plaintext',
-				value: hint ?? ''
-			}
-		}
+    async onHover(hoverParams: HoverParams) {
+        const document = this.openedDocuments.get(hoverParams.textDocument.uri);
+        return document?.onHover(hoverParams);
     }
 
-    getColumnHint(tableName?: string, columnName?: string, columnTypeKind?: TypeKind) {
-        const type = new SimpleType(<TypeKind>columnTypeKind).getTypeName(); 
-        return `Table: ${tableName}\nColumn: ${columnName}\nType: ${type}`;
+    async gracefulShutdown() {
+        console.log('Graceful shutrown start...');
+        terminateServer();
+        console.log('Graceful shutrown end...');
     }
 }

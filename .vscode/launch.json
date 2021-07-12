@@ -26,7 +26,16 @@
 			"port": 6009,
 			"restart": true,
 			"outFiles": ["${workspaceFolder}/server/out/**/*.js"]
-		}
+		},
+		{
+            "name": "Debug Server Jest Tests",
+            "type": "node",
+            "request": "launch",
+            "runtimeArgs": ["--inspect-brk", "node_modules/.bin/jest", "--runInBand", "--config", "jestconfig.json"],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+			"cwd": "${workspaceRoot}/server"
+        },
 	],
 	"compounds": [
 		{
