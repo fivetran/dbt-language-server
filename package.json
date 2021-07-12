@@ -30,7 +30,9 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -b",
+    "compile:all": "npm run format && npm run compile",
     "watch": "tsc -b -w",
+    "format": "prettier --write \"client/src/**/*.ts\" \"server/src/**/*.ts\"",
     "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
     "electron-rebuild": "electron-rebuild -v 12.0.9"
   },
@@ -39,6 +41,7 @@
     "@typescript-eslint/parser": "^2.3.0",
     "electron-rebuild": "^2.3.5",
     "eslint": "^6.4.0",
+    "prettier": "^2.3.2",
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.5"
   },

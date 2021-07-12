@@ -1,4 +1,4 @@
-import { createConnection, ProposedFeatures} from 'vscode-languageserver/node';
+import { createConnection, ProposedFeatures } from 'vscode-languageserver/node';
 import { LspServer } from './LspServer';
 
 // Create a connection for the server, using Node's IPC as a transport.
@@ -12,8 +12,8 @@ connection.onInitialized(server.onInitialized.bind(server));
 connection.onHover(server.onHover.bind(server));
 
 connection.onDidSaveTextDocument(server.onDidSaveTextDocument.bind(server));
-connection.onDidOpenTextDocument(server.onDidOpenTextDocument.bind(server))
+connection.onDidOpenTextDocument(server.onDidOpenTextDocument.bind(server));
 connection.onDidChangeTextDocument(server.onDidChangeTextDocument.bind(server));
-connection.onDidCloseTextDocument(server.onDidCloseTextDocument.bind(server))
+connection.onDidCloseTextDocument(server.onDidCloseTextDocument.bind(server));
 
 connection.listen();
