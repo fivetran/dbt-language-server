@@ -13,13 +13,13 @@ select
   id as transformation_id,
   created_at,
   created_by_id, 
-  group_id1234567,
+  group_id1,
   name,
   paused,
   trigger,
   last_started_at,
   status
-from `digital-arbor-400`.pg_public.transformations
+from `singular-vector-135519`.pg_public.transformations
 where not _fivetran_deleted
 
 
