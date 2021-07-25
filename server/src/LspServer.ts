@@ -1,7 +1,5 @@
-import { Client, runServer, terminateServer, SimpleCatalog, SimpleColumn, SimpleTable, SimpleType, TypeKind } from '@fivetrandevelopers/zetasql';
-import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
+import { ZetaSQLClient, runServer, terminateServer, SimpleCatalog } from '@fivetrandevelopers/zetasql';
 import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
-import { ZetaSQLBuiltinFunctionOptions } from '@fivetrandevelopers/zetasql/lib/ZetaSQLBuiltinFunctionOptions';
 import {
   DidChangeConfigurationNotification,
   DidChangeTextDocumentParams,
@@ -54,33 +52,7 @@ export class LspServer {
 
   async initizelizeZetaSql() {
     runServer().catch(err => console.error(err));
-    await Client.INSTANCE.testConnection();
-    await this.initializeCatalog();
-  }
-
-  async initializeCatalog() {
-    const projectCatalog = new SimpleCatalog('digital-arbor-400');
-    const datasetCatalog = new SimpleCatalog('pg_public');
-    projectCatalog.addSimpleCatalog(datasetCatalog);
-    this.catalog.addSimpleCatalog(projectCatalog);
-    datasetCatalog.addSimpleTable(
-      'transformations',
-      new SimpleTable('transformations', undefined, [
-        new SimpleColumn('transformations', 'id', new SimpleType(TypeKind.TYPE_STRING)),
-        new SimpleColumn('transformations', 'name', new SimpleType(TypeKind.TYPE_STRING)),
-        new SimpleColumn('transformations', 'group_id', new SimpleType(TypeKind.TYPE_STRING)),
-        new SimpleColumn('transformations', 'paused', new SimpleType(TypeKind.TYPE_BOOL)),
-        new SimpleColumn('transformations', 'trigger', new SimpleType(TypeKind.TYPE_STRING)),
-        new SimpleColumn('transformations', 'created_at', new SimpleType(TypeKind.TYPE_TIMESTAMP)),
-        new SimpleColumn('transformations', 'created_by_id', new SimpleType(TypeKind.TYPE_STRING)),
-        new SimpleColumn('transformations', 'last_started_at', new SimpleType(TypeKind.TYPE_TIMESTAMP)),
-        new SimpleColumn('transformations', 'status', new SimpleType(TypeKind.TYPE_STRING)),
-        new SimpleColumn('transformations', '_fivetran_deleted', new SimpleType(TypeKind.TYPE_BOOL)),
-      ]),
-    );
-    const options = await new LanguageOptions().enableMaximumLanguageFeatures();
-    await this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions(options));
-    await this.catalog.register();
+    await ZetaSQLClient.INSTANCE.testConnection();
   }
 
   async onDidSaveTextDocument(params: DidSaveTextDocumentParams) {

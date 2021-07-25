@@ -1,6 +1,17 @@
-import { AnalyzeRequest, Client, SimpleCatalog, SimpleType, TypeKind } from '@fivetrandevelopers/zetasql';
+import {
+  AnalyzeRequest,
+  ZetaSQLClient,
+  SimpleCatalog,
+  SimpleType,
+  TypeKind,
+  SimpleTable,
+  SimpleColumn,
+  TypeFactory,
+} from '@fivetrandevelopers/zetasql';
+import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
+import { ZetaSQLBuiltinFunctionOptions } from '@fivetrandevelopers/zetasql/lib/ZetaSQLBuiltinFunctionOptions';
 import {
   Diagnostic,
   DiagnosticSeverity,
@@ -15,6 +26,7 @@ import {
 import { TextDocument, TextDocumentContentChangeEvent } from 'vscode-languageserver-textdocument';
 import { DbtServer } from './DbtServer';
 import { ModelCompiler } from './ModelCompiler';
+import { SchemaTracker } from './SchemaTracker';
 
 export class DbtTextDocument {
   static readonly NON_WORD_PATTERN = /\W/;
@@ -25,10 +37,12 @@ export class DbtTextDocument {
   compiledDocument: TextDocument;
   modelCompiler: ModelCompiler;
   ast: AnalyzeResponse | undefined;
+  schemaTracker: SchemaTracker;
   lastAccessed: number = new Date().getTime();
   jinjas = new Array<Range>();
   catalog: SimpleCatalog;
   recompileRequired = false;
+  catalogInitialized = false;
 
   constructor(doc: TextDocumentItem, dbtServer: DbtServer, catalog: SimpleCatalog, connection: _Connection) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -36,6 +50,7 @@ export class DbtTextDocument {
     this.modelCompiler = new ModelCompiler(this, dbtServer);
     this.catalog = catalog;
     this.connection = connection;
+    this.schemaTracker = new SchemaTracker();
 
     this.findAllJinjas();
     // if (this.jinjas.length > 0) {
@@ -122,7 +137,7 @@ export class DbtTextDocument {
 
     const diagnostics: Diagnostic[] = [];
     try {
-      this.ast = await Client.INSTANCE.analyze(analyzeRequest);
+      this.ast = await ZetaSQLClient.INSTANCE.analyze(analyzeRequest);
     } catch (e) {
       // Parse string like 'Unrecognized name: paused1; Did you mean paused? [at 9:3]'
       if (e.code == 3) {
@@ -145,7 +160,61 @@ export class DbtTextDocument {
     return (range1.start < range2.start && range1.end > range2.start) || (range1.start < range2.end && range1.end > range2.end);
   }
 
+  async ensureCatalogInitialized() {
+    await this.schemaTracker.refreshTableNames(this.compiledDocument.getText());
+    const projectId = this.schemaTracker.serviceAccountCreds?.project;
+    if (projectId && (!this.catalog.catalogs.has(projectId) || this.schemaTracker.hasNewTables)) {
+      await this.registerCatalog(projectId);
+    }
+  }
+
+  async registerCatalog(projectId: string) {
+    let projectCatalog = this.catalog.catalogs.get(projectId);
+    if (!projectCatalog) {
+      projectCatalog = new SimpleCatalog(projectId);
+      this.catalog.addSimpleCatalog(projectCatalog);
+    }
+
+    for (const t of this.schemaTracker.tableDefinitions) {
+      let dataSetCatalog = projectCatalog.catalogs.get(t.getDatasetName());
+      if (!dataSetCatalog) {
+        dataSetCatalog = new SimpleCatalog(t.getDatasetName());
+        projectCatalog.addSimpleCatalog(dataSetCatalog);
+      }
+
+      let table = dataSetCatalog.tables.get(t.getTableName());
+      if (!table) {
+        table = new SimpleTable(t.getTableName());
+        dataSetCatalog.addSimpleTable(t.getTableName(), table);
+      }
+
+      for (const newColumn of t.schema?.fields ?? []) {
+        let existingColumn = table.columns.find(c => c.getName() === newColumn.name);
+        if (!existingColumn) {
+          const type = newColumn.type.toLowerCase();
+          const typeKind = TypeFactory.SIMPLE_TYPE_KIND_NAMES.get(type);
+          if (typeKind) {
+            const simpleColumn = new SimpleColumn(t.getTableName(), newColumn.name, new SimpleType(typeKind));
+            table.addSimpleColumn(simpleColumn);
+          } else {
+            console.log('Cannot find SimpleType for ' + newColumn.type);
+          }
+        }
+      }
+    }
+
+    if (this.catalog.registered) {
+      await this.catalog.unregister();
+    } else {
+      const options = await new LanguageOptions().enableMaximumLanguageFeatures();
+      await this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions(options));
+    }
+    await this.catalog.register();
+    this.schemaTracker.resetHasNewTables();
+  }
+
   async onCompilationFinished(dbtCompilationError?: string) {
+    await this.ensureCatalogInitialized();
     await this.sendDiagnostics(dbtCompilationError);
   }
 
@@ -190,7 +259,7 @@ export class DbtTextDocument {
     }
     const line = Math.min(lines.length - 1, Math.max(0, position.line));
     const lineText = lines[line];
-    const charIndex = Math.min(lineText.length - 1, Math.max(0, position.character));
+    const charIndex = Math.max(0, Math.min(lineText.length - 1, Math.max(0, position.character)));
     const textBeforeChar = lineText.substring(0, charIndex);
     if ((textBeforeChar.split('`').length - 1) % 2 !== 0) {
       return Range.create(line, textBeforeChar.lastIndexOf('`'), line, lineText.indexOf('`', charIndex) + 1);
