@@ -10,6 +10,9 @@
       "runtimeExecutable": "${execPath}",
       "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
       "outFiles": ["${workspaceFolder}/client/out/**/*.js"],
+      "env": {
+        // "NODE_OPTIONS": "--trace-deprecation"
+      },
       "preLaunchTask": {
         "type": "npm",
         "script": "watch"
