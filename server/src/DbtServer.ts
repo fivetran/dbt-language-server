@@ -189,7 +189,7 @@ export class DbtServer {
       id: uuid(),
       params: {
         timeout: 60,
-        sql: Buffer.from(sql).toString('base64'),
+        sql: 'q', //Buffer.from(sql).toString('base64'),
         name: 'compile_sql',
       },
     };
