@@ -23,7 +23,6 @@ interface CompileSqlParams {
 interface PollParams {
   request_token: string;
   logs: false;
-  log_start: 0;
 }
 
 interface Response {
@@ -205,7 +204,6 @@ export class DbtServer {
       params: {
         request_token: requestToken,
         logs: false,
-        log_start: 0,
       },
     };
 

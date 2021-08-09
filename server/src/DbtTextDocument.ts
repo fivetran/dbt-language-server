@@ -25,6 +25,7 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument, TextDocumentContentChangeEvent } from 'vscode-languageserver-textdocument';
 import { DbtServer } from './DbtServer';
+import { DiffTracker } from './DiffTracker';
 import { ModelCompiler } from './ModelCompiler';
 import { SchemaTracker } from './SchemaTracker';
 
@@ -141,8 +142,11 @@ export class DbtTextDocument {
     } catch (e) {
       // Parse string like 'Unrecognized name: paused1; Did you mean paused? [at 9:3]'
       if (e.code == 3) {
-        let matchResults = e.details.match(/(.*?) \[at (\d+):(\d+)\]/);
-        let position = Position.create(matchResults[2] - 1, matchResults[3] - 1);
+        const matchResults = e.details.match(/(.*?) \[at (\d+):(\d+)\]/);
+        const lineInCompiledDoc = matchResults[2] - 1;
+        const characterInCompiledDoc = matchResults[3] - 1;
+        const lineInRawDoc = DiffTracker.getOldLineNumber(this.rawDocument.getText(), this.compiledDocument.getText(), lineInCompiledDoc);
+        let position = Position.create(lineInRawDoc, characterInCompiledDoc);
         const range = this.getIdentifierRangeAtPosition(position);
 
         const diagnostic: Diagnostic = {
