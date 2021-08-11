@@ -15,10 +15,8 @@ select
   created_by_id,
   group_id,
   name,
-  paused,
+  paused123,
   trigger, last_started_at,
   status,
-  test.datetime_co2123456567
-from {{ var('project_name') }}.pg_public.transformations t
-inner join {{ var('project_name') }}.pg_public.test_table test on test.string_col = t.name
+from `singular-vector-135519`.pg_public.transformations t
 where not _fivetran_deleted

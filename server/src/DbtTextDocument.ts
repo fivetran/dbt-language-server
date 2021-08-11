@@ -218,7 +218,9 @@ export class DbtTextDocument {
   }
 
   async onCompilationFinished(dbtCompilationError?: string) {
-    await this.ensureCatalogInitialized();
+    if (!dbtCompilationError) {
+      await this.ensureCatalogInitialized();
+    }
     await this.sendDiagnostics(dbtCompilationError);
   }
 

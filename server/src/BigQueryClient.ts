@@ -14,7 +14,11 @@ export class BigQueryClient {
   async getTableSchema(dataSet: string, tableName: string) {
     const dataset = this.bigQuery.dataset(dataSet);
     const table = dataset.table(tableName);
-    const metadata = await table.getMetadata();
-    return metadata[0].schema;
+    try {
+      const metadata = await table.getMetadata();
+      return metadata[0].schema;
+    } catch (e) {
+      console.log(e.message);
+    }
   }
 }

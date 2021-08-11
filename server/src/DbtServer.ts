@@ -4,25 +4,34 @@ import { v4 as uuid } from 'uuid';
 
 interface PostData {
   jsonrpc: '2.0';
-  method: 'status' | 'compile' | 'compile_sql' | 'poll';
+  method: 'status' | 'compile' | 'compile_sql' | 'poll' | 'kill';
   id: string;
-  params?: CompileModelParams | CompileSqlParams | PollParams;
+  params?: StatusParams | CompileModelParams | CompileSqlParams | PollParams | KillParams;
 }
 
-interface CompileModelParams {
+interface Params {
+  timeout?: number;
+}
+
+interface StatusParams extends Params {}
+
+interface CompileModelParams extends Params {
   threads?: string;
   models: string;
 }
 
-interface CompileSqlParams {
-  timeout: number;
+interface CompileSqlParams extends Params {
   sql: string;
   name: string;
 }
 
-interface PollParams {
+interface PollParams extends Params {
   request_token: string;
   logs: false;
+}
+
+interface KillParams extends Params {
+  task_id: string;
 }
 
 interface Response {
@@ -43,7 +52,7 @@ interface StatusResponse extends Response {
   };
 }
 
-interface CompileResponse extends Response {
+export interface CompileResponse extends Response {
   result: {
     request_token: string;
   };
@@ -74,11 +83,20 @@ export class DbtServer {
     const existingRpc = child.spawnSync('lsof', ['-ti:8588']);
     const pids = String(existingRpc.stdout).split(/\n|\r/g);
     console.log('killing pid "' + pids + '"');
-    const kill = child.spawn('kill', pids); // TODO delete this
+    child.spawn('kill', pids); // TODO delete this
 
-    const rpc = child.spawn('dbt', ['--partial-parse', 'rpc', '--port', DbtServer.PORT]);
-    rpc.stderr.on('data', data => {
-      console.error(data.toString());
+    const rpc = child.exec('dbt --partial-parse rpc --port ' + DbtServer.PORT, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`error: ${error.message}`);
+        return;
+      }
+
+      if (stderr) {
+        console.error(`stderr: ${stderr}`);
+        return;
+      }
+
+      console.log(`stdout:\n${stdout}`);
     });
 
     rpc.on('exit', code => {
@@ -104,13 +122,13 @@ export class DbtServer {
 
   refreshServer() {
     if (this.pid !== -1) {
-      const result = child.spawnSync('kill', ['-HUP', this.pid.toString()]);
-      console.log(`kill -HUP ${this.pid}`);
+      // const result = child.spawnSync('kill', ['-HUP', this.pid.toString()]);
+      // console.log(`kill -HUP ${this.pid}`);
     }
   }
 
   async isAvailable() {
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 10; i++) {
       try {
         const ready = await this.checkServerReadyOrError();
         console.log('ready: ' + ready);
@@ -128,7 +146,7 @@ export class DbtServer {
   }
 
   async getReadyOrErrorStatus() {
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 1; i++) {
       const status = await this.getCurrentStatus();
       console.log('ready: ' + !!status);
       if (status) {
@@ -144,7 +162,9 @@ export class DbtServer {
 
   async getCurrentStatus() {
     const statusRespopnse = await this.getStatus();
-    this.pid = statusRespopnse ? statusRespopnse.result.pid : -1;
+    if (statusRespopnse?.result.pid) {
+      this.pid = statusRespopnse?.result.pid;
+    }
     const state = statusRespopnse?.result.state;
     if (state === 'ready' || state === 'error') {
       return statusRespopnse?.result;
@@ -163,6 +183,9 @@ export class DbtServer {
       jsonrpc: '2.0',
       method: 'status',
       id: uuid(),
+      params: {
+        timeout: 1,
+      },
     };
 
     return await this.makePostRequest<StatusResponse>(data);
@@ -181,7 +204,7 @@ export class DbtServer {
     return await this.makePostRequest<CompileResponse>(data);
   }
 
-  async compileSql(sql: string): Promise<CompileResponse | undefined> {
+  async compileSql(sql: string): Promise<CompileResponse> {
     const data: PostData = {
       jsonrpc: '2.0',
       method: 'compile_sql',
@@ -193,7 +216,18 @@ export class DbtServer {
       },
     };
 
-    return await this.makePostRequest<CompileResponse>(data);
+    const result = await this.makePostRequest<CompileResponse>(data);
+    if (!result) {
+      return {
+        result: { request_token: '' },
+        error: {
+          data: {
+            message: 'Error while running compile sql',
+          },
+        },
+      };
+    }
+    return result;
   }
 
   async pollOnceCompileResult(requestToken: string): Promise<PollResponse | undefined> {
@@ -219,9 +253,23 @@ export class DbtServer {
     return pollResponse;
   }
 
+  async kill(requestToken: string) {
+    const data: PostData = {
+      jsonrpc: '2.0',
+      method: 'kill',
+      id: uuid(),
+      params: {
+        task_id: requestToken,
+        timeout: 1,
+      },
+    };
+
+    return await this.makePostRequest<PollResponse>(data);
+  }
+
   async makePostRequest<T extends Response>(postData: object): Promise<T | undefined> {
     try {
-      const response = await axios.post<T>(`http://localhost:${DbtServer.PORT}/jsonrpc`, postData);
+      const response = await axios.post<T>(`http://localhost:${DbtServer.PORT}/jsonrpc`, postData, { timeout: 6000 });
       console.log(response);
       const { data } = response;
       if (data?.error?.data?.message) {
@@ -233,7 +281,7 @@ export class DbtServer {
       }
       return data;
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   }
 }
