@@ -35,7 +35,9 @@ export class SchemaTracker {
       return;
     }
 
-    const newTables = tableDefinitions.filter(newTable => !this.tableDefinitions.find(oldTable => this.arraysAreEqual(oldTable.name, newTable.name)));
+    const newTables = tableDefinitions.filter(
+      newTable => !this.tableDefinitions.find(oldTable => this.arraysAreEqual(oldTable.name, newTable.name) && oldTable.rawName === newTable.rawName),
+    );
 
     if (newTables.length > 0 && this.serviceAccountCreds) {
       const bigQueryClient = new BigQueryClient(this.serviceAccountCreds.keyFile, this.serviceAccountCreds.project);

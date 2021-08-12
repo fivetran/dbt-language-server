@@ -133,6 +133,7 @@ export class DbtTextDocument {
       registeredCatalogId: this.catalog.registeredId,
       options: {
         errorMessageMode: ErrorMessageMode.ERROR_MESSAGE_ONE_LINE,
+        languageOptions: this.catalog.builtinFunctionOptions.languageOptions,
       },
     };
 
@@ -176,34 +177,41 @@ export class DbtTextDocument {
 
   async registerCatalog() {
     for (const t of this.schemaTracker.tableDefinitions) {
-      let dataSetOwner = this.catalog;
+      let parent = this.catalog;
 
-      const projectId = t.getProjectName();
-      if (projectId) {
-        let projectCatalog = this.catalog.catalogs.get(projectId);
-        if (!projectCatalog) {
-          projectCatalog = new SimpleCatalog(projectId);
-          if (this.catalog.registered) {
+      if (!t.rawName) {
+        const projectId = t.getProjectName();
+        if (projectId) {
+          let projectCatalog = this.catalog.catalogs.get(projectId);
+          if (!projectCatalog) {
+            projectCatalog = new SimpleCatalog(projectId);
+            if (this.catalog.registered) {
+              await this.catalog.unregister();
+            }
+            this.catalog.addSimpleCatalog(projectCatalog);
+          }
+          parent = projectCatalog;
+        }
+
+        let dataSetCatalog = parent.catalogs.get(t.getDatasetName());
+        if (!dataSetCatalog) {
+          dataSetCatalog = new SimpleCatalog(t.getDatasetName());
+          if (this.catalog.registered && parent === this.catalog) {
             await this.catalog.unregister();
           }
-          this.catalog.addSimpleCatalog(projectCatalog);
+          parent.addSimpleCatalog(dataSetCatalog);
         }
-        dataSetOwner = projectCatalog;
+        parent = dataSetCatalog;
       }
 
-      let dataSetCatalog = dataSetOwner.catalogs.get(t.getDatasetName());
-      if (!dataSetCatalog) {
-        dataSetCatalog = new SimpleCatalog(t.getDatasetName());
-        if (this.catalog.registered && dataSetOwner === this.catalog) {
+      const tableName = t.rawName ?? t.getTableName();
+      let table = parent.tables.get(tableName);
+      if (!table) {
+        if (this.catalog.registered && t.rawName) {
           await this.catalog.unregister();
         }
-        dataSetOwner.addSimpleCatalog(dataSetCatalog);
-      }
-
-      let table = dataSetCatalog.tables.get(t.getTableName());
-      if (!table) {
-        table = new SimpleTable(t.getTableName());
-        dataSetCatalog.addSimpleTable(t.getTableName(), table);
+        table = new SimpleTable(tableName);
+        parent.addSimpleTable(tableName, table);
       }
 
       for (const newColumn of t.schema?.fields ?? []) {
@@ -225,8 +233,8 @@ export class DbtTextDocument {
       await this.catalog.unregister();
     }
     if (!this.catalog.builtinFunctionOptions) {
-      const options = await new LanguageOptions().enableMaximumLanguageFeatures();
-      await this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions(options));
+      const languageOptions = await new LanguageOptions().enableMaximumLanguageFeatures();
+      await this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions(languageOptions));
     }
     await this.catalog.register();
     this.schemaTracker.resetHasNewTables();
