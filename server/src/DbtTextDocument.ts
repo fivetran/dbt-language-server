@@ -139,7 +139,9 @@ export class DbtTextDocument {
     const diagnostics: Diagnostic[] = [];
     try {
       this.ast = await ZetaSQLClient.INSTANCE.analyze(analyzeRequest);
+      console.log('AST was successfully received');
     } catch (e) {
+      console.log('There was an error wile parsing SQL query');
       // Parse string like 'Unrecognized name: paused1; Did you mean paused? [at 9:3]'
       if (e.code == 3) {
         const matchResults = e.details.match(/(.*?) \[at (\d+):(\d+)\]/);
@@ -181,6 +183,9 @@ export class DbtTextDocument {
         let projectCatalog = this.catalog.catalogs.get(projectId);
         if (!projectCatalog) {
           projectCatalog = new SimpleCatalog(projectId);
+          if (this.catalog.registered) {
+            await this.catalog.unregister();
+          }
           this.catalog.addSimpleCatalog(projectCatalog);
         }
         dataSetOwner = projectCatalog;
@@ -189,6 +194,9 @@ export class DbtTextDocument {
       let dataSetCatalog = dataSetOwner.catalogs.get(t.getDatasetName());
       if (!dataSetCatalog) {
         dataSetCatalog = new SimpleCatalog(t.getDatasetName());
+        if (this.catalog.registered && dataSetOwner === this.catalog) {
+          await this.catalog.unregister();
+        }
         dataSetOwner.addSimpleCatalog(dataSetCatalog);
       }
 
@@ -215,7 +223,8 @@ export class DbtTextDocument {
 
     if (this.catalog.registered) {
       await this.catalog.unregister();
-    } else {
+    }
+    if (!this.catalog.builtinFunctionOptions) {
       const options = await new LanguageOptions().enableMaximumLanguageFeatures();
       await this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions(options));
     }
