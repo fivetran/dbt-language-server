@@ -168,22 +168,28 @@ export class DbtTextDocument {
     await this.schemaTracker.refreshTableNames(this.compiledDocument.getText());
     const projectId = this.schemaTracker.serviceAccountCreds?.project;
     if (projectId && (!this.catalog.catalogs.has(projectId) || this.schemaTracker.hasNewTables)) {
-      await this.registerCatalog(projectId);
+      await this.registerCatalog();
     }
   }
 
-  async registerCatalog(projectId: string) {
-    let projectCatalog = this.catalog.catalogs.get(projectId);
-    if (!projectCatalog) {
-      projectCatalog = new SimpleCatalog(projectId);
-      this.catalog.addSimpleCatalog(projectCatalog);
-    }
-
+  async registerCatalog() {
     for (const t of this.schemaTracker.tableDefinitions) {
-      let dataSetCatalog = projectCatalog.catalogs.get(t.getDatasetName());
+      let dataSetOwner = this.catalog;
+
+      const projectId = t.getProjectName();
+      if (projectId) {
+        let projectCatalog = this.catalog.catalogs.get(projectId);
+        if (!projectCatalog) {
+          projectCatalog = new SimpleCatalog(projectId);
+          this.catalog.addSimpleCatalog(projectCatalog);
+        }
+        dataSetOwner = projectCatalog;
+      }
+
+      let dataSetCatalog = dataSetOwner.catalogs.get(t.getDatasetName());
       if (!dataSetCatalog) {
         dataSetCatalog = new SimpleCatalog(t.getDatasetName());
-        projectCatalog.addSimpleCatalog(dataSetCatalog);
+        dataSetOwner.addSimpleCatalog(dataSetCatalog);
       }
 
       let table = dataSetCatalog.tables.get(t.getTableName());
