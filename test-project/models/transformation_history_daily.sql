@@ -18,7 +18,7 @@ select
   paused,
   trigger, last_started_at,
   status,
-  test.datetime_co2123456567
+  test.datetime_col
 from {{ var('project_name') }}.pg_public.transformations t
 inner join {{ var('project_name') }}.pg_public.test_table test on test.string_col = t.name
 where not _fivetran_deleted
