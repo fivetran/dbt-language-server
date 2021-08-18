@@ -1,17 +1,11 @@
 import {
   AnalyzeRequest,
   ZetaSQLClient,
-  SimpleCatalog,
   SimpleType,
   TypeKind,
-  SimpleTable,
-  SimpleColumn,
-  TypeFactory,
 } from '@fivetrandevelopers/zetasql';
-import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
-import { ZetaSQLBuiltinFunctionOptions } from '@fivetrandevelopers/zetasql/lib/ZetaSQLBuiltinFunctionOptions';
 import {
   Diagnostic,
   DiagnosticSeverity,
@@ -28,6 +22,7 @@ import { DbtServer } from './DbtServer';
 import { DiffTracker } from './DiffTracker';
 import { ModelCompiler } from './ModelCompiler';
 import { SchemaTracker } from './SchemaTracker';
+import { ZetaSQLCatalog } from './ZetaSQLCatalog';
 
 export class DbtTextDocument {
   static readonly NON_WORD_PATTERN = /\W/;
@@ -41,15 +36,13 @@ export class DbtTextDocument {
   schemaTracker: SchemaTracker;
   lastAccessed: number = new Date().getTime();
   jinjas = new Array<Range>();
-  catalog: SimpleCatalog;
   recompileRequired = false;
   catalogInitialized = false;
 
-  constructor(doc: TextDocumentItem, dbtServer: DbtServer, catalog: SimpleCatalog, connection: _Connection) {
+  constructor(doc: TextDocumentItem, dbtServer: DbtServer, connection: _Connection) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.modelCompiler = new ModelCompiler(this, dbtServer);
-    this.catalog = catalog;
     this.connection = connection;
     this.schemaTracker = new SchemaTracker();
 
@@ -130,10 +123,10 @@ export class DbtTextDocument {
 
     const analyzeRequest: AnalyzeRequest = {
       sqlStatement: this.compiledDocument.getText(),
-      registeredCatalogId: this.catalog.registeredId,
+      registeredCatalogId: ZetaSQLCatalog.getInstance().catalog.registeredId,
       options: {
         errorMessageMode: ErrorMessageMode.ERROR_MESSAGE_ONE_LINE,
-        languageOptions: this.catalog.builtinFunctionOptions.languageOptions,
+        languageOptions: ZetaSQLCatalog.getInstance().catalog.builtinFunctionOptions.languageOptions,
       },
     };
 
@@ -170,73 +163,13 @@ export class DbtTextDocument {
   async ensureCatalogInitialized() {
     await this.schemaTracker.refreshTableNames(this.compiledDocument.getText());
     const projectId = this.schemaTracker.serviceAccountCreds?.project;
-    if (projectId && (!this.catalog.catalogs.has(projectId) || this.schemaTracker.hasNewTables)) {
+    if (projectId && this.schemaTracker.hasNewTables) {
       await this.registerCatalog();
     }
   }
 
   async registerCatalog() {
-    for (const t of this.schemaTracker.tableDefinitions) {
-      let parent = this.catalog;
-
-      if (!t.rawName) {
-        const projectId = t.getProjectName();
-        if (projectId) {
-          let projectCatalog = this.catalog.catalogs.get(projectId);
-          if (!projectCatalog) {
-            projectCatalog = new SimpleCatalog(projectId);
-            if (this.catalog.registered) {
-              await this.catalog.unregister();
-            }
-            this.catalog.addSimpleCatalog(projectCatalog);
-          }
-          parent = projectCatalog;
-        }
-
-        let dataSetCatalog = parent.catalogs.get(t.getDatasetName());
-        if (!dataSetCatalog) {
-          dataSetCatalog = new SimpleCatalog(t.getDatasetName());
-          if (this.catalog.registered && parent === this.catalog) {
-            await this.catalog.unregister();
-          }
-          parent.addSimpleCatalog(dataSetCatalog);
-        }
-        parent = dataSetCatalog;
-      }
-
-      const tableName = t.rawName ?? t.getTableName();
-      let table = parent.tables.get(tableName);
-      if (!table) {
-        if (this.catalog.registered && t.rawName) {
-          await this.catalog.unregister();
-        }
-        table = new SimpleTable(tableName);
-        parent.addSimpleTable(tableName, table);
-      }
-
-      for (const newColumn of t.schema?.fields ?? []) {
-        let existingColumn = table.columns.find(c => c.getName() === newColumn.name);
-        if (!existingColumn) {
-          const type = newColumn.type.toLowerCase();
-          const typeKind = TypeFactory.SIMPLE_TYPE_KIND_NAMES.get(type);
-          if (typeKind) {
-            const simpleColumn = new SimpleColumn(t.getTableName(), newColumn.name, new SimpleType(typeKind));
-            table.addSimpleColumn(simpleColumn);
-          } else {
-            console.log('Cannot find SimpleType for ' + newColumn.type);
-          }
-        }
-      }
-    }
-
-    if (this.catalog.registered) {
-      await this.catalog.unregister();
-    }
-    if (!this.catalog.builtinFunctionOptions) {
-      const languageOptions = await new LanguageOptions().enableMaximumLanguageFeatures();
-      await this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions(languageOptions));
-    }
-    await this.catalog.register();
+    await ZetaSQLCatalog.getInstance().register(this.schemaTracker.tableDefinitions);
     this.schemaTracker.resetHasNewTables();
   }
 

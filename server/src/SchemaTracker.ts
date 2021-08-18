@@ -5,7 +5,7 @@ import { TableDefinition } from './TableDefinition';
 import { ServiceAccountCreds, YamlParser } from './YamlParser';
 
 export class SchemaTracker {
-  tableDefinitions = new Array<TableDefinition>();
+  tableDefinitions: TableDefinition[] = [];
   serviceAccountCreds: ServiceAccountCreds | undefined;
   hasNewTables = false;
 

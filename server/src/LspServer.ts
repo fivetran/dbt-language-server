@@ -1,4 +1,4 @@
-import { ZetaSQLClient, runServer, terminateServer, SimpleCatalog } from '@fivetrandevelopers/zetasql';
+import { ZetaSQLClient, runServer, terminateServer } from '@fivetrandevelopers/zetasql';
 import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import {
   DidChangeConfigurationNotification,
@@ -17,7 +17,6 @@ import { DbtTextDocument } from './DbtTextDocument';
 
 export class LspServer {
   connection: _Connection;
-  catalog = new SimpleCatalog('catalog');
   hasConfigurationCapability: boolean = false;
   ast = new Map<string, AnalyzeResponse>();
   dbtServer = new DbtServer();
@@ -63,7 +62,7 @@ export class LspServer {
     const uri = params.textDocument.uri;
     let document = this.openedDocuments.get(uri);
     if (!document) {
-      document = new DbtTextDocument(params.textDocument, this.dbtServer, this.catalog, this.connection);
+      document = new DbtTextDocument(params.textDocument, this.dbtServer, this.connection);
       this.openedDocuments.set(uri, document);
     }
   }
