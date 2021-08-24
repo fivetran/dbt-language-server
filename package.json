@@ -1,6 +1,7 @@
 {
   "name": "dbt-language-server",
   "version": "0.0.1",
+  "publisher": "Fivetran",
   "engines": {
     "vscode": "^1.54.0"
   },
