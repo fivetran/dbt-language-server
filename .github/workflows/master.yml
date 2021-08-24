@@ -37,5 +37,5 @@ jobs:
         uses: google-github-actions/upload-cloud-storage@main
         with:
           path: ${{ steps.vars.outputs.file_name }}
-          destination: dbt-language-server/${{ steps.vars.outputs.file_name }}
+          destination: dbt-language-server
           credentials: ${{ secrets.GCS_SERVICE_ACCOUNT }}
