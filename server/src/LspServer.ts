@@ -1,6 +1,7 @@
 import { ZetaSQLClient, runServer, terminateServer } from '@fivetrandevelopers/zetasql';
-import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import {
+  CompletionItem,
+  CompletionParams,
   DidChangeConfigurationNotification,
   DidChangeTextDocumentParams,
   DidCloseTextDocumentParams,
@@ -12,15 +13,19 @@ import {
   TextDocumentSyncKind,
   _Connection,
 } from 'vscode-languageserver';
+import { CompletionProvider } from './CompletionProvider';
 import { DbtServer as DbtServer } from './DbtServer';
 import { DbtTextDocument } from './DbtTextDocument';
+import { DestinationDefinition } from './DestinationDefinition';
+import { ServiceAccountCreds, YamlParser } from './YamlParser';
 
 export class LspServer {
   connection: _Connection;
   hasConfigurationCapability: boolean = false;
-  ast = new Map<string, AnalyzeResponse>();
   dbtServer = new DbtServer();
   openedDocuments = new Map<string, DbtTextDocument>();
+  serviceAccountCreds: ServiceAccountCreds | undefined;
+  destinationDefinition: DestinationDefinition | undefined;
 
   constructor(connection: _Connection) {
     this.connection = connection;
@@ -33,7 +38,9 @@ export class LspServer {
     console.log(process.versions);
     await this.initizelizeZetaSql();
     this.dbtServer.startDbtRpc();
+    this.parseDbtCredentials();
 
+    this.initializeDestinationDefinition();
     let capabilities = params.capabilities;
 
     // Does the client support the `workspace/configuration` request?
@@ -44,6 +51,10 @@ export class LspServer {
       capabilities: {
         textDocumentSync: TextDocumentSyncKind.Incremental,
         hoverProvider: true,
+        completionProvider: {
+          resolveProvider: true,
+          triggerCharacters: ['.'],
+        },
       },
     };
     return result;
@@ -54,6 +65,19 @@ export class LspServer {
     await ZetaSQLClient.INSTANCE.testConnection();
   }
 
+  parseDbtCredentials() {
+    this.serviceAccountCreds = new YamlParser().findProfileCreds();
+    if (!this.serviceAccountCreds) {
+      // TODO
+    }
+  }
+
+  async initializeDestinationDefinition() {
+    if (this.serviceAccountCreds) {
+      this.destinationDefinition = new DestinationDefinition(this.serviceAccountCreds);
+    }
+  }
+
   async onDidSaveTextDocument(params: DidSaveTextDocumentParams) {
     this.dbtServer.refreshServer();
   }
@@ -62,7 +86,7 @@ export class LspServer {
     const uri = params.textDocument.uri;
     let document = this.openedDocuments.get(uri);
     if (!document) {
-      document = new DbtTextDocument(params.textDocument, this.dbtServer, this.connection);
+      document = new DbtTextDocument(params.textDocument, this.dbtServer, this.connection, this.serviceAccountCreds);
       this.openedDocuments.set(uri, document);
     }
   }
@@ -88,6 +112,18 @@ export class LspServer {
   async onHover(hoverParams: HoverParams) {
     const document = this.openedDocuments.get(hoverParams.textDocument.uri);
     return document?.onHover(hoverParams);
+  }
+
+  async onCompletion(positionParams: CompletionParams) {
+    if (!this.destinationDefinition) {
+      return undefined;
+    }
+    const document = this.openedDocuments.get(positionParams.textDocument.uri);
+    return document?.onCompletion(positionParams, this.destinationDefinition);
+  }
+
+  async onCompletionResolve(item: CompletionItem) {
+    return CompletionProvider.onCompletionResolve(item);
   }
 
   async gracefulShutdown() {

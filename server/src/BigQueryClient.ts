@@ -11,6 +11,10 @@ export class BigQueryClient {
     this.bigQuery = new BigQuery(options);
   }
 
+  async getDatasets() {
+    return await this.bigQuery.getDatasets();
+  }
+
   async getTableSchema(dataSet: string, tableName: string) {
     const dataset = this.bigQuery.dataset(dataSet);
     const table = dataset.table(tableName);

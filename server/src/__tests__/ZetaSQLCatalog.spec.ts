@@ -45,13 +45,13 @@ describe('ZetaSQLCatalogTest', () => {
       expect(projects.get(expectedProjectId)?.name).toBe(expectedProjectId);
     }
 
-    const dataSets = expectedProjectId ? zetaSQLCatalog.catalog.catalogs.get(expectedProjectId)?.catalogs : zetaSQLCatalog.catalog.catalogs;
+    const datasets = expectedProjectId ? zetaSQLCatalog.catalog.catalogs.get(expectedProjectId)?.catalogs : zetaSQLCatalog.catalog.catalogs;
     if (expectedDataSet) {
-      expect(dataSets?.size).toBe(1);
-      expect(dataSets?.get(expectedDataSet)?.name).toBe(expectedDataSet);
+      expect(datasets?.size).toBe(1);
+      expect(datasets?.get(expectedDataSet)?.name).toBe(expectedDataSet);
     }
 
-    const tables = expectedDataSet ? dataSets?.get(DATA_SET)?.tables : zetaSQLCatalog.catalog.tables;
+    const tables = expectedDataSet ? datasets?.get(DATA_SET)?.tables : zetaSQLCatalog.catalog.tables;
     expect(tables?.size).toBe(1);
     expect(tables?.get(table)?.name).toBe(table);
 

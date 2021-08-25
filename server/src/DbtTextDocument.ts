@@ -1,7 +1,9 @@
-import { AnalyzeRequest, ZetaSQLClient, SimpleType, TypeKind } from '@fivetrandevelopers/zetasql';
+import { AnalyzeRequest, ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import {
+  CompletionItem,
+  CompletionParams,
   Diagnostic,
   DiagnosticSeverity,
   DidChangeTextDocumentParams,
@@ -13,11 +15,14 @@ import {
   _Connection,
 } from 'vscode-languageserver';
 import { TextDocument, TextDocumentContentChangeEvent } from 'vscode-languageserver-textdocument';
+import { CompletionProvider } from './CompletionProvider';
 import { DbtServer } from './DbtServer';
+import { DestinationDefinition } from './DestinationDefinition';
 import { DiffTracker } from './DiffTracker';
 import { HoverProvider } from './HoverProvider';
 import { ModelCompiler } from './ModelCompiler';
 import { SchemaTracker } from './SchemaTracker';
+import { ServiceAccountCreds } from './YamlParser';
 import { ZetaSQLCatalog } from './ZetaSQLCatalog';
 
 export class DbtTextDocument {
@@ -30,17 +35,16 @@ export class DbtTextDocument {
   modelCompiler: ModelCompiler;
   ast: AnalyzeResponse | undefined;
   schemaTracker: SchemaTracker;
-  lastAccessed: number = new Date().getTime();
   jinjas = new Array<Range>();
   recompileRequired = false;
   catalogInitialized = false;
 
-  constructor(doc: TextDocumentItem, dbtServer: DbtServer, connection: _Connection) {
+  constructor(doc: TextDocumentItem, dbtServer: DbtServer, connection: _Connection, serviceAccountCreds?: ServiceAccountCreds) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.modelCompiler = new ModelCompiler(this, dbtServer);
     this.connection = connection;
-    this.schemaTracker = new SchemaTracker();
+    this.schemaTracker = new SchemaTracker(serviceAccountCreds);
 
     this.findAllJinjas();
     // if (this.jinjas.length > 0) {
@@ -180,6 +184,10 @@ export class DbtTextDocument {
     const range = this.getIdentifierRangeAtPosition(hoverParams.position);
     const text = this.getText(range);
     return HoverProvider.hoverOnText(text, this.ast);
+  }
+
+  async onCompletion(сompletionParams: CompletionParams, destinationDefinition: DestinationDefinition): Promise<CompletionItem[]> {
+    return CompletionProvider.onCompletion(сompletionParams, destinationDefinition);
   }
 
   getIdentifierRangeAtPosition(position: Position): Range {

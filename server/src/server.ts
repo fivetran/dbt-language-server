@@ -10,6 +10,8 @@ const server = new LspServer(connection);
 connection.onInitialize(server.onInitialize.bind(server));
 connection.onInitialized(server.onInitialized.bind(server));
 connection.onHover(server.onHover.bind(server));
+connection.onCompletion(server.onCompletion.bind(server));
+connection.onCompletionResolve(server.onCompletionResolve.bind(server));
 
 connection.onDidSaveTextDocument(server.onDidSaveTextDocument.bind(server));
 connection.onDidOpenTextDocument(server.onDidOpenTextDocument.bind(server));

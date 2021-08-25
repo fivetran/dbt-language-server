@@ -9,8 +9,8 @@ export class SchemaTracker {
   serviceAccountCreds: ServiceAccountCreds | undefined;
   hasNewTables = false;
 
-  constructor() {
-    this.serviceAccountCreds = new YamlParser().findProfileCreds();
+  constructor(serviceAccountCreds?: ServiceAccountCreds) {
+    this.serviceAccountCreds = serviceAccountCreds;
   }
 
   resetHasNewTables() {
