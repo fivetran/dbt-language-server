@@ -66,10 +66,11 @@ export class LspServer {
   }
 
   parseDbtCredentials() {
-    this.serviceAccountCreds = new YamlParser().findProfileCreds();
-    if (!this.serviceAccountCreds) {
-      // TODO
+    const findResult = new YamlParser().findProfileCreds();
+    if (findResult.error) {
+      this.connection.window.showErrorMessage(findResult.error);
     }
+    this.serviceAccountCreds = findResult.creds;
   }
 
   async initializeDestinationDefinition() {
