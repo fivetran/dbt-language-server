@@ -124,7 +124,9 @@ export class DbtTextDocument {
     const analyzeRequest: AnalyzeRequest = {
       sqlStatement: this.compiledDocument.getText(),
       registeredCatalogId: ZetaSQLCatalog.getInstance().catalog.registeredId,
+
       options: {
+        recordParseLocations: true,
         errorMessageMode: ErrorMessageMode.ERROR_MESSAGE_ONE_LINE,
         languageOptions: ZetaSQLCatalog.getInstance().catalog.builtinFunctionOptions.languageOptions,
       },
