@@ -58,7 +58,7 @@ export interface CompileResponse extends Response {
   };
 }
 
-interface PollResponse extends Response {
+export interface PollResponse extends Response {
   result: {
     state: string;
     elapsed: number;
@@ -122,8 +122,8 @@ export class DbtServer {
 
   refreshServer() {
     if (this.pid !== -1) {
-      // const result = child.spawnSync('kill', ['-HUP', this.pid.toString()]);
-      // console.log(`kill -HUP ${this.pid}`);
+      const result = child.spawnSync('kill', ['-HUP', this.pid.toString()]);
+      console.log(`kill -HUP ${this.pid}`);
     }
   }
 

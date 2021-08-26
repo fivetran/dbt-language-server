@@ -1,10 +1,13 @@
-import { CompileResponse, DbtServer } from './DbtServer';
+import { CompileResponse, DbtServer, PollResponse } from './DbtServer';
 
 export class DbtCompileJob {
+  readonly MAX_RETRIES = 5;
+
   dbtServer: DbtServer;
   text: string;
   pollRequestToken: string | undefined;
   startCompileRsponse: CompileResponse | undefined;
+  tryCount = 0;
 
   constructor(dbtServer: DbtServer, text: string) {
     this.dbtServer = dbtServer;
@@ -17,14 +20,21 @@ export class DbtCompileJob {
     console.log('runCompile...response');
   }
 
-  async getResult() {
+  async getResult(): Promise<PollResponse | undefined> {
     if (this.startCompileRsponse) {
       if (!this.startCompileRsponse.error) {
         return await this.dbtServer.pollOnceCompileResult(this.startCompileRsponse.result.request_token);
       } else {
+        if (this.tryCount >= this.MAX_RETRIES) {
+          return <PollResponse>{
+            error: this.startCompileRsponse.error,
+            result: { state: 'error' },
+          };
+        }
         this.startCompileRsponse = undefined;
         this.runCompile();
       }
+      this.tryCount++;
     }
   }
 
