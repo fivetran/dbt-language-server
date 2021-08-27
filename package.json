@@ -6,7 +6,8 @@
     "vscode": "^1.54.0"
   },
   "activationEvents": [
-    "onLanguage:sql"
+    "onLanguage:sql",
+    "workspaceContains:./dbt_project.yml"
   ],
   "main": "./client/out/extension",
   "contributes": {
