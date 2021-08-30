@@ -55,9 +55,13 @@ export class DbtTextDocument {
   async didChangeTextDocument(params: DidChangeTextDocumentParams) {
     TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
     // if (this.checkIfJinjaModified(changes)) {
-    await this.modelCompiler.compile();
+    await this.debouncedCompile();
     // }
   }
+
+  debouncedCompile = this.debounce(async () => {
+    await this.modelCompiler.compile();
+  }, 300);
 
   getLines() {
     return this.rawDocument.getText().split('\n');
@@ -217,5 +221,13 @@ export class DbtTextDocument {
     }
 
     return startChar === endChar ? Range.create(position, position) : Range.create(line, startChar, line, endChar);
+  }
+
+  debounce(callback: () => any, delay: number) {
+    let timeout: NodeJS.Timeout;
+    return function () {
+      clearTimeout(timeout);
+      timeout = setTimeout(callback, delay);
+    };
   }
 }
