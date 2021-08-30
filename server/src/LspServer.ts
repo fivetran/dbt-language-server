@@ -8,8 +8,10 @@ import {
   DidOpenTextDocumentParams,
   DidSaveTextDocumentParams,
   HoverParams,
+  InitializeError,
   InitializeParams,
   InitializeResult,
+  ResponseError,
   TextDocumentSyncKind,
   _Connection,
 } from 'vscode-languageserver';
@@ -37,8 +39,17 @@ export class LspServer {
 
     console.log(process.versions);
     await this.initizelizeZetaSql();
-    this.dbtServer.startDbtRpc();
-    this.parseDbtCredentials();
+    this.dbtServer.startDbtRpc((error: string) => {
+      this.connection.window.showErrorMessage(
+        'Failed to start dbt. Ensure that you have dbt installed: https://docs.getdbt.com/dbt-cli/installation\n\n' + error,
+      );
+    });
+
+    const findResult = new YamlParser().findProfileCreds();
+    if (findResult.error) {
+      return new ResponseError<InitializeError>(100, findResult.error, { retry: true });
+    }
+    this.serviceAccountCreds = findResult.creds;
 
     this.initializeDestinationDefinition();
     let capabilities = params.capabilities;
@@ -47,7 +58,7 @@ export class LspServer {
     // If not, we fall back using global settings.
     this.hasConfigurationCapability = !!(capabilities.workspace && !!capabilities.workspace.configuration);
 
-    const result: InitializeResult = {
+    return <InitializeResult>{
       capabilities: {
         textDocumentSync: TextDocumentSyncKind.Incremental,
         hoverProvider: true,
@@ -57,20 +68,11 @@ export class LspServer {
         },
       },
     };
-    return result;
   }
 
   async initizelizeZetaSql() {
     runServer().catch(err => console.error(err));
     await ZetaSQLClient.INSTANCE.testConnection();
-  }
-
-  parseDbtCredentials() {
-    const findResult = new YamlParser().findProfileCreds();
-    if (findResult.error) {
-      this.connection.window.showErrorMessage(findResult.error);
-    }
-    this.serviceAccountCreds = findResult.creds;
   }
 
   async initializeDestinationDefinition() {

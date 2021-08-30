@@ -42,7 +42,7 @@ interface Response {
   };
 }
 
-interface StatusResponse extends Response {
+export interface StatusResponse extends Response {
   result: {
     state: 'ready' | 'compiling' | 'error';
     pid: number;
@@ -78,8 +78,10 @@ export class DbtServer {
   static PORT = '8588';
 
   pid = -1;
+  started = false;
+  dbtVersion: string | undefined;
 
-  startDbtRpc() {
+  startDbtRpc(onStartFailed: (error: string) => void) {
     const existingRpc = child.spawnSync('lsof', ['-ti:8588']);
     const pids = String(existingRpc.stdout).split(/\n|\r/g);
     console.log('killing pid "' + pids + '"');
@@ -87,16 +89,23 @@ export class DbtServer {
 
     const rpc = child.exec('dbt --partial-parse rpc --port ' + DbtServer.PORT, (error, stdout, stderr) => {
       if (error) {
-        console.error(`error: ${error.message}`);
+        console.error(`exec error: ${error}`);
+        onStartFailed(error.message);
         return;
       }
+      console.log(`stdout: ${stdout}`);
+      console.error(`stderr: ${stderr}`);
+    });
 
-      if (stderr) {
-        console.error(`stderr: ${stderr}`);
-        return;
+    rpc.stdout?.on('data', (chunk: any) => {
+      if (!this.started) {
+        const str = <string>chunk;
+        const matchResults = str.match(/\"Running with dbt=(.*?)"/);
+        if (matchResults?.length === 2) {
+          this.dbtVersion = matchResults[1];
+        }
+        this.started = str.indexOf('Serving RPC server') > -1;
       }
-
-      console.log(`stdout:\n${stdout}`);
     });
 
     rpc.on('exit', code => {
@@ -120,6 +129,10 @@ export class DbtServer {
     process.on('uncaughtException', exitHandler);
   }
 
+  isStarted() {
+    return this.started;
+  }
+
   refreshServer() {
     if (this.pid !== -1) {
       const result = child.spawnSync('kill', ['-HUP', this.pid.toString()]);
@@ -127,58 +140,15 @@ export class DbtServer {
     }
   }
 
-  async isAvailable() {
-    for (let i = 0; i < 10; i++) {
-      try {
-        const ready = await this.checkServerReadyOrError();
-        console.log('ready: ' + ready);
-        if (ready) {
-          return true;
-        }
-      } catch (e) {
-        if (e.code !== 14) {
-          return false;
-        }
-      }
-      await this.delay(200);
-    }
-    return false;
-  }
-
-  async getReadyOrErrorStatus() {
-    for (let i = 0; i < 1; i++) {
-      const status = await this.getCurrentStatus();
-      console.log('ready: ' + !!status);
-      if (status) {
-        return status;
-      }
-      await this.delay(200);
-    }
-  }
-
-  delay(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms, []));
-  }
-
-  async getCurrentStatus() {
+  async getCurrentStatus(): Promise<StatusResponse | undefined> {
     const statusRespopnse = await this.getStatus();
     if (statusRespopnse?.result.pid) {
       this.pid = statusRespopnse?.result.pid;
     }
-    const state = statusRespopnse?.result.state;
-    if (state === 'ready' || state === 'error') {
-      return statusRespopnse?.result;
-    }
+    return statusRespopnse;
   }
 
-  async checkServerReadyOrError() {
-    const statusRespopnse = await this.getStatus();
-    this.pid = statusRespopnse ? statusRespopnse.result.pid : -1;
-    const state = statusRespopnse?.result.state;
-    return state === 'ready' || state === 'error';
-  }
-
-  async getStatus() {
+  async getStatus(): Promise<StatusResponse | undefined> {
     const data: PostData = {
       jsonrpc: '2.0',
       method: 'status',
@@ -191,13 +161,13 @@ export class DbtServer {
     return await this.makePostRequest<StatusResponse>(data);
   }
 
-  async compileModule(moduleName: string): Promise<CompileResponse | undefined> {
+  async compileModel(modelName: string): Promise<CompileResponse | undefined> {
     const data: PostData = {
       jsonrpc: '2.0',
       method: 'compile',
       id: uuid(),
       params: {
-        models: moduleName,
+        models: modelName,
       },
     };
 
@@ -244,16 +214,7 @@ export class DbtServer {
     return await this.makePostRequest<PollResponse>(data);
   }
 
-  async pollCompileResult(requestToken: string): Promise<PollResponse | undefined> {
-    let pollResponse: PollResponse | undefined;
-    do {
-      pollResponse = await this.pollOnceCompileResult(requestToken);
-      console.log(pollResponse?.result.state);
-    } while (pollResponse?.result.state === 'running');
-    return pollResponse;
-  }
-
-  async kill(requestToken: string) {
+  async kill(requestToken: string): Promise<void> {
     const data: PostData = {
       jsonrpc: '2.0',
       method: 'kill',
@@ -264,7 +225,7 @@ export class DbtServer {
       },
     };
 
-    return await this.makePostRequest<PollResponse>(data);
+    await this.makePostRequest<any>(data);
   }
 
   async makePostRequest<T extends Response>(postData: object): Promise<T | undefined> {

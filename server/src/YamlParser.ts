@@ -25,7 +25,7 @@ export class YamlParser {
 
   findProfileName() {
     const dbtProject = this.parseYamlFile(YamlParser.DBT_PROJECT_FILE_NAME);
-    console.log(`Profile name found: ${dbtProject.profile}`);
+    console.log(`Profile name found: ${dbtProject?.profile}`);
     return dbtProject?.profile;
   }
 

@@ -95,4 +95,8 @@ export class ZetaSQLCatalog {
       }
     }
   }
+
+  isRegistered(): boolean {
+    return this.catalog.registered;
+  }
 }

@@ -4,6 +4,8 @@ import { CompileResult, DbtServer } from './DbtServer';
 import { DbtTextDocument } from './DbtTextDocument';
 
 export class ModelCompiler {
+  readonly RETRY_COUNT = 15;
+
   dbtTextDocument: DbtTextDocument;
   dbtServer: DbtServer;
   dbtCompileTaskQueue: DbtCompileJob[] = [];
@@ -14,10 +16,25 @@ export class ModelCompiler {
     this.dbtServer = dbtServer;
   }
 
-  async compile() {
-    const status = await this.dbtServer.getReadyOrErrorStatus();
-    if (status?.error) {
-      await this.dbtTextDocument.onCompilationFinished(status?.error.message);
+  async isDbtServerStarted() {
+    for (let i = 1; i <= this.RETRY_COUNT; i++) {
+      const started = this.dbtServer.isStarted();
+      if (started) {
+        return true;
+      }
+      await this.wait(300);
+    }
+  }
+
+  async compile(): Promise<void> {
+    const isStarted = await this.isDbtServerStarted();
+    if (!isStarted) {
+      return;
+    }
+
+    const status = await this.dbtServer.getCurrentStatus();
+    if (status?.error?.data?.message) {
+      await this.dbtTextDocument.onCompilationFinished(status?.error?.data?.message);
       return;
     }
 
@@ -25,10 +42,15 @@ export class ModelCompiler {
       const taskToKill = this.dbtCompileTaskQueue.shift();
       taskToKill?.kill();
     }
+    this.startNewTask();
+
+    await this.pollResults();
+  }
+
+  startNewTask() {
     const task = new DbtCompileJob(this.dbtServer, this.dbtTextDocument.rawDocument.getText());
     this.dbtCompileTaskQueue.push(task);
     task.runCompile();
-    await this.pollResults();
   }
 
   async pollResults() {
@@ -49,7 +71,10 @@ export class ModelCompiler {
           continue;
         }
         if (response?.error || response?.result.state !== 'running') {
-          this.dbtCompileTaskQueue.splice(0, i + 1);
+          const tasksToKill = this.dbtCompileTaskQueue.splice(0, i + 1);
+          for (let j = 0; j < i; j++) {
+            tasksToKill[j].kill();
+          }
           console.log(`${i + 1} elements were removed`);
 
           if (response?.error) {

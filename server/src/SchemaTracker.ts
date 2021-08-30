@@ -17,7 +17,7 @@ export class SchemaTracker {
     this.hasNewTables = false;
   }
 
-  async findTableNames(sql: string) {
+  async findTableNames(sql: string): Promise<TableDefinition[] | undefined> {
     const request: ExtractTableNamesFromStatementRequest = {
       sqlStatement: sql,
     };

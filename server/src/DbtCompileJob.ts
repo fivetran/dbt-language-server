@@ -5,7 +5,6 @@ export class DbtCompileJob {
 
   dbtServer: DbtServer;
   text: string;
-  pollRequestToken: string | undefined;
   startCompileRsponse: CompileResponse | undefined;
   tryCount = 0;
 
@@ -39,8 +38,9 @@ export class DbtCompileJob {
   }
 
   async kill() {
-    if (this.pollRequestToken) {
-      await this.dbtServer.kill(this.pollRequestToken);
+    const token = this.startCompileRsponse?.result.request_token;
+    if (token) {
+      await this.dbtServer.kill(token);
     }
   }
 }
