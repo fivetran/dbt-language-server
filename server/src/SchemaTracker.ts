@@ -42,10 +42,12 @@ export class SchemaTracker {
     if (newTables.length > 0 && this.serviceAccountCreds) {
       const bigQueryClient = new BigQueryClient(this.serviceAccountCreds.keyFile, this.serviceAccountCreds.project);
       for (const table of newTables) {
-        // TODO: handle different project names?
-        const schema = await bigQueryClient?.getTableSchema(table.getDatasetName(), table.getTableName());
-        table.schema = schema;
-        this.tableDefinitions.push(table);
+        if (table.getDatasetName() && table.getTableName()) {
+          // TODO: handle different project names?
+          this.tableDefinitions.push(table);
+          const schema = await bigQueryClient?.getTableSchema(table.getDatasetName(), table.getTableName());
+          table.schema = schema;
+        }
       }
       this.hasNewTables = true;
     }

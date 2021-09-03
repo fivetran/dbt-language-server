@@ -1,0 +1,189 @@
+{
+  "resumeBytePosition": 0,
+  "resolvedStatement": {
+    "resolvedQueryStmtNode": {
+      "outputColumnList": [
+        {
+          "parent": null,
+          "name": "account_id",
+          "column": {
+            "columnId": {
+              "low": 1,
+              "high": 0,
+              "unsigned": false
+            },
+            "tableName": "account_land_region",
+            "name": "account_id",
+            "type": {
+              "fileDescriptorSet": [],
+              "typeKind": 8,
+              "arrayType": null,
+              "structType": null,
+              "protoType": null,
+              "enumType": null
+            },
+            "annotationMap": null
+          }
+        },
+        {
+          "parent": null,
+          "name": "account_region",
+          "column": {
+            "columnId": {
+              "low": 2,
+              "high": 0,
+              "unsigned": false
+            },
+            "tableName": "account_land_region",
+            "name": "account_region",
+            "type": {
+              "fileDescriptorSet": [],
+              "typeKind": 8,
+              "arrayType": null,
+              "structType": null,
+              "protoType": null,
+              "enumType": null
+            },
+            "annotationMap": null
+          }
+        }
+      ],
+      "parent": null,
+      "isValueTable": false,
+      "query": {
+        "resolvedProjectScanNode": {
+          "exprList": [],
+          "parent": {
+            "columnList": [
+              {
+                "columnId": {
+                  "low": 1,
+                  "high": 0,
+                  "unsigned": false
+                },
+                "tableName": "account_land_region",
+                "name": "account_id",
+                "type": {
+                  "fileDescriptorSet": [],
+                  "typeKind": 8,
+                  "arrayType": null,
+                  "structType": null,
+                  "protoType": null,
+                  "enumType": null
+                },
+                "annotationMap": null
+              },
+              {
+                "columnId": {
+                  "low": 2,
+                  "high": 0,
+                  "unsigned": false
+                },
+                "tableName": "account_land_region",
+                "name": "account_region",
+                "type": {
+                  "fileDescriptorSet": [],
+                  "typeKind": 8,
+                  "arrayType": null,
+                  "structType": null,
+                  "protoType": null,
+                  "enumType": null
+                },
+                "annotationMap": null
+              }
+            ],
+            "hintList": [],
+            "parent": {
+              "parseLocationRange": {
+                "filename": "",
+                "start": 0,
+                "end": 41
+              }
+            },
+            "isOrdered": false
+          },
+          "inputScan": {
+            "resolvedTableScanNode": {
+              "columnIndexList": [
+                {
+                  "low": 0,
+                  "high": 0,
+                  "unsigned": false
+                },
+                {
+                  "low": 1,
+                  "high": 0,
+                  "unsigned": false
+                }
+              ],
+              "parent": {
+                "columnList": [
+                  {
+                    "columnId": {
+                      "low": 1,
+                      "high": 0,
+                      "unsigned": false
+                    },
+                    "tableName": "account_land_region",
+                    "name": "account_id",
+                    "type": {
+                      "fileDescriptorSet": [],
+                      "typeKind": 8,
+                      "arrayType": null,
+                      "structType": null,
+                      "protoType": null,
+                      "enumType": null
+                    },
+                    "annotationMap": null
+                  },
+                  {
+                    "columnId": {
+                      "low": 2,
+                      "high": 0,
+                      "unsigned": false
+                    },
+                    "tableName": "account_land_region",
+                    "name": "account_region",
+                    "type": {
+                      "fileDescriptorSet": [],
+                      "typeKind": 8,
+                      "arrayType": null,
+                      "structType": null,
+                      "protoType": null,
+                      "enumType": null
+                    },
+                    "annotationMap": null
+                  }
+                ],
+                "hintList": [],
+                "parent": {
+                  "parseLocationRange": {
+                    "filename": "",
+                    "start": 14,
+                    "end": 41
+                  }
+                },
+                "isOrdered": false
+              },
+              "table": {
+                "name": "account_land_region",
+                "serializationId": {
+                  "low": 2,
+                  "high": 0,
+                  "unsigned": false
+                },
+                "fullName": "account_land_region"
+              },
+              "forSystemTimeExpr": null,
+              "alias": ""
+            },
+            "node": "resolvedTableScanNode"
+          }
+        },
+        "node": "resolvedProjectScanNode"
+      }
+    },
+    "node": "resolvedQueryStmtNode"
+  },
+  "result": "resolvedStatement"
+}

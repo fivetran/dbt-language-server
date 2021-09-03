@@ -22,12 +22,15 @@ import { DiffTracker } from './DiffTracker';
 import { HoverProvider } from './HoverProvider';
 import { ModelCompiler } from './ModelCompiler';
 import { SchemaTracker } from './SchemaTracker';
+import { TableDefinition } from './TableDefinition';
 import { ServiceAccountCreds } from './YamlParser';
+import { ZetaSQLAST } from './ZetaSQLAST';
 import { ZetaSQLCatalog } from './ZetaSQLCatalog';
 
 export class DbtTextDocument {
   static readonly NON_WORD_PATTERN = /\W/;
   static readonly JINJA_PATTERN = /{{[\s\S]*?}}|{%[\s\S]*?%}|{#[\s\S]*?#}/g;
+  static zetaSQLAST = new ZetaSQLAST();
 
   connection: _Connection;
   rawDocument: TextDocument;
@@ -193,7 +196,19 @@ export class DbtTextDocument {
   }
 
   async onCompletion(сompletionParams: CompletionParams, destinationDefinition: DestinationDefinition): Promise<CompletionItem[]> {
-    return CompletionProvider.onCompletion(сompletionParams, destinationDefinition);
+    const text = this.getText(this.getIdentifierRangeAtPosition(сompletionParams.position));
+    let completionInfo;
+    let activeTable;
+    if (this.ast) {
+      const offset = this.compiledDocument.offsetAt(сompletionParams.position);
+      completionInfo = DbtTextDocument.zetaSQLAST.getCompletionInfo(this.ast, offset);
+      if (completionInfo.activeTableLocationRange?.start && completionInfo.activeTableLocationRange.end) {
+        const start = this.compiledDocument.positionAt(completionInfo.activeTableLocationRange.start);
+        const end = this.compiledDocument.positionAt(completionInfo.activeTableLocationRange.end);
+        activeTable = new TableDefinition(this.compiledDocument.getText(Range.create(start, end)).split('.'));
+      }
+    }
+    return CompletionProvider.onCompletion(text, сompletionParams, destinationDefinition, completionInfo, activeTable);
   }
 
   getIdentifierRangeAtPosition(position: Position): Range {

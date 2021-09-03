@@ -1,0 +1,1 @@
+select * from dbt_ben.account_land_region
