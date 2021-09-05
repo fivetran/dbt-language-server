@@ -47,6 +47,6 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
-    "@fivetrandevelopers/zetasql": "^1.0.0-alpha.12"
+    "@fivetrandevelopers/zetasql": "^1.0.0-alpha.13"
   }
 }
