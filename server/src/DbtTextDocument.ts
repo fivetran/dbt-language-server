@@ -200,18 +200,12 @@ export class DbtTextDocument {
   async onCompletion(сompletionParams: CompletionParams, destinationDefinition: DestinationDefinition): Promise<CompletionItem[]> {
     const text = this.getText(this.getIdentifierRangeAtPosition(сompletionParams.position));
     let completionInfo;
-    let activeTable;
     if (this.ast) {
       const line = DiffTracker.getOldLineNumber(this.compiledDocument.getText(), this.rawDocument.getText(), сompletionParams.position.line);
       const offset = this.compiledDocument.offsetAt(Position.create(line, сompletionParams.position.character));
       completionInfo = DbtTextDocument.zetaSQLAST.getCompletionInfo(this.ast, offset);
-      if (completionInfo.activeTableLocationRange?.start && completionInfo.activeTableLocationRange.end) {
-        const start = this.compiledDocument.positionAt(completionInfo.activeTableLocationRange.start);
-        const end = this.compiledDocument.positionAt(completionInfo.activeTableLocationRange.end);
-        activeTable = new TableDefinition(this.compiledDocument.getText(Range.create(start, end)).split('.'));
-      }
     }
-    return CompletionProvider.onCompletion(text, сompletionParams, destinationDefinition, completionInfo, activeTable);
+    return CompletionProvider.onCompletion(text, сompletionParams, destinationDefinition, completionInfo);
   }
 
   getIdentifierRangeAtPosition(position: Position): Range {

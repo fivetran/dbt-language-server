@@ -1,6 +1,5 @@
 import { CompletionItem, CompletionItemKind, CompletionParams, CompletionTriggerKind } from 'vscode-languageserver';
 import { DestinationDefinition } from './DestinationDefinition';
-import { TableDefinition } from './TableDefinition';
 import { CompletionInfo, ResolvedColumn } from './ZetaSQLAST';
 
 export class CompletionProvider {
@@ -258,7 +257,6 @@ export class CompletionProvider {
     сompletionParams: CompletionParams,
     destinationDefinition: DestinationDefinition,
     completionInfo?: CompletionInfo,
-    activeTable?: TableDefinition,
   ): Promise<CompletionItem[]> {
     let result: CompletionItem[] = [];
 
