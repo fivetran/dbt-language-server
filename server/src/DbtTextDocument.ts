@@ -202,7 +202,8 @@ export class DbtTextDocument {
     let completionInfo;
     let activeTable;
     if (this.ast) {
-      const offset = this.compiledDocument.offsetAt(сompletionParams.position);
+      const line = DiffTracker.getOldLineNumber(this.compiledDocument.getText(), this.rawDocument.getText(), сompletionParams.position.line);
+      const offset = this.compiledDocument.offsetAt(Position.create(line, сompletionParams.position.character));
       completionInfo = DbtTextDocument.zetaSQLAST.getCompletionInfo(this.ast, offset);
       if (completionInfo.activeTableLocationRange?.start && completionInfo.activeTableLocationRange.end) {
         const start = this.compiledDocument.positionAt(completionInfo.activeTableLocationRange.start);
