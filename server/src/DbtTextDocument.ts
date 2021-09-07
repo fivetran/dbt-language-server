@@ -144,7 +144,7 @@ export class DbtTextDocument {
     try {
       this.ast = await ZetaSQLClient.INSTANCE.analyze(analyzeRequest);
       console.log('AST was successfully received');
-    } catch (e) {
+    } catch (e: any) {
       console.log('There was an error wile parsing SQL query');
       // Parse string like 'Unrecognized name: paused1; Did you mean paused? [at 9:3]'
       if (e.code == 3) {

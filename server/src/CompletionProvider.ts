@@ -261,15 +261,15 @@ export class CompletionProvider {
     let result: CompletionItem[] = [];
 
     if (completionInfo?.activeTableColumns) {
-      result.push(...this.getColumnsForActiveTable(text, completionInfo?.activeTableColumns));
-    } else {
-      result.push(...this.getDatasets(text, destinationDefinition));
+      result.push(...this.getColumnsForActiveTable(completionInfo?.activeTableColumns));
+    } else if (сompletionParams.context?.triggerKind !== CompletionTriggerKind.TriggerCharacter) {
+      result.push(...this.getDatasets(destinationDefinition));
     }
 
     if (сompletionParams.context?.triggerKind === CompletionTriggerKind.TriggerCharacter) {
       result.push(...(await this.getTableSuggestions(text, destinationDefinition)));
     } else {
-      result.push(...this.getKeywords(text));
+      result.push(...this.getKeywords());
     }
 
     return result;
@@ -282,31 +282,24 @@ export class CompletionProvider {
     return item;
   }
 
-  static getColumnsForActiveTable(text: string, columns: Map<string, ResolvedColumn[]>) {
+  static getColumnsForActiveTable(columns: Map<string, ResolvedColumn[]>) {
     if (columns.size === 1) {
       const [tableColumns] = columns;
-      return tableColumns[1].map(
-        c =>
-          <CompletionItem>{
-            label: c.name,
-            kind: CompletionItemKind.Value,
-            detail: `${tableColumns[0] ?? ''} ${c.type}`,
-            sortText: 1 + c.name,
-          },
+      return tableColumns[1].map(c =>
+        CompletionProvider.completionItem(c.name, CompletionItemKind.Value, `${tableColumns[0] ?? ''} ${c.type}`, 1 + c.name),
       );
     }
 
     if (columns.size > 1) {
       return [...columns.entries()].flatMap(e => {
         const tableName = e[0];
-        return e[1].map(
-          column =>
-            <CompletionItem>{
-              label: `${tableName}.${column.name}`,
-              kind: CompletionItemKind.Value,
-              detail: `${column.type}`,
-              sortText: 1 + `${tableName}.${column.name}`,
-            },
+        return e[1].map(column =>
+          CompletionProvider.completionItem(
+            `${tableName}.${column.name}`,
+            CompletionItemKind.Value,
+            `${column.type}`,
+            1 + `${tableName}.${column.name}`,
+          ),
         );
       });
     }
@@ -315,52 +308,39 @@ export class CompletionProvider {
 
   static async getTableSuggestions(datasetName: string, destinationDefinition: DestinationDefinition) {
     const tables = await destinationDefinition.getTables(datasetName);
-    return tables.map(
-      t =>
-        <CompletionItem>{
-          label: t.id,
-          kind: CompletionItemKind.Value,
-          detail: `Table in ${destinationDefinition.activeProject}.${datasetName}`,
-        },
-    );
+    return tables
+      .filter(t => t.id)
+      .map(t => CompletionProvider.completionItem(t.id!, CompletionItemKind.Value, `Table in ${destinationDefinition.activeProject}.${datasetName}`));
   }
 
-  static getDatasets(text: string, destinationDefinition: DestinationDefinition): CompletionItem[] {
+  static getDatasets(destinationDefinition: DestinationDefinition): CompletionItem[] {
     return destinationDefinition
       .getDatasets()
-      .filter(d => d.id?.startsWith(text))
-      .map(
-        d =>
-          <CompletionItem>{
-            label: d.id,
-            kind: CompletionItemKind.Value,
-            detail: `Dataset in ${destinationDefinition.activeProject}`,
-            commitCharacters: ['.'],
-          },
+      .filter(d => d.id)
+      .map(d =>
+        CompletionProvider.completionItem(d.id!, CompletionItemKind.Value, `Dataset in ${destinationDefinition.activeProject}`, undefined, ['.']),
       );
   }
 
-  static getKeywords(text: string): CompletionItem[] {
-    return CompletionProvider.KEYWORDS.filter(k => k.startsWith(text)).map(
-      k =>
-        <CompletionItem>{
-          label: k,
-          kind: CompletionItemKind.Keyword,
-        },
-    );
+  static getKeywords(): CompletionItem[] {
+    return CompletionProvider.KEYWORDS.map(k => CompletionProvider.completionItem(k, CompletionItemKind.Keyword, ''));
   }
 
   static getAllColumnsFromAST(completionInfo: CompletionInfo): CompletionItem[] {
     let result: CompletionItem[] = [];
     for (let [tableName, columnNames] of completionInfo.resolvedTables) {
-      columnNames.forEach(c =>
-        result.push({
-          label: c,
-          kind: CompletionItemKind.Value,
-          detail: `Column in ${tableName}`,
-        }),
-      );
+      columnNames.forEach(c => result.push(CompletionProvider.completionItem(c, CompletionItemKind.Value, `Column in ${tableName}`)));
     }
     return result;
+  }
+
+  static completionItem(label: string, kind: CompletionItemKind, detail: string, sortText?: string, commitCharacters?: string[]): CompletionItem {
+    return {
+      label: label,
+      kind: kind,
+      detail: detail,
+      sortText: sortText,
+      commitCharacters: commitCharacters,
+    };
   }
 }
