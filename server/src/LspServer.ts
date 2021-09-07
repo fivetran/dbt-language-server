@@ -39,17 +39,18 @@ export class LspServer {
 
     console.log(process.versions);
     await this.initizelizeZetaSql();
-    this.dbtServer.startDbtRpc((error: string) => {
-      this.connection.window.showErrorMessage(
-        'Failed to start dbt. Ensure that you have dbt installed: https://docs.getdbt.com/dbt-cli/installation\n\n' + error,
-      );
-    });
 
     const findResult = new YamlParser().findProfileCreds();
     if (findResult.error) {
       return new ResponseError<InitializeError>(100, findResult.error, { retry: true });
     }
     this.serviceAccountCreds = findResult.creds;
+
+    this.dbtServer.startDbtRpc((error: string) => {
+      this.connection.window.showErrorMessage(
+        'Failed to start dbt. Make sure that you have dbt installed: https://docs.getdbt.com/dbt-cli/installation\n\n' + error,
+      );
+    });
 
     this.initializeDestinationDefinition();
     let capabilities = params.capabilities;

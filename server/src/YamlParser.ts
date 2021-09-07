@@ -36,7 +36,9 @@ export class YamlParser {
     }
     const profileName = this.findProfileName();
     if (!profileName) {
-      return this.errorResult(`Failed to find profile name in ${YamlParser.DBT_PROJECT_FILE_NAME}`);
+      return this.errorResult(
+        `Failed to find profile name in ${YamlParser.DBT_PROJECT_FILE_NAME}. Make sure that you opened folder with ${YamlParser.DBT_PROJECT_FILE_NAME} file.`,
+      );
     }
     if (profile[profileName]) {
       const target = profile[profileName].target;
