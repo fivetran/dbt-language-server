@@ -282,18 +282,35 @@ export class CompletionProvider {
     return item;
   }
 
-  static getColumnsForActiveTable(text: string, columns: ResolvedColumn[]) {
-    return columns
-      .filter(c => c.name.startsWith(text))
-      .map(
+  static getColumnsForActiveTable(text: string, columns: Map<string, ResolvedColumn[]>) {
+    if (columns.size === 1) {
+      const [tableColumns] = columns;
+      return tableColumns[1].map(
         c =>
           <CompletionItem>{
             label: c.name,
             kind: CompletionItemKind.Value,
-            detail: `${c.table ?? ''} ${c.type}`,
+            detail: `${tableColumns[0] ?? ''} ${c.type}`,
             sortText: 1 + c.name,
           },
       );
+    }
+
+    if (columns.size > 1) {
+      return [...columns.entries()].flatMap(e => {
+        const tableName = e[0];
+        return e[1].map(
+          column =>
+            <CompletionItem>{
+              label: `${tableName}.${column.name}`,
+              kind: CompletionItemKind.Value,
+              detail: `${column.type}`,
+              sortText: 1 + `${tableName}.${column.name}`,
+            },
+        );
+      });
+    }
+    return [];
   }
 
   static async getTableSuggestions(datasetName: string, destinationDefinition: DestinationDefinition) {

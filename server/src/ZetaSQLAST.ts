@@ -180,7 +180,7 @@ export class ZetaSQLAST {
         },
         ast.resolvedStatement?.node,
         (node: any, nodeName?: string) => {
-          if (parentNodes.length > 0 && !completionInfo.activeTableLocationRange) {
+          if (parentNodes.length > 0 && completionInfo.activeTableLocationRanges === undefined) {
             const parseLocationRange = this.getParseLocationRange(node);
             const parentNode = parentNodes[parentNodes.length - 1];
 
@@ -192,20 +192,27 @@ export class ZetaSQLAST {
                 parentNode.parseLocationRange.start <= offset &&
                 offset <= parentNode.parseLocationRange.end
               ) {
-                completionInfo.activeTableLocationRange = parseLocationRange;
+                if (!parentNode.activeTableLocationRanges) {
+                  parentNode.activeTableLocationRanges = [];
+                  parentNode.activeTableColumns = new Map<string, ResolvedColumn[]>();
+                }
+                parentNode.activeTableLocationRanges.push(parseLocationRange);
                 if (offset < parseLocationRange?.start || parseLocationRange.end < offset) {
                   const typedNode = <ResolvedTableScanProto>node;
-                  completionInfo.activeTableColumns = [];
-                  const columns = completionInfo.activeTableColumns;
-                  typedNode.parent?.columnList?.forEach(column => {
-                    if (column.name) {
-                      columns.push({
-                        name: column.name,
-                        type: column.type?.typeKind ? new SimpleType(<TypeKind>column.type?.typeKind).getTypeName() : undefined,
-                        table: column.tableName,
-                      });
-                    }
-                  });
+                  const columns = <Map<string, ResolvedColumn[]>>parentNode.activeTableColumns;
+                  const tableName = typedNode.table?.name;
+                  if (tableName && !columns.has(tableName) && typedNode.parent?.columnList) {
+                    columns.set(
+                      tableName,
+                      typedNode.parent.columnList.map(
+                        c =>
+                          <ResolvedColumn>{
+                            name: c.name,
+                            type: c.type?.typeKind ? new SimpleType(<TypeKind>c.type.typeKind).getTypeName() : undefined,
+                          },
+                      ),
+                    );
+                  }
                 }
               }
             } else if (
@@ -213,7 +220,11 @@ export class ZetaSQLAST {
               parseLocationRange?.start === parentNode.parseLocationRange.start &&
               parseLocationRange?.end === parentNode.parseLocationRange.end
             ) {
-              parentNodes.pop();
+              const node = parentNodes.pop();
+              if (node.activeTableLocationRanges?.length > 0) {
+                completionInfo.activeTableLocationRanges = node.activeTableLocationRanges;
+                completionInfo.activeTableColumns = node.activeTableColumns;
+              }
             }
           }
         },
@@ -292,13 +303,11 @@ export interface HoverInfo {
 
 export interface CompletionInfo {
   resolvedTables: Map<string, string[]>;
-  activeTableLocationRange?: ParseLocationRangeProto;
-  activeTableColumns?: ResolvedColumn[];
-  position?: 'afterFrom';
+  activeTableLocationRanges?: ParseLocationRangeProto[];
+  activeTableColumns?: Map<string, ResolvedColumn[]>;
 }
 
 export interface ResolvedColumn {
   name: string;
   type?: string;
-  table?: string;
 }

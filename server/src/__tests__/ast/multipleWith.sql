@@ -8,7 +8,7 @@ with live_analytics_query as (
     platform_tier,
     paid_volume,
     credits_used
-  from `digital-arbor-400`.`transforms`.`daily_credit_usage`
+  from `project-abcde-400`.`transforms`.`daily_credit_usage`
 ), static_engineering_table as (
   select
     account_id,
@@ -51,6 +51,6 @@ where (
   and account_id not in (
     select
       id
-    from `digital-arbor-400`.`transforms`.`operational_testing_fivetran_accounts`
+    from `project-abcde-400`.`transforms`.`operational_testing_fivetran_accounts`
   )
 order by account_id, date

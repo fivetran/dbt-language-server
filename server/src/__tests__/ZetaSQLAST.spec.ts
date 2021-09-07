@@ -1,4 +1,5 @@
 import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
+import { ParseLocationRangeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
 import * as fs from 'fs';
 import { ZetaSQLAST } from '../ZetaSQLAST';
 
@@ -8,7 +9,7 @@ describe('ZetaSQLAST', () => {
     return JSON.parse(data);
   }
 
-  function getCompletionInfo_shouldReturnLocationOfTableNameInQuery(fileName: string, cursorOffset: number, start: number, end: number) {
+  function getCompletionInfo_shouldReturnLocationsOfTableNameInQuery(fileName: string, cursorOffset: number, ranges: ParseLocationRangeProto[]) {
     // arrange
     const ast = createAST(fileName);
 
@@ -16,8 +17,16 @@ describe('ZetaSQLAST', () => {
     const result = new ZetaSQLAST().getCompletionInfo(ast, cursorOffset);
 
     // assert
-    expect(result.activeTableLocationRange?.start).toBe(start);
-    expect(result.activeTableLocationRange?.end).toBe(end);
+    expect(result.activeTableLocationRanges?.length).toBe(ranges.length);
+    expect(result.activeTableLocationRanges?.sort()).toEqual(ranges.sort());
+  }
+
+  function getCompletionInfo_shouldReturnLocationOfTableNameInQuery(fileName: string, cursorOffset: number, start: number, end: number) {
+    getCompletionInfo_shouldReturnLocationsOfTableNameInQuery(fileName, cursorOffset, [createParseLocationRange(start, end)]);
+  }
+
+  function createParseLocationRange(start: number, end: number): ParseLocationRangeProto {
+    return { start: start, end: end, filename: '' };
   }
 
   it('simple.json', () => {
@@ -40,5 +49,25 @@ describe('ZetaSQLAST', () => {
     getCompletionInfo_shouldReturnLocationOfTableNameInQuery('multipleWith', 1567, 1586, 1658);
     getCompletionInfo_shouldReturnLocationOfTableNameInQuery('multipleWith', 1576, 1586, 1658);
     getCompletionInfo_shouldReturnLocationOfTableNameInQuery('multipleWith', 1658, 1586, 1658);
+  });
+
+  describe('resolvedSetOperationScanNode.json', () => {
+    function shouldReturnTablesForresolvedSetOperationScanNode(cursorOffset: number) {
+      getCompletionInfo_shouldReturnLocationsOfTableNameInQuery('resolvedSetOperationScanNode', cursorOffset, [
+        createParseLocationRange(97, 142),
+        createParseLocationRange(256, 301),
+        createParseLocationRange(415, 460),
+        createParseLocationRange(573, 618),
+        createParseLocationRange(745, 801),
+        createParseLocationRange(919, 968),
+      ]);
+    }
+
+    it('shouldReturnTablesForresolvedSetOperationScanNode', () => {
+      shouldReturnTablesForresolvedSetOperationScanNode(37);
+      shouldReturnTablesForresolvedSetOperationScanNode(218);
+      shouldReturnTablesForresolvedSetOperationScanNode(670);
+      shouldReturnTablesForresolvedSetOperationScanNode(875);
+    });
   });
 });

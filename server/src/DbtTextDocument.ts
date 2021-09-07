@@ -22,7 +22,6 @@ import { DiffTracker } from './DiffTracker';
 import { HoverProvider } from './HoverProvider';
 import { ModelCompiler } from './ModelCompiler';
 import { SchemaTracker } from './SchemaTracker';
-import { TableDefinition } from './TableDefinition';
 import { ServiceAccountCreds } from './YamlParser';
 import { ZetaSQLAST } from './ZetaSQLAST';
 import { ZetaSQLCatalog } from './ZetaSQLCatalog';
