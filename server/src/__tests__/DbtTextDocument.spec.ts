@@ -1,15 +1,15 @@
 import { Range } from 'vscode-languageserver';
 import * as fs from 'fs';
-import { DbtTextDocument } from '../DbtTextDocument';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { JinjaParser } from '../JinjaParser';
 
-describe('DbtTextDocumentTest', () => {
+describe('JinjaParser', () => {
   function findAllJinjas_shouldFindAllJinjas(fileName: string, ranges: Range[]) {
     // arrange
     const doc = TextDocument.create('uri', 'id', 1, fs.readFileSync(`./src/__tests__/sql_files/${fileName}.sql`, 'utf8'));
 
     // act
-    const jinjas = DbtTextDocument.findAllJinjas(doc);
+    const jinjas = new JinjaParser().findAllJinjas(doc);
 
     // assert
     expect(jinjas.length).toBe(ranges.length);

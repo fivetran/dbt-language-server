@@ -92,6 +92,7 @@ export class LspServer {
     if (!document) {
       document = new DbtTextDocument(params.textDocument, this.dbtServer, this.connection, this.serviceAccountCreds);
       this.openedDocuments.set(uri, document);
+      document.didChangeTextDocument({ textDocument: params.textDocument, contentChanges: [] });
     }
   }
 

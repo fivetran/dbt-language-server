@@ -11,15 +11,17 @@ import {
   HoverParams,
   Position,
   Range,
+  TextDocumentContentChangeEvent,
   TextDocumentItem,
   _Connection,
 } from 'vscode-languageserver';
-import { TextDocument, TextDocumentContentChangeEvent } from 'vscode-languageserver-textdocument';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtServer } from './DbtServer';
 import { DestinationDefinition } from './DestinationDefinition';
 import { DiffTracker } from './DiffTracker';
 import { HoverProvider } from './HoverProvider';
+import { JinjaParser } from './JinjaParser';
 import { ModelCompiler } from './ModelCompiler';
 import { SchemaTracker } from './SchemaTracker';
 import { ServiceAccountCreds } from './YamlParser';
@@ -28,8 +30,9 @@ import { ZetaSQLCatalog } from './ZetaSQLCatalog';
 
 export class DbtTextDocument {
   static readonly NON_WORD_PATTERN = /\W/;
-  static readonly JINJA_PATTERN = /{{[\s\S]*?}}|{%[\s\S]*?%}|{#[\s\S]*?#}/g;
+
   static zetaSQLAST = new ZetaSQLAST();
+  static jinjaParser = new JinjaParser();
 
   connection: _Connection;
   rawDocument: TextDocument;
@@ -37,9 +40,8 @@ export class DbtTextDocument {
   modelCompiler: ModelCompiler;
   ast: AnalyzeResponse | undefined;
   schemaTracker: SchemaTracker;
-  jinjas = new Array<Range>();
-  recompileRequired = false;
   catalogInitialized = false;
+  compilationInProgress = false;
 
   constructor(doc: TextDocumentItem, dbtServer: DbtServer, connection: _Connection, serviceAccountCreds?: ServiceAccountCreds) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -47,18 +49,49 @@ export class DbtTextDocument {
     this.modelCompiler = new ModelCompiler(this, dbtServer);
     this.connection = connection;
     this.schemaTracker = new SchemaTracker(serviceAccountCreds);
-
-    this.findAllJinjas();
-    // if (this.jinjas.length > 0) {
-    this.modelCompiler.compile();
-    // }
   }
 
   async didChangeTextDocument(params: DidChangeTextDocumentParams) {
-    TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
-    // if (this.checkIfJinjaModified(changes)) {
-    await this.debouncedCompile();
-    // }
+    if (this.isDbtCompileNeeded(params.contentChanges)) {
+      this.compilationInProgress = true;
+      TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
+      await this.debouncedCompile();
+    } else {
+      const compiledContentChanges = params.contentChanges.map(c => {
+        if (!TextDocumentContentChangeEvent.isIncremental(c)) {
+          throw new Error('Incremental updates expected');
+        }
+
+        return <TextDocumentContentChangeEvent>{
+          text: c.text,
+          range: Range.create(
+            this.convertPosition(this.compiledDocument.getText(), this.rawDocument.getText(), c.range.start),
+            this.convertPosition(this.compiledDocument.getText(), this.rawDocument.getText(), c.range.end),
+          ),
+        };
+      });
+      TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
+      TextDocument.update(this.compiledDocument, compiledContentChanges, params.textDocument.version);
+      await this.onCompilationFinished();
+    }
+  }
+
+  convertPosition(first: string, second: string, positionInSecond: Position): Position {
+    const lineInFirst = DiffTracker.getOldLineNumber(first, second, positionInSecond.line);
+    return {
+      line: lineInFirst,
+      character: positionInSecond.character,
+    };
+  }
+
+  isDbtCompileNeeded(changes: TextDocumentContentChangeEvent[]) {
+    const firstRun = changes.length === 0;
+    if (this.compilationInProgress || firstRun) {
+      return true;
+    }
+
+    const jinjas = DbtTextDocument.jinjaParser.findAllJinjas(this.rawDocument);
+    return jinjas.length > 0 && DbtTextDocument.jinjaParser.checkIfJinjaModified(jinjas, changes);
   }
 
   debouncedCompile = this.debounce(async () => {
@@ -80,37 +113,6 @@ export class DbtTextDocument {
   getFileName(): string {
     const lastSlash = this.rawDocument.uri.lastIndexOf('/');
     return this.rawDocument.uri.substring(lastSlash);
-  }
-
-  checkIfJinjaModified(changes: TextDocumentContentChangeEvent[]) {
-    this.jinjas.forEach(jinjaRange => {
-      changes.forEach((change: TextDocumentContentChangeEvent) => {
-        if ('range' in change) {
-          if (this.rangesOverlap(jinjaRange, change.range)) {
-            return true;
-          }
-        }
-      });
-    });
-    return false;
-  }
-
-  findAllJinjas() {
-    this.jinjas = DbtTextDocument.findAllJinjas(this.rawDocument);
-  }
-
-  static findAllJinjas(rawDocument: TextDocument): Array<Range> {
-    const text = rawDocument.getText();
-    const jinjas = new Array<Range>();
-    let m: RegExpExecArray | null;
-
-    while ((m = DbtTextDocument.JINJA_PATTERN.exec(text))) {
-      jinjas.push({
-        start: rawDocument.positionAt(m.index),
-        end: rawDocument.positionAt(m.index + m[0].length),
-      });
-    }
-    return jinjas;
   }
 
   async sendDiagnostics(dbtCompilationError?: string) {
@@ -166,8 +168,14 @@ export class DbtTextDocument {
     this.connection.sendDiagnostics({ uri: this.getUri(), diagnostics });
   }
 
-  rangesOverlap(range1: Range, range2: Range): boolean {
-    return (range1.start < range2.start && range1.end > range2.start) || (range1.start < range2.end && range1.end > range2.end);
+  comparePositions(position1: Position, position2: Position): number {
+    if (position1.line < position2.line) return -1;
+    if (position1.line > position2.line) return 1;
+
+    if (position1.character < position2.character) return -1;
+    if (position1.character > position2.character) return 1;
+
+    return 0;
   }
 
   async ensureCatalogInitialized() {
@@ -184,6 +192,7 @@ export class DbtTextDocument {
   }
 
   async onCompilationFinished(dbtCompilationError?: string) {
+    this.compilationInProgress = false;
     if (!dbtCompilationError) {
       await this.ensureCatalogInitialized();
     }
