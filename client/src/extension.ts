@@ -1,7 +1,8 @@
 import * as path from 'path';
-import { ExtensionContext } from 'vscode';
+import { commands, Disposable, EventEmitter, ExtensionContext, Uri, window, workspace } from 'vscode';
 
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
+import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 
 let client: LanguageClient;
 
@@ -32,8 +33,39 @@ export function activate(context: ExtensionContext) {
   // Create the language client and start the client.
   client = new LanguageClient('dbtFivetranExtension', 'Dbt Language Client', serverOptions, clientOptions);
 
+  registerSqlPreviewContentProvider(context);
+
+  client.onReady().then(() => {
+    client.onNotification('custom/updateQueryPreview', ([uri, text]) => {
+      SqlPreviewContentProvider.update(uri, text);
+    });
+  });
+
+  window.onDidChangeActiveTextEditor(e => {
+    if (e.document.uri.toString() === SqlPreviewContentProvider.uri.toString()) {
+      return;
+    }
+    SqlPreviewContentProvider.changeActiveDocument(e.document.uri.toString());
+  });
+
   // Start the client. This will also launch the server
   client.start();
+}
+
+function registerSqlPreviewContentProvider(context: ExtensionContext) {
+  const provider = new SqlPreviewContentProvider();
+
+  const providerRegistrations = Disposable.from(workspace.registerTextDocumentContentProvider(SqlPreviewContentProvider.scheme, provider));
+
+  const commandRegistration = commands.registerTextEditorCommand('editor.showQueryPreview', editor => {
+    SqlPreviewContentProvider.changeActiveDocument(editor.document.uri.toString());
+
+    return workspace.openTextDocument(SqlPreviewContentProvider.uri).then(doc => {
+      window.showTextDocument(doc, editor.viewColumn! + 1, true);
+    });
+  });
+
+  context.subscriptions.push(provider, commandRegistration, providerRegistrations);
 }
 
 // This method is called when extension is deactivated

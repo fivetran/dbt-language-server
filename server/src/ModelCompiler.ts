@@ -34,7 +34,7 @@ export class ModelCompiler {
 
     const status = await this.dbtServer.getCurrentStatus();
     if (status?.error?.data?.message) {
-      await this.dbtTextDocument.onCompilationFinished(status?.error?.data?.message);
+      await this.dbtTextDocument.onCompilationFinished(undefined, status?.error?.data?.message);
       return;
     }
 
@@ -78,7 +78,7 @@ export class ModelCompiler {
           console.log(`${i + 1} elements were removed`);
 
           if (response?.error) {
-            await this.dbtTextDocument.onCompilationFinished(response?.error.data?.message);
+            await this.dbtTextDocument.onCompilationFinished(undefined, response?.error.data?.message);
             break;
           }
 
@@ -86,8 +86,7 @@ export class ModelCompiler {
 
           if (compiledNodes.length > 0) {
             const compiledSql = compiledNodes[0].node.compiled_sql;
-            TextDocument.update(this.dbtTextDocument.compiledDocument, [{ text: compiledSql }], this.dbtTextDocument.compiledDocument.version);
-            await this.dbtTextDocument.onCompilationFinished();
+            await this.dbtTextDocument.onCompilationFinished(compiledSql);
           }
           break;
         }

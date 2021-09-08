@@ -27,6 +27,20 @@
           "description": "Traces the communication between VS Code and the language server."
         }
       }
+    },
+    "commands": [
+      {
+        "command": "editor.showQueryPreview",
+        "title": "Show Query Preview"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "editor.showQueryPreview",
+          "group": "navigation@1.31"
+        }
+      ]
     }
   },
   "scripts": {

@@ -14,9 +14,16 @@ describe('Utils', () => {
     expect(rangesOverlap(Range.create(0, 0, 0, 1), Range.create(0, 0, 0, 1))).toBe(true);
     expect(rangesOverlap(Range.create(0, 0, 0, 1), Range.create(0, 1, 1, 1))).toBe(true);
     expect(rangesOverlap(Range.create(1, 1, 3, 3), Range.create(0, 0, 2, 2))).toBe(true);
+    expect(rangesOverlap(Range.create(1, 1, 1, 3), Range.create(0, 0, 3, 3))).toBe(true);
+    expect(rangesOverlap(Range.create(0, 0, 3, 3), Range.create(1, 1, 1, 3))).toBe(true);
+    expect(rangesOverlap(Range.create(1, 1, 5, 3), Range.create(0, 0, 3, 3))).toBe(true);
+    expect(rangesOverlap(Range.create(0, 0, 3, 3), Range.create(1, 1, 5, 3))).toBe(true);
 
     expect(rangesOverlap(Range.create(0, 0, 0, 1), Range.create(0, 2, 1, 1))).toBe(false);
     expect(rangesOverlap(Range.create(0, 0, 0, 1), Range.create(1, 0, 1, 1))).toBe(false);
     expect(rangesOverlap(Range.create(2, 2, 3, 3), Range.create(1, 1, 2, 1))).toBe(false);
+    expect(rangesOverlap(Range.create(0, 2, 1, 1), Range.create(0, 0, 0, 1))).toBe(false);
+    expect(rangesOverlap(Range.create(1, 0, 1, 1), Range.create(0, 0, 0, 1))).toBe(false);
+    expect(rangesOverlap(Range.create(1, 1, 2, 1), Range.create(2, 2, 3, 3))).toBe(false);
   });
 });

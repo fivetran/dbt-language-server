@@ -1,7 +1,6 @@
 import { Range, TextDocumentContentChangeEvent } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
-import { DbtTextDocument } from './DbtTextDocument';
 import { rangesOverlap } from './Utils';
 
 export class JinjaParser {
@@ -19,6 +18,10 @@ export class JinjaParser {
       });
     }
     return jinjas;
+  }
+
+  hasJinjas(text: string): boolean {
+    return text.indexOf('{') > -1 || text.indexOf('}') > -1 || JinjaParser.JINJA_PATTERN.exec(text) !== null;
   }
 
   checkIfJinjaModified(jinjas: Range[], changes: TextDocumentContentChangeEvent[]) {

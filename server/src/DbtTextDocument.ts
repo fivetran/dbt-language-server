@@ -72,7 +72,7 @@ export class DbtTextDocument {
       });
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
       TextDocument.update(this.compiledDocument, compiledContentChanges, params.textDocument.version);
-      await this.onCompilationFinished();
+      await this.onCompilationFinished(this.compiledDocument.getText());
     }
   }
 
@@ -85,13 +85,23 @@ export class DbtTextDocument {
   }
 
   isDbtCompileNeeded(changes: TextDocumentContentChangeEvent[]) {
-    const firstRun = changes.length === 0;
-    if (this.compilationInProgress || firstRun) {
+    if (this.compilationInProgress) {
       return true;
     }
 
+    for (const change of changes) {
+      if (DbtTextDocument.jinjaParser.hasJinjas(change.text)) {
+        return true;
+      }
+    }
+
     const jinjas = DbtTextDocument.jinjaParser.findAllJinjas(this.rawDocument);
-    return jinjas.length > 0 && DbtTextDocument.jinjaParser.checkIfJinjaModified(jinjas, changes);
+    if (jinjas.length > 0) {
+      const firstRun = changes.length === 0;
+      if (firstRun || DbtTextDocument.jinjaParser.checkIfJinjaModified(jinjas, changes)) {
+        return true;
+      }
+    }
   }
 
   debouncedCompile = this.debounce(async () => {
@@ -191,7 +201,12 @@ export class DbtTextDocument {
     this.schemaTracker.resetHasNewTables();
   }
 
-  async onCompilationFinished(dbtCompilationError?: string) {
+  async onCompilationFinished(compiledSql?: string, dbtCompilationError?: string) {
+    if (compiledSql !== undefined) {
+      TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
+      this.connection.sendNotification('custom/updateQueryPreview', [this.getUri(), compiledSql]);
+    }
+
     this.compilationInProgress = false;
     if (!dbtCompilationError) {
       await this.ensureCatalogInitialized();

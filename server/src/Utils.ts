@@ -11,7 +11,12 @@ export function comparePositions(position1: Position, position2: Position): numb
 }
 
 export function rangesOverlap(range1: Range, range2: Range): boolean {
-  return positionInRange(range2.start, range1) || positionInRange(range2.end, range1);
+  return (
+    positionInRange(range2.start, range1) ||
+    positionInRange(range2.end, range1) ||
+    positionInRange(range1.start, range2) ||
+    positionInRange(range1.end, range2)
+  );
 }
 
 function positionInRange(position: Position, range: Range) {

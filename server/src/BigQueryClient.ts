@@ -21,7 +21,7 @@ export class BigQueryClient {
     try {
       const metadata = await table.getMetadata();
       return metadata[0].schema;
-    } catch (e) {
+    } catch (e: any) {
       console.log(e.message);
     }
   }
