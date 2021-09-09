@@ -1,7 +1,7 @@
 import * as path from 'path';
-import { commands, Disposable, EventEmitter, ExtensionContext, Uri, window, workspace } from 'vscode';
+import { commands, Disposable, ExtensionContext, window, workspace } from 'vscode';
 
-import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
+import { LanguageClient, LanguageClientOptions, ServerOptions, State, TransportKind } from 'vscode-languageclient/node';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 
 let client: LanguageClient;
@@ -35,10 +35,12 @@ export function activate(context: ExtensionContext) {
 
   registerSqlPreviewContentProvider(context);
 
-  client.onReady().then(() => {
-    client.onNotification('custom/updateQueryPreview', ([uri, text]) => {
-      SqlPreviewContentProvider.update(uri, text);
-    });
+  client.onDidChangeState(e => {
+    if (e.newState === State.Running) {
+      client.onNotification('custom/updateQueryPreview', ([uri, text]) => {
+        SqlPreviewContentProvider.update(uri, text);
+      });
+    }
   });
 
   window.onDidChangeActiveTextEditor(e => {
