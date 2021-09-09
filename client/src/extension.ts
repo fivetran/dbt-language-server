@@ -42,7 +42,7 @@ export function activate(context: ExtensionContext) {
   });
 
   window.onDidChangeActiveTextEditor(e => {
-    if (e.document.uri.toString() === SqlPreviewContentProvider.uri.toString()) {
+    if (!e || e.document.uri.toString() === SqlPreviewContentProvider.uri.toString()) {
       return;
     }
     SqlPreviewContentProvider.changeActiveDocument(e.document.uri.toString());
