@@ -39,3 +39,36 @@ jobs:
           path: ${{ steps.vars.outputs.file_name }}
           destination: dbt-language-server
           credentials: ${{ secrets.GCS_SERVICE_ACCOUNT }}
+
+  run-e2e-tests:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: docker-practice/actions-setup-docker@master
+      - uses: actions/setup-node@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7.x'
+      - run: pip install dbt==0.19.1
+      - run: dbt --version
+
+      - name: Run smocker
+        run: |
+          eval "$(docker-machine env default)"
+          docker run -d \
+          --restart=always \
+          -p 8080:8080 \
+          -p 8081:8081 \
+          --name smocker \
+          thiht/smocker
+      - run: curl localhost:8081/version
+      - name: Apply mocks to the smocker
+        run: |
+          curl -XPOST \
+          --header "Content-Type: application/x-yaml" \
+          --data-binary "@client/src/test/mock.yml" \
+          localhost:8081/mocks
+
+      - run: npm install
+      - run: npm run compile
+      - run: ./scripts/e2e.sh
