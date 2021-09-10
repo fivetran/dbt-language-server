@@ -1,3 +1,6 @@
 out
 node_modules
 *.vsix
+.vscode-test
+client/test-fixture/logs
+client/test-fixture/target

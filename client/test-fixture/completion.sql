@@ -1,0 +1,1 @@
+select * from analytics_ds.test_table1
