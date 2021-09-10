@@ -1,0 +1,13 @@
+e2e-test-project:
+  target: prod
+  outputs:
+    prod:
+      type: bigquery
+      method: service-account
+      project: bq-test-project
+      keyfile: ~/.dbt/bq-test-project.json
+      dataset: transforms_dbt_default
+      threads: 4
+      timeout_seconds: 3600
+      priority: interactive
+      retries: 1

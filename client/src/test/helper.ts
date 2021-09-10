@@ -13,7 +13,7 @@ export async function activateExtension(docUri: vscode.Uri) {
   try {
     doc = await vscode.workspace.openTextDocument(docUri);
     editor = await vscode.window.showTextDocument(doc);
-    await sleep(3000); // Wait for server activation
+    await sleep(6000); // Wait for server activation
   } catch (e) {
     console.error(e);
   }

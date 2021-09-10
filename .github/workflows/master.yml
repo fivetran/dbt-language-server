@@ -51,7 +51,12 @@ jobs:
         with:
           python-version: '3.7.x'
 
-      - run: ./client/wiremock/mock_big_query_api.sh &
+      - run: ./client/e2e/mock_big_query_api.sh &
+      - run: mkdir -p ~/.dbt/ && cp ./client/e2e/profiles.yml ~/.dbt/profiles.yml
+      - run: 'echo "$BQ_SERVICE_ACCOUNT" > ~/.dbt/bq-test-project.json'
+        shell: bash
+        env:
+          BQ_SERVICE_ACCOUNT: ${{ secrets.BQ_SERVICE_ACCOUNT }}
       - run: pip install dbt==0.19.1
       - run: dbt --version
 

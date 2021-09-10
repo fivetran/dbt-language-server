@@ -4,4 +4,4 @@ node_modules
 .vscode-test
 client/test-fixture/logs
 client/test-fixture/target
-client/wiremock/*.jar
+client/e2e/*.jar
