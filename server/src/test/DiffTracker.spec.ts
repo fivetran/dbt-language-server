@@ -1,5 +1,6 @@
 import { DiffTracker } from '../DiffTracker';
 import * as fs from 'fs';
+import assert = require('assert');
 
 describe('DiffTracker', () => {
   it('config_at_the_beginning', () => {
@@ -57,7 +58,7 @@ describe('DiffTracker', () => {
 
   function getOldLineNumber_shouldReturnCorrespondingLineNumberForOldText(fileName: string, newLineNumber: number, expectedOldLineNumber: number) {
     // arrange
-    const filesRootPath = './src/__tests__/diff/';
+    const filesRootPath = __dirname + '/../../src/test/diff/';
     const raw = fs.readFileSync(`${filesRootPath}raw/${fileName}.sql`, 'utf8');
     const compiled = fs.readFileSync(`${filesRootPath}compiled/${fileName}.sql`, 'utf8');
 
@@ -65,6 +66,6 @@ describe('DiffTracker', () => {
     const number = DiffTracker.getOldLineNumber(raw, compiled, newLineNumber);
 
     // assert
-    expect(number).toBe(expectedOldLineNumber);
+    assert.strictEqual(number, expectedOldLineNumber);
   }
 });

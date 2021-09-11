@@ -25,7 +25,8 @@ jobs:
           node-version: '14.x'
 
       - run: npm install
-      - run: cd server && npm run test
+      - run: npm run compile
+      - run: npm run test
 
       - id: vars
         shell: bash

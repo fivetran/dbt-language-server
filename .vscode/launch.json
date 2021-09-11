@@ -28,12 +28,14 @@
       "outFiles": ["${workspaceFolder}/server/out/**/*.js"]
     },
     {
-      "name": "Debug Server Jest Tests",
+      "name": "Debug Server Unit Tests",
       "type": "node",
+      "protocol": "inspector",
       "request": "launch",
-      "runtimeArgs": ["--inspect-brk", "node_modules/.bin/jest", "--runInBand", "--config", "jestconfig.json"],
+      "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+      "stopOnEntry": false,
+      "args": ["-r", "ts-node/register", "${workspaceRoot}/server/src/test/**/*.spec.ts", "--no-timeouts"],
       "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
       "cwd": "${workspaceRoot}/server"
     },
     {

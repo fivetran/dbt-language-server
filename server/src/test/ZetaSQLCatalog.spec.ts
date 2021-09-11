@@ -1,3 +1,4 @@
+import assert = require('assert');
 import { TableDefinition } from '../TableDefinition';
 import { ZetaSQLCatalog } from '../ZetaSQLCatalog';
 
@@ -5,7 +6,6 @@ describe('ZetaSQLCatalogTest', () => {
   let zetaSQLModule: any;
 
   beforeEach(() => {
-    jest.resetModules();
     zetaSQLModule = require('../ZetaSQLCatalog');
   });
 
@@ -28,8 +28,8 @@ describe('ZetaSQLCatalogTest', () => {
     // arrange
     const zetaSQLCatalog: ZetaSQLCatalog = zetaSQLModule.ZetaSQLCatalog.getInstance();
 
-    zetaSQLCatalog.catalog.register = jest.fn().mockReturnValue(0);
-    zetaSQLCatalog.registerAllLanguageFeatures = jest.fn().mockReturnValue(0);
+    zetaSQLCatalog.catalog.register = async function () {};
+    zetaSQLCatalog.registerAllLanguageFeatures = async function () {};
 
     // act
     try {
@@ -41,23 +41,23 @@ describe('ZetaSQLCatalogTest', () => {
     // assert
     if (expectedProjectId) {
       const projects = zetaSQLCatalog.catalog.catalogs;
-      expect(projects.size).toBe(1);
-      expect(projects.get(expectedProjectId)?.name).toBe(expectedProjectId);
+      assert.strictEqual(projects.size, 1);
+      assert.strictEqual(projects.get(expectedProjectId)?.name, expectedProjectId);
     }
 
     const datasets = expectedProjectId ? zetaSQLCatalog.catalog.catalogs.get(expectedProjectId)?.catalogs : zetaSQLCatalog.catalog.catalogs;
     if (expectedDataSet) {
-      expect(datasets?.size).toBe(1);
-      expect(datasets?.get(expectedDataSet)?.name).toBe(expectedDataSet);
+      assert.strictEqual(datasets?.size, 1);
+      assert.strictEqual(datasets?.get(expectedDataSet)?.name, expectedDataSet);
     }
 
     const tables = expectedDataSet ? datasets?.get(DATA_SET)?.tables : zetaSQLCatalog.catalog.tables;
-    expect(tables?.size).toBe(1);
-    expect(tables?.get(table)?.name).toBe(table);
+    assert.strictEqual(tables?.size, 1);
+    assert.strictEqual(tables?.get(table)?.name, table);
 
     const columns = tables?.get(table)?.columns;
-    expect(columns?.length).toBe(expectedColumns.length);
-    expect(columns?.map(c => c.getName()).sort()).toEqual(expectedColumns.sort());
+    assert.strictEqual(columns?.length, expectedColumns.length);
+    assert.strictEqual(columns?.map(c => c.getName()).sort(), expectedColumns.sort());
   }
 
   it('register_shouldRegisterProjectDataSetAndTable', async () => {
