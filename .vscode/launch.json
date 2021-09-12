@@ -36,7 +36,8 @@
       "stopOnEntry": false,
       "args": ["-r", "ts-node/register", "${workspaceRoot}/server/src/test/**/*.spec.ts", "--no-timeouts"],
       "console": "integratedTerminal",
-      "cwd": "${workspaceRoot}/server"
+      "cwd": "${workspaceRoot}/server",
+      "skipFiles": ["<node_internals>/**"]
     },
     {
       "name": "E2E Tests",
@@ -48,9 +49,6 @@
         "--extensionTestsPath=${workspaceRoot}/client/out/test/index",
         "${workspaceRoot}/client/test-fixture"
       ],
-      "env": {
-        "BIG_QUERY_URL": "http://localhost:8080"
-      },
       "outFiles": ["${workspaceRoot}/client/out/test/**/*.js"]
     }
   ],

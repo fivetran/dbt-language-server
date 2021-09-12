@@ -4,7 +4,7 @@ e2e-test-project:
     prod:
       type: bigquery
       method: service-account
-      project: bq-test-project
+      project: singular-vector-135519
       keyfile: ~/.dbt/bq-test-project.json
       dataset: transforms_dbt_default
       threads: 4

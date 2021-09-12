@@ -9,9 +9,6 @@ export class BigQueryClient {
       projectId: projectId,
     };
     this.bigQuery = new BigQuery(options);
-    if (process.env.BIG_QUERY_URL) {
-      this.bigQuery.baseUrl = process.env.BIG_QUERY_URL;
-    }
   }
 
   async getDatasets() {
