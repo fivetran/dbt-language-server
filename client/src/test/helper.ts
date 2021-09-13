@@ -6,14 +6,14 @@ export let editor: vscode.TextEditor;
 export let documentEol: string;
 export let platformEol: string;
 
-export async function activateExtension(docUri: vscode.Uri) {
+export async function activateAndWait(docUri: vscode.Uri, sec: number) {
   // The extensionId is `publisher.name` from package.json
   const ext = vscode.extensions.getExtension('Fivetran.dbt-language-server')!;
   await ext.activate();
   try {
     doc = await vscode.workspace.openTextDocument(docUri);
     editor = await vscode.window.showTextDocument(doc);
-    await sleep(6000); // Wait for server activation
+    await sleep(sec * 1000); // Wait for server activation
   } catch (e) {
     console.error(e);
   }
@@ -24,7 +24,7 @@ export async function sleep(ms: number) {
 }
 
 export const getDocPath = (p: string) => {
-  return path.resolve(__dirname, '../../test-fixture', p);
+  return path.resolve(__dirname, '../../test-fixture/models', p);
 };
 
 export const getDocUri = (p: string) => {

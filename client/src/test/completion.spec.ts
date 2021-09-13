@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import * as assert from 'assert';
-import { getDocUri, activateExtension, sleep } from './helper';
+import { getDocUri, activateAndWait, sleep } from './helper';
 
-suite('Should do completion', () => {
+suite('Should do completion', async () => {
   const docUri = getDocUri('completion.sql');
 
   test('Should suggest table colums', async () => {
@@ -18,7 +18,7 @@ suite('Should do completion', () => {
 });
 
 async function testCompletion(docUri: vscode.Uri, position: vscode.Position, expectedCompletionList: vscode.CompletionList) {
-  await activateExtension(docUri);
+  await activateAndWait(docUri, 7);
 
   // Executing the command `vscode.executeCompletionItemProvider` to simulate triggering completion
   const actualCompletionList = (await vscode.commands.executeCommand(

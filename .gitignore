@@ -4,4 +4,3 @@ node_modules
 .vscode-test
 client/test-fixture/logs
 client/test-fixture/target
-client/e2e/*.jar
