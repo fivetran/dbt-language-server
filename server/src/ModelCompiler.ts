@@ -1,4 +1,3 @@
-import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtCompileJob } from './DbtCompileJob';
 import { CompileResult, DbtServer } from './DbtServer';
 import { DbtTextDocument } from './DbtTextDocument';
@@ -9,6 +8,7 @@ export class ModelCompiler {
   dbtTextDocument: DbtTextDocument;
   dbtServer: DbtServer;
   dbtCompileTaskQueue: DbtCompileJob[] = [];
+  compilationInProgress = false;
   pollIsRunning = false;
 
   constructor(dbtTextDocument: DbtTextDocument, dbtServer: DbtServer) {
@@ -27,6 +27,7 @@ export class ModelCompiler {
   }
 
   async compile(): Promise<void> {
+    this.compilationInProgress = true;
     const isStarted = await this.isDbtServerStarted();
     if (!isStarted) {
       return;
@@ -99,6 +100,7 @@ export class ModelCompiler {
       await this.wait(500);
     }
     this.pollIsRunning = false;
+    this.compilationInProgress = false;
   }
 
   wait(ms: number) {

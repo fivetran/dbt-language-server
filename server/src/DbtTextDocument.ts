@@ -41,7 +41,6 @@ export class DbtTextDocument {
   ast: AnalyzeResponse | undefined;
   schemaTracker: SchemaTracker;
   catalogInitialized = false;
-  compilationInProgress = false;
 
   constructor(doc: TextDocumentItem, dbtServer: DbtServer, connection: _Connection, serviceAccountCreds?: ServiceAccountCreds) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -53,7 +52,6 @@ export class DbtTextDocument {
 
   async didChangeTextDocument(params: DidChangeTextDocumentParams) {
     if (this.isDbtCompileNeeded(params.contentChanges)) {
-      this.compilationInProgress = true;
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
       await this.debouncedCompile();
     } else {
@@ -85,7 +83,7 @@ export class DbtTextDocument {
   }
 
   isDbtCompileNeeded(changes: TextDocumentContentChangeEvent[]) {
-    if (this.compilationInProgress) {
+    if (this.modelCompiler.compilationInProgress) {
       return true;
     }
 
@@ -207,7 +205,6 @@ export class DbtTextDocument {
       this.connection.sendNotification('custom/updateQueryPreview', [this.getUri(), compiledSql]);
     }
 
-    this.compilationInProgress = false;
     if (!dbtCompilationError) {
       await this.ensureCatalogInitialized();
     }
