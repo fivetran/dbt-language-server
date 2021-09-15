@@ -35,7 +35,7 @@ export class ModelCompiler {
 
     const status = await this.dbtServer.getCurrentStatus();
     if (status?.error?.data?.message) {
-      await this.dbtTextDocument.onCompilationFinished(undefined, status?.error?.data?.message);
+      await this.dbtTextDocument.onCompilationError(status?.error?.data?.message);
       return;
     }
 
@@ -79,7 +79,7 @@ export class ModelCompiler {
           console.log(`${i + 1} elements were removed`);
 
           if (response?.error) {
-            await this.dbtTextDocument.onCompilationFinished(undefined, response?.error.data?.message);
+            await this.dbtTextDocument.onCompilationError(response?.error.data?.message ?? 'dbt compile error');
             break;
           }
 
@@ -101,6 +101,7 @@ export class ModelCompiler {
     }
     this.pollIsRunning = false;
     this.compilationInProgress = false;
+    this.dbtTextDocument.onFinishAllCompilationTasks();
   }
 
   wait(ms: number) {

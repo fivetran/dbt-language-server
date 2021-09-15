@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 
 export default class SqlPreviewContentProvider implements vscode.TextDocumentContentProvider {
   static scheme = 'query-preview';
-  static uri = vscode.Uri.parse(SqlPreviewContentProvider.scheme + ':Preview.sql?dbt-language-server');
+  static uri = vscode.Uri.parse(SqlPreviewContentProvider.scheme + ':Preview?dbt-language-server');
   static activeDocUri = '';
   static texts = new Map<string, string>();
 

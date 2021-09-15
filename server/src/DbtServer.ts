@@ -231,7 +231,7 @@ export class DbtServer {
   async makePostRequest<T extends Response>(postData: object): Promise<T | undefined> {
     try {
       const response = await axios.post<T>(`http://localhost:${DbtServer.PORT}/jsonrpc`, postData, { timeout: 6000 });
-      console.log(response);
+      // console.log(response);
       const { data } = response;
       if (data?.error?.data?.message) {
         const message = data?.error?.data?.message;

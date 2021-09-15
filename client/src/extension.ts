@@ -1,7 +1,8 @@
 import * as path from 'path';
-import { commands, Disposable, ExtensionContext, window, workspace } from 'vscode';
+import { commands, Disposable, ExtensionContext, languages, ProgressLocation, window, workspace } from 'vscode';
 
-import { LanguageClient, LanguageClientOptions, ServerOptions, State, TransportKind } from 'vscode-languageclient/node';
+import { LanguageClient, LanguageClientOptions, ServerOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
+import { ProgressHandler } from './ProgressHandler';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 
 let client: LanguageClient;
@@ -35,11 +36,14 @@ export function activate(context: ExtensionContext) {
 
   registerSqlPreviewContentProvider(context);
 
+  const pregressHandler = new ProgressHandler();
   client.onDidChangeState(e => {
     if (e.newState === State.Running) {
       client.onNotification('custom/updateQueryPreview', ([uri, text]) => {
         SqlPreviewContentProvider.update(uri, text);
       });
+
+      client.onProgress(WorkDoneProgress.type, 'dbtCompileProgress', pregressHandler.onProgress.bind(pregressHandler));
     }
   });
 
@@ -64,6 +68,7 @@ function registerSqlPreviewContentProvider(context: ExtensionContext) {
 
     return workspace.openTextDocument(SqlPreviewContentProvider.uri).then(doc => {
       window.showTextDocument(doc, editor.viewColumn! + 1, true);
+      languages.setTextDocumentLanguage(doc, 'sql');
     });
   });
 

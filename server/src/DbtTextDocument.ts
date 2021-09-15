@@ -23,6 +23,7 @@ import { DiffTracker } from './DiffTracker';
 import { HoverProvider } from './HoverProvider';
 import { JinjaParser } from './JinjaParser';
 import { ModelCompiler } from './ModelCompiler';
+import { ProgressReporter } from './ProgressReporter';
 import { SchemaTracker } from './SchemaTracker';
 import { ServiceAccountCreds } from './YamlParser';
 import { ZetaSQLAST } from './ZetaSQLAST';
@@ -41,6 +42,7 @@ export class DbtTextDocument {
   ast: AnalyzeResponse | undefined;
   schemaTracker: SchemaTracker;
   catalogInitialized = false;
+  progressReporter: ProgressReporter;
 
   constructor(doc: TextDocumentItem, dbtServer: DbtServer, connection: _Connection, serviceAccountCreds?: ServiceAccountCreds) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -48,9 +50,11 @@ export class DbtTextDocument {
     this.modelCompiler = new ModelCompiler(this, dbtServer);
     this.connection = connection;
     this.schemaTracker = new SchemaTracker(serviceAccountCreds);
+    this.progressReporter = new ProgressReporter(connection, doc.uri);
   }
 
   async didChangeTextDocument(params: DidChangeTextDocumentParams) {
+    await this.progressReporter.sendCompilationStart();
     if (this.isDbtCompileNeeded(params.contentChanges)) {
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
       await this.debouncedCompile();
@@ -199,16 +203,23 @@ export class DbtTextDocument {
     this.schemaTracker.resetHasNewTables();
   }
 
-  async onCompilationFinished(compiledSql?: string, dbtCompilationError?: string) {
-    if (compiledSql !== undefined) {
-      TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
-      this.connection.sendNotification('custom/updateQueryPreview', [this.getUri(), compiledSql]);
+  async onCompilationError(dbtCompilationError: string): Promise<void> {
+    await this.sendDiagnostics(dbtCompilationError);
+  }
+
+  async onCompilationFinished(compiledSql: string): Promise<void> {
+    TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
+    this.connection.sendNotification('custom/updateQueryPreview', [this.getUri(), compiledSql]);
+    if (!this.modelCompiler.compilationInProgress) {
+      this.progressReporter.sendCompilationFinished();
     }
 
-    if (!dbtCompilationError) {
-      await this.ensureCatalogInitialized();
-    }
-    await this.sendDiagnostics(dbtCompilationError);
+    await this.ensureCatalogInitialized();
+    await this.sendDiagnostics();
+  }
+
+  onFinishAllCompilationTasks(): void {
+    this.progressReporter.sendCompilationFinished();
   }
 
   async onHover(hoverParams: HoverParams): Promise<Hover | null> {
