@@ -106,6 +106,11 @@ export class DbtTextDocument {
     }
   }
 
+  async forceRecompile(): Promise<void> {
+    await this.progressReporter.sendCompilationStart();
+    await this.debouncedCompile();
+  }
+
   debouncedCompile = this.debounce(async () => {
     await this.modelCompiler.compile();
   }, 300);

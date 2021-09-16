@@ -55,6 +55,8 @@ export class LspServer {
     this.initializeDestinationDefinition();
     let capabilities = params.capabilities;
 
+    this.initializeNotifications();
+
     // Does the client support the `workspace/configuration` request?
     // If not, we fall back using global settings.
     this.hasConfigurationCapability = !!(capabilities.workspace && !!capabilities.workspace.configuration);
@@ -69,6 +71,17 @@ export class LspServer {
         },
       },
     };
+  }
+
+  initializeNotifications() {
+    this.connection.onNotification('custom/dbtCompile', this.onDbtCompile.bind(this));
+  }
+
+  async onDbtCompile(uri: string) {
+    let document = this.openedDocuments.get(uri);
+    if (document) {
+      await document.forceRecompile();
+    }
   }
 
   async initizelizeZetaSql() {

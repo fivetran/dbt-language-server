@@ -54,6 +54,22 @@ export function activate(context: ExtensionContext) {
     SqlPreviewContentProvider.changeActiveDocument(e.document.uri.toString());
   });
 
+  context.subscriptions.push(
+    commands.registerCommand('dbt.compile', async () => {
+      if (!window.activeTextEditor) {
+        return;
+      }
+      const { document } = window.activeTextEditor;
+      if (document.languageId !== 'sql') {
+        return;
+      }
+
+      const uri =
+        document.uri.toString() === SqlPreviewContentProvider.uri.toString() ? SqlPreviewContentProvider.activeDocUri : document.uri.toString();
+      client.sendNotification('custom/dbtCompile', uri);
+    }),
+  );
+
   // Start the client. This will also launch the server
   client.start();
 }

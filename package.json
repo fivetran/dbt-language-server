@@ -32,12 +32,28 @@
       {
         "command": "editor.showQueryPreview",
         "title": "Show Query Preview"
+      },
+      {
+        "command": "dbt.compile",
+        "title": "dbt compile"
       }
     ],
     "menus": {
+      "editor/title": [
+        {
+          "command": "dbt.compile",
+          "group": "navigation",
+          "when": "editorLangId == sql"
+        }
+      ],
       "editor/context": [
         {
           "command": "editor.showQueryPreview",
+          "group": "navigation@1.31"
+        },
+        {
+          "command": "dbt.compile",
+          "when": "editorLangId == sql",
           "group": "navigation@1.31"
         }
       ]
