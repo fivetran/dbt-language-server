@@ -44,6 +44,10 @@ export function activate(context: ExtensionContext) {
       });
 
       client.onProgress(WorkDoneProgress.type, 'dbtCompileProgress', pregressHandler.onProgress.bind(pregressHandler));
+
+      commands.executeCommand('setContext', 'dbt-language-server.init', true);
+    } else {
+      commands.executeCommand('setContext', 'dbt-language-server.init', false);
     }
   });
 

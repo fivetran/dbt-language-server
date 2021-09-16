@@ -6,7 +6,6 @@
     "vscode": "^1.54.0"
   },
   "activationEvents": [
-    "onLanguage:sql",
     "workspaceContains:./dbt_project.yml"
   ],
   "main": "./client/out/extension",
@@ -43,18 +42,19 @@
         {
           "command": "dbt.compile",
           "group": "navigation",
-          "when": "editorLangId == sql"
+          "when": "editorLangId == sql && dbt-language-server.init"
         }
       ],
       "editor/context": [
         {
           "command": "editor.showQueryPreview",
-          "group": "navigation@1.31"
+          "group": "navigation@1.31",
+          "when": "editorLangId == sql && dbt-language-server.init"
         },
         {
           "command": "dbt.compile",
-          "when": "editorLangId == sql",
-          "group": "navigation@1.31"
+          "group": "navigation@1.31",
+          "when": "editorLangId == sql && dbt-language-server.init"
         }
       ]
     }
