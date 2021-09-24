@@ -69,7 +69,7 @@
     "compile:all": "npm run format && npm run compile",
     "watch": "tsc -b -w",
     "format": "prettier --write \"client/src/**/*.ts\" \"server/src/**/*.ts\"",
-    "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
+    "postinstall": "cd client && npm install && cd ../server && npm install && cd ../markdown_parser && npm install && cd ..",
     "lint": "eslint . --ext .ts",
     "test": "mocha \"server/out/test/**/*.spec.js\""
   },

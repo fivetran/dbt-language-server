@@ -276,7 +276,7 @@ export class CompletionProvider {
     if (columns.size === 1) {
       const [tableColumns] = columns;
       return tableColumns[1].map(c =>
-        CompletionProvider.completionItem(c.name, CompletionItemKind.Value, `${tableColumns[0] ?? ''} ${c.type}`, 1 + c.name),
+        CompletionProvider.completionItem(c.name, CompletionItemKind.Value, `${tableColumns[0] ?? ''} ${c.type}`, undefined, 1 + c.name),
       );
     }
 
