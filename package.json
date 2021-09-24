@@ -30,11 +30,15 @@
     "commands": [
       {
         "command": "editor.showQueryPreview",
-        "title": "Show Query Preview"
+        "title": "Show query preview"
       },
       {
         "command": "dbt.compile",
         "title": "dbt compile"
+      },
+      {
+        "command": "editor.afterFunctionCompletion",
+        "title": "Do after completion"
       }
     ],
     "menus": {

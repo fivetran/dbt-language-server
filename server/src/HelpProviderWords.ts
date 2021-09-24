@@ -513,57 +513,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       },
     ],
   },
-  {
-    name: 'bit_cast_to_int32',
-    sinatures: [
-      {
-        signature: 'BIT_CAST_TO_INT32(value)\n',
-        description:
-          'ZetaSQL supports bit casting to INT32. A bit\ncast is a cast in which the order of bits is preserved instead of the value\nthose bytes represent.',
-      },
-    ],
-  },
-  {
-    name: 'bit_cast_to_int64',
-    sinatures: [
-      {
-        signature: 'BIT_CAST_TO_INT64(value)\n',
-        description:
-          'ZetaSQL supports bit casting to INT64. A bit\ncast is a cast in which the order of bits is preserved instead of the value\nthose bytes represent.',
-      },
-    ],
-  },
-  {
-    name: 'bit_cast_to_uint32',
-    sinatures: [
-      {
-        signature: 'BIT_CAST_TO_UINT32(value)\n',
-        description:
-          'ZetaSQL supports bit casting to UINT32. A bit\ncast is a cast in which the order of bits is preserved instead of the value\nthose bytes represent.',
-      },
-    ],
-  },
-  {
-    name: 'bit_cast_to_uint64',
-    sinatures: [
-      {
-        signature: 'BIT_CAST_TO_UINT64(value)\n',
-        description:
-          'ZetaSQL supports bit casting to UINT64. A bit\ncast is a cast in which the order of bits is preserved instead of the value\nthose bytes represent.',
-      },
-    ],
-  },
   { name: 'bit_count', sinatures: [{ signature: 'BIT_COUNT(expression)\n', description: 'The input, `expression`, must be an\ninteger or BYTES.' }] },
-  {
-    name: 'safe_cast',
-    sinatures: [
-      {
-        signature: '',
-        description:
-          'When using `CAST`, a query can fail if ZetaSQL is unable to perform\nthe cast. For example, the following query generates an error:',
-      },
-    ],
-  },
   {
     name: 'abs',
     sinatures: [
@@ -1401,26 +1351,6 @@ export const HelpProviderWords: FunctionInfo[] = [
     ],
   },
   {
-    name: 'to_json',
-    sinatures: [
-      {
-        signature: 'TO_JSON(sql_value[, stringify_wide_numbers=>{ TRUE | FALSE } ])\n',
-        description:
-          'Takes a SQL value and returns a JSON value. The value\nmust be a supported ZetaSQL data type. You can review the\nZetaSQL data types that this function supports and their\nJSON encodings here.',
-      },
-    ],
-  },
-  {
-    name: 'to_json_string',
-    sinatures: [
-      {
-        signature: 'TO_JSON_STRING(value[, pretty_print])\n',
-        description:
-          'Takes a SQL value and returns a JSON-formatted string\nrepresentation of the value. The value must be a supported ZetaSQL\ndata type. You can review the ZetaSQL data types that this function\nsupports and their JSON encodings here.',
-      },
-    ],
-  },
-  {
     name: 'jsonpath',
     sinatures: [{ signature: '', description: 'The `ARRAY` function returns an `ARRAY` with one element for each row in a\nsubquery.' }],
   },
@@ -1966,36 +1896,6 @@ export const HelpProviderWords: FunctionInfo[] = [
     sinatures: [{ signature: 'JUSTIFY_INTERVAL(interval_expression)\n', description: 'Normalizes the days and time parts of the interval.' }],
   },
   {
-    name: 'proto_default_if_null',
-    sinatures: [
-      {
-        signature: 'PROTO_DEFAULT_IF_NULL(proto_field_expression)\n',
-        description:
-          'Evaluates any expression that results in a proto field access.\nIf the `proto_field_expression` evaluates to `NULL`, returns the default\nvalue for the field. Otherwise, returns the field value.',
-      },
-    ],
-  },
-  {
-    name: 'from_proto',
-    sinatures: [
-      {
-        signature: 'FROM_PROTO(expression)\n',
-        description:
-          'Returns a ZetaSQL value. The valid `expression` types are defined\nin the table below, along with the return types that they produce.\nOther input `expression` types are invalid. If `expression` cannot be converted\nto a valid value, an error is returned.',
-      },
-    ],
-  },
-  {
-    name: 'to_proto',
-    sinatures: [
-      {
-        signature: 'TO_PROTO(expression)\n',
-        description:
-          'Returns a PROTO value. The valid `expression` types are defined in the\ntable below, along with the return types that they produce. Other input\n`expression` types are invalid.',
-      },
-    ],
-  },
-  {
     name: 'session_user',
     sinatures: [{ signature: 'SESSION_USER()\n', description: 'Returns the email address of the user that is running the query.' }],
   },
@@ -2211,6 +2111,16 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'ANON_SUM(expression [CLAMPED BETWEEN lower AND upper])\n',
         description:
           'Returns the sum of non-`NULL`, non-`NaN` values in the expression. The final\nresult is an aggregation across anonymization IDs. You can optionally\nclamp the input values. Clamping is performed per\nanonymization ID.',
+      },
+    ],
+  },
+  {
+    name: 'to_json_string',
+    sinatures: [
+      {
+        signature: 'TO_JSON_STRING(value[, pretty_print])\n',
+        description:
+          'Takes a SQL value and returns a JSON-formatted string\nrepresentation of the value. The value must be a supported BigQuery\ndata type.',
       },
     ],
   },

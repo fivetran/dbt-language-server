@@ -1,5 +1,6 @@
-import { CompletionItem, CompletionItemKind, CompletionParams, CompletionTriggerKind } from 'vscode-languageserver';
+import { Command, CompletionItem, CompletionItemKind, CompletionParams, CompletionTriggerKind, Position, Range } from 'vscode-languageserver';
 import { DestinationDefinition } from './DestinationDefinition';
+import { HelpProviderWords } from './HelpProviderWords';
 import { CompletionInfo, ResolvedColumn } from './ZetaSQLAST';
 
 export class CompletionProvider {
@@ -15,7 +16,6 @@ export class CompletionProvider {
     'and',
     'anonymization',
     'any',
-    'array',
     'as',
     'asc',
     'assert',
@@ -30,7 +30,6 @@ export class CompletionProvider {
     'by',
     'call',
     'cascade',
-    'case',
     'cast',
     'check',
     'clamped',
@@ -51,8 +50,6 @@ export class CompletionProvider {
     'current',
     'data',
     'database',
-    'date',
-    'datetime',
     'decimal',
     'declare',
     'default',
@@ -71,7 +68,6 @@ export class CompletionProvider {
     'end',
     'enforced',
     'enum',
-    'error',
     'escape',
     'except',
     'exception',
@@ -81,7 +77,6 @@ export class CompletionProvider {
     'explain',
     'export',
     'external',
-    'extract',
     'false',
     'fetch',
     'filter',
@@ -91,7 +86,6 @@ export class CompletionProvider {
     'following',
     'for',
     'foreign',
-    'format',
     'from',
     'full',
     'function',
@@ -104,7 +98,6 @@ export class CompletionProvider {
     'hash',
     'having',
     'hidden',
-    'if',
     'ignore',
     'immediate',
     'immutable',
@@ -129,7 +122,6 @@ export class CompletionProvider {
     'last',
     'lateral',
     'leave',
-    'left',
     'level',
     'like',
     'limit',
@@ -138,9 +130,7 @@ export class CompletionProvider {
     'match',
     'matched',
     'materialized',
-    'max',
     'message',
-    'min',
     'model',
     'module',
     'merge',
@@ -181,16 +171,13 @@ export class CompletionProvider {
     'recursive',
     'references',
     'rename',
-    'repeat',
     'repeatable',
-    'replace',
     'replace_fields',
     'respect',
     'restrict',
     'return',
     'returns',
     'revoke',
-    'right',
     'rollback',
     'rollup',
     'row',
@@ -220,8 +207,6 @@ export class CompletionProvider {
     'temp',
     'temporary',
     'then',
-    'time',
-    'timestamp',
     'to',
     'transaction',
     'transform',
@@ -270,6 +255,7 @@ export class CompletionProvider {
       result.push(...(await this.getTableSuggestions(text, destinationDefinition)));
     } else {
       result.push(...this.getKeywords());
+      result.push(...this.getFunctions());
     }
 
     return result;
@@ -278,6 +264,10 @@ export class CompletionProvider {
   static async onCompletionResolve(item: CompletionItem): Promise<CompletionItem> {
     if (item.kind === CompletionItemKind.Keyword) {
       item.label += ' ';
+    }
+    if (item.kind === CompletionItemKind.Function) {
+      item.label += '()';
+      item.command = Command.create('additional', 'editor.afterFunctionCompletion');
     }
     return item;
   }
@@ -318,12 +308,25 @@ export class CompletionProvider {
       .getDatasets()
       .filter(d => d.id)
       .map(d =>
-        CompletionProvider.completionItem(d.id!, CompletionItemKind.Value, `Dataset in ${destinationDefinition.activeProject}`, undefined, ['.']),
+        CompletionProvider.completionItem(
+          d.id!,
+          CompletionItemKind.Value,
+          `Dataset in ${destinationDefinition.activeProject}`,
+          undefined,
+          undefined,
+          ['.'],
+        ),
       );
   }
 
   static getKeywords(): CompletionItem[] {
     return CompletionProvider.KEYWORDS.map(k => CompletionProvider.completionItem(k, CompletionItemKind.Keyword, ''));
+  }
+
+  static getFunctions(): CompletionItem[] {
+    return HelpProviderWords.map(w =>
+      CompletionProvider.completionItem(w.name, CompletionItemKind.Function, w.sinatures[0].signature, w.sinatures[0].description),
+    );
   }
 
   static getAllColumnsFromAST(completionInfo: CompletionInfo): CompletionItem[] {
@@ -334,11 +337,19 @@ export class CompletionProvider {
     return result;
   }
 
-  static completionItem(label: string, kind: CompletionItemKind, detail: string, sortText?: string, commitCharacters?: string[]): CompletionItem {
+  static completionItem(
+    label: string,
+    kind: CompletionItemKind,
+    detail: string,
+    documentation?: string,
+    sortText?: string,
+    commitCharacters?: string[],
+  ): CompletionItem {
     return {
       label: label,
       kind: kind,
       detail: detail,
+      documentation: documentation,
       sortText: sortText,
       commitCharacters: commitCharacters,
     };

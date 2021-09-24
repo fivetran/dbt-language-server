@@ -39,7 +39,6 @@ const filesToParse: Map<string, string[]> = new Map([
       'Time functions',
       'Timestamp functions',
       'Interval functions',
-      'Protocol buffer functions',
       'Security functions',
       'Net functions',
       'Conditional expressions',
@@ -50,7 +49,6 @@ const filesToParse: Map<string, string[]> = new Map([
   ['https://raw.githubusercontent.com/google/zetasql/master/docs/string_functions.md', ['String functions']],
   ['https://raw.githubusercontent.com/google/zetasql/master/docs/statistical_aggregate_functions.md', ['Statistical aggregate functions']],
   ['https://raw.githubusercontent.com/google/zetasql/master/docs/security_functions.md', ['Security functions']],
-  ['https://raw.githubusercontent.com/google/zetasql/master/docs/protocol_buffer_functions.md', ['Protocol buffer functions']],
   ['https://raw.githubusercontent.com/google/zetasql/master/docs/numbering_functions.md', ['Numbering functions']],
   ['https://raw.githubusercontent.com/google/zetasql/master/docs/net_functions.md', ['Net functions']],
   ['https://raw.githubusercontent.com/google/zetasql/master/docs/navigation_functions.md', ['Navigation functions']],
@@ -68,6 +66,29 @@ const filesToParse: Map<string, string[]> = new Map([
   ['https://raw.githubusercontent.com/google/zetasql/master/docs/aggregate_analytic_functions.md', ['Aggregate analytic functions']],
 ]);
 
+const exceptionList = [
+  'safe_cast',
+  'bit_cast_to_int32',
+  'bit_cast_to_int64',
+  'bit_cast_to_uint32',
+  'bit_cast_to_uint64',
+  'to_json',
+  'to_json_string',
+];
+
+const additionalFields = [
+  {
+    name: 'to_json_string',
+    sinatures: [
+      {
+        signature: 'TO_JSON_STRING(value[, pretty_print])\n',
+        description:
+          'Takes a SQL value and returns a JSON-formatted string\nrepresentation of the value. The value must be a supported BigQuery\ndata type.',
+      },
+    ],
+  },
+];
+
 async function parseAndSave() {
   var md = new MarkdownIt();
   const functionInfos = [];
@@ -83,7 +104,8 @@ async function parseAndSave() {
         if (token.type === 'heading_open' && token.markup === '###') {
           const name = tokens[i + 1].content.toLocaleLowerCase();
           console.log(name);
-          if (name.indexOf(' ') !== -1 || functionInfos.findIndex(f => f.name === name) !== -1) {
+
+          if (name.indexOf(' ') !== -1 || functionInfos.findIndex(f => f.name === name) !== -1 || exceptionList.indexOf(name) !== -1) {
             i++;
             token = tokens[i];
             continue;
@@ -151,6 +173,8 @@ async function parseAndSave() {
       }
     }
   }
+
+  functionInfos.push(...additionalFields);
 
   const code =
     `import { FunctionInfo } from './SignatureHelpProvider';

@@ -72,6 +72,16 @@ export function activate(context: ExtensionContext) {
         document.uri.toString() === SqlPreviewContentProvider.uri.toString() ? SqlPreviewContentProvider.activeDocUri : document.uri.toString();
       client.sendNotification('custom/dbtCompile', uri);
     }),
+
+    commands.registerCommand('editor.afterFunctionCompletion', () => {
+      commands.executeCommand('cursorMove', {
+        to: 'left',
+        by: 'wrappedLine',
+        select: false,
+        value: 1,
+      });
+      commands.executeCommand('editor.action.triggerParameterHints');
+    }),
   );
 
   // Start the client. This will also launch the server
