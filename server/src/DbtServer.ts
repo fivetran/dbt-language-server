@@ -87,7 +87,7 @@ export class DbtServer {
     console.log('killing pid "' + pids + '"');
     child.spawn('kill', pids); // TODO delete this
 
-    const rpc = child.exec('dbt --partial-parse rpc --port ' + DbtServer.PORT, (error, stdout, stderr) => {
+    const rpc = child.exec(`dbt --partial-parse rpc --port ${DbtServer.PORT} --no-version-check`, (error, stdout, stderr) => {
       if (error) {
         console.error(`exec error: ${error}`);
         onStartFailed(error.message);
