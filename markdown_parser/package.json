@@ -1,0 +1,12 @@
+{
+  "name": "markdown-parser",
+  "version": "0.0.1",
+  "scripts": {
+    "compile": "tsc -b"
+  },
+  "devDependencies": {
+    "axios": "^0.21.1",
+    "markdown-it": "^12.2.0",
+    "@types/markdown-it": "^12.2.1"
+  }
+}

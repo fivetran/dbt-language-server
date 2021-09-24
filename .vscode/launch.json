@@ -40,6 +40,14 @@
       "skipFiles": ["<node_internals>/**"]
     },
     {
+      "name": "Debug Markdown Parser",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/markdown_parser/src/Parser.ts",
+      "preLaunchTask": "npm: compile",
+      "outFiles": ["${workspaceFolder}/markdown_parser/out/**/*.js"]
+    },
+    {
       "name": "E2E Tests",
       "type": "extensionHost",
       "request": "launch",

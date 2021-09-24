@@ -11,6 +11,8 @@ import {
   HoverParams,
   Position,
   Range,
+  SignatureHelp,
+  SignatureHelpParams,
   TextDocumentContentChangeEvent,
   TextDocumentItem,
   _Connection,
@@ -25,6 +27,7 @@ import { JinjaParser } from './JinjaParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SchemaTracker } from './SchemaTracker';
+import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { ServiceAccountCreds } from './YamlParser';
 import { ZetaSQLAST } from './ZetaSQLAST';
 import { ZetaSQLCatalog } from './ZetaSQLCatalog';
@@ -43,6 +46,7 @@ export class DbtTextDocument {
   schemaTracker: SchemaTracker;
   catalogInitialized = false;
   progressReporter: ProgressReporter;
+  signatureHelpProvider = new SignatureHelpProvider();
 
   constructor(doc: TextDocumentItem, dbtServer: DbtServer, connection: _Connection, serviceAccountCreds?: ServiceAccountCreds) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -244,6 +248,11 @@ export class DbtTextDocument {
     return CompletionProvider.onCompletion(text, сompletionParams, destinationDefinition, completionInfo);
   }
 
+  async onSignatureHelp(params: SignatureHelpParams): Promise<SignatureHelp | undefined> {
+    const text = this.getText(this.getTextRangeBeforeBracket(params.position));
+    return this.signatureHelpProvider.onSignatureHelp(params, text);
+  }
+
   getIdentifierRangeAtPosition(position: Position): Range {
     const lines = this.getLines();
     if (!lines) {
@@ -269,6 +278,26 @@ export class DbtTextDocument {
     }
 
     return startChar === endChar ? Range.create(position, position) : Range.create(line, startChar, line, endChar);
+  }
+
+  getTextRangeBeforeBracket(cursorPosition: Position): Range {
+    const lines = this.getLines();
+    if (!lines) {
+      return Range.create(cursorPosition, cursorPosition);
+    }
+    const line = Math.min(lines.length - 1, Math.max(0, cursorPosition.line));
+    const lineText = lines[line];
+    const textBeforeCursor = lineText.substr(0, cursorPosition.character);
+    const openBracketIndex = textBeforeCursor.lastIndexOf('(');
+    if (openBracketIndex === -1) {
+      return Range.create(cursorPosition, cursorPosition);
+    }
+    const closeBracketIndex = textBeforeCursor.lastIndexOf(')');
+    if (closeBracketIndex > openBracketIndex) {
+      return Range.create(cursorPosition, cursorPosition);
+    }
+    const spaceIndex = textBeforeCursor.substr(0, openBracketIndex).lastIndexOf(' ');
+    return Range.create(line, spaceIndex + 1, line, openBracketIndex);
   }
 
   debounce(callback: () => any, delay: number) {

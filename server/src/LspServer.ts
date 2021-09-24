@@ -12,6 +12,8 @@ import {
   InitializeParams,
   InitializeResult,
   ResponseError,
+  SignatureHelp,
+  SignatureHelpParams,
   TextDocumentSyncKind,
   _Connection,
 } from 'vscode-languageserver';
@@ -68,6 +70,9 @@ export class LspServer {
         completionProvider: {
           resolveProvider: true,
           triggerCharacters: ['.'],
+        },
+        signatureHelpProvider: {
+          triggerCharacters: ['('],
         },
       },
     };
@@ -132,16 +137,21 @@ export class LspServer {
     return document?.onHover(hoverParams);
   }
 
-  async onCompletion(positionParams: CompletionParams) {
+  async onCompletion(completionParams: CompletionParams) {
     if (!this.destinationDefinition) {
       return undefined;
     }
-    const document = this.openedDocuments.get(positionParams.textDocument.uri);
-    return document?.onCompletion(positionParams, this.destinationDefinition);
+    const document = this.openedDocuments.get(completionParams.textDocument.uri);
+    return document?.onCompletion(completionParams, this.destinationDefinition);
   }
 
   async onCompletionResolve(item: CompletionItem) {
     return CompletionProvider.onCompletionResolve(item);
+  }
+
+  async onSignatureHelp(params: SignatureHelpParams): Promise<SignatureHelp | undefined> {
+    const document = this.openedDocuments.get(params.textDocument.uri);
+    return document?.onSignatureHelp(params);
   }
 
   async gracefulShutdown() {
