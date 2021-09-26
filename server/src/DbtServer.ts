@@ -81,7 +81,7 @@ export class DbtServer {
   started = false;
   dbtVersion: string | undefined;
 
-  startDbtRpc(onStartFailed: (error: string) => void) {
+  startDbtRpc(onSuccess: () => void, onFail: (error: string) => void) {
     const existingRpc = child.spawnSync('lsof', ['-ti:8588']);
     const pids = String(existingRpc.stdout).split(/\n|\r/g);
     console.log('killing pid "' + pids + '"');
@@ -90,7 +90,7 @@ export class DbtServer {
     const rpc = child.exec(`dbt --partial-parse rpc --port ${DbtServer.PORT} --no-version-check`, (error, stdout, stderr) => {
       if (error) {
         console.error(`exec error: ${error}`);
-        onStartFailed(error.message);
+        onFail(error.message);
         return;
       }
       console.log(`stdout: ${stdout}`);
@@ -105,6 +105,9 @@ export class DbtServer {
           this.dbtVersion = matchResults[1];
         }
         this.started = str.indexOf('Serving RPC server') > -1;
+        if (this.started) {
+          onSuccess();
+        }
       }
     });
 

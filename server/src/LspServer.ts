@@ -21,6 +21,7 @@ import { CompletionProvider } from './CompletionProvider';
 import { DbtServer as DbtServer } from './DbtServer';
 import { DbtTextDocument } from './DbtTextDocument';
 import { DestinationDefinition } from './DestinationDefinition';
+import { ProgressReporter } from './ProgressReporter';
 import { ServiceAccountCreds, YamlParser } from './YamlParser';
 
 export class LspServer {
@@ -30,9 +31,11 @@ export class LspServer {
   openedDocuments = new Map<string, DbtTextDocument>();
   serviceAccountCreds: ServiceAccountCreds | undefined;
   destinationDefinition: DestinationDefinition | undefined;
+  progressReporter: ProgressReporter;
 
   constructor(connection: _Connection) {
     this.connection = connection;
+    this.progressReporter = new ProgressReporter(this.connection);
   }
 
   async onInitialize(params: InitializeParams) {
@@ -48,11 +51,17 @@ export class LspServer {
     }
     this.serviceAccountCreds = findResult.creds;
 
-    this.dbtServer.startDbtRpc((error: string) => {
-      this.connection.window.showErrorMessage(
-        'Failed to start dbt. Make sure that you have dbt installed: https://docs.getdbt.com/dbt-cli/installation\n\n' + error,
-      );
-    });
+    this.dbtServer.startDbtRpc(
+      () => {
+        this.progressReporter.sendFinish();
+      },
+      (error: string) => {
+        this.progressReporter.sendFinish();
+        this.connection.window.showErrorMessage(
+          'Failed to start dbt. Make sure that you have dbt installed: https://docs.getdbt.com/dbt-cli/installation\n\n' + error,
+        );
+      },
+    );
 
     this.initializeDestinationDefinition();
     let capabilities = params.capabilities;
@@ -108,7 +117,7 @@ export class LspServer {
     const uri = params.textDocument.uri;
     let document = this.openedDocuments.get(uri);
     if (!document) {
-      document = new DbtTextDocument(params.textDocument, this.dbtServer, this.connection, this.serviceAccountCreds);
+      document = new DbtTextDocument(params.textDocument, this.dbtServer, this.connection, this.progressReporter, this.serviceAccountCreds);
       this.openedDocuments.set(uri, document);
       document.didChangeTextDocument({ textDocument: params.textDocument, contentChanges: [] });
     }
@@ -126,6 +135,7 @@ export class LspServer {
   }
 
   onInitialized() {
+    this.progressReporter.sendStart();
     if (this.hasConfigurationCapability) {
       // Register for all configuration changes.
       this.connection.client.register(DidChangeConfigurationNotification.type, undefined);

@@ -26,10 +26,11 @@ export class ProgressHandler {
       case 'begin':
         if (!this.progressPromise) {
           this.progressPromise = this.createProgressPromise();
+
           window.withProgress(
             {
               location: ProgressLocation.Window,
-              title: 'Compiling dbt...',
+              title: 'dbt command execution...',
               cancellable: false,
             },
             (progress, token) => {

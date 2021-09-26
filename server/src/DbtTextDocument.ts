@@ -48,17 +48,23 @@ export class DbtTextDocument {
   progressReporter: ProgressReporter;
   signatureHelpProvider = new SignatureHelpProvider();
 
-  constructor(doc: TextDocumentItem, dbtServer: DbtServer, connection: _Connection, serviceAccountCreds?: ServiceAccountCreds) {
+  constructor(
+    doc: TextDocumentItem,
+    dbtServer: DbtServer,
+    connection: _Connection,
+    progressReporter: ProgressReporter,
+    serviceAccountCreds?: ServiceAccountCreds,
+  ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.modelCompiler = new ModelCompiler(this, dbtServer);
     this.connection = connection;
+    this.progressReporter = progressReporter;
     this.schemaTracker = new SchemaTracker(serviceAccountCreds);
-    this.progressReporter = new ProgressReporter(connection, doc.uri);
   }
 
   async didChangeTextDocument(params: DidChangeTextDocumentParams) {
-    await this.progressReporter.sendCompilationStart();
+    await this.progressReporter.sendStart(this.getUri());
     if (this.isDbtCompileNeeded(params.contentChanges)) {
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
       await this.debouncedCompile();
@@ -111,7 +117,7 @@ export class DbtTextDocument {
   }
 
   async forceRecompile(): Promise<void> {
-    await this.progressReporter.sendCompilationStart();
+    await this.progressReporter.sendStart(this.getUri());
     await this.debouncedCompile();
   }
 
@@ -220,7 +226,7 @@ export class DbtTextDocument {
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
     this.connection.sendNotification('custom/updateQueryPreview', [this.getUri(), compiledSql]);
     if (!this.modelCompiler.compilationInProgress) {
-      this.progressReporter.sendCompilationFinished();
+      this.progressReporter.sendFinish(this.getUri());
     }
 
     await this.ensureCatalogInitialized();
@@ -228,7 +234,7 @@ export class DbtTextDocument {
   }
 
   onFinishAllCompilationTasks(): void {
-    this.progressReporter.sendCompilationFinished();
+    this.progressReporter.sendFinish(this.getUri());
   }
 
   async onHover(hoverParams: HoverParams): Promise<Hover | null> {

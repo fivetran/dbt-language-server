@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { commands, Disposable, ExtensionContext, languages, ProgressLocation, window, workspace } from 'vscode';
+import { commands, Disposable, ExtensionContext, languages, window, workspace } from 'vscode';
 
 import { LanguageClient, LanguageClientOptions, ServerOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { ProgressHandler } from './ProgressHandler';
@@ -43,7 +43,7 @@ export function activate(context: ExtensionContext) {
         SqlPreviewContentProvider.update(uri, text);
       });
 
-      client.onProgress(WorkDoneProgress.type, 'dbtCompileProgress', pregressHandler.onProgress.bind(pregressHandler));
+      client.onProgress(WorkDoneProgress.type, 'Progress', pregressHandler.onProgress.bind(pregressHandler));
 
       commands.executeCommand('setContext', 'dbt-language-server.init', true);
     } else {
