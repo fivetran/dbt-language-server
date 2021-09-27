@@ -18,7 +18,7 @@ suite('Should do completion with jinjas in query', () => {
 });
 
 async function testCompletion(docUri: vscode.Uri, position: vscode.Position, expectedCompletionList: vscode.CompletionList) {
-  await activateAndWait(docUri, 15);
+  await activateAndWait(docUri);
 
   // Executing the command `vscode.executeCompletionItemProvider` to simulate triggering completion
   const actualCompletionList = (await vscode.commands.executeCommand(

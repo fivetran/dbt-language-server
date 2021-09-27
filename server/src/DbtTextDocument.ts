@@ -225,12 +225,12 @@ export class DbtTextDocument {
   async onCompilationFinished(compiledSql: string): Promise<void> {
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
     this.connection.sendNotification('custom/updateQueryPreview', [this.getUri(), compiledSql]);
-    if (!this.modelCompiler.compilationInProgress) {
-      this.progressReporter.sendFinish(this.getUri());
-    }
 
     await this.ensureCatalogInitialized();
     await this.sendDiagnostics();
+    if (!this.modelCompiler.compilationInProgress) {
+      this.progressReporter.sendFinish(this.getUri());
+    }
   }
 
   onFinishAllCompilationTasks(): void {

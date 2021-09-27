@@ -6,14 +6,15 @@ export let editor: vscode.TextEditor;
 export let documentEol: string;
 export let platformEol: string;
 
-export async function activateAndWait(docUri: vscode.Uri, sec: number) {
+export async function activateAndWait(docUri: vscode.Uri) {
   // The extensionId is `publisher.name` from package.json
   const ext = vscode.extensions.getExtension('Fivetran.dbt-language-server')!;
   await ext.activate();
   try {
     doc = await vscode.workspace.openTextDocument(docUri);
     editor = await vscode.window.showTextDocument(doc);
-    await sleep(sec * 1000); // Wait for server activation
+    const result = <Promise<unknown>>await vscode.commands.executeCommand('dbt.getProgressPromise');
+    await result;
   } catch (e) {
     console.error(e);
   }

@@ -21,28 +21,36 @@ export class ProgressHandler {
     return { promise: promise, resolve: promiseResolve };
   }
 
-  onProgress(value: WorkDoneProgressBegin | WorkDoneProgressReport | WorkDoneProgressEnd) {
+  getPromise(): Promise<unknown> {
+    return this.progressPromise?.promise;
+  }
+
+  onProgress(value: WorkDoneProgressBegin | WorkDoneProgressReport | WorkDoneProgressEnd): void {
     switch (value.kind) {
       case 'begin':
-        if (!this.progressPromise) {
-          this.progressPromise = this.createProgressPromise();
-
-          window.withProgress(
-            {
-              location: ProgressLocation.Window,
-              title: 'dbt command execution...',
-              cancellable: false,
-            },
-            (progress, token) => {
-              return this.progressPromise.promise;
-            },
-          );
-        }
+        this.begin();
         break;
       case 'end':
         this.progressPromise.resolve(0);
         this.progressPromise = null;
         break;
+    }
+  }
+
+  begin() {
+    if (!this.progressPromise) {
+      this.progressPromise = this.createProgressPromise();
+
+      window.withProgress(
+        {
+          location: ProgressLocation.Window,
+          title: 'dbt command execution...',
+          cancellable: false,
+        },
+        (progress, token) => {
+          return this.progressPromise.promise;
+        },
+      );
     }
   }
 }

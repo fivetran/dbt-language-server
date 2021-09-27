@@ -135,7 +135,6 @@ export class LspServer {
   }
 
   onInitialized() {
-    this.progressReporter.sendStart();
     if (this.hasConfigurationCapability) {
       // Register for all configuration changes.
       this.connection.client.register(DidChangeConfigurationNotification.type, undefined);

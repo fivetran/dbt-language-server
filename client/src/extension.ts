@@ -36,14 +36,15 @@ export function activate(context: ExtensionContext) {
 
   registerSqlPreviewContentProvider(context);
 
-  const pregressHandler = new ProgressHandler();
+  const progressHandler = new ProgressHandler();
+  progressHandler.begin();
   client.onDidChangeState(e => {
     if (e.newState === State.Running) {
       client.onNotification('custom/updateQueryPreview', ([uri, text]) => {
         SqlPreviewContentProvider.update(uri, text);
       });
 
-      client.onProgress(WorkDoneProgress.type, 'Progress', pregressHandler.onProgress.bind(pregressHandler));
+      client.onProgress(WorkDoneProgress.type, 'Progress', progressHandler.onProgress.bind(progressHandler));
 
       commands.executeCommand('setContext', 'dbt-language-server.init', true);
     } else {
@@ -71,6 +72,10 @@ export function activate(context: ExtensionContext) {
       const uri =
         document.uri.toString() === SqlPreviewContentProvider.uri.toString() ? SqlPreviewContentProvider.activeDocUri : document.uri.toString();
       client.sendNotification('custom/dbtCompile', uri);
+    }),
+
+    commands.registerCommand('dbt.getProgressPromise', async () => {
+      return progressHandler.getPromise();
     }),
 
     commands.registerCommand('editor.afterFunctionCompletion', () => {
