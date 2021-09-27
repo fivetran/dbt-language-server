@@ -3,8 +3,6 @@ import * as path from 'path';
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
-export let documentEol: string;
-export let platformEol: string;
 
 export async function activateAndWait(docUri: vscode.Uri) {
   // The extensionId is `publisher.name` from package.json
@@ -32,7 +30,12 @@ export const getDocUri = (p: string) => {
   return vscode.Uri.file(getDocPath(p));
 };
 
-export async function setTestContent(content: string): Promise<boolean> {
+export async function setTestContent(content: string): Promise<void> {
   const all = new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length));
-  return editor.edit(eb => eb.replace(all, content));
+  await editor.edit(eb => eb.replace(all, content));
+  editor.selection = new vscode.Selection(editor.selection.end, editor.selection.end);
+}
+
+export function getCursorPosition(): vscode.Position {
+  return editor.selection.end;
 }
