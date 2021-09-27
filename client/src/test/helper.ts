@@ -36,6 +36,10 @@ export async function setTestContent(content: string): Promise<void> {
   editor.selection = new vscode.Selection(editor.selection.end, editor.selection.end);
 }
 
+export async function insertText(text: string, position: vscode.Position): Promise<void> {
+  await editor.edit(eb => eb.insert(position, text));
+}
+
 export function getCursorPosition(): vscode.Position {
   return editor.selection.end;
 }

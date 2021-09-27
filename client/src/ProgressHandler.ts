@@ -31,7 +31,7 @@ export class ProgressHandler {
         this.begin();
         break;
       case 'end':
-        this.progressPromise.resolve(0);
+        this.progressPromise?.resolve(0);
         this.progressPromise = null;
         break;
     }
