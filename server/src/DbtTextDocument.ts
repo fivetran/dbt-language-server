@@ -90,9 +90,10 @@ export class DbtTextDocument {
 
   convertPosition(first: string, second: string, positionInSecond: Position): Position {
     const lineInFirst = Diff.getOldLineNumber(first, second, positionInSecond.line);
+    const charInFirst = Diff.getOldCharacter(first.split('\n')[lineInFirst], second.split('\n')[positionInSecond.line], positionInSecond.character);
     return {
       line: lineInFirst,
-      character: positionInSecond.character,
+      character: charInFirst,
     };
   }
 

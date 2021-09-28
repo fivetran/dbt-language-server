@@ -63,6 +63,51 @@ describe('Diff', () => {
   //   getOldLineNumber_shouldReturnCorrespondingLineNumberForOldText(fileName, 27, 24);
   // });
 
+  it('Should return char for not compiled line', () => {
+    const params: number[][] = [];
+    for (let i = 0; i <= 4; i++) {
+      params.push([i, i]);
+    }
+    for (let i = 35; i <= 37; i++) {
+      params.push([i, i + 24]);
+    }
+
+    getOldCharacter_shouldReturnCorrespondingCharacterFor(
+      'from `project-abcde-400`.`transforms`.`table_volume_filled` t',
+      `from {{ref('table_volume_filled')}} t`,
+      params,
+    );
+  });
+
+  it('Should return char for not compiled line when jinja located at the beginning', () => {
+    getOldCharacter_shouldReturnCorrespondingCharacterFor(
+      ' `project-abcde-400`.`transforms`.`table_volume_filled` t',
+      ` {{ref('table_volume_filled')}} t`,
+      [[0, 0]],
+    );
+  });
+
+  function getOldCharacter_shouldReturnCorrespondingCharacterFor(oldLine: string, newLine: string, params: number[][]) {
+    for (const param of params) {
+      const newCharacter = param[0];
+      const expectedOldCharacter = param[1];
+      getOldCharacter_shouldReturnCorrespondingCharacterForOldText(oldLine, newLine, newCharacter, expectedOldCharacter);
+    }
+  }
+
+  function getOldCharacter_shouldReturnCorrespondingCharacterForOldText(
+    oldLine: string,
+    newLine: string,
+    newCharacter: number,
+    expectedOldCharacter: number,
+  ) {
+    // act
+    const actualOldCharacter = Diff.getOldCharacter(oldLine, newLine, newCharacter);
+
+    // assert
+    assert.strictEqual(actualOldCharacter, expectedOldCharacter);
+  }
+
   function getOldLineNumber_shouldReturnCorrespondingLineNumber(fileName: string, params: number[][]) {
     for (const param of params) {
       getOldLineNumber_shouldReturnCorrespondingLineNumberForOldText(fileName, param[0], param[1]);
