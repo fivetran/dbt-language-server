@@ -1,6 +1,7 @@
 import { AnalyzeRequest, ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
+import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRecordType';
 import {
   CompletionItem,
   CompletionParams,
@@ -157,6 +158,7 @@ export class DbtTextDocument {
       registeredCatalogId: ZetaSQLCatalog.getInstance().catalog.registeredId,
 
       options: {
+        parseLocationRecordType: ParseLocationRecordType.PARSE_LOCATION_RECORD_FULL_NODE_SCOPE,
         errorMessageMode: ErrorMessageMode.ERROR_MESSAGE_ONE_LINE,
         languageOptions: ZetaSQLCatalog.getInstance().catalog.builtinFunctionOptions.languageOptions,
       },
