@@ -137,11 +137,6 @@ export class DbtTextDocument {
     return this.rawDocument.getText(range);
   }
 
-  getFileName(): string {
-    const lastSlash = this.rawDocument.uri.lastIndexOf('/');
-    return this.rawDocument.uri.substring(lastSlash);
-  }
-
   async sendDiagnostics(dbtCompilationError?: string) {
     if (dbtCompilationError) {
       const diagnostics: Diagnostic[] = [
@@ -193,16 +188,6 @@ export class DbtTextDocument {
       }
     }
     this.connection.sendDiagnostics({ uri: this.getUri(), diagnostics });
-  }
-
-  comparePositions(position1: Position, position2: Position): number {
-    if (position1.line < position2.line) return -1;
-    if (position1.line > position2.line) return 1;
-
-    if (position1.character < position2.character) return -1;
-    if (position1.character > position2.character) return 1;
-
-    return 0;
   }
 
   async ensureCatalogInitialized() {
