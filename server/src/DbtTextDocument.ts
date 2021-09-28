@@ -157,9 +157,6 @@ export class DbtTextDocument {
       registeredCatalogId: ZetaSQLCatalog.getInstance().catalog.registeredId,
 
       options: {
-        parseLocationOptions: {
-          recordParseLocations: true,
-        },
         errorMessageMode: ErrorMessageMode.ERROR_MESSAGE_ONE_LINE,
         languageOptions: ZetaSQLCatalog.getInstance().catalog.builtinFunctionOptions.languageOptions,
       },
