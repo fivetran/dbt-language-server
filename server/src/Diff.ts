@@ -1,6 +1,6 @@
 import fastDiff = require('fast-diff');
 
-export class DiffTracker {
+export class Diff {
   static getOldLineNumber(oldString: string, newString: string, newLineNumber: number): number {
     const diffs = fastDiff(oldString, newString, 0);
     if (!diffs || diffs.length === 0) {
@@ -12,7 +12,7 @@ export class DiffTracker {
 
     for (let i = 0; i < diffs.length; i++) {
       const diff = diffs[i];
-      const linesCount = DiffTracker.getLinesCount(diff[1]);
+      const linesCount = Diff.getLinesCount(diff[1]);
 
       if (diff[0] === fastDiff.DELETE) {
         oldLineNumber += linesCount;

@@ -21,7 +21,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtServer } from './DbtServer';
 import { DestinationDefinition } from './DestinationDefinition';
-import { DiffTracker } from './DiffTracker';
+import { Diff as Diff } from './Diff';
 import { HoverProvider } from './HoverProvider';
 import { JinjaParser } from './JinjaParser';
 import { ModelCompiler } from './ModelCompiler';
@@ -89,7 +89,7 @@ export class DbtTextDocument {
   }
 
   convertPosition(first: string, second: string, positionInSecond: Position): Position {
-    const lineInFirst = DiffTracker.getOldLineNumber(first, second, positionInSecond.line);
+    const lineInFirst = Diff.getOldLineNumber(first, second, positionInSecond.line);
     return {
       line: lineInFirst,
       character: positionInSecond.character,
@@ -175,7 +175,7 @@ export class DbtTextDocument {
         const matchResults = e.details.match(/(.*?) \[at (\d+):(\d+)\]/);
         const lineInCompiledDoc = matchResults[2] - 1;
         const characterInCompiledDoc = matchResults[3] - 1;
-        const lineInRawDoc = DiffTracker.getOldLineNumber(this.rawDocument.getText(), this.compiledDocument.getText(), lineInCompiledDoc);
+        const lineInRawDoc = Diff.getOldLineNumber(this.rawDocument.getText(), this.compiledDocument.getText(), lineInCompiledDoc);
         let position = Position.create(lineInRawDoc, characterInCompiledDoc);
         const range = this.getIdentifierRangeAtPosition(position);
 
@@ -232,7 +232,7 @@ export class DbtTextDocument {
     const text = this.getText(this.getIdentifierRangeAtPosition(сompletionParams.position));
     let completionInfo;
     if (this.ast) {
-      const line = DiffTracker.getOldLineNumber(this.compiledDocument.getText(), this.rawDocument.getText(), сompletionParams.position.line);
+      const line = Diff.getOldLineNumber(this.compiledDocument.getText(), this.rawDocument.getText(), сompletionParams.position.line);
       const offset = this.compiledDocument.offsetAt(Position.create(line, сompletionParams.position.character));
       completionInfo = DbtTextDocument.zetaSQLAST.getCompletionInfo(this.ast, offset);
     }

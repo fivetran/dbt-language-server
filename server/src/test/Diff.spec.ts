@@ -1,8 +1,8 @@
-import { DiffTracker } from '../DiffTracker';
+import { Diff } from '../Diff';
 import * as fs from 'fs';
 import assert = require('assert');
 
-describe('DiffTracker', () => {
+describe('Diff', () => {
   it('config_at_the_beginning', () => {
     getOldLineNumber_shouldReturnCorrespondingLineNumber('config_at_the_beginning', [
       [2, 9],
@@ -76,7 +76,7 @@ describe('DiffTracker', () => {
     const compiled = fs.readFileSync(`${filesRootPath}compiled/${fileName}.sql`, 'utf8');
 
     // act
-    const number = DiffTracker.getOldLineNumber(raw, compiled, newLineNumber);
+    const number = Diff.getOldLineNumber(raw, compiled, newLineNumber);
 
     // assert
     assert.strictEqual(number, expectedOldLineNumber);
