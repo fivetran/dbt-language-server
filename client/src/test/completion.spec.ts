@@ -1,11 +1,9 @@
 import * as vscode from 'vscode';
-import * as assert from 'assert';
-import { getDocUri, activateAndWait, sleep } from './helper';
+import { getDocUri, testCompletion } from './helper';
 
 suite('Should do completion', async () => {
-  const docUri = getDocUri('completion.sql');
-
   test('Should suggest table colums', async () => {
+    const docUri = getDocUri('simple_select.sql');
     await testCompletion(docUri, new vscode.Position(0, 8), {
       items: [
         { label: 'date', kind: vscode.CompletionItemKind.Value },
@@ -15,22 +13,24 @@ suite('Should do completion', async () => {
       ],
     });
   });
-});
 
-async function testCompletion(docUri: vscode.Uri, position: vscode.Position, expectedCompletionList: vscode.CompletionList) {
-  await activateAndWait(docUri);
+  test('Should suggest colums for both tables', async () => {
+    const docUri = getDocUri('join_tables.sql');
+    await testCompletion(docUri, new vscode.Position(0, 8), {
+      items: [
+        { label: 'test_table1.date', kind: vscode.CompletionItemKind.Value },
+        { label: 'test_table1.id', kind: vscode.CompletionItemKind.Value },
+        { label: 'test_table1.name', kind: vscode.CompletionItemKind.Value },
+        { label: 'test_table1.time', kind: vscode.CompletionItemKind.Value },
 
-  // Executing the command `vscode.executeCompletionItemProvider` to simulate triggering completion
-  const actualCompletionList = (await vscode.commands.executeCommand(
-    'vscode.executeCompletionItemProvider',
-    docUri,
-    position,
-  )) as vscode.CompletionList;
-
-  assert.ok(actualCompletionList.items.length >= 4);
-  expectedCompletionList.items.forEach((expectedItem, i) => {
-    const actualItem = actualCompletionList.items[i];
-    assert.strictEqual(actualItem.label, expectedItem.label);
-    assert.strictEqual(actualItem.kind, expectedItem.kind);
+        { label: 'user.division', kind: vscode.CompletionItemKind.Value },
+        { label: 'user.email', kind: vscode.CompletionItemKind.Value },
+        { label: 'user.id', kind: vscode.CompletionItemKind.Value },
+        { label: 'user.name', kind: vscode.CompletionItemKind.Value },
+        { label: 'user.phone', kind: vscode.CompletionItemKind.Value },
+        { label: 'user.profile_id', kind: vscode.CompletionItemKind.Value },
+        { label: 'user.role', kind: vscode.CompletionItemKind.Value },
+      ],
+    });
   });
-}
+});

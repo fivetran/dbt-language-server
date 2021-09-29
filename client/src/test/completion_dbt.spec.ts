@@ -1,9 +1,8 @@
 import * as vscode from 'vscode';
-import * as assert from 'assert';
-import { getDocUri, activateAndWait } from './helper';
+import { getDocUri, testCompletion } from './helper';
 
 suite('Should do completion with jinjas in query', () => {
-  const docUri = getDocUri('completion_dbt.sql');
+  const docUri = getDocUri('simple_select_dbt.sql');
 
   test('Should suggest table colums', async () => {
     await testCompletion(docUri, new vscode.Position(0, 8), {
@@ -16,21 +15,3 @@ suite('Should do completion with jinjas in query', () => {
     });
   });
 });
-
-async function testCompletion(docUri: vscode.Uri, position: vscode.Position, expectedCompletionList: vscode.CompletionList) {
-  await activateAndWait(docUri);
-
-  // Executing the command `vscode.executeCompletionItemProvider` to simulate triggering completion
-  const actualCompletionList = (await vscode.commands.executeCommand(
-    'vscode.executeCompletionItemProvider',
-    docUri,
-    position,
-  )) as vscode.CompletionList;
-
-  assert.ok(actualCompletionList.items.length >= 4);
-  expectedCompletionList.items.forEach((expectedItem, i) => {
-    const actualItem = actualCompletionList.items[i];
-    assert.strictEqual(actualItem.label, expectedItem.label);
-    assert.strictEqual(actualItem.kind, expectedItem.kind);
-  });
-}

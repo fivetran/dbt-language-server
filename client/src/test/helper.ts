@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as assert from 'assert';
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
@@ -42,4 +43,22 @@ export async function insertText(text: string, position: vscode.Position): Promi
 
 export function getCursorPosition(): vscode.Position {
   return editor.selection.end;
+}
+
+export async function testCompletion(docUri: vscode.Uri, position: vscode.Position, expectedCompletionList: vscode.CompletionList) {
+  await activateAndWait(docUri);
+
+  // Executing the command `vscode.executeCompletionItemProvider` to simulate triggering completion
+  const actualCompletionList = (await vscode.commands.executeCommand(
+    'vscode.executeCompletionItemProvider',
+    docUri,
+    position,
+  )) as vscode.CompletionList;
+
+  assert.ok(actualCompletionList.items.length >= 4);
+  expectedCompletionList.items.forEach((expectedItem, i) => {
+    const actualItem = actualCompletionList.items[i];
+    assert.strictEqual(actualItem.label, expectedItem.label);
+    assert.strictEqual(actualItem.kind, expectedItem.kind);
+  });
 }

@@ -2,7 +2,7 @@ import * as path from 'path';
 
 import { runTests } from '@vscode/test-electron';
 import { homedir } from 'os';
-import { BigQuery } from '@google-cloud/bigquery';
+import { BigQuery, TableField } from '@google-cloud/bigquery';
 
 async function main() {
   try {
@@ -40,17 +40,31 @@ async function prepareBigQuery() {
   let dataset = bigQuery.dataset(dsName);
   await dataset.get({ autoCreate: true });
 
-  const tableName = 'test_table1';
+  ensureTableExists(bigQuery, dsName, 'test_table1', [
+    { name: 'id', type: 'INTEGER' },
+    { name: 'time', type: 'TIMESTAMP' },
+    { name: 'name', type: 'STRING' },
+    { name: 'date', type: 'DATE' },
+  ]);
+
+  ensureTableExists(bigQuery, dsName, 'user', [
+    { name: 'id', type: 'INTEGER' },
+    { name: 'name', type: 'STRING' },
+    { name: 'division', type: 'STRING' },
+    { name: 'role', type: 'STRING' },
+    { name: 'email', type: 'STRING' },
+    { name: 'phone', type: 'STRING' },
+    { name: 'profile_id', type: 'STRING' },
+  ]);
+}
+
+async function ensureTableExists(bigQuery: BigQuery, dsName: string, tableName: string, columns: TableField[]) {
+  let dataset = bigQuery.dataset(dsName);
   let table = dataset.table(tableName);
   const [exists] = await table.exists();
   if (!exists) {
-    await dataset.createTable('test_table1', {
-      schema: [
-        { name: 'id', type: 'INTEGER' },
-        { name: 'time', type: 'TIMESTAMP' },
-        { name: 'name', type: 'STRING' },
-        { name: 'date', type: 'DATE' },
-      ],
+    await dataset.createTable(tableName, {
+      schema: columns,
     });
   }
 }
