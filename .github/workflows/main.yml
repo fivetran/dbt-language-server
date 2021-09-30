@@ -32,7 +32,7 @@ jobs:
         shell: bash
         run: echo "::set-output name=file_name::dbt-language-server-commit-sha-$(git rev-parse --short HEAD).vsix"
 
-      - run: npx vsce package -o ${{ steps.vars.outputs.file_name }}
+      - run: npx vsce package -o ${{ steps.vars.outputs.file_name }} --baseImagesUrl=https://storage.googleapis.com/dbt-ls-images
 
       - id: upload-file
         uses: google-github-actions/upload-cloud-storage@main
