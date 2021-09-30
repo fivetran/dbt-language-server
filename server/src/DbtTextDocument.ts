@@ -229,7 +229,9 @@ export class DbtTextDocument {
   }
 
   async onCompletion(сompletionParams: CompletionParams, destinationDefinition: DestinationDefinition): Promise<CompletionItem[]> {
-    const text = this.getText(this.getIdentifierRangeAtPosition(сompletionParams.position));
+    const text = this.getText(
+      this.getIdentifierRangeAtPosition(Position.create(сompletionParams.position.line, сompletionParams.position.character - 1)),
+    );
     let completionInfo;
     if (this.ast) {
       const line = Diff.getOldLineNumber(this.compiledDocument.getText(), this.rawDocument.getText(), сompletionParams.position.line);

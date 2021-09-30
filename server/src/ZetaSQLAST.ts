@@ -147,7 +147,7 @@ export class ZetaSQLAST {
 
   getCompletionInfo(ast: AnalyzeResponse, offset: number): CompletionInfo {
     const completionInfo: CompletionInfo = {
-      resolvedTables: new Map<string, string[]>(),
+      resolvedTables: new Map(),
     };
     let parentNodes: any[] = [];
     const resolvedStatementNode = ast.resolvedStatement && ast.resolvedStatement.node ? ast.resolvedStatement[ast.resolvedStatement.node] : undefined;
@@ -194,24 +194,24 @@ export class ZetaSQLAST {
               ) {
                 if (!parentNode.activeTableLocationRanges) {
                   parentNode.activeTableLocationRanges = [];
-                  parentNode.activeTableColumns = new Map<string, ResolvedColumn[]>();
+                  parentNode.activeTables = new Map();
                 }
                 parentNode.activeTableLocationRanges.push(parseLocationRange);
                 if (offset < parseLocationRange?.start || parseLocationRange.end < offset) {
                   const typedNode = <ResolvedTableScanProto>node;
-                  const columns = <Map<string, ResolvedColumn[]>>parentNode.activeTableColumns;
+                  const tables = <Map<string, ActiveTableInfo>>parentNode.activeTables;
                   const tableName = typedNode.table?.name;
-                  if (tableName && !columns.has(tableName) && typedNode.parent?.columnList) {
-                    columns.set(
-                      tableName,
-                      typedNode.parent.columnList.map(
+                  if (tableName && !tables.has(tableName) && typedNode.parent?.columnList) {
+                    tables.set(tableName, {
+                      alias: typedNode.alias || undefined, // for some tables alias is '' in ast
+                      columns: typedNode.parent.columnList.map(
                         c =>
                           <ResolvedColumn>{
                             name: c.name,
                             type: c.type?.typeKind ? new SimpleType(<TypeKind>c.type.typeKind).getTypeName() : undefined,
                           },
                       ),
-                    );
+                    });
                   }
                 }
               }
@@ -223,7 +223,7 @@ export class ZetaSQLAST {
               const node = parentNodes.pop();
               if (node.activeTableLocationRanges?.length > 0) {
                 completionInfo.activeTableLocationRanges = node.activeTableLocationRanges;
-                completionInfo.activeTableColumns = node.activeTableColumns;
+                completionInfo.activeTables = node.activeTables;
               }
             }
           }
@@ -304,7 +304,12 @@ export interface HoverInfo {
 export interface CompletionInfo {
   resolvedTables: Map<string, string[]>;
   activeTableLocationRanges?: ParseLocationRangeProto[];
-  activeTableColumns?: Map<string, ResolvedColumn[]>;
+  activeTables?: Map<string, ActiveTableInfo>;
+}
+
+export interface ActiveTableInfo {
+  alias?: string;
+  columns: ResolvedColumn[];
 }
 
 export interface ResolvedColumn {

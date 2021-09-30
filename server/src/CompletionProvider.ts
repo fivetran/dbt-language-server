@@ -1,7 +1,7 @@
 import { Command, CompletionItem, CompletionItemKind, CompletionParams, CompletionTriggerKind } from 'vscode-languageserver';
 import { DestinationDefinition } from './DestinationDefinition';
 import { HelpProviderWords } from './HelpProviderWords';
-import { CompletionInfo, ResolvedColumn } from './ZetaSQLAST';
+import { ActiveTableInfo, CompletionInfo, ResolvedColumn } from './ZetaSQLAST';
 
 export class CompletionProvider {
   static KEYWORDS = [
@@ -245,8 +245,12 @@ export class CompletionProvider {
   ): Promise<CompletionItem[]> {
     let result: CompletionItem[] = [];
 
-    if (completionInfo?.activeTableColumns) {
-      result.push(...this.getColumnsForActiveTable(completionInfo?.activeTableColumns));
+    if (completionInfo?.activeTables) {
+      if (сompletionParams.context?.triggerKind === CompletionTriggerKind.TriggerCharacter) {
+        result.push(...this.getColumnsForActiveTable(text, completionInfo?.activeTables));
+      } else {
+        result.push(...this.getColumnsForActiveTables(completionInfo?.activeTables));
+      }
     } else if (сompletionParams.context?.triggerKind !== CompletionTriggerKind.TriggerCharacter) {
       result.push(...this.getDatasets(destinationDefinition));
     }
@@ -272,24 +276,24 @@ export class CompletionProvider {
     return item;
   }
 
-  static getColumnsForActiveTable(columns: Map<string, ResolvedColumn[]>) {
-    if (columns.size === 1) {
-      const [tableColumns] = columns;
-      return tableColumns[1].map(
+  static getColumnsForActiveTables(tables: Map<string, ActiveTableInfo>) {
+    if (tables.size === 1) {
+      const [tableInfo] = tables;
+      return tableInfo[1].columns.map(
         c =>
           <CompletionItem>{
             label: c.name,
             kind: CompletionItemKind.Value,
-            detail: `${tableColumns[0] ?? ''} ${c.type}`,
+            detail: `${tableInfo[0] ?? ''} ${c.type}`,
             sortText: 1 + c.name,
           },
       );
     }
 
-    if (columns.size > 1) {
-      return [...columns.entries()].flatMap(e => {
+    if (tables.size > 1) {
+      return [...tables.entries()].flatMap(e => {
         const tableName = e[0];
-        return e[1].map(
+        return e[1].columns.map(
           column =>
             <CompletionItem>{
               label: `${tableName}.${column.name}`,
@@ -299,6 +303,23 @@ export class CompletionProvider {
             },
         );
       });
+    }
+    return [];
+  }
+
+  static getColumnsForActiveTable(text: string, tables: Map<string, ActiveTableInfo>): CompletionItem[] {
+    for (const [tableName, tableInfo] of tables) {
+      if (text === tableName || text === tableInfo.alias) {
+        return tableInfo.columns.map(
+          column =>
+            <CompletionItem>{
+              label: `${column.name}`,
+              kind: CompletionItemKind.Value,
+              detail: `${tableName} ${column.type}`,
+              sortText: 1 + `${column.name}`,
+            },
+        );
+      }
     }
     return [];
   }

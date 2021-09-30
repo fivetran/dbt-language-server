@@ -18,7 +18,7 @@ suite('Errors', async () => {
     await activateAndWait(docUri);
 
     // act
-    await insertText('*', new vscode.Position(0, 7));
+    await insertText(new vscode.Position(0, 7), '*');
 
     // assert
     await sleep(1000);

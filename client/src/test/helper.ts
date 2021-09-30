@@ -37,22 +37,30 @@ export async function setTestContent(content: string): Promise<void> {
   editor.selection = new vscode.Selection(editor.selection.end, editor.selection.end);
 }
 
-export async function insertText(text: string, position: vscode.Position): Promise<void> {
-  await editor.edit(eb => eb.insert(position, text));
+export async function insertText(position: vscode.Position, value: string): Promise<void> {
+  await editor.edit(eb => eb.insert(position, value));
+}
+
+export async function replaceText(location: vscode.Position | vscode.Range | vscode.Selection, value: string): Promise<void> {
+  await editor.edit(eb => eb.replace(location, value));
 }
 
 export function getCursorPosition(): vscode.Position {
   return editor.selection.end;
 }
 
-export async function testCompletion(docUri: vscode.Uri, position: vscode.Position, expectedCompletionList: vscode.CompletionList) {
-  await activateAndWait(docUri);
-
+export async function testCompletion(
+  docUri: vscode.Uri,
+  position: vscode.Position,
+  expectedCompletionList: vscode.CompletionList,
+  triggerChar?: string,
+) {
   // Executing the command `vscode.executeCompletionItemProvider` to simulate triggering completion
   const actualCompletionList = (await vscode.commands.executeCommand(
     'vscode.executeCompletionItemProvider',
     docUri,
     position,
+    triggerChar,
   )) as vscode.CompletionList;
 
   assert.ok(actualCompletionList.items.length >= 4);
