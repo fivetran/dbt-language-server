@@ -1,6 +1,7 @@
 import * as child from 'child_process';
 import axios from 'axios';
 import { v4 as uuid } from 'uuid';
+import { ProcessExecutor } from './ProcessExecutor';
 
 interface PostData {
   jsonrpc: '2.0';
@@ -76,6 +77,7 @@ export interface CompileResult {
 
 export class DbtServer {
   static PORT = '8588';
+  static processExecutor = new ProcessExecutor();
 
   pid = -1;
   started = false;
@@ -87,49 +89,25 @@ export class DbtServer {
     console.log('killing pid "' + pids + '"');
     child.spawn('kill', pids); // TODO delete this
 
-    const rpc = child.exec(`dbt --partial-parse rpc --port ${DbtServer.PORT} --no-version-check`, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`exec error: ${error}`);
-        onFail(error.message);
-        return;
-      }
-      console.log(`stdout: ${stdout}`);
-      console.error(`stderr: ${stderr}`);
-    });
-
-    rpc.stdout?.on('data', (chunk: any) => {
-      if (!this.started) {
-        const str = <string>chunk;
-        const matchResults = str.match(/\"Running with dbt=(.*?)"/);
-        if (matchResults?.length === 2) {
-          this.dbtVersion = matchResults[1];
+    DbtServer.processExecutor.execProcess(
+      `dbt --partial-parse rpc --port ${DbtServer.PORT} --no-version-check`,
+      (data: any) => {
+        if (!this.started) {
+          const str = <string>data;
+          const matchResults = str.match(/\"Running with dbt=(.*?)"/);
+          if (matchResults?.length === 2) {
+            this.dbtVersion = matchResults[1];
+          }
+          this.started = str.indexOf('Serving RPC server') > -1;
+          if (this.started) {
+            onSuccess();
+          }
         }
-        this.started = str.indexOf('Serving RPC server') > -1;
-        if (this.started) {
-          onSuccess();
-        }
-      }
-    });
-
-    rpc.on('exit', code => {
-      console.log(`Child exited with code ${code}`);
-    });
-
-    function exitHandler() {
-      rpc.kill();
-    }
-
-    process.on('exit', exitHandler);
-
-    // Catches Ctrl+C event
-    process.on('SIGINT', exitHandler);
-
-    // Catches "kill pid" (for example: nodemon restart)
-    process.on('SIGUSR1', exitHandler);
-    process.on('SIGUSR2', exitHandler);
-
-    // Catches uncaught exceptions
-    process.on('uncaughtException', exitHandler);
+      },
+      (error: string) => {
+        onFail(error);
+      },
+    );
   }
 
   isStarted() {
@@ -142,6 +120,18 @@ export class DbtServer {
       console.log(`kill -HUP ${this.pid}`);
     }
   }
+
+  async generateManifest(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const p = DbtServer.processExecutor.execProcess(
+        'dbt compile',
+        () => resolve(),
+        error => reject(error),
+      );
+    });
+  }
+
+  async readManifest() {}
 
   async getCurrentStatus(): Promise<StatusResponse | undefined> {
     const statusRespopnse = await this.getStatus();

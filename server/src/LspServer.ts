@@ -91,6 +91,15 @@ export class LspServer {
     this.connection.onNotification('custom/dbtCompile', this.onDbtCompile.bind(this));
   }
 
+  async onInitialized() {
+    if (this.hasConfigurationCapability) {
+      // Register for all configuration changes.
+      this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
+    }
+
+    await this.dbtServer.generateManifest();
+  }
+
   async onDbtCompile(uri: string) {
     let document = this.openedDocuments.get(uri);
     if (document) {
@@ -132,13 +141,6 @@ export class LspServer {
 
   async onDidCloseTextDocument(params: DidCloseTextDocumentParams): Promise<void> {
     this.openedDocuments.delete(params.textDocument.uri);
-  }
-
-  onInitialized() {
-    if (this.hasConfigurationCapability) {
-      // Register for all configuration changes.
-      this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
-    }
   }
 
   async onHover(hoverParams: HoverParams) {
