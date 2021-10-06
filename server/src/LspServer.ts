@@ -117,6 +117,9 @@ export class LspServer {
   }
 
   async onDidOpenTextDocument(params: DidOpenTextDocumentParams) {
+    if (!(await this.isDbtReady())) {
+      return;
+    }
     const uri = params.textDocument.uri;
     let document = this.openedDocuments.get(uri);
     if (!document) {
@@ -127,9 +130,21 @@ export class LspServer {
   }
 
   async onDidChangeTextDocument(params: DidChangeTextDocumentParams) {
+    if (!(await this.isDbtReady())) {
+      return;
+    }
     const document = this.openedDocuments.get(params.textDocument.uri);
     if (document) {
       await document.didChangeTextDocument(params);
+    }
+  }
+
+  async isDbtReady() {
+    try {
+      await this.dbtServer.startPromise;
+      return true;
+    } catch (e) {
+      return false;
     }
   }
 

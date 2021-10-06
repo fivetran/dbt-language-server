@@ -15,13 +15,9 @@ export class ModelCompiler {
   }
 
   async compile(): Promise<void> {
-    try {
-      const status = await this.dbtServer.getCurrentStatus();
-      if (status?.error?.data?.message) {
-        await this.dbtTextDocument.onCompilationError(status.error.data.message);
-        return;
-      }
-    } catch (e) {
+    const status = await this.dbtServer.getCurrentStatus();
+    if (status?.error?.data?.message) {
+      await this.dbtTextDocument.onCompilationError(status.error.data.message);
       return;
     }
 

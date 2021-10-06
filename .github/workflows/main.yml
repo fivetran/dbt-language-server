@@ -67,3 +67,35 @@ jobs:
       - run: npm install
       - run: npm run compile
       - run: ./scripts/e2e.sh
+
+  run-e2e-tests-with-dbt-via-python:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14.x'
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7.x'
+
+      - run: mkdir -p ~/.dbt/ && cp ./client/e2e/profiles.yml ~/.dbt/profiles.yml
+      - run: 'echo "$BQ_SERVICE_ACCOUNT" > ~/.dbt/bq-test-project.json'
+        shell: bash
+        env:
+          BQ_SERVICE_ACCOUNT: ${{ secrets.BQ_SERVICE_ACCOUNT }}
+      - run: python3 -m venv ~/dbt-env
+      - run: source ~/dbt-env/bin/activate && pip install dbt
+      - run: ~/dbt-env/bin/dbt --version
+      - run: |
+          mkdir ./client/test-fixture/.vscode
+          cat >> ./client/test-fixture/.vscode/settings.json <<EOL
+          {
+              "python.defaultInterpreterPath": "~/dbt-env/bin/python3",
+              "python.pythonPath": "~/dbt-env/bin/python3"
+          }
+          EOL
+
+      - run: npm install
+      - run: npm run compile
+      - run: ./scripts/e2e.sh
