@@ -1,6 +1,7 @@
 import * as path from 'path';
+import { spawnSync } from 'child_process';
 
-import { runTests } from '@vscode/test-electron';
+import { downloadAndUnzipVSCode, resolveCliPathFromVSCodeExecutablePath, runTests } from '@vscode/test-electron';
 import { homedir } from 'os';
 import { BigQuery, TableField } from '@google-cloud/bigquery';
 
@@ -16,12 +17,17 @@ async function main() {
     // Passed to --extensionTestsPath
     const extensionTestsPath = path.resolve(__dirname, './index');
 
-    // Download VS Code, unzip it and run the integration test
+    const vscodeExecutablePath = await downloadAndUnzipVSCode();
+    const cliPath = resolveCliPathFromVSCodeExecutablePath(vscodeExecutablePath);
+    spawnSync(cliPath, ['--install-extension=ms-python.python'], {
+      encoding: 'utf-8',
+      stdio: 'inherit',
+    });
+
     await runTests({
       extensionDevelopmentPath,
       extensionTestsPath,
       launchArgs: [path.resolve(__dirname, '../../test-fixture/')],
-      extensionTestsEnv: { BIG_QUERY_URL: 'http://localhost:8080' },
     });
   } catch (err) {
     console.error('Failed to run tests');
@@ -47,7 +53,7 @@ async function prepareBigQuery() {
     { name: 'date', type: 'DATE' },
   ]);
 
-  ensureTableExists(bigQuery, dsName, 'user', [
+  ensureTableExists(bigQuery, dsName, 'users', [
     { name: 'id', type: 'INTEGER' },
     { name: 'name', type: 'STRING' },
     { name: 'division', type: 'STRING' },

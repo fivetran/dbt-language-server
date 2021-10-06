@@ -77,41 +77,63 @@ export interface CompileResult {
 
 export class DbtServer {
   static PORT = '8588';
+  static NO_VERSION_CHECK = '--no-version-check';
+  static VERSIOIN = '--version';
   static processExecutor = new ProcessExecutor();
 
   pid = -1;
-  started = false;
   dbtVersion: string | undefined;
+  python: string | undefined;
+  startPromise: Promise<void> | undefined;
 
-  startDbtRpc(onSuccess: () => void, onFail: (error: string) => void) {
-    const existingRpc = child.spawnSync('lsof', ['-ti:8588']);
+  async startDbtRpc(getPython: () => Promise<string>): Promise<void> {
+    const existingRpc = child.spawnSync('lsof', [`-ti:${DbtServer.PORT}`]);
     const pids = String(existingRpc.stdout).split(/\n|\r/g);
-    console.log('killing pid "' + pids + '"');
-    child.spawn('kill', pids); // TODO delete this
+    child.spawn('kill', pids);
 
-    DbtServer.processExecutor.execProcess(
-      `dbt --partial-parse rpc --port ${DbtServer.PORT} --no-version-check`,
-      (data: any) => {
-        if (!this.started) {
-          const str = <string>data;
-          const matchResults = str.match(/\"Running with dbt=(.*?)"/);
-          if (matchResults?.length === 2) {
-            this.dbtVersion = matchResults[1];
+    this.startPromise = new Promise(async (resolve, reject) => {
+      try {
+        await this.findDbtCommand(getPython);
+        const command = this.dbtCommand(['--partial-parse', 'rpc', '--port', `${DbtServer.PORT}`, `${DbtServer.NO_VERSION_CHECK}`]);
+
+        let started = false;
+        await DbtServer.processExecutor.execProcess(command, (data: any) => {
+          if (!started) {
+            const str = <string>data;
+            const matchResults = str.match(/\"Running with dbt=(.*?)"/);
+            if (matchResults?.length === 2) {
+              this.dbtVersion = matchResults[1];
+            }
+            if (str.indexOf('Serving RPC server') > -1) {
+              started = true;
+              resolve();
+            }
           }
-          this.started = str.indexOf('Serving RPC server') > -1;
-          if (this.started) {
-            onSuccess();
-          }
-        }
-      },
-      (error: string) => {
-        onFail(error);
-      },
-    );
+        });
+      } catch (e: any) {
+        reject(e.message);
+      }
+    });
+    return this.startPromise;
   }
 
-  isStarted() {
-    return this.started;
+  async findDbtCommand(getPython: () => Promise<string>): Promise<void> {
+    try {
+      await DbtServer.processExecutor.execProcess(`dbt ${DbtServer.VERSIOIN}`);
+    } catch (e) {
+      console.error(e);
+      this.python = await getPython();
+      await DbtServer.processExecutor.execProcess(this.dbtPythonCommand([DbtServer.VERSIOIN]));
+    }
+  }
+
+  dbtCommand(parameters: string[]): string {
+    return this.python ? this.dbtPythonCommand(parameters) : `dbt ${parameters.join(' ')}`;
+  }
+
+  dbtPythonCommand(parameters: string[]): string {
+    const quotedParameters = parameters.map(p => `"${p}"`).toString();
+    return `${this.python} -c 'import dbt.main; dbt.main.main([${quotedParameters}])'`;
   }
 
   refreshServer() {
@@ -121,19 +143,13 @@ export class DbtServer {
     }
   }
 
-  async generateManifest(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const p = DbtServer.processExecutor.execProcess(
-        'dbt compile',
-        () => resolve(),
-        error => reject(error),
-      );
-    });
+  async generateManifest() {
+    const command = this.dbtCommand(['compile', `${DbtServer.NO_VERSION_CHECK}`]);
+    return DbtServer.processExecutor.execProcess(command);
   }
 
-  async readManifest() {}
-
   async getCurrentStatus(): Promise<StatusResponse | undefined> {
+    await this.startPromise;
     const statusRespopnse = await this.getStatus();
     if (statusRespopnse?.result.pid) {
       this.pid = statusRespopnse?.result.pid;

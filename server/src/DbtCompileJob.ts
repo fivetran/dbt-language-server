@@ -14,9 +14,7 @@ export class DbtCompileJob {
   }
 
   async runCompile() {
-    console.log('runCompile...');
     this.startCompileRsponse = await this.dbtServer.compileSql(this.text);
-    console.log('runCompile...response');
   }
 
   async getResult(): Promise<PollResponse | undefined> {

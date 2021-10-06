@@ -1,10 +1,8 @@
 import { DbtCompileJob } from './DbtCompileJob';
-import { CompileResult, DbtServer } from './DbtServer';
+import { CompileResult, DbtServer, StatusResponse } from './DbtServer';
 import { DbtTextDocument } from './DbtTextDocument';
 
 export class ModelCompiler {
-  readonly RETRY_COUNT = 15;
-
   dbtTextDocument: DbtTextDocument;
   dbtServer: DbtServer;
   dbtCompileTaskQueue: DbtCompileJob[] = [];
@@ -16,26 +14,14 @@ export class ModelCompiler {
     this.dbtServer = dbtServer;
   }
 
-  async isDbtServerStarted() {
-    for (let i = 1; i <= this.RETRY_COUNT; i++) {
-      const started = this.dbtServer.isStarted();
-      if (started) {
-        return true;
-      }
-      await this.wait(300);
-    }
-  }
-
   async compile(): Promise<void> {
-    this.compilationInProgress = true;
-    const isStarted = await this.isDbtServerStarted();
-    if (!isStarted) {
-      return;
-    }
-
-    const status = await this.dbtServer.getCurrentStatus();
-    if (status?.error?.data?.message) {
-      await this.dbtTextDocument.onCompilationError(status?.error?.data?.message);
+    try {
+      const status = await this.dbtServer.getCurrentStatus();
+      if (status?.error?.data?.message) {
+        await this.dbtTextDocument.onCompilationError(status.error.data.message);
+        return;
+      }
+    } catch (e) {
       return;
     }
 
@@ -62,7 +48,6 @@ export class ModelCompiler {
 
     while (this.dbtCompileTaskQueue.length > 0) {
       const length = this.dbtCompileTaskQueue.length;
-      console.log(length);
 
       for (let i = length - 1; i >= 0; i--) {
         const task = this.dbtCompileTaskQueue[i];
@@ -76,7 +61,6 @@ export class ModelCompiler {
           for (let j = 0; j < i; j++) {
             tasksToKill[j].kill();
           }
-          console.log(`${i + 1} elements were removed`);
 
           if (response?.error) {
             await this.dbtTextDocument.onCompilationError(response?.error.data?.message ?? 'dbt compile error');
@@ -96,7 +80,6 @@ export class ModelCompiler {
       if (this.dbtCompileTaskQueue.length === 0) {
         break;
       }
-      console.log('Wait for 500 ms');
       await this.wait(500);
     }
     this.pollIsRunning = false;

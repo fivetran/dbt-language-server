@@ -9,7 +9,7 @@ export default class SqlPreviewContentProvider implements vscode.TextDocumentCon
   private static _onDidChange = new vscode.EventEmitter<vscode.Uri>();
 
   static update(uri: string, text: string) {
-    SqlPreviewContentProvider[uri] = text;
+    SqlPreviewContentProvider.texts.set(uri, text);
     SqlPreviewContentProvider._onDidChange.fire(SqlPreviewContentProvider.uri);
   }
 
@@ -29,6 +29,6 @@ export default class SqlPreviewContentProvider implements vscode.TextDocumentCon
   }
 
   provideTextDocumentContent(uri: vscode.Uri): string | Thenable<string> {
-    return SqlPreviewContentProvider[SqlPreviewContentProvider.activeDocUri] ?? '';
+    return SqlPreviewContentProvider.texts.get(SqlPreviewContentProvider.activeDocUri) ?? '';
   }
 }

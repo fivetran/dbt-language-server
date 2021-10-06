@@ -42,7 +42,6 @@ export class LspServer {
     process.on('SIGTERM', this.gracefulShutdown);
     process.on('SIGINT', this.gracefulShutdown);
 
-    console.log(process.versions);
     await this.initizelizeZetaSql();
 
     const findResult = new YamlParser().findProfileCreds();
@@ -50,18 +49,6 @@ export class LspServer {
       return new ResponseError<InitializeError>(100, findResult.error, { retry: true });
     }
     this.serviceAccountCreds = findResult.creds;
-
-    this.dbtServer.startDbtRpc(
-      () => {
-        this.progressReporter.sendFinish();
-      },
-      (error: string) => {
-        this.progressReporter.sendFinish();
-        this.connection.window.showErrorMessage(
-          'Failed to start dbt. Make sure that you have dbt installed: https://docs.getdbt.com/dbt-cli/installation\n\n' + error,
-        );
-      },
-    );
 
     this.initializeDestinationDefinition();
     let capabilities = params.capabilities;
@@ -92,12 +79,19 @@ export class LspServer {
   }
 
   async onInitialized() {
+    try {
+      await this.dbtServer.startDbtRpc(() => this.connection.sendRequest('custom/getPython'));
+    } catch (e) {
+      this.connection.window.showErrorMessage(
+        'Failed to start dbt. Make sure that you have dbt installed: https://docs.getdbt.com/dbt-cli/installation. ' + e,
+      );
+    }
+    this.progressReporter.sendFinish();
+
     if (this.hasConfigurationCapability) {
       // Register for all configuration changes.
       this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
     }
-
-    await this.dbtServer.generateManifest();
   }
 
   async onDbtCompile(uri: string) {
@@ -166,8 +160,8 @@ export class LspServer {
   }
 
   async gracefulShutdown() {
-    console.log('Graceful shutrown start...');
+    console.log('Graceful shutdown start...');
     terminateServer();
-    console.log('Graceful shutrown end...');
+    console.log('Graceful shutdown end...');
   }
 }

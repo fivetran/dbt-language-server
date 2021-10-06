@@ -2,6 +2,10 @@
   "name": "dbt-language-server",
   "version": "0.0.1",
   "publisher": "Fivetran",
+  "preview": true,
+  "extensionDependencies": [
+    "ms-python.python"
+  ],
   "engines": {
     "vscode": "^1.54.0"
   },

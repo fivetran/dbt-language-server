@@ -36,3 +36,5 @@ models:
       materialized: view
 vars:
   project_name: '`singular-vector-135519`'
+  table_1: 'test_table1'
+  table_2: 'users'

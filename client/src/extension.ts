@@ -3,6 +3,7 @@ import { commands, Disposable, ExtensionContext, languages, window, workspace } 
 
 import { LanguageClient, LanguageClientOptions, ServerOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { ProgressHandler } from './ProgressHandler';
+import { PythonExtension } from './PythonExtension';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 
 let client: LanguageClient;
@@ -42,6 +43,10 @@ export function activate(context: ExtensionContext) {
     if (e.newState === State.Running) {
       client.onNotification('custom/updateQueryPreview', ([uri, text]) => {
         SqlPreviewContentProvider.update(uri, text);
+      });
+
+      client.onRequest('custom/getPython', async () => {
+        return await new PythonExtension().getPython();
       });
 
       client.onProgress(WorkDoneProgress.type, 'Progress', progressHandler.onProgress.bind(progressHandler));
@@ -98,13 +103,12 @@ function registerSqlPreviewContentProvider(context: ExtensionContext) {
 
   const providerRegistrations = Disposable.from(workspace.registerTextDocumentContentProvider(SqlPreviewContentProvider.scheme, provider));
 
-  const commandRegistration = commands.registerTextEditorCommand('editor.showQueryPreview', editor => {
+  const commandRegistration = commands.registerTextEditorCommand('editor.showQueryPreview', async editor => {
     SqlPreviewContentProvider.changeActiveDocument(editor.document.uri.toString());
 
-    return workspace.openTextDocument(SqlPreviewContentProvider.uri).then(doc => {
-      window.showTextDocument(doc, editor.viewColumn! + 1, true);
-      languages.setTextDocumentLanguage(doc, 'sql');
-    });
+    const doc = await workspace.openTextDocument(SqlPreviewContentProvider.uri);
+    await window.showTextDocument(doc, editor.viewColumn! + 1, true);
+    await languages.setTextDocumentLanguage(doc, 'sql');
   });
 
   context.subscriptions.push(provider, commandRegistration, providerRegistrations);

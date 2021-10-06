@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { activateAndWait, getDocUri, replaceText, sleep, testCompletion } from './helper';
+import { activateAndWait, getDocUri, replaceText, testCompletion } from './helper';
 
 suite('Should do completion', async () => {
   test('Should suggest table colums', async () => {
@@ -27,13 +27,13 @@ suite('Should do completion', async () => {
         { label: 'test_table1.name', kind: vscode.CompletionItemKind.Value },
         { label: 'test_table1.time', kind: vscode.CompletionItemKind.Value },
 
-        { label: 'user.division', kind: vscode.CompletionItemKind.Value },
-        { label: 'user.email', kind: vscode.CompletionItemKind.Value },
-        { label: 'user.id', kind: vscode.CompletionItemKind.Value },
-        { label: 'user.name', kind: vscode.CompletionItemKind.Value },
-        { label: 'user.phone', kind: vscode.CompletionItemKind.Value },
-        { label: 'user.profile_id', kind: vscode.CompletionItemKind.Value },
-        { label: 'user.role', kind: vscode.CompletionItemKind.Value },
+        { label: 'users.division', kind: vscode.CompletionItemKind.Value },
+        { label: 'users.email', kind: vscode.CompletionItemKind.Value },
+        { label: 'users.id', kind: vscode.CompletionItemKind.Value },
+        { label: 'users.name', kind: vscode.CompletionItemKind.Value },
+        { label: 'users.phone', kind: vscode.CompletionItemKind.Value },
+        { label: 'users.profile_id', kind: vscode.CompletionItemKind.Value },
+        { label: 'users.role', kind: vscode.CompletionItemKind.Value },
       ],
     });
   });
@@ -41,11 +41,11 @@ suite('Should do completion', async () => {
   test('Should suggest colums for table name after press .', async () => {
     const docUri = getDocUri('join_tables.sql');
     await activateAndWait(docUri);
-    await replaceText(new vscode.Range(0, 7, 0, 8), 'user.');
+    await replaceText('*', 'users.');
 
     await testCompletion(
       docUri,
-      new vscode.Position(0, 12),
+      new vscode.Position(0, 13),
       {
         items: [
           { label: 'division', kind: vscode.CompletionItemKind.Value },
@@ -64,7 +64,7 @@ suite('Should do completion', async () => {
   test('Should suggest colums for table alias after press .', async () => {
     const docUri = getDocUri('select_with_alias.sql');
     await activateAndWait(docUri);
-    await replaceText(new vscode.Range(0, 7, 0, 8), 't.');
+    await replaceText('*', 't.');
 
     await testCompletion(
       docUri,

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as assert from 'assert';
+import SqlPreviewContentProvider from '../SqlPreviewContentProvider';
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
@@ -12,11 +13,25 @@ export async function activateAndWait(docUri: vscode.Uri) {
   try {
     doc = await vscode.workspace.openTextDocument(docUri);
     editor = await vscode.window.showTextDocument(doc);
-    const result = <Promise<unknown>>await vscode.commands.executeCommand('dbt.getProgressPromise');
-    await result;
+    await showPreview();
+    await waitDbtCommand();
   } catch (e) {
     console.error(e);
   }
+}
+
+export async function waitDbtCommand() {
+  await sleep(500);
+  const promise = <Promise<unknown>>await vscode.commands.executeCommand('dbt.getProgressPromise');
+  await promise;
+}
+
+export async function showPreview() {
+  await vscode.commands.executeCommand('editor.showQueryPreview');
+}
+
+export function getPreviewText() {
+  return SqlPreviewContentProvider.texts.get(SqlPreviewContentProvider.activeDocUri);
 }
 
 export async function sleep(ms: number) {
@@ -41,8 +56,15 @@ export async function insertText(position: vscode.Position, value: string): Prom
   await editor.edit(eb => eb.insert(position, value));
 }
 
-export async function replaceText(location: vscode.Position | vscode.Range | vscode.Selection, value: string): Promise<void> {
-  await editor.edit(eb => eb.replace(location, value));
+export async function replaceText(oldText: string, newText: string): Promise<void> {
+  const offsetStart = editor.document.getText().indexOf(oldText);
+  if (offsetStart === -1) {
+    throw new Error(`text "${oldText}"" not found in "${editor.document.getText()}"`);
+  }
+
+  const positionStart = editor.document.positionAt(offsetStart);
+  const positionEnd = editor.document.positionAt(offsetStart + oldText.length);
+  await editor.edit(eb => eb.replace(new vscode.Range(positionStart, positionEnd), newText));
 }
 
 export function getCursorPosition(): vscode.Position {

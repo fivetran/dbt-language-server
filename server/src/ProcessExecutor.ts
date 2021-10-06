@@ -1,38 +1,38 @@
-import { ChildProcess, exec } from 'child_process';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 
 export class ProcessExecutor {
-  execProcess(command: string, onData?: (data: any) => void, onFail?: (error: string) => void): void {
-    const process = exec(command, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`exec error: ${error}`);
-        if (onFail) {
-          onFail(error.message);
-        }
-        return;
-      }
-      console.log(`stdout: ${stdout}`);
-      console.error(`stderr: ${stderr}`);
-    });
+  async execProcess(
+    command: string,
+    onData?: (data: any) => void,
+  ): Promise<{
+    stdout: string;
+    stderr: string;
+  }> {
+    const promisifiedExec = promisify(exec);
 
-    process.stdout?.on('data', (chunk: any) => {
+    const promiseWithChild = promisifiedExec(command);
+    const childProcess = promiseWithChild.child;
+
+    childProcess.stdout?.on('data', chunk => {
       if (onData) {
         onData(chunk);
       }
     });
-
-    process.on('exit', code => {
+    childProcess.on('exit', code => {
       console.log(`Child process '${command}' exited with code ${code}`);
     });
 
-    const exitHandler = () => {
-      process.kill();
+    const kill = () => {
+      childProcess.kill();
     };
-    process.on('exit', exitHandler);
+    childProcess.on('exit', kill);
     // Catches Ctrl+C event
-    process.on('SIGINT', exitHandler);
+    childProcess.on('SIGINT', kill);
     // Catches "kill pid" (for example: nodemon restart)
-    process.on('SIGUSR1', exitHandler);
-    process.on('SIGUSR2', exitHandler);
-    process.on('uncaughtException', exitHandler);
+    childProcess.on('SIGUSR1', kill);
+    childProcess.on('SIGUSR2', kill);
+    childProcess.on('uncaughtException', kill);
+    return promiseWithChild;
   }
 }
