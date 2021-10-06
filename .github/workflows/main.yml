@@ -42,6 +42,10 @@ jobs:
           credentials: ${{ secrets.GCS_SERVICE_ACCOUNT }}
 
   run-e2e-tests:
+    strategy:
+      matrix:
+        dbt-version: ['dbt==0.19.1', 'dbt']
+
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
@@ -57,7 +61,7 @@ jobs:
         shell: bash
         env:
           BQ_SERVICE_ACCOUNT: ${{ secrets.BQ_SERVICE_ACCOUNT }}
-      - run: pip install dbt==0.19.1
+      - run: pip install ${{ matrix.dbt-version }}
       - run: dbt --version
 
       - run: npm install
