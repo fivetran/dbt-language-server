@@ -32,6 +32,7 @@ export class LspServer {
   serviceAccountCreds: ServiceAccountCreds | undefined;
   destinationDefinition: DestinationDefinition | undefined;
   progressReporter: ProgressReporter;
+  completionProvider = new CompletionProvider();
 
   constructor(connection: _Connection) {
     this.connection = connection;
@@ -123,7 +124,14 @@ export class LspServer {
     const uri = params.textDocument.uri;
     let document = this.openedDocuments.get(uri);
     if (!document) {
-      document = new DbtTextDocument(params.textDocument, this.dbtServer, this.connection, this.progressReporter, this.serviceAccountCreds);
+      document = new DbtTextDocument(
+        params.textDocument,
+        this.dbtServer,
+        this.connection,
+        this.progressReporter,
+        this.completionProvider,
+        this.serviceAccountCreds,
+      );
       this.openedDocuments.set(uri, document);
       document.didChangeTextDocument({ textDocument: params.textDocument, contentChanges: [] });
     }
@@ -166,7 +174,7 @@ export class LspServer {
   }
 
   async onCompletionResolve(item: CompletionItem) {
-    return CompletionProvider.onCompletionResolve(item);
+    return this.completionProvider.onCompletionResolve(item);
   }
 
   async onSignatureHelp(params: SignatureHelpParams): Promise<SignatureHelp | undefined> {

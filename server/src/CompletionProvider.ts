@@ -1,10 +1,10 @@
 import { Command, CompletionItem, CompletionItemKind, CompletionParams, CompletionTriggerKind } from 'vscode-languageserver';
 import { DestinationDefinition } from './DestinationDefinition';
 import { HelpProviderWords } from './HelpProviderWords';
-import { ActiveTableInfo, CompletionInfo, ResolvedColumn } from './ZetaSQLAST';
+import { ActiveTableInfo, CompletionInfo } from './ZetaSQLAST';
 
 export class CompletionProvider {
-  static KEYWORDS = [
+  static readonly KEYWORDS = [
     'abort',
     'access',
     'action',
@@ -237,7 +237,7 @@ export class CompletionProvider {
     'zone',
   ];
 
-  static async onCompletion(
+  async onCompletion(
     text: string,
     сompletionParams: CompletionParams,
     destinationDefinition: DestinationDefinition,
@@ -265,7 +265,7 @@ export class CompletionProvider {
     return result;
   }
 
-  static async onCompletionResolve(item: CompletionItem): Promise<CompletionItem> {
+  async onCompletionResolve(item: CompletionItem): Promise<CompletionItem> {
     if (item.kind === CompletionItemKind.Keyword) {
       item.label += ' ';
     }
@@ -276,7 +276,7 @@ export class CompletionProvider {
     return item;
   }
 
-  static getColumnsForActiveTables(tables: Map<string, ActiveTableInfo>) {
+  getColumnsForActiveTables(tables: Map<string, ActiveTableInfo>) {
     if (tables.size === 1) {
       const [tableInfo] = tables;
       return tableInfo[1].columns.map(
@@ -307,7 +307,7 @@ export class CompletionProvider {
     return [];
   }
 
-  static getColumnsForActiveTable(text: string, tables: Map<string, ActiveTableInfo>): CompletionItem[] {
+  getColumnsForActiveTable(text: string, tables: Map<string, ActiveTableInfo>): CompletionItem[] {
     for (const [tableName, tableInfo] of tables) {
       if (text === tableName || text === tableInfo.alias) {
         return tableInfo.columns.map(
@@ -324,7 +324,7 @@ export class CompletionProvider {
     return [];
   }
 
-  static async getTableSuggestions(datasetName: string, destinationDefinition: DestinationDefinition) {
+  async getTableSuggestions(datasetName: string, destinationDefinition: DestinationDefinition) {
     const tables = await destinationDefinition.getTables(datasetName);
     return tables
       .filter(t => t.id)
@@ -338,7 +338,7 @@ export class CompletionProvider {
       );
   }
 
-  static getDatasets(destinationDefinition: DestinationDefinition): CompletionItem[] {
+  getDatasets(destinationDefinition: DestinationDefinition): CompletionItem[] {
     return destinationDefinition
       .getDatasets()
       .filter(d => d.id)
@@ -353,7 +353,7 @@ export class CompletionProvider {
       );
   }
 
-  static getKeywords(): CompletionItem[] {
+  getKeywords(): CompletionItem[] {
     return CompletionProvider.KEYWORDS.map(
       k =>
         <CompletionItem>{
@@ -364,7 +364,7 @@ export class CompletionProvider {
     );
   }
 
-  static getFunctions(): CompletionItem[] {
+  getFunctions(): CompletionItem[] {
     return HelpProviderWords.map(
       w =>
         <CompletionItem>{
@@ -376,7 +376,7 @@ export class CompletionProvider {
     );
   }
 
-  static getAllColumnsFromAST(completionInfo: CompletionInfo): CompletionItem[] {
+  getAllColumnsFromAST(completionInfo: CompletionInfo): CompletionItem[] {
     let result: CompletionItem[] = [];
     for (let [tableName, columnNames] of completionInfo.resolvedTables) {
       columnNames.forEach(c =>

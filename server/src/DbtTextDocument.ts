@@ -39,28 +39,24 @@ export class DbtTextDocument {
   static zetaSQLAST = new ZetaSQLAST();
   static jinjaParser = new JinjaParser();
 
-  connection: _Connection;
   rawDocument: TextDocument;
   compiledDocument: TextDocument;
   modelCompiler: ModelCompiler;
   ast: AnalyzeResponse | undefined;
   schemaTracker: SchemaTracker;
-  catalogInitialized = false;
-  progressReporter: ProgressReporter;
   signatureHelpProvider = new SignatureHelpProvider();
 
   constructor(
     doc: TextDocumentItem,
     dbtServer: DbtServer,
-    connection: _Connection,
-    progressReporter: ProgressReporter,
+    private connection: _Connection,
+    private progressReporter: ProgressReporter,
+    private completionProvider: CompletionProvider,
     serviceAccountCreds?: ServiceAccountCreds,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.modelCompiler = new ModelCompiler(this, dbtServer);
-    this.connection = connection;
-    this.progressReporter = progressReporter;
     this.schemaTracker = new SchemaTracker(serviceAccountCreds);
   }
 
@@ -238,7 +234,7 @@ export class DbtTextDocument {
       const offset = this.compiledDocument.offsetAt(Position.create(line, сompletionParams.position.character));
       completionInfo = DbtTextDocument.zetaSQLAST.getCompletionInfo(this.ast, offset);
     }
-    return CompletionProvider.onCompletion(text, сompletionParams, destinationDefinition, completionInfo);
+    return this.completionProvider.onCompletion(text, сompletionParams, destinationDefinition, completionInfo);
   }
 
   async onSignatureHelp(params: SignatureHelpParams): Promise<SignatureHelp | undefined> {
