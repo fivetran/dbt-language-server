@@ -29,7 +29,10 @@ export function activate(context: ExtensionContext) {
 
   let clientOptions: LanguageClientOptions = {
     // Register the server for sql documents
-    documentSelector: [{ scheme: 'file', language: 'sql' }],
+    documentSelector: [
+      { scheme: 'file', language: 'sql' },
+      { scheme: 'file', language: 'jinja-sql' },
+    ],
   };
 
   // Create the language client and start the client.
@@ -71,7 +74,7 @@ export function activate(context: ExtensionContext) {
         return;
       }
       const { document } = window.activeTextEditor;
-      if (document.languageId !== 'sql') {
+      if (document.languageId !== 'sql' && document.languageId !== 'jinja-sql') {
         return;
       }
 

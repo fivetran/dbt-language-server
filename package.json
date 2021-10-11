@@ -50,19 +50,19 @@
         {
           "command": "dbt.compile",
           "group": "navigation",
-          "when": "editorLangId == sql && dbt-language-server.init"
+          "when": "dbt-language-server.init && editorLangId =~ /sql$/"
         }
       ],
       "editor/context": [
         {
           "command": "editor.showQueryPreview",
           "group": "navigation@1.31",
-          "when": "editorLangId == sql && dbt-language-server.init"
+          "when": "dbt-language-server.init && editorLangId =~ /sql$/"
         },
         {
           "command": "dbt.compile",
           "group": "navigation@1.31",
-          "when": "editorLangId == sql && dbt-language-server.init"
+          "when": "dbt-language-server.init && editorLangId =~ /sql$/"
         }
       ]
     }
