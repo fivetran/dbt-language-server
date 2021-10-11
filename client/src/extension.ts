@@ -52,6 +52,7 @@ export function activate(context: ExtensionContext) {
       client.onProgress(WorkDoneProgress.type, 'Progress', progressHandler.onProgress.bind(progressHandler));
 
       commands.executeCommand('setContext', 'dbt-language-server.init', true);
+      console.log('Client switched to state "Running"');
     } else {
       commands.executeCommand('setContext', 'dbt-language-server.init', false);
     }

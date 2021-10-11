@@ -105,6 +105,7 @@ export class DbtServer {
               this.dbtVersion = matchResults[1];
             }
             if (str.indexOf('Serving RPC server') > -1) {
+              console.log('dbt rpc started');
               started = true;
               resolve();
             }
@@ -121,9 +122,10 @@ export class DbtServer {
     try {
       await DbtServer.processExecutor.execProcess(`dbt ${DbtServer.VERSIOIN}`);
     } catch (e) {
-      console.error(e);
+      console.log('Failed to find dbt command', e);
       this.python = await getPython();
       await DbtServer.processExecutor.execProcess(this.dbtPythonCommand([DbtServer.VERSIOIN]));
+      console.log(`Using dbt via python: ${this.python}`);
     }
   }
 
