@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as assert from 'assert';
 import SqlPreviewContentProvider from '../SqlPreviewContentProvider';
+import { spawnSync } from 'child_process';
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
@@ -69,6 +70,21 @@ export async function replaceText(oldText: string, newText: string): Promise<voi
 
 export function getCursorPosition(): vscode.Position {
   return editor.selection.end;
+}
+
+export function installExtension(extensionId: string) {
+  runCliCommand([`--install-extension=${extensionId}`]);
+}
+
+export function uninstallExtension(extensionId: string) {
+  runCliCommand([`--uninstall-extension=${extensionId}`]);
+}
+
+function runCliCommand(args: string[]) {
+  spawnSync(process.env['CLI_PATH'], args, {
+    encoding: 'utf-8',
+    stdio: 'inherit',
+  });
 }
 
 export async function testCompletion(

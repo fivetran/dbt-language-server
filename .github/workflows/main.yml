@@ -87,14 +87,6 @@ jobs:
       - run: python3 -m venv ~/dbt-env
       - run: source ~/dbt-env/bin/activate && pip install dbt
       - run: ~/dbt-env/bin/dbt --version
-      - run: |
-          mkdir ./client/test-fixture/.vscode
-          cat >> ./client/test-fixture/.vscode/settings.json <<EOL
-          {
-              "python.defaultInterpreterPath": "~/dbt-env/bin/python3",
-              "python.pythonPath": "~/dbt-env/bin/python3"
-          }
-          EOL
 
       - run: npm install
       - run: npm run compile

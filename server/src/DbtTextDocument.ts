@@ -61,7 +61,6 @@ export class DbtTextDocument {
   }
 
   async didChangeTextDocument(params: DidChangeTextDocumentParams) {
-    await this.progressReporter.sendStart(this.getUri());
     if (this.isDbtCompileNeeded(params.contentChanges)) {
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
       await this.debouncedCompile();
@@ -120,6 +119,7 @@ export class DbtTextDocument {
   }
 
   debouncedCompile = this.debounce(async () => {
+    await this.progressReporter.sendStart(this.getUri());
     await this.modelCompiler.compile();
   }, 300);
 
