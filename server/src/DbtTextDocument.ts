@@ -29,12 +29,14 @@ import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SchemaTracker } from './SchemaTracker';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
+import { debounce } from './Utils';
 import { ServiceAccountCreds } from './YamlParser';
 import { ZetaSQLAST } from './ZetaSQLAST';
 import { ZetaSQLCatalog } from './ZetaSQLCatalog';
 
 export class DbtTextDocument {
   static readonly NON_WORD_PATTERN = /\W/;
+  static readonly DEBOUNCE_TIMEOUT = 300;
 
   static zetaSQLAST = new ZetaSQLAST();
   static jinjaParser = new JinjaParser();
@@ -118,10 +120,10 @@ export class DbtTextDocument {
     await this.debouncedCompile();
   }
 
-  debouncedCompile = this.debounce(async () => {
+  debouncedCompile = debounce(async () => {
     await this.progressReporter.sendStart(this.getUri());
     await this.modelCompiler.compile();
-  }, 300);
+  }, DbtTextDocument.DEBOUNCE_TIMEOUT);
 
   getLines() {
     return this.rawDocument.getText().split('\n');
@@ -287,13 +289,5 @@ export class DbtTextDocument {
     }
     const spaceIndex = textBeforeCursor.substr(0, openBracketIndex).lastIndexOf(' ');
     return Range.create(line, spaceIndex + 1, line, openBracketIndex);
-  }
-
-  debounce(callback: () => any, delay: number) {
-    let timeout: NodeJS.Timeout;
-    return function () {
-      clearTimeout(timeout);
-      timeout = setTimeout(callback, delay);
-    };
   }
 }

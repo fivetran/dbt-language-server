@@ -15,6 +15,7 @@ export class ModelCompiler {
   }
 
   async compile(): Promise<void> {
+    this.compilationInProgress = true;
     const status = await this.dbtServer.getCurrentStatus();
     if (status?.error?.data?.message) {
       await this.dbtTextDocument.onCompilationError(status.error.data.message);

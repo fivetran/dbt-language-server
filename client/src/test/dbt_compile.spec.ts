@@ -6,6 +6,7 @@ import {
   installExtension,
   replaceText,
   setTestContent,
+  sleep,
   uninstallExtension,
   waitDbtCommand,
 } from './helper';
@@ -36,6 +37,23 @@ suite('Should compile jinja expressions', () => {
     await replaceText('{{var("table_1")}}', 'users');
     await waitDbtCommand();
     assert.strictEqual(getPreviewText(), selectFromUsers);
+  });
+
+  test('Should compile every change if compilation not finished', async () => {
+    const users = `{{ var('table_2') }}`;
+    const moreThanDebounceTimeout = 400;
+    const docUri = getDocUri('sql_after_jinja.sql');
+
+    await activateAndWait(docUri);
+    await setTestContent(users);
+
+    await replaceText('}}', '}}\n\n\ns');
+    await sleep(moreThanDebounceTimeout);
+
+    await replaceText('\ns', '\nselect 1;');
+    await waitDbtCommand();
+
+    assert.strictEqual(getPreviewText(), `users\n\n\nselect 1;`);
   });
 
   test('Should compile files with jinja-sql languageId', async () => {

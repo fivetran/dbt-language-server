@@ -19,6 +19,14 @@ export function comparePositions(position1: Position, position2: Position): numb
   return 0;
 }
 
+export function debounce(callback: () => any, delay: number) {
+  let timeout: NodeJS.Timeout;
+  return function () {
+    clearTimeout(timeout);
+    timeout = setTimeout(callback, delay);
+  };
+}
+
 function positionInRange(position: Position, range: Range) {
   return comparePositions(range.start, position) <= 0 && comparePositions(range.end, position) >= 0;
 }
