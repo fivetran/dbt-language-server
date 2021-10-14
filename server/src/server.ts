@@ -19,4 +19,6 @@ connection.onDidOpenTextDocument(server.onDidOpenTextDocument.bind(server));
 connection.onDidChangeTextDocument(server.onDidChangeTextDocument.bind(server));
 connection.onDidCloseTextDocument(server.onDidCloseTextDocument.bind(server));
 
+connection.onDidChangeWatchedFiles(server.onDidChangeWatchedFiles.bind(server));
+
 connection.listen();

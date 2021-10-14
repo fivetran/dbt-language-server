@@ -1,6 +1,7 @@
 import assert = require('assert');
+import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Position, Range } from 'vscode-languageserver-types';
-import { comparePositions, rangesOverlap } from '../Utils';
+import { comparePositions, getJinjaContentOffset, rangesOverlap } from '../Utils';
 
 describe('Utils', () => {
   it('comparePositions_shouldComparePositions', () => {
@@ -26,5 +27,28 @@ describe('Utils', () => {
     assert.strictEqual(rangesOverlap(Range.create(0, 2, 1, 1), Range.create(0, 0, 0, 1)), false);
     assert.strictEqual(rangesOverlap(Range.create(1, 0, 1, 1), Range.create(0, 0, 0, 1)), false);
     assert.strictEqual(rangesOverlap(Range.create(1, 1, 2, 1), Range.create(2, 2, 3, 3)), false);
+  });
+
+  describe('getJinjaContentOffset', () => {
+    it('getJinjaContentOffset should return jinja content offset', () => {
+      shouldReturnJinjaContentOffset('{{', 0, -1);
+      shouldReturnJinjaContentOffset('{{', 1, -1);
+      shouldReturnJinjaContentOffset('{}', 1, -1);
+      shouldReturnJinjaContentOffset('{ {}}', 3, -1);
+      shouldReturnJinjaContentOffset('{$$}', 2, -1);
+      shouldReturnJinjaContentOffset('}{}}', 2, -1);
+      shouldReturnJinjaContentOffset('}##}', 2, -1);
+      shouldReturnJinjaContentOffset('}%%}', 2, -1);
+
+      shouldReturnJinjaContentOffset('{{', 2, 2);
+      shouldReturnJinjaContentOffset('{{ref(', 6, 2);
+      shouldReturnJinjaContentOffset('{{}}', 2, 2);
+      shouldReturnJinjaContentOffset('{##}', 2, 2);
+      shouldReturnJinjaContentOffset('{%%}', 2, 2);
+    });
+
+    function shouldReturnJinjaContentOffset(docContent: string, cursorCharPos: number, expected: number) {
+      assert.strictEqual(getJinjaContentOffset(TextDocument.create('test', 'sql', 0, docContent), Position.create(0, cursorCharPos)), expected);
+    }
   });
 });

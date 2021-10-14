@@ -93,18 +93,17 @@ export async function testCompletion(
   expectedCompletionList: vscode.CompletionList,
   triggerChar?: string,
 ) {
-  // Executing the command `vscode.executeCompletionItemProvider` to simulate triggering completion
-  const actualCompletionList = (await vscode.commands.executeCommand(
-    'vscode.executeCompletionItemProvider',
-    docUri,
-    position,
-    triggerChar,
-  )) as vscode.CompletionList;
+  const actualCompletionList = await triggerCompletion(docUri, position, triggerChar);
 
-  assert.ok(actualCompletionList.items.length >= 4);
+  assert.ok(actualCompletionList.items.length >= expectedCompletionList.items.length);
   expectedCompletionList.items.forEach((expectedItem, i) => {
     const actualItem = actualCompletionList.items[i];
     assert.strictEqual(actualItem.label, expectedItem.label);
     assert.strictEqual(actualItem.kind, expectedItem.kind);
   });
+}
+
+export async function triggerCompletion(docUri: vscode.Uri, position: vscode.Position, triggerChar?: string) {
+  // Executing the command `vscode.executeCompletionItemProvider` to simulate triggering completion
+  return (await vscode.commands.executeCommand('vscode.executeCompletionItemProvider', docUri, position, triggerChar)) as vscode.CompletionList;
 }

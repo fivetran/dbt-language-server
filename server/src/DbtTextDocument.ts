@@ -29,7 +29,7 @@ import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SchemaTracker } from './SchemaTracker';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
-import { debounce } from './Utils';
+import { debounce, getJinjaContentOffset } from './Utils';
 import { ServiceAccountCreds } from './YamlParser';
 import { ZetaSQLAST } from './ZetaSQLAST';
 import { ZetaSQLCatalog } from './ZetaSQLCatalog';
@@ -226,17 +226,30 @@ export class DbtTextDocument {
     return HoverProvider.hoverOnText(text, this.ast);
   }
 
-  async onCompletion(сompletionParams: CompletionParams, destinationDefinition: DestinationDefinition): Promise<CompletionItem[]> {
-    const text = this.getText(
-      this.getIdentifierRangeAtPosition(Position.create(сompletionParams.position.line, сompletionParams.position.character - 1)),
+  async onCompletion(completionParams: CompletionParams, destinationDefinition: DestinationDefinition): Promise<CompletionItem[] | undefined> {
+    const previousPosition = Position.create(
+      completionParams.position.line,
+      completionParams.position.character > 0 ? completionParams.position.character - 1 : 0,
     );
+    const text = this.getText(this.getIdentifierRangeAtPosition(previousPosition));
+
+    const jinjaContentOffset = getJinjaContentOffset(this.rawDocument, completionParams.position);
+    if (jinjaContentOffset !== -1) {
+      return this.completionProvider.onJinjaCompletion(
+        this.rawDocument.getText(Range.create(this.rawDocument.positionAt(jinjaContentOffset), completionParams.position)),
+      );
+    }
+    if (['(', '"', "'"].includes(completionParams.context?.triggerCharacter ?? '')) {
+      return;
+    }
+
     let completionInfo;
     if (this.ast) {
-      const line = Diff.getOldLineNumber(this.compiledDocument.getText(), this.rawDocument.getText(), сompletionParams.position.line);
-      const offset = this.compiledDocument.offsetAt(Position.create(line, сompletionParams.position.character));
+      const line = Diff.getOldLineNumber(this.compiledDocument.getText(), this.rawDocument.getText(), completionParams.position.line);
+      const offset = this.compiledDocument.offsetAt(Position.create(line, completionParams.position.character));
       completionInfo = DbtTextDocument.zetaSQLAST.getCompletionInfo(this.ast, offset);
     }
-    return this.completionProvider.onCompletion(text, сompletionParams, destinationDefinition, completionInfo);
+    return this.completionProvider.onSqlCompletion(text, completionParams, destinationDefinition, completionInfo);
   }
 
   async onSignatureHelp(params: SignatureHelpParams): Promise<SignatureHelp | undefined> {

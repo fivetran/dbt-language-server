@@ -14,6 +14,8 @@ export interface ServiceAccountCreds {
 
 export class YamlParser {
   static readonly DBT_PROJECT_FILE_NAME = 'dbt_project.yml';
+  static readonly TARGET_PATH_FIELD = 'target-path';
+  static readonly DEFAULT_TARGET_PATH = './target';
   static readonly BQ_SERVICE_ACCOUNT_FILE_DOCS = 'https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-file';
 
   profilesPath: string;
@@ -21,6 +23,11 @@ export class YamlParser {
   constructor(profilesPath?: string) {
     let path = profilesPath ?? '~/.dbt/profiles.yml';
     this.profilesPath = this.replaceTilde(path);
+  }
+
+  findTargetPath(): string {
+    const dbtProject = this.parseYamlFile(YamlParser.DBT_PROJECT_FILE_NAME);
+    return dbtProject[YamlParser.TARGET_PATH_FIELD] ?? YamlParser.DEFAULT_TARGET_PATH;
   }
 
   findProfileName() {

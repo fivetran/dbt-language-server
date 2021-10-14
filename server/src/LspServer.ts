@@ -4,6 +4,7 @@ import {
   CompletionParams,
   DidChangeConfigurationNotification,
   DidChangeTextDocumentParams,
+  DidChangeWatchedFilesParams,
   DidCloseTextDocumentParams,
   DidOpenTextDocumentParams,
   DidSaveTextDocumentParams,
@@ -21,6 +22,7 @@ import { CompletionProvider } from './CompletionProvider';
 import { DbtServer as DbtServer } from './DbtServer';
 import { DbtTextDocument } from './DbtTextDocument';
 import { DestinationDefinition } from './DestinationDefinition';
+import { ManifestParser } from './ManifestParser';
 import { ProgressReporter } from './ProgressReporter';
 import { ServiceAccountCreds, YamlParser } from './YamlParser';
 
@@ -33,6 +35,8 @@ export class LspServer {
   destinationDefinition: DestinationDefinition | undefined;
   progressReporter: ProgressReporter;
   completionProvider = new CompletionProvider();
+  yamlParser = new YamlParser();
+  manifestParser = new ManifestParser();
 
   constructor(connection: _Connection) {
     this.connection = connection;
@@ -45,7 +49,7 @@ export class LspServer {
 
     await this.initizelizeZetaSql();
 
-    const findResult = new YamlParser().findProfileCreds();
+    const findResult = this.yamlParser.findProfileCreds();
     if (findResult.error) {
       return new ResponseError<InitializeError>(100, findResult.error, { retry: true });
     }
@@ -66,7 +70,7 @@ export class LspServer {
         hoverProvider: true,
         completionProvider: {
           resolveProvider: true,
-          triggerCharacters: ['.'],
+          triggerCharacters: ['.', '(', '"', "'"],
         },
         signatureHelpProvider: {
           triggerCharacters: ['('],
@@ -80,18 +84,23 @@ export class LspServer {
   }
 
   async onInitialized() {
+    await this.startDbtRpc();
+    if (this.hasConfigurationCapability) {
+      // Register for all configuration changes.
+      this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
+    }
+    this.updateModels();
+  }
+
+  async startDbtRpc() {
     try {
       await this.dbtServer.startDbtRpc(() => this.connection.sendRequest('custom/getPython'));
     } catch (e) {
       this.connection.window.showErrorMessage(
         'Failed to start dbt. Make sure that you have dbt installed: https://docs.getdbt.com/dbt-cli/installation. ' + e,
       );
-    }
-    this.progressReporter.sendFinish();
-
-    if (this.hasConfigurationCapability) {
-      // Register for all configuration changes.
-      this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
+    } finally {
+      this.progressReporter.sendFinish();
     }
   }
 
@@ -165,7 +174,7 @@ export class LspServer {
     return document?.onHover(hoverParams);
   }
 
-  async onCompletion(completionParams: CompletionParams) {
+  async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
     if (!this.destinationDefinition) {
       return undefined;
     }
@@ -180,6 +189,18 @@ export class LspServer {
   async onSignatureHelp(params: SignatureHelpParams): Promise<SignatureHelp | undefined> {
     const document = this.openedDocuments.get(params.textDocument.uri);
     return document?.onSignatureHelp(params);
+  }
+
+  async onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams) {
+    for (const change of params.changes) {
+      if (change.uri.endsWith('target/manifest.json')) {
+        this.updateModels();
+      }
+    }
+  }
+
+  updateModels(): void {
+    this.completionProvider.setDbtModels(this.manifestParser.getModels(this.yamlParser.findTargetPath()));
   }
 
   async gracefulShutdown() {

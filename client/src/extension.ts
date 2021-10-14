@@ -33,6 +33,9 @@ export function activate(context: ExtensionContext) {
       { scheme: 'file', language: 'sql' },
       { scheme: 'file', language: 'jinja-sql' },
     ],
+    synchronize: {
+      fileEvents: workspace.createFileSystemWatcher('**/target/manifest.json'),
+    },
   };
 
   // Create the language client and start the client.

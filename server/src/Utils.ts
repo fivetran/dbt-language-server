@@ -1,4 +1,5 @@
 import { Position, Range } from 'vscode-languageserver';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 
 export function rangesOverlap(range1: Range, range2: Range): boolean {
   return (
@@ -25,6 +26,26 @@ export function debounce(callback: () => any, delay: number) {
     clearTimeout(timeout);
     timeout = setTimeout(callback, delay);
   };
+}
+
+export function getJinjaContentOffset(doc: TextDocument, cursorPos: Position): number {
+  let offset = doc.offsetAt(cursorPos) - 1;
+  const text = doc.getText();
+  while (offset >= 0) {
+    if (['}', '#', '%'].includes(text[offset])) {
+      if (offset - 1 >= 0 && text[offset - 1] === '}') {
+        return -1;
+      }
+    }
+
+    if (['{', '#', '%'].includes(text[offset])) {
+      if (offset - 1 >= 0 && text[offset - 1] === '{') {
+        return offset + 1;
+      }
+    }
+    offset--;
+  }
+  return -1;
 }
 
 function positionInRange(position: Position, range: Range) {

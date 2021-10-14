@@ -4,7 +4,9 @@ import { HelpProviderWords } from './HelpProviderWords';
 import { ActiveTableInfo, CompletionInfo } from './ZetaSQLAST';
 
 export class CompletionProvider {
-  static readonly KEYWORDS = [
+  static readonly ENDS_WITH_REF = /ref\([^)]*$/;
+  static readonly ENDS_WITH_QUOTE = /['|"]$/;
+  static readonly BQ_KEYWORDS = [
     'abort',
     'access',
     'action',
@@ -237,7 +239,26 @@ export class CompletionProvider {
     'zone',
   ];
 
-  async onCompletion(
+  static readonly DBT_KEYWORDS = ['ref'];
+
+  dbtModels: string[] = [];
+
+  onJinjaCompletion(textBeforeCursor: string): CompletionItem[] {
+    if (textBeforeCursor.match(CompletionProvider.ENDS_WITH_REF)) {
+      const edsWithQoute = textBeforeCursor.match(CompletionProvider.ENDS_WITH_QUOTE);
+      return this.dbtModels.map(
+        m =>
+          <CompletionItem>{
+            label: edsWithQoute ? m : `'${m}'`,
+            kind: CompletionItemKind.Value,
+            detail: 'Model',
+          },
+      );
+    }
+    return [];
+  }
+
+  async onSqlCompletion(
     text: string,
     сompletionParams: CompletionParams,
     destinationDefinition: DestinationDefinition,
@@ -354,7 +375,7 @@ export class CompletionProvider {
   }
 
   getKeywords(): CompletionItem[] {
-    return CompletionProvider.KEYWORDS.map(
+    return CompletionProvider.BQ_KEYWORDS.map(
       k =>
         <CompletionItem>{
           label: k,
@@ -388,5 +409,9 @@ export class CompletionProvider {
       );
     }
     return result;
+  }
+
+  setDbtModels(dbtModels: string[]) {
+    this.dbtModels = dbtModels;
   }
 }

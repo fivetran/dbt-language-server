@@ -3,4 +3,5 @@ node_modules
 *.vsix
 .vscode-test
 client/test-fixture/logs
+!client/test-fixture/target/test_manifest.json
 client/test-fixture/target
