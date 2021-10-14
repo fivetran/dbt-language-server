@@ -16,7 +16,8 @@ export class YamlParser {
   static readonly DBT_PROJECT_FILE_NAME = 'dbt_project.yml';
   static readonly TARGET_PATH_FIELD = 'target-path';
   static readonly DEFAULT_TARGET_PATH = './target';
-  static readonly BQ_SERVICE_ACCOUNT_FILE_DOCS = 'https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-file';
+  static readonly BQ_SERVICE_ACCOUNT_FILE_DOCS =
+    '[Service Account File configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-file).';
 
   profilesPath: string;
 
@@ -40,7 +41,7 @@ export class YamlParser {
     const profile = profiles[profileName];
     if (!profile) {
       return this.errorResult(
-        `Couldn't find credentials for ${profileName} profile. Check your ${this.profilesPath} file. ${YamlParser.BQ_SERVICE_ACCOUNT_FILE_DOCS}`,
+        `Couldn't find credentials for '${profileName}' profile. Check your ${this.profilesPath} file. ${YamlParser.BQ_SERVICE_ACCOUNT_FILE_DOCS}`,
       );
     }
 
@@ -89,7 +90,7 @@ export class YamlParser {
   findProfileCreds(): FindCredsResult {
     const profiles = this.parseYamlFile(this.profilesPath);
     if (!profiles) {
-      return this.errorResult(`Failed to open and parse file ${this.profilesPath}`);
+      return this.errorResult(`Failed to open and parse file ${this.profilesPath}.`);
     }
     const profileName = this.findProfileName();
     if (!profileName) {

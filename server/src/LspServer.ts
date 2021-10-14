@@ -96,8 +96,9 @@ export class LspServer {
     try {
       await this.dbtServer.startDbtRpc(() => this.connection.sendRequest('custom/getPython'));
     } catch (e) {
+      console.log(e);
       this.connection.window.showErrorMessage(
-        'Failed to start dbt. Make sure that you have dbt installed: https://docs.getdbt.com/dbt-cli/installation. ' + e,
+        'Failed to start dbt. Make sure that you have [dbt installed](https://docs.getdbt.com/dbt-cli/installation). Check in terminal that dbt works running dbt --version command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VSCode that was used to install dbt.',
       );
     } finally {
       this.progressReporter.sendFinish();
