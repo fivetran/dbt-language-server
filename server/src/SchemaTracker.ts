@@ -2,7 +2,7 @@ import { ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { ExtractTableNamesFromStatementRequest } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ExtractTableNamesFromStatementRequest';
 import { BigQueryClient } from './BigQueryClient';
 import { TableDefinition } from './TableDefinition';
-import { ServiceAccountCreds, YamlParser } from './YamlParser';
+import { ServiceAccountCreds } from './YamlParser';
 
 export class SchemaTracker {
   tableDefinitions: TableDefinition[] = [];

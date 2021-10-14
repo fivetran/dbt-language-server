@@ -1,5 +1,5 @@
 import { DbtCompileJob } from './DbtCompileJob';
-import { CompileResult, DbtServer, StatusResponse } from './DbtServer';
+import { CompileResult, DbtServer } from './DbtServer';
 import { DbtTextDocument } from './DbtTextDocument';
 
 export class ModelCompiler {

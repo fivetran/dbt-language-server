@@ -1,4 +1,4 @@
-import { TypeKind, SimpleType } from '@fivetrandevelopers/zetasql';
+import { SimpleType, TypeKind } from '@fivetrandevelopers/zetasql';
 import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { Hover } from 'vscode-languageserver';
 import { ZetaSQLAST } from './ZetaSQLAST';

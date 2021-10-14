@@ -1,5 +1,5 @@
-import { Diff } from '../Diff';
 import * as fs from 'fs';
+import { Diff } from '../Diff';
 import assert = require('assert');
 
 describe('Diff', () => {

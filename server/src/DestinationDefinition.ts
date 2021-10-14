@@ -1,4 +1,3 @@
-import { Column } from '@fivetrandevelopers/zetasql/lib/Column';
 import { Dataset, Table } from '@google-cloud/bigquery';
 import { BigQueryClient } from './BigQueryClient';
 import { ServiceAccountCreds } from './YamlParser';

@@ -1,9 +1,9 @@
 import assert = require('assert');
-import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as vscode from 'vscode';
 import { CompletionItem } from 'vscode';
-import { getDocUri, activateAndWait, waitDbtCommand, testCompletion, setTestContent, triggerCompletion } from './helper';
+import { activateAndWait, getDocUri, setTestContent, testCompletion, triggerCompletion, waitDbtCommand } from './helper';
 
 suite('Should do completion inside jinjas expression', () => {
   suiteSetup(function () {

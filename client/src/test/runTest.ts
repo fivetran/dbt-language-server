@@ -1,9 +1,8 @@
-import * as path from 'path';
-import { spawnSync } from 'child_process';
-
-import { downloadAndUnzipVSCode, resolveCliPathFromVSCodeExecutablePath, runTests } from '@vscode/test-electron';
-import { homedir } from 'os';
 import { BigQuery, TableField } from '@google-cloud/bigquery';
+import { downloadAndUnzipVSCode, resolveCliPathFromVSCodeExecutablePath, runTests } from '@vscode/test-electron';
+import { spawnSync } from 'child_process';
+import { homedir } from 'os';
+import * as path from 'path';
 
 async function main() {
   try {

@@ -1,5 +1,5 @@
-import * as child from 'child_process';
 import axios from 'axios';
+import * as child from 'child_process';
 import { v4 as uuid } from 'uuid';
 import { ProcessExecutor } from './ProcessExecutor';
 
@@ -140,7 +140,7 @@ export class DbtServer {
 
   refreshServer() {
     if (this.pid !== -1) {
-      const result = child.spawnSync('kill', ['-HUP', this.pid.toString()]);
+      child.spawnSync('kill', ['-HUP', this.pid.toString()]);
       console.log(`kill -HUP ${this.pid}`);
     }
   }

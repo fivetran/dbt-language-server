@@ -1,6 +1,5 @@
 import * as path from 'path';
 import { commands, Disposable, ExtensionContext, languages, window, workspace } from 'vscode';
-
 import { LanguageClient, LanguageClientOptions, ServerOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { ProgressHandler } from './ProgressHandler';
 import { PythonExtension } from './PythonExtension';

@@ -1,4 +1,4 @@
-import { ZetaSQLClient, runServer, terminateServer } from '@fivetrandevelopers/zetasql';
+import { runServer, terminateServer, ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import {
   CompletionItem,
   CompletionParams,

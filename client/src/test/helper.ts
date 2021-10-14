@@ -1,8 +1,8 @@
-import * as vscode from 'vscode';
-import * as path from 'path';
 import * as assert from 'assert';
-import SqlPreviewContentProvider from '../SqlPreviewContentProvider';
 import { spawnSync } from 'child_process';
+import * as path from 'path';
+import * as vscode from 'vscode';
+import SqlPreviewContentProvider from '../SqlPreviewContentProvider';
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;

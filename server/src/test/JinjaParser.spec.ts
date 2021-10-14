@@ -1,5 +1,5 @@
-import { Range } from 'vscode-languageserver';
 import * as fs from 'fs';
+import { Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { JinjaParser } from '../JinjaParser';
 import assert = require('assert');

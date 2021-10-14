@@ -1,6 +1,6 @@
-import * as yaml from 'yaml';
 import * as fs from 'fs';
 import { homedir } from 'os';
+import * as yaml from 'yaml';
 
 export interface FindCredsResult {
   creds?: ServiceAccountCreds;

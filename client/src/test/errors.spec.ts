@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
 import * as assert from 'assert';
-import { getDocUri, activateAndWait, insertText, sleep } from './helper';
+import * as vscode from 'vscode';
+import { activateAndWait, getDocUri, insertText, sleep } from './helper';
 
 suite('Errors', async () => {
   const docUri = getDocUri('errors.sql');

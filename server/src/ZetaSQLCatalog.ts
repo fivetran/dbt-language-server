@@ -1,4 +1,4 @@
-import { SimpleCatalog, SimpleTable, TypeFactory, SimpleColumn, SimpleType } from '@fivetrandevelopers/zetasql';
+import { SimpleCatalog, SimpleColumn, SimpleTable, SimpleType, TypeFactory } from '@fivetrandevelopers/zetasql';
 import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
 import { ZetaSQLBuiltinFunctionOptions } from '@fivetrandevelopers/zetasql/lib/ZetaSQLBuiltinFunctionOptions';
 import { TableDefinition } from './TableDefinition';

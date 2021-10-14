@@ -1,6 +1,5 @@
 import { Range, TextDocumentContentChangeEvent } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-
 import { rangesOverlap } from './Utils';
 
 export class JinjaParser {
