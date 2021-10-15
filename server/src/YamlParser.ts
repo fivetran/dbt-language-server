@@ -41,7 +41,7 @@ export class YamlParser {
     const profile = profiles[profileName];
     if (!profile) {
       return this.errorResult(
-        `Couldn't find credentials for '${profileName}' profile. Check your ${this.profilesPath} file. ${YamlParser.BQ_SERVICE_ACCOUNT_FILE_DOCS}`,
+        `Couldn't find credentials for profile '${profileName}'. Check your '${this.profilesPath}' file. ${YamlParser.BQ_SERVICE_ACCOUNT_FILE_DOCS}`,
       );
     }
 
@@ -67,7 +67,7 @@ export class YamlParser {
 
     if (outputsTarget.type !== 'bigquery') {
       return this.errorResult(
-        `Currently only BigQuery service account credentials supported. Check your '${this.profilesPath}' file. ${YamlParser.BQ_SERVICE_ACCOUNT_FILE_DOCS}`,
+        `Currently, only BigQuery service account credentials are supported. Check your '${this.profilesPath}' file. ${YamlParser.BQ_SERVICE_ACCOUNT_FILE_DOCS}`,
       );
     }
   }
@@ -83,14 +83,14 @@ export class YamlParser {
 
   cantFindSectionError(profileName: string, section: string): FindCredsResult {
     return this.errorResult(
-      `Couldn't find section '${section}' for '${profileName}' profile. Check your '${this.profilesPath}' file. ${YamlParser.BQ_SERVICE_ACCOUNT_FILE_DOCS}`,
+      `Couldn't find section '${section}' for profile '${profileName}'. Check your '${this.profilesPath}' file. ${YamlParser.BQ_SERVICE_ACCOUNT_FILE_DOCS}`,
     );
   }
 
   findProfileCreds(): FindCredsResult {
     const profiles = this.parseYamlFile(this.profilesPath);
     if (!profiles) {
-      return this.errorResult(`Failed to open and parse file ${this.profilesPath}.`);
+      return this.errorResult(`Failed to open and parse file '${this.profilesPath}'.`);
     }
     const profileName = this.findProfileName();
     if (!profileName) {
@@ -132,7 +132,7 @@ export class YamlParser {
       const content = fs.readFileSync(filePath, 'utf8');
       return yaml.parse(content);
     } catch (e) {
-      console.log(`Failed to open and parse file ${filePath}`);
+      console.log(`Failed to open and parse file '${filePath}'`);
     }
   }
 
