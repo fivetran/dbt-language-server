@@ -2,7 +2,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 
 export class ProcessExecutor {
-  async execProcess(
+  execProcess(
     command: string,
     onData?: (data: any) => void,
   ): Promise<{

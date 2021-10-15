@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { activateAndWait, getCursorPosition, getDocUri, setTestContent, sleep } from './helper';
 
-suite('Functions', async () => {
+suite('Functions', () => {
   const docUri = getDocUri('functions.sql');
 
   test('Should show help for max function', async () => {

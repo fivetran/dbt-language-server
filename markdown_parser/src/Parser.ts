@@ -1,9 +1,10 @@
 import MarkdownIt = require('markdown-it');
 import axios from 'axios';
-import Token = require('markdown-it/lib/token');
+import * as fs from 'fs';
 
-const fs = require('fs');
 const prettier = require('prettier');
+
+import Token = require('markdown-it/lib/token');
 
 interface FunctionInfo {
   name: string;
@@ -90,10 +91,10 @@ const additionalFields = [
 ];
 
 async function parseAndSave() {
-  var md = new MarkdownIt();
+  const md = new MarkdownIt();
   const functionInfos = [];
 
-  for (let [file, sections] of filesToParse) {
+  for (const [file, sections] of filesToParse) {
     const content = await (await axios.get(file)).data;
     const tokens = md.parse(content, {});
 
@@ -110,7 +111,7 @@ async function parseAndSave() {
             token = tokens[i];
             continue;
           }
-          let functionInfo: FunctionInfo = {
+          const functionInfo: FunctionInfo = {
             name: name,
             sinatures: [],
           };

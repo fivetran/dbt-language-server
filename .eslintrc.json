@@ -4,17 +4,14 @@
   "parserOptions": {
     "ecmaVersion": 6,
     "sourceType": "module",
-    "project": ["./server/tsconfig.json", "./client/tsconfig.json"]
+    "project": ["./server/tsconfig.json", "./client/tsconfig.json", "./markdown_parser/tsconfig.json"]
   },
   "plugins": ["@typescript-eslint"],
-  "rules": {
-    "@typescript-eslint/naming-convention": "warn",
-    "@typescript-eslint/semi": "warn",
-    "curly": "warn",
-    "eqeqeq": "warn",
-    "no-throw-literal": "warn",
-    "semi": "off",
-    "require-await": "warn"
-  },
+
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
   "ignorePatterns": ["**/*.d.ts"]
 }

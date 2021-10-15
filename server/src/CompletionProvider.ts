@@ -264,7 +264,7 @@ export class CompletionProvider {
     destinationDefinition: DestinationDefinition,
     completionInfo?: CompletionInfo,
   ): Promise<CompletionItem[]> {
-    let result: CompletionItem[] = [];
+    const result: CompletionItem[] = [];
 
     if (completionInfo?.activeTables) {
       if (сompletionParams.context?.triggerKind === CompletionTriggerKind.TriggerCharacter) {
@@ -286,7 +286,7 @@ export class CompletionProvider {
     return result;
   }
 
-  async onCompletionResolve(item: CompletionItem): Promise<CompletionItem> {
+  onCompletionResolve(item: CompletionItem): CompletionItem {
     if (item.kind === CompletionItemKind.Keyword) {
       item.label += ' ';
     }
@@ -297,7 +297,7 @@ export class CompletionProvider {
     return item;
   }
 
-  getColumnsForActiveTables(tables: Map<string, ActiveTableInfo>) {
+  getColumnsForActiveTables(tables: Map<string, ActiveTableInfo>): CompletionItem[] {
     if (tables.size === 1) {
       const [tableInfo] = tables;
       return tableInfo[1].columns.map(
@@ -345,14 +345,14 @@ export class CompletionProvider {
     return [];
   }
 
-  async getTableSuggestions(datasetName: string, destinationDefinition: DestinationDefinition) {
+  async getTableSuggestions(datasetName: string, destinationDefinition: DestinationDefinition): Promise<CompletionItem[]> {
     const tables = await destinationDefinition.getTables(datasetName);
     return tables
       .filter(t => t.id)
       .map(
         t =>
           <CompletionItem>{
-            label: t.id!,
+            label: t.id,
             kind: CompletionItemKind.Value,
             detail: `Table in ${destinationDefinition.activeProject}.${datasetName}`,
           },
@@ -366,7 +366,7 @@ export class CompletionProvider {
       .map(
         d =>
           <CompletionItem>{
-            label: d.id!,
+            label: d.id,
             kind: CompletionItemKind.Value,
             detail: `Dataset in ${destinationDefinition.activeProject}`,
             commitCharacters: ['.'],
@@ -398,8 +398,8 @@ export class CompletionProvider {
   }
 
   getAllColumnsFromAST(completionInfo: CompletionInfo): CompletionItem[] {
-    let result: CompletionItem[] = [];
-    for (let [tableName, columnNames] of completionInfo.resolvedTables) {
+    const result: CompletionItem[] = [];
+    for (const [tableName, columnNames] of completionInfo.resolvedTables) {
       columnNames.forEach(c =>
         result.push(<CompletionItem>{
           label: c,
@@ -411,7 +411,7 @@ export class CompletionProvider {
     return result;
   }
 
-  setDbtModels(dbtModels: string[]) {
+  setDbtModels(dbtModels: string[]): void {
     this.dbtModels = dbtModels;
   }
 }

@@ -3,7 +3,7 @@ import { LspServer } from './LspServer';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
-let connection = createConnection(ProposedFeatures.all);
+const connection = createConnection(ProposedFeatures.all);
 
 const server = new LspServer(connection);
 

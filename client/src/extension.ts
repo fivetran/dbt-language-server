@@ -7,17 +7,17 @@ import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 
 let client: LanguageClient;
 
-export function activate(context: ExtensionContext) {
+export function activate(context: ExtensionContext): void {
   console.log('Congratulations, your extension "dbt-language-server" is now active!');
   // The server is implemented in node
-  let serverModule = context.asAbsolutePath(path.join('server', 'out', 'server.js'));
+  const serverModule = context.asAbsolutePath(path.join('server', 'out', 'server.js'));
   // The debug options for the server
   // --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging
-  let debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
+  const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
 
   // If the extension is launched in debug mode then the debug server options are used
   // Otherwise the run options are used
-  let serverOptions: ServerOptions = {
+  const serverOptions: ServerOptions = {
     run: { module: serverModule, transport: TransportKind.ipc },
     debug: {
       module: serverModule,
@@ -26,7 +26,7 @@ export function activate(context: ExtensionContext) {
     },
   };
 
-  let clientOptions: LanguageClientOptions = {
+  const clientOptions: LanguageClientOptions = {
     // Register the server for sql documents
     documentSelector: [
       { scheme: 'file', language: 'sql' },
@@ -71,7 +71,7 @@ export function activate(context: ExtensionContext) {
   });
 
   context.subscriptions.push(
-    commands.registerCommand('dbt.compile', async () => {
+    commands.registerCommand('dbt.compile', () => {
       if (!window.activeTextEditor) {
         return;
       }
@@ -85,7 +85,7 @@ export function activate(context: ExtensionContext) {
       client.sendNotification('custom/dbtCompile', uri);
     }),
 
-    commands.registerCommand('dbt.getProgressPromise', async () => {
+    commands.registerCommand('dbt.getProgressPromise', () => {
       return progressHandler.getPromise();
     }),
 
@@ -113,7 +113,7 @@ function registerSqlPreviewContentProvider(context: ExtensionContext) {
     SqlPreviewContentProvider.changeActiveDocument(editor.document.uri.toString());
 
     const doc = await workspace.openTextDocument(SqlPreviewContentProvider.uri);
-    await window.showTextDocument(doc, editor.viewColumn! + 1, true);
+    await window.showTextDocument(doc, editor.viewColumn + 1, true);
     await languages.setTextDocumentLanguage(doc, 'sql');
   });
 

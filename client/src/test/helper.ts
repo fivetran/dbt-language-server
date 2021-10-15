@@ -7,9 +7,9 @@ import SqlPreviewContentProvider from '../SqlPreviewContentProvider';
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
 
-export async function activateAndWait(docUri: vscode.Uri) {
+export async function activateAndWait(docUri: vscode.Uri): Promise<void> {
   // The extensionId is `publisher.name` from package.json
-  const ext = vscode.extensions.getExtension('Fivetran.dbt-language-server')!;
+  const ext = vscode.extensions.getExtension('Fivetran.dbt-language-server');
   await ext.activate();
   try {
     doc = await vscode.workspace.openTextDocument(docUri);
@@ -21,21 +21,21 @@ export async function activateAndWait(docUri: vscode.Uri) {
   }
 }
 
-export async function waitDbtCommand() {
+export async function waitDbtCommand(): Promise<void> {
   await sleep(500);
   const promise = <Promise<unknown>>await vscode.commands.executeCommand('dbt.getProgressPromise');
   await promise;
 }
 
-export async function showPreview() {
+export async function showPreview(): Promise<void> {
   await vscode.commands.executeCommand('editor.showQueryPreview');
 }
 
-export function getPreviewText() {
+export function getPreviewText(): string {
   return SqlPreviewContentProvider.texts.get(SqlPreviewContentProvider.activeDocUri);
 }
 
-export async function sleep(ms: number) {
+export function sleep(ms: number): Promise<unknown> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -72,15 +72,15 @@ export function getCursorPosition(): vscode.Position {
   return editor.selection.end;
 }
 
-export function installExtension(extensionId: string) {
+export function installExtension(extensionId: string): void {
   runCliCommand([`--install-extension=${extensionId}`]);
 }
 
-export function uninstallExtension(extensionId: string) {
+export function uninstallExtension(extensionId: string): void {
   runCliCommand([`--uninstall-extension=${extensionId}`]);
 }
 
-function runCliCommand(args: string[]) {
+function runCliCommand(args: string[]): void {
   spawnSync(process.env['CLI_PATH'], args, {
     encoding: 'utf-8',
     stdio: 'inherit',
@@ -103,7 +103,11 @@ export async function testCompletion(
   });
 }
 
-export async function triggerCompletion(docUri: vscode.Uri, position: vscode.Position, triggerChar?: string) {
+export async function triggerCompletion(
+  docUri: vscode.Uri,
+  position: vscode.Position,
+  triggerChar?: string,
+): Promise<vscode.CompletionList<vscode.CompletionItem>> {
   // Executing the command `vscode.executeCompletionItemProvider` to simulate triggering completion
   return (await vscode.commands.executeCommand('vscode.executeCompletionItemProvider', docUri, position, triggerChar)) as vscode.CompletionList;
 }

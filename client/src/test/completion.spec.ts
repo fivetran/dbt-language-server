@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { activateAndWait, getDocUri, replaceText, testCompletion, waitDbtCommand } from './helper';
 
-suite('Should do completion', async () => {
+suite('Should do completion', () => {
   test('Should suggest table colums', async () => {
     const docUri = getDocUri('simple_select.sql');
     await activateAndWait(docUri);

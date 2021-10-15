@@ -86,7 +86,7 @@ export class DbtServer {
   python: string | undefined;
   startPromise: Promise<void> | undefined;
 
-  async startDbtRpc(getPython: () => Promise<string>): Promise<void> {
+  startDbtRpc(getPython: () => Promise<string>): Promise<void> {
     const existingRpc = child.spawnSync('lsof', [`-ti:${DbtServer.PORT}`]);
     const pids = String(existingRpc.stdout).split(/\n|\r/g);
     child.spawn('kill', pids);
@@ -100,7 +100,7 @@ export class DbtServer {
         await DbtServer.processExecutor.execProcess(command, (data: any) => {
           if (!started) {
             const str = <string>data;
-            const matchResults = str.match(/\"Running with dbt=(.*?)"/);
+            const matchResults = str.match(/"Running with dbt=(.*?)"/);
             if (matchResults?.length === 2) {
               this.dbtVersion = matchResults[1];
             }
@@ -138,16 +138,16 @@ export class DbtServer {
     return `${this.python} -c 'import dbt.main; dbt.main.main([${quotedParameters}])'`;
   }
 
-  refreshServer() {
+  refreshServer(): void {
     if (this.pid !== -1) {
       child.spawnSync('kill', ['-HUP', this.pid.toString()]);
       console.log(`kill -HUP ${this.pid}`);
     }
   }
 
-  async generateManifest() {
+  async generateManifest(): Promise<void> {
     const command = this.dbtCommand(['compile', `${DbtServer.NO_VERSION_CHECK}`]);
-    return DbtServer.processExecutor.execProcess(command);
+    await DbtServer.processExecutor.execProcess(command);
   }
 
   async getCurrentStatus(): Promise<StatusResponse | undefined> {
@@ -239,7 +239,7 @@ export class DbtServer {
     await this.makePostRequest<any>(data);
   }
 
-  async makePostRequest<T extends Response>(postData: object): Promise<T | undefined> {
+  async makePostRequest<T extends Response>(postData: unknown): Promise<T | undefined> {
     try {
       const response = await axios.post<T>(`http://localhost:${DbtServer.PORT}/jsonrpc`, postData, { timeout: 6000 });
       // console.log(response);

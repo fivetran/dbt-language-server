@@ -12,7 +12,7 @@ export class ProgressHandler {
   createProgressPromise(): ProgressPromise {
     let promiseResolve;
 
-    const promise = new Promise(function (resolve, reject) {
+    const promise = new Promise(function (resolve) {
       promiseResolve = resolve;
     });
 
@@ -35,7 +35,7 @@ export class ProgressHandler {
     }
   }
 
-  begin() {
+  begin(): void {
     if (!this.progressPromise) {
       this.progressPromise = this.createProgressPromise();
 
@@ -45,9 +45,7 @@ export class ProgressHandler {
           title: 'dbt command execution...',
           cancellable: false,
         },
-        (progress, token) => {
-          return this.progressPromise.promise;
-        },
+        () => this.progressPromise.promise,
       );
     }
   }

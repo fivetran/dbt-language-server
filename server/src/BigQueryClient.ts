@@ -1,4 +1,4 @@
-import { BigQuery } from '@google-cloud/bigquery';
+import { BigQuery, DatasetsResponse } from '@google-cloud/bigquery';
 
 export class BigQueryClient {
   bigQuery: BigQuery;
@@ -11,11 +11,11 @@ export class BigQueryClient {
     this.bigQuery = new BigQuery(options);
   }
 
-  async getDatasets() {
+  async getDatasets(): Promise<DatasetsResponse> {
     return await this.bigQuery.getDatasets();
   }
 
-  async getTableSchema(dataSet: string, tableName: string) {
+  async getTableSchema(dataSet: string, tableName: string): Promise<any> {
     const dataset = this.bigQuery.dataset(dataSet);
     const table = dataset.table(tableName);
     try {

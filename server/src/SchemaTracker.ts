@@ -13,7 +13,7 @@ export class SchemaTracker {
     this.serviceAccountCreds = serviceAccountCreds;
   }
 
-  resetHasNewTables() {
+  resetHasNewTables(): void {
     this.hasNewTables = false;
   }
 
@@ -29,7 +29,7 @@ export class SchemaTracker {
     }
   }
 
-  async refreshTableNames(sql: string) {
+  async refreshTableNames(sql: string): Promise<void> {
     const tableDefinitions = await this.findTableNames(sql);
     if (!tableDefinitions) {
       return;
@@ -55,7 +55,7 @@ export class SchemaTracker {
     }
   }
 
-  arraysAreEqual(a1: string[], a2: string[]) {
+  arraysAreEqual(a1: string[], a2: string[]): boolean {
     return a1.length === a2.length && a1.every((value, index) => value === a2[index]);
   }
 }

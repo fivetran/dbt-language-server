@@ -10,7 +10,7 @@ export class ProgressReporter {
     this.connection = connection;
   }
 
-  async sendStart(uri?: string): Promise<void> {
+  sendStart(uri?: string): void {
     if (uri) {
       ProgressReporter.uris.add(uri);
     }

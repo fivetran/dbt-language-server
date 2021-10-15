@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { activateAndWait, getDocUri, insertText, sleep } from './helper';
 
-suite('Errors', async () => {
+suite('Errors', () => {
   const docUri = getDocUri('errors.sql');
 
   test('Should show error', async () => {
@@ -25,7 +25,7 @@ suite('Errors', async () => {
     await testDiagnostics(docUri, []);
   });
 
-  async function testDiagnostics(docUri: vscode.Uri, diagnostics: vscode.Diagnostic[]) {
+  function testDiagnostics(docUri: vscode.Uri, diagnostics: vscode.Diagnostic[]) {
     const actualDiagnostics = vscode.languages.getDiagnostics(docUri);
 
     assert.strictEqual(actualDiagnostics.length, diagnostics.length);

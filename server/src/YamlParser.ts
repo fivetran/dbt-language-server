@@ -22,7 +22,7 @@ export class YamlParser {
   profilesPath: string;
 
   constructor(profilesPath?: string) {
-    let path = profilesPath ?? '~/.dbt/profiles.yml';
+    const path = profilesPath ?? '~/.dbt/profiles.yml';
     this.profilesPath = this.replaceTilde(path);
   }
 
@@ -31,7 +31,7 @@ export class YamlParser {
     return dbtProject[YamlParser.TARGET_PATH_FIELD] ?? YamlParser.DEFAULT_TARGET_PATH;
   }
 
-  findProfileName() {
+  findProfileName(): any {
     const dbtProject = this.parseYamlFile(YamlParser.DBT_PROJECT_FILE_NAME);
     console.log(`Profile name found: ${dbtProject?.profile}`);
     return dbtProject?.profile;
@@ -72,7 +72,7 @@ export class YamlParser {
     }
   }
 
-  validateRequiredFieldsInOtuputsTarget(profileName: string, target: string, outputsTarget: any, fields: string[]) {
+  validateRequiredFieldsInOtuputsTarget(profileName: string, target: string, outputsTarget: any, fields: string[]): FindCredsResult | undefined {
     for (const field of fields) {
       const value = outputsTarget[field];
       if (!value) {
@@ -119,13 +119,15 @@ export class YamlParser {
     );
   }
 
-  errorResult(text: string) {
+  errorResult(text: string): {
+    error: string;
+  } {
     return {
       error: text,
     };
   }
 
-  parseYamlFile(filePath: string) {
+  parseYamlFile(filePath: string): any {
     try {
       const content = fs.readFileSync(filePath, 'utf8');
       return yaml.parse(content);
@@ -134,7 +136,7 @@ export class YamlParser {
     }
   }
 
-  replaceTilde(path: string) {
+  replaceTilde(path: string): string {
     return path.replace('~', homedir());
   }
 }

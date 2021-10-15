@@ -8,8 +8,6 @@ export class ZetaSQLCatalog {
 
   readonly catalog = new SimpleCatalog('catalog');
 
-  private constructor() {}
-
   static getInstance(): ZetaSQLCatalog {
     if (!ZetaSQLCatalog.instance) {
       ZetaSQLCatalog.instance = new ZetaSQLCatalog();
@@ -18,7 +16,7 @@ export class ZetaSQLCatalog {
     return ZetaSQLCatalog.instance;
   }
 
-  async register(tableDefinitions: TableDefinition[]) {
+  async register(tableDefinitions: TableDefinition[]): Promise<void> {
     for (const t of tableDefinitions) {
       let parent = this.catalog;
 
@@ -56,7 +54,7 @@ export class ZetaSQLCatalog {
       }
 
       for (const newColumn of t.schema?.fields ?? []) {
-        let existingColumn = table.columns.find(c => c.getName() === newColumn.name);
+        const existingColumn = table.columns.find(c => c.getName() === newColumn.name);
         if (!existingColumn) {
           const type = newColumn.type.toLowerCase();
           const typeKind = TypeFactory.SIMPLE_TYPE_KIND_NAMES.get(type);
@@ -79,14 +77,14 @@ export class ZetaSQLCatalog {
     }
   }
 
-  async registerAllLanguageFeatures() {
+  async registerAllLanguageFeatures(): Promise<void> {
     if (!this.catalog.builtinFunctionOptions) {
       const languageOptions = await new LanguageOptions().enableMaximumLanguageFeatures();
       await this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions(languageOptions));
     }
   }
 
-  async unregisterCatalog() {
+  async unregisterCatalog(): Promise<void> {
     if (this.catalog.registered) {
       try {
         await this.catalog.unregister();

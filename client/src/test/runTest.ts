@@ -43,7 +43,7 @@ async function prepareBigQuery() {
   const bigQuery = new BigQuery(options);
 
   const dsName = 'dbt_ls_e2e_dataset';
-  let dataset = bigQuery.dataset(dsName);
+  const dataset = bigQuery.dataset(dsName);
   await dataset.get({ autoCreate: true });
 
   ensureTableExists(bigQuery, dsName, 'test_table1', [
@@ -65,8 +65,8 @@ async function prepareBigQuery() {
 }
 
 async function ensureTableExists(bigQuery: BigQuery, dsName: string, tableName: string, columns: TableField[]) {
-  let dataset = bigQuery.dataset(dsName);
-  let table = dataset.table(tableName);
+  const dataset = bigQuery.dataset(dsName);
+  const table = dataset.table(tableName);
   const [exists] = await table.exists();
   if (!exists) {
     await dataset.createTable(tableName, {

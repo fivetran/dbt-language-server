@@ -8,6 +8,7 @@ import {
   DidCloseTextDocumentParams,
   DidOpenTextDocumentParams,
   DidSaveTextDocumentParams,
+  Hover,
   HoverParams,
   InitializeError,
   InitializeParams,
@@ -28,7 +29,7 @@ import { ServiceAccountCreds, YamlParser } from './YamlParser';
 
 export class LspServer {
   connection: _Connection;
-  hasConfigurationCapability: boolean = false;
+  hasConfigurationCapability = false;
   dbtServer = new DbtServer();
   openedDocuments = new Map<string, DbtTextDocument>();
   serviceAccountCreds: ServiceAccountCreds | undefined;
@@ -43,7 +44,7 @@ export class LspServer {
     this.progressReporter = new ProgressReporter(this.connection);
   }
 
-  async onInitialize(params: InitializeParams) {
+  async onInitialize(params: InitializeParams): Promise<InitializeResult<any> | ResponseError<InitializeError>> {
     process.on('SIGTERM', this.gracefulShutdown);
     process.on('SIGINT', this.gracefulShutdown);
 
@@ -56,10 +57,10 @@ export class LspServer {
     this.serviceAccountCreds = findResult.creds;
 
     this.initializeDestinationDefinition();
-    let capabilities = params.capabilities;
 
     this.initializeNotifications();
 
+    const capabilities = params.capabilities;
     // Does the client support the `workspace/configuration` request?
     // If not, we fall back using global settings.
     this.hasConfigurationCapability = !!(capabilities.workspace && !!capabilities.workspace.configuration);
@@ -79,11 +80,11 @@ export class LspServer {
     };
   }
 
-  initializeNotifications() {
+  initializeNotifications(): void {
     this.connection.onNotification('custom/dbtCompile', this.onDbtCompile.bind(this));
   }
 
-  async onInitialized() {
+  async onInitialized(): Promise<void> {
     await this.startDbtRpc();
     if (this.hasConfigurationCapability) {
       // Register for all configuration changes.
@@ -92,7 +93,7 @@ export class LspServer {
     this.updateModels();
   }
 
-  async startDbtRpc() {
+  async startDbtRpc(): Promise<void> {
     try {
       await this.dbtServer.startDbtRpc(() => this.connection.sendRequest('custom/getPython'));
     } catch (e) {
@@ -105,29 +106,29 @@ export class LspServer {
     }
   }
 
-  async onDbtCompile(uri: string) {
-    let document = this.openedDocuments.get(uri);
+  async onDbtCompile(uri: string): Promise<void> {
+    const document = this.openedDocuments.get(uri);
     if (document) {
       await document.forceRecompile();
     }
   }
 
-  async initizelizeZetaSql() {
+  async initizelizeZetaSql(): Promise<void> {
     runServer().catch(err => console.error(err));
     await ZetaSQLClient.INSTANCE.testConnection();
   }
 
-  async initializeDestinationDefinition() {
+  initializeDestinationDefinition(): void {
     if (this.serviceAccountCreds) {
       this.destinationDefinition = new DestinationDefinition(this.serviceAccountCreds);
     }
   }
 
-  async onDidSaveTextDocument(params: DidSaveTextDocumentParams) {
+  onDidSaveTextDocument(params: DidSaveTextDocumentParams): void {
     this.dbtServer.refreshServer();
   }
 
-  async onDidOpenTextDocument(params: DidOpenTextDocumentParams) {
+  async onDidOpenTextDocument(params: DidOpenTextDocumentParams): Promise<void> {
     if (!(await this.isDbtReady())) {
       return;
     }
@@ -147,7 +148,7 @@ export class LspServer {
     }
   }
 
-  async onDidChangeTextDocument(params: DidChangeTextDocumentParams) {
+  async onDidChangeTextDocument(params: DidChangeTextDocumentParams): Promise<void> {
     if (!(await this.isDbtReady())) {
       return;
     }
@@ -157,7 +158,7 @@ export class LspServer {
     }
   }
 
-  async isDbtReady() {
+  async isDbtReady(): Promise<boolean> {
     try {
       await this.dbtServer.startPromise;
       return true;
@@ -166,11 +167,11 @@ export class LspServer {
     }
   }
 
-  async onDidCloseTextDocument(params: DidCloseTextDocumentParams): Promise<void> {
+  onDidCloseTextDocument(params: DidCloseTextDocumentParams): void {
     this.openedDocuments.delete(params.textDocument.uri);
   }
 
-  async onHover(hoverParams: HoverParams) {
+  async onHover(hoverParams: HoverParams): Promise<Hover | null | undefined> {
     const document = this.openedDocuments.get(hoverParams.textDocument.uri);
     return document?.onHover(hoverParams);
   }
@@ -183,16 +184,16 @@ export class LspServer {
     return document?.onCompletion(completionParams, this.destinationDefinition);
   }
 
-  async onCompletionResolve(item: CompletionItem) {
+  onCompletionResolve(item: CompletionItem): CompletionItem {
     return this.completionProvider.onCompletionResolve(item);
   }
 
-  async onSignatureHelp(params: SignatureHelpParams): Promise<SignatureHelp | undefined> {
+  onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
     const document = this.openedDocuments.get(params.textDocument.uri);
     return document?.onSignatureHelp(params);
   }
 
-  async onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams) {
+  onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
     for (const change of params.changes) {
       if (change.uri.endsWith('target/manifest.json')) {
         this.updateModels();
@@ -204,7 +205,7 @@ export class LspServer {
     this.completionProvider.setDbtModels(this.manifestParser.getModels(this.yamlParser.findTargetPath()));
   }
 
-  async gracefulShutdown() {
+  gracefulShutdown(): void {
     console.log('Graceful shutdown start...');
     terminateServer();
     console.log('Graceful shutdown end...');

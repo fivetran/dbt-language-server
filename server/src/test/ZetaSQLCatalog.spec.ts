@@ -18,7 +18,7 @@ describe('ZetaSQLCatalogTest', () => {
     fields: [{ name: COLUMN_NAME, type: COLUMN_TYPE }],
   };
 
-  async function register_shouldRegisterOneTable(
+  async function shouldRegisterOneTable(
     tableDefinitions: TableDefinition[],
     table: string,
     expectedColumns: string[],
@@ -28,8 +28,12 @@ describe('ZetaSQLCatalogTest', () => {
     // arrange
     const zetaSQLCatalog: ZetaSQLCatalog = zetaSQLModule.ZetaSQLCatalog.getInstance();
 
-    zetaSQLCatalog.catalog.register = async function () {};
-    zetaSQLCatalog.registerAllLanguageFeatures = async function () {};
+    zetaSQLCatalog.catalog.register = async function () {
+      // do nothing
+    };
+    zetaSQLCatalog.registerAllLanguageFeatures = async function () {
+      // do nothing
+    };
 
     // act
     try {
@@ -60,22 +64,22 @@ describe('ZetaSQLCatalogTest', () => {
     assert.strictEqual(columns?.map(c => c.getName()).sort(), expectedColumns.sort());
   }
 
-  it('register_shouldRegisterProjectDataSetAndTable', async () => {
+  it('register_shouldRegisterProjectDataSetAndTable', () => {
     const tableDefinition = new TableDefinition([PROJECT_ID, DATA_SET, TABLE]);
     tableDefinition.schema = ONE_TABLE;
-    register_shouldRegisterOneTable([tableDefinition], TABLE, [COLUMN_NAME], DATA_SET, PROJECT_ID);
+    shouldRegisterOneTable([tableDefinition], TABLE, [COLUMN_NAME], DATA_SET, PROJECT_ID);
   });
 
-  it('register_shouldRegisterDataSetAndTable', async () => {
+  it('register_shouldRegisterDataSetAndTable', () => {
     const tableDefinition = new TableDefinition([DATA_SET, TABLE]);
     tableDefinition.schema = ONE_TABLE;
-    register_shouldRegisterOneTable([tableDefinition], TABLE, [COLUMN_NAME], DATA_SET);
+    shouldRegisterOneTable([tableDefinition], TABLE, [COLUMN_NAME], DATA_SET);
   });
 
-  it('register_shouldRegisterOnlyTable', async () => {
+  it('register_shouldRegisterOnlyTable', () => {
     const tableName = `${PROJECT_ID}.${DATA_SET}.${TABLE}`;
     const tableDefinition = new TableDefinition([tableName]);
     tableDefinition.schema = ONE_TABLE;
-    register_shouldRegisterOneTable([tableDefinition], tableName, [COLUMN_NAME]);
+    shouldRegisterOneTable([tableDefinition], tableName, [COLUMN_NAME]);
   });
 });

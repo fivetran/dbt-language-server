@@ -114,20 +114,20 @@ export class ZetaSQLAST {
       this.traversal(
         resolvedStatementNode,
         (node: any, nodeName?: string) => {
-          if (nodeName === Node.resolvedQueryStmtNode) {
+          if (nodeName === NODE.resolvedQueryStmtNode) {
             const typedNode = <ResolvedQueryStmtProto>node;
             result.outputColumn = typedNode.outputColumnList?.find(c => c.name === text);
             if (!result.outputColumn && typedNode.outputColumnList?.find(c => c.column?.tableName === text)) {
               result.tableName = text;
             }
           }
-          if (nodeName === Node.resolvedTableScanNode) {
+          if (nodeName === NODE.resolvedTableScanNode) {
             const typedNode = <ResolvedTableScanProto>node;
             if (typedNode.table?.fullName === text || typedNode.table?.name === text) {
               result.tableName = typedNode.table?.fullName ?? typedNode.table?.name;
             }
           }
-          if (nodeName === Node.resolvedFunctionCallNode) {
+          if (nodeName === NODE.resolvedFunctionCallNode) {
             const typedNode = <ResolvedFunctionCallProto>node;
             if (typedNode.parent?.function?.name === 'ZetaSQL:' + text) {
               result.function = true;
@@ -149,20 +149,20 @@ export class ZetaSQLAST {
     const completionInfo: CompletionInfo = {
       resolvedTables: new Map(),
     };
-    let parentNodes: any[] = [];
+    const parentNodes: any[] = [];
     const resolvedStatementNode = ast.resolvedStatement && ast.resolvedStatement.node ? ast.resolvedStatement[ast.resolvedStatement.node] : undefined;
     if (resolvedStatementNode) {
       this.traversal(
         resolvedStatementNode,
         (node: any, nodeName?: string) => {
-          if (nodeName !== Node.resolvedTableScanNode) {
+          if (nodeName !== NODE.resolvedTableScanNode) {
             const parseLocationRange = this.getParseLocationRange(node);
             if (parseLocationRange) {
               parentNodes.push({ name: nodeName, parseLocationRange: parseLocationRange, value: node });
             }
           }
 
-          if (nodeName === Node.resolvedTableScanNode) {
+          if (nodeName === NODE.resolvedTableScanNode) {
             const typedNode = <ResolvedTableScanProto>node;
             const resolvedTables = completionInfo.resolvedTables;
             if (typedNode.table && typedNode.table.fullName) {
@@ -184,7 +184,7 @@ export class ZetaSQLAST {
             const parseLocationRange = this.getParseLocationRange(node);
             const parentNode = parentNodes[parentNodes.length - 1];
 
-            if (nodeName === Node.resolvedTableScanNode) {
+            if (nodeName === NODE.resolvedTableScanNode) {
               if (
                 parseLocationRange &&
                 parentNode.parseLocationRange.start <= parseLocationRange.start &&
@@ -233,7 +233,7 @@ export class ZetaSQLAST {
     return completionInfo;
   }
 
-  isParseLocationRangeExist(parseLocationRange?: ParseLocationRangeProto) {
+  isParseLocationRangeExist(parseLocationRange?: ParseLocationRangeProto): boolean {
     return parseLocationRange?.start !== undefined && parseLocationRange.end !== undefined;
   }
 
@@ -247,7 +247,7 @@ export class ZetaSQLAST {
     }
   }
 
-  traversal(node: any, beforeChildrenTraversal: actionFunction, nodeName?: string, afterChildrenTraversal?: actionFunction) {
+  traversal(node: any, beforeChildrenTraversal: ActionFunction, nodeName?: string, afterChildrenTraversal?: ActionFunction): void {
     beforeChildrenTraversal(node, nodeName);
     this.traversalChildren(this.propertyNames, node, beforeChildrenTraversal, afterChildrenTraversal);
     if (afterChildrenTraversal) {
@@ -255,7 +255,7 @@ export class ZetaSQLAST {
     }
   }
 
-  traversalChildren(propertyNames: string[], node: any, beforeChildrenTraversal: actionFunction, afterChildrenTraversal?: actionFunction) {
+  traversalChildren(propertyNames: string[], node: any, beforeChildrenTraversal: ActionFunction, afterChildrenTraversal?: ActionFunction): void {
     for (const name of propertyNames) {
       this.traversalChildIfExist(name, node, beforeChildrenTraversal, afterChildrenTraversal);
     }
@@ -267,7 +267,7 @@ export class ZetaSQLAST {
     }
   }
 
-  traversalChildIfExist(propertyName: string, node: any, beforeChildrenTraversal: actionFunction, afterChildrenTraversal?: actionFunction) {
+  traversalChildIfExist(propertyName: string, node: any, beforeChildrenTraversal: ActionFunction, afterChildrenTraversal?: ActionFunction): void {
     if (propertyName in node) {
       const next = node[propertyName];
       if (next === null) {
@@ -286,9 +286,9 @@ export class ZetaSQLAST {
   }
 }
 
-type actionFunction = (node: any, nodeName?: string) => void;
+type ActionFunction = (node: any, nodeName?: string) => void;
 
-const Node = {
+const NODE = {
   resolvedQueryStmtNode: 'resolvedQueryStmtNode',
   resolvedTableScanNode: 'resolvedTableScanNode',
   resolvedFunctionCallNode: 'resolvedFunctionCallNode',

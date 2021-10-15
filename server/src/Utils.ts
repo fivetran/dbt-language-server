@@ -11,16 +11,24 @@ export function rangesOverlap(range1: Range, range2: Range): boolean {
 }
 
 export function comparePositions(position1: Position, position2: Position): number {
-  if (position1.line < position2.line) return -1;
-  if (position1.line > position2.line) return 1;
+  if (position1.line < position2.line) {
+    return -1;
+  }
+  if (position1.line > position2.line) {
+    return 1;
+  }
 
-  if (position1.character < position2.character) return -1;
-  if (position1.character > position2.character) return 1;
+  if (position1.character < position2.character) {
+    return -1;
+  }
+  if (position1.character > position2.character) {
+    return 1;
+  }
 
   return 0;
 }
 
-export function debounce(callback: () => any, delay: number) {
+export function debounce(callback: () => any, delay: number): () => void {
   let timeout: NodeJS.Timeout;
   return function () {
     clearTimeout(timeout);

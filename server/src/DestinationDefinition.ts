@@ -21,7 +21,7 @@ export class DestinationDefinition {
     return this.projects.get(projectId ?? this.activeProject) ?? [];
   }
 
-  getDataset(datasetName: string, projectName?: string) {
+  getDataset(datasetName: string, projectName?: string): Dataset | undefined {
     return this.getDatasets(projectName).find(d => d.id === datasetName);
   }
 
@@ -38,7 +38,7 @@ export class DestinationDefinition {
     return foundTables;
   }
 
-  async getColumns(datasetName: string, tableName: string, projectName?: string) {
+  async getColumns(datasetName: string, tableName: string, projectName?: string): Promise<any[]> {
     const tables = await this.getTables(datasetName, projectName);
     const table = tables.find(t => t.id === tableName);
     if (!table) {

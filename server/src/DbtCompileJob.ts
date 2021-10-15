@@ -1,7 +1,7 @@
 import { CompileResponse, DbtServer, PollResponse } from './DbtServer';
 
 export class DbtCompileJob {
-  readonly MAX_RETRIES = 5;
+  static readonly MAX_RETRIES = 5;
 
   dbtServer: DbtServer;
   text: string;
@@ -13,7 +13,7 @@ export class DbtCompileJob {
     this.text = text;
   }
 
-  async runCompile() {
+  async runCompile(): Promise<void> {
     this.startCompileRsponse = await this.dbtServer.compileSql(this.text);
   }
 
@@ -22,7 +22,7 @@ export class DbtCompileJob {
       if (!this.startCompileRsponse.error) {
         return await this.dbtServer.pollOnceCompileResult(this.startCompileRsponse.result.request_token);
       } else {
-        if (this.tryCount >= this.MAX_RETRIES) {
+        if (this.tryCount >= DbtCompileJob.MAX_RETRIES) {
           return <PollResponse>{
             error: this.startCompileRsponse.error,
             result: { state: 'error' },
@@ -35,7 +35,7 @@ export class DbtCompileJob {
     }
   }
 
-  async kill() {
+  async kill(): Promise<void> {
     const token = this.startCompileRsponse?.result.request_token;
     if (token) {
       await this.dbtServer.kill(token);

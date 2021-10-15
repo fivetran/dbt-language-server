@@ -6,7 +6,7 @@ import { ZetaSQLAST } from './ZetaSQLAST';
 export class HoverProvider {
   static zetaSQLAST = new ZetaSQLAST();
 
-  static async hoverOnText(text: string, ast: AnalyzeResponse | undefined): Promise<Hover | null> {
+  static hoverOnText(text: string, ast: AnalyzeResponse | undefined): Hover | null {
     if (!ast) {
       return null;
     }
