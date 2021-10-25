@@ -8,8 +8,8 @@
     "vscode-languageclient": "^7.0.0"
   },
   "devDependencies": {
-    "@types/vscode": "^1.58.1",
+    "@types/vscode": "^1.61.0",
     "@vscode/test-electron": "^1.6.2",
-    "@google-cloud/bigquery": "^5.6.0"
+    "@google-cloud/bigquery": "^5.9.1"
   }
 }
