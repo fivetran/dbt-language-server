@@ -27,7 +27,7 @@ async function main() {
       extensionDevelopmentPath,
       extensionTestsPath,
       launchArgs: [path.resolve(__dirname, '../../test-fixture/')],
-      extensionTestsEnv: { CLI_PATH: cliPath },
+      extensionTestsEnv: { CLI_PATH: cliPath, DBT_LS_DISABLE_TELEMETRY: 'true' },
     });
   } catch (err) {
     console.error('Failed to run tests');
