@@ -67,6 +67,7 @@
       ]
     }
   },
+  "aiKey": "0a32611a-7944-4c4d-93c9-5c260a61395b",
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -b",

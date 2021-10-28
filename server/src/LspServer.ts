@@ -16,6 +16,7 @@ import {
   ResponseError,
   SignatureHelp,
   SignatureHelpParams,
+  TelemetryEventNotification,
   TextDocumentSyncKind,
   _Connection,
 } from 'vscode-languageserver';
@@ -93,9 +94,14 @@ export class LspServer {
     this.updateModels();
   }
 
+  sendTelemetry(name: string, properties?: { [key: string]: string }): void {
+    this.connection.sendNotification(TelemetryEventNotification.type, [name, properties]);
+  }
+
   async startDbtRpc(): Promise<void> {
     try {
       await this.dbtServer.startDbtRpc(() => this.connection.sendRequest('custom/getPython'));
+      this.sendTelemetry('log', { dbt_version: this.dbtServer.dbtVersion ?? 'undefined', python: this.dbtServer.python ?? 'undefined' });
     } catch (e) {
       console.log(e);
       this.connection.window.showErrorMessage(

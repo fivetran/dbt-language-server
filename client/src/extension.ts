@@ -4,6 +4,7 @@ import { LanguageClient, LanguageClientOptions, ServerOptions, State, TransportK
 import { ProgressHandler } from './ProgressHandler';
 import { PythonExtension } from './PythonExtension';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
+import { TelemetryClient } from './TelemetryClient';
 
 let client: LanguageClient;
 
@@ -27,7 +28,6 @@ export function activate(context: ExtensionContext): void {
   };
 
   const clientOptions: LanguageClientOptions = {
-    // Register the server for sql documents
     documentSelector: [
       { scheme: 'file', language: 'sql' },
       { scheme: 'file', language: 'jinja-sql' },
@@ -44,8 +44,15 @@ export function activate(context: ExtensionContext): void {
 
   const progressHandler = new ProgressHandler();
   progressHandler.begin();
+
+  client.onTelemetry(([name, properties]) => {
+    TelemetryClient.sendEvent(name, properties);
+  });
+
   client.onDidChangeState(e => {
     if (e.newState === State.Running) {
+      TelemetryClient.sendEvent('activate');
+
       client.onNotification('custom/updateQueryPreview', ([uri, text]) => {
         SqlPreviewContentProvider.update(uri, text);
       });
@@ -60,6 +67,12 @@ export function activate(context: ExtensionContext): void {
       console.log('Client switched to state "Running"');
     } else {
       commands.executeCommand('setContext', 'dbt-language-server.init', false);
+    }
+  });
+
+  client.onReady().catch(reason => {
+    if (reason && reason.name && reason.message) {
+      TelemetryClient.sendException(reason);
     }
   });
 
@@ -98,6 +111,7 @@ export function activate(context: ExtensionContext): void {
       });
       commands.executeCommand('editor.action.triggerParameterHints');
     }),
+    TelemetryClient.activate(context),
   );
 
   // Start the client. This will also launch the server
