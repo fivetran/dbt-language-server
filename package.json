@@ -1,5 +1,6 @@
 {
   "name": "dbt-language-server",
+  "displayName": "dbt Language Server",
   "version": "0.0.1",
   "publisher": "Fivetran",
   "preview": true,
