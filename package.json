@@ -5,6 +5,7 @@
   "version": "0.0.1",
   "publisher": "Fivetran",
   "preview": true,
+  "keywords": ["dbt", "bigquery", "sql"],
   "extensionDependencies": [
     "ms-python.python"
   ],
