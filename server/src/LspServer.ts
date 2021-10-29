@@ -86,12 +86,12 @@ export class LspServer {
   }
 
   async onInitialized(): Promise<void> {
-    await this.startDbtRpc();
     if (this.hasConfigurationCapability) {
       // Register for all configuration changes.
       this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
     }
     this.updateModels();
+    await this.startDbtRpc();
   }
 
   sendTelemetry(name: string, properties?: { [key: string]: string }): void {
@@ -104,9 +104,13 @@ export class LspServer {
       this.sendTelemetry('log', { dbt_version: this.dbtServer.dbtVersion ?? 'undefined', python: this.dbtServer.python ?? 'undefined' });
     } catch (e) {
       console.log(e);
-      this.connection.window.showErrorMessage(
-        `Failed to start dbt. Make sure that you have [dbt installed](https://docs.getdbt.com/dbt-cli/installation). Check in Terminal that dbt works running 'dbt --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VSCode that was used to install dbt.`,
+      const errorMessageResult = await this.connection.window.showErrorMessage(
+        `Failed to start dbt. Make sure that you have [dbt installed](https://docs.getdbt.com/dbt-cli/installation). Check in Terminal that dbt works running 'dbt --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VSCode that was used to install dbt (e.g. ~/dbt-env/bin/python3).`,
+        { title: 'Retry', id: 'retry' },
       );
+      if (errorMessageResult?.id === 'retry') {
+        this.startDbtRpc();
+      }
     } finally {
       this.progressReporter.sendFinish();
     }
@@ -135,9 +139,6 @@ export class LspServer {
   }
 
   async onDidOpenTextDocument(params: DidOpenTextDocumentParams): Promise<void> {
-    if (!(await this.isDbtReady())) {
-      return;
-    }
     const uri = params.textDocument.uri;
     let document = this.openedDocuments.get(uri);
     if (!document) {

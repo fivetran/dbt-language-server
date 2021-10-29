@@ -34,7 +34,7 @@ Extension works on macOS, now it supports the default locations for `profiles.ym
 
 Prior to using the extension, you need to perform the following steps:
 1. [Install dbt](https://docs.getdbt.com/dbt-cli/installation).
-2. In Terminal, test that dbt works running the `dbt --version` command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VSCode that was used to install dbt.
+2. In Terminal, test that dbt works running the `dbt --version` command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VSCode that was used to install dbt (e.g. `~/dbt-env/bin/python3`).
 3. Create a file named `profiles.yml` in the `~/.dbt/` folder and add a profile to connect to BigQuery using the [Service Account File authorization type](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-file):
 
     Example of `/Users/user/.dbt/profiles.yml`:
