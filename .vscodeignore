@@ -1,7 +1,14 @@
 .github/**
 .vscode/**
 **/*.ts
+**/tsconfig.json
 **/*.map
+**/test/
 .gitignore
 **/tsconfig.json
 **/tsconfig.base.json
+client/e2e
+client/test-fixture
+images/
+scripts/
+markdown_parser/
