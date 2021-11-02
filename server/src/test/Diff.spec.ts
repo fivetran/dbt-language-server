@@ -1,6 +1,6 @@
+import * as assert from 'assert';
 import * as fs from 'fs';
 import { Diff } from '../Diff';
-import assert = require('assert');
 
 describe('Diff', () => {
   it('config_at_the_beginning', () => {

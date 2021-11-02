@@ -1,4 +1,4 @@
-import fastDiff = require('fast-diff');
+import * as fastDiff from 'fast-diff';
 
 export class Diff {
   static getOldLineNumber(oldString: string, newString: string, newLineNumber: number): number {

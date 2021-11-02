@@ -5,7 +5,11 @@
   "version": "0.0.1",
   "publisher": "Fivetran",
   "preview": true,
-  "keywords": ["dbt", "bigquery", "sql"],
+  "keywords": [
+    "dbt",
+    "bigquery",
+    "sql"
+  ],
   "extensionDependencies": [
     "ms-python.python"
   ],
@@ -72,14 +76,19 @@
   },
   "aiKey": "0a32611a-7944-4c4d-93c9-5c260a61395b",
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run webpack && npm run prepare-node-modules",
     "compile": "tsc -b",
     "compile:all": "npm run format && npm run compile",
     "watch": "tsc -b -w",
     "format": "prettier --write \"client/src/**/*.ts\" \"server/src/**/*.ts\"",
     "postinstall": "cd client && npm install && cd ../server && npm install && cd ../markdown_parser && npm install && cd ..",
     "lint": "eslint . --ext .ts",
-    "test": "mocha \"server/out/test/**/*.spec.js\""
+    "test": "mocha \"server/out/test/**/*.spec.js\"",
+    "clean": "rm -rf client/out && rm -rf server/out",
+    "prepare-zetasql": "cp -R ./server/node_modules/@fivetrandevelopers/zetasql/lib/protos/ ./server/out/protos/ && cp -R ./server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql/ ./server/out/zetasql/",
+    "webpack": "npm run clean && webpack --mode production --config ./client/webpack.config.js && webpack --mode production --config ./server/webpack.config.js && npm run prepare-zetasql",
+    "webpack:dev": "npm run clean && webpack --mode none --config ./client/webpack.config.js && webpack --mode none --config ./server/webpack.config.js && npm run prepare-zetasql",
+    "prepare-node-modules": "./prepare_node_modules.sh"
   },
   "devDependencies": {
     "@types/mocha": "^9.0.0",
@@ -87,9 +96,13 @@
     "@typescript-eslint/eslint-plugin": "^5.2.0",
     "@typescript-eslint/parser": "^5.2.0",
     "eslint": "^8.1.0",
+    "merge-options": "^3.0.4",
     "mocha": "^9.1.3",
     "prettier": "^2.4.1",
+    "ts-loader": "^9.2.6",
     "ts-node": "^10.4.0",
-    "typescript": "^4.4.4"
+    "typescript": "^4.4.4",
+    "webpack": "^5.60.0",
+    "webpack-cli": "^4.9.1"
   }
 }

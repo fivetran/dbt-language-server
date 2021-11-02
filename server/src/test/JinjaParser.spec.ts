@@ -1,8 +1,8 @@
+import * as assert from 'assert';
 import * as fs from 'fs';
 import { Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { JinjaParser } from '../JinjaParser';
-import assert = require('assert');
 
 describe('JinjaParser', () => {
   function shouldFindAllJinjas(fileName: string, ranges: Range[]) {

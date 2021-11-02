@@ -1,14 +1,15 @@
-.github/**
-.vscode/**
-**/*.ts
-**/tsconfig.json
-**/*.map
-**/test/
-.gitignore
-**/tsconfig.json
-**/tsconfig.base.json
-client/e2e
-client/test-fixture
-images/
-scripts/
-markdown_parser/
+# Ignore everything
+*
+*/**
+
+# Whitelist needed files
+!README.md
+!LICENSE
+!package.json
+
+!client/out/extension.js
+
+!server/out/**/*.js
+!server/out/zetasql/*
+!server/out/protos/**/*.proto
+!server/node_modules/**/*

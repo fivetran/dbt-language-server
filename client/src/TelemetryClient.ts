@@ -1,5 +1,5 @@
-import path = require('path');
 import * as fs from 'fs';
+import * as path from 'path';
 import { ExtensionContext } from 'vscode';
 import TelemetryReporter from 'vscode-extension-telemetry';
 

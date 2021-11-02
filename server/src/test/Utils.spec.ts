@@ -1,4 +1,4 @@
-import assert = require('assert');
+import * as assert from 'assert';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Position, Range } from 'vscode-languageserver-types';
 import { comparePositions, getJinjaContentOffset, rangesOverlap } from '../Utils';

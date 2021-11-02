@@ -1,8 +1,8 @@
 import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ParseLocationRangeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
+import * as assert from 'assert';
 import * as fs from 'fs';
 import { ZetaSQLAST } from '../ZetaSQLAST';
-import assert = require('assert');
 
 describe('ZetaSQLAST', () => {
   function createAST(fileName: string): AnalyzeResponse {
