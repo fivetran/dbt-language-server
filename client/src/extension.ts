@@ -102,6 +102,10 @@ export function activate(context: ExtensionContext): void {
       return progressHandler.getPromise();
     }),
 
+    commands.registerCommand('dbt.getQueryPreview', () => {
+      return SqlPreviewContentProvider.texts.get(SqlPreviewContentProvider.activeDocUri);
+    }),
+
     commands.registerCommand('editor.afterFunctionCompletion', () => {
       commands.executeCommand('cursorMove', {
         to: 'left',

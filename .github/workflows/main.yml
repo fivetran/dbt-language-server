@@ -56,7 +56,7 @@ jobs:
         with:
           python-version: '3.7.x'
 
-      - run: mkdir -p ~/.dbt/ && cp ./client/e2e/profiles.yml ~/.dbt/profiles.yml
+      - run: mkdir -p ~/.dbt/ && cp ./e2e/profiles.yml ~/.dbt/profiles.yml
       - run: 'echo "$BQ_SERVICE_ACCOUNT" > ~/.dbt/bq-test-project.json'
         shell: bash
         env:
@@ -79,7 +79,7 @@ jobs:
         with:
           python-version: '3.7.x'
 
-      - run: mkdir -p ~/.dbt/ && cp ./client/e2e/profiles.yml ~/.dbt/profiles.yml
+      - run: mkdir -p ~/.dbt/ && cp ./e2e/profiles.yml ~/.dbt/profiles.yml
       - run: 'echo "$BQ_SERVICE_ACCOUNT" > ~/.dbt/bq-test-project.json'
         shell: bash
         env:

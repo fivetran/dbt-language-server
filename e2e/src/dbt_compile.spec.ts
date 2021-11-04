@@ -21,22 +21,22 @@ suite('Should compile jinja expressions', () => {
 
     await setTestContent(selectFromTestTable1);
     await waitDbtCommand();
-    assert.strictEqual(getPreviewText(), selectFromTestTable1);
+    assert.strictEqual(await getPreviewText(), selectFromTestTable1);
 
     // 'select * from dbt_ls_e2e_dataset.{{var("table_2")}}';
     await replaceText('test_table1', '{{var("table_2")}}');
     await waitDbtCommand();
-    assert.strictEqual(getPreviewText(), selectFromUsers);
+    assert.strictEqual(await getPreviewText(), selectFromUsers);
 
     // 'select * from dbt_ls_e2e_dataset.{{var("table_1")}}';
     await replaceText('_2', '_1');
     await waitDbtCommand();
-    assert.strictEqual(getPreviewText(), selectFromTestTable1);
+    assert.strictEqual(await getPreviewText(), selectFromTestTable1);
 
     // 'select * from dbt_ls_e2e_dataset.users';
     await replaceText('{{var("table_1")}}', 'users');
     await waitDbtCommand();
-    assert.strictEqual(getPreviewText(), selectFromUsers);
+    assert.strictEqual(await getPreviewText(), selectFromUsers);
   });
 
   test('Should compile every change if compilation not finished', async () => {
@@ -53,7 +53,7 @@ suite('Should compile jinja expressions', () => {
     await replaceText('\ns', '\nselect 1;');
     await waitDbtCommand();
 
-    assert.strictEqual(getPreviewText(), `users\n\n\nselect 1;`);
+    assert.strictEqual(await getPreviewText(), `users\n\n\nselect 1;`);
   });
 
   test('Should compile files with jinja-sql languageId', async () => {
@@ -67,7 +67,7 @@ suite('Should compile jinja expressions', () => {
     await waitDbtCommand();
 
     // assert
-    assert.strictEqual(getPreviewText(), 'select * from `singular-vector-135519`.dbt_ls_e2e_dataset.test_table1');
+    assert.strictEqual(await getPreviewText(), 'select * from `singular-vector-135519`.dbt_ls_e2e_dataset.test_table1');
 
     uninstallExtension('samuelcolvin.jinjahtml');
   });

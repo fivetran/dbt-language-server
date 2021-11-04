@@ -2,10 +2,11 @@ import * as assert from 'assert';
 import { spawnSync } from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import SqlPreviewContentProvider from '../SqlPreviewContentProvider';
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
+
+export const TEST_FIXTURE_PATH = path.resolve(__dirname, '../test-fixture');
 
 export async function activateAndWait(docUri: vscode.Uri): Promise<void> {
   // The extensionId is `publisher.name` from package.json
@@ -31,8 +32,8 @@ export async function showPreview(): Promise<void> {
   await vscode.commands.executeCommand('editor.showQueryPreview');
 }
 
-export function getPreviewText(): string {
-  return SqlPreviewContentProvider.texts.get(SqlPreviewContentProvider.activeDocUri);
+export async function getPreviewText(): Promise<string> {
+  return vscode.commands.executeCommand('dbt.getQueryPreview');
 }
 
 export function sleep(ms: number): Promise<unknown> {
@@ -40,7 +41,7 @@ export function sleep(ms: number): Promise<unknown> {
 }
 
 export const getDocPath = (p: string) => {
-  return path.resolve(__dirname, '../../test-fixture/models', p);
+  return path.resolve(TEST_FIXTURE_PATH, 'models', p);
 };
 
 export const getDocUri = (p: string) => {

@@ -3,24 +3,20 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { CompletionItem } from 'vscode';
-import { activateAndWait, getDocUri, setTestContent, testCompletion, triggerCompletion, waitDbtCommand } from './helper';
+import { activateAndWait, getDocUri, setTestContent, testCompletion, TEST_FIXTURE_PATH, triggerCompletion, waitDbtCommand } from './helper';
 
 suite('Should do completion inside jinjas expression', () => {
   suiteSetup(function () {
-    fs.copyFile(
-      path.resolve(__dirname, '../../test-fixture/target/test_manifest.json'),
-      path.resolve(__dirname, '../../test-fixture/target/manifest.json'),
-      e => {
-        if (e) {
-          throw e;
-        }
-        console.log('File was copied to destination');
-      },
-    );
+    fs.copyFile(path.resolve(TEST_FIXTURE_PATH, 'target/test_manifest.json'), path.resolve(TEST_FIXTURE_PATH, 'target/manifest.json'), e => {
+      if (e) {
+        throw e;
+      }
+      console.log('File was copied to destination');
+    });
   });
 
   suiteTeardown(function () {
-    fs.unlink(path.resolve(__dirname, '../../test-fixture/target/manifest.json'), e => {
+    fs.unlink(path.resolve(TEST_FIXTURE_PATH, 'target/manifest.json'), e => {
       if (e) {
         throw e;
       }

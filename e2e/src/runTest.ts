@@ -10,7 +10,7 @@ async function main() {
 
     // The folder containing the Extension Manifest package.json
     // Passed to `--extensionDevelopmentPath`
-    const extensionDevelopmentPath = path.resolve(__dirname, '../../../');
+    const extensionDevelopmentPath = path.resolve(__dirname, '../../');
 
     // The path to test runner
     // Passed to --extensionTestsPath
@@ -26,7 +26,7 @@ async function main() {
     await runTests({
       extensionDevelopmentPath,
       extensionTestsPath,
-      launchArgs: [path.resolve(__dirname, '../../test-fixture/')],
+      launchArgs: [path.resolve(__dirname, '../test-fixture')],
       extensionTestsEnv: { CLI_PATH: cliPath, DBT_LS_DISABLE_TELEMETRY: 'true' },
     });
   } catch (err) {

@@ -54,9 +54,12 @@
       "runtimeExecutable": "${execPath}",
       "args": [
         "--extensionDevelopmentPath=${workspaceRoot}",
-        "--extensionTestsPath=${workspaceRoot}/client/out/test/index",
-        "${workspaceRoot}/client/test-fixture"
+        "--extensionTestsPath=${workspaceRoot}/e2e/out/index",
+        "${workspaceRoot}/e2e/test-fixture"
       ],
+      "env": {
+        "CLI_PATH": "code"
+      },
       "outFiles": ["${workspaceRoot}/client/out/test/**/*.js"]
     }
   ],
