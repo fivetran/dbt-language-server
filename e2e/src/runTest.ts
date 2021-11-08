@@ -4,13 +4,16 @@ import { spawnSync } from 'child_process';
 import { homedir } from 'os';
 import * as path from 'path';
 
+// expected parameter: path to the folder with the extension package.json
 async function main() {
   try {
     await prepareBigQuery();
 
     // The folder containing the Extension Manifest package.json
     // Passed to `--extensionDevelopmentPath`
-    const extensionDevelopmentPath = path.resolve(__dirname, '../../');
+
+    const extensionDevelopmentPath = process.argv[2];
+    console.log('Running tests for path: ' + extensionDevelopmentPath);
 
     // The path to test runner
     // Passed to --extensionTestsPath

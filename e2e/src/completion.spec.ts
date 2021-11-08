@@ -1,12 +1,10 @@
 import * as vscode from 'vscode';
-import { activateAndWait, getDocUri, replaceText, testCompletion, waitDbtCommand } from './helper';
+import { activateAndWait, getDocUri, replaceText, testCompletion } from './helper';
 
 suite('Should do completion', () => {
   test('Should suggest table colums', async () => {
     const docUri = getDocUri('simple_select.sql');
     await activateAndWait(docUri);
-    await waitDbtCommand();
-
     await testCompletion(docUri, new vscode.Position(0, 8), {
       items: [
         { label: 'date', kind: vscode.CompletionItemKind.Value },
@@ -20,8 +18,6 @@ suite('Should do completion', () => {
   test('Should suggest colums for both tables', async () => {
     const docUri = getDocUri('join_tables.sql');
     await activateAndWait(docUri);
-    await waitDbtCommand();
-
     await testCompletion(docUri, new vscode.Position(0, 8), {
       items: [
         { label: 'test_table1.date', kind: vscode.CompletionItemKind.Value },
@@ -43,9 +39,7 @@ suite('Should do completion', () => {
   test('Should suggest colums for table name after press .', async () => {
     const docUri = getDocUri('join_tables.sql');
     await activateAndWait(docUri);
-    await waitDbtCommand();
     await replaceText('*', 'users.');
-
     await testCompletion(
       docUri,
       new vscode.Position(0, 13),
@@ -67,7 +61,6 @@ suite('Should do completion', () => {
   test('Should suggest colums for table alias after press .', async () => {
     const docUri = getDocUri('select_with_alias.sql');
     await activateAndWait(docUri);
-    await waitDbtCommand();
     await replaceText('*', 't.');
 
     await testCompletion(

@@ -1,0 +1,4 @@
+test-fixture/logs
+test-fixture/target
+
+!test-fixture/target/test_manifest.json

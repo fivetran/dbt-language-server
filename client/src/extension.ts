@@ -98,10 +98,6 @@ export function activate(context: ExtensionContext): void {
       client.sendNotification('custom/dbtCompile', uri);
     }),
 
-    commands.registerCommand('dbt.getProgressPromise', () => {
-      return progressHandler.getPromise();
-    }),
-
     commands.registerCommand('dbt.getQueryPreview', () => {
       return SqlPreviewContentProvider.texts.get(SqlPreviewContentProvider.activeDocUri);
     }),

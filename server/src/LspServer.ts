@@ -151,7 +151,7 @@ export class LspServer {
         this.serviceAccountCreds,
       );
       this.openedDocuments.set(uri, document);
-      document.didChangeTextDocument({ textDocument: params.textDocument, contentChanges: [] });
+      this.onDidChangeTextDocument({ textDocument: params.textDocument, contentChanges: [] });
     }
   }
 

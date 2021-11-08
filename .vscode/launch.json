@@ -48,11 +48,12 @@
       "outFiles": ["${workspaceFolder}/markdown_parser/out/**/*.js"]
     },
     {
-      "name": "E2E Tests",
+      "name": "E2E Tests Client",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
+        // "--extensionDevelopmentPath=${workspaceRoot}/e2e-tests/extension",
         "--extensionDevelopmentPath=${workspaceRoot}",
         "--extensionTestsPath=${workspaceRoot}/e2e/out/index",
         "${workspaceRoot}/e2e/test-fixture"
@@ -67,6 +68,10 @@
     {
       "name": "Client + Server",
       "configurations": ["Launch Client", "Attach to Server"]
+    },
+    {
+      "name": "E2E Tests Client + Server",
+      "configurations": ["E2E Tests Client", "Attach to Server"]
     }
   ]
 }

@@ -19,10 +19,6 @@ export class ProgressHandler {
     return { promise: promise, resolve: promiseResolve };
   }
 
-  getPromise(): Promise<unknown> {
-    return this.progressPromise?.promise;
-  }
-
   onProgress(value: WorkDoneProgressBegin | WorkDoneProgressReport | WorkDoneProgressEnd): void {
     switch (value.kind) {
       case 'begin':

@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { CompletionItem } from 'vscode';
-import { activateAndWait, getDocUri, setTestContent, testCompletion, TEST_FIXTURE_PATH, triggerCompletion, waitDbtCommand } from './helper';
+import { activateAndWait, getDocUri, setTestContent, testCompletion, TEST_FIXTURE_PATH, triggerCompletion } from './helper';
 
 suite('Should do completion inside jinjas expression', () => {
   suiteSetup(function () {
@@ -28,7 +28,6 @@ suite('Should do completion inside jinjas expression', () => {
     const docUri = getDocUri('completion_jinja.sql');
     await activateAndWait(docUri);
     await setTestContent('select * from {{ref(');
-    await waitDbtCommand();
 
     await testCompletion(docUri, new vscode.Position(0, 20), getCompletionList(true), '(');
   });
@@ -37,7 +36,6 @@ suite('Should do completion inside jinjas expression', () => {
     const docUri = getDocUri('completion_jinja.sql');
     await activateAndWait(docUri);
     await setTestContent('select * from {{ref(');
-    await waitDbtCommand();
 
     await testCompletion(docUri, new vscode.Position(0, 20), getCompletionList(true));
   });
@@ -46,7 +44,6 @@ suite('Should do completion inside jinjas expression', () => {
     const docUri = getDocUri('completion_jinja.sql');
     await activateAndWait(docUri);
     await setTestContent(`select * from {{ref('`);
-    await waitDbtCommand();
 
     await testCompletion(docUri, new vscode.Position(0, 21), getCompletionList(false), "'");
   });
@@ -56,7 +53,6 @@ suite('Should do completion inside jinjas expression', () => {
     const docUri = getDocUri('completion_jinja.sql');
     await activateAndWait(docUri);
     await setTestContent(`select * from {{}}ref('`);
-    await waitDbtCommand();
 
     // act
     const actualCompletionList = await triggerCompletion(docUri, new vscode.Position(0, 22));

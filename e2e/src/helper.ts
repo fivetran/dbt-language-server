@@ -2,30 +2,41 @@ import * as assert from 'assert';
 import { spawnSync } from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { TextDocumentChangeEvent, TextEditorEdit } from 'vscode';
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
 
 export const TEST_FIXTURE_PATH = path.resolve(__dirname, '../test-fixture');
+vscode.workspace.onDidChangeTextDocument(onDidChangeTextDocument);
+let promiseResolve: () => void;
 
 export async function activateAndWait(docUri: vscode.Uri): Promise<void> {
   // The extensionId is `publisher.name` from package.json
   const ext = vscode.extensions.getExtension('Fivetran.dbt-language-server');
+
+  const existingEditor = vscode.window.visibleTextEditors.find(e => e.document.uri.path === docUri.path);
+  const doNotWaitChanges = existingEditor && existingEditor.document.getText() === vscode.window.activeTextEditor?.document.getText();
+  const activateFinished = doNotWaitChanges ? Promise.resolve() : createPromise();
+
   await ext.activate();
   try {
     doc = await vscode.workspace.openTextDocument(docUri);
     editor = await vscode.window.showTextDocument(doc);
     await showPreview();
-    await waitDbtCommand();
+    await activateFinished;
   } catch (e) {
     console.error(e);
   }
 }
 
-export async function waitDbtCommand(): Promise<void> {
-  await sleep(500);
-  const promise = <Promise<unknown>>await vscode.commands.executeCommand('dbt.getProgressPromise');
-  await promise;
+function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
+  if (e.document.uri.path === 'Preview') {
+    if (e.contentChanges.length === 1 && e.contentChanges[0].text === '') {
+      return;
+    }
+    promiseResolve();
+  }
 }
 
 export async function showPreview(): Promise<void> {
@@ -49,13 +60,17 @@ export const getDocUri = (p: string) => {
 };
 
 export async function setTestContent(content: string): Promise<void> {
+  if (doc.getText() === content) {
+    return;
+  }
   const all = new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length));
-  await editor.edit(eb => eb.replace(all, content));
-  editor.selection = new vscode.Selection(editor.selection.end, editor.selection.end);
+  await edit(eb => eb.replace(all, content));
+  const lastPos = doc.positionAt(doc.getText().length);
+  editor.selection = new vscode.Selection(lastPos, lastPos);
 }
 
 export async function insertText(position: vscode.Position, value: string): Promise<void> {
-  await editor.edit(eb => eb.insert(position, value));
+  return edit(eb => eb.insert(position, value));
 }
 
 export async function replaceText(oldText: string, newText: string): Promise<void> {
@@ -66,7 +81,20 @@ export async function replaceText(oldText: string, newText: string): Promise<voi
 
   const positionStart = editor.document.positionAt(offsetStart);
   const positionEnd = editor.document.positionAt(offsetStart + oldText.length);
-  await editor.edit(eb => eb.replace(new vscode.Range(positionStart, positionEnd), newText));
+
+  return edit(eb => eb.replace(new vscode.Range(positionStart, positionEnd), newText));
+}
+
+async function edit(callback: (editBuilder: TextEditorEdit) => void): Promise<void> {
+  const editFinished = createPromise();
+  await editor.edit(callback);
+  await editFinished;
+}
+
+function createPromise(): Promise<void> {
+  return new Promise<void>(resolve => {
+    promiseResolve = resolve;
+  });
 }
 
 export function getCursorPosition(): vscode.Position {
