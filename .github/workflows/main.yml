@@ -16,25 +16,34 @@ on:
         default: 'warning'
 
 jobs:
-  build-test-package:
+  build:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: set up node 14.x
+        uses: actions/setup-node@v2
         with:
           node-version: '14.x'
 
-      - run: npm install
-      - run: npm run compile
-      - run: npm run test
+      - name: build and test
+        run: |
+          npm install
+          npm run compile
+          npm run test
 
       - id: vars
+        if: ${{ github.ref == 'refs/heads/main' }}
         shell: bash
         run: echo "::set-output name=file_name::dbt-language-server-commit-sha-$(git rev-parse --short HEAD).vsix"
 
-      - run: npx vsce package -o ${{ steps.vars.outputs.file_name }} --baseImagesUrl=https://storage.googleapis.com/dbt-ls-images
+      - name: package vsix file
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: npx vsce package -o ${{ steps.vars.outputs.file_name }} --baseImagesUrl=https://storage.googleapis.com/dbt-ls-images
 
-      - id: upload-file
+      - name: push to GCS
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: google-github-actions/upload-cloud-storage@main
         with:
           path: ${{ steps.vars.outputs.file_name }}
@@ -63,32 +72,6 @@ jobs:
           BQ_SERVICE_ACCOUNT: ${{ secrets.BQ_SERVICE_ACCOUNT }}
       - run: pip install ${{ matrix.dbt-version }}
       - run: dbt --version
-
-      - run: npm install
-      - run: npm run compile
-      - run: npx vsce package -o e2e-tests.vsix --baseImagesUrl=https://storage.googleapis.com/dbt-ls-images
-      - run: unzip e2e-tests.vsix -d e2e-tests
-      - run: node e2e/out/runTest $(pwd)/e2e-tests/extension
-
-  run-e2e-tests-with-dbt-via-python:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '14.x'
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.7.x'
-
-      - run: mkdir -p ~/.dbt/ && cp ./e2e/profiles.yml ~/.dbt/profiles.yml
-      - run: 'echo "$BQ_SERVICE_ACCOUNT" > ~/.dbt/bq-test-project.json'
-        shell: bash
-        env:
-          BQ_SERVICE_ACCOUNT: ${{ secrets.BQ_SERVICE_ACCOUNT }}
-      - run: python3 -m venv ~/dbt-env
-      - run: source ~/dbt-env/bin/activate && pip install dbt
-      - run: ~/dbt-env/bin/dbt --version
 
       - run: npm install
       - run: npm run compile
