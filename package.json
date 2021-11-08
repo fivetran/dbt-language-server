@@ -4,6 +4,7 @@
   "description": "This extension will help you work with dbt",
   "version": "0.0.1",
   "publisher": "Fivetran",
+  "license": "MIT",
   "preview": true,
   "keywords": [
     "dbt",
