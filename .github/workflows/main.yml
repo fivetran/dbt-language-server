@@ -41,7 +41,7 @@ jobs:
           path: |
             ./e2e
             ./dbt-language-server.vsix
-          key: ${{ runner.os }}-cache-${{ github.sha }}
+          key: ${{ runner.os }}-cache-${{ github.sha }}-${{ github.ref }}
 
   run-e2e-tests:
     needs: test-and-package
@@ -58,7 +58,7 @@ jobs:
           path: |
             ./e2e
             ./dbt-language-server.vsix
-          key: ${{ runner.os }}-cache-${{ github.sha }}
+          key: ${{ runner.os }}-cache-${{ github.sha }}-${{ github.ref }}
 
       - uses: actions/setup-node@v2
         with:
@@ -89,24 +89,31 @@ jobs:
           path: |
             ./e2e
             ./dbt-language-server.vsix
-          key: ${{ runner.os }}-cache-${{ github.sha }}
+          key: ${{ runner.os }}-cache-${{ github.sha }}-${{ github.ref }}
 
-      - name: prepare vsix for push to GCR
+      - name: prepare vsix for push to GCS
+        if: ${{ github.ref == 'refs/heads/main' }}
         env:
           VSIX_NAME: ${{ needs.test-and-package.outputs.vsix_name }}
         run: cp dbt-language-server.vsix ${VSIX_NAME}
 
-      - name: push to GCS
+      - name: push main to GCS
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: google-github-actions/upload-cloud-storage@main
         with:
           path: ${{ needs.test-and-package.outputs.vsix_name }}
           destination: dbt-language-server
           credentials: ${{ secrets.GCS_SERVICE_ACCOUNT }}
 
+      - name: set up node 14.x
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14.x'
+
       - name: publish tagged (latest) extension
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
-        uses: lannonbr/vsce-action@3.0.0
         env:
           VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
-        with:
-          args: "publish -i dbt-language-server.vsix -p $VSCE_TOKEN"
+        run: npx vsce publish -i dbt-language-server.vsix -p ${VSCE_TOKEN}
+
