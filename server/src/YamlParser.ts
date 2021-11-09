@@ -140,7 +140,7 @@ export class YamlParser {
 
   parseYamlFile(filePath: string): any {
     const content = fs.readFileSync(filePath, 'utf8');
-    return yaml.parse(content);
+    return yaml.parse(content, { uniqueKeys: false });
   }
 
   replaceTilde(path: string): string {
