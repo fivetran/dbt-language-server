@@ -8,6 +8,11 @@ import { TelemetryClient } from './TelemetryClient';
 
 let client: LanguageClient;
 
+interface TelemetryEvent {
+  name: string;
+  properties?: { [key: string]: string };
+}
+
 export function activate(context: ExtensionContext): void {
   console.log('Congratulations, your extension "dbt-language-server" is now active!');
   // The server is implemented in node
@@ -45,8 +50,8 @@ export function activate(context: ExtensionContext): void {
   const progressHandler = new ProgressHandler();
   progressHandler.begin();
 
-  client.onTelemetry(([name, properties]) => {
-    TelemetryClient.sendEvent(name, properties);
+  client.onTelemetry((e: TelemetryEvent) => {
+    TelemetryClient.sendEvent(e.name, e.properties);
   });
 
   client.onDidChangeState(e => {

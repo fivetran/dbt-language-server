@@ -28,6 +28,11 @@ import { ManifestParser } from './ManifestParser';
 import { ProgressReporter } from './ProgressReporter';
 import { ServiceAccountCreds, YamlParser } from './YamlParser';
 
+interface TelemetryEvent {
+  name: string;
+  properties?: { [key: string]: string };
+}
+
 export class LspServer {
   connection: _Connection;
   hasConfigurationCapability = false;
@@ -95,7 +100,7 @@ export class LspServer {
   }
 
   sendTelemetry(name: string, properties?: { [key: string]: string }): void {
-    this.connection.sendNotification(TelemetryEventNotification.type, [name, properties]);
+    this.connection.sendNotification(TelemetryEventNotification.type, <TelemetryEvent>{ name: name, properties: properties });
   }
 
   async startDbtRpc(): Promise<void> {
