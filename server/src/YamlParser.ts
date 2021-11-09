@@ -27,11 +27,16 @@ export class YamlParser {
   }
 
   findTargetPath(): string {
-    const dbtProject = this.parseYamlFile(YamlParser.DBT_PROJECT_FILE_NAME);
+    let dbtProject;
+    try {
+      dbtProject = this.parseYamlFile(YamlParser.DBT_PROJECT_FILE_NAME);
+    } catch (e) {
+      return YamlParser.DEFAULT_TARGET_PATH;
+    }
     return dbtProject[YamlParser.TARGET_PATH_FIELD] ?? YamlParser.DEFAULT_TARGET_PATH;
   }
 
-  findProfileName(): any {
+  findProfileName(): string {
     const dbtProject = this.parseYamlFile(YamlParser.DBT_PROJECT_FILE_NAME);
     console.log(`Profile name found: ${dbtProject?.profile}`);
     return dbtProject?.profile;
@@ -88,14 +93,20 @@ export class YamlParser {
   }
 
   findProfileCreds(): FindCredsResult {
-    const profiles = this.parseYamlFile(this.profilesPath);
-    if (!profiles) {
-      return this.errorResult(`Failed to open and parse file '${this.profilesPath}'.`);
+    let profiles;
+    try {
+      profiles = this.parseYamlFile(this.profilesPath);
+    } catch (e) {
+      console.log(`Failed to open and parse file '${this.profilesPath}'. ${e}`);
+      return this.errorResult(`Failed to open and parse file '${this.profilesPath}'. ${e}`);
     }
-    const profileName = this.findProfileName();
-    if (!profileName) {
+
+    let profileName;
+    try {
+      profileName = this.findProfileName();
+    } catch (e) {
       return this.errorResult(
-        `Failed to find profile name in ${YamlParser.DBT_PROJECT_FILE_NAME}. Make sure that you opened folder with ${YamlParser.DBT_PROJECT_FILE_NAME} file.`,
+        `Failed to find profile name in ${YamlParser.DBT_PROJECT_FILE_NAME}. Make sure that you opened folder with ${YamlParser.DBT_PROJECT_FILE_NAME} file. ${e}`,
       );
     }
     const validationResult = this.validateBQServiceAccountFile(profiles, profileName);
@@ -128,12 +139,8 @@ export class YamlParser {
   }
 
   parseYamlFile(filePath: string): any {
-    try {
-      const content = fs.readFileSync(filePath, 'utf8');
-      return yaml.parse(content);
-    } catch (e) {
-      console.log(`Failed to open and parse file '${filePath}'`);
-    }
+    const content = fs.readFileSync(filePath, 'utf8');
+    return yaml.parse(content);
   }
 
   replaceTilde(path: string): string {
