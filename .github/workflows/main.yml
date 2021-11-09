@@ -9,6 +9,10 @@ on:
 jobs:
   test-and-package:
     runs-on: macos-latest
+    
+    outputs:
+      vsix_name: ${{ steps.vars.outputs.vsix_name }}
+
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -27,13 +31,17 @@ jobs:
       - name: package to vsix file
         run: npx vsce package -o dbt-language-server.vsix --baseImagesUrl=https://storage.googleapis.com/dbt-ls-images
 
+      - name: save vsix name with sha
+        id: vars
+        run: echo "::set-output name=vsix_name::dbt-language-server-commit-sha-${GITHUB_SHA::7}.vsix"
+
       - name: create cache
         uses: actions/cache@v2
         with:
           path: |
             ./e2e
             ./dbt-language-server.vsix
-          key: ${{ runner.os }}-cache-${{ github.sha}}
+          key: ${{ runner.os }}-cache-${{ github.sha }}
 
   run-e2e-tests:
     needs: test-and-package
@@ -50,7 +58,7 @@ jobs:
           path: |
             ./e2e
             ./dbt-language-server.vsix
-          key: ${{ runner.os }}-cache-${{ github.sha}}
+          key: ${{ runner.os }}-cache-${{ github.sha }}
 
       - uses: actions/setup-node@v2
         with:
@@ -71,7 +79,7 @@ jobs:
       - run: node e2e/out/runTest $(pwd)/e2e-tests/extension
 
   publish:
-    needs: run-e2e-tests
+    needs: [test-and-package, run-e2e-tests]
 
     runs-on: macos-latest
     steps:
@@ -81,17 +89,18 @@ jobs:
           path: |
             ./e2e
             ./dbt-language-server.vsix
-          key: ${{ runner.os }}-cache-${{ github.sha}}
+          key: ${{ runner.os }}-cache-${{ github.sha }}
 
-      - name: create file name for GCS
-        id: vars
-        run: echo "::set-output name=file_name::dbt-language-server-commit-sha-$(git rev-parse --short HEAD).vsix"
+      - name: prepare vsix for push to GCR
+        env:
+          VSIX_NAME: ${{ needs.test-and-package.outputs.vsix_name }}
+        run: cp dbt-language-server.vsix ${VSIX_NAME}
 
       - name: push to GCS
         uses: google-github-actions/upload-cloud-storage@main
         with:
-          path: dbt-language-server.vsix
-          destination: dbt-language-server/${{ steps.vars.outputs.file_name }}
+          path: ${{ needs.test-and-package.outputs.vsix_name }}
+          destination: dbt-language-server
           credentials: ${{ secrets.GCS_SERVICE_ACCOUNT }}
 
       - name: publish tagged (latest) extension
