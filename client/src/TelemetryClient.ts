@@ -20,6 +20,7 @@ export class TelemetryClient {
 
   static activate(context: ExtensionContext): TelemetryReporter {
     if (process.env['DBT_LS_DISABLE_TELEMETRY']) {
+      console.log('Telemetry is disabled');
       return null;
     }
 
