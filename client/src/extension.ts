@@ -56,8 +56,6 @@ export function activate(context: ExtensionContext): void {
 
   client.onDidChangeState(e => {
     if (e.newState === State.Running) {
-      TelemetryClient.sendEvent('activate');
-
       client.onNotification('custom/updateQueryPreview', ([uri, text]) => {
         SqlPreviewContentProvider.update(uri, text);
       });
@@ -119,6 +117,7 @@ export function activate(context: ExtensionContext): void {
     TelemetryClient.activate(context),
   );
 
+  TelemetryClient.sendEvent('activate');
   // Start the client. This will also launch the server
   client.start();
 }
