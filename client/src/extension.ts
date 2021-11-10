@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { commands, Disposable, ExtensionContext, languages, window, workspace } from 'vscode';
+import { commands, Disposable, ExtensionContext, languages, TextEditor, window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { ProgressHandler } from './ProgressHandler';
 import { PythonExtension } from './PythonExtension';
@@ -99,6 +99,8 @@ export function activate(context: ExtensionContext): void {
       const uri =
         document.uri.toString() === SqlPreviewContentProvider.uri.toString() ? SqlPreviewContentProvider.activeDocUri : document.uri.toString();
       client.sendNotification('custom/dbtCompile', uri);
+
+      showQueryPreview(window.activeTextEditor);
     }),
 
     commands.registerCommand('dbt.getQueryPreview', () => {
@@ -127,15 +129,21 @@ function registerSqlPreviewContentProvider(context: ExtensionContext) {
 
   const providerRegistrations = Disposable.from(workspace.registerTextDocumentContentProvider(SqlPreviewContentProvider.scheme, provider));
 
-  const commandRegistration = commands.registerTextEditorCommand('editor.showQueryPreview', async editor => {
-    SqlPreviewContentProvider.changeActiveDocument(editor.document.uri.toString());
-
-    const doc = await workspace.openTextDocument(SqlPreviewContentProvider.uri);
-    await window.showTextDocument(doc, editor.viewColumn + 1, true);
-    await languages.setTextDocumentLanguage(doc, 'sql');
-  });
+  const commandRegistration = commands.registerTextEditorCommand('editor.showQueryPreview', showQueryPreview);
 
   context.subscriptions.push(provider, commandRegistration, providerRegistrations);
+}
+
+async function showQueryPreview(editor: TextEditor): Promise<void> {
+  if (editor.document.uri.toString() === SqlPreviewContentProvider.uri.toString()) {
+    return;
+  }
+
+  SqlPreviewContentProvider.changeActiveDocument(editor.document.uri.toString());
+
+  const doc = await workspace.openTextDocument(SqlPreviewContentProvider.uri);
+  await window.showTextDocument(doc, editor.viewColumn + 1, true);
+  await languages.setTextDocumentLanguage(doc, 'sql');
 }
 
 // This method is called when extension is deactivated
