@@ -44,7 +44,8 @@ export async function showPreview(): Promise<void> {
 }
 
 export async function getPreviewText(): Promise<string> {
-  return vscode.commands.executeCommand('dbt.getQueryPreview');
+  const previewEditor = vscode.window.visibleTextEditors.find(e => e.document.uri.toString() === 'query-preview:Preview?dbt-language-server');
+  return previewEditor.document.getText();
 }
 
 export function sleep(ms: number): Promise<unknown> {

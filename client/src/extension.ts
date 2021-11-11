@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { commands, Disposable, ExtensionContext, languages, TextEditor, window, workspace } from 'vscode';
+import { commands, ExtensionContext, languages, TextEditor, ViewColumn, window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { ProgressHandler } from './ProgressHandler';
 import { PythonExtension } from './PythonExtension';
@@ -12,6 +12,7 @@ interface TelemetryEvent {
   name: string;
   properties?: { [key: string]: string };
 }
+let previewContentProvider: SqlPreviewContentProvider;
 
 export function activate(context: ExtensionContext): void {
   console.log('Congratulations, your extension "dbt-language-server" is now active!');
@@ -44,7 +45,7 @@ export function activate(context: ExtensionContext): void {
 
   // Create the language client and start the client.
   client = new LanguageClient('dbtFivetranExtension', 'Dbt Language Client', serverOptions, clientOptions);
-
+  previewContentProvider = new SqlPreviewContentProvider();
   registerSqlPreviewContentProvider(context);
 
   const progressHandler = new ProgressHandler();
@@ -57,7 +58,7 @@ export function activate(context: ExtensionContext): void {
   client.onDidChangeState(e => {
     if (e.newState === State.Running) {
       client.onNotification('custom/updateQueryPreview', ([uri, text]) => {
-        SqlPreviewContentProvider.update(uri, text);
+        previewContentProvider.update(uri, text);
       });
 
       client.onRequest('custom/getPython', async () => {
@@ -83,7 +84,7 @@ export function activate(context: ExtensionContext): void {
     if (!e || e.document.uri.toString() === SqlPreviewContentProvider.uri.toString()) {
       return;
     }
-    SqlPreviewContentProvider.changeActiveDocument(e.document.uri.toString());
+    previewContentProvider.changeActiveDocument(e.document.uri.toString());
   });
 
   context.subscriptions.push(
@@ -97,14 +98,10 @@ export function activate(context: ExtensionContext): void {
       }
 
       const uri =
-        document.uri.toString() === SqlPreviewContentProvider.uri.toString() ? SqlPreviewContentProvider.activeDocUri : document.uri.toString();
+        document.uri.toString() === SqlPreviewContentProvider.uri.toString() ? previewContentProvider.activeDocUri : document.uri.toString();
       client.sendNotification('custom/dbtCompile', uri);
 
       showQueryPreview(window.activeTextEditor);
-    }),
-
-    commands.registerCommand('dbt.getQueryPreview', () => {
-      return SqlPreviewContentProvider.texts.get(SqlPreviewContentProvider.activeDocUri);
     }),
 
     commands.registerCommand('editor.afterFunctionCompletion', () => {
@@ -125,13 +122,11 @@ export function activate(context: ExtensionContext): void {
 }
 
 function registerSqlPreviewContentProvider(context: ExtensionContext) {
-  const provider = new SqlPreviewContentProvider();
-
-  const providerRegistrations = Disposable.from(workspace.registerTextDocumentContentProvider(SqlPreviewContentProvider.scheme, provider));
+  const providerRegistrations = workspace.registerTextDocumentContentProvider(SqlPreviewContentProvider.scheme, previewContentProvider);
 
   const commandRegistration = commands.registerTextEditorCommand('editor.showQueryPreview', showQueryPreview);
 
-  context.subscriptions.push(provider, commandRegistration, providerRegistrations);
+  context.subscriptions.push(previewContentProvider, commandRegistration, providerRegistrations);
 }
 
 async function showQueryPreview(editor: TextEditor): Promise<void> {
@@ -139,10 +134,10 @@ async function showQueryPreview(editor: TextEditor): Promise<void> {
     return;
   }
 
-  SqlPreviewContentProvider.changeActiveDocument(editor.document.uri.toString());
+  previewContentProvider.changeActiveDocument(editor.document.uri.toString());
 
   const doc = await workspace.openTextDocument(SqlPreviewContentProvider.uri);
-  await window.showTextDocument(doc, editor.viewColumn + 1, true);
+  await window.showTextDocument(doc, ViewColumn.Beside, true);
   await languages.setTextDocumentLanguage(doc, 'sql');
 }
 
@@ -151,5 +146,6 @@ export function deactivate(): Thenable<void> | undefined {
   if (!client) {
     return undefined;
   }
+  previewContentProvider.dispose();
   return client.stop();
 }
