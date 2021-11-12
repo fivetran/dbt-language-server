@@ -13,31 +13,12 @@ interface TelemetryEvent {
 }
 
 export class LspClient {
-  constructor(private ctx: ExtensionContext) {}
-  client: LanguageClient;
-
   previewContentProvider = new SqlPreviewContentProvider();
   progressHandler = new ProgressHandler();
 
-  public onActivate(): void {
-    console.log('Congratulations, your extension "dbt-language-server" is now active!');
+  client: LanguageClient;
 
-    this.progressHandler.begin();
-
-    this.initializeClient();
-    this.registerSqlPreviewContentProvider(this.ctx);
-
-    this.registerCommands();
-
-    this.ctx.subscriptions.push(TelemetryClient.activate(this.ctx));
-
-    TelemetryClient.sendEvent('activate');
-
-    // Start the client. This will also launch the server
-    this.client.start();
-  }
-
-  initializeClient() {
+  constructor(private ctx: ExtensionContext) {
     const serverModule = this.ctx.asAbsolutePath(path.join('server', 'out', 'server.js'));
     // The debug options for the server
     // --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging
@@ -65,7 +46,26 @@ export class LspClient {
     };
 
     this.client = new LanguageClient('dbtFivetranExtension', 'Dbt Language Client', serverOptions, clientOptions);
+  }
 
+  public onActivate(): void {
+    console.log('Congratulations, your extension "dbt-language-server" is now active!');
+
+    this.progressHandler.begin();
+
+    this.initializeClient();
+    this.registerSqlPreviewContentProvider(this.ctx);
+
+    this.registerCommands();
+
+    TelemetryClient.activate(this.ctx);
+    TelemetryClient.sendEvent('activate');
+
+    // Start the client. This will also launch the server
+    this.client.start();
+  }
+
+  initializeClient() {
     this.ctx.subscriptions.push(
       this.client.onTelemetry((e: TelemetryEvent) => {
         TelemetryClient.sendEvent(e.name, e.properties);

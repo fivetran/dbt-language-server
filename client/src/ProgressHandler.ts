@@ -2,17 +2,17 @@ import { ProgressLocation, window } from 'vscode';
 import { WorkDoneProgressBegin, WorkDoneProgressEnd, WorkDoneProgressReport } from 'vscode-languageserver-protocol';
 
 interface ProgressPromise {
-  promise: Promise<unknown>;
-  resolve: (value: unknown) => void;
+  promise: Promise<void>;
+  resolve: () => void;
 }
 
 export class ProgressHandler {
-  progressPromise: ProgressPromise;
+  progressPromise: ProgressPromise | undefined;
 
   createProgressPromise(): ProgressPromise {
-    let promiseResolve;
+    let promiseResolve = () => {};
 
-    const promise = new Promise(function (resolve) {
+    const promise = new Promise<void>(function (resolve) {
       promiseResolve = resolve;
     });
 
@@ -25,8 +25,8 @@ export class ProgressHandler {
         this.begin();
         break;
       case 'end':
-        this.progressPromise?.resolve(0);
-        this.progressPromise = null;
+        this.progressPromise?.resolve();
+        this.progressPromise = undefined;
         break;
     }
   }
@@ -41,7 +41,7 @@ export class ProgressHandler {
           title: 'dbt command execution...',
           cancellable: false,
         },
-        () => this.progressPromise.promise,
+        () => this.progressPromise?.promise ?? Promise.resolve(),
       );
     }
   }

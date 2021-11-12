@@ -18,10 +18,10 @@ export class TelemetryClient {
     }
   }
 
-  static activate(context: ExtensionContext): TelemetryReporter {
+  static activate(context: ExtensionContext): TelemetryReporter | undefined {
     if (process.env['DBT_LS_DISABLE_TELEMETRY']) {
       console.log('Telemetry is disabled');
-      return null;
+      return;
     }
 
     var extensionPath = path.join(context.extensionPath, 'package.json');
@@ -33,6 +33,7 @@ export class TelemetryClient {
     } else {
       console.log('Telemetry was not activated');
     }
+    context.subscriptions.push(TelemetryClient.client);
     return TelemetryClient.client;
   }
 }

@@ -6,9 +6,14 @@
     "outDir": "out",
     "rootDir": "src",
     "moduleResolution": "node",
+    "allowUnreachableCode": false,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
     "noUnusedLocals": true,
     "sourceMap": true,
-    "strict": true
+    "strict": true,
   },
   "include": ["src"],
   "exclude": ["node_modules"]

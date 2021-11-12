@@ -75,6 +75,8 @@ export class YamlParser {
         `Currently, only BigQuery service account credentials are supported. Check your '${this.profilesPath}' file. ${YamlParser.BQ_SERVICE_ACCOUNT_FILE_DOCS}`,
       );
     }
+
+    return undefined;
   }
 
   validateRequiredFieldsInOtuputsTarget(profileName: string, target: string, outputsTarget: any, fields: string[]): FindCredsResult | undefined {
@@ -84,6 +86,8 @@ export class YamlParser {
         return this.cantFindSectionError(profileName, `outputs.${target}.${field}`);
       }
     }
+
+    return undefined;
   }
 
   cantFindSectionError(profileName: string, section: string): FindCredsResult {

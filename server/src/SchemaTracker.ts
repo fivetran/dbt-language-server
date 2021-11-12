@@ -27,6 +27,7 @@ export class SchemaTracker {
     } catch (e) {
       console.log(e);
     }
+    return undefined;
   }
 
   async refreshTableNames(sql: string): Promise<void> {

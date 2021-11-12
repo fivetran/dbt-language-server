@@ -245,6 +245,7 @@ export class ZetaSQLAST {
       }
       parent = parent.parent;
     }
+    return undefined;
   }
 
   traversal(node: any, beforeChildrenTraversal: ActionFunction, nodeName?: string, afterChildrenTraversal?: ActionFunction): void {

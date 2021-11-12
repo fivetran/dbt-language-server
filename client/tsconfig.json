@@ -5,8 +5,15 @@
     "lib": ["es2019"],
     "outDir": "out",
     "rootDir": "src",
+    "moduleResolution": "node",
+    "allowUnreachableCode": false,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
     "noUnusedLocals": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "strict": true,
   },
   "include": ["src"],
   "exclude": ["node_modules"]

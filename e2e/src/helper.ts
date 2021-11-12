@@ -14,6 +14,9 @@ let promiseResolve: () => void;
 export async function activateAndWait(docUri: vscode.Uri): Promise<void> {
   // The extensionId is `publisher.name` from package.json
   const ext = vscode.extensions.getExtension('Fivetran.dbt-language-server');
+  if (!ext) {
+    throw new Error('Fivetran.dbt-language-server not found');
+  }
 
   const existingEditor = vscode.window.visibleTextEditors.find(e => e.document.uri.path === docUri.path);
   const doNotWaitChanges = existingEditor && existingEditor.document.getText() === vscode.window.activeTextEditor?.document.getText();
@@ -45,6 +48,10 @@ export async function showPreview(): Promise<void> {
 
 export async function getPreviewText(): Promise<string> {
   const previewEditor = vscode.window.visibleTextEditors.find(e => e.document.uri.toString() === 'query-preview:Preview?dbt-language-server');
+  if (!previewEditor) {
+    throw new Error('Preview editor not found');
+  }
+
   return previewEditor.document.getText();
 }
 
@@ -111,7 +118,12 @@ export function uninstallExtension(extensionId: string): void {
 }
 
 function runCliCommand(args: string[]): void {
-  spawnSync(process.env['CLI_PATH'], args, {
+  const cliPath = process.env['CLI_PATH'];
+  if (!cliPath) {
+    throw new Error('CLI_PATH environment variable not foud');
+  }
+
+  spawnSync(cliPath, args, {
     encoding: 'utf-8',
     stdio: 'inherit',
   });

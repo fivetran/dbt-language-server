@@ -32,5 +32,6 @@ export class SignatureHelpProvider {
         activeParameter: null,
       };
     }
+    return undefined;
   }
 }

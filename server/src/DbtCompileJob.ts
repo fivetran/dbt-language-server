@@ -33,6 +33,7 @@ export class DbtCompileJob {
       }
       this.tryCount++;
     }
+    return undefined;
   }
 
   async kill(): Promise<void> {

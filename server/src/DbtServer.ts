@@ -284,5 +284,6 @@ export class DbtServer {
     } catch (error) {
       console.error(error);
     }
+    return undefined;
   }
 }
