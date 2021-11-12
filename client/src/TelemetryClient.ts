@@ -24,8 +24,8 @@ export class TelemetryClient {
       return;
     }
 
-    var extensionPath = path.join(context.extensionPath, 'package.json');
-    var packageJson = JSON.parse(fs.readFileSync(extensionPath, 'utf8'));
+    const extensionPath = path.join(context.extensionPath, 'package.json');
+    const packageJson = JSON.parse(fs.readFileSync(extensionPath, 'utf8'));
 
     // const packageJson = extensions.getExtension('dbt-language-server').packageJSON;
     if (packageJson.name && packageJson.version && packageJson.aiKey) {

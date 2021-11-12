@@ -247,7 +247,7 @@ export class DbtTextDocument {
       return;
     }
 
-    let completionInfo;
+    let completionInfo = undefined;
     if (this.ast) {
       const line = Diff.getOldLineNumber(this.compiledDocument.getText(), this.rawDocument.getText(), completionParams.position.line);
       const offset = this.compiledDocument.offsetAt(Position.create(line, completionParams.position.character));

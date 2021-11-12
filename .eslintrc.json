@@ -2,9 +2,9 @@
   "root": true,
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": 6,
+    "ecmaVersion": "es2019",
     "sourceType": "module",
-    "project": ["./server/tsconfig.json", "./client/tsconfig.json", "./markdown_parser/tsconfig.json"]
+    "project": ["./server/tsconfig.json", "./client/tsconfig.json", "./e2e/tsconfig.json", "./markdown_parser/tsconfig.json"]
   },
   "plugins": ["@typescript-eslint"],
 

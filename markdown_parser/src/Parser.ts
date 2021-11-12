@@ -1,9 +1,5 @@
-import MarkdownIt = require('markdown-it');
 import axios from 'axios';
 import * as fs from 'fs';
-
-const prettier = require('prettier');
-
 import Token = require('markdown-it/lib/token');
 
 interface FunctionInfo {
@@ -91,6 +87,7 @@ const additionalFields = [
 ];
 
 async function parseAndSave() {
+  const MarkdownIt = await import('markdown-it');
   const md = new MarkdownIt();
   const functionInfos = [];
 
@@ -182,7 +179,11 @@ async function parseAndSave() {
     
     export const HelpProviderWords: FunctionInfo[] =` + JSON.stringify(functionInfos);
 
+  const prettier = await import('prettier');
   const options = await prettier.resolveConfig('./.prettierrc');
+  if (options === null) {
+    throw new Error("Can't find options from ./.prettierrc");
+  }
   const formatted = await prettier.format(code, options);
   fs.writeFileSync('server/src/HelpProviderWords.ts', formatted);
 }

@@ -10,7 +10,9 @@ export class ProgressHandler {
   progressPromise: ProgressPromise | undefined;
 
   createProgressPromise(): ProgressPromise {
-    let promiseResolve = () => {};
+    let promiseResolve = () => {
+      // do nothing
+    };
 
     const promise = new Promise<void>(function (resolve) {
       promiseResolve = resolve;

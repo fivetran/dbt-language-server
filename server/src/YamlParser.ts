@@ -27,13 +27,12 @@ export class YamlParser {
   }
 
   findTargetPath(): string {
-    let dbtProject;
     try {
-      dbtProject = this.parseYamlFile(YamlParser.DBT_PROJECT_FILE_NAME);
+      const dbtProject = this.parseYamlFile(YamlParser.DBT_PROJECT_FILE_NAME);
+      return dbtProject[YamlParser.TARGET_PATH_FIELD] ?? YamlParser.DEFAULT_TARGET_PATH;
     } catch (e) {
       return YamlParser.DEFAULT_TARGET_PATH;
     }
-    return dbtProject[YamlParser.TARGET_PATH_FIELD] ?? YamlParser.DEFAULT_TARGET_PATH;
   }
 
   findProfileName(): string {
@@ -97,7 +96,7 @@ export class YamlParser {
   }
 
   findProfileCreds(): FindCredsResult {
-    let profiles;
+    let profiles = undefined;
     try {
       profiles = this.parseYamlFile(this.profilesPath);
     } catch (e) {
@@ -105,7 +104,7 @@ export class YamlParser {
       return this.errorResult(`Failed to open and parse file '${this.profilesPath}'. ${e}`);
     }
 
-    let profileName;
+    let profileName = undefined;
     try {
       profileName = this.findProfileName();
     } catch (e) {

@@ -14,7 +14,7 @@ interface Params {
   timeout?: number;
 }
 
-interface StatusParams extends Params {}
+type StatusParams = Params;
 
 interface CompileModelParams extends Params {
   threads?: string;
@@ -86,49 +86,57 @@ export class DbtServer {
   python: string | undefined;
   startPromise: Promise<void> | undefined;
 
-  startDbtRpc(getPython: () => Promise<string>): Promise<void> {
+  async startDbtRpc(getPython: () => Promise<string>): Promise<void> {
     const existingRpc = child.spawnSync('lsof', [`-ti:${DbtServer.PORT}`]);
     const pids = String(existingRpc.stdout).split(/\n|\r/g);
     child.spawn('kill', pids);
 
-    this.startPromise = new Promise(async (resolve, reject) => {
-      try {
-        await this.findDbtCommand(getPython);
-        const command = this.dbtCommand(['--partial-parse', 'rpc', '--port', `${DbtServer.PORT}`, `${DbtServer.NO_VERSION_CHECK}`]);
-
-        let started = false;
-        await DbtServer.processExecutor.execProcess(command, async (data: any) => {
-          if (!started) {
-            const str = <string>data;
-            const matchResults = str.match(/"Running with dbt=(.*?)"/);
-            if (matchResults?.length === 2) {
-              this.dbtVersion = matchResults[1];
-            }
-            if (str.indexOf('Serving RPC server') > -1) {
-              try {
-                await this.ensureCompilationFinished();
-              } catch (e) {
-                // The server is started here but there is some problem with project compilation
-                console.log(e);
-              }
-              console.log('dbt rpc started');
-              started = true;
-              resolve();
-            }
-          }
-        });
-      } catch (e: any) {
-        reject(e.message);
-      }
+    let resolvePromise = () => {
+      // do nothing
+    };
+    let rejectPromise = (reason?: any) => {
+      // do nothing
+    };
+    this.startPromise = new Promise((resolve, reject) => {
+      resolvePromise = resolve;
+      rejectPromise = reject;
     });
-    return this.startPromise;
+
+    let started = false;
+
+    try {
+      await this.findDbtCommand(getPython);
+      const command = this.dbtCommand(['--partial-parse', 'rpc', '--port', `${DbtServer.PORT}`, `${DbtServer.NO_VERSION_CHECK}`]);
+
+      await DbtServer.processExecutor.execProcess(command, async (data: any) => {
+        if (!started) {
+          const str = <string>data;
+          const matchResults = str.match(/"Running with dbt=(.*?)"/);
+          if (matchResults?.length === 2) {
+            this.dbtVersion = matchResults[1];
+          }
+          if (str.indexOf('Serving RPC server') > -1) {
+            try {
+              await this.ensureCompilationFinished();
+            } catch (e) {
+              // The server is started here but there is some problem with project compilation
+              console.log(e);
+            }
+            console.log('dbt rpc started');
+            started = true;
+            resolvePromise();
+          }
+        }
+      });
+    } catch (e) {
+      rejectPromise(e);
+    }
   }
 
   async ensureCompilationFinished(): Promise<void> {
     return new Promise((resolve, reject) => {
       const intervalId = setInterval(async () => {
-        let status: StatusResponse | undefined;
-        status = await this.getStatus();
+        const status = await this.getStatus();
         if (status) {
           switch (status.result.state) {
             case 'compiling':
