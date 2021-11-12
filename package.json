@@ -76,7 +76,7 @@
     "vscode:prepublish": "npm run webpack && npm run prepare-node-modules",
     "compile": "tsc -b",
     "watch": "tsc -b -w",
-    "format": "prettier --write \"client/src/**/*.ts\" \"server/src/**/*.ts\"",
+    "format": "prettier --write \"client/src/**/*.ts\" \"server/src/**/*.ts\" \"markdown_parser/src/**/*.ts\" \"e2e/src/**/*.ts\"",
     "postinstall": "cd client && npm install && cd ../server && npm install && cd ../markdown_parser && npm install && cd ../e2e && npm install && cd ..",
     "lint": "eslint . --ext .ts",
     "test": "mocha \"server/out/test/**/*.spec.js\"",
@@ -84,7 +84,8 @@
     "prepare-zetasql": "cp -R ./server/node_modules/@fivetrandevelopers/zetasql/lib/protos/ ./server/out/protos/ && cp -R ./server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql/ ./server/out/zetasql/",
     "webpack": "npm run clean && webpack --mode production --config ./client/webpack.config.js && webpack --mode production --config ./server/webpack.config.js && npm run prepare-zetasql",
     "webpack:dev": "npm run clean && webpack --mode none --config ./client/webpack.config.js && webpack --mode none --config ./server/webpack.config.js && npm run prepare-zetasql",
-    "prepare-node-modules": "./prepare_node_modules.sh"
+    "prepare-node-modules": "./prepare_node_modules.sh",
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@types/mocha": "^9.0.0",
@@ -92,6 +93,8 @@
     "@typescript-eslint/eslint-plugin": "^5.3.1",
     "@typescript-eslint/parser": "^5.3.1",
     "eslint": "^8.2.0",
+    "husky": "^7.0.4",
+    "lint-staged": "^11.2.6",
     "merge-options": "^3.0.4",
     "mocha": "^9.1.3",
     "prettier": "^2.4.1",
@@ -100,5 +103,11 @@
     "typescript": "^4.4.4",
     "webpack": "^5.62.1",
     "webpack-cli": "^4.9.1"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --cache",
+      "prettier --write"
+    ]
   }
 }
