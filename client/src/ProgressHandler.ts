@@ -1,25 +1,9 @@
 import { ProgressLocation, window } from 'vscode';
 import { WorkDoneProgressBegin, WorkDoneProgressEnd, WorkDoneProgressReport } from 'vscode-languageserver-protocol';
-
-interface ProgressPromise {
-  promise: Promise<void>;
-  resolve: () => void;
-}
+import { deferred } from './utils';
 
 export class ProgressHandler {
-  progressPromise: ProgressPromise | undefined;
-
-  createProgressPromise(): ProgressPromise {
-    let promiseResolve = () => {
-      // do nothing
-    };
-
-    const promise = new Promise<void>(function (resolve) {
-      promiseResolve = resolve;
-    });
-
-    return { promise: promise, resolve: promiseResolve };
-  }
+  progressDeferred? = deferred<void>();
 
   onProgress(value: WorkDoneProgressBegin | WorkDoneProgressReport | WorkDoneProgressEnd): void {
     switch (value.kind) {
@@ -27,15 +11,15 @@ export class ProgressHandler {
         this.begin();
         break;
       case 'end':
-        this.progressPromise?.resolve();
-        this.progressPromise = undefined;
+        this.progressDeferred?.resolve();
+        this.progressDeferred = undefined;
         break;
     }
   }
 
   begin(): void {
-    if (!this.progressPromise) {
-      this.progressPromise = this.createProgressPromise();
+    if (!this.progressDeferred) {
+      this.progressDeferred = deferred<void>();
 
       window.withProgress(
         {
@@ -43,7 +27,7 @@ export class ProgressHandler {
           title: 'dbt command execution...',
           cancellable: false,
         },
-        () => this.progressPromise?.promise ?? Promise.resolve(),
+        () => this.progressDeferred?.promise ?? Promise.resolve(),
       );
     }
   }
