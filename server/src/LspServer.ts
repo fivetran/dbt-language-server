@@ -1,4 +1,5 @@
 import { runServer, terminateServer, ZetaSQLClient } from '@fivetrandevelopers/zetasql';
+import { performance } from 'perf_hooks';
 import {
   CompletionItem,
   CompletionParams,
@@ -44,6 +45,7 @@ export class LspServer {
   completionProvider = new CompletionProvider();
   yamlParser = new YamlParser();
   manifestParser = new ManifestParser();
+  initStart = performance.now();
 
   constructor(connection: _Connection) {
     this.connection = connection;
@@ -100,13 +102,19 @@ export class LspServer {
   }
 
   sendTelemetry(name: string, properties?: { [key: string]: string }): void {
+    console.log('Telemetry log: ' + JSON.stringify(properties));
     this.connection.sendNotification(TelemetryEventNotification.type, <TelemetryEvent>{ name: name, properties: properties });
   }
 
   async startDbtRpc(): Promise<void> {
     try {
       await this.dbtServer.startDbtRpc(() => this.connection.sendRequest('custom/getPython'));
-      this.sendTelemetry('log', { dbt_version: this.dbtServer.dbtVersion ?? 'undefined', python: this.dbtServer.python ?? 'undefined' });
+      const initTime = performance.now() - this.initStart;
+      this.sendTelemetry('log', {
+        dbtVersion: this.dbtServer.dbtVersion ?? 'undefined',
+        python: this.dbtServer.python ?? 'undefined',
+        initTime: initTime.toString(),
+      });
     } catch (e) {
       console.log(e);
       const errorMessageResult = await this.connection.window.showErrorMessage(
