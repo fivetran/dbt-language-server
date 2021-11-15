@@ -59,3 +59,19 @@ export function getJinjaContentOffset(doc: TextDocument, cursorPos: Position): n
 function positionInRange(position: Position, range: Range) {
   return comparePositions(range.start, position) <= 0 && comparePositions(range.end, position) >= 0;
 }
+
+export const deferred = <T>() => {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: any) => void;
+
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+
+  return {
+    resolve,
+    reject,
+    promise,
+  };
+};

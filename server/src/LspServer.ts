@@ -56,8 +56,6 @@ export class LspServer {
     process.on('SIGTERM', this.gracefulShutdown);
     process.on('SIGINT', this.gracefulShutdown);
 
-    await this.initizelizeZetaSql();
-
     const findResult = this.yamlParser.findProfileCreds();
     if (findResult.error) {
       return new ResponseError<InitializeError>(100, findResult.error, { retry: true });
@@ -98,7 +96,7 @@ export class LspServer {
       this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
     }
     this.updateModels();
-    await this.startDbtRpc();
+    await Promise.all([this.initializeZetaSql(), this.startDbtRpc()]);
   }
 
   sendTelemetry(name: string, properties?: { [key: string]: string }): void {
@@ -136,7 +134,7 @@ export class LspServer {
     }
   }
 
-  async initizelizeZetaSql(): Promise<void> {
+  async initializeZetaSql(): Promise<void> {
     runServer().catch(err => console.error(err));
     await ZetaSQLClient.INSTANCE.testConnection();
   }
@@ -180,7 +178,7 @@ export class LspServer {
 
   async isDbtReady(): Promise<boolean> {
     try {
-      await this.dbtServer.startPromise;
+      await this.dbtServer.startDeferred.promise;
       return true;
     } catch (e) {
       return false;

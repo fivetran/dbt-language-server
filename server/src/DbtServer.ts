@@ -2,6 +2,7 @@ import axios from 'axios';
 import * as child from 'child_process';
 import { v4 as uuid } from 'uuid';
 import { ProcessExecutor } from './ProcessExecutor';
+import { deferred } from './Utils';
 
 interface PostData {
   jsonrpc: '2.0';
@@ -84,23 +85,12 @@ export class DbtServer {
   pid = -1;
   dbtVersion: string | undefined;
   python: string | undefined;
-  startPromise: Promise<void> | undefined;
+  startDeferred = deferred<void>();
 
   async startDbtRpc(getPython: () => Promise<string>): Promise<void> {
     const existingRpc = child.spawnSync('lsof', [`-ti:${DbtServer.PORT}`]);
     const pids = String(existingRpc.stdout).split(/\n|\r/g);
     child.spawn('kill', pids);
-
-    let resolvePromise = () => {
-      // do nothing
-    };
-    let rejectPromise = (reason?: any) => {
-      // do nothing
-    };
-    this.startPromise = new Promise((resolve, reject) => {
-      resolvePromise = resolve;
-      rejectPromise = reject;
-    });
 
     let started = false;
 
@@ -124,14 +114,14 @@ export class DbtServer {
             }
             console.log('dbt rpc started');
             started = true;
-            resolvePromise();
+            this.startDeferred.resolve();
           }
         }
       });
 
-      return this.startPromise;
+      return this.startDeferred.promise;
     } catch (e) {
-      rejectPromise(e);
+      this.startDeferred.reject(e);
     }
   }
 
@@ -190,7 +180,7 @@ export class DbtServer {
   }
 
   async getCurrentStatus(): Promise<StatusResponse | undefined> {
-    await this.startPromise;
+    await this.startDeferred.promise;
     const statusRespopnse = await this.getStatus();
     if (statusRespopnse?.result.pid) {
       this.pid = statusRespopnse?.result.pid;
