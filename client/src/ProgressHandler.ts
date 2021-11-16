@@ -1,9 +1,9 @@
 import { ProgressLocation, window } from 'vscode';
 import { WorkDoneProgressBegin, WorkDoneProgressEnd, WorkDoneProgressReport } from 'vscode-languageserver-protocol';
-import { deferred } from './utils';
+import { deferred, DeferredResult } from './utils';
 
 export class ProgressHandler {
-  progressDeferred? = deferred<void>();
+  progressDeferred?: DeferredResult<void>;
 
   async onProgress(value: WorkDoneProgressBegin | WorkDoneProgressReport | WorkDoneProgressEnd): Promise<void> {
     switch (value.kind) {
@@ -21,7 +21,7 @@ export class ProgressHandler {
     if (!this.progressDeferred) {
       this.progressDeferred = deferred<void>();
 
-      await window.withProgress(
+      void window.withProgress(
         {
           location: ProgressLocation.Window,
           title: 'dbt command execution...',
