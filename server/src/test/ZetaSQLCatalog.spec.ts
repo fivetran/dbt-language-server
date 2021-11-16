@@ -24,14 +24,14 @@ describe('ZetaSQLCatalogTest', () => {
     expectedColumns: string[],
     expectedDataSet?: string,
     expectedProjectId?: string,
-  ) {
+  ): Promise<void> {
     // arrange
     const zetaSQLCatalog: ZetaSQLCatalog = zetaSQLModule.ZetaSQLCatalog.getInstance();
 
-    zetaSQLCatalog.catalog.register = async function () {
+    zetaSQLCatalog.catalog.register = async (): Promise<void> => {
       // do nothing
     };
-    zetaSQLCatalog.registerAllLanguageFeatures = async function () {
+    zetaSQLCatalog.registerAllLanguageFeatures = async (): Promise<void> => {
       // do nothing
     };
 

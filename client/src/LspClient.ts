@@ -65,7 +65,7 @@ export class LspClient {
     this.client.start();
   }
 
-  initializeClient() {
+  initializeClient(): void {
     this.ctx.subscriptions.push(
       this.client.onTelemetry((e: TelemetryEvent) => {
         TelemetryClient.sendEvent(e.name, e.properties);
@@ -100,7 +100,7 @@ export class LspClient {
     });
   }
 
-  registerCommands() {
+  registerCommands(): void {
     this.registerCommand('dbt.compile', async () => {
       if (!window.activeTextEditor) {
         return;
@@ -128,7 +128,7 @@ export class LspClient {
     });
   }
 
-  registerCommand(command: string, callback: (...args: any[]) => any) {
+  registerCommand(command: string, callback: (...args: any[]) => any): void {
     this.ctx.subscriptions.push(commands.registerCommand(command, callback));
   }
 

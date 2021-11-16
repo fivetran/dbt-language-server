@@ -30,7 +30,7 @@ export function comparePositions(position1: Position, position2: Position): numb
 
 export function debounce(callback: () => any, delay: number): () => void {
   let timeout: NodeJS.Timeout;
-  return function () {
+  return (): void => {
     clearTimeout(timeout);
     timeout = setTimeout(callback, delay);
   };
@@ -56,11 +56,17 @@ export function getJinjaContentOffset(doc: TextDocument, cursorPos: Position): n
   return -1;
 }
 
-function positionInRange(position: Position, range: Range) {
+function positionInRange(position: Position, range: Range): boolean {
   return comparePositions(range.start, position) <= 0 && comparePositions(range.end, position) >= 0;
 }
 
-export const deferred = <T>() => {
+interface DeferredResult<T> {
+  resolve: (value: T | PromiseLike<T>) => void;
+  reject: (reason?: any) => void;
+  promise: Promise<T>;
+}
+
+export const deferred = <T>(): DeferredResult<T> => {
   let resolve!: (value: T | PromiseLike<T>) => void;
   let reject!: (reason?: any) => void;
 

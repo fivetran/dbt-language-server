@@ -86,7 +86,7 @@ const additionalFields = [
   },
 ];
 
-async function parseAndSave() {
+async function parseAndSave(): Promise<void> {
   const MarkdownIt = await import('markdown-it');
   const md = new MarkdownIt();
   const functionInfos = [];
@@ -188,7 +188,7 @@ async function parseAndSave() {
   fs.writeFileSync('server/src/HelpProviderWords.ts', formatted);
 }
 
-function parseText(token: Token) {
+function parseText(token: Token): string {
   let result = '';
   if (token.children && token.children.length > 0) {
     for (const child of token.children) {

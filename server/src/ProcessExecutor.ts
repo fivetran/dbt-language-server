@@ -23,9 +23,8 @@ export class ProcessExecutor {
       console.log(`Child process '${command}' exited with code ${code}`);
     });
 
-    const kill = () => {
-      childProcess.kill();
-    };
+    const kill = (): boolean => childProcess.kill();
+
     childProcess.on('exit', kill);
     // Catches Ctrl+C event
     childProcess.on('SIGINT', kill);

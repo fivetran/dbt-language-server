@@ -59,11 +59,11 @@ export function sleep(ms: number): Promise<unknown> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export const getDocPath = (p: string) => {
+export const getDocPath = (p: string): string => {
   return path.resolve(TEST_FIXTURE_PATH, 'models', p);
 };
 
-export const getDocUri = (p: string) => {
+export const getDocUri = (p: string): vscode.Uri => {
   return vscode.Uri.file(getDocPath(p));
 };
 
@@ -134,7 +134,7 @@ export async function testCompletion(
   position: vscode.Position,
   expectedCompletionList: vscode.CompletionList,
   triggerChar?: string,
-) {
+): Promise<void> {
   const actualCompletionList = await triggerCompletion(docUri, position, triggerChar);
 
   assert.ok(actualCompletionList.items.length >= expectedCompletionList.items.length);

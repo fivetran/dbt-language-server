@@ -31,13 +31,13 @@ export class ModelCompiler {
     await this.pollResults();
   }
 
-  startNewTask() {
+  startNewTask(): void {
     const task = new DbtCompileJob(this.dbtServer, this.dbtTextDocument.rawDocument.getText());
     this.dbtCompileTaskQueue.push(task);
     void task.runCompile();
   }
 
-  async pollResults() {
+  async pollResults(): Promise<void> {
     if (this.pollIsRunning) {
       return;
     }
@@ -84,7 +84,7 @@ export class ModelCompiler {
     this.dbtTextDocument.onFinishAllCompilationTasks();
   }
 
-  wait(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms, []));
+  wait(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }

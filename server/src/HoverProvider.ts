@@ -38,7 +38,7 @@ export class HoverProvider {
       : null;
   }
 
-  static getColumnHint(tableName?: string, columnName?: string, columnTypeKind?: TypeKind) {
+  static getColumnHint(tableName?: string, columnName?: string, columnTypeKind?: TypeKind): string {
     const type = new SimpleType(<TypeKind>columnTypeKind).getTypeName();
     return `Table: ${tableName}\nColumn: ${columnName}\nType: ${type}`;
   }

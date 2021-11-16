@@ -23,7 +23,7 @@ export class JinjaParser {
     return text.indexOf('{') > -1 || text.indexOf('}') > -1 || JinjaParser.JINJA_PATTERN.exec(text) !== null;
   }
 
-  checkIfJinjaModified(jinjas: Range[], changes: TextDocumentContentChangeEvent[]) {
+  isJinjaModified(jinjas: Range[], changes: TextDocumentContentChangeEvent[]): boolean {
     for (const change of changes) {
       if (!TextDocumentContentChangeEvent.isIncremental(change)) {
         throw new Error('Incremental updates expected');

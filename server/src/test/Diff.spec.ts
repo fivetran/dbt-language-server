@@ -83,7 +83,7 @@ describe('Diff', () => {
     shouldReturnCorrespondingCharacterFor(' `project-abcde-400`.`transforms`.`table_volume_filled` t', ` {{ref('table_volume_filled')}} t`, [[0, 0]]);
   });
 
-  function shouldReturnCorrespondingCharacterFor(oldLine: string, newLine: string, params: number[][]) {
+  function shouldReturnCorrespondingCharacterFor(oldLine: string, newLine: string, params: number[][]): void {
     for (const param of params) {
       const newCharacter = param[0];
       const expectedOldCharacter = param[1];
@@ -91,7 +91,7 @@ describe('Diff', () => {
     }
   }
 
-  function shouldReturnCorrespondingCharacterForOldText(oldLine: string, newLine: string, newCharacter: number, expectedOldCharacter: number) {
+  function shouldReturnCorrespondingCharacterForOldText(oldLine: string, newLine: string, newCharacter: number, expectedOldCharacter: number): void {
     // act
     const actualOldCharacter = Diff.getOldCharacter(oldLine, newLine, newCharacter);
 
@@ -99,13 +99,13 @@ describe('Diff', () => {
     assert.strictEqual(actualOldCharacter, expectedOldCharacter);
   }
 
-  function shouldReturnCorrespondingLineNumber(fileName: string, params: number[][]) {
+  function shouldReturnCorrespondingLineNumber(fileName: string, params: number[][]): void {
     for (const param of params) {
       shouldReturnCorrespondingLineNumberForOldText(fileName, param[0], param[1]);
     }
   }
 
-  function shouldReturnCorrespondingLineNumberForOldText(fileName: string, newLineNumber: number, expectedOldLineNumber: number) {
+  function shouldReturnCorrespondingLineNumberForOldText(fileName: string, newLineNumber: number, expectedOldLineNumber: number): void {
     // arrange
     const filesRootPath = __dirname + '/../../src/test/diff/';
     const raw = fs.readFileSync(`${filesRootPath}raw/${fileName}.sql`, 'utf8');

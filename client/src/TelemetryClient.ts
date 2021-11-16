@@ -12,7 +12,7 @@ export class TelemetryClient {
     }
   }
 
-  static sendException(error: Error, properties?: { [key: string]: string }) {
+  static sendException(error: Error, properties?: { [key: string]: string }): void {
     if (TelemetryClient.client) {
       TelemetryClient.client.sendTelemetryException(error, properties);
     }

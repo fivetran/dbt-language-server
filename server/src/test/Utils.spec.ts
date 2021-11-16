@@ -47,7 +47,7 @@ describe('Utils', () => {
       shouldReturnJinjaContentOffset('{%%}', 2, 2);
     });
 
-    function shouldReturnJinjaContentOffset(docContent: string, cursorCharPos: number, expected: number) {
+    function shouldReturnJinjaContentOffset(docContent: string, cursorCharPos: number, expected: number): void {
       assert.strictEqual(getJinjaContentOffset(TextDocument.create('test', 'sql', 0, docContent), Position.create(0, cursorCharPos)), expected);
     }
   });

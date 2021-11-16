@@ -10,7 +10,7 @@ describe('ZetaSQLAST', () => {
     return JSON.parse(data);
   }
 
-  function shouldReturnLocationsOfTableNameInQuery(fileName: string, cursorOffset: number, ranges: ParseLocationRangeProto[]) {
+  function shouldReturnLocationsOfTableNameInQuery(fileName: string, cursorOffset: number, ranges: ParseLocationRangeProto[]): void {
     // arrange
     const ast = createAST(fileName);
 
@@ -22,7 +22,7 @@ describe('ZetaSQLAST', () => {
     assert.deepStrictEqual(result.activeTableLocationRanges?.sort(), ranges.sort());
   }
 
-  function shouldReturnLocationOfTableNameInQuery(fileName: string, cursorOffset: number, start: number, end: number) {
+  function shouldReturnLocationOfTableNameInQuery(fileName: string, cursorOffset: number, start: number, end: number): void {
     shouldReturnLocationsOfTableNameInQuery(fileName, cursorOffset, [createParseLocationRange(start, end)]);
   }
 
@@ -53,7 +53,7 @@ describe('ZetaSQLAST', () => {
   });
 
   describe('resolvedSetOperationScanNode.json', () => {
-    function shouldReturnTablesForresolvedSetOperationScanNode(cursorOffset: number) {
+    function shouldReturnTablesForresolvedSetOperationScanNode(cursorOffset: number): void {
       shouldReturnLocationsOfTableNameInQuery('resolvedSetOperationScanNode', cursorOffset, [
         createParseLocationRange(97, 142),
         createParseLocationRange(256, 301),

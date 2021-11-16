@@ -64,11 +64,11 @@ suite('Should do completion inside jinjas expression', () => {
     getCompletionList(true).items.forEach(i => assert.ok(!actualLabels.includes(<string>i.label)));
   });
 
-  function getCompletionList(withQuotes: boolean) {
+  function getCompletionList(withQuotes: boolean): { items: vscode.CompletionItem[] } {
     return { items: getLabels().map(l => <CompletionItem>{ label: withQuotes ? `'${l}'` : l, kind: vscode.CompletionItemKind.Value }) };
   }
 
-  function getLabels() {
+  function getLabels(): string[] {
     return ['dbt_compile', 'errors', 'functions', 'jinja_sql', 'join_tables'];
   }
 });

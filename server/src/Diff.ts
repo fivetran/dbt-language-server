@@ -48,7 +48,7 @@ export class Diff {
     return oldNumber;
   }
 
-  static getLinesCount(str: string) {
+  static getLinesCount(str: string): number {
     return (str.match(/\n/g) || []).length;
   }
 }

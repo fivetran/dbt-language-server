@@ -5,7 +5,7 @@ import { homedir } from 'os';
 import * as path from 'path';
 
 // expected parameter: path to the folder with the extension package.json
-async function main() {
+async function main(): Promise<void> {
   try {
     await prepareBigQuery();
 
@@ -38,7 +38,7 @@ async function main() {
   }
 }
 
-async function prepareBigQuery() {
+async function prepareBigQuery(): Promise<void> {
   const options = {
     keyFilename: `${homedir()}/.dbt/bq-test-project.json`,
     projectId: 'singular-vector-135519',

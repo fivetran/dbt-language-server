@@ -109,7 +109,7 @@ export class DbtTextDocument {
     const jinjas = DbtTextDocument.jinjaParser.findAllJinjas(this.rawDocument);
     if (jinjas.length > 0) {
       const firstRun = changes.length === 0;
-      if (firstRun || DbtTextDocument.jinjaParser.checkIfJinjaModified(jinjas, changes)) {
+      if (firstRun || DbtTextDocument.jinjaParser.isJinjaModified(jinjas, changes)) {
         return true;
       }
     }
