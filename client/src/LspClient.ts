@@ -48,10 +48,10 @@ export class LspClient {
     this.client = new LanguageClient('dbtFivetranExtension', 'Dbt Language Client', serverOptions, clientOptions);
   }
 
-  public onActivate(): void {
+  public async onActivate(): Promise<void> {
     console.log('Congratulations, your extension "dbt-language-server" is now active!');
 
-    this.progressHandler.begin();
+    await this.progressHandler.begin();
 
     this.initializeClient();
     this.registerSqlPreviewContentProvider(this.ctx);
@@ -72,7 +72,7 @@ export class LspClient {
       }),
     );
 
-    this.client.onDidChangeState(e => {
+    this.client.onDidChangeState(async e => {
       if (e.newState === State.Running) {
         this.ctx.subscriptions.push(
           this.client.onNotification('custom/updateQueryPreview', ([uri, text]) => {
@@ -83,13 +83,13 @@ export class LspClient {
             return await new PythonExtension().getPython();
           }),
 
-          this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),
+          await this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),
         );
 
-        commands.executeCommand('setContext', 'dbt-language-server.init', true);
+        await commands.executeCommand('setContext', 'dbt-language-server.init', true);
         console.log('Client switched to state "Running"');
       } else {
-        commands.executeCommand('setContext', 'dbt-language-server.init', false);
+        await commands.executeCommand('setContext', 'dbt-language-server.init', false);
       }
     });
 
@@ -101,7 +101,7 @@ export class LspClient {
   }
 
   registerCommands() {
-    this.registerCommand('dbt.compile', () => {
+    this.registerCommand('dbt.compile', async () => {
       if (!window.activeTextEditor) {
         return;
       }
@@ -114,17 +114,17 @@ export class LspClient {
         document.uri.toString() === SqlPreviewContentProvider.uri.toString() ? this.previewContentProvider.activeDocUri : document.uri.toString();
       this.client.sendNotification('custom/dbtCompile', uri);
 
-      commands.executeCommand('editor.showQueryPreview');
+      await commands.executeCommand('editor.showQueryPreview');
     });
 
-    this.registerCommand('editor.afterFunctionCompletion', () => {
-      commands.executeCommand('cursorMove', {
+    this.registerCommand('editor.afterFunctionCompletion', async () => {
+      await commands.executeCommand('cursorMove', {
         to: 'left',
         by: 'wrappedLine',
         select: false,
         value: 1,
       });
-      commands.executeCommand('editor.action.triggerParameterHints');
+      await commands.executeCommand('editor.action.triggerParameterHints');
     });
   }
 

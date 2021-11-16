@@ -98,7 +98,7 @@ export class DbtServer {
       await this.findDbtCommand(getPython);
       const command = this.dbtCommand(['--partial-parse', 'rpc', '--port', `${DbtServer.PORT}`, `${DbtServer.NO_VERSION_CHECK}`]);
 
-      DbtServer.processExecutor.execProcess(command, async (data: any) => {
+      void DbtServer.processExecutor.execProcess(command, async (data: any) => {
         if (!started) {
           const str = <string>data;
           const matchResults = str.match(/"Running with dbt=(.*?)"/);

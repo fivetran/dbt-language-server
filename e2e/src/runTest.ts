@@ -49,14 +49,14 @@ async function prepareBigQuery() {
   const dataset = bigQuery.dataset(dsName);
   await dataset.get({ autoCreate: true });
 
-  ensureTableExists(bigQuery, dsName, 'test_table1', [
+  await ensureTableExists(bigQuery, dsName, 'test_table1', [
     { name: 'id', type: 'INTEGER' },
     { name: 'time', type: 'TIMESTAMP' },
     { name: 'name', type: 'STRING' },
     { name: 'date', type: 'DATE' },
   ]);
 
-  ensureTableExists(bigQuery, dsName, 'users', [
+  await ensureTableExists(bigQuery, dsName, 'users', [
     { name: 'id', type: 'INTEGER' },
     { name: 'name', type: 'STRING' },
     { name: 'division', type: 'STRING' },
@@ -67,7 +67,7 @@ async function prepareBigQuery() {
   ]);
 }
 
-async function ensureTableExists(bigQuery: BigQuery, dsName: string, tableName: string, columns: TableField[]) {
+async function ensureTableExists(bigQuery: BigQuery, dsName: string, tableName: string, columns: TableField[]): Promise<void> {
   const dataset = bigQuery.dataset(dsName);
   const table = dataset.table(tableName);
   const [exists] = await table.exists();
@@ -78,4 +78,4 @@ async function ensureTableExists(bigQuery: BigQuery, dsName: string, tableName: 
   }
 }
 
-main();
+main().catch(e => console.error(e));

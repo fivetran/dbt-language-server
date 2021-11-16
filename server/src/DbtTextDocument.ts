@@ -118,12 +118,12 @@ export class DbtTextDocument {
   }
 
   async forceRecompile(): Promise<void> {
-    await this.progressReporter.sendStart(this.getRawDocUri());
+    this.progressReporter.sendStart(this.getRawDocUri());
     await this.debouncedCompile();
   }
 
   debouncedCompile = debounce(async () => {
-    await this.progressReporter.sendStart(this.getRawDocUri());
+    this.progressReporter.sendStart(this.getRawDocUri());
     await this.modelCompiler.compile();
   }, DbtTextDocument.DEBOUNCE_TIMEOUT);
 

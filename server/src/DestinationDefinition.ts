@@ -11,10 +11,13 @@ export class DestinationDefinition {
   constructor(serviceAccountCreds: ServiceAccountCreds) {
     this.activeProject = serviceAccountCreds.project;
     const client = new BigQueryClient(serviceAccountCreds.keyFile, serviceAccountCreds.project);
-    client.getDatasets().then(datasetsResponse => {
-      const [datasets] = datasetsResponse;
-      this.projects.set(this.activeProject, datasets);
-    });
+    client
+      .getDatasets()
+      .then(datasetsResponse => {
+        const [datasets] = datasetsResponse;
+        this.projects.set(this.activeProject, datasets);
+      })
+      .catch(e => console.log(`Error while fetching datasets: ${JSON.stringify(e)}`));
   }
 
   getDatasets(projectId?: string): Dataset[] {

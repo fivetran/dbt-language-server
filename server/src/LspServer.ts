@@ -93,7 +93,7 @@ export class LspServer {
   async onInitialized(): Promise<void> {
     if (this.hasConfigurationCapability) {
       // Register for all configuration changes.
-      this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
+      await this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
     }
     this.updateModels();
     await Promise.all([this.initializeZetaSql(), this.startDbtRpc()]);
@@ -120,7 +120,7 @@ export class LspServer {
         { title: 'Retry', id: 'retry' },
       );
       if (errorMessageResult?.id === 'retry') {
-        this.startDbtRpc();
+        await this.startDbtRpc();
       }
     } finally {
       this.progressReporter.sendFinish();
@@ -162,7 +162,7 @@ export class LspServer {
         this.serviceAccountCreds,
       );
       this.openedDocuments.set(uri, document);
-      this.onDidChangeTextDocument({ textDocument: params.textDocument, contentChanges: [] });
+      await this.onDidChangeTextDocument({ textDocument: params.textDocument, contentChanges: [] });
     }
   }
 

@@ -5,10 +5,10 @@ import { deferred } from './utils';
 export class ProgressHandler {
   progressDeferred? = deferred<void>();
 
-  onProgress(value: WorkDoneProgressBegin | WorkDoneProgressReport | WorkDoneProgressEnd): void {
+  async onProgress(value: WorkDoneProgressBegin | WorkDoneProgressReport | WorkDoneProgressEnd): Promise<void> {
     switch (value.kind) {
       case 'begin':
-        this.begin();
+        await this.begin();
         break;
       case 'end':
         this.progressDeferred?.resolve();
@@ -17,11 +17,11 @@ export class ProgressHandler {
     }
   }
 
-  begin(): void {
+  async begin(): Promise<void> {
     if (!this.progressDeferred) {
       this.progressDeferred = deferred<void>();
 
-      window.withProgress(
+      await window.withProgress(
         {
           location: ProgressLocation.Window,
           title: 'dbt command execution...',

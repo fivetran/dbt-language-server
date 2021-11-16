@@ -206,4 +206,4 @@ function parseText(token: Token) {
   return result;
 }
 
-parseAndSave();
+parseAndSave().catch(e => console.error(e));

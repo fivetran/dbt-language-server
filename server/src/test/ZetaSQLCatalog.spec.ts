@@ -64,22 +64,22 @@ describe('ZetaSQLCatalogTest', () => {
     assert.strictEqual(columns?.map(c => c.getName()).sort(), expectedColumns.sort());
   }
 
-  it('register_shouldRegisterProjectDataSetAndTable', () => {
+  it('register_shouldRegisterProjectDataSetAndTable', async () => {
     const tableDefinition = new TableDefinition([PROJECT_ID, DATA_SET, TABLE]);
     tableDefinition.schema = ONE_TABLE;
-    shouldRegisterOneTable([tableDefinition], TABLE, [COLUMN_NAME], DATA_SET, PROJECT_ID);
+    await shouldRegisterOneTable([tableDefinition], TABLE, [COLUMN_NAME], DATA_SET, PROJECT_ID);
   });
 
-  it('register_shouldRegisterDataSetAndTable', () => {
+  it('register_shouldRegisterDataSetAndTable', async () => {
     const tableDefinition = new TableDefinition([DATA_SET, TABLE]);
     tableDefinition.schema = ONE_TABLE;
-    shouldRegisterOneTable([tableDefinition], TABLE, [COLUMN_NAME], DATA_SET);
+    await shouldRegisterOneTable([tableDefinition], TABLE, [COLUMN_NAME], DATA_SET);
   });
 
-  it('register_shouldRegisterOnlyTable', () => {
+  it('register_shouldRegisterOnlyTable', async () => {
     const tableName = `${PROJECT_ID}.${DATA_SET}.${TABLE}`;
     const tableDefinition = new TableDefinition([tableName]);
     tableDefinition.schema = ONE_TABLE;
-    shouldRegisterOneTable([tableDefinition], tableName, [COLUMN_NAME]);
+    await shouldRegisterOneTable([tableDefinition], tableName, [COLUMN_NAME]);
   });
 });

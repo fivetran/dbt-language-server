@@ -2,9 +2,9 @@ import { ExtensionContext } from 'vscode';
 import { LspClient } from './LspClient';
 
 let lspClient: LspClient;
-export function activate(context: ExtensionContext): void {
+export async function activate(context: ExtensionContext): Promise<void> {
   lspClient = new LspClient(context);
-  lspClient.onActivate();
+  await lspClient.onActivate();
 }
 
 // This method is called when extension is deactivated

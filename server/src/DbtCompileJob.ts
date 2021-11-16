@@ -29,7 +29,7 @@ export class DbtCompileJob {
           };
         }
         this.startCompileRsponse = undefined;
-        this.runCompile();
+        void this.runCompile();
       }
       this.tryCount++;
     }

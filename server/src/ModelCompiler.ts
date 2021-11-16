@@ -24,7 +24,7 @@ export class ModelCompiler {
 
     if (this.dbtCompileTaskQueue.length > 3) {
       const taskToKill = this.dbtCompileTaskQueue.shift();
-      taskToKill?.kill();
+      void taskToKill?.kill();
     }
     this.startNewTask();
 
@@ -34,7 +34,7 @@ export class ModelCompiler {
   startNewTask() {
     const task = new DbtCompileJob(this.dbtServer, this.dbtTextDocument.rawDocument.getText());
     this.dbtCompileTaskQueue.push(task);
-    task.runCompile();
+    void task.runCompile();
   }
 
   async pollResults() {
@@ -56,7 +56,7 @@ export class ModelCompiler {
         if (response?.error || response?.result.state !== 'running') {
           const tasksToKill = this.dbtCompileTaskQueue.splice(0, i + 1);
           for (let j = 0; j < i; j++) {
-            tasksToKill[j].kill();
+            void tasksToKill[j].kill();
           }
 
           if (response?.error) {
