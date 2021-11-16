@@ -3,10 +3,8 @@ import { TableDefinition } from '../TableDefinition';
 import { ZetaSQLCatalog } from '../ZetaSQLCatalog';
 
 describe('ZetaSQLCatalogTest', () => {
-  let zetaSQLModule: any;
-
-  beforeEach(() => {
-    zetaSQLModule = require('../ZetaSQLCatalog');
+  beforeEach(async () => {
+    (<any>ZetaSQLCatalog).instance = null;
   });
 
   const PROJECT_ID = 'project_id';
@@ -26,7 +24,7 @@ describe('ZetaSQLCatalogTest', () => {
     expectedProjectId?: string,
   ): Promise<void> {
     // arrange
-    const zetaSQLCatalog: ZetaSQLCatalog = zetaSQLModule.ZetaSQLCatalog.getInstance();
+    const zetaSQLCatalog = ZetaSQLCatalog.getInstance();
 
     zetaSQLCatalog.catalog.register = async (): Promise<void> => {
       // do nothing
@@ -61,7 +59,7 @@ describe('ZetaSQLCatalogTest', () => {
 
     const columns = tables?.get(table)?.columns;
     assert.strictEqual(columns?.length, expectedColumns.length);
-    assert.strictEqual(columns?.map(c => c.getName()).sort(), expectedColumns.sort());
+    assert.deepStrictEqual(columns?.map(c => c.getName()).sort(), expectedColumns.sort());
   }
 
   it('register_shouldRegisterProjectDataSetAndTable', async () => {
