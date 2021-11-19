@@ -10,7 +10,6 @@ jobs:
     runs-on: macos-latest
     
     outputs:
-      branch: ${{ steps.vars.outputs.branch }}
       vsix_name: ${{ steps.vars.outputs.vsix_name }}
 
     steps:
@@ -34,14 +33,9 @@ jobs:
       - name: package to vsix file
         run: npx vsce package -o dbt-language-server.vsix --baseImagesUrl=https://storage.googleapis.com/dbt-ls-images
 
-      - name: save branch name and vsix name
+      - name: save vsix name with sha
         id: vars
-        run: |
-          raw=$(git branch -r --contains ${{ github.ref }})
-          branch=${raw/origin\/}
-          echo "::set-output name=branch::$branch"
-
-          echo "::set-output name=vsix_name::dbt-language-server-commit-sha-${GITHUB_SHA::7}.vsix"
+        run: echo "::set-output name=vsix_name::dbt-language-server-commit-sha-${GITHUB_SHA::7}.vsix"
 
       - name: create cache
         uses: actions/cache@v2
@@ -87,7 +81,7 @@ jobs:
       - run: node e2e/out/runTest $(pwd)/e2e-tests/extension
 
   publish:
-    if: ${{ needs.test-and-package.outputs.branch == 'main' }}
+    if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }} # main branch or have any tag started with 'v'
     needs: [test-and-package, run-e2e-tests]
 
     runs-on: macos-latest
@@ -115,15 +109,14 @@ jobs:
           credentials: ${{ secrets.GCS_SERVICE_ACCOUNT }}
 
       - name: set up node 14.x
-        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         uses: actions/setup-node@v2
         with:
           node-version: '14.x'
 
       - name: publish tagged (latest) extension
-        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         env:
           VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
         run: echo "Publish"  
         # run: npx vsce publish -i dbt-language-server.vsix -p ${VSCE_TOKEN}
-
