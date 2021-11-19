@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: set up node 14.x
         uses: actions/setup-node@v2
@@ -32,15 +34,14 @@ jobs:
       - name: package to vsix file
         run: npx vsce package -o dbt-language-server.vsix --baseImagesUrl=https://storage.googleapis.com/dbt-ls-images
 
-     - name: save branch name
-       run: |
-         raw=$(git branch -r --contains ${{ github.ref }})
-         branch=${raw/origin\/}
-         echo "::set-output name=branch::$branch"
-
-      - name: save vsix name with sha
+      - name: save branch name and vsix name
         id: vars
-        run: echo "::set-output name=vsix_name::dbt-language-server-commit-sha-${GITHUB_SHA::7}.vsix"
+        run: |
+          raw=$(git branch -r --contains ${{ github.ref }})
+          branch=${raw/origin\/}
+          echo "::set-output name=branch::$branch"
+
+          echo "::set-output name=vsix_name::dbt-language-server-commit-sha-${GITHUB_SHA::7}.vsix"
 
       - name: create cache
         uses: actions/cache@v2
@@ -86,12 +87,11 @@ jobs:
       - run: node e2e/out/runTest $(pwd)/e2e-tests/extension
 
   publish:
+    if: ${{ needs.test-and-package.outputs.branch == 'main' }}
     needs: [test-and-package, run-e2e-tests]
 
     runs-on: macos-latest
     steps:
-      - run: echo ${{ needs.test-and-package.outputs.branch }}
-
       - name: load vsix from cache
         uses: actions/cache@v2
         with:
