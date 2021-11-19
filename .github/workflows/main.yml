@@ -2,7 +2,6 @@ name: CI
 
 on:
   push:
-    branches: [main]
     tags:
       - '*'
 
@@ -116,5 +115,6 @@ jobs:
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
         env:
           VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
-        run: npx vsce publish -i dbt-language-server.vsix -p ${VSCE_TOKEN}
+        run: echo "Publish"  
+        # run: npx vsce publish -i dbt-language-server.vsix -p ${VSCE_TOKEN}
 
