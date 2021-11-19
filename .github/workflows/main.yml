@@ -79,7 +79,7 @@ jobs:
       - run: node e2e/out/runTest $(pwd)/e2e-tests/extension
 
   publish:
-    if: github.event.base_ref == 'refs/heads/master' # if it is not a pull request
+    if: github.event.base_ref == 'refs/heads/main' # if it is main branch
     needs: [test-and-package, run-e2e-tests]
 
     runs-on: macos-latest
