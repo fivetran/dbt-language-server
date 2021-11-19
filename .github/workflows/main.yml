@@ -2,8 +2,8 @@ name: CI
 
 on:
   push:
+    branches:
     tags:
-      - '*'
 
 jobs:
   test-and-package:
@@ -79,6 +79,7 @@ jobs:
       - run: node e2e/out/runTest $(pwd)/e2e-tests/extension
 
   publish:
+    if: github.event.base_ref == 'refs/heads/master' # if it is not a pull request
     needs: [test-and-package, run-e2e-tests]
 
     runs-on: macos-latest
