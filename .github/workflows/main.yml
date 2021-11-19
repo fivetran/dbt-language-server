@@ -2,9 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches:
     tags:
-      - '*'
 
 jobs:
   test-and-package:
@@ -80,6 +79,7 @@ jobs:
       - run: node e2e/out/runTest $(pwd)/e2e-tests/extension
 
   publish:
+    if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }} # main branch or have any tag started with 'v'
     needs: [test-and-package, run-e2e-tests]
 
     runs-on: macos-latest
@@ -107,14 +107,13 @@ jobs:
           credentials: ${{ secrets.GCS_SERVICE_ACCOUNT }}
 
       - name: set up node 14.x
-        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         uses: actions/setup-node@v2
         with:
           node-version: '14.x'
 
       - name: publish tagged (latest) extension
-        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         env:
           VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
         run: npx vsce publish -i dbt-language-server.vsix -p ${VSCE_TOKEN}
-
