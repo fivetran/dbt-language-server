@@ -10,6 +10,7 @@ jobs:
     runs-on: macos-latest
     
     outputs:
+      branch: ${{ steps.vars.outputs.branch }}
       vsix_name: ${{ steps.vars.outputs.vsix_name }}
 
     steps:
@@ -30,6 +31,12 @@ jobs:
 
       - name: package to vsix file
         run: npx vsce package -o dbt-language-server.vsix --baseImagesUrl=https://storage.googleapis.com/dbt-ls-images
+
+     - name: save branch name
+       run: |
+         raw=$(git branch -r --contains ${{ github.ref }})
+         branch=${raw/origin\/}
+         echo "::set-output name=branch::$branch"
 
       - name: save vsix name with sha
         id: vars
@@ -79,11 +86,12 @@ jobs:
       - run: node e2e/out/runTest $(pwd)/e2e-tests/extension
 
   publish:
-    if: ${{ github.event.base_ref == 'refs/heads/main' }} # if it is main branch
     needs: [test-and-package, run-e2e-tests]
 
     runs-on: macos-latest
     steps:
+      - run: echo ${{ needs.test-and-package.outputs.branch }}
+
       - name: load vsix from cache
         uses: actions/cache@v2
         with:
