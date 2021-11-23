@@ -88,37 +88,36 @@ export class DbtServer {
   startDeferred = deferred<void>();
 
   async startDbtRpc(getPython: () => Promise<string>): Promise<void> {
-    const existingRpc = child.spawnSync('lsof', [`-ti:${DbtServer.PORT}`]);
-    const pids = String(existingRpc.stdout).split(/\n|\r/g);
-    child.spawn('kill', pids);
-
-    let started = false;
-
     try {
       await this.findDbtCommand(getPython);
       const command = this.dbtCommand(['--partial-parse', 'rpc', '--port', `${DbtServer.PORT}`, `${DbtServer.NO_VERSION_CHECK}`]);
 
-      void DbtServer.processExecutor.execProcess(command, async (data: any) => {
-        if (!started) {
-          const str = <string>data;
-          const matchResults = str.match(/"Running with dbt=(.*?)"/);
-          if (matchResults?.length === 2) {
-            this.dbtVersion = matchResults[1];
-          }
-          if (str.indexOf('Serving RPC server') > -1) {
-            try {
-              await this.ensureCompilationFinished();
-            } catch (e) {
-              // The server is started here but there is some problem with project compilation
-              console.log(e);
+      let started = false;
+      DbtServer.processExecutor
+        .execProcess(command, async (data: string) => {
+          if (!started) {
+            const matchResults = data.match(/"Running with dbt=(.*?)"/);
+            if (matchResults?.length === 2) {
+              this.dbtVersion = matchResults[1];
             }
-            console.log('dbt rpc started');
-            started = true;
-            this.startDeferred.resolve();
+            if (data.includes('Serving RPC server')) {
+              try {
+                // We should wait some time to ensure that port was not in use
+                await Promise.all([this.ensureCompilationFinished(), new Promise(resolve => setTimeout(resolve, 1500))]);
+              } catch (e) {
+                // The server is started here but there is some problem with project compilation
+                console.log(e);
+              }
+              console.log('dbt rpc started');
+              started = true;
+              this.startDeferred.resolve();
+            }
           }
-        }
-      });
-
+        })
+        .catch(e => {
+          console.log('dbt rpc command failed: ' + e);
+          this.startDeferred.reject(e);
+        });
       return this.startDeferred.promise;
     } catch (e) {
       this.startDeferred.reject(e);
@@ -275,7 +274,7 @@ export class DbtServer {
       const { data } = response;
       if (data?.error?.data?.message) {
         const message = data?.error?.data?.message;
-        if (message && message.indexOf('invalid_grant') > 0) {
+        if (message && message.includes('invalid_grant')) {
           console.warn('Reauth required for dbt!');
           return;
         }
