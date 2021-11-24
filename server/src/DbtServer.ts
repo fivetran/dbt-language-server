@@ -1,5 +1,5 @@
 import axios from 'axios';
-import * as child from 'child_process';
+import { ChildProcess } from 'child_process';
 import { v4 as uuid } from 'uuid';
 import { ProcessExecutor } from './ProcessExecutor';
 import { deferred } from './Utils';
@@ -82,9 +82,9 @@ export class DbtServer {
   static VERSIOIN = '--version';
   static processExecutor = new ProcessExecutor();
 
-  pid = -1;
-  dbtVersion: string | undefined;
-  python: string | undefined;
+  dbtVersion?: string;
+  python?: string;
+  dbtProcess?: ChildProcess;
   startDeferred = deferred<void>();
 
   async startDbtRpc(getPython: () => Promise<string>): Promise<void> {
@@ -93,31 +93,33 @@ export class DbtServer {
       const command = this.dbtCommand(['--partial-parse', 'rpc', '--port', `${DbtServer.PORT}`, `${DbtServer.NO_VERSION_CHECK}`]);
 
       let started = false;
-      DbtServer.processExecutor
-        .execProcess(command, async (data: string) => {
-          if (!started) {
-            const matchResults = data.match(/"Running with dbt=(.*?)"/);
-            if (matchResults?.length === 2) {
-              this.dbtVersion = matchResults[1];
-            }
-            if (data.includes('Serving RPC server')) {
-              try {
-                // We should wait some time to ensure that port was not in use
-                await Promise.all([this.ensureCompilationFinished(), new Promise(resolve => setTimeout(resolve, 1500))]);
-              } catch (e) {
-                // The server is started here but there is some problem with project compilation
-                console.log(e);
-              }
-              console.log('dbt rpc started');
-              started = true;
-              this.startDeferred.resolve();
-            }
+      const promiseWithChid = DbtServer.processExecutor.execProcess(command, async (data: string) => {
+        if (!started) {
+          const matchResults = data.match(/"Running with dbt=(.*?)"/);
+          if (matchResults?.length === 2) {
+            this.dbtVersion = matchResults[1];
           }
-        })
-        .catch(e => {
-          console.log('dbt rpc command failed: ' + e);
-          this.startDeferred.reject(e);
-        });
+          if (data.includes('Serving RPC server')) {
+            try {
+              // We should wait some time to ensure that port was not in use
+              await Promise.all([this.ensureCompilationFinished(), new Promise(resolve => setTimeout(resolve, 1500))]);
+            } catch (e) {
+              // The server is started here but there is some problem with project compilation
+              console.log(e);
+            }
+            console.log('dbt rpc started');
+            started = true;
+            this.startDeferred.resolve();
+          }
+        }
+      });
+      this.dbtProcess = promiseWithChid.child;
+
+      promiseWithChid.catch(e => {
+        console.log('dbt rpc command failed: ' + e);
+        this.startDeferred.reject(e.stdout);
+      });
+
       return this.startDeferred.promise;
     } catch (e) {
       this.startDeferred.reject(e);
@@ -167,10 +169,7 @@ export class DbtServer {
   }
 
   refreshServer(): void {
-    if (this.pid !== -1) {
-      child.spawnSync('kill', ['-HUP', this.pid.toString()]);
-      console.log(`kill -HUP ${this.pid}`);
-    }
+    this.dbtProcess?.kill('SIGHUP');
   }
 
   async generateManifest(): Promise<void> {
@@ -180,11 +179,7 @@ export class DbtServer {
 
   async getCurrentStatus(): Promise<StatusResponse | undefined> {
     await this.startDeferred.promise;
-    const statusRespopnse = await this.getStatus();
-    if (statusRespopnse?.result.pid) {
-      this.pid = statusRespopnse?.result.pid;
-    }
-    return statusRespopnse;
+    return this.getStatus();
   }
 
   async getStatus(): Promise<StatusResponse | undefined> {
@@ -284,5 +279,13 @@ export class DbtServer {
       console.error(error);
     }
     return undefined;
+  }
+
+  dispose(): void {
+    if (this.dbtProcess) {
+      if (!this.dbtProcess.kill('SIGTERM')) {
+        this.dbtProcess.kill('SIGKILL');
+      }
+    }
   }
 }

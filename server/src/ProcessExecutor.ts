@@ -1,11 +1,11 @@
-import { exec } from 'child_process';
+import { exec, PromiseWithChild } from 'child_process';
 import { promisify } from 'util';
 
 export class ProcessExecutor {
   execProcess(
     command: string,
     onData?: (data: any) => void,
-  ): Promise<{
+  ): PromiseWithChild<{
     stdout: string;
     stderr: string;
   }> {

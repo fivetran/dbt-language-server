@@ -53,8 +53,8 @@ export class LspServer {
   }
 
   async onInitialize(params: InitializeParams): Promise<InitializeResult<any> | ResponseError<InitializeError>> {
-    process.on('SIGTERM', this.gracefulShutdown);
-    process.on('SIGINT', this.gracefulShutdown);
+    process.on('SIGTERM', this.onShutdown);
+    process.on('SIGINT', this.onShutdown);
 
     const findResult = this.yamlParser.findProfileCredentials();
     if (findResult.error) {
@@ -116,7 +116,7 @@ export class LspServer {
     } catch (e) {
       console.log(e);
       const errorMessageResult = await this.connection.window.showErrorMessage(
-        `Failed to start dbt. Make sure that you have [dbt installed](https://docs.getdbt.com/dbt-cli/installation). Check in Terminal that dbt works running 'dbt --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VSCode that was used to install dbt (e.g. ~/dbt-env/bin/python3).`,
+        `Failed to start dbt. Make sure that you have [dbt installed](https://docs.getdbt.com/dbt-cli/installation). Check in Terminal that dbt works running 'dbt --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VSCode that was used to install dbt (e.g. ~/dbt-env/bin/python3). ${e}`,
         { title: 'Retry', id: 'retry' },
       );
       if (errorMessageResult?.id === 'retry') {
@@ -219,13 +219,18 @@ export class LspServer {
     }
   }
 
+  onShutdown(): void {
+    this.dispose();
+  }
+
   updateModels(): void {
     this.completionProvider.setDbtModels(this.manifestParser.getModels(this.yamlParser.findTargetPath()));
   }
 
-  gracefulShutdown(): void {
-    console.log('Graceful shutdown start...');
+  dispose(): void {
+    console.log('Dispose start...');
     terminateServer();
-    console.log('Graceful shutdown end...');
+    this.dbtServer.dispose();
+    console.log('Dispose end.');
   }
 }
