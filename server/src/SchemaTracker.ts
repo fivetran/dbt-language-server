@@ -2,14 +2,14 @@ import { ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { ExtractTableNamesFromStatementRequest } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ExtractTableNamesFromStatementRequest';
 import { BigQueryClient } from './BigQueryClient';
 import { TableDefinition } from './TableDefinition';
-import { ServiceAccountCreds } from './YamlParser';
+import { ServiceAccountCredentials, ServiceAccountJsonCredentials } from './YamlParser';
 
 export class SchemaTracker {
   tableDefinitions: TableDefinition[] = [];
-  serviceAccountCreds: ServiceAccountCreds | undefined;
+  serviceAccountCreds: ServiceAccountCredentials | ServiceAccountJsonCredentials | undefined;
   hasNewTables = false;
 
-  constructor(serviceAccountCreds?: ServiceAccountCreds) {
+  constructor(serviceAccountCreds?: ServiceAccountCredentials | ServiceAccountJsonCredentials) {
     this.serviceAccountCreds = serviceAccountCreds;
   }
 
@@ -41,7 +41,7 @@ export class SchemaTracker {
     );
 
     if (newTables.length > 0 && this.serviceAccountCreds) {
-      const bigQueryClient = new BigQueryClient(this.serviceAccountCreds.keyFile, this.serviceAccountCreds.project);
+      const bigQueryClient = BigQueryClient.buildClient(this.serviceAccountCreds);
       for (const table of newTables) {
         if (table.getDatasetName() && table.getTableName()) {
           // TODO: handle different project names?

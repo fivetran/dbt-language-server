@@ -27,7 +27,7 @@ import { DbtTextDocument } from './DbtTextDocument';
 import { DestinationDefinition } from './DestinationDefinition';
 import { ManifestParser } from './ManifestParser';
 import { ProgressReporter } from './ProgressReporter';
-import { ServiceAccountCreds, YamlParser } from './YamlParser';
+import { ServiceAccountCredentials, ServiceAccountJsonCredentials, YamlParser } from './YamlParser';
 
 interface TelemetryEvent {
   name: string;
@@ -39,7 +39,7 @@ export class LspServer {
   hasConfigurationCapability = false;
   dbtServer = new DbtServer();
   openedDocuments = new Map<string, DbtTextDocument>();
-  serviceAccountCreds: ServiceAccountCreds | undefined;
+  serviceAccountCreds: ServiceAccountCredentials | ServiceAccountJsonCredentials | undefined;
   destinationDefinition: DestinationDefinition | undefined;
   progressReporter: ProgressReporter;
   completionProvider = new CompletionProvider();

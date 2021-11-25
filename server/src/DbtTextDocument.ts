@@ -30,7 +30,7 @@ import { ProgressReporter } from './ProgressReporter';
 import { SchemaTracker } from './SchemaTracker';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { debounce, getJinjaContentOffset } from './Utils';
-import { ServiceAccountCreds } from './YamlParser';
+import { ServiceAccountCredentials, ServiceAccountJsonCredentials } from './YamlParser';
 import { ZetaSQLAST } from './ZetaSQLAST';
 import { ZetaSQLCatalog } from './ZetaSQLCatalog';
 
@@ -54,7 +54,7 @@ export class DbtTextDocument {
     private connection: _Connection,
     private progressReporter: ProgressReporter,
     private completionProvider: CompletionProvider,
-    serviceAccountCreds?: ServiceAccountCreds,
+    serviceAccountCreds?: ServiceAccountCredentials | ServiceAccountJsonCredentials,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);

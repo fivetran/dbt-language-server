@@ -1,14 +1,45 @@
-import { BigQuery, DatasetsResponse } from '@google-cloud/bigquery';
+import { BigQuery, DatasetsResponse, BigQueryOptions } from '@google-cloud/bigquery';
+import { ExternalAccountClientOptions } from 'google-auth-library';
+import { AuthenticationMethod, ServiceAccountCredentials, ServiceAccountJsonCredentials } from './YamlParser';
 
 export class BigQueryClient {
   bigQuery: BigQuery;
 
-  constructor(keyFilename: string, projectId: string) {
+  static buildClient(credentials: ServiceAccountCredentials | ServiceAccountJsonCredentials): BigQueryClient | undefined {
+    switch (credentials.method) {
+      case AuthenticationMethod.ServiceAccount: {
+        return BigQueryClient.buildServiceAccountClient(<ServiceAccountCredentials>credentials);
+      }
+      case AuthenticationMethod.ServiceAccountJson: {
+        return BigQueryClient.buildServiceAccountJsonClient(<ServiceAccountJsonCredentials>credentials);
+      }
+      default: {
+        return undefined;
+      }
+    }
+  }
+
+  private static buildServiceAccountClient(credentials: ServiceAccountCredentials): BigQueryClient {
     const options = {
-      keyFilename: keyFilename,
-      projectId: projectId,
+      projectId: credentials.project,
+      keyFilename: credentials.keyFilePath,
     };
-    this.bigQuery = new BigQuery(options);
+    const bigQuery = new BigQuery(options);
+    return new BigQueryClient(bigQuery);
+  }
+
+  private static buildServiceAccountJsonClient(credentials: ServiceAccountJsonCredentials): BigQueryClient {
+    const content = <ExternalAccountClientOptions>JSON.parse(credentials.keyFileJson);
+    const options: BigQueryOptions = {
+      projectId: credentials.project,
+      credentials: content,
+    };
+    const bigQuery = new BigQuery(options);
+    return new BigQueryClient(bigQuery);
+  }
+
+  constructor(bigQuery: BigQuery) {
+    this.bigQuery = bigQuery;
   }
 
   async getDatasets(): Promise<DatasetsResponse> {
