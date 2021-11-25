@@ -41,7 +41,7 @@ Prior to using the extension, you need to perform the following steps:
       Example of `/Users/user/.dbt/profiles.yml`:
       ``` 
       my-bigquery-db:
-      target: dev
+      target: prod
       outputs:
         prod:
           type: bigquery
@@ -60,28 +60,30 @@ Prior to using the extension, you need to perform the following steps:
       Example of `/Users/user/.dbt/profiles.yml`:
       ``` 
       my-bigquery-db:
-      target: dev
+      target: prod
       outputs:
-        dev:
+        prod:
           type: bigquery
           method: service-account-json
-          project: [GCP project id]
-          dataset: [the name of your dbt dataset]
-          threads: [1 or more]
-          <optional_config>: <value>
+          project: google-test-project-id-400
+          dataset: dbt_default
+          threads: 4
 
           # These fields come from the service account json keyfile
           keyfile_json:
-            type: xxx
-            project_id: xxx
-            private_key_id: xxx
-            private_key: xxx
-            client_email: xxx
-            client_id: xxx
-            auth_uri: xxx
-            token_uri: xxx
-            auth_provider_x509_cert_url: xxx
-            client_x509_cert_url: xxx
+            type: service_account
+            project_id: google-test-project-id-400
+            private_key_id: ...
+            private_key: |
+              -----BEGIN PRIVATE KEY-----
+              ...
+              -----END PRIVATE KEY-----
+            client_email: test-bigquery@google-test-project-id-400.iam.gserviceaccount.com
+            client_id: ...
+            auth_uri: https://accounts.google.com/o/oauth2/auth
+            token_uri: https://oauth2.googleapis.com/token
+            auth_provider_x509_cert_url: https://www.googleapis.com/oauth2/v1/certs
+            client_x509_cert_url: https://www.googleapis.com/robot/v1/metadata/x509/test-bigquery%40google-test-project-id-400.iam.gserviceaccount.com
       ```
 
 4. Open the dbt project root folder that contains `dbt_project.yml` for the configured profile in the new VSCode window.
