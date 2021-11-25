@@ -3,6 +3,7 @@ import { ChildProcess } from 'child_process';
 import { v4 as uuid } from 'uuid';
 import { ProcessExecutor } from './ProcessExecutor';
 import { deferred } from './Utils';
+import findFreePortPmfy = require('find-free-port');
 
 interface PostData {
   jsonrpc: '2.0';
@@ -77,20 +78,22 @@ export interface CompileResult {
 }
 
 export class DbtServer {
-  static PORT = '8588';
   static NO_VERSION_CHECK = '--no-version-check';
   static VERSIOIN = '--version';
   static processExecutor = new ProcessExecutor();
 
+  port?: number;
   dbtVersion?: string;
   python?: string;
   dbtProcess?: ChildProcess;
   startDeferred = deferred<void>();
 
   async startDbtRpc(getPython: () => Promise<string>): Promise<void> {
+    this.port = await findFreePortPmfy(8588);
+
     try {
       await this.findDbtCommand(getPython);
-      const command = this.dbtCommand(['--partial-parse', 'rpc', '--port', `${DbtServer.PORT}`, `${DbtServer.NO_VERSION_CHECK}`]);
+      const command = this.dbtCommand(['--partial-parse', 'rpc', '--port', `${this.port}`, `${DbtServer.NO_VERSION_CHECK}`]);
 
       let started = false;
       const promiseWithChid = DbtServer.processExecutor.execProcess(command, async (data: string) => {
@@ -264,7 +267,7 @@ export class DbtServer {
 
   async makePostRequest<T extends Response>(postData: unknown): Promise<T | undefined> {
     try {
-      const response = await axios.post<T>(`http://localhost:${DbtServer.PORT}/jsonrpc`, postData, { timeout: 6000 });
+      const response = await axios.post<T>(`http://localhost:${this.port}/jsonrpc`, postData, { timeout: 6000 });
       // console.log(response);
       const { data } = response;
       if (data?.error?.data?.message) {
