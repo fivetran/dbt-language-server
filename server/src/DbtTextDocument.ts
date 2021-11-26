@@ -192,8 +192,7 @@ export class DbtTextDocument {
 
   async ensureCatalogInitialized(): Promise<void> {
     await this.schemaTracker.refreshTableNames(this.compiledDocument.getText());
-    const projectId = this.schemaTracker.serviceAccountCredentials?.project;
-    if (projectId && (this.schemaTracker.hasNewTables || !ZetaSQLCatalog.getInstance().isRegistered())) {
+    if (this.schemaTracker.hasNewTables || !ZetaSQLCatalog.getInstance().isRegistered()) {
       await this.registerCatalog();
     }
   }
