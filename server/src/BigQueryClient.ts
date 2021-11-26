@@ -14,7 +14,7 @@ export class BigQueryClient {
         return BigQueryClient.buildServiceAccountJsonClient(<ServiceAccountJsonCredentials>credentials);
       }
       default: {
-        return undefined;
+        throw new Error(`No suitable client builder for specified authentication method: '${credentials.method}'.`);
       }
     }
   }
