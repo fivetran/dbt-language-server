@@ -1,6 +1,6 @@
 import { Dataset, Table } from '@google-cloud/bigquery';
 import { BigQueryClient } from './BigQueryClient';
-import { ServiceAccountCreds } from './YamlParser';
+import { ServiceAccountCredentials, ServiceAccountJsonCredentials } from './YamlParser';
 
 export class DestinationDefinition {
   activeProject: string;
@@ -8,16 +8,19 @@ export class DestinationDefinition {
   tables = new Map<string, Table[]>();
   columns = new Map<string, any[]>();
 
-  constructor(serviceAccountCreds: ServiceAccountCreds) {
-    this.activeProject = serviceAccountCreds.project;
-    const client = new BigQueryClient(serviceAccountCreds.keyFile, serviceAccountCreds.project);
-    client
-      .getDatasets()
-      .then(datasetsResponse => {
-        const [datasets] = datasetsResponse;
-        this.projects.set(this.activeProject, datasets);
-      })
-      .catch(e => console.log(`Error while fetching datasets: ${JSON.stringify(e)}`));
+  constructor(credentials: ServiceAccountCredentials | ServiceAccountJsonCredentials) {
+    this.activeProject = credentials.project;
+    const client = BigQueryClient.buildClient(credentials);
+
+    if (client) {
+      client
+        .getDatasets()
+        .then(datasetsResponse => {
+          const [datasets] = datasetsResponse;
+          this.projects.set(this.activeProject, datasets);
+        })
+        .catch(e => console.log(`Error while fetching datasets: ${JSON.stringify(e)}`));
+    }
   }
 
   getDatasets(projectId?: string): Dataset[] {

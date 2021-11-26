@@ -30,7 +30,7 @@ import { ProgressReporter } from './ProgressReporter';
 import { SchemaTracker } from './SchemaTracker';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { debounce, getJinjaContentOffset } from './Utils';
-import { ServiceAccountCreds } from './YamlParser';
+import { ServiceAccountCredentials, ServiceAccountJsonCredentials } from './YamlParser';
 import { ZetaSQLAST } from './ZetaSQLAST';
 import { ZetaSQLCatalog } from './ZetaSQLCatalog';
 
@@ -54,12 +54,12 @@ export class DbtTextDocument {
     private connection: _Connection,
     private progressReporter: ProgressReporter,
     private completionProvider: CompletionProvider,
-    serviceAccountCreds?: ServiceAccountCreds,
+    serviceAccountCredentials: ServiceAccountCredentials | ServiceAccountJsonCredentials,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.modelCompiler = new ModelCompiler(this, dbtServer);
-    this.schemaTracker = new SchemaTracker(serviceAccountCreds);
+    this.schemaTracker = new SchemaTracker(serviceAccountCredentials);
   }
 
   async didChangeTextDocument(params: DidChangeTextDocumentParams): Promise<void> {
@@ -192,8 +192,7 @@ export class DbtTextDocument {
 
   async ensureCatalogInitialized(): Promise<void> {
     await this.schemaTracker.refreshTableNames(this.compiledDocument.getText());
-    const projectId = this.schemaTracker.serviceAccountCreds?.project;
-    if (projectId && (this.schemaTracker.hasNewTables || !ZetaSQLCatalog.getInstance().isRegistered())) {
+    if (this.schemaTracker.hasNewTables || !ZetaSQLCatalog.getInstance().isRegistered()) {
       await this.registerCatalog();
     }
   }
