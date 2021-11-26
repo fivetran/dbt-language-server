@@ -10,11 +10,11 @@ export class BigQueryClient {
 
     switch (credentials.method) {
       case AuthenticationMethod.ServiceAccount: {
-        options = BigQueryClient.buildServiceAccountClient(<ServiceAccountCredentials>credentials);
+        options = BigQueryClient.buildServiceAccountOptions(<ServiceAccountCredentials>credentials);
         break;
       }
       case AuthenticationMethod.ServiceAccountJson: {
-        options = BigQueryClient.buildServiceAccountJsonClient(<ServiceAccountJsonCredentials>credentials);
+        options = BigQueryClient.buildServiceAccountJsonOptions(<ServiceAccountJsonCredentials>credentials);
         break;
       }
       default: {
@@ -26,14 +26,14 @@ export class BigQueryClient {
     return new BigQueryClient(bigQuery);
   }
 
-  private static buildServiceAccountClient(credentials: ServiceAccountCredentials): BigQueryOptions {
+  private static buildServiceAccountOptions(credentials: ServiceAccountCredentials): BigQueryOptions {
     return {
       projectId: credentials.project,
       keyFilename: credentials.keyFilePath,
     };
   }
 
-  private static buildServiceAccountJsonClient(credentials: ServiceAccountJsonCredentials): BigQueryOptions {
+  private static buildServiceAccountJsonOptions(credentials: ServiceAccountJsonCredentials): BigQueryOptions {
     const content = <ExternalAccountClientOptions>JSON.parse(credentials.keyFileJson);
     return {
       projectId: credentials.project,
