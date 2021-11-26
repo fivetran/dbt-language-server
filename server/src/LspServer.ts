@@ -60,9 +60,6 @@ export class LspServer {
     if (findResult.error) {
       return new ResponseError<InitializeError>(100, findResult.error, { retry: true });
     }
-    if (findResult.credentials == undefined) {
-      return new ResponseError<InitializeError>(100, 'Unable to recognize connection credentials.', { retry: true });
-    }
     this.serviceAccountCredentials = findResult.credentials;
 
     this.initializeDestinationDefinition();
