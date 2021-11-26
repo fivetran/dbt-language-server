@@ -40,7 +40,7 @@ export class SchemaTracker {
       newTable => !this.tableDefinitions.find(oldTable => this.arraysAreEqual(oldTable.name, newTable.name) && oldTable.rawName === newTable.rawName),
     );
 
-    if (newTables.length > 0 && this.serviceAccountCredentials) {
+    if (newTables.length > 0) {
       const bigQueryClient = BigQueryClient.buildClient(this.serviceAccountCredentials);
       for (const table of newTables) {
         if (table.getDatasetName() && table.getTableName()) {
