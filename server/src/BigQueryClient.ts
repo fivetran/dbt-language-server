@@ -5,37 +5,40 @@ import { AuthenticationMethod, ServiceAccountCredentials, ServiceAccountJsonCred
 export class BigQueryClient {
   bigQuery: BigQuery;
 
-  static buildClient(credentials: ServiceAccountCredentials | ServiceAccountJsonCredentials): BigQueryClient | undefined {
+  static buildClient(credentials: ServiceAccountCredentials | ServiceAccountJsonCredentials): BigQueryClient {
+    let options: BigQueryOptions;
+
     switch (credentials.method) {
       case AuthenticationMethod.ServiceAccount: {
-        return BigQueryClient.buildServiceAccountClient(<ServiceAccountCredentials>credentials);
+        options = BigQueryClient.buildServiceAccountClient(<ServiceAccountCredentials>credentials);
+        break;
       }
       case AuthenticationMethod.ServiceAccountJson: {
-        return BigQueryClient.buildServiceAccountJsonClient(<ServiceAccountJsonCredentials>credentials);
+        options = BigQueryClient.buildServiceAccountJsonClient(<ServiceAccountJsonCredentials>credentials);
+        break;
       }
       default: {
         throw new Error(`No suitable client builder for specified authentication method: '${credentials.method}'.`);
       }
     }
+
+    const bigQuery = new BigQuery(options);
+    return new BigQueryClient(bigQuery);
   }
 
-  private static buildServiceAccountClient(credentials: ServiceAccountCredentials): BigQueryClient {
-    const options = {
+  private static buildServiceAccountClient(credentials: ServiceAccountCredentials): BigQueryOptions {
+    return {
       projectId: credentials.project,
       keyFilename: credentials.keyFilePath,
     };
-    const bigQuery = new BigQuery(options);
-    return new BigQueryClient(bigQuery);
   }
 
-  private static buildServiceAccountJsonClient(credentials: ServiceAccountJsonCredentials): BigQueryClient {
+  private static buildServiceAccountJsonClient(credentials: ServiceAccountJsonCredentials): BigQueryOptions {
     const content = <ExternalAccountClientOptions>JSON.parse(credentials.keyFileJson);
-    const options: BigQueryOptions = {
+    return {
       projectId: credentials.project,
       credentials: content,
     };
-    const bigQuery = new BigQuery(options);
-    return new BigQueryClient(bigQuery);
   }
 
   constructor(bigQuery: BigQuery) {
