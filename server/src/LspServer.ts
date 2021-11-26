@@ -155,7 +155,7 @@ export class LspServer {
   async onDidOpenTextDocument(params: DidOpenTextDocumentParams): Promise<void> {
     const uri = params.textDocument.uri;
     let document = this.openedDocuments.get(uri);
-    if (!document) {
+    if (!document && this.serviceAccountCredentials) {
       document = new DbtTextDocument(
         params.textDocument,
         this.dbtServer,
