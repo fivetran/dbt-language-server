@@ -54,12 +54,12 @@ export class DbtTextDocument {
     private connection: _Connection,
     private progressReporter: ProgressReporter,
     private completionProvider: CompletionProvider,
-    serviceAccountCreds?: ServiceAccountCredentials | ServiceAccountJsonCredentials,
+    serviceAccountCredentials: ServiceAccountCredentials | ServiceAccountJsonCredentials,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.modelCompiler = new ModelCompiler(this, dbtServer);
-    this.schemaTracker = new SchemaTracker(serviceAccountCreds);
+    this.schemaTracker = new SchemaTracker(serviceAccountCredentials);
   }
 
   async didChangeTextDocument(params: DidChangeTextDocumentParams): Promise<void> {
@@ -192,7 +192,7 @@ export class DbtTextDocument {
 
   async ensureCatalogInitialized(): Promise<void> {
     await this.schemaTracker.refreshTableNames(this.compiledDocument.getText());
-    const projectId = this.schemaTracker.serviceAccountCreds?.project;
+    const projectId = this.schemaTracker.serviceAccountCredentials?.project;
     if (projectId && (this.schemaTracker.hasNewTables || !ZetaSQLCatalog.getInstance().isRegistered())) {
       await this.registerCatalog();
     }

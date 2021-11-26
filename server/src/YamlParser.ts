@@ -2,8 +2,8 @@ import * as fs from 'fs';
 import { homedir } from 'os';
 import * as yaml from 'yaml';
 
-export interface FindCredsResult {
-  creds?: ServiceAccountCredentials | ServiceAccountJsonCredentials;
+export interface FindCredentialsResult {
+  credentials?: ServiceAccountCredentials | ServiceAccountJsonCredentials;
   error?: string;
 }
 
@@ -56,7 +56,7 @@ export class YamlParser {
     return dbtProject?.profile;
   }
 
-  validateBQServiceAccountFile(profiles: any, profileName: string): FindCredsResult | undefined {
+  validateBQServiceAccountFile(profiles: any, profileName: string): FindCredentialsResult | undefined {
     const profile = profiles[profileName];
     if (!profile) {
       return this.errorResult(
@@ -105,7 +105,12 @@ export class YamlParser {
     return undefined;
   }
 
-  validateRequiredFieldsInOutputsTarget(profileName: string, target: string, outputsTarget: any, fields: string[]): FindCredsResult | undefined {
+  validateRequiredFieldsInOutputsTarget(
+    profileName: string,
+    target: string,
+    outputsTarget: any,
+    fields: string[],
+  ): FindCredentialsResult | undefined {
     for (const field of fields) {
       const value = outputsTarget[field];
       if (!value) {
@@ -116,13 +121,13 @@ export class YamlParser {
     return undefined;
   }
 
-  cantFindSectionError(profileName: string, section: string): FindCredsResult {
+  cantFindSectionError(profileName: string, section: string): FindCredentialsResult {
     return this.errorResult(
       `Couldn't find section '${section}' for profile '${profileName}'. Check your '${this.profilesPath}' file. ${YamlParser.BQ_SERVICE_ACCOUNT_FILE_DOCS}`,
     );
   }
 
-  findProfileCreds(): FindCredsResult {
+  findProfileCredentials(): FindCredentialsResult {
     let profiles = undefined;
     try {
       profiles = this.parseYamlFile(this.profilesPath);
@@ -149,7 +154,7 @@ export class YamlParser {
     const targetConfig = profile.outputs[target];
     if (targetConfig.method === AuthenticationMethod.ServiceAccount) {
       return {
-        creds: {
+        credentials: {
           project: targetConfig.project,
           keyFilePath: this.replaceTilde(targetConfig.keyfile),
           method: AuthenticationMethod.ServiceAccount,
@@ -157,7 +162,7 @@ export class YamlParser {
       };
     } else if (targetConfig.method === AuthenticationMethod.ServiceAccountJson) {
       return {
-        creds: {
+        credentials: {
           project: targetConfig.project,
           keyFileJson: JSON.stringify(targetConfig.keyfile_json),
           method: AuthenticationMethod.ServiceAccountJson,

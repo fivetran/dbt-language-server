@@ -39,7 +39,7 @@ export class LspServer {
   hasConfigurationCapability = false;
   dbtServer = new DbtServer();
   openedDocuments = new Map<string, DbtTextDocument>();
-  serviceAccountCreds: ServiceAccountCredentials | ServiceAccountJsonCredentials | undefined;
+  serviceAccountCredentials?: ServiceAccountCredentials | ServiceAccountJsonCredentials;
   destinationDefinition: DestinationDefinition | undefined;
   progressReporter: ProgressReporter;
   completionProvider = new CompletionProvider();
@@ -56,11 +56,14 @@ export class LspServer {
     process.on('SIGTERM', this.gracefulShutdown);
     process.on('SIGINT', this.gracefulShutdown);
 
-    const findResult = this.yamlParser.findProfileCreds();
+    const findResult = this.yamlParser.findProfileCredentials();
     if (findResult.error) {
       return new ResponseError<InitializeError>(100, findResult.error, { retry: true });
     }
-    this.serviceAccountCreds = findResult.creds;
+    if (findResult.credentials == undefined) {
+      return new ResponseError<InitializeError>(100, 'Unable to recognize connection credentials.', { retry: true });
+    }
+    this.serviceAccountCredentials = findResult.credentials;
 
     this.initializeDestinationDefinition();
 
@@ -140,8 +143,8 @@ export class LspServer {
   }
 
   initializeDestinationDefinition(): void {
-    if (this.serviceAccountCreds) {
-      this.destinationDefinition = new DestinationDefinition(this.serviceAccountCreds);
+    if (this.serviceAccountCredentials) {
+      this.destinationDefinition = new DestinationDefinition(this.serviceAccountCredentials);
     }
   }
 
@@ -159,7 +162,7 @@ export class LspServer {
         this.connection,
         this.progressReporter,
         this.completionProvider,
-        this.serviceAccountCreds,
+        this.serviceAccountCredentials,
       );
       this.openedDocuments.set(uri, document);
       await this.onDidChangeTextDocument({ textDocument: params.textDocument, contentChanges: [] });

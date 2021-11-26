@@ -6,11 +6,11 @@ import { ServiceAccountCredentials, ServiceAccountJsonCredentials } from './Yaml
 
 export class SchemaTracker {
   tableDefinitions: TableDefinition[] = [];
-  serviceAccountCreds: ServiceAccountCredentials | ServiceAccountJsonCredentials | undefined;
+  serviceAccountCredentials: ServiceAccountCredentials | ServiceAccountJsonCredentials;
   hasNewTables = false;
 
-  constructor(serviceAccountCreds?: ServiceAccountCredentials | ServiceAccountJsonCredentials) {
-    this.serviceAccountCreds = serviceAccountCreds;
+  constructor(serviceAccountCredentials: ServiceAccountCredentials | ServiceAccountJsonCredentials) {
+    this.serviceAccountCredentials = serviceAccountCredentials;
   }
 
   resetHasNewTables(): void {
@@ -40,8 +40,8 @@ export class SchemaTracker {
       newTable => !this.tableDefinitions.find(oldTable => this.arraysAreEqual(oldTable.name, newTable.name) && oldTable.rawName === newTable.rawName),
     );
 
-    if (newTables.length > 0 && this.serviceAccountCreds) {
-      const bigQueryClient = BigQueryClient.buildClient(this.serviceAccountCreds);
+    if (newTables.length > 0 && this.serviceAccountCredentials) {
+      const bigQueryClient = BigQueryClient.buildClient(this.serviceAccountCredentials);
       for (const table of newTables) {
         if (table.getDatasetName() && table.getTableName()) {
           // TODO: handle different project names?
