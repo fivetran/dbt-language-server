@@ -12,6 +12,14 @@ export class ServiceAccountJsonValidator extends ProfileValidator {
       return 'keyFileJson';
     }
 
+    return this.validateKeyFileJson(keyFileJson);
+  }
+
+  private validateKeyFileJson(keyFileJson: any): string | undefined {
+    const privateKey = keyFileJson.private_key;
+    if (!privateKey) {
+      return 'private_key';
+    }
     return undefined;
   }
 }
