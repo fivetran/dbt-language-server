@@ -22,7 +22,6 @@ export class SchemaTracker {
     };
     try {
       const extractResult = await ZetaSQLClient.INSTANCE.extractTableNamesFromStatement(request);
-      console.log(extractResult);
       return extractResult.tableName.map(t => new TableDefinition(t.tableNameSegment));
     } catch (e) {
       console.log(e);
