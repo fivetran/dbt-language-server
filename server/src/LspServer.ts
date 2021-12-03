@@ -23,11 +23,12 @@ import {
 } from 'vscode-languageserver';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtServer as DbtServer } from './DbtServer';
+import { YamlParser } from './YamlParser';
 import { DbtTextDocument } from './DbtTextDocument';
 import { DestinationDefinition } from './DestinationDefinition';
 import { ManifestParser } from './ManifestParser';
 import { ProgressReporter } from './ProgressReporter';
-import { ServiceAccountCredentials, ServiceAccountJsonCredentials, YamlParser } from './YamlParser';
+import { BigQueryClient } from './profiles/bigquery/BigQueryClient';
 
 interface TelemetryEvent {
   name: string;
@@ -39,7 +40,7 @@ export class LspServer {
   hasConfigurationCapability = false;
   dbtServer = new DbtServer();
   openedDocuments = new Map<string, DbtTextDocument>();
-  serviceAccountCredentials?: ServiceAccountCredentials | ServiceAccountJsonCredentials;
+  bigQueryClient?: BigQueryClient;
   destinationDefinition: DestinationDefinition | undefined;
   progressReporter: ProgressReporter;
   completionProvider = new CompletionProvider();
@@ -56,11 +57,11 @@ export class LspServer {
     process.on('SIGTERM', this.gracefulShutdown);
     process.on('SIGINT', this.gracefulShutdown);
 
-    const findResult = this.yamlParser.findProfileCredentials();
+    const findResult = this.yamlParser.createDbtProfile();
     if (findResult.error) {
       return new ResponseError<InitializeError>(100, findResult.error, { retry: true });
     }
-    this.serviceAccountCredentials = findResult.credentials;
+    this.bigQueryClient = <BigQueryClient>findResult.client;
 
     this.initializeDestinationDefinition();
 
@@ -140,8 +141,8 @@ export class LspServer {
   }
 
   initializeDestinationDefinition(): void {
-    if (this.serviceAccountCredentials) {
-      this.destinationDefinition = new DestinationDefinition(this.serviceAccountCredentials);
+    if (this.bigQueryClient) {
+      this.destinationDefinition = new DestinationDefinition(this.bigQueryClient);
     }
   }
 
@@ -152,14 +153,14 @@ export class LspServer {
   async onDidOpenTextDocument(params: DidOpenTextDocumentParams): Promise<void> {
     const uri = params.textDocument.uri;
     let document = this.openedDocuments.get(uri);
-    if (!document && this.serviceAccountCredentials) {
+    if (!document && this.bigQueryClient) {
       document = new DbtTextDocument(
         params.textDocument,
         this.dbtServer,
         this.connection,
         this.progressReporter,
         this.completionProvider,
-        this.serviceAccountCredentials,
+        this.bigQueryClient,
       );
       this.openedDocuments.set(uri, document);
       await this.onDidChangeTextDocument({ textDocument: params.textDocument, contentChanges: [] });

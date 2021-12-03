@@ -1,6 +1,5 @@
 import { Dataset, Table } from '@google-cloud/bigquery';
-import { BigQueryClient } from './BigQueryClient';
-import { ServiceAccountCredentials, ServiceAccountJsonCredentials } from './YamlParser';
+import { BigQueryClient } from './profiles/bigquery/BigQueryClient';
 
 export class DestinationDefinition {
   activeProject: string;
@@ -8,9 +7,9 @@ export class DestinationDefinition {
   tables = new Map<string, Table[]>();
   columns = new Map<string, any[]>();
 
-  constructor(credentials: ServiceAccountCredentials | ServiceAccountJsonCredentials) {
-    this.activeProject = credentials.project;
-    const client = BigQueryClient.buildClient(credentials);
+  constructor(bigQueryClient: BigQueryClient) {
+    this.activeProject = bigQueryClient.project;
+    const client = bigQueryClient;
 
     if (client) {
       client
