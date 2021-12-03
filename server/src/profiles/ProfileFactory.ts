@@ -8,4 +8,5 @@ export abstract class ProfileFactory {
   abstract getProfileDataExtractor(): ProfileDataExtractor;
   abstract createClient(data: ProfileData): Client;
   abstract createValidator(): ProfileValidator;
+  abstract authenticateClient(): Promise<void>;
 }

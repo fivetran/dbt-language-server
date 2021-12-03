@@ -34,4 +34,8 @@ export class ServiceAccountFactory extends ProfileFactory {
   createValidator(): ProfileValidator {
     return new ServiceAccountValidator();
   }
+
+  authenticateClient(): Promise<void> {
+    return Promise.resolve();
+  }
 }

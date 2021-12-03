@@ -57,7 +57,7 @@ export class LspServer {
     process.on('SIGTERM', this.gracefulShutdown);
     process.on('SIGINT', this.gracefulShutdown);
 
-    const findResult = this.yamlParser.createDbtProfile();
+    const findResult = await this.yamlParser.createDbtProfile();
     if (findResult.error) {
       return new ResponseError<InitializeError>(100, findResult.error, { retry: true });
     }

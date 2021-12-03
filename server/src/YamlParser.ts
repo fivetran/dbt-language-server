@@ -79,7 +79,7 @@ export class YamlParser {
     return undefined;
   }
 
-  createDbtProfile(): DbtProfileResult {
+  async createDbtProfile(): Promise<DbtProfileResult> {
     let profiles = undefined;
     try {
       profiles = YamlParser.parseYamlFile(this.profilesPath);
@@ -129,6 +129,7 @@ export class YamlParser {
         return YamlParser.errorResult(`Invalid profile validation. Profile type '${type}' is not supported.`);
     }
 
+    await profileFactory.authenticateClient();
     const profileValidator: ProfileValidator = profileFactory.createValidator();
     const result = profileValidator.validateProfile(targetConfig);
     if (result !== undefined) {
@@ -140,9 +141,9 @@ export class YamlParser {
     const profileData = profileDataExtractor.getData(targetConfig);
     const client = profileFactory.createClient(profileData);
 
-    return {
+    return Promise.resolve({
       client: client,
-    };
+    });
   }
 
   cantFindSectionError(profileName: string, section: string, docsUrl?: string): DbtProfileResult {
