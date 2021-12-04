@@ -1,4 +1,6 @@
-import { DbtCompileJob } from './DbtCompileJob';
+import { DbtCompileJob } from './jobs/DbtCompileJob';
+import { DbtCompileModelJob } from './jobs/DbtCompileModelJob';
+import { DbtCompileSqlJob } from './jobs/DbtCompileSqlJob';
 import { CompileResult, DbtServer } from './DbtServer';
 import { DbtTextDocument } from './DbtTextDocument';
 
@@ -33,17 +35,17 @@ export class ModelCompiler {
 
   startNewTask(): void {
     const index = this.dbtTextDocument.rawDocument.uri.indexOf(__dirname);
-    const modelName = this.dbtTextDocument.rawDocument.uri
-      .slice(index + __dirname.length)
-      .split('.')
-      .reverse()
-      .pop();
+    const modelName = this.dbtTextDocument.rawDocument.uri.slice(index + __dirname.length);
 
+    let task;
     if (modelName) {
-      const task = new DbtCompileJob(this.dbtServer, modelName);
-      this.dbtCompileTaskQueue.push(task);
-      void task.runCompile();
+      task = new DbtCompileModelJob(this.dbtServer, modelName);
+    } else {
+      task = new DbtCompileSqlJob(this.dbtServer, this.dbtTextDocument.rawDocument.getText());
     }
+
+    this.dbtCompileTaskQueue.push(task);
+    void task.runCompile();
   }
 
   async pollResults(): Promise<void> {
