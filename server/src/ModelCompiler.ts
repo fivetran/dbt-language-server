@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import { DbtCompileJob } from './DbtCompileJob';
 import { CompileResult, DbtServer } from './DbtServer';
 import { DbtTextDocument } from './DbtTextDocument';
@@ -32,9 +33,18 @@ export class ModelCompiler {
   }
 
   startNewTask(): void {
-    const task = new DbtCompileJob(this.dbtServer, this.dbtTextDocument.rawDocument.getText());
-    this.dbtCompileTaskQueue.push(task);
-    void task.runCompile();
+    const index = this.dbtTextDocument.rawDocument.uri.indexOf(__dirname);
+    const modelName = this.dbtTextDocument.rawDocument.uri
+      .slice(index + __dirname.length)
+      .split('.')
+      .reverse()
+      .pop();
+
+    if (modelName) {
+      const task = new DbtCompileJob(this.dbtServer, modelName);
+      this.dbtCompileTaskQueue.push(task);
+      void task.runCompile();
+    }
   }
 
   async pollResults(): Promise<void> {

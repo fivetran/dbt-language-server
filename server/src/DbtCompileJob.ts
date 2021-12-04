@@ -1,26 +1,29 @@
 import { CompileResponse, DbtServer, PollResponse } from './DbtServer';
+import { v4 as uuid } from 'uuid';
 
 export class DbtCompileJob {
   static readonly MAX_RETRIES = 5;
 
   dbtServer: DbtServer;
-  text: string;
+  modelName: string;
+  requestId: string;
   startCompileRsponse: CompileResponse | undefined;
   tryCount = 0;
 
-  constructor(dbtServer: DbtServer, text: string) {
+  constructor(dbtServer: DbtServer, modelName: string) {
     this.dbtServer = dbtServer;
-    this.text = text;
+    this.modelName = modelName;
+    this.requestId = uuid();
   }
 
   async runCompile(): Promise<void> {
-    this.startCompileRsponse = await this.dbtServer.compileSql(this.text);
+    this.startCompileRsponse = await this.dbtServer.compileModel(this.requestId, this.modelName);
   }
 
   async getResult(): Promise<PollResponse | undefined> {
     if (this.startCompileRsponse) {
       if (!this.startCompileRsponse.error) {
-        return await this.dbtServer.pollOnceCompileResult(this.startCompileRsponse.result.request_token);
+        return await this.dbtServer.pollOnceCompileResult(this.requestId, this.startCompileRsponse.result.request_token);
       } else {
         if (this.tryCount >= DbtCompileJob.MAX_RETRIES) {
           return <PollResponse>{

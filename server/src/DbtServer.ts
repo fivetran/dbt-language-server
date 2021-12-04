@@ -201,11 +201,11 @@ export class DbtServer {
     return await this.makePostRequest<StatusResponse>(data);
   }
 
-  async compileModel(modelName: string): Promise<CompileResponse | undefined> {
+  async compileModel(id: string, modelName: string): Promise<CompileResponse | undefined> {
     const data: PostData = {
       jsonrpc: '2.0',
       method: 'compile',
-      id: uuid(),
+      id: id,
       params: {
         models: modelName,
       },
@@ -214,11 +214,11 @@ export class DbtServer {
     return await this.makePostRequest<CompileResponse>(data);
   }
 
-  async compileSql(sql: string): Promise<CompileResponse> {
+  async compileSql(id: string, sql: string): Promise<CompileResponse> {
     const data: PostData = {
       jsonrpc: '2.0',
       method: 'compile_sql',
-      id: uuid(),
+      id: id,
       params: {
         timeout: 60,
         sql: Buffer.from(sql).toString('base64'),
@@ -240,11 +240,11 @@ export class DbtServer {
     return result;
   }
 
-  async pollOnceCompileResult(requestToken: string): Promise<PollResponse | undefined> {
+  async pollOnceCompileResult(id: string, requestToken: string): Promise<PollResponse | undefined> {
     const data: PostData = {
       jsonrpc: '2.0',
       method: 'poll',
-      id: uuid(),
+      id: id,
       params: {
         request_token: requestToken,
         logs: false,
