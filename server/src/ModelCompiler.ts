@@ -1,4 +1,3 @@
-import * as fs from 'fs';
 import { DbtCompileJob } from './DbtCompileJob';
 import { CompileResult, DbtServer } from './DbtServer';
 import { DbtTextDocument } from './DbtTextDocument';
