@@ -145,8 +145,17 @@ export class LspServer {
     }
   }
 
-  onDidSaveTextDocument(params: DidSaveTextDocumentParams): void {
+  async onDidSaveTextDocument(params: DidSaveTextDocumentParams): Promise<void> {
     this.dbtServer.refreshServer();
+
+    if (!(await this.isDbtReady())) {
+      return;
+    }
+
+    const document = this.openedDocuments.get(params.textDocument.uri);
+    if (document) {
+      await document.didSaveTextDocument();
+    }
   }
 
   async onDidOpenTextDocument(params: DidOpenTextDocumentParams): Promise<void> {

@@ -7,6 +7,7 @@ import {
   CompletionParams,
   Diagnostic,
   DiagnosticSeverity,
+  DidSaveTextDocumentParams,
   DidChangeTextDocumentParams,
   Hover,
   HoverParams,
@@ -60,6 +61,10 @@ export class DbtTextDocument {
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.modelCompiler = new ModelCompiler(this, dbtServer);
     this.schemaTracker = new SchemaTracker(serviceAccountCredentials);
+  }
+
+  async didSaveTextDocument(): Promise<void> {
+    await this.debouncedCompile();
   }
 
   async didChangeTextDocument(params: DidChangeTextDocumentParams): Promise<void> {
