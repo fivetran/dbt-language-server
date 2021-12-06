@@ -1,24 +1,37 @@
-import { ProfileFactory } from '../../ProfileFactory';
-import { ProfileDataExtractor } from '../../ProfileDataExtractor';
-import { ServiceAccountDataExtractor } from './ServiceAccountDataExtractor';
-import { Client } from '../../Client';
+import { DbtProfile } from '../../DbtProfile';
 import { ProfileData } from '../../ProfileData';
-import { ProfileValidator } from '../../ProfileValidator';
-import { ServiceAccountValidator } from './ServiceAccountValidator';
 import { ServiceAccountData } from './ServiceAccountData';
+import { YamlParserUtils } from '../../../YamlParserUtils';
+import { Client } from '../../Client';
 import { BigQueryClient } from '../BigQueryClient';
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 
-export class ServiceAccountFactory extends ProfileFactory {
+export class ServiceAccountProfile extends DbtProfile {
   static readonly BQ_SERVICE_ACCOUNT_FILE_DOCS =
     '[Service Account File configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-file).';
 
   getDocsUrl(): string {
-    return ServiceAccountFactory.BQ_SERVICE_ACCOUNT_FILE_DOCS;
+    return ServiceAccountProfile.BQ_SERVICE_ACCOUNT_FILE_DOCS;
   }
 
-  getProfileDataExtractor(): ProfileDataExtractor {
-    return new ServiceAccountDataExtractor();
+  getData(profile: any): ProfileData {
+    const project = profile.project;
+    const keyFilePath = YamlParserUtils.replaceTilde(profile.keyfile);
+    return new ServiceAccountData(project, keyFilePath);
+  }
+
+  validateProfile(targetConfig: any): string | undefined {
+    const project = targetConfig.project;
+    if (!project) {
+      return 'project';
+    }
+
+    const keyFilePath = targetConfig.keyfile;
+    if (!keyFilePath) {
+      return 'keyfile';
+    }
+
+    return undefined;
   }
 
   createClient(data: ProfileData): Client {
@@ -29,10 +42,6 @@ export class ServiceAccountFactory extends ProfileFactory {
     };
     const bigQuery = new BigQuery(options);
     return new BigQueryClient(serviceAccountData.project, bigQuery);
-  }
-
-  createValidator(): ProfileValidator {
-    return new ServiceAccountValidator();
   }
 
   authenticateClient(): Promise<void> {

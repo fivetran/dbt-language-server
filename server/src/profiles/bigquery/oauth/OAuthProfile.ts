@@ -1,26 +1,32 @@
-import { ProfileFactory } from '../../ProfileFactory';
-import { ProfileDataExtractor } from '../../ProfileDataExtractor';
-import { OAuthDataExtractor } from './OAuthDataExtractor';
-import { Client } from '../../Client';
+import { DbtProfile } from '../../DbtProfile';
 import { ProfileData } from '../../ProfileData';
-import { ProfileValidator } from '../../ProfileValidator';
-import { OAuthValidator } from './OAuthValidator';
 import { OAuthData } from './OAuthData';
+import { Client } from '../../Client';
 import { BigQueryClient } from '../BigQueryClient';
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 import { ProcessExecutor } from '../../../ProcessExecutor';
 
-export class OAuthFactory extends ProfileFactory {
+export class OAuthProfile extends DbtProfile {
   static readonly BQ_OAUTH_DOCS =
     '[OAuth via gcloud configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#oauth-via-gcloud).';
   static processExecutor = new ProcessExecutor();
 
   getDocsUrl(): string {
-    return OAuthFactory.BQ_OAUTH_DOCS;
+    return OAuthProfile.BQ_OAUTH_DOCS;
   }
 
-  getProfileDataExtractor(): ProfileDataExtractor {
-    return new OAuthDataExtractor();
+  getData(profile: any): ProfileData {
+    const project = profile.project;
+    return new OAuthData(project);
+  }
+
+  validateProfile(targetConfig: any): string | undefined {
+    const project = targetConfig.project;
+    if (!project) {
+      return 'project';
+    }
+
+    return undefined;
   }
 
   createClient(data: ProfileData): Client {
@@ -32,15 +38,11 @@ export class OAuthFactory extends ProfileFactory {
     return new BigQueryClient(oAuthData.project, bigQuery);
   }
 
-  createValidator(): ProfileValidator {
-    return new OAuthValidator();
-  }
-
   async authenticateClient(): Promise<void> {
     try {
       const authenticateCommand =
         'gcloud auth application-default login --scopes=https://www.googleapis.com/auth/bigquery,https://www.googleapis.com/auth/iam.test';
-      await OAuthFactory.processExecutor.execProcess(authenticateCommand);
+      await OAuthProfile.processExecutor.execProcess(authenticateCommand);
     } catch (e) {
       console.log('Failed to find dbt command', e);
     }

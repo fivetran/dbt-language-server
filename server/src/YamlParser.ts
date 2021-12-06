@@ -3,11 +3,10 @@ import * as yaml from 'yaml';
 import { YamlParserUtils } from './YamlParserUtils';
 import { Client } from './profiles/Client';
 import { DbtProfileType, profileMethods } from './profiles/DbtProfileType';
-import { ProfileFactory } from './profiles/ProfileFactory';
-import { ProfileValidator } from './profiles/ProfileValidator';
-import { ServiceAccountFactory } from './profiles/bigquery/serviceAccount/ServiceAccountFactory';
-import { ServiceAccountJsonFactory } from './profiles/bigquery/serviceAccountJson/ServiceAccountJsonFactory';
-import { OAuthFactory } from './profiles/bigquery/oauth/OAuthFactory';
+import { DbtProfile } from './profiles/DbtProfile';
+import { OAuthProfile } from './profiles/bigquery/oauth/OAuthProfile';
+import { ServiceAccountProfile } from './profiles/bigquery/serviceAccount/ServiceAccountProfile';
+import { ServiceAccountJsonProfile } from './profiles/bigquery/serviceAccountJson/ServiceAccountJsonProfile';
 
 export interface DbtProfileResult {
   client?: Client;
@@ -107,19 +106,19 @@ export class YamlParser {
     const type = targetConfig.type;
     const method = targetConfig.method;
 
-    let profileFactory: ProfileFactory;
+    let dbtProfile: DbtProfile;
 
     switch (type) {
       case DbtProfileType.BigQuery:
         switch (method) {
+          case 'oauth':
+            dbtProfile = new OAuthProfile();
+            break;
           case 'service-account':
-            profileFactory = new ServiceAccountFactory();
+            dbtProfile = new ServiceAccountProfile();
             break;
           case 'service-account-json':
-            profileFactory = new ServiceAccountJsonFactory();
-            break;
-          case 'oauth':
-            profileFactory = new OAuthFactory();
+            dbtProfile = new ServiceAccountJsonProfile();
             break;
           default:
             return YamlParser.errorResult(`Invalid profile validation. Authentication method '${method}' of '${type}' profile is not supported`);
@@ -129,17 +128,15 @@ export class YamlParser {
         return YamlParser.errorResult(`Invalid profile validation. Profile type '${type}' is not supported.`);
     }
 
-    await profileFactory.authenticateClient();
-    const profileValidator: ProfileValidator = profileFactory.createValidator();
-    const result = profileValidator.validateProfile(targetConfig);
+    await dbtProfile.authenticateClient();
+    const result = dbtProfile.validateProfile(targetConfig);
     if (result !== undefined) {
-      const docsUrl = profileFactory.getDocsUrl();
+      const docsUrl = dbtProfile.getDocsUrl();
       return this.cantFindSectionError(profileName, result, docsUrl);
     }
 
-    const profileDataExtractor = profileFactory.getProfileDataExtractor();
-    const profileData = profileDataExtractor.getData(targetConfig);
-    const client = profileFactory.createClient(profileData);
+    const profileData = dbtProfile.getData(targetConfig);
+    const client = dbtProfile.createClient(profileData);
 
     return Promise.resolve({
       client: client,
