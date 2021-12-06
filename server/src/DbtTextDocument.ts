@@ -7,7 +7,6 @@ import {
   CompletionParams,
   Diagnostic,
   DiagnosticSeverity,
-  DidSaveTextDocumentParams,
   DidChangeTextDocumentParams,
   Hover,
   HoverParams,
