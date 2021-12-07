@@ -40,8 +40,7 @@ export class OAuthProfile extends DbtProfile {
 
   async authenticateClient(): Promise<void> {
     try {
-      const authenticateCommand =
-        'gcloud auth application-default login --scopes=https://www.googleapis.com/auth/bigquery,https://www.googleapis.com/auth/iam.test';
+      const authenticateCommand = 'gcloud auth application-default login';
       await OAuthProfile.processExecutor.execProcess(authenticateCommand);
     } catch (e) {
       console.log('Failed to find dbt command', e);
