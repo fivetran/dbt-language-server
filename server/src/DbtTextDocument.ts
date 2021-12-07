@@ -166,7 +166,7 @@ export class DbtTextDocument {
 
     const diagnostics: Diagnostic[] = [];
     try {
-      this.ast = await ZetaSQLClient.INSTANCE.analyze(analyzeRequest);
+      this.ast = await ZetaSQLClient.getInstance().analyze(analyzeRequest);
       console.log('AST was successfully received');
     } catch (e: any) {
       console.log('There was an error wile parsing SQL query');

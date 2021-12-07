@@ -28,6 +28,7 @@ import { DestinationDefinition } from './DestinationDefinition';
 import { ManifestParser } from './ManifestParser';
 import { ProgressReporter } from './ProgressReporter';
 import { ServiceAccountCredentials, ServiceAccountJsonCredentials, YamlParser } from './YamlParser';
+import findFreePortPmfy = require('find-free-port');
 
 interface TelemetryEvent {
   name: string;
@@ -135,8 +136,11 @@ export class LspServer {
   }
 
   async initializeZetaSql(): Promise<void> {
-    runServer().catch(err => console.error(err));
-    await ZetaSQLClient.INSTANCE.testConnection();
+    const port = await findFreePortPmfy(50051);
+    console.log(`Starting zetasql on port ${port}`);
+    runServer(port).catch(err => console.error(err));
+    ZetaSQLClient.init(port);
+    await ZetaSQLClient.getInstance().testConnection();
   }
 
   initializeDestinationDefinition(): void {
@@ -229,7 +233,7 @@ export class LspServer {
 
   dispose(): void {
     console.log('Dispose start...');
-    terminateServer();
+    void terminateServer();
     this.dbtServer.dispose();
     console.log('Dispose end.');
   }
