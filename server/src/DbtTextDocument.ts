@@ -43,7 +43,6 @@ export class DbtTextDocument {
 
   rawDocument: TextDocument;
   compiledDocument: TextDocument;
-  // previewDocument: TextDocument;
   compileNeeded: boolean;
 
   modelCompiler: ModelCompiler;
@@ -61,11 +60,8 @@ export class DbtTextDocument {
     serviceAccountCredentials: ServiceAccountCredentials | ServiceAccountJsonCredentials,
   ) {
     this.dbtServer = dbtServer;
-
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
-    // this.previewDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
-
     this.modelCompiler = new ModelCompiler(this, dbtServer);
     this.schemaTracker = new SchemaTracker(serviceAccountCredentials);
     this.compileNeeded = false;
