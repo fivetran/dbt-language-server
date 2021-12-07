@@ -13,6 +13,7 @@ import {
   HoverParams,
   InitializeError,
   InitializeParams,
+  WorkspaceFolder,
   InitializeResult,
   ResponseError,
   SignatureHelp,
@@ -37,6 +38,7 @@ interface TelemetryEvent {
 export class LspServer {
   connection: _Connection;
   hasConfigurationCapability = false;
+  workspaceFolders: WorkspaceFolder[] = [];
   dbtServer = new DbtServer();
   openedDocuments = new Map<string, DbtTextDocument>();
   serviceAccountCredentials?: ServiceAccountCredentials | ServiceAccountJsonCredentials;
@@ -70,6 +72,10 @@ export class LspServer {
     // Does the client support the `workspace/configuration` request?
     // If not, we fall back using global settings.
     this.hasConfigurationCapability = !!(capabilities.workspace && !!capabilities.workspace.configuration);
+
+    if (params.workspaceFolders) {
+      params.workspaceFolders.forEach(f => this.workspaceFolders.push(f));
+    }
 
     return <InitializeResult>{
       capabilities: {
@@ -167,6 +173,7 @@ export class LspServer {
         this.progressReporter,
         this.completionProvider,
         this.serviceAccountCredentials,
+        this.workspaceFolders,
       );
       this.openedDocuments.set(uri, document);
       await document.didOpenTextDocument();

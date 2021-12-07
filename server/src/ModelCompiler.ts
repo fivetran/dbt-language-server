@@ -3,6 +3,7 @@ import { DbtCompileModelJob } from './jobs/DbtCompileModelJob';
 import { DbtCompileSqlJob } from './jobs/DbtCompileSqlJob';
 import { CompileResult, DbtServer } from './DbtServer';
 import { DbtTextDocument } from './DbtTextDocument';
+import { WorkspaceFolder } from 'vscode-languageserver';
 
 export class ModelCompiler {
   dbtTextDocument: DbtTextDocument;
@@ -10,10 +11,12 @@ export class ModelCompiler {
   dbtCompileTaskQueue: DbtCompileJob[] = [];
   compilationInProgress = false;
   pollIsRunning = false;
+  workspaceFolders: WorkspaceFolder[];
 
-  constructor(dbtTextDocument: DbtTextDocument, dbtServer: DbtServer) {
+  constructor(dbtTextDocument: DbtTextDocument, dbtServer: DbtServer, workspaceFolders: WorkspaceFolder[]) {
     this.dbtTextDocument = dbtTextDocument;
     this.dbtServer = dbtServer;
+    this.workspaceFolders = workspaceFolders;
   }
 
   async compile(): Promise<void> {
@@ -34,13 +37,19 @@ export class ModelCompiler {
   }
 
   startNewTask(): void {
-    const workingDirectory = process.cwd();
-    const index = this.dbtTextDocument.rawDocument.uri.indexOf(workingDirectory);
-    const modelName = this.dbtTextDocument.rawDocument.uri.slice(index + workingDirectory.length);
+    const documentUri = this.dbtTextDocument.rawDocument.uri;
+    const documentWorkspaces = this.workspaceFolders.filter(w => documentUri.indexOf(w.uri) != -1);
+
+    let modelPath = undefined;
+    if (documentWorkspaces.length > 0) {
+      const workingDirectory = documentWorkspaces[0].uri;
+      const index = documentUri.indexOf(workingDirectory);
+      modelPath = documentUri.slice(index + workingDirectory.length + 1);
+    }
 
     let task;
-    if (modelName) {
-      task = new DbtCompileModelJob(this.dbtServer, modelName);
+    if (modelPath) {
+      task = new DbtCompileModelJob(this.dbtServer, modelPath);
     } else {
       task = new DbtCompileSqlJob(this.dbtServer, this.dbtTextDocument.rawDocument.getText());
     }
