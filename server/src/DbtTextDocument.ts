@@ -34,12 +34,6 @@ import { ServiceAccountCredentials, ServiceAccountJsonCredentials } from './Yaml
 import { ZetaSQLAST } from './ZetaSQLAST';
 import { ZetaSQLCatalog } from './ZetaSQLCatalog';
 
-interface IncrementalChanges {
-  isDbtCompileNeeded: boolean;
-  compiledContentChanges: TextDocumentContentChangeEvent[];
-  textDocumentVersion: number;
-}
-
 export class DbtTextDocument {
   static readonly NON_WORD_PATTERN = /\W/;
   static readonly DEBOUNCE_TIMEOUT = 300;
@@ -49,13 +43,14 @@ export class DbtTextDocument {
 
   rawDocument: TextDocument;
   compiledDocument: TextDocument;
+  // previewDocument: TextDocument;
+  compileNeeded: boolean;
+
   modelCompiler: ModelCompiler;
   ast: AnalyzeResponse | undefined;
   schemaTracker: SchemaTracker;
   signatureHelpProvider = new SignatureHelpProvider();
-
   dbtServer: DbtServer;
-  incrementalChanges: IncrementalChanges[];
 
   constructor(
     doc: TextDocumentItem,
@@ -66,24 +61,24 @@ export class DbtTextDocument {
     serviceAccountCredentials: ServiceAccountCredentials | ServiceAccountJsonCredentials,
   ) {
     this.dbtServer = dbtServer;
+
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
+    // this.previewDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
+
     this.modelCompiler = new ModelCompiler(this, dbtServer);
     this.schemaTracker = new SchemaTracker(serviceAccountCredentials);
-    this.incrementalChanges = [];
+    this.compileNeeded = false;
   }
 
   async didSaveTextDocument(): Promise<void> {
-    if (this.incrementalChanges.some(c => c.isDbtCompileNeeded)) {
+    if (this.compileNeeded) {
+      this.compileNeeded = false;
       this.dbtServer.refreshServer();
       await this.debouncedCompile();
     } else {
-      for (const change of this.incrementalChanges) {
-        TextDocument.update(this.compiledDocument, change.compiledContentChanges, change.textDocumentVersion);
-        await this.onCompilationFinished(this.compiledDocument.getText());
-      }
+      await this.onCompilationFinished(this.compiledDocument.getText());
     }
-    this.incrementalChanges = [];
   }
 
   async didOpenTextDocument(): Promise<void> {
@@ -91,21 +86,14 @@ export class DbtTextDocument {
   }
 
   async didChangeTextDocument(params: DidChangeTextDocumentParams): Promise<void> {
-    TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
-    const isDbtCompileNeeded = this.isDbtCompileNeeded(params.contentChanges);
-
-    if (isDbtCompileNeeded || this.incrementalChanges.some(c => c.isDbtCompileNeeded)) {
-      this.incrementalChanges.push({
-        isDbtCompileNeeded: isDbtCompileNeeded,
-        compiledContentChanges: [],
-        textDocumentVersion: params.textDocument.version,
-      });
+    if (this.compileNeeded || this.isDbtCompileNeeded(params.contentChanges)) {
+      TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
+      this.compileNeeded = true;
     } else {
       const compiledContentChanges = params.contentChanges.map(c => {
         if (!TextDocumentContentChangeEvent.isIncremental(c)) {
           throw new Error('Incremental updates expected');
         }
-
         return <TextDocumentContentChangeEvent>{
           text: c.text,
           range: Range.create(
@@ -114,12 +102,8 @@ export class DbtTextDocument {
           ),
         };
       });
-
-      this.incrementalChanges.push({
-        isDbtCompileNeeded: isDbtCompileNeeded,
-        compiledContentChanges: compiledContentChanges,
-        textDocumentVersion: params.textDocument.version,
-      });
+      TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
+      TextDocument.update(this.compiledDocument, compiledContentChanges, params.textDocument.version);
     }
   }
 
