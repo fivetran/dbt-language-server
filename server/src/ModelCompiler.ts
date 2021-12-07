@@ -34,8 +34,9 @@ export class ModelCompiler {
   }
 
   startNewTask(): void {
-    const index = this.dbtTextDocument.rawDocument.uri.indexOf(__dirname);
-    const modelName = this.dbtTextDocument.rawDocument.uri.slice(index + __dirname.length);
+    const workingDirectory = process.cwd();
+    const index = this.dbtTextDocument.rawDocument.uri.indexOf(workingDirectory);
+    const modelName = this.dbtTextDocument.rawDocument.uri.slice(index + workingDirectory.length);
 
     let task;
     if (modelName) {
