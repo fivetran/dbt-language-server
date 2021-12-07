@@ -12,6 +12,8 @@ interface TelemetryEvent {
   properties?: { [key: string]: string };
 }
 
+const SUPPORTED_LANG_IDS = ['sql', 'jinja-sql'];
+
 export class LspClient {
   previewContentProvider = new SqlPreviewContentProvider();
   progressHandler = new ProgressHandler();
@@ -36,10 +38,7 @@ export class LspClient {
     };
 
     const clientOptions: LanguageClientOptions = {
-      documentSelector: [
-        { scheme: 'file', language: 'sql' },
-        { scheme: 'file', language: 'jinja-sql' },
-      ],
+      documentSelector: SUPPORTED_LANG_IDS.map(langId => ({ scheme: 'file', language: langId })),
       synchronize: {
         fileEvents: workspace.createFileSystemWatcher('**/target/manifest.json'),
       },
@@ -106,7 +105,7 @@ export class LspClient {
         return;
       }
       const { document } = window.activeTextEditor;
-      if (document.languageId !== 'sql' && document.languageId !== 'jinja-sql') {
+      if (!SUPPORTED_LANG_IDS.includes(document.languageId)) {
         return;
       }
 
