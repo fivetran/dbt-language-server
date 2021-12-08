@@ -52,7 +52,7 @@ export class LspClient {
 
     await this.progressHandler.begin();
 
-    this.initializeClient();
+    this.initializeClient(this.client);
     this.registerSqlPreviewContentProvider(this.ctx);
 
     this.registerCommands();
@@ -64,25 +64,25 @@ export class LspClient {
     this.client.start();
   }
 
-  initializeClient(): void {
+  initializeClient(client: LanguageClient): void {
     this.ctx.subscriptions.push(
-      this.client.onTelemetry((e: TelemetryEvent) => {
+      client.onTelemetry((e: TelemetryEvent) => {
         TelemetryClient.sendEvent(e.name, e.properties);
       }),
     );
 
-    this.client.onDidChangeState(async e => {
+    client.onDidChangeState(async e => {
       if (e.newState === State.Running) {
         this.ctx.subscriptions.push(
-          this.client.onNotification('custom/updateQueryPreview', ([uri, text]) => {
+          client.onNotification('custom/updateQueryPreview', ([uri, text]) => {
             this.previewContentProvider.update(uri, text);
           }),
 
-          this.client.onRequest('custom/getPython', async () => {
+          client.onRequest('custom/getPython', async () => {
             return await new PythonExtension().getPython();
           }),
 
-          await this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),
+          await client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),
         );
 
         await commands.executeCommand('setContext', 'dbt-language-server.init', true);
@@ -92,7 +92,7 @@ export class LspClient {
       }
     });
 
-    this.client.onReady().catch(reason => {
+    client.onReady().catch(reason => {
       if (reason && reason.name && reason.message) {
         TelemetryClient.sendException(reason);
       }
@@ -100,7 +100,7 @@ export class LspClient {
   }
 
   registerCommands(): void {
-    this.registerCommand('dbt.compile', async () => {
+    this.registerCommand('dbt.compile', async (...args: any[]) => {
       if (!window.activeTextEditor) {
         return;
       }
