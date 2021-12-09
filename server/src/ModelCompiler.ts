@@ -90,6 +90,8 @@ export class ModelCompiler {
           if (compiledNodes.length > 0) {
             const compiledSql = compiledNodes[0].node.compiled_sql;
             await this.dbtTextDocument.onCompilationFinished(compiledSql);
+          } else {
+            await this.dbtTextDocument.onCompilationFinished(' ');
           }
           break;
         }

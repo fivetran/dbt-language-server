@@ -29,7 +29,7 @@ suite('Should do completion inside jinjas expression', () => {
     await activateAndWait(docUri);
     await setTestContent('select * from {{ref(');
 
-    await testCompletion(docUri, new vscode.Position(0, 20), getCompletionList(true), '(');
+    await testCompletion(docUri, new vscode.Position(0, 21), getCompletionList(true), '(');
   });
 
   test('Should suggest models for ref function', async () => {
@@ -69,6 +69,6 @@ suite('Should do completion inside jinjas expression', () => {
   }
 
   function getLabels(): string[] {
-    return ['dbt_compile', 'errors', 'functions', 'jinja_sql', 'join_tables'];
+    return ['completion_jinja', 'dbt_compile', 'errors', 'functions', 'jinja_sql', 'join_tables'];
   }
 });

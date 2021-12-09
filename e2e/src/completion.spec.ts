@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { activateAndWait, getDocUri, replaceText, testCompletion } from './helper';
 
 suite('Should do completion', () => {
-  test('Should suggest table colums', async () => {
+  test('Should suggest table columns', async () => {
     const docUri = getDocUri('simple_select.sql');
     await activateAndWait(docUri);
     await testCompletion(docUri, new vscode.Position(0, 8), {
@@ -15,7 +15,7 @@ suite('Should do completion', () => {
     });
   });
 
-  test('Should suggest colums for both tables', async () => {
+  test('Should suggest columns for both tables', async () => {
     const docUri = getDocUri('join_tables.sql');
     await activateAndWait(docUri);
     await testCompletion(docUri, new vscode.Position(0, 8), {
@@ -36,7 +36,7 @@ suite('Should do completion', () => {
     });
   });
 
-  test('Should suggest colums for table name after press .', async () => {
+  test('Should suggest columns for table name after press .', async () => {
     const docUri = getDocUri('join_tables.sql');
     await activateAndWait(docUri);
     await replaceText('*', 'users.');
@@ -58,7 +58,7 @@ suite('Should do completion', () => {
     );
   });
 
-  test('Should suggest colums for table alias after press .', async () => {
+  test('Should suggest columns for table alias after press .', async () => {
     const docUri = getDocUri('select_with_alias.sql');
     await activateAndWait(docUri);
     await replaceText('*', 't.');
