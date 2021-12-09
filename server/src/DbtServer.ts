@@ -2,7 +2,7 @@ import axios from 'axios';
 import { ChildProcess } from 'child_process';
 import { v4 as uuid } from 'uuid';
 import { ProcessExecutor } from './ProcessExecutor';
-import { deferred } from './Utils';
+import { deferred, randomNumber } from './Utils';
 import findFreePortPmfy = require('find-free-port');
 
 interface PostData {
@@ -89,7 +89,8 @@ export class DbtServer {
   startDeferred = deferred<void>();
 
   async startDbtRpc(getPython: () => Promise<string>): Promise<void> {
-    this.port = await findFreePortPmfy(8588);
+    this.port = await findFreePortPmfy(randomNumber(1024, 65535));
+    console.log('Starting dbt on port ' + this.port);
 
     try {
       await this.findDbtCommand(getPython);

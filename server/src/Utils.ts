@@ -81,3 +81,8 @@ export const deferred = <T>(): DeferredResult<T> => {
     promise,
   };
 };
+
+// min and max included
+export function randomNumber(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}

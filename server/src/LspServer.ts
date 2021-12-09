@@ -27,6 +27,7 @@ import { DbtTextDocument } from './DbtTextDocument';
 import { DestinationDefinition } from './DestinationDefinition';
 import { ManifestParser } from './ManifestParser';
 import { ProgressReporter } from './ProgressReporter';
+import { randomNumber } from './Utils';
 import { ServiceAccountCredentials, ServiceAccountJsonCredentials, YamlParser } from './YamlParser';
 import findFreePortPmfy = require('find-free-port');
 
@@ -54,6 +55,8 @@ export class LspServer {
   }
 
   async onInitialize(params: InitializeParams): Promise<InitializeResult<any> | ResponseError<InitializeError>> {
+    console.log('Starting server for folder' + process.cwd());
+
     process.on('SIGTERM', this.onShutdown);
     process.on('SIGINT', this.onShutdown);
 
@@ -136,7 +139,7 @@ export class LspServer {
   }
 
   async initializeZetaSql(): Promise<void> {
-    const port = await findFreePortPmfy(50051);
+    const port = await findFreePortPmfy(randomNumber(1024, 65535));
     console.log(`Starting zetasql on port ${port}`);
     runServer(port).catch(err => console.error(err));
     ZetaSQLClient.init(port);
