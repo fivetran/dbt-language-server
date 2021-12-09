@@ -30,6 +30,15 @@
       "outFiles": ["${workspaceFolder}/server/out/**/*.js"]
     },
     {
+      "name": "Attach to Server 6010",
+      "type": "node",
+      "request": "attach",
+      "port": 6010,
+      "restart": true,
+      "skipFiles": ["<node_internals>/**"],
+      "outFiles": ["${workspaceFolder}/server/out/**/*.js"]
+    },
+    {
       "name": "Debug Server Unit Tests",
       "type": "node",
       "protocol": "inspector",

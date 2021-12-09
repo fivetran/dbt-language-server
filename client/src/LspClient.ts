@@ -1,6 +1,18 @@
-import { commands, ExtensionContext, languages, TextEditor, ViewColumn, window, workspace } from 'vscode';
-import { LanguageClientOptions, State, WorkDoneProgress } from 'vscode-languageclient';
-import { LanguageClient, ServerOptions, TransportKind } from 'vscode-languageclient/node';
+import {
+  commands,
+  ExtensionContext,
+  languages,
+  OutputChannel,
+  TextDocument,
+  TextEditor,
+  Uri,
+  ViewColumn,
+  window,
+  workspace,
+  WorkspaceFolder,
+} from 'vscode';
+import { State, WorkDoneProgress } from 'vscode-languageclient';
+import { LanguageClient, TransportKind } from 'vscode-languageclient/node';
 import { ProgressHandler } from './ProgressHandler';
 import { PythonExtension } from './PythonExtension';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
@@ -17,55 +29,42 @@ const SUPPORTED_LANG_IDS = ['sql', 'jinja-sql'];
 export class LspClient {
   previewContentProvider = new SqlPreviewContentProvider();
   progressHandler = new ProgressHandler();
+  sortedWorkspaceFolders?: string[];
+  clients: Map<string, LanguageClient> = new Map();
+  module: string;
+  outputChannel: OutputChannel;
 
-  client: LanguageClient;
-
-  constructor(private ctx: ExtensionContext) {
-    const serverModule = this.ctx.asAbsolutePath(path.join('server', 'out', 'server.js'));
-    // The debug options for the server
-    // --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging
-    const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
-
-    // If the extension is launched in debug mode then the debug server options are used
-    // Otherwise the run options are used
-    const serverOptions: ServerOptions = {
-      run: { module: serverModule, transport: TransportKind.ipc },
-      debug: {
-        module: serverModule,
-        transport: TransportKind.ipc,
-        options: debugOptions,
-      },
-    };
-
-    const clientOptions: LanguageClientOptions = {
-      documentSelector: SUPPORTED_LANG_IDS.map(langId => ({ scheme: 'file', language: langId })),
-      synchronize: {
-        fileEvents: workspace.createFileSystemWatcher('**/target/manifest.json'),
-      },
-    };
-
-    this.client = new LanguageClient('dbtFivetranExtension', 'Dbt Language Client', serverOptions, clientOptions);
+  constructor(private context: ExtensionContext) {
+    this.module = this.context.asAbsolutePath(path.join('server', 'out', 'server.js'));
+    this.outputChannel = window.createOutputChannel('Dbt Language Server');
   }
 
   public async onActivate(): Promise<void> {
     console.log('Congratulations, your extension "dbt-language-server" is now active!');
 
-    await this.progressHandler.begin();
+    workspace.onDidOpenTextDocument(this.onDidOpenTextDocument.bind(this));
+    workspace.textDocuments.forEach(t => this.onDidOpenTextDocument(t));
+    workspace.onDidChangeWorkspaceFolders(event => {
+      this.sortedWorkspaceFolders = undefined;
+      for (const folder of event.removed) {
+        const client = this.clients.get(folder.uri.toString());
+        if (client) {
+          this.clients.delete(folder.uri.toString());
+          void client.stop();
+        }
+      }
+    });
 
-    this.initializeClient(this.client);
-    this.registerSqlPreviewContentProvider(this.ctx);
+    this.registerSqlPreviewContentProvider(this.context);
 
     this.registerCommands();
 
-    TelemetryClient.activate(this.ctx);
+    TelemetryClient.activate(this.context);
     TelemetryClient.sendEvent('activate');
-
-    // Start the client. This will also launch the server
-    this.client.start();
   }
 
   initializeClient(client: LanguageClient): void {
-    this.ctx.subscriptions.push(
+    this.context.subscriptions.push(
       client.onTelemetry((e: TelemetryEvent) => {
         TelemetryClient.sendEvent(e.name, e.properties);
       }),
@@ -73,7 +72,7 @@ export class LspClient {
 
     client.onDidChangeState(async e => {
       if (e.newState === State.Running) {
-        this.ctx.subscriptions.push(
+        this.context.subscriptions.push(
           client.onNotification('custom/updateQueryPreview', ([uri, text]) => {
             this.previewContentProvider.update(uri, text);
           }),
@@ -100,7 +99,7 @@ export class LspClient {
   }
 
   registerCommands(): void {
-    this.registerCommand('dbt.compile', async (...args: any[]) => {
+    this.registerCommand('dbt.compile', async () => {
       if (!window.activeTextEditor) {
         return;
       }
@@ -109,10 +108,8 @@ export class LspClient {
         return;
       }
 
-      const uri =
-        document.uri.toString() === SqlPreviewContentProvider.uri.toString() ? this.previewContentProvider.activeDocUri : document.uri.toString();
-      this.client.sendNotification('custom/dbtCompile', uri);
-
+      const uri = document.uri.toString() === SqlPreviewContentProvider.uri.toString() ? this.previewContentProvider.activeDocUri : document.uri;
+      this.getClient(uri)?.sendNotification('custom/dbtCompile', uri.toString());
       await commands.executeCommand('editor.showQueryPreview');
     });
 
@@ -127,8 +124,17 @@ export class LspClient {
     });
   }
 
+  getClient(uri: Uri): LanguageClient | undefined {
+    const folder = workspace.getWorkspaceFolder(uri);
+    if (!folder) {
+      return;
+    }
+    const outerFolder = this.getOuterMostWorkspaceFolder(folder);
+    return this.clients.get(outerFolder.uri.toString());
+  }
+
   registerCommand(command: string, callback: (...args: any[]) => any): void {
-    this.ctx.subscriptions.push(commands.registerCommand(command, callback));
+    this.context.subscriptions.push(commands.registerCommand(command, callback));
   }
 
   registerSqlPreviewContentProvider(context: ExtensionContext): void {
@@ -138,7 +144,7 @@ export class LspClient {
         return;
       }
 
-      this.previewContentProvider.changeActiveDocument(editor.document.uri.toString());
+      this.previewContentProvider.changeActiveDocument(editor.document.uri);
 
       const doc = await workspace.openTextDocument(SqlPreviewContentProvider.uri);
       await window.showTextDocument(doc, ViewColumn.Beside, true);
@@ -149,16 +155,97 @@ export class LspClient {
       if (!e || e.document.uri.toString() === SqlPreviewContentProvider.uri.toString()) {
         return;
       }
-      this.previewContentProvider.changeActiveDocument(e.document.uri.toString());
+      this.previewContentProvider.changeActiveDocument(e.document.uri);
     });
 
     context.subscriptions.push(this.previewContentProvider, commandRegistration, providerRegistrations, eventRegistration);
   }
 
-  onDeactivate(): Thenable<void> | undefined {
-    if (!this.client) {
-      return undefined;
+  onDidOpenTextDocument(document: TextDocument): void {
+    if (!SUPPORTED_LANG_IDS.includes(document.languageId) || document.uri.scheme !== 'file') {
+      return;
     }
-    return this.client.stop();
+
+    const uri = document.uri;
+    const folder = workspace.getWorkspaceFolder(uri);
+    console.log(folder);
+
+    if (!folder) {
+      return;
+    }
+
+    const outerFolder = this.getOuterMostWorkspaceFolder(folder);
+
+    if (!this.clients.has(outerFolder.uri.toString())) {
+      const client = this.createLanguageClient(outerFolder);
+      this.initializeClient(client);
+
+      void this.progressHandler.begin();
+
+      client.start();
+      this.clients.set(outerFolder.uri.toString(), client);
+    }
+  }
+
+  createLanguageClient(outerFolder: WorkspaceFolder): LanguageClient {
+    const debugOptions = { execArgv: ['--nolazy', `--inspect=${6009 + this.clients.size}`] };
+    const serverOptions = {
+      run: { module: this.module, transport: TransportKind.ipc },
+      debug: { module: this.module, transport: TransportKind.ipc, options: debugOptions },
+    };
+
+    const clientOptions = {
+      documentSelector: SUPPORTED_LANG_IDS.map(langId => ({ scheme: 'file', language: langId, pattern: `${outerFolder.uri.fsPath}/**/*` })),
+      synchronize: {
+        fileEvents: workspace.createFileSystemWatcher('**/target/manifest.json'),
+      },
+      workspaceFolder: outerFolder,
+      outputChannel: this.outputChannel,
+    };
+
+    return new LanguageClient('dbt-language-server', 'Dbt Language Client', serverOptions, clientOptions);
+  }
+
+  getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
+    const sorted = this.getSortedWorkspaceFolders();
+    for (const element of sorted) {
+      let uri = folder.uri.toString();
+      if (uri.charAt(uri.length - 1) !== '/') {
+        uri = uri + '/';
+      }
+      if (uri.startsWith(element)) {
+        const outerFolder = workspace.getWorkspaceFolder(Uri.parse(element));
+        if (!outerFolder) {
+          throw new Error("Can't find outer most workspace folder");
+        }
+        return outerFolder;
+      }
+    }
+    return folder;
+  }
+
+  getSortedWorkspaceFolders(): string[] {
+    if (this.sortedWorkspaceFolders === undefined) {
+      this.sortedWorkspaceFolders = workspace.workspaceFolders
+        ? workspace.workspaceFolders
+            .map(folder => {
+              let result = folder.uri.toString();
+              if (result.charAt(result.length - 1) !== '/') {
+                result = result + '/';
+              }
+              return result;
+            })
+            .sort((a, b) => a.length - b.length)
+        : [];
+    }
+    return this.sortedWorkspaceFolders;
+  }
+
+  onDeactivate(): Thenable<void> {
+    const promises: Thenable<void>[] = [];
+    for (const client of this.clients.values()) {
+      promises.push(client.stop());
+    }
+    return Promise.all(promises).then(() => undefined);
   }
 }

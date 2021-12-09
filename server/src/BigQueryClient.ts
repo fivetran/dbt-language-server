@@ -56,7 +56,7 @@ export class BigQueryClient {
       const metadata = await table.getMetadata();
       return metadata[0].schema;
     } catch (e: any) {
-      console.log(e.message);
+      console.log('BigQueryClient error:' + e.message);
     }
   }
 }

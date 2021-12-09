@@ -5,7 +5,7 @@ export default class SqlPreviewContentProvider implements vscode.TextDocumentCon
   static uri = vscode.Uri.parse(SqlPreviewContentProvider.scheme + ':Preview?dbt-language-server');
   texts = new Map<string, string>();
 
-  activeDocUri = '';
+  activeDocUri: vscode.Uri = vscode.Uri.parse('');
 
   private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
 
@@ -14,7 +14,7 @@ export default class SqlPreviewContentProvider implements vscode.TextDocumentCon
     this._onDidChange.fire(SqlPreviewContentProvider.uri);
   }
 
-  changeActiveDocument(uri: string): void {
+  changeActiveDocument(uri: vscode.Uri): void {
     this.activeDocUri = uri;
     this._onDidChange.fire(SqlPreviewContentProvider.uri);
   }
@@ -28,6 +28,7 @@ export default class SqlPreviewContentProvider implements vscode.TextDocumentCon
   }
 
   provideTextDocumentContent(): string {
-    return this.texts.get(this.activeDocUri) ?? '';
+    const text = this.activeDocUri ? this.texts.get(this.activeDocUri.toString()) : '';
+    return text ?? '';
   }
 }
