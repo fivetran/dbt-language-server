@@ -57,15 +57,19 @@ export class OAuthProfile extends DbtProfile {
       .catch(async () => {
         console.log('Default Credentials not found');
 
-        const gcloudInstalledResult = await OAuthProfile.gcloudInstalled();
-        if (gcloudInstalledResult) {
+        const gcloudInstalledResult = await OAuthProfile.gcloudInstalled().catch((error: string) => {
           console.log('gcloud not installed');
+          return error;
+        });
+        if (gcloudInstalledResult) {
           return gcloudInstalledResult;
         }
 
-        const authenticateResult = await OAuthProfile.authenticate();
-        if (authenticateResult) {
+        const authenticateResult = await OAuthProfile.authenticate().catch((error: string) => {
           console.log('gcloud authentication failed');
+          return error;
+        });
+        if (authenticateResult) {
           return authenticateResult;
         }
 
