@@ -9,11 +9,14 @@ import { ProcessExecutor } from '../../../ProcessExecutor';
 export class OAuthProfile extends DbtProfile {
   static readonly BQ_OAUTH_DOCS =
     '[OAuth via gcloud configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#oauth-via-gcloud).';
-  static readonly GCLOUD_NOT_INSTALLED =
+  static readonly GCLOUD_NOT_INSTALLED_ERROR =
     'Extension requires the gcloud SDK to be installed to authenticate with BigQuery.\
     Please download and install the SDK, or use a Service Account instead.\
     https://cloud.google.com/sdk/';
-  static readonly GCLOUD_AUTHENTICATION_FAILED = 'Got an error when attempting to authenticate with default credentials.';
+  static readonly GCLOUD_AUTHENTICATION_ERROR = 'Got an error when attempting to authenticate with default credentials.';
+  static readonly GCLOUD_AUTHENTICATION_TIMEOUT = 15000;
+  static readonly GCLOUD_AUTHENTICATION_TIMEOUT_ERROR = 'Failed to authenticate within the given period';
+
   static processExecutor = new ProcessExecutor();
 
   getDocsUrl(): string {
@@ -48,27 +51,50 @@ export class OAuthProfile extends DbtProfile {
     return bigQuery.authClient
       .getCredentials()
       .then(() => {
+        console.log('Default Credentials found');
         return undefined;
       })
       .catch(async () => {
-        const gcloudInstalled = await this.gcloudInstalled();
-        if (!gcloudInstalled) {
-          return OAuthProfile.GCLOUD_NOT_INSTALLED;
+        console.log('Default Credentials not found');
+
+        const gcloudInstalledResult = await OAuthProfile.gcloudInstalled();
+        if (gcloudInstalledResult) {
+          console.log('gcloud not installed');
+          return gcloudInstalledResult;
         }
 
-        const authenticateCommand = 'gcloud auth application-default login';
-        const authenticationResult = await OAuthProfile.processExecutor.execProcess(authenticateCommand);
-        if (authenticationResult.stderr !== undefined) {
-          return OAuthProfile.GCLOUD_AUTHENTICATION_FAILED;
+        const authenticateResult = await OAuthProfile.authenticate();
+        if (authenticateResult) {
+          console.log('gcloud authentication failed');
+          return authenticateResult;
         }
 
+        console.log('Auth succeed');
         return undefined;
       });
   }
 
-  private async gcloudInstalled(): Promise<boolean> {
+  private static authenticate(): Promise<string | undefined> {
+    const authenticateCommand = 'gcloud auth application-default login';
+    const authenticatePromise = OAuthProfile.processExecutor
+      .execProcess(authenticateCommand)
+      .then(() => undefined)
+      .catch(() => OAuthProfile.GCLOUD_AUTHENTICATION_ERROR);
+
+    const timeoutPromise = new Promise<string | undefined>((_resolve, reject) => {
+      setTimeout(() => {
+        reject(OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT_ERROR);
+      }, OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT);
+    });
+
+    return Promise.race([authenticatePromise, timeoutPromise]);
+  }
+
+  private static gcloudInstalled(): Promise<string | undefined> {
     const versionCommand = 'gcloud --version';
-    const versionResult = await OAuthProfile.processExecutor.execProcess(versionCommand);
-    return versionResult.stderr == undefined;
+    return OAuthProfile.processExecutor
+      .execProcess(versionCommand)
+      .then(() => undefined)
+      .catch(() => OAuthProfile.GCLOUD_NOT_INSTALLED_ERROR);
   }
 }
