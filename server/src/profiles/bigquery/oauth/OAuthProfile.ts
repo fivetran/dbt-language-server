@@ -9,6 +9,11 @@ import { ProcessExecutor } from '../../../ProcessExecutor';
 export class OAuthProfile extends DbtProfile {
   static readonly BQ_OAUTH_DOCS =
     '[OAuth via gcloud configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#oauth-via-gcloud).';
+  static readonly GCLOUD_NOT_INSTALLED =
+    'Extension requires the gcloud SDK to be installed to authenticate with BigQuery.\
+    Please download and install the SDK, or use a Service Account instead.\
+    https://cloud.google.com/sdk/';
+  static readonly GCLOUD_AUTHENTICATION_FAILED = 'Got an error when attempting to authenticate with default credentials.';
   static processExecutor = new ProcessExecutor();
 
   getDocsUrl(): string {
@@ -38,12 +43,32 @@ export class OAuthProfile extends DbtProfile {
     return new BigQueryClient(oAuthData.project, bigQuery);
   }
 
-  async authenticateClient(): Promise<void> {
-    try {
-      const authenticateCommand = 'gcloud auth application-default login';
-      await OAuthProfile.processExecutor.execProcess(authenticateCommand);
-    } catch (e) {
-      console.log('Failed to find dbt command', e);
-    }
+  async authenticateClient(client: Client): Promise<string | undefined> {
+    const bigQuery = (<BigQueryClient>client).bigQuery;
+    return bigQuery.authClient
+      .getCredentials()
+      .then(() => {
+        return undefined;
+      })
+      .catch(async () => {
+        const gcloudInstalled = await this.gcloudInstalled();
+        if (!gcloudInstalled) {
+          return OAuthProfile.GCLOUD_NOT_INSTALLED;
+        }
+
+        const authenticateCommand = 'gcloud auth application-default login';
+        const authenticationResult = await OAuthProfile.processExecutor.execProcess(authenticateCommand);
+        if (authenticationResult.stderr !== undefined) {
+          return OAuthProfile.GCLOUD_AUTHENTICATION_FAILED;
+        }
+
+        return undefined;
+      });
+  }
+
+  private async gcloudInstalled(): Promise<boolean> {
+    const versionCommand = 'gcloud --version';
+    const versionResult = await OAuthProfile.processExecutor.execProcess(versionCommand);
+    return versionResult.stderr == undefined;
   }
 }

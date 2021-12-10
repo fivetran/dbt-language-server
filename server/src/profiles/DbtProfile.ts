@@ -6,5 +6,5 @@ export abstract class DbtProfile {
   abstract getData(profile: any): ProfileData;
   abstract validateProfile(targetConfig: any): string | undefined;
   abstract createClient(data: ProfileData): Client;
-  abstract authenticateClient(): Promise<void>;
+  abstract authenticateClient(client: Client): Promise<string | undefined>;
 }

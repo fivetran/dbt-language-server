@@ -128,7 +128,6 @@ export class YamlParser {
         return YamlParser.errorResult(`Invalid profile validation. Profile type '${type}' is not supported.`);
     }
 
-    await dbtProfile.authenticateClient();
     const result = dbtProfile.validateProfile(targetConfig);
     if (result !== undefined) {
       const docsUrl = dbtProfile.getDocsUrl();
@@ -137,6 +136,13 @@ export class YamlParser {
 
     const profileData = dbtProfile.getData(targetConfig);
     const client = dbtProfile.createClient(profileData);
+    const authenticateResult = await dbtProfile.authenticateClient(client);
+    if (authenticateResult) {
+      return {
+        client: undefined,
+        error: authenticateResult,
+      };
+    }
 
     return Promise.resolve({
       client: client,

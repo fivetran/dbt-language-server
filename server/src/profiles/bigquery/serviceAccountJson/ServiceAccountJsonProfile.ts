@@ -45,8 +45,8 @@ export class ServiceAccountJsonProfile extends DbtProfile {
     return new BigQueryClient(serviceAccountJsonData.project, bigQuery);
   }
 
-  authenticateClient(): Promise<void> {
-    return Promise.resolve();
+  authenticateClient(): Promise<string | undefined> {
+    return Promise.resolve<string | undefined>(undefined);
   }
 
   private validateKeyFileJson(keyFileJson: any): string | undefined {

@@ -44,7 +44,7 @@ export class ServiceAccountProfile extends DbtProfile {
     return new BigQueryClient(serviceAccountData.project, bigQuery);
   }
 
-  authenticateClient(): Promise<void> {
-    return Promise.resolve();
+  authenticateClient(): Promise<string | undefined> {
+    return Promise.resolve<string | undefined>(undefined);
   }
 }
