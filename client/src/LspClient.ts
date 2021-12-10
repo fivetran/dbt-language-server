@@ -84,10 +84,7 @@ export class LspClient {
           await client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),
         );
 
-        await commands.executeCommand('setContext', 'dbt-language-server.init', true);
         console.log('Client switched to state "Running"');
-      } else {
-        await commands.executeCommand('setContext', 'dbt-language-server.init', false);
       }
     });
 
