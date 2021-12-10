@@ -165,6 +165,7 @@ export class LspServer {
   async onDidOpenTextDocument(params: DidOpenTextDocumentParams): Promise<void> {
     const uri = params.textDocument.uri;
     let document = this.openedDocuments.get(uri);
+
     if (!document && this.serviceAccountCredentials) {
       document = new DbtTextDocument(
         params.textDocument,
@@ -176,6 +177,10 @@ export class LspServer {
         this.workspaceFolders,
       );
       this.openedDocuments.set(uri, document);
+
+      if (!(await this.isDbtReady())) {
+        return;
+      }
       await document.didOpenTextDocument();
     }
   }
