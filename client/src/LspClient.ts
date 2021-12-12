@@ -106,7 +106,7 @@ export class LspClient {
       }
 
       const uri = document.uri.toString() === SqlPreviewContentProvider.uri.toString() ? this.previewContentProvider.activeDocUri : document.uri;
-      this.getClient(uri)?.sendNotification('custom/dbtCompile', uri.toString());
+      (await this.getClient(uri))?.sendNotification('custom/dbtCompile', uri.toString());
       await commands.executeCommand('editor.showQueryPreview');
     });
 
@@ -121,13 +121,9 @@ export class LspClient {
     });
   }
 
-  getClient(uri: Uri): LanguageClient | undefined {
-    const folder = workspace.getWorkspaceFolder(uri);
-    if (!folder) {
-      return;
-    }
-    const outerFolder = this.getOuterMostWorkspaceFolder(folder);
-    return this.clients.get(outerFolder.uri.toString());
+  async getClient(uri: Uri): Promise<LanguageClient | undefined> {
+    const projectFolder = await this.getDbtProjectFolder(uri);
+    return projectFolder ? this.clients.get(projectFolder.toString()) : undefined;
   }
 
   registerCommand(command: string, callback: (...args: any[]) => any): void {
@@ -158,33 +154,54 @@ export class LspClient {
     context.subscriptions.push(this.previewContentProvider, commandRegistration, providerRegistrations, eventRegistration);
   }
 
-  onDidOpenTextDocument(document: TextDocument): void {
+  async onDidOpenTextDocument(document: TextDocument): Promise<void> {
     if (!SUPPORTED_LANG_IDS.includes(document.languageId) || document.uri.scheme !== 'file') {
       return;
     }
 
-    const uri = document.uri;
-    const folder = workspace.getWorkspaceFolder(uri);
-    console.log(folder);
-
-    if (!folder) {
+    const projectFolder = await this.getDbtProjectFolder(document.uri);
+    if (!projectFolder) {
       return;
     }
 
-    const outerFolder = this.getOuterMostWorkspaceFolder(folder);
-
-    if (!this.clients.has(outerFolder.uri.toString())) {
-      const client = this.createLanguageClient(outerFolder);
+    if (!this.clients.has(projectFolder.toString())) {
+      const client = this.createLanguageClient(projectFolder);
       this.initializeClient(client);
 
       void this.progressHandler.begin();
 
       client.start();
-      this.clients.set(outerFolder.uri.toString(), client);
+      this.clients.set(projectFolder.toString(), client);
     }
   }
 
-  createLanguageClient(outerFolder: WorkspaceFolder): LanguageClient {
+  /** We expect the dbt project folder to be the folder containing the dbt_project.yml file. This folder is used to run dbt rpc. */
+  async getDbtProjectFolder(uri: Uri): Promise<Uri | undefined> {
+    const folder = workspace.getWorkspaceFolder(uri);
+    if (!folder) {
+      return undefined;
+    }
+
+    const projectFolder = [...this.clients.keys()].find(k => uri.toString().startsWith(k));
+    if (projectFolder) {
+      return Uri.parse(projectFolder);
+    }
+
+    const outerWorkspace = this.getOuterMostWorkspaceFolder(folder);
+
+    do {
+      uri = Uri.joinPath(uri, '..');
+      try {
+        await workspace.fs.stat(uri.with({ path: uri.path + '/dbt_project.yml' }));
+        return uri;
+      } catch (e) {
+        // file does not exist
+      }
+    } while (uri.path !== outerWorkspace.uri.path);
+    return undefined;
+  }
+
+  createLanguageClient(projectFolder: Uri): LanguageClient {
     const debugOptions = { execArgv: ['--nolazy', `--inspect=${6009 + this.clients.size}`] };
     const serverOptions = {
       run: { module: this.module, transport: TransportKind.ipc },
@@ -192,15 +209,15 @@ export class LspClient {
     };
 
     const clientOptions = {
-      documentSelector: SUPPORTED_LANG_IDS.map(langId => ({ scheme: 'file', language: langId, pattern: `${outerFolder.uri.fsPath}/**/*` })),
+      documentSelector: SUPPORTED_LANG_IDS.map(langId => ({ scheme: 'file', language: langId, pattern: `${projectFolder.fsPath}/**/*` })),
       synchronize: {
         fileEvents: workspace.createFileSystemWatcher('**/target/manifest.json'),
       },
-      workspaceFolder: outerFolder,
       outputChannel: this.outputChannel,
+      workspaceFolder: <WorkspaceFolder>{ uri: projectFolder },
     };
 
-    return new LanguageClient('dbt-language-server', 'Dbt Language Client', serverOptions, clientOptions);
+    return new LanguageClient('dbt-language-server', 'Dbst Language Client', serverOptions, clientOptions);
   }
 
   getOuterMostWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {

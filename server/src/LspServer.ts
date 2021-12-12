@@ -55,7 +55,7 @@ export class LspServer {
   }
 
   async onInitialize(params: InitializeParams): Promise<InitializeResult<any> | ResponseError<InitializeError>> {
-    console.log('Starting server for folder' + process.cwd());
+    console.log('Starting server for folder ' + process.cwd());
 
     process.on('SIGTERM', this.onShutdown);
     process.on('SIGINT', this.onShutdown);
