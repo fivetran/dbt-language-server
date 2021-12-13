@@ -4,8 +4,11 @@ import { DbtCompileSqlJob } from './jobs/DbtCompileSqlJob';
 import { CompileResult, DbtServer } from './DbtServer';
 import { DbtTextDocument } from './DbtTextDocument';
 import { WorkspaceFolder } from 'vscode-languageserver';
+import { Logger } from './utils/Logger';
 
 export class ModelCompiler {
+  private static logger: Logger = new Logger('ModelCompiler.txt');
+
   dbtTextDocument: DbtTextDocument;
   dbtServer: DbtServer;
   dbtCompileTaskQueue: DbtCompileJob[] = [];
@@ -54,6 +57,7 @@ export class ModelCompiler {
       task = new DbtCompileSqlJob(this.dbtServer, this.dbtTextDocument.rawDocument.getText());
     }
 
+    ModelCompiler.logger.info(`Start compile ${modelPath}`);
     this.dbtCompileTaskQueue.push(task);
     void task.runCompile();
   }
@@ -81,6 +85,7 @@ export class ModelCompiler {
           }
 
           if (response?.error) {
+            ModelCompiler.logger.info(`Compile error ${response?.error.data?.message}`);
             await this.dbtTextDocument.onCompilationError(response?.error.data?.message ?? 'dbt compile error');
             break;
           }
@@ -88,6 +93,7 @@ export class ModelCompiler {
           const compiledNodes = <CompileResult[]>response?.result.results;
 
           if (compiledNodes.length > 0) {
+            ModelCompiler.logger.info(`Compile success ${compiledNodes[0].node.compiled_sql}`);
             const compiledSql = compiledNodes[0].node.compiled_sql;
             await this.dbtTextDocument.onCompilationFinished(compiledSql);
           } else {
