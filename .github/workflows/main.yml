@@ -76,8 +76,11 @@ jobs:
       - run: dbt --version
 
       - run: unzip dbt-language-server.vsix -d e2e-tests
-      - run: |
-          node e2e/out/runTest $(pwd)/e2e-tests/extension
+      - run: node e2e/out/runTest $(pwd)/e2e-tests/extension
+
+      - name: show test logs
+        if: always()
+        run: |
           ls
           cat e2e/test-fixture/logs/ModelCompiler.txt
 
