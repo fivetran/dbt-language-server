@@ -3,18 +3,31 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { CompletionItem } from 'vscode';
-import { activateAndWait, getDocPath, getDocUri, setTestContent, testCompletion, TEST_FIXTURE_PATH, triggerCompletion } from './helper';
+import {
+  getDbtVersion,
+  activateAndWait,
+  getDocPath,
+  getDocUri,
+  setTestContent,
+  testCompletion,
+  TEST_FIXTURE_PATH,
+  triggerCompletion,
+} from './helper';
 
 suite('Should do completion inside jinjas expression', () => {
+  let dbtVersion: string;
   let completionJinjaContent: string;
 
   suiteSetup(function () {
+    dbtVersion = getDbtVersion();
+
     fs.copyFile(path.resolve(TEST_FIXTURE_PATH, 'target/test_manifest.json'), path.resolve(TEST_FIXTURE_PATH, 'target/manifest.json'), e => {
       if (e) {
         throw e;
       }
       console.log('File was copied to destination');
     });
+
     completionJinjaContent = fs.readFileSync(getDocPath('completion_jinja.sql')).toString();
   });
 
@@ -73,6 +86,8 @@ suite('Should do completion inside jinjas expression', () => {
   }
 
   function getLabels(): string[] {
-    return ['completion_jinja', 'dbt_compile', 'errors', 'functions', 'jinja_sql', 'join_tables'];
+    return dbtVersion == '0.19.1'
+      ? ['dbt_compile', 'errors', 'functions', 'jinja_sql', 'join_tables']
+      : ['completion_jinja', 'dbt_compile', 'errors', 'functions', 'jinja_sql', 'join_tables'];
   }
 });

@@ -157,3 +157,15 @@ export async function triggerCompletion(
   // Executing the command `vscode.executeCompletionItemProvider` to simulate triggering completion
   return (await vscode.commands.executeCommand('vscode.executeCompletionItemProvider', docUri, position, triggerChar)) as vscode.CompletionList;
 }
+
+export function getDbtVersion(): string {
+  try {
+    const dbtVersion = spawnSync('dbt', ['--version']);
+    const dbtVersionResult = String(String(dbtVersion.output[2]));
+    const regexpDbtVersion = /installed version: ([0-9]+.[0-9]+.[0-9]+)/;
+    const match = regexpDbtVersion.exec(dbtVersionResult);
+    return match && match[1] ? match[1] : 'unknown';
+  } catch (error) {
+    return 'unknown';
+  }
+}
