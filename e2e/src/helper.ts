@@ -23,14 +23,10 @@ export async function activateAndWait(docUri: vscode.Uri): Promise<void> {
   const activateFinished = doNotWaitChanges ? Promise.resolve() : createPromise();
 
   await ext.activate();
-  try {
-    doc = await vscode.workspace.openTextDocument(docUri);
-    editor = await vscode.window.showTextDocument(doc);
-    await showPreview();
-    await activateFinished;
-  } catch (e) {
-    console.error(e);
-  }
+  doc = await vscode.workspace.openTextDocument(docUri);
+  editor = await vscode.window.showTextDocument(doc);
+  await showPreview();
+  await activateFinished;
 }
 
 function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
