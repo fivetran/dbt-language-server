@@ -19,8 +19,6 @@ my-bigquery-db:
       project: google-test-project-id-400
       dataset: dbt_default
       threads: 4
-      timeout_seconds: 3600
-      priority: interactive
 ```
 
 ## Service Account File
@@ -38,9 +36,6 @@ my-bigquery-db:
       keyfile: /Users/user/.dbt/google-test-project-id-400.json
       dataset: dbt_default
       threads: 4
-      timeout_seconds: 3600
-      priority: interactive
-      retries: 1
 ```
 
 ## Service Account JSON
