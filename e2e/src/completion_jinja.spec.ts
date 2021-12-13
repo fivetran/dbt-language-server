@@ -3,9 +3,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { CompletionItem } from 'vscode';
-import { activateAndWait, getDocUri, setTestContent, testCompletion, TEST_FIXTURE_PATH, triggerCompletion } from './helper';
+import { activateAndWait, getDocPath, getDocUri, setTestContent, testCompletion, TEST_FIXTURE_PATH, triggerCompletion } from './helper';
 
 suite('Should do completion inside jinjas expression', () => {
+  let completionJinjaContent: string;
+
   suiteSetup(function () {
     fs.copyFile(path.resolve(TEST_FIXTURE_PATH, 'target/test_manifest.json'), path.resolve(TEST_FIXTURE_PATH, 'target/manifest.json'), e => {
       if (e) {
@@ -13,6 +15,7 @@ suite('Should do completion inside jinjas expression', () => {
       }
       console.log('File was copied to destination');
     });
+    completionJinjaContent = fs.readFileSync(getDocPath('completion_jinja.sql')).toString();
   });
 
   suiteTeardown(function () {
@@ -22,6 +25,7 @@ suite('Should do completion inside jinjas expression', () => {
       }
       console.log('File manifest.json was deleted');
     });
+    fs.writeFileSync(getDocPath('completion_jinja.sql'), completionJinjaContent);
   });
 
   test('Should suggest models for ref function by pressing "("', async () => {
