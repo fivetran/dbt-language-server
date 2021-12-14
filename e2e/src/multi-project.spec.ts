@@ -7,12 +7,12 @@ suite('Multi-project', () => {
     await testOneProject(getDocUri('simple_select_dbt.sql'), 'select * from `singular-vector-135519`.dbt_ls_e2e_dataset.test_table1');
 
     await testOneProject(
-      getCustomDocUri('folder-with-two-projects/subfolder/project2/project2_model.sql'),
+      getCustomDocUri('two-projects/subfolder/project2/project2_model.sql'),
       'select * from `singular-vector-135519`.dbt_ls_e2e_dataset.users',
     );
 
     await testOneProject(
-      getCustomDocUri('folder-with-two-projects/project1/models/project1_model.sql'),
+      getCustomDocUri('two-projects/project1/models/project1_model.sql'),
       'select * from `singular-vector-135519`.dbt_ls_e2e_dataset.test_table1',
     );
   });

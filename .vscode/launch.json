@@ -67,7 +67,7 @@
         // "--extensionDevelopmentPath=${workspaceRoot}/e2e-tests/extension",
         "--extensionDevelopmentPath=${workspaceRoot}",
         "--extensionTestsPath=${workspaceRoot}/e2e/out/index",
-        "${workspaceRoot}/e2e/test-workspace.code-workspace"
+        "${workspaceRoot}/e2e/projects/test-workspace.code-workspace"
       ],
       "env": {
         "CLI_PATH": "code"

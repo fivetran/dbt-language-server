@@ -1,4 +1,4 @@
-test-fixture/logs
-test-fixture/target
+projects/**/logs
+projects/**/target/*
 
-!test-fixture/target/test_manifest.json
+!projects/test-fixture/target/test_manifest.json

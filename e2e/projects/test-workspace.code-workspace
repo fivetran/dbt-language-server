@@ -4,10 +4,10 @@
         "path": "test-fixture"
       },
       {
-        "path": "folder-with-two-projects"
+        "path": "two-projects"
       },
       {
-        "path": "folder-without-projects"
+        "path": "without-projects"
       },
     ],
     "settings": {}

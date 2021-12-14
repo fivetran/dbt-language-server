@@ -7,7 +7,8 @@ import { TextDocumentChangeEvent, TextEditorEdit } from 'vscode';
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
 
-export const TEST_FIXTURE_PATH = path.resolve(__dirname, '../test-fixture');
+export const PROJECTS_PATH = path.resolve(__dirname, '../projects');
+export const TEST_FIXTURE_PATH = path.resolve(PROJECTS_PATH, 'test-fixture');
 vscode.workspace.onDidChangeTextDocument(onDidChangeTextDocument);
 let promiseResolve: () => void;
 
@@ -73,7 +74,7 @@ export const getDocUri = (p: string): vscode.Uri => {
 };
 
 export const getCustomDocUri = (p: string): vscode.Uri => {
-  return vscode.Uri.file(path.resolve(__dirname, '../', p));
+  return vscode.Uri.file(path.resolve(PROJECTS_PATH, p));
 };
 
 export async function setTestContent(content: string): Promise<void> {
