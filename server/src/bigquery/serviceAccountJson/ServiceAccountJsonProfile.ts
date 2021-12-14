@@ -46,7 +46,7 @@ export class ServiceAccountJsonProfile implements DbtProfile {
   }
 
   authenticateClient(): Promise<string | undefined> {
-    return Promise.resolve<string | undefined>(undefined);
+    return Promise.resolve(undefined);
   }
 
   private validateKeyFileJson(keyFileJson: any): string | undefined {
