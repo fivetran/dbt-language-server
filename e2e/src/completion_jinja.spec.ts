@@ -9,7 +9,6 @@ suite('Should do completion inside jinjas expression', () => {
   let completionJinjaContent: string;
 
   suiteSetup(function () {
-    models = getManifestModels();
     completionJinjaContent = fs.readFileSync(getDocPath('completion_jinja.sql')).toString();
   });
 
@@ -22,6 +21,7 @@ suite('Should do completion inside jinjas expression', () => {
     await activateAndWait(docUri);
     await setTestContent('select * from {{ref(');
 
+    models = getManifestModels();
     await testCompletion(docUri, new vscode.Position(0, 20), getCompletionList(true), '(');
   });
 
@@ -30,6 +30,7 @@ suite('Should do completion inside jinjas expression', () => {
     await activateAndWait(docUri);
     await setTestContent('select * from {{ref(');
 
+    models = getManifestModels();
     await testCompletion(docUri, new vscode.Position(0, 20), getCompletionList(true));
   });
 
@@ -38,6 +39,7 @@ suite('Should do completion inside jinjas expression', () => {
     await activateAndWait(docUri);
     await setTestContent(`select * from {{ref('`);
 
+    models = getManifestModels();
     await testCompletion(docUri, new vscode.Position(0, 21), getCompletionList(false), "'");
   });
 
@@ -53,6 +55,7 @@ suite('Should do completion inside jinjas expression', () => {
     // assert
     const actualLabels = actualCompletionList.items.map(i => <string>i.label);
 
+    models = getManifestModels();
     getCompletionList(false).items.forEach(i => assert.ok(!actualLabels.includes(<string>i.label)));
     getCompletionList(true).items.forEach(i => assert.ok(!actualLabels.includes(<string>i.label)));
   });
