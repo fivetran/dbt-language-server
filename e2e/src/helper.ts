@@ -162,43 +162,6 @@ export async function triggerCompletion(
   return (await vscode.commands.executeCommand('vscode.executeCompletionItemProvider', docUri, position, triggerChar)) as vscode.CompletionList;
 }
 
-export function getDbtVersion(): string {
-  try {
-    const dbtVersion = spawnSync('dbt', ['--version']);
-    const dbtVersionResult = String(String(dbtVersion.output[2]));
-    const regexpDbtVersion = /installed version: ([0-9]+.[0-9]+.[0-9]+)/;
-    const match = regexpDbtVersion.exec(dbtVersionResult);
-    return match && match[1] ? match[1] : 'unknown';
-  } catch (error) {
-    return 'unknown';
-  }
-}
-
-export function getListModels(): string[] {
-  try {
-    const dbtLs = spawnSync('dbt', ['ls'], {
-      cwd: TEST_FIXTURE_PATH,
-    });
-    const dbtLsResult = String(dbtLs.output[1]);
-    const regexpModel = /^my_new_project.(.*)+$/;
-
-    const models = dbtLsResult.split(/\r?\n/).map(m => {
-      const match = regexpModel.exec(m);
-      return match && match[1] ? match[1] : undefined;
-    });
-
-    const result = [];
-    for (const m of models) {
-      if (m) {
-        result.push(m);
-      }
-    }
-    return result.sort();
-  } catch (e) {
-    return [];
-  }
-}
-
 export function getManifestModels(): string[] {
   const manifestLocation = path.join(TEST_FIXTURE_PATH, 'target', MANIFEST_FILE_NAME);
   try {
