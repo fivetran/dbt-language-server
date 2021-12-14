@@ -50,10 +50,6 @@ export async function showPreview(): Promise<void> {
   await vscode.commands.executeCommand('editor.showQueryPreview');
 }
 
-export async function closeAllEditors(): Promise<void> {
-  await vscode.commands.executeCommand('workbench.action.closeAllEditors');
-}
-
 export async function getPreviewText(): Promise<string> {
   const previewEditor = vscode.window.visibleTextEditors.find(e => e.document.uri.toString() === 'query-preview:Preview?dbt-language-server');
   if (!previewEditor) {
