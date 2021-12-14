@@ -130,9 +130,9 @@ export class YamlParser {
       };
     }
 
-    return Promise.resolve({
+    return {
       client: client,
-    });
+    };
   }
 
   cantFindSectionError(profileName: string, section: string, docsUrl?: string): DbtProfileResult {
