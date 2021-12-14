@@ -98,12 +98,6 @@ jobs:
       - run: unzip dbt-language-server.vsix -d e2e-tests
       - run: node e2e/out/runTest $(pwd)/e2e-tests/extension
 
-      - name: show test logs
-        if: always()
-        run: |
-          ls
-          cat e2e/test-fixture/logs/ModelCompiler.txt
-
   publish:
     if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }} # main branch or have any tag started with 'v'
     needs: [test-and-package, run-e2e-tests]
