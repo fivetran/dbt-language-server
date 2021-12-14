@@ -2,7 +2,7 @@ export enum DbtProfileType {
   BigQuery = 'bigquery',
 }
 
-export const profileMethods = new Map<DbtProfileType, string[]>([[DbtProfileType.BigQuery, ['service-account', 'service-account-json', 'oauth']]]);
+export const PROFILE_METHODS = new Map<DbtProfileType, string[]>([[DbtProfileType.BigQuery, ['service-account', 'service-account-json', 'oauth']]]);
 
 export abstract class ProfileData {}
 

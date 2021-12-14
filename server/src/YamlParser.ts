@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as yaml from 'yaml';
 import { YamlParserUtils } from './YamlParserUtils';
-import { DbtProfileType, profileMethods } from './DbtProfile';
+import { DbtProfileType, PROFILE_METHODS } from './DbtProfile';
 import { DbtProfile, Client } from './DbtProfile';
 import { OAuthProfile } from './bigquery/oauth/OAuthProfile';
 import { ServiceAccountProfile } from './bigquery/serviceAccount/ServiceAccountProfile';
@@ -64,11 +64,11 @@ export class YamlParser {
     if (!type) {
       return this.cantFindSectionError(profileName, `outputs.${target}.type`);
     }
-    if (!profileMethods.has(type)) {
+    if (!PROFILE_METHODS.has(type)) {
       return YamlParser.errorResult(`Currently, '${type}' profile is not supported. Check your '${this.profilesPath}' file.`);
     } else {
       const method = outputsTarget.method;
-      const authMethods = profileMethods.get(type);
+      const authMethods = PROFILE_METHODS.get(type);
       if (authMethods && authMethods.length > 0 && (!method || authMethods.indexOf(method) == -1)) {
         return YamlParser.errorResult(`Unknown authentication method of '${type}' profile. Check your '${this.profilesPath}' file.`);
       }
