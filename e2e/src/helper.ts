@@ -19,8 +19,9 @@ export async function activateAndWait(docUri: vscode.Uri): Promise<void> {
   }
 
   const existingEditor = vscode.window.visibleTextEditors.find(e => e.document.uri.path === docUri.path);
-  const doNotWaitChanges = existingEditor && existingEditor.document.getText() === vscode.window.activeTextEditor?.document.getText();
-  const activateFinished = doNotWaitChanges ? Promise.resolve() : createPromise();
+  const doNotWaitChanges =
+    existingEditor && existingEditor.document.getText() === vscode.window.activeTextEditor?.document.getText() && getPreviewEditor();
+  const activateFinished = doNotWaitChanges ? Promise.resolve() : createPreviewChangesPromise();
 
   await ext.activate();
   doc = await vscode.workspace.openTextDocument(docUri);
@@ -43,12 +44,20 @@ export async function showPreview(): Promise<void> {
 }
 
 export async function getPreviewText(): Promise<string> {
-  const previewEditor = vscode.window.visibleTextEditors.find(e => e.document.uri.toString() === 'query-preview:Preview?dbt-language-server');
+  const previewEditor = getPreviewEditor();
   if (!previewEditor) {
     throw new Error('Preview editor not found');
   }
 
   return previewEditor.document.getText();
+}
+
+function getPreviewEditor(): vscode.TextEditor | undefined {
+  return vscode.window.visibleTextEditors.find(e => e.document.uri.toString() === 'query-preview:Preview?dbt-language-server');
+}
+
+export function getDiagnostics(uri: vscode.Uri): vscode.Diagnostic[] {
+  return vscode.languages.getDiagnostics(uri);
 }
 
 export function sleep(ms: number): Promise<unknown> {
@@ -61,6 +70,10 @@ export const getDocPath = (p: string): string => {
 
 export const getDocUri = (p: string): vscode.Uri => {
   return vscode.Uri.file(getDocPath(p));
+};
+
+export const getCustomDocUri = (p: string): vscode.Uri => {
+  return vscode.Uri.file(path.resolve(__dirname, '../', p));
 };
 
 export async function setTestContent(content: string): Promise<void> {
@@ -90,12 +103,12 @@ export async function replaceText(oldText: string, newText: string): Promise<voi
 }
 
 async function edit(callback: (editBuilder: TextEditorEdit) => void): Promise<void> {
-  const editFinished = createPromise();
+  const editFinished = createPreviewChangesPromise();
   await editor.edit(callback);
   await editFinished;
 }
 
-function createPromise(): Promise<void> {
+async function createPreviewChangesPromise(): Promise<void> {
   return new Promise<void>(resolve => {
     promiseResolve = resolve;
   });

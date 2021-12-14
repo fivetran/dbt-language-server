@@ -68,10 +68,44 @@ jobs:
         with:
           python-version: '3.7.x'
 
-      - run: mkdir -p ~/.dbt/ && cp ./e2e/profiles.yml ~/.dbt/profiles.yml
-      - run: 'echo "$BQ_SERVICE_ACCOUNT" > ~/.dbt/bq-test-project.json'
+      - name: prepare profile config
+        run: |
+          mkdir -p ~/.dbt/ && cp ./e2e/profiles.yml ~/.dbt/profiles.yml
+          echo "$BQ_SERVICE_ACCOUNT" > ~/.dbt/bq-test-project.json
+
+          private_key=$(echo ${BQ_SERVICE_ACCOUNT} | jq '.private_key')
+          read project_id private_key_id client_id client_email auth_uri token_uri auth_provider_x509_cert_url client_x509_cert_url < <(echo $(echo ${BQ_SERVICE_ACCOUNT} | jq -r '.project_id, .private_key_id, .client_id, .client_email, .auth_uri, .token_uri, .auth_provider_x509_cert_url, .client_x509_cert_url'))
+
+          cat <<EOT >> ~/.dbt/profiles.yml
+
+          e2e-test-workspace-project1:
+            target: prod
+            outputs:
+              prod:
+                type: bigquery
+                method: service-account-json
+                project: $project_id
+                dataset: transforms_dbt_default
+                threads: 4
+                timeout_seconds: 3600
+                priority: interactive
+                retries: 1
+                keyfile_json:
+                  type: service_account
+                  project_id: $project_id
+                  private_key_id: $private_key_id
+                  private_key: $private_key
+                  client_id: $client_id
+                  client_email: $client_email
+                  auth_uri: $auth_uri
+                  token_uri: $token_uri
+                  auth_provider_x509_cert_url: $auth_provider_x509_cert_url
+                  client_x509_cert_url: $client_x509_cert_url
+
+          EOT
         env:
           BQ_SERVICE_ACCOUNT: ${{ secrets.BQ_SERVICE_ACCOUNT }}
+
       - run: pip install ${{ matrix.dbt-version }}
       - run: dbt --version
 

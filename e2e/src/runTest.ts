@@ -29,7 +29,7 @@ async function main(): Promise<void> {
     await runTests({
       extensionDevelopmentPath,
       extensionTestsPath,
-      launchArgs: [path.resolve(__dirname, '../test-fixture')],
+      launchArgs: [path.resolve(__dirname, '../test-workspace.code-workspace')],
       extensionTestsEnv: { CLI_PATH: cliPath, DBT_LS_DISABLE_TELEMETRY: 'true' },
     });
   } catch (err) {
