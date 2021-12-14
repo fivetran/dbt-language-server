@@ -82,10 +82,8 @@ export class OAuthProfile extends DbtProfile {
       .then(() => undefined)
       .catch(() => OAuthProfile.GCLOUD_AUTHENTICATION_ERROR);
 
-    const timeoutPromise = new Promise<string | undefined>((_resolve, reject) => {
-      setTimeout(() => {
-        reject(OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT_ERROR);
-      }, OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT);
+    const timeoutPromise = new Promise<string | undefined>((_, reject) => {
+      setTimeout(reject, OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT, OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT_ERROR);
     });
 
     return Promise.race([authenticatePromise, timeoutPromise]);
