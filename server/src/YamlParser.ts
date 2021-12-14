@@ -67,8 +67,8 @@ export class YamlParser {
 
     const method = outputsTarget.method;
     const authMethods = PROFILE_METHODS.get(type);
-    if (PROFILE_METHODS.has(type)) {
-      if (authMethods && authMethods.length > 0 && (!method || authMethods.indexOf(method) == -1)) {
+    if (authMethods) {
+      if (authMethods.length > 0 && (!method || authMethods.indexOf(method) == -1)) {
         return YamlParser.errorResult(`Unknown authentication method of '${type}' profile. Check your '${this.profilesPath}' file.`);
       }
     } else {
