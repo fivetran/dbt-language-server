@@ -1,20 +1,25 @@
-import { CompileResponse, DbtServer, PollResponse } from '../DbtServer';
+import { CompileResponse, DbtServer, PollResponse } from './DbtServer';
 import { v4 as uuid } from 'uuid';
 
-export abstract class DbtCompileJob {
+export class DbtCompileJob {
   static readonly MAX_RETRIES = 5;
 
   dbtServer: DbtServer;
+  modelName: string;
+
   requestId: string;
   startCompileResponse: CompileResponse | undefined;
   tryCount = 0;
 
-  constructor(dbtServer: DbtServer) {
+  constructor(dbtServer: DbtServer, modelName: string) {
     this.dbtServer = dbtServer;
+    this.modelName = modelName;
     this.requestId = uuid();
   }
 
-  abstract runCompile(): Promise<void>;
+  async runCompile(): Promise<void> {
+    this.startCompileResponse = await this.dbtServer.compileModel(this.requestId, this.modelName);
+  }
 
   async getResult(): Promise<PollResponse | undefined> {
     if (this.startCompileResponse) {

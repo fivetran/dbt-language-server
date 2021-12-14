@@ -1,6 +1,4 @@
-import { DbtCompileJob } from './jobs/DbtCompileJob';
-import { DbtCompileModelJob } from './jobs/DbtCompileModelJob';
-import { DbtCompileSqlJob } from './jobs/DbtCompileSqlJob';
+import { DbtCompileJob } from './DbtCompileJob';
 import { CompileResult, DbtServer } from './DbtServer';
 import { DbtTextDocument } from './DbtTextDocument';
 import { WorkspaceFolder } from 'vscode-languageserver';
@@ -47,15 +45,13 @@ export class ModelCompiler {
       modelPath = documentUri.slice(index + workingDirectory.length + 1);
     }
 
-    let task;
     if (modelPath) {
-      task = new DbtCompileModelJob(this.dbtServer, modelPath);
+      const task = new DbtCompileJob(this.dbtServer, modelPath);
+      this.dbtCompileTaskQueue.push(task);
+      void task.runCompile();
     } else {
-      task = new DbtCompileSqlJob(this.dbtServer, this.dbtTextDocument.rawDocument.getText());
+      console.log('Unable to determine model path');
     }
-
-    this.dbtCompileTaskQueue.push(task);
-    void task.runCompile();
   }
 
   async pollResults(): Promise<void> {
