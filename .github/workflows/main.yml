@@ -49,7 +49,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dbt-version: ['dbt==0.19.1', 'dbt']
+        dbt-version: ['dbt-bigquery==0.20.2', 'dbt-bigquery'] # Run tests on latest version and version used in https://github.com/fivetran/analytics/blob/main/dbt_ft_prod/deployment.yml#L1
 
     runs-on: macos-latest
     steps:
@@ -127,9 +127,12 @@ jobs:
           EOT
         env:
           BQ_SERVICE_ACCOUNT: ${{ secrets.BQ_SERVICE_ACCOUNT }}
+      
+      - name: install dbt
+        run: pip install ${{ matrix.dbt-version }}
 
-      - run: pip install ${{ matrix.dbt-version }}
-      - run: dbt --version
+      - name: show dbt version
+        run: dbt --version
 
       - run: unzip dbt-language-server.vsix -d e2e-tests
       - run: node e2e/out/runTest $(pwd)/e2e-tests/extension
