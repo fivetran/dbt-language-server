@@ -1,8 +1,6 @@
-import { DbtProfile } from '../../DbtProfile';
-import { ProfileData } from '../../ProfileData';
+import { DbtProfile, ProfileData, Client } from '../../DbtProfile';
 import { ServiceAccountData } from './ServiceAccountData';
-import { YamlParserUtils } from '../../../YamlParserUtils';
-import { Client } from '../../Client';
+import { YamlParserUtils } from '../../YamlParserUtils';
 import { BigQueryClient } from '../BigQueryClient';
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 

@@ -1,5 +1,5 @@
 import { Dataset, Table } from '@google-cloud/bigquery';
-import { BigQueryClient } from './profiles/bigquery/BigQueryClient';
+import { BigQueryClient } from './bigquery/BigQueryClient';
 
 export class DestinationDefinition {
   activeProject: string;

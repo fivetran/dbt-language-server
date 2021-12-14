@@ -1,12 +1,11 @@
 import * as fs from 'fs';
 import * as yaml from 'yaml';
 import { YamlParserUtils } from './YamlParserUtils';
-import { Client } from './profiles/Client';
-import { DbtProfileType, profileMethods } from './profiles/DbtProfileType';
-import { DbtProfile } from './profiles/DbtProfile';
-import { OAuthProfile } from './profiles/bigquery/oauth/OAuthProfile';
-import { ServiceAccountProfile } from './profiles/bigquery/serviceAccount/ServiceAccountProfile';
-import { ServiceAccountJsonProfile } from './profiles/bigquery/serviceAccountJson/ServiceAccountJsonProfile';
+import { DbtProfileType, profileMethods } from './DbtProfile';
+import { DbtProfile, Client } from './DbtProfile';
+import { OAuthProfile } from './bigquery/oauth/OAuthProfile';
+import { ServiceAccountProfile } from './bigquery/serviceAccount/ServiceAccountProfile';
+import { ServiceAccountJsonProfile } from './bigquery/serviceAccountJson/ServiceAccountJsonProfile';
 
 export interface DbtProfileResult {
   client?: Client;

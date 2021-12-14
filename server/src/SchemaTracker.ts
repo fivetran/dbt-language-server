@@ -1,6 +1,6 @@
 import { ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { ExtractTableNamesFromStatementRequest } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ExtractTableNamesFromStatementRequest';
-import { BigQueryClient } from './profiles/bigquery/BigQueryClient';
+import { BigQueryClient } from './bigquery/BigQueryClient';
 import { TableDefinition } from './TableDefinition';
 
 export class SchemaTracker {

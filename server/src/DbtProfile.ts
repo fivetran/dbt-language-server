@@ -1,5 +1,12 @@
-import { ProfileData } from './ProfileData';
-import { Client } from './Client';
+export enum DbtProfileType {
+  BigQuery = 'bigquery',
+}
+
+export const profileMethods = new Map<DbtProfileType, string[]>([[DbtProfileType.BigQuery, ['service-account', 'service-account-json', 'oauth']]]);
+
+export abstract class ProfileData {}
+
+export abstract class Client {}
 
 export abstract class DbtProfile {
   abstract getDocsUrl(): string;

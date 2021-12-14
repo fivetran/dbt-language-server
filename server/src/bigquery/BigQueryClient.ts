@@ -1,4 +1,4 @@
-import { Client } from '../Client';
+import { Client } from '../DbtProfile';
 import { BigQuery, DatasetsResponse } from '@google-cloud/bigquery';
 
 export class BigQueryClient extends Client {

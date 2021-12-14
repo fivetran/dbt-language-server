@@ -28,7 +28,7 @@ import { DbtTextDocument } from './DbtTextDocument';
 import { DestinationDefinition } from './DestinationDefinition';
 import { ManifestParser } from './ManifestParser';
 import { ProgressReporter } from './ProgressReporter';
-import { BigQueryClient } from './profiles/bigquery/BigQueryClient';
+import { BigQueryClient } from './bigquery/BigQueryClient';
 
 interface TelemetryEvent {
   name: string;

@@ -32,7 +32,7 @@ import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { debounce, getJinjaContentOffset } from './Utils';
 import { ZetaSQLAST } from './ZetaSQLAST';
 import { ZetaSQLCatalog } from './ZetaSQLCatalog';
-import { BigQueryClient } from './profiles/bigquery/BigQueryClient';
+import { BigQueryClient } from './bigquery/BigQueryClient';
 
 export class DbtTextDocument {
   static readonly NON_WORD_PATTERN = /\W/;

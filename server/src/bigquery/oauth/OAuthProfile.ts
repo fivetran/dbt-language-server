@@ -1,10 +1,8 @@
-import { DbtProfile } from '../../DbtProfile';
-import { ProfileData } from '../../ProfileData';
+import { DbtProfile, ProfileData, Client } from '../../DbtProfile';
 import { OAuthData } from './OAuthData';
-import { Client } from '../../Client';
 import { BigQueryClient } from '../BigQueryClient';
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
-import { ProcessExecutor } from '../../../ProcessExecutor';
+import { ProcessExecutor } from '../../ProcessExecutor';
 
 export class OAuthProfile extends DbtProfile {
   static readonly BQ_OAUTH_DOCS =

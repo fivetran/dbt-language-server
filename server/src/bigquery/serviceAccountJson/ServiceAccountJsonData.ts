@@ -1,4 +1,4 @@
-import { ProfileData } from '../../ProfileData';
+import { ProfileData } from '../../DbtProfile';
 
 export class ServiceAccountJsonData extends ProfileData {
   private _project: string;

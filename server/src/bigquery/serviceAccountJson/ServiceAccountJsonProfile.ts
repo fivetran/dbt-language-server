@@ -1,7 +1,5 @@
-import { DbtProfile } from '../../DbtProfile';
-import { ProfileData } from '../../ProfileData';
+import { DbtProfile, ProfileData, Client } from '../../DbtProfile';
 import { ServiceAccountJsonData } from './ServiceAccountJsonData';
-import { Client } from '../../Client';
 import { BigQueryClient } from '../BigQueryClient';
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 import { ExternalAccountClientOptions } from 'google-auth-library';
