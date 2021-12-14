@@ -129,7 +129,9 @@ jobs:
           BQ_SERVICE_ACCOUNT: ${{ secrets.BQ_SERVICE_ACCOUNT }}
       
       - name: install dbt
-        run: pip install ${{ matrix.dbt-version }}
+        run: |
+          pip install ${{ matrix.dbt-version }}
+          pip install dbt-rpc
 
       - name: show dbt version
         run: dbt --version
