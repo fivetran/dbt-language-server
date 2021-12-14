@@ -11,7 +11,7 @@ export class OAuthProfile extends DbtProfile {
     'Extension requires the gcloud SDK to be installed to authenticate with BigQuery.\
     Please [download and install the SDK](https://cloud.google.com/sdk), or use a Service Account instead.';
   static readonly GCLOUD_AUTHENTICATION_ERROR = 'Got an error when attempting to authenticate with default credentials.';
-  static readonly GCLOUD_AUTHENTICATION_TIMEOUT = 15000;
+  static readonly GCLOUD_AUTHENTICATION_TIMEOUT = 30000;
   static readonly GCLOUD_AUTHENTICATION_TIMEOUT_ERROR = 'Failed to authenticate within the given period.';
 
   static processExecutor = new ProcessExecutor();
