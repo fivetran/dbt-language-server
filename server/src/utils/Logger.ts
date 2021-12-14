@@ -35,7 +35,7 @@ export class Logger {
   private log(type: LogEventType, message: string): void {
     try {
       const localNow = new Date().toLocaleString();
-      const logMessage = `${localNow}: (${type}) ${message}\n`;
+      const logMessage = `${localNow} (${type}): ${message}\n`;
 
       fs.appendFile(Logger.LOGS_FILE_PATH + this.name, logMessage, err => {
         if (err) {

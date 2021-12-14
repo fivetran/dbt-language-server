@@ -85,17 +85,17 @@ export class ModelCompiler {
           }
 
           if (response?.error) {
-            ModelCompiler.logger.info(`Compile error ${response?.error.data?.message}`);
             await this.dbtTextDocument.onCompilationError(response?.error.data?.message ?? 'dbt compile error');
+            ModelCompiler.logger.info(`Compile error - ${response?.error.data?.message ?? 'dbt compile error'}`);
             break;
           }
 
           const compiledNodes = <CompileResult[]>response?.result.results;
 
           if (compiledNodes.length > 0) {
-            ModelCompiler.logger.info(`Compile success ${compiledNodes[0].node.compiled_sql}`);
             const compiledSql = compiledNodes[0].node.compiled_sql;
             await this.dbtTextDocument.onCompilationFinished(compiledSql);
+            ModelCompiler.logger.info(`Compile success - ${compiledNodes[0].node.compiled_sql}`);
           } else {
             await this.dbtTextDocument.onCompilationFinished(' ');
           }
