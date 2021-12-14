@@ -236,8 +236,8 @@ export class LspServer {
 
   dispose(): void {
     console.log('Dispose start...');
-    void terminateServer();
     this.dbtServer.dispose();
+    void terminateServer();
     console.log('Dispose end.');
   }
 }
