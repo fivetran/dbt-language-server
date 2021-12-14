@@ -13,7 +13,7 @@ suite('Should do completion inside jinjas expression', () => {
   });
 
   suiteTeardown(function () {
-    fs.writeFileSync(getDocPath('completion_jinja.sql'), completionJinjaContent);
+    //do nothing
   });
 
   test('Should suggest models for ref function by pressing "("', async () => {
@@ -23,6 +23,7 @@ suite('Should do completion inside jinjas expression', () => {
 
     models = getManifestModels();
     await testCompletion(docUri, new vscode.Position(0, 20), getCompletionList(true), '(');
+    await setTestContent(completionJinjaContent);
   });
 
   test('Should suggest models for ref function', async () => {
@@ -32,6 +33,7 @@ suite('Should do completion inside jinjas expression', () => {
 
     models = getManifestModels();
     await testCompletion(docUri, new vscode.Position(0, 20), getCompletionList(true));
+    await setTestContent(completionJinjaContent);
   });
 
   test('Should suggest models for ref function by pressing "\'"', async () => {
@@ -41,6 +43,7 @@ suite('Should do completion inside jinjas expression', () => {
 
     models = getManifestModels();
     await testCompletion(docUri, new vscode.Position(0, 21), getCompletionList(false), "'");
+    await setTestContent(completionJinjaContent);
   });
 
   test('Should not suggest models outside jinja', async () => {
@@ -58,6 +61,7 @@ suite('Should do completion inside jinjas expression', () => {
     models = getManifestModels();
     getCompletionList(false).items.forEach(i => assert.ok(!actualLabels.includes(<string>i.label)));
     getCompletionList(true).items.forEach(i => assert.ok(!actualLabels.includes(<string>i.label)));
+    await setTestContent(completionJinjaContent);
   });
 
   function getCompletionList(withQuotes: boolean): { items: vscode.CompletionItem[] } {
