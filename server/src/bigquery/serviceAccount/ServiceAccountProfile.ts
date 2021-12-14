@@ -5,6 +5,8 @@ import { BigQueryClient } from '../BigQueryClient';
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 
 export class ServiceAccountProfile implements DbtProfile {
+  static readonly createProfile: () => DbtProfile = () => new ServiceAccountProfile();
+
   static readonly BQ_SERVICE_ACCOUNT_FILE_DOCS =
     '[Service Account File configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-file).';
 

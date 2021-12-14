@@ -1,8 +1,18 @@
+import { OAuthProfile } from './bigquery/oauth/OAuthProfile';
+import { ServiceAccountProfile } from './bigquery/serviceAccount/ServiceAccountProfile';
+import { ServiceAccountJsonProfile } from './bigquery/serviceAccountJson/ServiceAccountJsonProfile';
+
 export enum DbtProfileType {
   BigQuery = 'bigquery',
 }
 
-export const PROFILE_METHODS = new Map<DbtProfileType, string[]>([[DbtProfileType.BigQuery, ['service-account', 'service-account-json', 'oauth']]]);
+export const BIG_QUERY_PROFILES = new Map<string, () => DbtProfile>([
+  ['oauth', OAuthProfile.createProfile],
+  ['service-account', ServiceAccountProfile.createProfile],
+  ['service-account-json', ServiceAccountJsonProfile.createProfile],
+]);
+
+export const PROFILE_METHODS = new Map<DbtProfileType, string[]>([[DbtProfileType.BigQuery, [...BIG_QUERY_PROFILES.keys()]]]);
 
 export abstract class ProfileData {}
 

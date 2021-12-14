@@ -1,11 +1,8 @@
 import * as fs from 'fs';
 import * as yaml from 'yaml';
 import { YamlParserUtils } from './YamlParserUtils';
-import { DbtProfileType, PROFILE_METHODS } from './DbtProfile';
-import { DbtProfile, Client } from './DbtProfile';
-import { OAuthProfile } from './bigquery/oauth/OAuthProfile';
-import { ServiceAccountProfile } from './bigquery/serviceAccount/ServiceAccountProfile';
-import { ServiceAccountJsonProfile } from './bigquery/serviceAccountJson/ServiceAccountJsonProfile';
+import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtProfile';
+import { Client } from './DbtProfile';
 
 export interface DbtProfileResult {
   client?: Client;
@@ -106,27 +103,16 @@ export class YamlParser {
     const type = targetConfig.type;
     const method = targetConfig.method;
 
-    let dbtProfile: DbtProfile;
-
-    switch (type) {
-      case DbtProfileType.BigQuery:
-        switch (method) {
-          case 'oauth':
-            dbtProfile = new OAuthProfile();
-            break;
-          case 'service-account':
-            dbtProfile = new ServiceAccountProfile();
-            break;
-          case 'service-account-json':
-            dbtProfile = new ServiceAccountJsonProfile();
-            break;
-          default:
-            return YamlParser.errorResult(`Invalid profile validation. Authentication method '${method}' of '${type}' profile is not supported`);
-        }
-        break;
-      default:
-        return YamlParser.errorResult(`Invalid profile validation. Profile type '${type}' is not supported.`);
+    if (![...PROFILE_METHODS.keys()].find(t => t === type)) {
+      return YamlParser.errorResult(`Profile type '${type}' is not supported.`);
     }
+
+    const profileBuilder = BIG_QUERY_PROFILES.get(method);
+    if (!profileBuilder) {
+      return YamlParser.errorResult(`Authentication method '${method}' of '${type}' profile is not supported.`);
+    }
+
+    const dbtProfile = profileBuilder();
 
     const result = dbtProfile.validateProfile(targetConfig);
     if (result !== undefined) {
