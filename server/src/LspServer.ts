@@ -57,11 +57,11 @@ export class LspServer {
     process.on('SIGTERM', this.gracefulShutdown);
     process.on('SIGINT', this.gracefulShutdown);
 
-    const findResult = await this.yamlParser.createDbtProfile();
-    if (findResult.error) {
-      return new ResponseError<InitializeError>(100, findResult.error, { retry: true });
+    const createResult = await this.yamlParser.createDbtProfile();
+    if (createResult.error) {
+      return new ResponseError<InitializeError>(100, createResult.error, { retry: true });
     }
-    this.bigQueryClient = <BigQueryClient>findResult.client;
+    this.bigQueryClient = <BigQueryClient>createResult.client;
 
     this.initializeDestinationDefinition();
 
