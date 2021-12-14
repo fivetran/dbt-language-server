@@ -3,9 +3,13 @@ import { spawnSync } from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { TextDocumentChangeEvent, TextEditorEdit } from 'vscode';
+import { readFileSync } from 'fs';
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
+
+const MANIFEST_FILE_NAME = 'manifest.json';
+const RESOURCE_TYPE_MODEL = 'model';
 
 export const TEST_FIXTURE_PATH = path.resolve(__dirname, '../test-fixture');
 vscode.workspace.onDidChangeTextDocument(onDidChangeTextDocument);
@@ -168,4 +172,48 @@ export function getDbtVersion(): string {
   } catch (error) {
     return 'unknown';
   }
+}
+
+export function getListModels(): string[] {
+  try {
+    const dbtLs = spawnSync('dbt', ['ls'], {
+      cwd: TEST_FIXTURE_PATH,
+    });
+    const dbtLsResult = String(dbtLs.output[1]);
+    const regexpModel = /^my_new_project.(.*)+$/;
+
+    const models = dbtLsResult.split(/\r?\n/).map(m => {
+      const match = regexpModel.exec(m);
+      return match && match[1] ? match[1] : undefined;
+    });
+
+    const result = [];
+    for (const m of models) {
+      if (m) {
+        result.push(m);
+      }
+    }
+    return result.sort();
+  } catch (e) {
+    return [];
+  }
+}
+
+export function getManifestModels(): string[] {
+  const manifestLocation = path.join(TEST_FIXTURE_PATH, 'target', MANIFEST_FILE_NAME);
+  try {
+    const content = readFileSync(manifestLocation, 'utf8');
+    const manifest = JSON.parse(content);
+    const nodes = manifest.nodes;
+
+    if (nodes) {
+      return Object.values(<any[]>nodes)
+        .filter(n => n.resource_type === RESOURCE_TYPE_MODEL)
+        .map(n => n.name)
+        .sort();
+    }
+  } catch (e) {
+    console.log(`Failed to read ${MANIFEST_FILE_NAME}`, e);
+  }
+  return [];
 }
