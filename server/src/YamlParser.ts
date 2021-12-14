@@ -136,9 +136,7 @@ export class YamlParser {
   }
 
   cantFindSectionError(profileName: string, section: string, docsUrl?: string): DbtProfileResult {
-    const text = docsUrl
-      ? `Couldn't find section '${section}' for profile '${profileName}'. Check your '${this.profilesPath}' file. ${docsUrl}`
-      : `Couldn't find section '${section}' for profile '${profileName}'. Check your '${this.profilesPath}' file.`;
+    const text = `Couldn't find section '${section}' for profile '${profileName}'. Check your '${this.profilesPath}' file. ${docsUrl ?? ''}`;
     return YamlParser.errorResult(text);
   }
 
