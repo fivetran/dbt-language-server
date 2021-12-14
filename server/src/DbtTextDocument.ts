@@ -85,9 +85,6 @@ export class DbtTextDocument {
 
   async didChangeTextDocument(params: DidChangeTextDocumentParams): Promise<void> {
     if (this.compileNeeded || this.isDbtCompileNeeded(params.contentChanges)) {
-      // File could be changed outside workspace
-      // Other models compile can fail without refresh
-      this.dbtServer.refreshServer();
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
       this.compileNeeded = true;
     } else {
