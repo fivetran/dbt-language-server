@@ -17,7 +17,6 @@ import {
   TextDocumentContentChangeEvent,
   TextDocumentItem,
   _Connection,
-  WorkspaceFolder,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CompletionProvider } from './CompletionProvider';
@@ -58,11 +57,11 @@ export class DbtTextDocument {
     private progressReporter: ProgressReporter,
     private completionProvider: CompletionProvider,
     serviceAccountCredentials: ServiceAccountCredentials | ServiceAccountJsonCredentials,
-    workspaceFolders: WorkspaceFolder[],
+    workspaceFolder: string,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
-    this.modelCompiler = new ModelCompiler(this, dbtServer, workspaceFolders);
+    this.modelCompiler = new ModelCompiler(this, dbtServer, workspaceFolder);
     this.schemaTracker = new SchemaTracker(serviceAccountCredentials);
     this.requireCompileOnSave = false;
   }
