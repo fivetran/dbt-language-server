@@ -1,7 +1,7 @@
 # Language Server for dbt
 
 This extension will help you work with dbt and BigQuery.\
-**Note:** Turning on Auto Save is strongly recommended. With this option turned on, Vscode will save your changes after a configured delay or when focus leaves the editor. This feature is required for preview, completion and errors highlighting.
+**Note:** Turning on [Auto Save](https://code.visualstudio.com/docs/editor/codebasics#_save-auto-save) is strongly recommended. With this option turned on, VS Code will save your changes after a configured delay or when focus leaves the editor. This feature is required for preview, completion and errors highlighting.
 
 ## Features
 
