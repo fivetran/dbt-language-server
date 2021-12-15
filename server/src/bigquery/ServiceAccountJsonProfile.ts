@@ -4,8 +4,6 @@ import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 import { ExternalAccountClientOptions } from 'google-auth-library';
 
 export class ServiceAccountJsonProfile implements DbtProfile {
-  static readonly createProfile: () => DbtProfile = () => new ServiceAccountJsonProfile();
-
   static readonly BQ_SERVICE_ACCOUNT_JSON_DOCS =
     '[Service Account JSON configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-json).';
 

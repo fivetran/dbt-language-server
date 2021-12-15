@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as yaml from 'yaml';
 import { YamlParserUtils } from './YamlParserUtils';
-import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtProfile';
+import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtProfileType';
 import { Client } from './DbtProfile';
 
 export interface DbtProfileResult {

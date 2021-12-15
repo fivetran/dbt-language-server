@@ -1,19 +1,3 @@
-import { OAuthProfile } from './bigquery/OAuthProfile';
-import { ServiceAccountProfile } from './bigquery/ServiceAccountProfile';
-import { ServiceAccountJsonProfile } from './bigquery/ServiceAccountJsonProfile';
-
-export enum DbtProfileType {
-  BigQuery = 'bigquery',
-}
-
-export const BIG_QUERY_PROFILES = new Map<string, () => DbtProfile>([
-  ['oauth', OAuthProfile.createProfile],
-  ['service-account', ServiceAccountProfile.createProfile],
-  ['service-account-json', ServiceAccountJsonProfile.createProfile],
-]);
-
-export const PROFILE_METHODS = new Map<DbtProfileType, string[]>([[DbtProfileType.BigQuery, [...BIG_QUERY_PROFILES.keys()]]]);
-
 export abstract class Client {}
 
 export interface DbtProfile {
