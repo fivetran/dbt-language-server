@@ -12,10 +12,6 @@ suite('Should do completion inside jinjas expression', () => {
     completionJinjaContent = fs.readFileSync(getDocPath('completion_jinja.sql')).toString();
   });
 
-  suiteTeardown(function () {
-    //do nothing
-  });
-
   test('Should suggest models for ref function by pressing "("', async () => {
     const docUri = getDocUri('completion_jinja.sql');
     await activateAndWait(docUri);
