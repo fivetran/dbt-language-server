@@ -50,18 +50,16 @@ export class DbtTextDocument {
   ast: AnalyzeResponse | undefined;
   schemaTracker: SchemaTracker;
   signatureHelpProvider = new SignatureHelpProvider();
-  dbtServer: DbtServer;
 
   constructor(
     doc: TextDocumentItem,
-    dbtServer: DbtServer,
+    private dbtServer: DbtServer,
     private connection: _Connection,
     private progressReporter: ProgressReporter,
     private completionProvider: CompletionProvider,
     serviceAccountCredentials: ServiceAccountCredentials | ServiceAccountJsonCredentials,
     workspaceFolders: WorkspaceFolder[],
   ) {
-    this.dbtServer = dbtServer;
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.modelCompiler = new ModelCompiler(this, dbtServer, workspaceFolders);
