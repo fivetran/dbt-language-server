@@ -37,7 +37,7 @@ interface TelemetryEvent {
 export class LspServer {
   connection: _Connection;
   hasConfigurationCapability = false;
-  workspaceFolder = '';
+  workspaceFolder?: string;
   dbtServer = new DbtServer();
   openedDocuments = new Map<string, DbtTextDocument>();
   serviceAccountCredentials?: ServiceAccountCredentials | ServiceAccountJsonCredentials;
@@ -162,6 +162,11 @@ export class LspServer {
   async onDidOpenTextDocument(params: DidOpenTextDocumentParams): Promise<void> {
     const uri = params.textDocument.uri;
     let document = this.openedDocuments.get(uri);
+
+    if (this.workspaceFolder === undefined) {
+      console.log('Current working directory is not specified');
+      return;
+    }
 
     if (!document && this.serviceAccountCredentials) {
       document = new DbtTextDocument(
