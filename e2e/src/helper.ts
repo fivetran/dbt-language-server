@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import { spawnSync } from 'child_process';
+import { readFileSync } from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { TextDocumentChangeEvent, TextEditorEdit } from 'vscode';
@@ -7,8 +8,11 @@ import { TextDocumentChangeEvent, TextEditorEdit } from 'vscode';
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
 
-export const PROJECTS_PATH = path.resolve(__dirname, '../projects');
-export const TEST_FIXTURE_PATH = path.resolve(PROJECTS_PATH, 'test-fixture');
+const PROJECTS_PATH = path.resolve(__dirname, '../projects');
+const TEST_FIXTURE_PATH = path.resolve(PROJECTS_PATH, 'test-fixture');
+const MANIFEST_FILE_NAME = 'manifest.json';
+const RESOURCE_TYPE_MODEL = 'model';
+
 vscode.workspace.onDidChangeTextDocument(onDidChangeTextDocument);
 let promiseResolve: () => void;
 
@@ -162,4 +166,23 @@ export async function triggerCompletion(
 ): Promise<vscode.CompletionList<vscode.CompletionItem>> {
   // Executing the command `vscode.executeCompletionItemProvider` to simulate triggering completion
   return (await vscode.commands.executeCommand('vscode.executeCompletionItemProvider', docUri, position, triggerChar)) as vscode.CompletionList;
+}
+
+export function getManifestModels(): string[] {
+  const manifestLocation = path.join(TEST_FIXTURE_PATH, 'target', MANIFEST_FILE_NAME);
+  try {
+    const content = readFileSync(manifestLocation, 'utf8');
+    const manifest = JSON.parse(content);
+    const nodes = manifest.nodes;
+
+    if (nodes) {
+      return Object.values(<any[]>nodes)
+        .filter(n => n.resource_type === RESOURCE_TYPE_MODEL)
+        .map(n => n.name)
+        .sort();
+    }
+  } catch (e) {
+    console.log(`Failed to read ${MANIFEST_FILE_NAME}`, e);
+  }
+  return [];
 }

@@ -1,4 +1,2 @@
 projects/**/logs
 projects/**/target/*
-
-!projects/test-fixture/target/test_manifest.json
