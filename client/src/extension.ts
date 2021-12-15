@@ -1,13 +1,13 @@
 import { ExtensionContext } from 'vscode';
-import { LspClient } from './LspClient';
+import { ExtensionClient } from './ExtensionClient';
 
-let lspClient: LspClient;
+let extensionClient: ExtensionClient;
 export async function activate(context: ExtensionContext): Promise<void> {
-  lspClient = new LspClient(context);
-  await lspClient.onActivate();
+  extensionClient = new ExtensionClient(context);
+  await extensionClient.onActivate();
 }
 
 // This method is called when extension is deactivated
 export function deactivate(): Thenable<void> | undefined {
-  return lspClient.onDeactivate();
+  return extensionClient.onDeactivate();
 }

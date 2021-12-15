@@ -1,0 +1,91 @@
+import { Disposable, OutputChannel, Uri, workspace, WorkspaceFolder } from 'vscode';
+import { LanguageClient, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
+import { SUPPORTED_LANG_IDS } from './ExtensionClient';
+import { ProgressHandler } from './ProgressHandler';
+import { PythonExtension } from './PythonExtension';
+import SqlPreviewContentProvider from './SqlPreviewContentProvider';
+import { TelemetryClient } from './TelemetryClient';
+
+interface TelemetryEvent {
+  name: string;
+  properties?: { [key: string]: string };
+}
+
+export class DbtLanguageClient implements Disposable {
+  client: LanguageClient;
+  disposables: Disposable[] = [];
+
+  constructor(
+    port: number,
+    outputChannel: OutputChannel,
+    module: string,
+    dbtProjecUri: Uri,
+    private previewContentProvider: SqlPreviewContentProvider,
+    private progressHandler: ProgressHandler,
+  ) {
+    const debugOptions = { execArgv: ['--nolazy', `--inspect=${port}`] };
+    const serverOptions = {
+      run: { module: module, transport: TransportKind.ipc },
+      debug: { module: module, transport: TransportKind.ipc, options: debugOptions },
+    };
+
+    const clientOptions = {
+      documentSelector: SUPPORTED_LANG_IDS.map(langId => ({ scheme: 'file', language: langId, pattern: `${dbtProjecUri.fsPath}/**/*` })),
+      synchronize: {
+        fileEvents: workspace.createFileSystemWatcher('**/target/manifest.json'),
+      },
+      outputChannel: outputChannel,
+      workspaceFolder: <WorkspaceFolder>{ uri: dbtProjecUri },
+    };
+
+    this.client = new LanguageClient('dbt-language-server', 'Dbt Language Client', serverOptions, clientOptions);
+  }
+
+  initialize(): void {
+    this.disposables.push(
+      this.client.onTelemetry((e: TelemetryEvent) => {
+        TelemetryClient.sendEvent(e.name, e.properties);
+      }),
+    );
+
+    this.client.onDidChangeState(async e => {
+      if (e.newState === State.Running) {
+        this.disposables.push(
+          this.client.onNotification('custom/updateQueryPreview', ([uri, text]) => {
+            this.previewContentProvider.update(uri, text);
+          }),
+
+          this.client.onRequest('custom/getPython', async () => {
+            return await new PythonExtension().getPython();
+          }),
+
+          await this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),
+        );
+
+        console.log('Client switched to state "Running"');
+      }
+    });
+
+    this.client.onReady().catch(reason => {
+      if (reason && reason.name && reason.message) {
+        TelemetryClient.sendException(reason);
+      }
+    });
+  }
+
+  sendNotification(method: string, params: any): void {
+    this.client.sendNotification(method, params);
+  }
+
+  start(): void {
+    this.disposables.push(this.client.start());
+  }
+
+  stop(): Promise<void> {
+    return this.client.stop();
+  }
+
+  dispose(): void {
+    this.disposables.forEach(disposable => disposable.dispose());
+  }
+}
