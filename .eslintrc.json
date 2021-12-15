@@ -15,7 +15,8 @@
   ],
   "rules": {
     "@typescript-eslint/no-floating-promises": ["error"],
-    "@typescript-eslint/explicit-function-return-type": ["error"]
+    "@typescript-eslint/explicit-function-return-type": ["error"],
+    "@typescript-eslint/no-explicit-any": ["off"]
   },
   "ignorePatterns": ["**/*.d.ts"]
 }

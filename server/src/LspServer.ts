@@ -8,7 +8,6 @@ import {
   DidChangeWatchedFilesParams,
   DidCloseTextDocumentParams,
   DidOpenTextDocumentParams,
-  DidSaveTextDocumentParams,
   Hover,
   HoverParams,
   InitializeError,
@@ -152,7 +151,7 @@ export class LspServer {
     }
   }
 
-  onDidSaveTextDocument(params: DidSaveTextDocumentParams): void {
+  onDidSaveTextDocument(): void {
     this.dbtServer.refreshServer();
   }
 
