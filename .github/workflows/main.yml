@@ -93,39 +93,37 @@ jobs:
                 dataset: ${dataset}
                 threads: 4
 
-            e2e-test-workspace-project1:
-              target: prod
-              outputs:
-                prod:
+          e2e-test-workspace-project1:
+            target: prod
+            outputs:
+              prod:
+                type: bigquery
                 method: service-account-json
                 project: ${project_id}
                 dataset: ${dataset}
                 threads: 4
-                timeout_seconds: 3600
-                priority: interactive
-                retries: 1
                 keyfile_json:
                   type: service_account
                   project_id: ${project_id}
-                  private_key_id: $private_key_id
-                  private_key: $private_key
-                  client_id: $client_id
-                  client_email: $client_email
-                  auth_uri: $auth_uri
-                  token_uri: $token_uri
-                  auth_provider_x509_cert_url: $auth_provider_x509_cert_url
-                  client_x509_cert_url: $client_x509_cert_url
+                  private_key_id: ${private_key_id}
+                  private_key: ${private_key}
+                  client_id: ${client_id}
+                  client_email: ${client_email}
+                  auth_uri: ${auth_uri}
+                  token_uri: ${token_uri}
+                  auth_provider_x509_cert_url: ${auth_provider_x509_cert_url}
+                  client_x509_cert_url: ${client_x509_cert_url}
 
-            e2e-test-workspace-project2:
-              target: prod
-              outputs:
-                prod:
-                  type: bigquery
-                  method: service-account
-                  project: ${project_id}
-                  keyfile: ${keyFilePath}
-                  dataset: ${dataset}
-                  threads: 4
+          e2e-test-workspace-project2:
+            target: prod
+            outputs:
+              prod:
+                type: bigquery
+                method: service-account
+                project: ${project_id}
+                keyfile: ${keyFilePath}
+                dataset: ${dataset}
+                threads: 4
           EOT
         env:
           BQ_SERVICE_ACCOUNT: ${{ secrets.BQ_SERVICE_ACCOUNT }}

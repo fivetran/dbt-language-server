@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { CompletionItem } from 'vscode';
-import { getManifestModels, activateAndWait, getDocPath, getDocUri, setTestContent, testCompletion, triggerCompletion } from './helper';
+import { activateAndWait, getDocPath, getDocUri, getManifestModels, setTestContent, testCompletion, triggerCompletion } from './helper';
 
 suite('Should do completion inside jinjas expression', () => {
   let models: string[];
