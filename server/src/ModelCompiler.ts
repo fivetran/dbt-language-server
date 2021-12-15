@@ -30,6 +30,11 @@ export class ModelCompiler {
     const documentUri = this.dbtTextDocument.rawDocument.uri;
 
     const index = documentUri.indexOf(this.workspaceFolder);
+    if (index == -1) {
+      console.log('Opened file is not a part of project workspace. Compile request declined.');
+      return;
+    }
+
     const modelPath = documentUri.slice(index + this.workspaceFolder.length + 1);
 
     if (modelPath) {
