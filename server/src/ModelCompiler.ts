@@ -3,16 +3,11 @@ import { CompileResult, DbtServer } from './DbtServer';
 import { DbtTextDocument } from './DbtTextDocument';
 
 export class ModelCompiler {
-  dbtTextDocument: DbtTextDocument;
-  dbtServer: DbtServer;
   dbtCompileTaskQueue: DbtCompileJob[] = [];
   compilationInProgress = false;
   pollIsRunning = false;
 
-  constructor(dbtTextDocument: DbtTextDocument, dbtServer: DbtServer) {
-    this.dbtTextDocument = dbtTextDocument;
-    this.dbtServer = dbtServer;
-  }
+  constructor(private dbtTextDocument: DbtTextDocument, private dbtServer: DbtServer, private workspaceFolder: string) {}
 
   async compile(): Promise<void> {
     this.compilationInProgress = true;
@@ -32,9 +27,23 @@ export class ModelCompiler {
   }
 
   startNewTask(): void {
-    const task = new DbtCompileJob(this.dbtServer, this.dbtTextDocument.rawDocument.getText());
-    this.dbtCompileTaskQueue.push(task);
-    void task.runCompile();
+    const documentUri = this.dbtTextDocument.rawDocument.uri;
+
+    const index = documentUri.indexOf(this.workspaceFolder);
+    if (index == -1) {
+      console.log('Opened file is not a part of project workspace. Compile request declined.');
+      return;
+    }
+
+    const modelPath = documentUri.slice(index + this.workspaceFolder.length + 1);
+
+    if (modelPath) {
+      const task = new DbtCompileJob(this.dbtServer, modelPath);
+      this.dbtCompileTaskQueue.push(task);
+      void task.runCompile();
+    } else {
+      console.log('Unable to determine model path');
+    }
   }
 
   async pollResults(): Promise<void> {

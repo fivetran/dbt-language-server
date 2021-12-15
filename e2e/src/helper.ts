@@ -3,9 +3,13 @@ import { spawnSync } from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { TextDocumentChangeEvent, TextEditorEdit } from 'vscode';
+import { readFileSync } from 'fs';
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
+
+const MANIFEST_FILE_NAME = 'manifest.json';
+const RESOURCE_TYPE_MODEL = 'model';
 
 export const TEST_FIXTURE_PATH = path.resolve(__dirname, '../test-fixture');
 vscode.workspace.onDidChangeTextDocument(onDidChangeTextDocument);
@@ -152,4 +156,23 @@ export async function triggerCompletion(
 ): Promise<vscode.CompletionList<vscode.CompletionItem>> {
   // Executing the command `vscode.executeCompletionItemProvider` to simulate triggering completion
   return (await vscode.commands.executeCommand('vscode.executeCompletionItemProvider', docUri, position, triggerChar)) as vscode.CompletionList;
+}
+
+export function getManifestModels(): string[] {
+  const manifestLocation = path.join(TEST_FIXTURE_PATH, 'target', MANIFEST_FILE_NAME);
+  try {
+    const content = readFileSync(manifestLocation, 'utf8');
+    const manifest = JSON.parse(content);
+    const nodes = manifest.nodes;
+
+    if (nodes) {
+      return Object.values(<any[]>nodes)
+        .filter(n => n.resource_type === RESOURCE_TYPE_MODEL)
+        .map(n => n.name)
+        .sort();
+    }
+  } catch (e) {
+    console.log(`Failed to read ${MANIFEST_FILE_NAME}`, e);
+  }
+  return [];
 }

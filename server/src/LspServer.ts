@@ -38,6 +38,7 @@ interface TelemetryEvent {
 export class LspServer {
   connection: _Connection;
   hasConfigurationCapability = false;
+  workspaceFolder?: string;
   dbtServer = new DbtServer();
   openedDocuments = new Map<string, DbtTextDocument>();
   bigQueryClient?: BigQueryClient;
@@ -71,6 +72,8 @@ export class LspServer {
     // Does the client support the `workspace/configuration` request?
     // If not, we fall back using global settings.
     this.hasConfigurationCapability = !!(capabilities.workspace && !!capabilities.workspace.configuration);
+
+    this.workspaceFolder = process.cwd();
 
     return <InitializeResult>{
       capabilities: {
@@ -146,13 +149,26 @@ export class LspServer {
     }
   }
 
-  onDidSaveTextDocument(params: DidSaveTextDocumentParams): void {
-    this.dbtServer.refreshServer();
+  async onDidSaveTextDocument(params: DidSaveTextDocumentParams): Promise<void> {
+    if (!(await this.isDbtReady())) {
+      return;
+    }
+
+    const document = this.openedDocuments.get(params.textDocument.uri);
+    if (document) {
+      await document.didSaveTextDocument();
+    }
   }
 
   async onDidOpenTextDocument(params: DidOpenTextDocumentParams): Promise<void> {
     const uri = params.textDocument.uri;
     let document = this.openedDocuments.get(uri);
+
+    if (this.workspaceFolder === undefined) {
+      console.log('Current working directory is not specified');
+      return;
+    }
+
     if (!document && this.bigQueryClient) {
       document = new DbtTextDocument(
         params.textDocument,
@@ -161,9 +177,14 @@ export class LspServer {
         this.progressReporter,
         this.completionProvider,
         this.bigQueryClient,
+        this.workspaceFolder,
       );
       this.openedDocuments.set(uri, document);
-      await this.onDidChangeTextDocument({ textDocument: params.textDocument, contentChanges: [] });
+
+      if (!(await this.isDbtReady())) {
+        return;
+      }
+      await document.didOpenTextDocument();
     }
   }
 
