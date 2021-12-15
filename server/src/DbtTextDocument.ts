@@ -44,7 +44,7 @@ export class DbtTextDocument {
 
   rawDocument: TextDocument;
   compiledDocument: TextDocument;
-  compileNeeded: boolean;
+  requireCompileOnSave: boolean;
 
   modelCompiler: ModelCompiler;
   ast: AnalyzeResponse | undefined;
@@ -66,12 +66,12 @@ export class DbtTextDocument {
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.modelCompiler = new ModelCompiler(this, dbtServer, workspaceFolders);
     this.schemaTracker = new SchemaTracker(serviceAccountCredentials);
-    this.compileNeeded = false;
+    this.requireCompileOnSave = false;
   }
 
   async didSaveTextDocument(): Promise<void> {
-    if (this.compileNeeded) {
-      this.compileNeeded = false;
+    if (this.requireCompileOnSave) {
+      this.requireCompileOnSave = false;
       this.dbtServer.refreshServer();
       await this.debouncedCompile();
     } else {
@@ -84,9 +84,9 @@ export class DbtTextDocument {
   }
 
   async didChangeTextDocument(params: DidChangeTextDocumentParams): Promise<void> {
-    if (this.compileNeeded || this.isDbtCompileNeeded(params.contentChanges)) {
+    if (this.requireCompileOnSave || this.isDbtCompileNeeded(params.contentChanges)) {
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
-      this.compileNeeded = true;
+      this.requireCompileOnSave = true;
     } else {
       const compiledContentChanges = params.contentChanges.map(c => {
         if (!TextDocumentContentChangeEvent.isIncremental(c)) {
