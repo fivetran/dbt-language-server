@@ -4,31 +4,32 @@ export class DbtCompileJob {
   static readonly MAX_RETRIES = 5;
 
   dbtServer: DbtServer;
-  text: string;
-  startCompileRsponse: CompileResponse | undefined;
+  modelName: string;
+
+  startCompileResponse: CompileResponse | undefined;
   tryCount = 0;
 
-  constructor(dbtServer: DbtServer, text: string) {
+  constructor(dbtServer: DbtServer, modelName: string) {
     this.dbtServer = dbtServer;
-    this.text = text;
+    this.modelName = modelName;
   }
 
   async runCompile(): Promise<void> {
-    this.startCompileRsponse = await this.dbtServer.compileSql(this.text);
+    this.startCompileResponse = await this.dbtServer.compileModel(this.modelName);
   }
 
   async getResult(): Promise<PollResponse | undefined> {
-    if (this.startCompileRsponse) {
-      if (!this.startCompileRsponse.error) {
-        return await this.dbtServer.pollOnceCompileResult(this.startCompileRsponse.result.request_token);
+    if (this.startCompileResponse) {
+      if (!this.startCompileResponse.error) {
+        return await this.dbtServer.pollOnceCompileResult(this.startCompileResponse.result.request_token);
       } else {
         if (this.tryCount >= DbtCompileJob.MAX_RETRIES) {
           return <PollResponse>{
-            error: this.startCompileRsponse.error,
+            error: this.startCompileResponse.error,
             result: { state: 'error' },
           };
         }
-        this.startCompileRsponse = undefined;
+        this.startCompileResponse = undefined;
         void this.runCompile();
       }
       this.tryCount++;
@@ -37,7 +38,7 @@ export class DbtCompileJob {
   }
 
   async kill(): Promise<void> {
-    const token = this.startCompileRsponse?.result.request_token;
+    const token = this.startCompileResponse?.result.request_token;
     if (token) {
       await this.dbtServer.kill(token);
     }

@@ -4,5 +4,6 @@
     },
     
     "python.defaultInterpreterPath": "~/dbt-env/bin/python3",
-    "python.pythonPath": "~/dbt-env/bin/python3"
+    "python.pythonPath": "~/dbt-env/bin/python3",
+    "files.autoSave": "afterDelay"
 }

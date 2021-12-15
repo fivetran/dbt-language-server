@@ -68,8 +68,28 @@ jobs:
         with:
           python-version: '3.7.x'
 
-      - run: mkdir -p ~/.dbt/ && cp ./e2e/profiles.yml ~/.dbt/profiles.yml
-      - run: 'echo "$BQ_SERVICE_ACCOUNT" > ~/.dbt/bq-test-project.json'
+      - name: prepare profile config
+        run: |
+          mkdir -p ~/.dbt/
+          echo "$BQ_SERVICE_ACCOUNT" > ~/.dbt/bq-test-project.json
+
+          user=$(whoami)
+          path=$(eval echo "~${user}")/.dbt/bq-test-project.json
+
+          cat <<EOT > ~/.dbt/profiles.yml
+
+          e2e-test-project:
+            target: prod
+            outputs:
+              prod:
+                type: bigquery
+                method: service-account
+                project: singular-vector-135519
+                keyfile: ${path}
+                dataset: transforms_dbt_default
+                threads: 4
+
+          EOT
         env:
           BQ_SERVICE_ACCOUNT: ${{ secrets.BQ_SERVICE_ACCOUNT }}
       - run: pip install ${{ matrix.dbt-version }}
