@@ -1,8 +1,7 @@
-import { DbtProfile, ProfileData, Client } from '../../DbtProfile';
-import { OAuthData } from './OAuthData';
-import { BigQueryClient } from '../BigQueryClient';
+import { DbtProfile, Client } from '../DbtProfile';
+import { BigQueryClient } from './BigQueryClient';
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
-import { ProcessExecutor } from '../../ProcessExecutor';
+import { ProcessExecutor } from '../ProcessExecutor';
 
 export class OAuthProfile implements DbtProfile {
   static readonly createProfile: () => DbtProfile = () => new OAuthProfile();
@@ -22,11 +21,6 @@ export class OAuthProfile implements DbtProfile {
     return OAuthProfile.BQ_OAUTH_DOCS;
   }
 
-  getData(profile: any): ProfileData {
-    const project = profile.project;
-    return new OAuthData(project);
-  }
-
   validateProfile(targetConfig: any): string | undefined {
     const project = targetConfig.project;
     if (!project) {
@@ -36,13 +30,13 @@ export class OAuthProfile implements DbtProfile {
     return undefined;
   }
 
-  createClient(data: ProfileData): Client {
-    const oAuthData = <OAuthData>data;
+  createClient(profile: any): Client {
+    const project = profile.project;
     const options: BigQueryOptions = {
-      projectId: oAuthData.project,
+      projectId: project,
     };
     const bigQuery = new BigQuery(options);
-    return new BigQueryClient(oAuthData.project, bigQuery);
+    return new BigQueryClient(project, bigQuery);
   }
 
   async authenticateClient(client: Client): Promise<string | undefined> {

@@ -1,7 +1,6 @@
-import { DbtProfile, ProfileData, Client } from '../../DbtProfile';
-import { ServiceAccountData } from './ServiceAccountData';
-import { YamlParserUtils } from '../../YamlParserUtils';
-import { BigQueryClient } from '../BigQueryClient';
+import { DbtProfile, Client } from '../DbtProfile';
+import { YamlParserUtils } from '../YamlParserUtils';
+import { BigQueryClient } from './BigQueryClient';
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 
 export class ServiceAccountProfile implements DbtProfile {
@@ -12,12 +11,6 @@ export class ServiceAccountProfile implements DbtProfile {
 
   getDocsUrl(): string {
     return ServiceAccountProfile.BQ_SERVICE_ACCOUNT_FILE_DOCS;
-  }
-
-  getData(profile: any): ProfileData {
-    const project = profile.project;
-    const keyFilePath = YamlParserUtils.replaceTilde(profile.keyfile);
-    return new ServiceAccountData(project, keyFilePath);
   }
 
   validateProfile(targetConfig: any): string | undefined {
@@ -34,14 +27,16 @@ export class ServiceAccountProfile implements DbtProfile {
     return undefined;
   }
 
-  createClient(data: ProfileData): Client {
-    const serviceAccountData = <ServiceAccountData>data;
+  createClient(profile: any): Client {
+    const project = profile.project;
+    const keyFilePath = YamlParserUtils.replaceTilde(profile.keyfile);
+
     const options: BigQueryOptions = {
-      projectId: serviceAccountData.project,
-      keyFilename: serviceAccountData.keyFilePath,
+      projectId: project,
+      keyFilename: keyFilePath,
     };
     const bigQuery = new BigQuery(options);
-    return new BigQueryClient(serviceAccountData.project, bigQuery);
+    return new BigQueryClient(project, bigQuery);
   }
 
   authenticateClient(): Promise<string | undefined> {

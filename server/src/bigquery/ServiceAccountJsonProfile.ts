@@ -1,6 +1,5 @@
-import { DbtProfile, ProfileData, Client } from '../../DbtProfile';
-import { ServiceAccountJsonData } from './ServiceAccountJsonData';
-import { BigQueryClient } from '../BigQueryClient';
+import { DbtProfile, Client } from '../DbtProfile';
+import { BigQueryClient } from './BigQueryClient';
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 import { ExternalAccountClientOptions } from 'google-auth-library';
 
@@ -12,12 +11,6 @@ export class ServiceAccountJsonProfile implements DbtProfile {
 
   getDocsUrl(): string {
     return ServiceAccountJsonProfile.BQ_SERVICE_ACCOUNT_JSON_DOCS;
-  }
-
-  getData(profile: any): ProfileData {
-    const project = profile.project;
-    const keyFileJson = JSON.stringify(profile.keyfile_json);
-    return new ServiceAccountJsonData(project, keyFileJson);
   }
 
   validateProfile(targetConfig: any): string | undefined {
@@ -34,15 +27,17 @@ export class ServiceAccountJsonProfile implements DbtProfile {
     return this.validateKeyFileJson(keyFileJson);
   }
 
-  createClient(data: ProfileData): Client {
-    const serviceAccountJsonData = <ServiceAccountJsonData>data;
-    const content = <ExternalAccountClientOptions>JSON.parse(serviceAccountJsonData.keyFileJson);
+  createClient(profile: any): Client {
+    const project = profile.project;
+    const keyFileJson = JSON.stringify(profile.keyfile_json);
+
+    const content = <ExternalAccountClientOptions>JSON.parse(keyFileJson);
     const options: BigQueryOptions = {
-      projectId: serviceAccountJsonData.project,
+      projectId: project,
       credentials: content,
     };
     const bigQuery = new BigQuery(options);
-    return new BigQueryClient(serviceAccountJsonData.project, bigQuery);
+    return new BigQueryClient(project, bigQuery);
   }
 
   authenticateClient(): Promise<string | undefined> {

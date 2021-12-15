@@ -120,8 +120,7 @@ export class YamlParser {
       return this.cantFindSectionError(profileName, result, docsUrl);
     }
 
-    const profileData = dbtProfile.getData(targetConfig);
-    const client = dbtProfile.createClient(profileData);
+    const client = dbtProfile.createClient(targetConfig);
     const authenticateResult = await dbtProfile.authenticateClient(client);
     if (authenticateResult) {
       return {
