@@ -47,6 +47,7 @@ jobs:
     needs: test-and-package
 
     strategy:
+      fail-fast: false
       matrix:
         dbt-version: ['dbt==0.19.1', 'dbt']
 
