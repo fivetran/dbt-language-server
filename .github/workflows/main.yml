@@ -29,7 +29,7 @@ jobs:
           npm run test
 
       - name: package to vsix file
-        run: npx vsce package -o dbt-language-server.vsix --baseImagesUrl=https://storage.googleapis.com/dbt-ls-images
+        run: npx vsce package -o dbt-language-server.vsix --baseContentUrl=https://storage.googleapis.com/dbt-ls-docs --baseImagesUrl=https://storage.googleapis.com/dbt-ls-images
 
       - name: save vsix name with sha
         id: vars
