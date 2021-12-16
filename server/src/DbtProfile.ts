@@ -12,7 +12,7 @@ export interface DbtProfile {
   createClient(profile: any): Client;
 
   /**
-   * Establish connection with destination
+   * Authenticates client
    * @param client profile client
    * @returns undefined in case of authentication success and error string otherwise
    */
