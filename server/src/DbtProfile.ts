@@ -4,7 +4,7 @@ export interface DbtProfile {
   getDocsUrl(): string;
 
   /**
-   * Validate dbt profile according to specified type and authentication method
+   * Validates dbt profile according to specified type and authentication method
    * @param targetConfig target config specified in profiles.yml
    * @returns error message or undefined if profile is valid
    */
