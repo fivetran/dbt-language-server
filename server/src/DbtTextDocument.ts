@@ -30,9 +30,9 @@ import { ProgressReporter } from './ProgressReporter';
 import { SchemaTracker } from './SchemaTracker';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { debounce, getJinjaContentOffset } from './Utils';
-import { ServiceAccountCredentials, ServiceAccountJsonCredentials } from './YamlParser';
 import { ZetaSQLAST } from './ZetaSQLAST';
 import { ZetaSQLCatalog } from './ZetaSQLCatalog';
+import { BigQueryClient } from './bigquery/BigQueryClient';
 
 export class DbtTextDocument {
   static readonly NON_WORD_PATTERN = /\W/;
@@ -56,13 +56,13 @@ export class DbtTextDocument {
     private connection: _Connection,
     private progressReporter: ProgressReporter,
     private completionProvider: CompletionProvider,
-    serviceAccountCredentials: ServiceAccountCredentials | ServiceAccountJsonCredentials,
+    bigQueryClient: BigQueryClient,
     workspaceFolder: string,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.modelCompiler = new ModelCompiler(this, dbtServer, workspaceFolder);
-    this.schemaTracker = new SchemaTracker(serviceAccountCredentials);
+    this.schemaTracker = new SchemaTracker(bigQueryClient);
     this.requireCompileOnSave = false;
   }
 

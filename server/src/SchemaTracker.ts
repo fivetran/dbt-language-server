@@ -1,16 +1,15 @@
 import { ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { ExtractTableNamesFromStatementRequest } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ExtractTableNamesFromStatementRequest';
-import { BigQueryClient } from './BigQueryClient';
+import { BigQueryClient } from './bigquery/BigQueryClient';
 import { TableDefinition } from './TableDefinition';
-import { ServiceAccountCredentials, ServiceAccountJsonCredentials } from './YamlParser';
 
 export class SchemaTracker {
   tableDefinitions: TableDefinition[] = [];
-  serviceAccountCredentials: ServiceAccountCredentials | ServiceAccountJsonCredentials;
+  bigQueryClient: BigQueryClient;
   hasNewTables = false;
 
-  constructor(serviceAccountCredentials: ServiceAccountCredentials | ServiceAccountJsonCredentials) {
-    this.serviceAccountCredentials = serviceAccountCredentials;
+  constructor(bigQueryClient: BigQueryClient) {
+    this.bigQueryClient = bigQueryClient;
   }
 
   resetHasNewTables(): void {
@@ -41,11 +40,10 @@ export class SchemaTracker {
     );
 
     if (newTables.length > 0) {
-      const bigQueryClient = BigQueryClient.buildClient(this.serviceAccountCredentials);
       for (const table of newTables) {
         if (table.getDatasetName() && table.getTableName()) {
           // TODO: handle different project names?
-          const schema = await bigQueryClient?.getTableSchema(table.getDatasetName(), table.getTableName());
+          const schema = await this.bigQueryClient.getTableSchema(table.getDatasetName(), table.getTableName());
           if (schema) {
             this.tableDefinitions.push(table);
             table.schema = schema;
