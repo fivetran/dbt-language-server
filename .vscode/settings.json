@@ -4,5 +4,8 @@
 	"editor.codeActionsOnSave": {
 		"source.fixAll.eslint": true
 	},
-    "typescript.tsc.autoDetect": "off"
+	"typescript.tsc.autoDetect": "off",
+	"cSpell.words": [
+		"gcloud"
+	]
 }

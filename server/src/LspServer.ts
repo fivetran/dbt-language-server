@@ -23,11 +23,12 @@ import {
 } from 'vscode-languageserver';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtServer as DbtServer } from './DbtServer';
+import { YamlParser } from './YamlParser';
 import { DbtTextDocument } from './DbtTextDocument';
 import { DestinationDefinition } from './DestinationDefinition';
 import { ManifestParser } from './ManifestParser';
 import { ProgressReporter } from './ProgressReporter';
-import { ServiceAccountCredentials, ServiceAccountJsonCredentials, YamlParser } from './YamlParser';
+import { BigQueryClient } from './bigquery/BigQueryClient';
 
 interface TelemetryEvent {
   name: string;
@@ -40,7 +41,7 @@ export class LspServer {
   workspaceFolder?: string;
   dbtServer = new DbtServer();
   openedDocuments = new Map<string, DbtTextDocument>();
-  serviceAccountCredentials?: ServiceAccountCredentials | ServiceAccountJsonCredentials;
+  bigQueryClient?: BigQueryClient;
   destinationDefinition: DestinationDefinition | undefined;
   progressReporter: ProgressReporter;
   completionProvider = new CompletionProvider();
@@ -57,11 +58,11 @@ export class LspServer {
     process.on('SIGTERM', this.gracefulShutdown);
     process.on('SIGINT', this.gracefulShutdown);
 
-    const findResult = this.yamlParser.findProfileCredentials();
-    if (findResult.error) {
-      return new ResponseError<InitializeError>(100, findResult.error, { retry: true });
+    const createResult = await this.yamlParser.createDbtProfile();
+    if (createResult.error) {
+      return new ResponseError<InitializeError>(100, createResult.error, { retry: true });
     }
-    this.serviceAccountCredentials = findResult.credentials;
+    this.bigQueryClient = <BigQueryClient>createResult.client;
 
     this.initializeDestinationDefinition();
 
@@ -143,8 +144,8 @@ export class LspServer {
   }
 
   initializeDestinationDefinition(): void {
-    if (this.serviceAccountCredentials) {
-      this.destinationDefinition = new DestinationDefinition(this.serviceAccountCredentials);
+    if (this.bigQueryClient) {
+      this.destinationDefinition = new DestinationDefinition(this.bigQueryClient);
     }
   }
 
@@ -168,14 +169,14 @@ export class LspServer {
       return;
     }
 
-    if (!document && this.serviceAccountCredentials) {
+    if (!document && this.bigQueryClient) {
       document = new DbtTextDocument(
         params.textDocument,
         this.dbtServer,
         this.connection,
         this.progressReporter,
         this.completionProvider,
-        this.serviceAccountCredentials,
+        this.bigQueryClient,
         this.workspaceFolder,
       );
       this.openedDocuments.set(uri, document);

@@ -1,49 +1,29 @@
 import * as fs from 'fs';
-import { homedir } from 'os';
 import * as yaml from 'yaml';
+import { YamlParserUtils } from './YamlParserUtils';
+import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtProfileType';
+import { Client } from './DbtProfile';
 
-export interface FindCredentialsResult {
-  credentials?: ServiceAccountCredentials | ServiceAccountJsonCredentials;
+export interface DbtProfileResult {
+  client?: Client;
   error?: string;
-}
-
-export enum AuthenticationMethod {
-  ServiceAccount = 'service-account',
-  ServiceAccountJson = 'service-account-json',
-}
-
-export interface Credentials {
-  project: string;
-  method: AuthenticationMethod;
-}
-
-export interface ServiceAccountCredentials extends Credentials {
-  keyFilePath: string;
-}
-
-export interface ServiceAccountJsonCredentials extends Credentials {
-  keyFileJson: string;
 }
 
 export class YamlParser {
   static readonly DBT_PROJECT_FILE_NAME = 'dbt_project.yml';
   static readonly TARGET_PATH_FIELD = 'target-path';
   static readonly DEFAULT_TARGET_PATH = './target';
-  static readonly BQ_SERVICE_ACCOUNT_FILE_DOCS =
-    '[Service Account File configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-file).';
-  static readonly BQ_SERVICE_ACCOUNT_JSON_DOCS =
-    '[Service Account JSON configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-json).';
 
   profilesPath: string;
 
   constructor(profilesPath?: string) {
     const path = profilesPath ?? '~/.dbt/profiles.yml';
-    this.profilesPath = this.replaceTilde(path);
+    this.profilesPath = YamlParserUtils.replaceTilde(path);
   }
 
   findTargetPath(): string {
     try {
-      const dbtProject = this.parseYamlFile(YamlParser.DBT_PROJECT_FILE_NAME);
+      const dbtProject = YamlParser.parseYamlFile(YamlParser.DBT_PROJECT_FILE_NAME);
       return dbtProject[YamlParser.TARGET_PATH_FIELD] ?? YamlParser.DEFAULT_TARGET_PATH;
     } catch (e) {
       return YamlParser.DEFAULT_TARGET_PATH;
@@ -51,17 +31,15 @@ export class YamlParser {
   }
 
   findProfileName(): string {
-    const dbtProject = this.parseYamlFile(YamlParser.DBT_PROJECT_FILE_NAME);
+    const dbtProject = YamlParser.parseYamlFile(YamlParser.DBT_PROJECT_FILE_NAME);
     console.log(`Profile name found: ${dbtProject?.profile}`);
     return dbtProject?.profile;
   }
 
-  validateBQServiceAccountFile(profiles: any, profileName: string): FindCredentialsResult | undefined {
+  validateProfilesFile(profiles: any, profileName: string): DbtProfileResult | undefined {
     const profile = profiles[profileName];
     if (!profile) {
-      return this.errorResult(
-        `Couldn't find credentials for profile '${profileName}'. Check your '${this.profilesPath}' file. ${YamlParser.BQ_SERVICE_ACCOUNT_FILE_DOCS}`,
-      );
+      return YamlParser.errorResult(`Couldn't find credentials for profile '${profileName}'. Check your '${this.profilesPath}' file.`);
     }
 
     const target = profile.target;
@@ -79,72 +57,42 @@ export class YamlParser {
       return this.cantFindSectionError(profileName, `outputs.${target}`);
     }
 
-    const validationResult = this.validateRequiredFieldsInOutputsTarget(profileName, target, outputsTarget, ['type', 'method']);
-    if (validationResult) {
-      return validationResult;
+    const type = outputsTarget.type;
+    if (!type) {
+      return this.cantFindSectionError(profileName, `outputs.${target}.type`);
     }
 
-    const method = outputsTarget['method'];
-    const methodRequiredFields = [];
-    if (method == AuthenticationMethod.ServiceAccount) {
-      methodRequiredFields.push('keyfile');
-    } else if (method == AuthenticationMethod.ServiceAccountJson) {
-      methodRequiredFields.push('keyfile_json');
-    }
-    const methodValidationResult = this.validateRequiredFieldsInOutputsTarget(profileName, target, outputsTarget, methodRequiredFields);
-    if (methodValidationResult) {
-      return methodValidationResult;
-    }
-
-    if (outputsTarget.type !== 'bigquery') {
-      return this.errorResult(
-        `Currently, only BigQuery service account credentials are supported. Check your '${this.profilesPath}' file. ${YamlParser.BQ_SERVICE_ACCOUNT_FILE_DOCS}`,
-      );
-    }
-
-    return undefined;
-  }
-
-  validateRequiredFieldsInOutputsTarget(
-    profileName: string,
-    target: string,
-    outputsTarget: any,
-    fields: string[],
-  ): FindCredentialsResult | undefined {
-    for (const field of fields) {
-      const value = outputsTarget[field];
-      if (!value) {
-        return this.cantFindSectionError(profileName, `outputs.${target}.${field}`);
+    const method = outputsTarget.method;
+    const authMethods = PROFILE_METHODS.get(type);
+    if (authMethods) {
+      if (authMethods.length > 0 && (!method || authMethods.indexOf(method) == -1)) {
+        return YamlParser.errorResult(`Unknown authentication method of '${type}' profile. Check your '${this.profilesPath}' file.`);
       }
+    } else {
+      return YamlParser.errorResult(`Currently, '${type}' profile is not supported. Check your '${this.profilesPath}' file.`);
     }
 
     return undefined;
   }
 
-  cantFindSectionError(profileName: string, section: string): FindCredentialsResult {
-    return this.errorResult(
-      `Couldn't find section '${section}' for profile '${profileName}'. Check your '${this.profilesPath}' file. ${YamlParser.BQ_SERVICE_ACCOUNT_FILE_DOCS}`,
-    );
-  }
-
-  findProfileCredentials(): FindCredentialsResult {
+  async createDbtProfile(): Promise<DbtProfileResult> {
     let profiles = undefined;
     try {
-      profiles = this.parseYamlFile(this.profilesPath);
+      profiles = YamlParser.parseYamlFile(this.profilesPath);
     } catch (e) {
       console.log(`Failed to open and parse file '${this.profilesPath}'. ${e}`);
-      return this.errorResult(`Failed to open and parse file '${this.profilesPath}'. ${e}`);
+      return YamlParser.errorResult(`Failed to open and parse file '${this.profilesPath}'. ${e}`);
     }
 
     let profileName = undefined;
     try {
       profileName = this.findProfileName();
     } catch (e) {
-      return this.errorResult(
+      return YamlParser.errorResult(
         `Failed to find profile name in ${YamlParser.DBT_PROJECT_FILE_NAME}. Make sure that you opened folder with ${YamlParser.DBT_PROJECT_FILE_NAME} file. ${e}`,
       );
     }
-    const validationResult = this.validateBQServiceAccountFile(profiles, profileName);
+    const validationResult = this.validateProfilesFile(profiles, profileName);
     if (validationResult) {
       return validationResult;
     }
@@ -152,34 +100,46 @@ export class YamlParser {
     const profile = profiles[profileName];
     const target = profile.target;
     const targetConfig = profile.outputs[target];
-    if (targetConfig.method === AuthenticationMethod.ServiceAccount) {
+    const type = targetConfig.type;
+    const method = targetConfig.method;
+
+    if (![...PROFILE_METHODS.keys()].find(t => t === type)) {
+      return YamlParser.errorResult(`Profile type '${type}' is not supported.`);
+    }
+
+    const profileBuilder = BIG_QUERY_PROFILES.get(method);
+    if (!profileBuilder) {
+      return YamlParser.errorResult(`Authentication method '${method}' of '${type}' profile is not supported.`);
+    }
+
+    const dbtProfile = profileBuilder();
+
+    const result = dbtProfile.validateProfile(targetConfig);
+    if (result !== undefined) {
+      const docsUrl = dbtProfile.getDocsUrl();
+      return this.cantFindSectionError(profileName, result, docsUrl);
+    }
+
+    const client = dbtProfile.createClient(targetConfig);
+    const authenticateResult = await dbtProfile.authenticateClient(client);
+    if (authenticateResult) {
       return {
-        credentials: {
-          project: targetConfig.project,
-          keyFilePath: this.replaceTilde(targetConfig.keyfile),
-          method: AuthenticationMethod.ServiceAccount,
-        },
-      };
-    } else if (targetConfig.method === AuthenticationMethod.ServiceAccountJson) {
-      return {
-        credentials: {
-          project: targetConfig.project,
-          keyFileJson: JSON.stringify(targetConfig.keyfile_json),
-          method: AuthenticationMethod.ServiceAccountJson,
-        },
+        client: undefined,
+        error: authenticateResult,
       };
     }
 
-    const docsUrl =
-      targetConfig.method === AuthenticationMethod.ServiceAccount
-        ? YamlParser.BQ_SERVICE_ACCOUNT_FILE_DOCS
-        : targetConfig.method === AuthenticationMethod.ServiceAccountJson
-        ? YamlParser.BQ_SERVICE_ACCOUNT_JSON_DOCS
-        : '';
-    return this.errorResult(`Currently only BigQuery service account credentials supported. Check your '${this.profilesPath}'. ${docsUrl}`);
+    return {
+      client: client,
+    };
   }
 
-  errorResult(text: string): {
+  cantFindSectionError(profileName: string, section: string, docsUrl?: string): DbtProfileResult {
+    const text = `Couldn't find section '${section}' for profile '${profileName}'. Check your '${this.profilesPath}' file. ${docsUrl ?? ''}`;
+    return YamlParser.errorResult(text);
+  }
+
+  static errorResult(text: string): {
     error: string;
   } {
     return {
@@ -187,12 +147,8 @@ export class YamlParser {
     };
   }
 
-  parseYamlFile(filePath: string): any {
+  static parseYamlFile(filePath: string): any {
     const content = fs.readFileSync(filePath, 'utf8');
     return yaml.parse(content, { uniqueKeys: false });
-  }
-
-  replaceTilde(path: string): string {
-    return path.replace('~', homedir());
   }
 }
