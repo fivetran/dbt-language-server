@@ -1,8 +1,9 @@
 import axios from 'axios';
-import * as child from 'child_process';
+import { ChildProcess } from 'child_process';
 import { v4 as uuid } from 'uuid';
 import { ProcessExecutor } from './ProcessExecutor';
-import { deferred } from './Utils';
+import { deferred, randomNumber } from './Utils';
+import findFreePortPmfy = require('find-free-port');
 
 interface PostData {
   jsonrpc: '2.0';
@@ -77,37 +78,35 @@ export interface CompileResult {
 }
 
 export class DbtServer {
-  static PORT = '8588';
   static NO_VERSION_CHECK = '--no-version-check';
   static VERSIOIN = '--version';
   static processExecutor = new ProcessExecutor();
 
-  pid = -1;
-  dbtVersion: string | undefined;
-  python: string | undefined;
+  port?: number;
+  dbtVersion?: string;
+  python?: string;
+  dbtProcess?: ChildProcess;
   startDeferred = deferred<void>();
 
   async startDbtRpc(getPython: () => Promise<string>): Promise<void> {
-    const existingRpc = child.spawnSync('lsof', [`-ti:${DbtServer.PORT}`]);
-    const pids = String(existingRpc.stdout).split(/\n|\r/g);
-    child.spawn('kill', pids);
-
-    let started = false;
+    this.port = await findFreePortPmfy(randomNumber(1024, 65535));
+    console.log('Starting dbt on port ' + this.port);
 
     try {
       await this.findDbtCommand(getPython);
-      const command = this.dbtCommand(['--partial-parse', 'rpc', '--port', `${DbtServer.PORT}`, `${DbtServer.NO_VERSION_CHECK}`]);
+      const command = this.dbtCommand(['--partial-parse', 'rpc', '--port', `${this.port}`, `${DbtServer.NO_VERSION_CHECK}`]);
 
-      void DbtServer.processExecutor.execProcess(command, async (data: any) => {
+      let started = false;
+      const promiseWithChid = DbtServer.processExecutor.execProcess(command, async (data: string) => {
         if (!started) {
-          const str = <string>data;
-          const matchResults = str.match(/"Running with dbt=(.*?)"/);
+          const matchResults = data.match(/"Running with dbt=(.*?)"/);
           if (matchResults?.length === 2) {
             this.dbtVersion = matchResults[1];
           }
-          if (str.indexOf('Serving RPC server') > -1) {
+          if (data.includes('Serving RPC server')) {
             try {
-              await this.ensureCompilationFinished();
+              // We should wait some time to ensure that port was not in use
+              await Promise.all([this.ensureCompilationFinished(), new Promise(resolve => setTimeout(resolve, 1500))]);
             } catch (e) {
               // The server is started here but there is some problem with project compilation
               console.log(e);
@@ -117,6 +116,12 @@ export class DbtServer {
             this.startDeferred.resolve();
           }
         }
+      });
+      this.dbtProcess = promiseWithChid.child;
+
+      promiseWithChid.catch(e => {
+        console.log('dbt rpc command failed: ' + e);
+        this.startDeferred.reject(e.stdout);
       });
 
       return this.startDeferred.promise;
@@ -168,10 +173,7 @@ export class DbtServer {
   }
 
   refreshServer(): void {
-    if (this.pid !== -1) {
-      child.spawnSync('kill', ['-HUP', this.pid.toString()]);
-      console.log(`kill -HUP ${this.pid}`);
-    }
+    this.dbtProcess?.kill('SIGHUP');
   }
 
   async generateManifest(): Promise<void> {
@@ -181,11 +183,7 @@ export class DbtServer {
 
   async getCurrentStatus(): Promise<StatusResponse | undefined> {
     await this.startDeferred.promise;
-    const statusRespopnse = await this.getStatus();
-    if (statusRespopnse?.result.pid) {
-      this.pid = statusRespopnse?.result.pid;
-    }
-    return statusRespopnse;
+    return this.getStatus();
   }
 
   async getStatus(): Promise<StatusResponse | undefined> {
@@ -270,12 +268,12 @@ export class DbtServer {
 
   async makePostRequest<T extends Response>(postData: unknown): Promise<T | undefined> {
     try {
-      const response = await axios.post<T>(`http://localhost:${DbtServer.PORT}/jsonrpc`, postData, { timeout: 6000 });
+      const response = await axios.post<T>(`http://localhost:${this.port}/jsonrpc`, postData, { timeout: 6000 });
       // console.log(response);
       const { data } = response;
       if (data?.error?.data?.message) {
         const message = data?.error?.data?.message;
-        if (message && message.indexOf('invalid_grant') > 0) {
+        if (message && message.includes('invalid_grant')) {
           console.warn('Reauth required for dbt!');
           return;
         }
@@ -285,5 +283,13 @@ export class DbtServer {
       console.error(error);
     }
     return undefined;
+  }
+
+  dispose(): void {
+    if (this.dbtProcess) {
+      if (!this.dbtProcess.kill('SIGTERM')) {
+        this.dbtProcess.kill('SIGKILL');
+      }
+    }
   }
 }

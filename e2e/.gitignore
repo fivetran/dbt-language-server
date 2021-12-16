@@ -1,2 +1,2 @@
-test-fixture/logs
-test-fixture/target
+projects/**/logs
+projects/**/target/*

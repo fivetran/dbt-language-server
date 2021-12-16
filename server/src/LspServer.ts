@@ -21,14 +21,16 @@ import {
   TextDocumentSyncKind,
   _Connection,
 } from 'vscode-languageserver';
+import { BigQueryClient } from './bigquery/BigQueryClient';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtServer as DbtServer } from './DbtServer';
-import { YamlParser } from './YamlParser';
 import { DbtTextDocument } from './DbtTextDocument';
 import { DestinationDefinition } from './DestinationDefinition';
 import { ManifestParser } from './ManifestParser';
 import { ProgressReporter } from './ProgressReporter';
-import { BigQueryClient } from './bigquery/BigQueryClient';
+import { randomNumber } from './Utils';
+import { YamlParser } from './YamlParser';
+import findFreePortPmfy = require('find-free-port');
 
 interface TelemetryEvent {
   name: string;
@@ -55,8 +57,10 @@ export class LspServer {
   }
 
   async onInitialize(params: InitializeParams): Promise<InitializeResult<any> | ResponseError<InitializeError>> {
-    process.on('SIGTERM', this.gracefulShutdown);
-    process.on('SIGINT', this.gracefulShutdown);
+    console.log('Starting server for folder ' + process.cwd());
+
+    process.on('SIGTERM', this.onShutdown);
+    process.on('SIGINT', this.onShutdown);
 
     const createResult = await this.yamlParser.createDbtProfile();
     if (createResult.error) {
@@ -120,7 +124,7 @@ export class LspServer {
     } catch (e) {
       console.log(e);
       const errorMessageResult = await this.connection.window.showErrorMessage(
-        `Failed to start dbt. Make sure that you have [dbt installed](https://docs.getdbt.com/dbt-cli/installation). Check in Terminal that dbt works running 'dbt --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VSCode that was used to install dbt (e.g. ~/dbt-env/bin/python3).`,
+        `Failed to start dbt. Make sure that you have [dbt installed](https://docs.getdbt.com/dbt-cli/installation). Check in Terminal that dbt works running 'dbt --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VSCode that was used to install dbt (e.g. ~/dbt-env/bin/python3). ${e}`,
         { title: 'Retry', id: 'retry' },
       );
       if (errorMessageResult?.id === 'retry') {
@@ -139,8 +143,11 @@ export class LspServer {
   }
 
   async initializeZetaSql(): Promise<void> {
-    runServer().catch(err => console.error(err));
-    await ZetaSQLClient.INSTANCE.testConnection();
+    const port = await findFreePortPmfy(randomNumber(1024, 65535));
+    console.log(`Starting zetasql on port ${port}`);
+    runServer(port).catch(err => console.error(err));
+    ZetaSQLClient.init(port);
+    await ZetaSQLClient.getInstance().testConnection();
   }
 
   initializeDestinationDefinition(): void {
@@ -241,13 +248,18 @@ export class LspServer {
     }
   }
 
+  onShutdown(): void {
+    this.dispose();
+  }
+
   updateModels(): void {
     this.completionProvider.setDbtModels(this.manifestParser.getModels(this.yamlParser.findTargetPath()));
   }
 
-  gracefulShutdown(): void {
-    console.log('Graceful shutdown start...');
-    terminateServer();
-    console.log('Graceful shutdown end...');
+  dispose(): void {
+    console.log('Dispose start...');
+    this.dbtServer.dispose();
+    void terminateServer();
+    console.log('Dispose end.');
   }
 }

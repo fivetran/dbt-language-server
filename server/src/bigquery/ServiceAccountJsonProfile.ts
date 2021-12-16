@@ -1,7 +1,7 @@
-import { DbtProfile, Client } from '../DbtProfile';
-import { BigQueryClient } from './BigQueryClient';
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 import { ExternalAccountClientOptions } from 'google-auth-library';
+import { Client, DbtProfile } from '../DbtProfile';
+import { BigQueryClient } from './BigQueryClient';
 
 export class ServiceAccountJsonProfile implements DbtProfile {
   static readonly BQ_SERVICE_ACCOUNT_JSON_DOCS =
@@ -17,9 +17,9 @@ export class ServiceAccountJsonProfile implements DbtProfile {
       return 'project';
     }
 
-    const keyFileJson = targetConfig.keyFileJson;
+    const keyFileJson = targetConfig.keyfile_json;
     if (!keyFileJson) {
-      return 'keyFileJson';
+      return 'keyfile_json';
     }
 
     return this.validateKeyFileJson(keyFileJson);

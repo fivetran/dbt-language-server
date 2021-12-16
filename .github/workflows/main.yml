@@ -47,6 +47,7 @@ jobs:
     needs: test-and-package
 
     strategy:
+      fail-fast: false
       matrix:
         dbt-version: ['dbt==0.19.1', 'dbt']
 
@@ -74,29 +75,71 @@ jobs:
           echo "$BQ_SERVICE_ACCOUNT" > ~/.dbt/bq-test-project.json
 
           user=$(whoami)
-          path=$(eval echo "~${user}")/.dbt/bq-test-project.json
+          keyFilePath=$(eval echo "~${user}")/.dbt/bq-test-project.json
+
+          private_key=$(echo ${BQ_SERVICE_ACCOUNT} | jq '.private_key')
+          read project_id private_key_id client_id client_email auth_uri token_uri auth_provider_x509_cert_url client_x509_cert_url < <(echo $(echo ${BQ_SERVICE_ACCOUNT} | jq -r '.project_id, .private_key_id, .client_id, .client_email, .auth_uri, .token_uri, .auth_provider_x509_cert_url, .client_x509_cert_url'))
+          dataset="transforms_dbt_default"
 
           cat <<EOT > ~/.dbt/profiles.yml
-
           e2e-test-project:
             target: prod
             outputs:
               prod:
                 type: bigquery
                 method: service-account
-                project: singular-vector-135519
-                keyfile: ${path}
-                dataset: transforms_dbt_default
+                project: ${project_id}
+                keyfile: ${keyFilePath}
+                dataset: ${dataset}
                 threads: 4
 
+          e2e-test-workspace-project1:
+            target: prod
+            outputs:
+              prod:
+                type: bigquery
+                method: service-account-json
+                project: ${project_id}
+                dataset: ${dataset}
+                threads: 4
+                keyfile_json:
+                  type: service_account
+                  project_id: ${project_id}
+                  private_key_id: ${private_key_id}
+                  private_key: ${private_key}
+                  client_id: ${client_id}
+                  client_email: ${client_email}
+                  auth_uri: ${auth_uri}
+                  token_uri: ${token_uri}
+                  auth_provider_x509_cert_url: ${auth_provider_x509_cert_url}
+                  client_x509_cert_url: ${client_x509_cert_url}
+
+          e2e-test-workspace-project2:
+            target: prod
+            outputs:
+              prod:
+                type: bigquery
+                method: service-account
+                project: ${project_id}
+                keyfile: ${keyFilePath}
+                dataset: ${dataset}
+                threads: 4
           EOT
         env:
           BQ_SERVICE_ACCOUNT: ${{ secrets.BQ_SERVICE_ACCOUNT }}
+
       - run: pip install ${{ matrix.dbt-version }}
       - run: dbt --version
 
       - run: unzip dbt-language-server.vsix -d e2e-tests
       - run: node e2e/out/runTest $(pwd)/e2e-tests/extension
+
+      - name: upload logs
+        if: failure()
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.dbt-version }}
+          path: ~/Library/Application\ Support/Code/logs/**/*Dbt Language Server.log
 
   publish:
     if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }} # main branch or have any tag started with 'v'

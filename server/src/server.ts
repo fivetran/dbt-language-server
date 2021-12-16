@@ -21,4 +21,6 @@ connection.onDidCloseTextDocument(server.onDidCloseTextDocument.bind(server));
 
 connection.onDidChangeWatchedFiles(server.onDidChangeWatchedFiles.bind(server));
 
+connection.onShutdown(server.onShutdown.bind(server));
+
 connection.listen();

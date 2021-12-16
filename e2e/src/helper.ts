@@ -1,17 +1,18 @@
 import * as assert from 'assert';
 import { spawnSync } from 'child_process';
+import { readFileSync } from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { TextDocumentChangeEvent, TextEditorEdit } from 'vscode';
-import { readFileSync } from 'fs';
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
 
+const PROJECTS_PATH = path.resolve(__dirname, '../projects');
+const TEST_FIXTURE_PATH = path.resolve(PROJECTS_PATH, 'test-fixture');
 const MANIFEST_FILE_NAME = 'manifest.json';
 const RESOURCE_TYPE_MODEL = 'model';
 
-export const TEST_FIXTURE_PATH = path.resolve(__dirname, '../test-fixture');
 vscode.workspace.onDidChangeTextDocument(onDidChangeTextDocument);
 let promiseResolve: () => void;
 
@@ -23,18 +24,15 @@ export async function activateAndWait(docUri: vscode.Uri): Promise<void> {
   }
 
   const existingEditor = vscode.window.visibleTextEditors.find(e => e.document.uri.path === docUri.path);
-  const doNotWaitChanges = existingEditor && existingEditor.document.getText() === vscode.window.activeTextEditor?.document.getText();
-  const activateFinished = doNotWaitChanges ? Promise.resolve() : createPromise();
+  const doNotWaitChanges =
+    existingEditor && existingEditor.document.getText() === vscode.window.activeTextEditor?.document.getText() && getPreviewEditor();
+  const activateFinished = doNotWaitChanges ? Promise.resolve() : createPreviewChangesPromise();
 
   await ext.activate();
-  try {
-    doc = await vscode.workspace.openTextDocument(docUri);
-    editor = await vscode.window.showTextDocument(doc);
-    await showPreview();
-    await activateFinished;
-  } catch (e) {
-    console.error(e);
-  }
+  doc = await vscode.workspace.openTextDocument(docUri);
+  editor = await vscode.window.showTextDocument(doc);
+  await showPreview();
+  await activateFinished;
 }
 
 function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
@@ -51,12 +49,20 @@ export async function showPreview(): Promise<void> {
 }
 
 export async function getPreviewText(): Promise<string> {
-  const previewEditor = vscode.window.visibleTextEditors.find(e => e.document.uri.toString() === 'query-preview:Preview?dbt-language-server');
+  const previewEditor = getPreviewEditor();
   if (!previewEditor) {
     throw new Error('Preview editor not found');
   }
 
   return previewEditor.document.getText();
+}
+
+function getPreviewEditor(): vscode.TextEditor | undefined {
+  return vscode.window.visibleTextEditors.find(e => e.document.uri.toString() === 'query-preview:Preview?dbt-language-server');
+}
+
+export function getDiagnostics(uri: vscode.Uri): vscode.Diagnostic[] {
+  return vscode.languages.getDiagnostics(uri);
 }
 
 export function sleep(ms: number): Promise<unknown> {
@@ -69,6 +75,10 @@ export const getDocPath = (p: string): string => {
 
 export const getDocUri = (p: string): vscode.Uri => {
   return vscode.Uri.file(getDocPath(p));
+};
+
+export const getCustomDocUri = (p: string): vscode.Uri => {
+  return vscode.Uri.file(path.resolve(PROJECTS_PATH, p));
 };
 
 export async function setTestContent(content: string): Promise<void> {
@@ -98,12 +108,12 @@ export async function replaceText(oldText: string, newText: string): Promise<voi
 }
 
 async function edit(callback: (editBuilder: TextEditorEdit) => void): Promise<void> {
-  const editFinished = createPromise();
+  const editFinished = createPreviewChangesPromise();
   await editor.edit(callback);
   await editFinished;
 }
 
-function createPromise(): Promise<void> {
+async function createPreviewChangesPromise(): Promise<void> {
   return new Promise<void>(resolve => {
     promiseResolve = resolve;
   });
