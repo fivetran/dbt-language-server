@@ -131,7 +131,6 @@ jobs:
       - name: install dbt
         run: |
           pip install ${{ matrix.dbt-version }}
-          pip install dbt-rpc
 
       - name: show dbt version
         run: dbt --version
