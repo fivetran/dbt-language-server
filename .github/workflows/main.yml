@@ -69,6 +69,12 @@ jobs:
         with:
           python-version: '3.7.x'
 
+      - name: add custom python venv with dbt@0.20.1
+        run: |
+          python3 -m venv ~/dbt_0_20_1_env
+          source ~/dbt_0_20_1_env/bin/activate
+          pip install dbt==0.20.1
+
       - name: prepare profile config
         run: |
           mkdir -p ~/.dbt/
