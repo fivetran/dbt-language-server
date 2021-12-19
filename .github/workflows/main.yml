@@ -140,7 +140,7 @@ jobs:
       - run: node e2e/out/runTest $(pwd)/e2e-tests/extension
 
       - name: upload logs
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.dbt-version }}
