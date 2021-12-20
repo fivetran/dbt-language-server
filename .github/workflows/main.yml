@@ -141,6 +141,13 @@ jobs:
       - name: show dbt version
         run: dbt --version
 
+      # Uncomment lines below if you want to connect to the job via SSH
+      # - name: Setup SSH via tmate for debugging
+      #   uses: rdp-studio/ssh2actions@main
+      #   env:
+      #     TELEGRAM_BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+      #     TELEGRAM_CHAT_ID: ${{ secrets.CHAT_ID }}
+
       - run: unzip dbt-language-server.vsix -d e2e-tests
       - run: node e2e/out/runTest $(pwd)/e2e-tests/extension
 
