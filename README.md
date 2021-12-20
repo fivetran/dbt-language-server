@@ -1,6 +1,7 @@
 # Language Server for dbt
 
-This extension will help you work with dbt and BigQuery.\
+This extension will help you work with dbt and BigQuery.
+
 **Note:** Turning on [Auto Save](https://code.visualstudio.com/docs/editor/codebasics#_save-auto-save) is strongly recommended. With this option turned on, VS Code will save your changes after a configured delay or when focus leaves the editor. This feature is required for preview, completion and errors highlighting.
 
 ### Table of Contents
@@ -50,8 +51,8 @@ This extension will help you work with dbt and BigQuery.\
 Extension works on macOS, now it supports the default locations for `profiles.yml` and `dbt_project.yml` files and the BigQuery destination with [OAuth via gcloud](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#oauth-via-gcloud), [Service Account File](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-file) and [Service Account JSON](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-json) authorization types.
 
 Prior to using the extension, you need to perform the following steps:
-1. [Install dbt](https://docs.getdbt.com/dbt-cli/installation).
-2. In Terminal, test that dbt works running the `dbt --version` command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VSCode that was used to install dbt (e.g. `~/dbt-env/bin/python3`).
+1. [Install bigquery-dbt and dbt-rpc](https://docs.getdbt.com/dbt-cli/installation) (e.g `python3 -m pip install dbt-bigquery dbt-rpc`)
+2. In Terminal, test that dbt-rpc works running the `dbt-rpc --version` command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g. `~/dbt-env/bin/python3`).
 3. Create a file named `profiles.yml` in the `~/.dbt/` folder and add a profile to connect to BigQuery
    * using the [OAuth via gcloud](docs/BigQueryProfile.md#oauth-via-gcloud)
    * using the [Service Account File](docs/BigQueryProfile.md#service-account-file)
