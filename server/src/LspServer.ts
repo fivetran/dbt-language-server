@@ -104,6 +104,7 @@ export class LspServer {
       // Register for all configuration changes.
       await this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
     }
+    this.updateTargetPath();
     this.updateModels();
     await Promise.all([this.initializeZetaSql(), this.startDbtRpc()]);
   }
