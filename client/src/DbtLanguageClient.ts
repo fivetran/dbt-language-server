@@ -14,6 +14,7 @@ interface TelemetryEvent {
 export class DbtLanguageClient implements Disposable {
   client: LanguageClient;
   disposables: Disposable[] = [];
+  workspaceFolder?: WorkspaceFolder;
 
   constructor(
     port: number,
@@ -38,6 +39,8 @@ export class DbtLanguageClient implements Disposable {
       workspaceFolder: <WorkspaceFolder>{ uri: dbtProjecUri },
     };
 
+    this.workspaceFolder = workspace.getWorkspaceFolder(dbtProjecUri);
+
     this.client = new LanguageClient('dbtLanguageServer', 'dbt Language Server', serverOptions, clientOptions);
   }
 
@@ -56,7 +59,7 @@ export class DbtLanguageClient implements Disposable {
           }),
 
           this.client.onRequest('custom/getPython', async () => {
-            return await new PythonExtension().getPython();
+            return await new PythonExtension().getPython(this.workspaceFolder);
           }),
 
           await this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),

@@ -1,7 +1,7 @@
-import { extensions, workspace } from 'vscode';
+import { extensions, WorkspaceFolder } from 'vscode';
 
 export class PythonExtension {
-  async getPython(): Promise<string> {
+  async getPython(workspaceFolder?: WorkspaceFolder): Promise<string> {
     const extension = extensions.getExtension('ms-python.python');
     if (!extension) {
       console.log('ms-python.python not found');
@@ -12,7 +12,8 @@ export class PythonExtension {
       await extension.activate();
     }
 
-    const details = extension.exports.settings.getExecutionDetails(workspace.workspaceFile);
+    const details = extension.exports.settings.getExecutionDetails(workspaceFolder?.uri);
+
     const path = details.execCommand[0];
 
     console.log(`Python path used: ${path}`);
