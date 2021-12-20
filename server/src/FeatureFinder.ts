@@ -123,11 +123,13 @@ export class FeatureFinder {
   }
 
   private async installDbtRpc(): Promise<Command | undefined> {
+    if (this.python === 'python') {
+      this.python = 'python3';
+    }
     try {
-      await FeatureFinder.PROCESS_EXECUTOR.execProcess(`${this.python} -m pip install dbt-rpc`);
+      await FeatureFinder.PROCESS_EXECUTOR.execProcess(`${this.python} -m pip install dbt-bigquery dbt-rpc`);
       return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS, this.python);
     } catch (e) {
-      // error
       console.log('Error while installing dbt-rpc');
     }
     return undefined;
