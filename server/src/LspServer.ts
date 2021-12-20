@@ -41,6 +41,7 @@ export class LspServer {
   connection: _Connection;
   hasConfigurationCapability = false;
   workspaceFolder?: string;
+  dbtTargetPath?: string;
   dbtServer = new DbtServer();
   openedDocuments = new Map<string, DbtTextDocument>();
   bigQueryClient?: BigQueryClient;
@@ -242,7 +243,10 @@ export class LspServer {
 
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
     for (const change of params.changes) {
-      if (change.uri.endsWith('target/manifest.json')) {
+      if (change.uri.endsWith(YamlParser.DBT_PROJECT_FILE_NAME)) {
+        this.updateTargetPath();
+        this.updateModels();
+      } else if (change.uri.endsWith(`${this.dbtTargetPath ?? YamlParser.DEFAULT_TARGET_PATH}/${YamlParser.DBT_MANIFEST_FILE_NAME}`)) {
         this.updateModels();
       }
     }
@@ -252,8 +256,12 @@ export class LspServer {
     this.dispose();
   }
 
+  updateTargetPath(): void {
+    this.dbtTargetPath = this.yamlParser.findTargetPath();
+  }
+
   updateModels(): void {
-    this.completionProvider.setDbtModels(this.manifestParser.getModels(this.yamlParser.findTargetPath()));
+    this.completionProvider.setDbtModels(this.manifestParser.getModels(this.dbtTargetPath ?? YamlParser.DEFAULT_TARGET_PATH));
   }
 
   dispose(): void {
