@@ -32,7 +32,7 @@ export class DbtLanguageClient implements Disposable {
     const clientOptions = {
       documentSelector: SUPPORTED_LANG_IDS.map(langId => ({ scheme: 'file', language: langId, pattern: `${dbtProjectUri.fsPath}/**/*` })),
       synchronize: {
-        fileEvents: [workspace.createFileSystemWatcher('./dbt_project.yml'), workspace.createFileSystemWatcher('**/manifest.json')],
+        fileEvents: [workspace.createFileSystemWatcher('**/dbt_project.yml'), workspace.createFileSystemWatcher('**/manifest.json')],
       },
       outputChannel: outputChannel,
       workspaceFolder: <WorkspaceFolder>{ uri: dbtProjectUri },
