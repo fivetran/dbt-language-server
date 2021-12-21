@@ -25,7 +25,7 @@ export class FeatureFinder {
     `${FeatureFinder.PORT_PARAM}`,
   ];
 
-  private static readonly DBT_VERSION_PATTERN = /installed version: (\d*)\.(\d*)\.(\d*)/;
+  private static readonly DBT_VERSION_PATTERN = /installed version: (\d+)\.(\d+)\.(\d+)/;
   private static readonly PROCESS_EXECUTOR = new ProcessExecutor();
 
   private dbtRpcGlobal: Promise<DbtVersion | undefined>;
