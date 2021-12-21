@@ -29,6 +29,7 @@ import { getStringVersion } from './DbtVersion';
 import { Command } from './dbt_commands/Command';
 import { DestinationDefinition } from './DestinationDefinition';
 import { FeatureFinder } from './FeatureFinder';
+import { FileChangeListener } from './FileChangeListener';
 import { ManifestParser } from './ManifestParser';
 import { ProgressReporter } from './ProgressReporter';
 import { randomNumber } from './Utils';
@@ -53,10 +54,12 @@ export class LspServer {
   yamlParser = new YamlParser();
   manifestParser = new ManifestParser();
   featureFinder = new FeatureFinder();
+  fileChangeListener: FileChangeListener;
   initStart = performance.now();
 
   constructor(private connection: _Connection) {
     this.progressReporter = new ProgressReporter(this.connection);
+    this.fileChangeListener = new FileChangeListener(this.completionProvider, this.yamlParser, this.manifestParser);
   }
 
   async onInitialize(params: InitializeParams): Promise<InitializeResult<any> | ResponseError<InitializeError>> {
@@ -125,6 +128,9 @@ export class LspServer {
 
     command.addParameter(dbtPort.toString());
     await Promise.all([this.startDbtRpc(command, dbtPort), this.initializeZetaSql()]);
+
+    await Promise.all([this.initializeZetaSql(), this.startDbtRpc(command, dbtPort)]);
+    this.fileChangeListener.onInit();
   }
 
   sendTelemetry(name: string, properties?: { [key: string]: string }): void {
@@ -254,19 +260,11 @@ export class LspServer {
   }
 
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
-    for (const change of params.changes) {
-      if (change.uri.endsWith('target/manifest.json')) {
-        this.updateModels();
-      }
-    }
+    this.fileChangeListener.onDidChangeWatchedFiles(params);
   }
 
   onShutdown(): void {
     this.dispose();
-  }
-
-  updateModels(): void {
-    this.completionProvider.setDbtModels(this.manifestParser.getModels(this.yamlParser.findTargetPath()));
   }
 
   dispose(): void {

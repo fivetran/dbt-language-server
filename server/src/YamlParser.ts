@@ -11,6 +11,7 @@ export interface DbtProfileResult {
 
 export class YamlParser {
   static readonly DBT_PROJECT_FILE_NAME = 'dbt_project.yml';
+  static readonly DBT_MANIFEST_FILE_NAME = 'manifest.json';
   static readonly TARGET_PATH_FIELD = 'target-path';
   static readonly DEFAULT_TARGET_PATH = './target';
 
