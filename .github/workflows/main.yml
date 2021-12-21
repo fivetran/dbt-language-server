@@ -49,7 +49,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dbt-version: ['dbt-bigquery==0.20.2', 'dbt-bigquery'] # Run tests on latest version and version used in https://github.com/fivetran/analytics/blob/main/dbt_ft_prod/deployment.yml#L1
+        dbt-version: ['dbt-bigquery==0.20.2', 'dbt-bigquery dbt-rpc'] # Run tests on latest version and version used in https://github.com/fivetran/analytics/blob/main/dbt_ft_prod/deployment.yml#L1
 
     runs-on: macos-latest
     steps:
