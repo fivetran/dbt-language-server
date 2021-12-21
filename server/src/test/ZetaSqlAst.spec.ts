@@ -2,20 +2,20 @@ import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/l
 import { ParseLocationRangeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
 import * as assert from 'assert';
 import * as fs from 'fs';
-import { ZetaSQLAST } from '../ZetaSQLAST';
+import { ZetaSqlAst } from '../ZetaSqlAst';
 
-describe('ZetaSQLAST', () => {
-  function createAST(fileName: string): AnalyzeResponse {
+describe('ZetaSqlAst', () => {
+  function createAst(fileName: string): AnalyzeResponse {
     const data = fs.readFileSync(__dirname + `/../../src/test/ast/${fileName}.json`, 'utf8');
     return JSON.parse(data);
   }
 
   function shouldReturnLocationsOfTableNameInQuery(fileName: string, cursorOffset: number, ranges: ParseLocationRangeProto[]): void {
     // arrange
-    const ast = createAST(fileName);
+    const ast = createAst(fileName);
 
     // act
-    const result = new ZetaSQLAST().getCompletionInfo(ast, cursorOffset);
+    const result = new ZetaSqlAst().getCompletionInfo(ast, cursorOffset);
 
     // assert
     assert.strictEqual(result.activeTableLocationRanges?.length, ranges.length);

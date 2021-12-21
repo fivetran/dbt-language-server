@@ -3,17 +3,17 @@ import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions
 import { ZetaSQLBuiltinFunctionOptions } from '@fivetrandevelopers/zetasql/lib/ZetaSQLBuiltinFunctionOptions';
 import { TableDefinition } from './TableDefinition';
 
-export class ZetaSQLCatalog {
-  private static instance: ZetaSQLCatalog;
+export class ZetaSqlCatalog {
+  private static instance: ZetaSqlCatalog;
 
   readonly catalog = new SimpleCatalog('catalog');
 
-  static getInstance(): ZetaSQLCatalog {
-    if (!ZetaSQLCatalog.instance) {
-      ZetaSQLCatalog.instance = new ZetaSQLCatalog();
+  static getInstance(): ZetaSqlCatalog {
+    if (!ZetaSqlCatalog.instance) {
+      ZetaSqlCatalog.instance = new ZetaSqlCatalog();
     }
 
-    return ZetaSQLCatalog.instance;
+    return ZetaSqlCatalog.instance;
   }
 
   async register(tableDefinitions: TableDefinition[]): Promise<void> {

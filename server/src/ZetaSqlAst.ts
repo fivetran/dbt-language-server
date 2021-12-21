@@ -6,7 +6,7 @@ import { ResolvedOutputColumnProto } from '@fivetrandevelopers/zetasql/lib/types
 import { ResolvedQueryStmtProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedQueryStmtProto';
 import { ResolvedTableScanProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedTableScanProto';
 
-export class ZetaSQLAST {
+export class ZetaSqlAst {
   propertyNames = [
     'aggregateExpressionList',
     'aggregateList',

@@ -1,7 +1,7 @@
 import { Command, CompletionItem, CompletionItemKind, CompletionParams, CompletionTriggerKind } from 'vscode-languageserver';
 import { DestinationDefinition } from './DestinationDefinition';
 import { HelpProviderWords } from './HelpProviderWords';
-import { ActiveTableInfo, CompletionInfo } from './ZetaSQLAST';
+import { ActiveTableInfo, CompletionInfo } from './ZetaSqlAst';
 
 export class CompletionProvider {
   static readonly ENDS_WITH_REF = /ref\([^)]*$/;
@@ -397,7 +397,7 @@ export class CompletionProvider {
     );
   }
 
-  getAllColumnsFromAST(completionInfo: CompletionInfo): CompletionItem[] {
+  getAllColumnsFromAst(completionInfo: CompletionInfo): CompletionItem[] {
     const result: CompletionItem[] = [];
     for (const [tableName, columnNames] of completionInfo.resolvedTables) {
       columnNames.forEach(c =>

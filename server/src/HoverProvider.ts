@@ -1,16 +1,16 @@
 import { SimpleType, TypeKind } from '@fivetrandevelopers/zetasql';
 import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { Hover } from 'vscode-languageserver';
-import { ZetaSQLAST } from './ZetaSQLAST';
+import { ZetaSqlAst } from './ZetaSqlAst';
 
 export class HoverProvider {
-  static zetaSQLAST = new ZetaSQLAST();
+  static zetaSqlAst = new ZetaSqlAst();
 
   static hoverOnText(text: string, ast: AnalyzeResponse | undefined): Hover | null {
     if (!ast) {
       return null;
     }
-    const hoverInfo = HoverProvider.zetaSQLAST.getHoverInfo(ast, text);
+    const hoverInfo = HoverProvider.zetaSqlAst.getHoverInfo(ast, text);
 
     let hint;
     if (hoverInfo.outputColumn) {
