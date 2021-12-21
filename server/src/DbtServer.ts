@@ -86,10 +86,10 @@ export class DbtServer {
 
   async startDbtRpc(command: Command, port: number): Promise<void> {
     this.port = port;
-    console.log('Starting dbt on port ' + this.port);
 
     try {
       let started = false;
+      console.log(`Starting dbt: ${command.toString()}`);
       const promiseWithChid = DbtServer.PROCESS_EXECUTOR.execProcess(command.toString(), async (data: string) => {
         if (!started) {
           if (data.includes('Serving RPC server')) {
