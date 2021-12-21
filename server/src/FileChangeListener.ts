@@ -2,11 +2,17 @@ import { DidChangeWatchedFilesParams } from 'vscode-languageserver';
 import { CompletionProvider } from './CompletionProvider';
 import { YamlParser } from './YamlParser';
 import { ManifestParser } from './ManifestParser';
+import { DbtServer } from './DbtServer';
 
 export class FileChangeListener {
   dbtTargetPath?: string;
 
-  constructor(private completionProvider: CompletionProvider, private yamlParser: YamlParser, private manifestParser: ManifestParser) {}
+  constructor(
+    private completionProvider: CompletionProvider,
+    private yamlParser: YamlParser,
+    private manifestParser: ManifestParser,
+    private dbtServer: DbtServer,
+  ) {}
 
   onInit(): void {
     this.updateTargetPath();
@@ -16,6 +22,7 @@ export class FileChangeListener {
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
     for (const change of params.changes) {
       if (change.uri.endsWith(YamlParser.DBT_PROJECT_FILE_NAME)) {
+        this.dbtServer.refreshServer();
         this.updateTargetPath();
         this.updateModels();
       } else if (change.uri.endsWith(`${this.resolveTargetPath()}/${YamlParser.DBT_MANIFEST_FILE_NAME}`)) {
