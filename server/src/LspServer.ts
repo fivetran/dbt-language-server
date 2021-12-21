@@ -247,7 +247,7 @@ export class LspServer {
       if (change.uri.endsWith(YamlParser.DBT_PROJECT_FILE_NAME)) {
         this.updateTargetPath();
         this.updateModels();
-      } else if (change.uri.endsWith(`${this.dbtTargetPath ?? YamlParser.DEFAULT_TARGET_PATH}/${YamlParser.DBT_MANIFEST_FILE_NAME}`)) {
+      } else if (change.uri.endsWith(`${this.resolveTargetPath()}/${YamlParser.DBT_MANIFEST_FILE_NAME}`)) {
         this.updateModels();
       }
     }
@@ -262,7 +262,11 @@ export class LspServer {
   }
 
   updateModels(): void {
-    this.completionProvider.setDbtModels(this.manifestParser.getModels(this.dbtTargetPath ?? YamlParser.DEFAULT_TARGET_PATH));
+    this.completionProvider.setDbtModels(this.manifestParser.getModels(this.resolveTargetPath()));
+  }
+
+  resolveTargetPath(): string {
+    return this.dbtTargetPath ?? YamlParser.DEFAULT_TARGET_PATH;
   }
 
   dispose(): void {
