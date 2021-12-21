@@ -65,7 +65,7 @@ export class FeatureFinder {
     }
     if (dbtPythonVersion) {
       this.version = dbtPythonVersion;
-      return dbtPythonVersion.major >= 1 ? await this.installDbtRpc() : new DbtCommand(FeatureFinder.LEGACY_DBT_PARAMS, this.python);
+      return dbtPythonVersion.major >= 1 ? this.installAndFindCommandForV1() : new DbtCommand(FeatureFinder.LEGACY_DBT_PARAMS, this.python);
     }
     if (dbtRpcGlobalVersion) {
       this.version = dbtRpcGlobalVersion;
@@ -73,13 +73,28 @@ export class FeatureFinder {
     }
     if (dbtGlobalVersion) {
       this.version = dbtGlobalVersion;
-      return dbtGlobalVersion.major >= 1 ? this.installDbtRpc() : new DbtCommand(FeatureFinder.LEGACY_DBT_PARAMS);
+      return dbtGlobalVersion.major >= 1 ? this.installAndFindCommandForV1() : new DbtCommand(FeatureFinder.LEGACY_DBT_PARAMS);
     }
     return undefined;
   }
 
   findFreePort(): Promise<number> {
     return findFreePortPmfy(randomNumber(1024, 65535));
+  }
+
+  private async installAndFindCommandForV1(): Promise<Command | undefined> {
+    if (this.python === 'python') {
+      this.python = 'python3';
+    }
+
+    try {
+      await this.installLatestDbtRpc();
+    } catch (e) {
+      console.log('Error while installing dbt-rpc');
+      return undefined;
+    }
+
+    return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS, this.python);
   }
 
   private async findDbtRpcGlobalVersion(): Promise<DbtVersion | undefined> {
@@ -122,16 +137,7 @@ export class FeatureFinder {
     return version;
   }
 
-  private async installDbtRpc(): Promise<Command | undefined> {
-    if (this.python === 'python') {
-      this.python = 'python3';
-    }
-    try {
-      await FeatureFinder.PROCESS_EXECUTOR.execProcess(`${this.python} -m pip install dbt-bigquery dbt-rpc`);
-      return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS, this.python);
-    } catch (e) {
-      console.log('Error while installing dbt-rpc');
-    }
-    return undefined;
+  private async installLatestDbtRpc(): Promise<void> {
+    await FeatureFinder.PROCESS_EXECUTOR.execProcess(`${this.python} -m pip install dbt-bigquery dbt-rpc`);
   }
 }
