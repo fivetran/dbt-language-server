@@ -128,8 +128,6 @@ export class LspServer {
 
     command.addParameter(dbtPort.toString());
     await Promise.all([this.startDbtRpc(command, dbtPort), this.initializeZetaSql()]);
-
-    await Promise.all([this.initializeZetaSql(), this.startDbtRpc(command, dbtPort)]);
     this.fileChangeListener.onInit();
   }
 
