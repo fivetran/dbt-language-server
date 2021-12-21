@@ -47,6 +47,14 @@
       {
         "command": "dbt.compile",
         "title": "dbt compile"
+      },
+      {
+        "command": "dbt.refToSql",
+        "title": "Convert ref to SQL"
+      },
+      {
+        "command": "dbt.sqlToRef",
+        "title": "Convert SQL to ref"
       }
     ],
     "menus": {
@@ -65,6 +73,16 @@
         },
         {
           "command": "dbt.compile",
+          "group": "navigation@1.31",
+          "when": "editorLangId =~ /sql$/"
+        },
+        {
+          "command": "dbt.refToSql",
+          "group": "navigation@1.31",
+          "when": "editorLangId =~ /sql$/"
+        },
+        {
+          "command": "dbt.sqlToRef",
           "group": "navigation@1.31",
           "when": "editorLangId =~ /sql$/"
         }

@@ -134,6 +134,14 @@ export class DbtTextDocument {
     await this.debouncedCompile();
   }
 
+  async refToSql(): Promise<void> {
+    console.log('refToSql');
+  }
+
+  async sqlToRef(): Promise<void> {
+    console.log('sqlToRef');
+  }
+
   debouncedCompile = debounce(async () => {
     this.progressReporter.sendStart(this.getRawDocUri());
     await this.modelCompiler.compile();

@@ -46,11 +46,8 @@ export class ExtensionClient {
 
   registerCommands(): void {
     this.registerCommand('dbt.compile', async () => {
-      if (!window.activeTextEditor) {
-        return;
-      }
-      const { document } = window.activeTextEditor;
-      if (!SUPPORTED_LANG_IDS.includes(document.languageId)) {
+      const document = this.getCommandDocument();
+      if (!document) {
         return;
       }
 
@@ -72,6 +69,31 @@ export class ExtensionClient {
       });
       await commands.executeCommand('editor.action.triggerParameterHints');
     });
+
+    this.registerCommand('dbt.refToSql', () => this.convertTo('sql'));
+    this.registerCommand('dbt.sqlToRef', () => this.convertTo('ref'));
+  }
+
+  async convertTo(to: 'sql' | 'ref'): Promise<void> {
+    const document = this.getCommandDocument();
+    if (!document) {
+      return;
+    }
+
+    (await this.getClient(document.uri))?.sendNotification('custom/convertTo', { uri: document.uri.toString(), to });
+  }
+
+  getCommandDocument(): TextDocument | undefined {
+    if (!window.activeTextEditor) {
+      return undefined;
+    }
+
+    const { document } = window.activeTextEditor;
+    if (!SUPPORTED_LANG_IDS.includes(document.languageId)) {
+      return undefined;
+    }
+
+    return document;
   }
 
   async getClient(uri: Uri): Promise<DbtLanguageClient | undefined> {
