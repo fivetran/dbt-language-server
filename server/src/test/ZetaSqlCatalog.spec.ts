@@ -1,10 +1,10 @@
 import * as assert from 'assert';
 import { TableDefinition } from '../TableDefinition';
-import { ZetaSQLCatalog } from '../ZetaSQLCatalog';
+import { ZetaSqlCatalog } from '../ZetaSqlCatalog';
 
-describe('ZetaSQLCatalogTest', () => {
+describe('ZetaSqlCatalogTest', () => {
   beforeEach(async () => {
-    (<any>ZetaSQLCatalog).instance = null;
+    (<any>ZetaSqlCatalog).instance = null;
   });
 
   const PROJECT_ID = 'project_id';
@@ -24,36 +24,36 @@ describe('ZetaSQLCatalogTest', () => {
     expectedProjectId?: string,
   ): Promise<void> {
     // arrange
-    const zetaSQLCatalog = ZetaSQLCatalog.getInstance();
+    const zetaSqlCatalog = ZetaSqlCatalog.getInstance();
 
-    zetaSQLCatalog.catalog.register = async (): Promise<void> => {
+    zetaSqlCatalog.catalog.register = async (): Promise<void> => {
       // do nothing
     };
-    zetaSQLCatalog.registerAllLanguageFeatures = async (): Promise<void> => {
+    zetaSqlCatalog.registerAllLanguageFeatures = async (): Promise<void> => {
       // do nothing
     };
 
     // act
     try {
-      await zetaSQLCatalog.register(tableDefinitions);
+      await zetaSqlCatalog.register(tableDefinitions);
     } catch (e) {
       console.log(e);
     }
 
     // assert
     if (expectedProjectId) {
-      const projects = zetaSQLCatalog.catalog.catalogs;
+      const projects = zetaSqlCatalog.catalog.catalogs;
       assert.strictEqual(projects.size, 1);
       assert.strictEqual(projects.get(expectedProjectId)?.name, expectedProjectId);
     }
 
-    const datasets = expectedProjectId ? zetaSQLCatalog.catalog.catalogs.get(expectedProjectId)?.catalogs : zetaSQLCatalog.catalog.catalogs;
+    const datasets = expectedProjectId ? zetaSqlCatalog.catalog.catalogs.get(expectedProjectId)?.catalogs : zetaSqlCatalog.catalog.catalogs;
     if (expectedDataSet) {
       assert.strictEqual(datasets?.size, 1);
       assert.strictEqual(datasets?.get(expectedDataSet)?.name, expectedDataSet);
     }
 
-    const tables = expectedDataSet ? datasets?.get(DATA_SET)?.tables : zetaSQLCatalog.catalog.tables;
+    const tables = expectedDataSet ? datasets?.get(DATA_SET)?.tables : zetaSqlCatalog.catalog.tables;
     assert.strictEqual(tables?.size, 1);
     assert.strictEqual(tables?.get(table)?.name, table);
 

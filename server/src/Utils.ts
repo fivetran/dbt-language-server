@@ -40,16 +40,12 @@ export function getJinjaContentOffset(doc: TextDocument, cursorPos: Position): n
   let offset = doc.offsetAt(cursorPos) - 1;
   const text = doc.getText();
   while (offset >= 0) {
-    if (['}', '#', '%'].includes(text[offset])) {
-      if (offset - 1 >= 0 && text[offset - 1] === '}') {
-        return -1;
-      }
+    if (['}', '#', '%'].includes(text[offset]) && offset - 1 >= 0 && text[offset - 1] === '}') {
+      return -1;
     }
 
-    if (['{', '#', '%'].includes(text[offset])) {
-      if (offset - 1 >= 0 && text[offset - 1] === '{') {
-        return offset + 1;
-      }
+    if (['{', '#', '%'].includes(text[offset]) && offset - 1 >= 0 && text[offset - 1] === '{') {
+      return offset + 1;
     }
     offset--;
   }

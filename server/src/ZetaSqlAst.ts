@@ -6,7 +6,7 @@ import { ResolvedOutputColumnProto } from '@fivetrandevelopers/zetasql/lib/types
 import { ResolvedQueryStmtProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedQueryStmtProto';
 import { ResolvedTableScanProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedTableScanProto';
 
-export class ZetaSQLAST {
+export class ZetaSqlAst {
   propertyNames = [
     'aggregateExpressionList',
     'aggregateList',
@@ -133,10 +133,8 @@ export class ZetaSQLAST {
               result.function = true;
             }
           }
-          if (!nodeName) {
-            if ('withQueryName' in node && node.withQueryName === text) {
-              result.withQueryName = text;
-            }
+          if (!nodeName && 'withQueryName' in node && node.withQueryName === text) {
+            result.withQueryName = text;
           }
         },
         ast.resolvedStatement?.node,

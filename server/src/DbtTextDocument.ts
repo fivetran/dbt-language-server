@@ -19,6 +19,7 @@ import {
   _Connection,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { BigQueryClient } from './bigquery/BigQueryClient';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtServer } from './DbtServer';
 import { DestinationDefinition } from './DestinationDefinition';
@@ -30,15 +31,14 @@ import { ProgressReporter } from './ProgressReporter';
 import { SchemaTracker } from './SchemaTracker';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { debounce, getJinjaContentOffset } from './Utils';
-import { ZetaSQLAST } from './ZetaSQLAST';
-import { ZetaSQLCatalog } from './ZetaSQLCatalog';
-import { BigQueryClient } from './bigquery/BigQueryClient';
+import { ZetaSqlAst } from './ZetaSqlAst';
+import { ZetaSqlCatalog } from './ZetaSqlCatalog';
 
 export class DbtTextDocument {
   static readonly NON_WORD_PATTERN = /\W/;
   static readonly DEBOUNCE_TIMEOUT = 300;
 
-  static zetaSQLAST = new ZetaSQLAST();
+  static zetaSqlAst = new ZetaSqlAst();
   static jinjaParser = new JinjaParser();
 
   rawDocument: TextDocument;
@@ -123,10 +123,8 @@ export class DbtTextDocument {
     }
 
     const jinjas = DbtTextDocument.jinjaParser.findAllJinjas(this.rawDocument);
-    if (jinjas.length > 0) {
-      if (DbtTextDocument.jinjaParser.isJinjaModified(jinjas, changes)) {
-        return true;
-      }
+    if (jinjas.length > 0 && DbtTextDocument.jinjaParser.isJinjaModified(jinjas, changes)) {
+      return true;
     }
 
     return false;
@@ -170,12 +168,12 @@ export class DbtTextDocument {
 
     const analyzeRequest: AnalyzeRequest = {
       sqlStatement: this.compiledDocument.getText(),
-      registeredCatalogId: ZetaSQLCatalog.getInstance().catalog.registeredId,
+      registeredCatalogId: ZetaSqlCatalog.getInstance().catalog.registeredId,
 
       options: {
         parseLocationRecordType: ParseLocationRecordType.PARSE_LOCATION_RECORD_FULL_NODE_SCOPE,
         errorMessageMode: ErrorMessageMode.ERROR_MESSAGE_ONE_LINE,
-        languageOptions: ZetaSQLCatalog.getInstance().catalog.builtinFunctionOptions.languageOptions,
+        languageOptions: ZetaSqlCatalog.getInstance().catalog.builtinFunctionOptions.languageOptions,
       },
     };
 
@@ -207,13 +205,13 @@ export class DbtTextDocument {
 
   async ensureCatalogInitialized(): Promise<void> {
     await this.schemaTracker.refreshTableNames(this.compiledDocument.getText());
-    if (this.schemaTracker.hasNewTables || !ZetaSQLCatalog.getInstance().isRegistered()) {
+    if (this.schemaTracker.hasNewTables || !ZetaSqlCatalog.getInstance().isRegistered()) {
       await this.registerCatalog();
     }
   }
 
   async registerCatalog(): Promise<void> {
-    await ZetaSQLCatalog.getInstance().register(this.schemaTracker.tableDefinitions);
+    await ZetaSqlCatalog.getInstance().register(this.schemaTracker.tableDefinitions);
     this.schemaTracker.resetHasNewTables();
   }
 
@@ -265,7 +263,7 @@ export class DbtTextDocument {
     if (this.ast) {
       const line = Diff.getOldLineNumber(this.compiledDocument.getText(), this.rawDocument.getText(), completionParams.position.line);
       const offset = this.compiledDocument.offsetAt(Position.create(line, completionParams.position.character));
-      completionInfo = DbtTextDocument.zetaSQLAST.getCompletionInfo(this.ast, offset);
+      completionInfo = DbtTextDocument.zetaSqlAst.getCompletionInfo(this.ast, offset);
     }
     return this.completionProvider.onSqlCompletion(text, completionParams, destinationDefinition, completionInfo);
   }

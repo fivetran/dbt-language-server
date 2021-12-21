@@ -6,18 +6,21 @@
     "sourceType": "module",
     "project": ["./server/tsconfig.json", "./client/tsconfig.json", "./e2e/tsconfig.json", "./markdown_parser/tsconfig.json"]
   },
-  "plugins": ["@typescript-eslint"],
+  "plugins": ["@typescript-eslint", "sonarjs"],
 
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
-    "plugin:@typescript-eslint/recommended"
+    "plugin:@typescript-eslint/recommended",
+    "plugin:sonarjs/recommended"
   ],
   "rules": {
     "@typescript-eslint/no-floating-promises": ["error"],
     "@typescript-eslint/explicit-function-return-type": ["error"],
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
-    "@typescript-eslint/no-explicit-any": ["off"]
+    "@typescript-eslint/no-explicit-any": ["off"],
+
+    "sonarjs/cognitive-complexity": ["off"] // TODO: enable
   },
   "ignorePatterns": ["**/*.d.ts"]
 }
