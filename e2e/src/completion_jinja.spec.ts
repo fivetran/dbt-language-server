@@ -5,11 +5,13 @@ import { CompletionItem } from 'vscode';
 import { activateAndWait, getDocPath, getDocUri, getManifestModels, setTestContent, testCompletion, triggerCompletion } from './helper';
 
 suite('Should do completion inside jinjas expression', () => {
+  const FILE_NAME = 'completion_jinja.sql';
+
   let models: string[];
   let completionJinjaContent: string;
 
   suiteSetup(function () {
-    completionJinjaContent = fs.readFileSync(getDocPath('completion_jinja.sql')).toString();
+    completionJinjaContent = fs.readFileSync(getDocPath(FILE_NAME)).toString();
   });
 
   suiteTeardown(async function () {
@@ -17,7 +19,7 @@ suite('Should do completion inside jinjas expression', () => {
   });
 
   test('Should suggest models for ref function by pressing "("', async () => {
-    const docUri = getDocUri('completion_jinja.sql');
+    const docUri = getDocUri(FILE_NAME);
     await activateAndWait(docUri);
     await setTestContent('select * from {{ref(');
 
@@ -26,7 +28,7 @@ suite('Should do completion inside jinjas expression', () => {
   });
 
   test('Should suggest models for ref function', async () => {
-    const docUri = getDocUri('completion_jinja.sql');
+    const docUri = getDocUri(FILE_NAME);
     await activateAndWait(docUri);
     await setTestContent('select * from {{ref(');
 
@@ -35,7 +37,7 @@ suite('Should do completion inside jinjas expression', () => {
   });
 
   test('Should suggest models for ref function by pressing "\'"', async () => {
-    const docUri = getDocUri('completion_jinja.sql');
+    const docUri = getDocUri(FILE_NAME);
     await activateAndWait(docUri);
     await setTestContent(`select * from {{ref('`);
 
@@ -45,7 +47,7 @@ suite('Should do completion inside jinjas expression', () => {
 
   test('Should not suggest models outside jinja', async () => {
     // arrange
-    const docUri = getDocUri('completion_jinja.sql');
+    const docUri = getDocUri(FILE_NAME);
     await activateAndWait(docUri);
     await setTestContent(`select * from {{}}ref('`);
 

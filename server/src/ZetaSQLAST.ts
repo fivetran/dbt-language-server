@@ -133,10 +133,8 @@ export class ZetaSQLAST {
               result.function = true;
             }
           }
-          if (!nodeName) {
-            if ('withQueryName' in node && node.withQueryName === text) {
-              result.withQueryName = text;
-            }
+          if (!nodeName && 'withQueryName' in node && node.withQueryName === text) {
+            result.withQueryName = text;
           }
         },
         ast.resolvedStatement?.node,

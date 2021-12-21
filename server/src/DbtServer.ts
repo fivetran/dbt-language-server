@@ -91,19 +91,17 @@ export class DbtServer {
       let started = false;
       console.log(`Starting dbt: ${command.toString()}`);
       const promiseWithChid = DbtServer.PROCESS_EXECUTOR.execProcess(command.toString(), async (data: string) => {
-        if (!started) {
-          if (data.includes('Serving RPC server')) {
-            try {
-              // We should wait some time to ensure that port was not in use
-              await Promise.all([this.ensureCompilationFinished(), new Promise(resolve => setTimeout(resolve, 1500))]);
-            } catch (e) {
-              // The server is started here but there is some problem with project compilation
-              console.log(e);
-            }
-            console.log('dbt rpc started');
-            started = true;
-            this.startDeferred.resolve();
+        if (!started && data.includes('Serving RPC server')) {
+          try {
+            // We should wait some time to ensure that port was not in use
+            await Promise.all([this.ensureCompilationFinished(), new Promise(resolve => setTimeout(resolve, 1500))]);
+          } catch (e) {
+            // The server is started here but there is some problem with project compilation
+            console.log(e);
           }
+          console.log('dbt rpc started');
+          started = true;
+          this.startDeferred.resolve();
         }
       });
       this.dbtProcess = promiseWithChid.child;
@@ -250,10 +248,8 @@ export class DbtServer {
   }
 
   dispose(): void {
-    if (this.dbtProcess) {
-      if (!this.dbtProcess.kill('SIGTERM')) {
-        this.dbtProcess.kill('SIGKILL');
-      }
+    if (this.dbtProcess && !this.dbtProcess.kill('SIGTERM')) {
+      this.dbtProcess.kill('SIGKILL');
     }
   }
 }

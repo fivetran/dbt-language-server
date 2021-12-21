@@ -19,6 +19,7 @@ import {
   _Connection,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { BigQueryClient } from './bigquery/BigQueryClient';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtServer } from './DbtServer';
 import { DestinationDefinition } from './DestinationDefinition';
@@ -32,7 +33,6 @@ import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { debounce, getJinjaContentOffset } from './Utils';
 import { ZetaSQLAST } from './ZetaSQLAST';
 import { ZetaSQLCatalog } from './ZetaSQLCatalog';
-import { BigQueryClient } from './bigquery/BigQueryClient';
 
 export class DbtTextDocument {
   static readonly NON_WORD_PATTERN = /\W/;
@@ -123,10 +123,8 @@ export class DbtTextDocument {
     }
 
     const jinjas = DbtTextDocument.jinjaParser.findAllJinjas(this.rawDocument);
-    if (jinjas.length > 0) {
-      if (DbtTextDocument.jinjaParser.isJinjaModified(jinjas, changes)) {
-        return true;
-      }
+    if (jinjas.length > 0 && DbtTextDocument.jinjaParser.isJinjaModified(jinjas, changes)) {
+      return true;
     }
 
     return false;
