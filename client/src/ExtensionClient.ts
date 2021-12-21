@@ -18,7 +18,7 @@ export class ExtensionClient {
 
   constructor(private context: ExtensionContext) {
     this.serverAbsolutePath = this.context.asAbsolutePath(path.join('server', 'out', 'server.js'));
-    this.outputChannel = window.createOutputChannel('Dbt Language Server');
+    this.outputChannel = window.createOutputChannel('dbt Language Server');
   }
 
   public async onActivate(): Promise<void> {

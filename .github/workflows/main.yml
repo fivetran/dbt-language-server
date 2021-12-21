@@ -49,7 +49,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dbt-version: ['dbt==0.19.1', 'dbt']
+        dbt-version: ['dbt-bigquery==0.20.2', 'dbt-bigquery dbt-rpc'] # Run tests on latest version and version used in https://github.com/fivetran/analytics/blob/main/dbt_ft_prod/deployment.yml#L1
 
     runs-on: macos-latest
     steps:
@@ -68,6 +68,12 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: '3.7.x'
+
+      - name: add custom python venv with dbt@0.20.1
+        run: |
+          python3 -m venv ~/dbt_0_20_1_env
+          source ~/dbt_0_20_1_env/bin/activate
+          pip install dbt==0.20.1
 
       - name: prepare profile config
         run: |
@@ -127,19 +133,29 @@ jobs:
           EOT
         env:
           BQ_SERVICE_ACCOUNT: ${{ secrets.BQ_SERVICE_ACCOUNT }}
+      
+      - name: install dbt
+        run: pip install ${{ matrix.dbt-version }}
 
-      - run: pip install ${{ matrix.dbt-version }}
-      - run: dbt --version
+      - name: show dbt version
+        run: dbt --version
+
+      # Uncomment lines below if you want to connect to the job via SSH
+      # - name: Setup SSH via tmate for debugging
+      #   uses: rdp-studio/ssh2actions@main
+      #   env:
+      #     TELEGRAM_BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+      #     TELEGRAM_CHAT_ID: ${{ secrets.CHAT_ID }}
 
       - run: unzip dbt-language-server.vsix -d e2e-tests
       - run: node e2e/out/runTest $(pwd)/e2e-tests/extension
 
       - name: upload logs
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.dbt-version }}
-          path: ~/Library/Application\ Support/Code/logs/**/*Dbt Language Server.log
+          path: ~/Library/Application\ Support/Code/logs/**/*dbt Language Server.log
 
   publish:
     if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }} # main branch or have any tag started with 'v'

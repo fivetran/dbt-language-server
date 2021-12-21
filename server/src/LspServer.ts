@@ -25,12 +25,15 @@ import { BigQueryClient } from './bigquery/BigQueryClient';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtServer as DbtServer } from './DbtServer';
 import { DbtTextDocument } from './DbtTextDocument';
+import { getStringVersion } from './DbtVersion';
+import { Command } from './dbt_commands/Command';
 import { DestinationDefinition } from './DestinationDefinition';
+import { FeatureFinder } from './FeatureFinder';
+import { FileChangeListener } from './FileChangeListener';
 import { ManifestParser } from './ManifestParser';
 import { ProgressReporter } from './ProgressReporter';
 import { randomNumber } from './Utils';
 import { YamlParser } from './YamlParser';
-import { FileChangeListener } from './FileChangeListener';
 import findFreePortPmfy = require('find-free-port');
 
 interface TelemetryEvent {
@@ -39,22 +42,22 @@ interface TelemetryEvent {
 }
 
 export class LspServer {
-  connection: _Connection;
-  hasConfigurationCapability = false;
   workspaceFolder?: string;
+  bigQueryClient?: BigQueryClient;
+  destinationDefinition?: DestinationDefinition;
+
+  hasConfigurationCapability = false;
   dbtServer = new DbtServer();
   openedDocuments = new Map<string, DbtTextDocument>();
-  bigQueryClient?: BigQueryClient;
-  destinationDefinition: DestinationDefinition | undefined;
   progressReporter: ProgressReporter;
   completionProvider = new CompletionProvider();
   yamlParser = new YamlParser();
   manifestParser = new ManifestParser();
+  featureFinder = new FeatureFinder();
   fileChangeListener: FileChangeListener;
   initStart = performance.now();
 
-  constructor(connection: _Connection) {
-    this.connection = connection;
+  constructor(private connection: _Connection) {
     this.progressReporter = new ProgressReporter(this.connection);
     this.fileChangeListener = new FileChangeListener(this.completionProvider, this.yamlParser, this.manifestParser);
   }
@@ -106,10 +109,26 @@ export class LspServer {
       // Register for all configuration changes.
       await this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
     }
+    const [command, dbtPort] = await Promise.all([
+      this.featureFinder.findDbtRpcCommand(this.connection.sendRequest('custom/getPython')),
+      this.featureFinder.findFreePort(),
+    ]);
 
+    if (command === undefined) {
+      const errorMessageResult = await this.connection.window.showErrorMessage(
+        `Failed to find dbt-rpc. You can use 'python3 -m pip install dbt-bigquery dbt-rpc' command to install it. Check in Terminal that dbt-rpc works running 'dbt-rpc --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g. ~/dbt-env/bin/python3).`,
+        { title: 'Retry', id: 'retry' },
+      );
+      if (errorMessageResult?.id === 'retry') {
+        this.featureFinder = new FeatureFinder();
+        await this.onInitialized();
+      }
+      return;
+    }
+
+    command.addParameter(dbtPort.toString());
+    await Promise.all([this.startDbtRpc(command, dbtPort), this.initializeZetaSql()]);
     this.fileChangeListener.onInit();
-
-    await Promise.all([this.initializeZetaSql(), this.startDbtRpc()]);
   }
 
   sendTelemetry(name: string, properties?: { [key: string]: string }): void {
@@ -117,24 +136,17 @@ export class LspServer {
     this.connection.sendNotification(TelemetryEventNotification.type, <TelemetryEvent>{ name: name, properties: properties });
   }
 
-  async startDbtRpc(): Promise<void> {
+  async startDbtRpc(command: Command, port: number): Promise<void> {
     try {
-      await this.dbtServer.startDbtRpc(() => this.connection.sendRequest('custom/getPython'));
+      await this.dbtServer.startDbtRpc(command, port);
       const initTime = performance.now() - this.initStart;
       this.sendTelemetry('log', {
-        dbtVersion: this.dbtServer.dbtVersion ?? 'undefined',
-        python: this.dbtServer.python ?? 'undefined',
+        dbtVersion: getStringVersion(this.featureFinder.version),
+        python: this.featureFinder.python ?? 'undefined',
         initTime: initTime.toString(),
       });
     } catch (e) {
       console.log(e);
-      const errorMessageResult = await this.connection.window.showErrorMessage(
-        `Failed to start dbt. Make sure that you have [dbt installed](https://docs.getdbt.com/dbt-cli/installation). Check in Terminal that dbt works running 'dbt --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VSCode that was used to install dbt (e.g. ~/dbt-env/bin/python3). ${e}`,
-        { title: 'Retry', id: 'retry' },
-      );
-      if (errorMessageResult?.id === 'retry') {
-        await this.startDbtRpc();
-      }
     } finally {
       this.progressReporter.sendFinish();
     }

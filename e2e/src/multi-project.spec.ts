@@ -17,6 +17,12 @@ suite('Multi-project', () => {
     );
   });
 
+  test('Should run project with dbt version specified for workspace', async () => {
+    await activateAndWait(getCustomDocUri('special-python-settings/models/version.sql'));
+
+    assert.strictEqual(await getPreviewText(), '0.20.1');
+  });
+
   async function testOneProject(docUri: Uri, expectedPreview: string): Promise<void> {
     await activateAndWait(docUri);
 

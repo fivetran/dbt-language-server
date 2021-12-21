@@ -4,7 +4,8 @@ import { promisify } from 'util';
 export class ProcessExecutor {
   execProcess(
     command: string,
-    onData?: (data: any) => void,
+    onStdoutData?: (data: any) => void,
+    onStderrtData?: (data: any) => void,
   ): PromiseWithChild<{
     stdout: string;
     stderr: string;
@@ -14,9 +15,14 @@ export class ProcessExecutor {
     const promiseWithChild = promisifiedExec(command);
     const childProcess = promiseWithChild.child;
 
+    childProcess.stderr?.on('data', chunk => {
+      if (onStderrtData) {
+        onStderrtData(chunk);
+      }
+    });
     childProcess.stdout?.on('data', chunk => {
-      if (onData) {
-        onData(chunk);
+      if (onStdoutData) {
+        onStdoutData(chunk);
       }
     });
     childProcess.on('exit', code => {

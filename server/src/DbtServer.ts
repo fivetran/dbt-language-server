@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { ChildProcess } from 'child_process';
 import { v4 as uuid } from 'uuid';
+import { Command } from './dbt_commands/Command';
 import { ProcessExecutor } from './ProcessExecutor';
-import { deferred, randomNumber } from './Utils';
-import findFreePortPmfy = require('find-free-port');
+import { deferred } from './Utils';
 
 interface PostData {
   jsonrpc: '2.0';
@@ -78,31 +78,20 @@ export interface CompileResult {
 }
 
 export class DbtServer {
-  static NO_VERSION_CHECK = '--no-version-check';
-  static VERSIOIN = '--version';
-  static processExecutor = new ProcessExecutor();
+  static readonly PROCESS_EXECUTOR = new ProcessExecutor();
 
   port?: number;
-  dbtVersion?: string;
-  python?: string;
   dbtProcess?: ChildProcess;
   startDeferred = deferred<void>();
 
-  async startDbtRpc(getPython: () => Promise<string>): Promise<void> {
-    this.port = await findFreePortPmfy(randomNumber(1024, 65535));
-    console.log('Starting dbt on port ' + this.port);
+  async startDbtRpc(command: Command, port: number): Promise<void> {
+    this.port = port;
 
     try {
-      await this.findDbtCommand(getPython);
-      const command = this.dbtCommand(['--partial-parse', 'rpc', '--port', `${this.port}`, `${DbtServer.NO_VERSION_CHECK}`]);
-
       let started = false;
-      const promiseWithChid = DbtServer.processExecutor.execProcess(command, async (data: string) => {
+      console.log(`Starting dbt: ${command.toString()}`);
+      const promiseWithChid = DbtServer.PROCESS_EXECUTOR.execProcess(command.toString(), async (data: string) => {
         if (!started) {
-          const matchResults = data.match(/"Running with dbt=(.*?)"/);
-          if (matchResults?.length === 2) {
-            this.dbtVersion = matchResults[1];
-          }
           if (data.includes('Serving RPC server')) {
             try {
               // We should wait some time to ensure that port was not in use
@@ -152,33 +141,8 @@ export class DbtServer {
     });
   }
 
-  async findDbtCommand(getPython: () => Promise<string>): Promise<void> {
-    try {
-      await DbtServer.processExecutor.execProcess(`dbt ${DbtServer.VERSIOIN}`);
-    } catch (e) {
-      console.log('Failed to find dbt command', e);
-      this.python = await getPython();
-      await DbtServer.processExecutor.execProcess(this.dbtPythonCommand([DbtServer.VERSIOIN]));
-      console.log(`Using dbt via python: ${this.python}`);
-    }
-  }
-
-  dbtCommand(parameters: string[]): string {
-    return this.python ? this.dbtPythonCommand(parameters) : `dbt ${parameters.join(' ')}`;
-  }
-
-  dbtPythonCommand(parameters: string[]): string {
-    const quotedParameters = parameters.map(p => `"${p}"`).toString();
-    return `${this.python} -c 'import dbt.main; dbt.main.main([${quotedParameters}])'`;
-  }
-
   refreshServer(): void {
     this.dbtProcess?.kill('SIGHUP');
-  }
-
-  async generateManifest(): Promise<void> {
-    const command = this.dbtCommand(['compile', `${DbtServer.NO_VERSION_CHECK}`]);
-    await DbtServer.processExecutor.execProcess(command);
   }
 
   async getCurrentStatus(): Promise<StatusResponse | undefined> {
