@@ -19,7 +19,7 @@ export class DbtLanguageClient implements Disposable {
     port: number,
     outputChannel: OutputChannel,
     module: string,
-    dbtProjecUri: Uri,
+    dbtProjectUri: Uri,
     private previewContentProvider: SqlPreviewContentProvider,
     private progressHandler: ProgressHandler,
   ) {
@@ -30,12 +30,12 @@ export class DbtLanguageClient implements Disposable {
     };
 
     const clientOptions = {
-      documentSelector: SUPPORTED_LANG_IDS.map(langId => ({ scheme: 'file', language: langId, pattern: `${dbtProjecUri.fsPath}/**/*` })),
+      documentSelector: SUPPORTED_LANG_IDS.map(langId => ({ scheme: 'file', language: langId, pattern: `${dbtProjectUri.fsPath}/**/*` })),
       synchronize: {
-        fileEvents: workspace.createFileSystemWatcher('**/target/manifest.json'),
+        fileEvents: [workspace.createFileSystemWatcher('**/dbt_project.yml'), workspace.createFileSystemWatcher('**/manifest.json')],
       },
       outputChannel: outputChannel,
-      workspaceFolder: <WorkspaceFolder>{ uri: dbtProjecUri },
+      workspaceFolder: <WorkspaceFolder>{ uri: dbtProjectUri },
     };
 
     this.client = new LanguageClient('dbt-language-server', 'Dbt Language Client', serverOptions, clientOptions);

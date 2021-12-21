@@ -30,6 +30,7 @@ import { ManifestParser } from './ManifestParser';
 import { ProgressReporter } from './ProgressReporter';
 import { randomNumber } from './Utils';
 import { YamlParser } from './YamlParser';
+import { FileChangeListener } from './FileChangeListener';
 import findFreePortPmfy = require('find-free-port');
 
 interface TelemetryEvent {
@@ -49,11 +50,13 @@ export class LspServer {
   completionProvider = new CompletionProvider();
   yamlParser = new YamlParser();
   manifestParser = new ManifestParser();
+  fileChangeListener: FileChangeListener;
   initStart = performance.now();
 
   constructor(connection: _Connection) {
     this.connection = connection;
     this.progressReporter = new ProgressReporter(this.connection);
+    this.fileChangeListener = new FileChangeListener(this.completionProvider, this.yamlParser, this.manifestParser);
   }
 
   async onInitialize(params: InitializeParams): Promise<InitializeResult<any> | ResponseError<InitializeError>> {
@@ -103,7 +106,9 @@ export class LspServer {
       // Register for all configuration changes.
       await this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
     }
-    this.updateModels();
+
+    this.fileChangeListener.onInit();
+
     await Promise.all([this.initializeZetaSql(), this.startDbtRpc()]);
   }
 
@@ -241,19 +246,11 @@ export class LspServer {
   }
 
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
-    for (const change of params.changes) {
-      if (change.uri.endsWith('target/manifest.json')) {
-        this.updateModels();
-      }
-    }
+    this.fileChangeListener.onDidChangeWatchedFiles(params);
   }
 
   onShutdown(): void {
     this.dispose();
-  }
-
-  updateModels(): void {
-    this.completionProvider.setDbtModels(this.manifestParser.getModels(this.yamlParser.findTargetPath()));
   }
 
   dispose(): void {
