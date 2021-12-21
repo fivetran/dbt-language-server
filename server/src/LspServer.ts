@@ -30,6 +30,7 @@ import { ManifestParser } from './ManifestParser';
 import { ProgressReporter } from './ProgressReporter';
 import { randomNumber } from './Utils';
 import { YamlParser } from './YamlParser';
+import { FileChangeListener } from './FileChangeListener';
 import findFreePortPmfy = require('find-free-port');
 
 interface TelemetryEvent {
@@ -41,7 +42,6 @@ export class LspServer {
   connection: _Connection;
   hasConfigurationCapability = false;
   workspaceFolder?: string;
-  dbtTargetPath?: string;
   dbtServer = new DbtServer();
   openedDocuments = new Map<string, DbtTextDocument>();
   bigQueryClient?: BigQueryClient;
@@ -50,11 +50,13 @@ export class LspServer {
   completionProvider = new CompletionProvider();
   yamlParser = new YamlParser();
   manifestParser = new ManifestParser();
+  fileChangeListener: FileChangeListener;
   initStart = performance.now();
 
   constructor(connection: _Connection) {
     this.connection = connection;
     this.progressReporter = new ProgressReporter(this.connection);
+    this.fileChangeListener = new FileChangeListener(this.completionProvider, this.yamlParser, this.manifestParser);
   }
 
   async onInitialize(params: InitializeParams): Promise<InitializeResult<any> | ResponseError<InitializeError>> {
@@ -104,8 +106,9 @@ export class LspServer {
       // Register for all configuration changes.
       await this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
     }
-    this.updateTargetPath();
-    this.updateModels();
+
+    this.fileChangeListener.onInit();
+
     await Promise.all([this.initializeZetaSql(), this.startDbtRpc()]);
   }
 
@@ -243,30 +246,11 @@ export class LspServer {
   }
 
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
-    for (const change of params.changes) {
-      if (change.uri.endsWith(YamlParser.DBT_PROJECT_FILE_NAME)) {
-        this.updateTargetPath();
-        this.updateModels();
-      } else if (change.uri.endsWith(`${this.resolveTargetPath()}/${YamlParser.DBT_MANIFEST_FILE_NAME}`)) {
-        this.updateModels();
-      }
-    }
+    this.fileChangeListener.onDidChangeWatchedFiles(params);
   }
 
   onShutdown(): void {
     this.dispose();
-  }
-
-  updateTargetPath(): void {
-    this.dbtTargetPath = this.yamlParser.findTargetPath();
-  }
-
-  updateModels(): void {
-    this.completionProvider.setDbtModels(this.manifestParser.getModels(this.resolveTargetPath()));
-  }
-
-  resolveTargetPath(): string {
-    return this.dbtTargetPath ?? YamlParser.DEFAULT_TARGET_PATH;
   }
 
   dispose(): void {
