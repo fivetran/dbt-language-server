@@ -5,7 +5,7 @@
     "node": "*"
   },
   "dependencies": {
-    "@fivetrandevelopers/zetasql": "^1.1.0",
+    "@fivetrandevelopers/zetasql": "^1.1.1",
     "@google-cloud/bigquery": "^5.9.1",
     "axios": "^0.24.0",
     "fast-diff": "^1.2.0",
