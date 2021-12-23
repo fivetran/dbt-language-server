@@ -35,15 +35,15 @@ export class OAuthTokenBasedProfile implements DbtProfile {
     clientSecret: string | undefined,
   ): string | undefined {
     if (!refreshToken) {
-      return 'refreshToken';
+      return 'refresh_token';
     }
 
     if (!clientId) {
-      return 'clientId';
+      return 'client_id';
     }
 
     if (!clientSecret) {
-      return 'clientSecret';
+      return 'client_secret';
     }
 
     return undefined;
