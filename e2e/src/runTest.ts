@@ -4,33 +4,31 @@ import { spawnSync } from 'child_process';
 import { homedir } from 'os';
 import * as path from 'path';
 
-// expected parameter: path to the folder with the extension package.json
+// Expected parameter: path to the folder with the extension package.json
 async function main(): Promise<void> {
   try {
     await prepareBigQuery();
 
-    // The folder containing the Extension Manifest package.json
-    // Passed to `--extensionDevelopmentPath`
-
     const extensionDevelopmentPath = process.argv[2];
     console.log('Running tests for path: ' + extensionDevelopmentPath);
-
-    // The path to test runner
-    // Passed to --extensionTestsPath
-    const extensionTestsPath = path.resolve(__dirname, './index');
+    const defaultCachePath = path.resolve(extensionDevelopmentPath, '.vscode-test');
+    const extensionsInstallPath = path.join(defaultCachePath, 'extensions');
 
     const vscodeExecutablePath = await downloadAndUnzipVSCode();
+
     const cliPath = resolveCliPathFromVSCodeExecutablePath(vscodeExecutablePath);
-    spawnSync(cliPath, ['--install-extension=ms-python.python'], {
+    spawnSync(cliPath, ['--install-extension=ms-python.python', `--extensions-dir=${extensionsInstallPath}`], {
       encoding: 'utf-8',
       stdio: 'inherit',
     });
 
+    const extensionTestsPath = path.resolve(__dirname, './index');
+
     await runTests({
       extensionDevelopmentPath,
       extensionTestsPath,
-      launchArgs: [path.resolve(__dirname, '../projects/test-workspace.code-workspace')],
-      extensionTestsEnv: { CLI_PATH: cliPath, DBT_LS_DISABLE_TELEMETRY: 'true' },
+      launchArgs: [path.resolve(__dirname, '../projects/test-workspace.code-workspace'), `--extensions-dir=${extensionsInstallPath}`],
+      extensionTestsEnv: { CLI_PATH: cliPath, EXTENSIONS_INSTALL_PATH: extensionsInstallPath, DBT_LS_DISABLE_TELEMETRY: 'true' },
     });
   } catch (err) {
     console.error('Failed to run tests');
