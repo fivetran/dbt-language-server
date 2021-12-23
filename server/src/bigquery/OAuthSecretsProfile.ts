@@ -1,7 +1,7 @@
 import { DbtProfile, Client } from '../DbtProfile';
 import { BigQueryClient } from './BigQueryClient';
 import { BigQuery } from '@google-cloud/bigquery';
-import { UserRefreshClient, Credentials } from 'google-auth-library';
+import { UserRefreshClient } from 'google-auth-library';
 
 export class OAuthSecretsProfile implements DbtProfile {
   static readonly BQ_OAUTH_SECRETS_DOCS =
@@ -83,15 +83,15 @@ export class OAuthSecretsProfile implements DbtProfile {
     clientSecret: string,
     scopes?: string[],
   ): BigQuery {
+    const bigQuery = new BigQuery({
+      projectId: project,
+      scopes: scopes ?? [],
+    });
+
     const refreshClient = new UserRefreshClient({
       clientId: clientId,
       clientSecret: clientSecret,
       refreshToken: refreshToken,
-    });
-
-    const bigQuery = new BigQuery({
-      projectId: project,
-      scopes: scopes ?? [],
     });
     bigQuery.authClient.cachedCredential = refreshClient;
 
@@ -99,15 +99,14 @@ export class OAuthSecretsProfile implements DbtProfile {
   }
 
   private createTemporaryTokenBigQueryClient(project: string, token: string): BigQuery {
-    const credentials: Credentials = {
-      access_token: token,
-    };
-    const refreshClient = new UserRefreshClient();
-    refreshClient.credentials = credentials;
-
     const bigQuery = new BigQuery({
       projectId: project,
     });
+
+    const refreshClient = new UserRefreshClient();
+    refreshClient.credentials = {
+      access_token: token,
+    };
     bigQuery.authClient.cachedCredential = refreshClient;
 
     return bigQuery;
