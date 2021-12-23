@@ -5,7 +5,7 @@ import { UserRefreshClient } from 'google-auth-library';
 
 export class OAuthSecretsProfile implements DbtProfile {
   static readonly BQ_OAUTH_SECRETS_DOCS =
-    '[Oauth Token-Based (Temporary token) configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#oauth-token-based).';
+    '[Oauth Token-Based configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#oauth-token-based).';
 
   getDocsUrl(): string {
     return OAuthSecretsProfile.BQ_OAUTH_SECRETS_DOCS;
