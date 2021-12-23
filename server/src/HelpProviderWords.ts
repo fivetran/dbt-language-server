@@ -133,7 +133,8 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature:
           'STRING_AGG(\n  [DISTINCT]\n  expression [, delimiter]\n  [HAVING {MAX | MIN} expression2]\n  [ORDER BY key [{ASC|DESC}] [, ... ]]\n  [LIMIT n]\n)\n[OVER (...)]\n',
-        description: 'Returns a value (either STRING or\nBYTES) obtained by concatenating non-null values.',
+        description:
+          'Returns a value (either STRING or\nBYTES) obtained by concatenating non-null values.\nReturns `NULL` if there are zero input rows or `expression` evaluates to\n`NULL` for all rows.',
       },
     ],
   },
@@ -307,7 +308,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'kll_quantiles.init_int64',
     sinatures: [
       {
-        signature: 'KLL_QUANTILES.INIT_INT64(input[, precision])\n',
+        signature: 'KLL_QUANTILES.INIT_INT64(input[, precision[, weight => input_weight]])\n',
         description:
           'Takes one or more `input` values and aggregates them into a\nKLL16 sketch. This function represents the output sketch\nusing the `BYTES` data type. This is an\naggregate function.',
       },
@@ -317,7 +318,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'kll_quantiles.init_uint64',
     sinatures: [
       {
-        signature: 'KLL_QUANTILES.INIT_UINT64(input[, precision])\n',
+        signature: 'KLL_QUANTILES.INIT_UINT64(input[, precision[, weight => input_weight]])\n',
         description: 'Like `KLL_QUANTILES.INIT_INT64`, but accepts\n`input` of type `UINT64`.',
       },
     ],
@@ -326,7 +327,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'kll_quantiles.init_double',
     sinatures: [
       {
-        signature: 'KLL_QUANTILES.INIT_DOUBLE(input[, precision])\n',
+        signature: 'KLL_QUANTILES.INIT_DOUBLE(input[, precision[, weight => input_weight]])\n',
         description: 'Like `KLL_QUANTILES.INIT_INT64`, but accepts\n`input` of type `DOUBLE`.',
       },
     ],
@@ -950,6 +951,16 @@ export const HelpProviderWords: FunctionInfo[] = [
     ],
   },
   {
+    name: 'code_points_to_string',
+    sinatures: [
+      {
+        signature: 'CODE_POINTS_TO_STRING(value)\n',
+        description:
+          'Takes an array of Unicode code points\n(`ARRAY` of `INT64`) and\nreturns a `STRING`. If a code point is 0, does not return a character for it\nin the `STRING`.',
+      },
+    ],
+  },
+  {
     name: 'concat',
     sinatures: [
       {
@@ -1368,8 +1379,24 @@ export const HelpProviderWords: FunctionInfo[] = [
     sinatures: [
       {
         signature:
-          'ARRAY_FILTER(array_expression, lambda_expression)\n\nlambda_expression:\n  { e->boolean_expression | (e, i)->boolean_expression }\n',
+          'ARRAY_FILTER(array_expression, lambda_expression)\n\nlambda_expression:\n  {\n    element_alias->boolean_expression\n    | (element_alias, index_alias)->boolean_expression\n  }\n',
         description: 'Takes an array, filters out unwanted elements, and returns the results in a new\narray.',
+      },
+    ],
+  },
+  {
+    name: 'array_includes',
+    sinatures: [
+      { signature: '', description: 'Takes an array and returns `TRUE` if there is an element in the array that is\nequal to the target element.' },
+    ],
+  },
+  {
+    name: 'array_includes_any',
+    sinatures: [
+      {
+        signature: 'ARRAY_INCLUDES_ANY(source_array_expression, target_array_expression)\n',
+        description:
+          'Takes a source and target array. Returns `TRUE` if any elements in the target\narray are in the source array, otherwise returns `FALSE`.',
       },
     ],
   },
@@ -1397,7 +1424,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     sinatures: [
       {
         signature:
-          'ARRAY_TRANSFORM(array_expression, lambda_expression)\n\nlambda_expression:\n  { e->transform_expression | (e, i)->transform_expression }\n',
+          'ARRAY_TRANSFORM(array_expression, lambda_expression)\n\nlambda_expression:\n  {\n    element_alias->transform_expression\n    | (element_alias, index_alias)->transform_expression\n  }\n',
         description: 'Takes an array, transforms the elements, and returns the results in a new array.',
       },
     ],
@@ -1513,7 +1540,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'DATE_DIFF(date_expression_a, date_expression_b, date_part)\n',
         description:
-          'Returns the number of whole specified `date_part` intervals between two `DATE` objects\n(`date_expression_a` - `date_expression_b`).\nIf the first `DATE` is earlier than the second one,\nthe output is negative.',
+          'Returns the whole number of specified `date_part` intervals between two\n`DATE` objects (`date_expression_a` - `date_expression_b`).\nIf the first `DATE` is earlier than the second one,\nthe output is negative.',
       },
     ],
   },
@@ -1601,7 +1628,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'DATETIME_DIFF(datetime_expression_a, datetime_expression_b, part)\n',
         description:
-          'Returns the number of whole specified `part` intervals between two\n`DATETIME` objects (`datetime_expression_a` - `datetime_expression_b`).\nIf the first `DATETIME` is earlier than the second one,\nthe output is negative. Throws an error if the computation overflows the\nresult type, such as if the difference in\nnanoseconds\nbetween the two `DATETIME` objects would overflow an\n`INT64` value.',
+          'Returns the whole number of specified `part` intervals between two\n`DATETIME` objects (`datetime_expression_a` - `datetime_expression_b`).\nIf the first `DATETIME` is earlier than the second one,\nthe output is negative. Throws an error if the computation overflows the\nresult type, such as if the difference in\nnanoseconds\nbetween the two `DATETIME` objects would overflow an\n`INT64` value.',
       },
     ],
   },
@@ -1679,7 +1706,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'TIME_DIFF(time_expression_a, time_expression_b, part)\n',
         description:
-          'Returns the number of whole specified `part` intervals between two\n`TIME` objects (`time_expression_a` - `time_expression_b`). If the first\n`TIME` is earlier than the second one, the output is negative. Throws an error\nif the computation overflows the result type, such as if the difference in\nnanoseconds\nbetween the two `TIME` objects would overflow an\n`INT64` value.',
+          'Returns the whole number of specified `part` intervals between two\n`TIME` objects (`time_expression_a` - `time_expression_b`). If the first\n`TIME` is earlier than the second one, the output is negative. Throws an error\nif the computation overflows the result type, such as if the difference in\nnanoseconds\nbetween the two `TIME` objects would overflow an\n`INT64` value.',
       },
     ],
   },
@@ -1746,7 +1773,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'TIMESTAMP_DIFF(timestamp_expression_a, timestamp_expression_b, date_part)\n',
         description:
-          'Returns the number of whole specified `date_part` intervals between two\n`TIMESTAMP` objects (`timestamp_expression_a` - `timestamp_expression_b`). If the first `TIMESTAMP` is earlier than the second one,\nthe output is negative. Throws an error if the computation overflows the\nresult type, such as if the difference in\nnanoseconds\nbetween the two `TIMESTAMP` objects would overflow an `INT64` value.',
+          'Returns the whole number of specified `date_part` intervals between two\n`TIMESTAMP` objects (`timestamp_expression_a` - `timestamp_expression_b`).\nIf the first `TIMESTAMP` is earlier than the second one,\nthe output is negative. Throws an error if the computation overflows the\nresult type, such as if the difference in\nnanoseconds\nbetween the two `TIMESTAMP` objects would overflow an\n`INT64` value.',
       },
     ],
   },
@@ -2105,12 +2132,42 @@ export const HelpProviderWords: FunctionInfo[] = [
     ],
   },
   {
+    name: 'anon_percentile_cont',
+    sinatures: [
+      {
+        signature: 'ANON_PERCENTILE_CONT(expression, percentile [CLAMPED BETWEEN lower AND upper])\n',
+        description:
+          'Takes an expression and computes a percentile for it. The final result is an\naggregation across anonymization IDs. The percentile must be a literal in the\nrange [0, 1]. You can clamp the input values explicitly,\notherwise input values are clamped implicitly. Clamping is performed per\nanonymization ID.',
+      },
+    ],
+  },
+  {
+    name: 'anon_stddev_pop',
+    sinatures: [
+      {
+        signature: 'ANON_STDDEV_POP(expression [CLAMPED BETWEEN lower AND upper])\n',
+        description:
+          'Takes an expression and computes the population (biased) standard deviation of\nthe values in the expression. The final result is an aggregation across\nanonymization IDs between `0` and `+Inf`. You can\nclamp the input values explicitly, otherwise input values are\nclamped implicitly. Clamping is performed per individual user values.',
+      },
+    ],
+  },
+  {
     name: 'anon_sum',
     sinatures: [
       {
         signature: 'ANON_SUM(expression [CLAMPED BETWEEN lower AND upper])\n',
         description:
           'Returns the sum of non-`NULL`, non-`NaN` values in the expression. The final\nresult is an aggregation across anonymization IDs. You can optionally\nclamp the input values. Clamping is performed per\nanonymization ID.',
+      },
+    ],
+  },
+  {
+    name: 'anon_var_pop',
+    sinatures: [
+      {
+        signature: 'ANON_VAR_POP(expression [CLAMPED BETWEEN lower AND upper])\n',
+        description:
+          'Takes an expression and computes the population (biased) variance of the values\nin the expression. The final result is an aggregation across\nanonymization IDs between `0` and `+Inf`. You can\nclamp the input values explicitly, otherwise input values are\nclamped implicitly. Clamping is performed per individual user values.',
       },
     ],
   },

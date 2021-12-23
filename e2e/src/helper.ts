@@ -124,11 +124,16 @@ export function getCursorPosition(): vscode.Position {
 }
 
 export function installExtension(extensionId: string): void {
-  runCliCommand([`--install-extension=${extensionId}`]);
+  installUninstallExtension('install', extensionId);
 }
 
 export function uninstallExtension(extensionId: string): void {
-  runCliCommand([`--uninstall-extension=${extensionId}`]);
+  installUninstallExtension('uninstall', extensionId);
+}
+
+function installUninstallExtension(command: 'install' | 'uninstall', extensionId: string): void {
+  const extensionsInstallPathParam = `--extensions-dir=${process.env['EXTENSIONS_INSTALL_PATH']}` ?? '';
+  runCliCommand([`--${command}-extension=${extensionId}`, extensionsInstallPathParam]);
 }
 
 function runCliCommand(args: string[]): void {
