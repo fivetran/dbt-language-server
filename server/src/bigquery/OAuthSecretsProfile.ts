@@ -1,0 +1,115 @@
+import { DbtProfile, Client } from '../DbtProfile';
+import { BigQueryClient } from './BigQueryClient';
+import { BigQuery } from '@google-cloud/bigquery';
+import { UserRefreshClient, Credentials } from 'google-auth-library';
+
+export class OAuthSecretsProfile implements DbtProfile {
+  static readonly BQ_OAUTH_SECRETS_DOCS =
+    '[Oauth Token-Based (Temporary token) configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#oauth-token-based).';
+
+  getDocsUrl(): string {
+    return OAuthSecretsProfile.BQ_OAUTH_SECRETS_DOCS;
+  }
+
+  validateProfile(targetConfig: any): string | undefined {
+    const project = targetConfig.project;
+    if (!project) {
+      return 'project';
+    }
+
+    const token = targetConfig.token;
+    const refreshToken = targetConfig.refresh_token;
+    const clientId = targetConfig.client_id;
+    const clientSecret = targetConfig.client_secret;
+
+    if (refreshToken || clientId || clientSecret) {
+      return this.validateRefreshTokenProfile(refreshToken, clientId, clientSecret);
+    } else {
+      return this.validateTemporaryTokenProfile(token);
+    }
+  }
+
+  private validateRefreshTokenProfile(
+    refreshToken: string | undefined,
+    clientId: string | undefined,
+    clientSecret: string | undefined,
+  ): string | undefined {
+    if (!refreshToken) {
+      return 'refreshToken';
+    }
+
+    if (!clientId) {
+      return 'clientId';
+    }
+
+    if (!clientSecret) {
+      return 'clientSecret';
+    }
+
+    return undefined;
+  }
+
+  private validateTemporaryTokenProfile(token: string | undefined): string | undefined {
+    if (!token) {
+      return 'token';
+    }
+    return undefined;
+  }
+
+  createClient(profile: any): Client {
+    const project = profile.project;
+    const token = profile.token;
+    const refreshToken = profile.refresh_token;
+    const clientId = profile.client_id;
+    const clientSecret = profile.client_secret;
+    const scopes = profile.scopes;
+
+    const bigQuery =
+      refreshToken && clientId && clientSecret
+        ? this.createRefreshTokenBigQueryClient(project, refreshToken, clientId, clientSecret, scopes)
+        : this.createTemporaryTokenBigQueryClient(project, token);
+
+    return new BigQueryClient(project, bigQuery);
+  }
+
+  authenticateClient(): Promise<string | undefined> {
+    return Promise.resolve(undefined);
+  }
+
+  private createRefreshTokenBigQueryClient(
+    project: string,
+    refreshToken: string,
+    clientId: string,
+    clientSecret: string,
+    scopes?: string[],
+  ): BigQuery {
+    const refreshClient = new UserRefreshClient({
+      clientId: clientId,
+      clientSecret: clientSecret,
+      refreshToken: refreshToken,
+    });
+
+    const bigQuery = new BigQuery({
+      projectId: project,
+      scopes: scopes ?? [],
+    });
+    bigQuery.authClient.cachedCredential = refreshClient;
+
+    return bigQuery;
+  }
+
+  private createTemporaryTokenBigQueryClient(project: string, token: string): BigQuery {
+    const credentials: Credentials = {
+      access_token: token,
+    };
+    const refreshClient = new UserRefreshClient();
+    refreshClient.credentials = credentials;
+
+    const bigQuery = new BigQuery({
+      projectId: project,
+    });
+    bigQuery.authClient.cachedCredential = refreshClient;
+
+    return bigQuery;
+  }
+}
