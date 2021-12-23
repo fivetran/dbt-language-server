@@ -3,12 +3,12 @@ import { BigQueryClient } from './BigQueryClient';
 import { BigQuery } from '@google-cloud/bigquery';
 import { UserRefreshClient } from 'google-auth-library';
 
-export class OAuthSecretsProfile implements DbtProfile {
-  static readonly BQ_OAUTH_SECRETS_DOCS =
+export class OAuthTokenBasedProfile implements DbtProfile {
+  static readonly BQ_OAUTH_TOKEN_BASED_DOCS =
     '[Oauth Token-Based configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#oauth-token-based).';
 
   getDocsUrl(): string {
-    return OAuthSecretsProfile.BQ_OAUTH_SECRETS_DOCS;
+    return OAuthTokenBasedProfile.BQ_OAUTH_TOKEN_BASED_DOCS;
   }
 
   validateProfile(targetConfig: any): string | undefined {

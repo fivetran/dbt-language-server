@@ -1,6 +1,6 @@
 import { DbtProfile } from './DbtProfile';
 import { OAuthProfile } from './bigquery/OAuthProfile';
-import { OAuthSecretsProfile } from './bigquery/OAuthSecretsProfile';
+import { OAuthTokenBasedProfile } from './bigquery/OAuthTokenBasedProfile';
 import { ServiceAccountProfile } from './bigquery/ServiceAccountProfile';
 import { ServiceAccountJsonProfile } from './bigquery/ServiceAccountJsonProfile';
 
@@ -9,13 +9,13 @@ export enum DbtProfileType {
 }
 
 const createOAuthProfile: () => DbtProfile = () => new OAuthProfile();
-const createOAuthSecretsProfile: () => DbtProfile = () => new OAuthSecretsProfile();
+const createOAuthTokenBasedProfile: () => DbtProfile = () => new OAuthTokenBasedProfile();
 const createServiceAccountProfile: () => DbtProfile = () => new ServiceAccountProfile();
 const createServiceAccountJsonProfile: () => DbtProfile = () => new ServiceAccountJsonProfile();
 
 export const BIG_QUERY_PROFILES = new Map<string, () => DbtProfile>([
   ['oauth', createOAuthProfile],
-  ['oauth-secrets', createOAuthSecretsProfile],
+  ['oauth-secrets', createOAuthTokenBasedProfile],
   ['service-account', createServiceAccountProfile],
   ['service-account-json', createServiceAccountJsonProfile],
 ]);
