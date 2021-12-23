@@ -1,4 +1,3 @@
-
 with gsheet_emails as (
   select 
     ae_owner as email,

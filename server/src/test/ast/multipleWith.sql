@@ -1,5 +1,3 @@
-
-
 with live_analytics_query as (
   select
     account_id,
