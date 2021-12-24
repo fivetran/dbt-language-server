@@ -17,6 +17,7 @@ This extension will help you work with dbt and BigQuery.
 - [Profiles](#profiles)
    - [BigQuery Profile](#bigquery-profile)
       - [oauth via gcloud](#oauth-via-gcloud)
+      - [oauth token-based](#oauth-token-based)
       - [service account file](#service-account-file)
       - [service account json](#service-account-json)
 
@@ -83,6 +84,43 @@ my-bigquery-db:
       project: google-test-project-id-400
       dataset: dbt_default
       threads: 4
+```
+
+#### Oauth Token-Based
+
+Example of `/Users/user/.dbt/profiles.yml` using the [Oauth Token-Based](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#oauth-token-based) authorization type:
+
+##### Refresh token
+
+```YAML
+my-bigquery-db:
+  target: prod
+  outputs:
+    prod:
+      type: bigquery
+      method: oauth-secrets
+      project: google-test-project-id-400
+      dataset: dbt_default
+      threads: 4
+      refresh_token: [refresh token]
+      client_id: [client id]
+      client_secret: [client secret]
+      token_uri: https://oauth2.googleapis.com/token
+```
+
+##### Temporary token
+
+```YAML
+my-bigquery-db:
+  target: prod
+  outputs:
+    prod:
+      type: bigquery
+      method: oauth-secrets
+      project: google-test-project-id-400
+      dataset: dbt_default
+      threads: 4
+      token: [temporary access token]
 ```
 
 #### Service Account File
