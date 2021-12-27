@@ -7,19 +7,27 @@ on:
 
 jobs:
   test-and-package:
-    runs-on: macos-latest
-    
-    outputs:
-      vsix_name: ${{ steps.vars.outputs.vsix_name }}
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            target: darwin-x64
+            zetasql-lib: libremote_server.dylib
+
+          - os: ubuntu-latest
+            target: linux-x64
+            zetasql-lib: libremote_server.so
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: set up node 14.x
+      - name: set up node 16.x
         uses: actions/setup-node@v2
         with:
-          node-version: '14.x'
+          node-version: '16.x'
 
       - name: build and test
         run: |
@@ -28,20 +36,24 @@ jobs:
           npm run lint
           npm run test
 
-      - name: package to vsix file
-        run: npx vsce package -o dbt-language-server.vsix --baseImagesUrl=https://storage.googleapis.com/dbt-ls-images
+      - name: set environment variable with file name
+        run: echo "FILE_NAME=${{ github.sha }}-${{ matrix.target }}.vsix" >> $GITHUB_ENV
 
-      - name: save vsix name with sha
-        id: vars
-        run: echo "::set-output name=vsix_name::dbt-language-server-commit-sha-${GITHUB_SHA::7}.vsix"
+      - name: delete libraries for other platrofms
+        run: |
+          cd server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql/
+          find . ! -name '${{ matrix.zetasql-lib }}' -type f -exec rm -f {} +
+
+      - name: package to vsix file
+        run: npx vsce package -o ${FILE_NAME} --target ${{ matrix.target }} --baseImagesUrl=https://storage.googleapis.com/dbt-ls-images
 
       - name: create cache
         uses: actions/cache@v2
         with:
           path: |
             ./e2e
-            ./dbt-language-server.vsix
-          key: ${{ runner.os }}-cache-${{ github.sha }}-${{ github.ref }}
+            ./${{ env.FILE_NAME }}
+          key: ${{ matrix.target }}-${{ github.sha }}
 
   run-e2e-tests:
     needs: test-and-package
@@ -53,17 +65,20 @@ jobs:
 
     runs-on: macos-latest
     steps:
+      - name: set environment variable with file name
+        run: echo "FILE_NAME=${{ github.sha }}-darwin-x64.vsix" >> $GITHUB_ENV
+
       - name: load e2e tests and vsix from cache
         uses: actions/cache@v2
         with:
           path: |
             ./e2e
-            ./dbt-language-server.vsix
-          key: ${{ runner.os }}-cache-${{ github.sha }}-${{ github.ref }}
+            ./${{ env.FILE_NAME }}
+          key: darwin-x64-${{ github.sha }}
 
       - uses: actions/setup-node@v2
         with:
-          node-version: '14.x'
+          node-version: '16.x'
 
       - uses: actions/setup-python@v2
         with:
@@ -147,7 +162,7 @@ jobs:
       #     TELEGRAM_BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
       #     TELEGRAM_CHAT_ID: ${{ secrets.CHAT_ID }}
 
-      - run: unzip dbt-language-server.vsix -d e2e-tests
+      - run: unzip ${{ env.FILE_NAME }} -d e2e-tests
       - run: node e2e/out/runTest $(pwd)/e2e-tests/extension
 
       - name: upload logs
@@ -155,7 +170,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.dbt-version }}
-          path: ~/Library/Application\ Support/Code/logs/**/*dbt Language Server.log
+          path: ./.vscode-test/user-data/logs/**/*dbt Language Server.log
 
   publish:
     if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }} # main branch or have any tag started with 'v'
@@ -163,36 +178,53 @@ jobs:
 
     runs-on: macos-latest
     steps:
-      - name: load vsix from cache
+      - name: load darwin-x64 vsix from cache
+        id: darwin-cache
         uses: actions/cache@v2
         with:
           path: |
             ./e2e
-            ./dbt-language-server.vsix
-          key: ${{ runner.os }}-cache-${{ github.sha }}-${{ github.ref }}
-
-      - name: prepare vsix for push to GCS
-        if: ${{ github.ref == 'refs/heads/main' }}
+            ./${{ env.VSIX_NAME }}
+          key: darwin-x64-${{ github.sha }}
         env:
-          VSIX_NAME: ${{ needs.test-and-package.outputs.vsix_name }}
-        run: cp dbt-language-server.vsix ${VSIX_NAME}
+          VSIX_NAME: ${{ github.sha }}-darwin-x64.vsix
 
-      - name: push main to GCS
-        if: ${{ github.ref == 'refs/heads/main' }}
-        uses: google-github-actions/upload-cloud-storage@main
+      - name: load linux-x64 vsix from cache
+        id: linux-cache
+        uses: actions/cache@v2
         with:
-          path: ${{ needs.test-and-package.outputs.vsix_name }}
-          destination: dbt-language-server
-          credentials: ${{ secrets.GCS_SERVICE_ACCOUNT }}
+          path: |
+            ./e2e
+            ./${{ env.VSIX_NAME }}
+          key: linux-x64-${{ github.sha }}
+        env:
+          VSIX_NAME: ${{ github.sha }}-linux-x64.vsix
 
-      - name: set up node 14.x
+      - name: fail if cache not hit
+        if: steps.darwin-cache.outputs.cache-hit != 'true' || steps.linux-cache.outputs.cache-hit != 'true'
+        run: exit 1
+
+      - name: 'google auth using service account json'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: '${{ secrets.GCS_SERVICE_ACCOUNT }}'
+
+      - name: push vsix files to GCS
+        if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/linux-support' }}
+        uses: google-github-actions/upload-cloud-storage@v0
+        with:
+          path: .
+          glob: '*.vsix'
+          destination: dbt-language-server
+
+      - name: set up node 16.x
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         uses: actions/setup-node@v2
         with:
-          node-version: '14.x'
+          node-version: '16.x'
 
       - name: publish tagged (latest) extension
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         env:
-          VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
-        run: npx vsce publish -i dbt-language-server.vsix -p ${VSCE_TOKEN}
+          VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
+        run: npx vsce publish --packagePath $(find . -iname *.vsix)
