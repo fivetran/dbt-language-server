@@ -1,8 +1,8 @@
 export interface DbtDestinationClient {
   /**
-   * Test credentials validity
-   * @param client profile client
-   * @returns undefined in case of credentials valid and error string otherwise
+   * Tests connection to destination
+   * @param client dbt profile client
+   * @returns undefined in case of connection successful and error string otherwise
    */
   test(): Promise<string | undefined>;
 }
