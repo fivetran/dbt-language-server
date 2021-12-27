@@ -1,11 +1,11 @@
 import * as fs from 'fs';
 import * as yaml from 'yaml';
 import { YamlParserUtils } from './YamlParserUtils';
-import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtProfileType';
-import { Client } from './DbtProfile';
+import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtDestinationProfileType';
+import { DbtDestinationClient } from './DbtDestinationClient';
 
 export interface DbtProfileResult {
-  client?: Client;
+  client?: DbtDestinationClient;
   error?: string;
 }
 

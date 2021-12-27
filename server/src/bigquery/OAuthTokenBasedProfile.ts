@@ -1,9 +1,10 @@
-import { DbtProfile, Client } from '../DbtProfile';
+import { DbtDestinationProfile } from '../DbtDestinationProfile';
+import { DbtDestinationClient } from '../DbtDestinationClient';
 import { BigQueryClient } from './BigQueryClient';
 import { BigQuery } from '@google-cloud/bigquery';
 import { UserRefreshClient } from 'google-auth-library';
 
-export class OAuthTokenBasedProfile implements DbtProfile {
+export class OAuthTokenBasedProfile implements DbtDestinationProfile {
   static readonly BQ_OAUTH_TOKEN_BASED_DOCS =
     '[Oauth Token-Based configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#oauth-token-based).';
 
@@ -56,7 +57,7 @@ export class OAuthTokenBasedProfile implements DbtProfile {
     return undefined;
   }
 
-  createClient(profile: any): Client {
+  createClient(profile: any): DbtDestinationClient {
     const project = profile.project;
     const token = profile.token;
     const refreshToken = profile.refresh_token;
@@ -72,8 +73,8 @@ export class OAuthTokenBasedProfile implements DbtProfile {
     return new BigQueryClient(project, bigQuery);
   }
 
-  authenticateClient(): Promise<string | undefined> {
-    return Promise.resolve(undefined);
+  async authenticateClient(client: DbtDestinationClient): Promise<string | undefined> {
+    return client.test();
   }
 
   private createRefreshTokenBigQueryClient(

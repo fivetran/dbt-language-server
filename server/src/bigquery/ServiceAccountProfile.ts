@@ -1,9 +1,10 @@
-import { DbtProfile, Client } from '../DbtProfile';
+import { DbtDestinationProfile } from '../DbtDestinationProfile';
+import { DbtDestinationClient } from '../DbtDestinationClient';
 import { YamlParserUtils } from '../YamlParserUtils';
 import { BigQueryClient } from './BigQueryClient';
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 
-export class ServiceAccountProfile implements DbtProfile {
+export class ServiceAccountProfile implements DbtDestinationProfile {
   static readonly BQ_SERVICE_ACCOUNT_FILE_DOCS =
     '[Service Account File configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-file).';
 
@@ -25,7 +26,7 @@ export class ServiceAccountProfile implements DbtProfile {
     return undefined;
   }
 
-  createClient(profile: any): Client {
+  createClient(profile: any): DbtDestinationClient {
     const project = profile.project;
     const keyFilePath = YamlParserUtils.replaceTilde(profile.keyfile);
 
@@ -37,7 +38,7 @@ export class ServiceAccountProfile implements DbtProfile {
     return new BigQueryClient(project, bigQuery);
   }
 
-  authenticateClient(): Promise<string | undefined> {
-    return Promise.resolve(undefined);
+  authenticateClient(client: DbtDestinationClient): Promise<string | undefined> {
+    return client.test();
   }
 }

@@ -1,9 +1,10 @@
+import { DbtDestinationProfile } from '../DbtDestinationProfile';
+import { DbtDestinationClient } from '../DbtDestinationClient';
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 import { ExternalAccountClientOptions } from 'google-auth-library';
-import { Client, DbtProfile } from '../DbtProfile';
 import { BigQueryClient } from './BigQueryClient';
 
-export class ServiceAccountJsonProfile implements DbtProfile {
+export class ServiceAccountJsonProfile implements DbtDestinationProfile {
   static readonly BQ_SERVICE_ACCOUNT_JSON_DOCS =
     '[Service Account JSON configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-json).';
 
@@ -25,7 +26,7 @@ export class ServiceAccountJsonProfile implements DbtProfile {
     return this.validateKeyFileJson(keyFileJson);
   }
 
-  createClient(profile: any): Client {
+  createClient(profile: any): DbtDestinationClient {
     const project = profile.project;
     const keyFileJson = JSON.stringify(profile.keyfile_json);
 
@@ -38,8 +39,8 @@ export class ServiceAccountJsonProfile implements DbtProfile {
     return new BigQueryClient(project, bigQuery);
   }
 
-  authenticateClient(): Promise<string | undefined> {
-    return Promise.resolve(undefined);
+  authenticateClient(client: DbtDestinationClient): Promise<string | undefined> {
+    return client.test();
   }
 
   private validateKeyFileJson(keyFileJson: any): string | undefined {
