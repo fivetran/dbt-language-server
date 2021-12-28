@@ -1,8 +1,15 @@
 import { DbtDestinationClient } from './DbtDestinationClient';
 import { YamlParser } from './YamlParser';
 import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtDestinationProfileType';
+import { DbtDestinationProfile } from './DbtDestinationProfile';
 
 export interface DbtProfileResult {
+  dbtProfile?: DbtDestinationProfile;
+  targetConfig?: any;
+  error?: string;
+}
+
+export interface DbtClientResult {
   client?: DbtDestinationClient;
   error?: string;
 }
@@ -104,6 +111,13 @@ export class DbtDestinationProfileCreator {
       return this.cantFindSectionError(profileName, result, docsUrl);
     }
 
+    return {
+      dbtProfile: dbtProfile,
+      targetConfig: targetConfig,
+    };
+  }
+
+  async createDbtClient(dbtProfile: DbtDestinationProfile, targetConfig: any): Promise<DbtClientResult> {
     const client = dbtProfile.createClient(targetConfig);
     const authenticateResult = await dbtProfile.authenticateClient(client);
     if (authenticateResult) {

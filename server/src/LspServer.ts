@@ -73,11 +73,21 @@ export class LspServer {
     process.on('SIGTERM', this.onShutdown);
     process.on('SIGINT', this.onShutdown);
 
-    const createResult = await this.dbtDestinationProfileCreator.createDbtProfile();
-    if (createResult.error) {
-      return new ResponseError<InitializeError>(100, createResult.error, { retry: true });
+    const profileResult = await this.dbtDestinationProfileCreator.createDbtProfile();
+    if (profileResult.error) {
+      return new ResponseError<InitializeError>(100, profileResult.error, { retry: true });
     }
-    this.bigQueryClient = <BigQueryClient>createResult.client;
+
+    if (!profileResult.dbtProfile || !profileResult.targetConfig) {
+      return new ResponseError<InitializeError>(100, 'Unable to parse dbt profile', { retry: true });
+    }
+
+    const clientResult = await this.dbtDestinationProfileCreator.createDbtClient(profileResult.dbtProfile, profileResult.targetConfig);
+    if (clientResult.error) {
+      return new ResponseError<InitializeError>(100, clientResult.error, { retry: true });
+    }
+
+    this.bigQueryClient = <BigQueryClient>clientResult.client;
 
     this.initializeDestinationDefinition();
 
