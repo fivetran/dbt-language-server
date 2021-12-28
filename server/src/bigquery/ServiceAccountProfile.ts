@@ -1,10 +1,10 @@
-import { DbtDestinationProfile } from '../DbtDestinationProfile';
+import { DbtProfile } from '../DbtProfile';
 import { DbtDestinationClient } from '../DbtDestinationClient';
 import { YamlParserUtils } from '../YamlParserUtils';
 import { BigQueryClient } from './BigQueryClient';
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 
-export class ServiceAccountProfile implements DbtDestinationProfile {
+export class ServiceAccountProfile implements DbtProfile {
   static readonly BQ_SERVICE_ACCOUNT_FILE_DOCS =
     '[Service Account File configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-file).';
 

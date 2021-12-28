@@ -1,6 +1,6 @@
 import { DbtDestinationClient } from './DbtDestinationClient';
 
-export interface DbtDestinationProfile {
+export interface DbtProfile {
   /**
    * @returns url with dbt profile setup docs
    */

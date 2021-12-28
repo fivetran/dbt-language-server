@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as path from 'path';
-import { DbtDestinationProfileCreator } from '../DbtDestinationProfileCreator';
+import { DbtProfileCreator } from '../DbtProfileCreator';
 import { YamlParser } from '../YamlParser';
 
 describe('Profiles Validation', () => {
@@ -15,11 +15,11 @@ describe('Profiles Validation', () => {
     const serviceAccountYamlParser = getMockParser(BIG_QUERY_CONFIG, 'bigquery-test_service_account');
     const serviceAccountJsonYamlParser = getMockParser(BIG_QUERY_CONFIG, 'bigquery-test_service_account_json');
 
-    const oauthProfileCreator = new DbtDestinationProfileCreator(oauthYamlParser);
-    const oauthSecretsTemporaryProfileCreator = new DbtDestinationProfileCreator(oauthSecretsTemporaryYamlParser);
-    const oauthSecretsRefreshProfileCreator = new DbtDestinationProfileCreator(oauthSecretsRefreshYamlParser);
-    const serviceAccountProfileCreator = new DbtDestinationProfileCreator(serviceAccountYamlParser);
-    const serviceAccountJsonProfileCreator = new DbtDestinationProfileCreator(serviceAccountJsonYamlParser);
+    const oauthProfileCreator = new DbtProfileCreator(oauthYamlParser);
+    const oauthSecretsTemporaryProfileCreator = new DbtProfileCreator(oauthSecretsTemporaryYamlParser);
+    const oauthSecretsRefreshProfileCreator = new DbtProfileCreator(oauthSecretsRefreshYamlParser);
+    const serviceAccountProfileCreator = new DbtProfileCreator(serviceAccountYamlParser);
+    const serviceAccountJsonProfileCreator = new DbtProfileCreator(serviceAccountJsonYamlParser);
 
     // act
     const oauthProfile = await oauthProfileCreator.createDbtProfile();

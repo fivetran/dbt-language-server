@@ -1,10 +1,10 @@
-import { DbtDestinationProfile } from '../DbtDestinationProfile';
+import { DbtProfile } from '../DbtProfile';
 import { DbtDestinationClient } from '../DbtDestinationClient';
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 import { ExternalAccountClientOptions } from 'google-auth-library';
 import { BigQueryClient } from './BigQueryClient';
 
-export class ServiceAccountJsonProfile implements DbtDestinationProfile {
+export class ServiceAccountJsonProfile implements DbtProfile {
   static readonly BQ_SERVICE_ACCOUNT_JSON_DOCS =
     '[Service Account JSON configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-json).';
 

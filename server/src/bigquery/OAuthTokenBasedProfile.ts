@@ -1,10 +1,10 @@
-import { DbtDestinationProfile } from '../DbtDestinationProfile';
+import { DbtProfile } from '../DbtProfile';
 import { DbtDestinationClient } from '../DbtDestinationClient';
 import { BigQueryClient } from './BigQueryClient';
 import { BigQuery } from '@google-cloud/bigquery';
 import { UserRefreshClient } from 'google-auth-library';
 
-export class OAuthTokenBasedProfile implements DbtDestinationProfile {
+export class OAuthTokenBasedProfile implements DbtProfile {
   static readonly BQ_OAUTH_TOKEN_BASED_DOCS =
     '[Oauth Token-Based configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#oauth-token-based).';
 

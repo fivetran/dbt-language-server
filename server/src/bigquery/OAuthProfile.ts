@@ -1,10 +1,10 @@
-import { DbtDestinationProfile } from '../DbtDestinationProfile';
+import { DbtProfile } from '../DbtProfile';
 import { DbtDestinationClient } from '../DbtDestinationClient';
 import { BigQueryClient } from './BigQueryClient';
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 import { ProcessExecutor } from '../ProcessExecutor';
 
-export class OAuthProfile implements DbtDestinationProfile {
+export class OAuthProfile implements DbtProfile {
   static readonly BQ_OAUTH_DOCS =
     '[OAuth via gcloud configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#oauth-via-gcloud).';
   static readonly GCLOUD_NOT_INSTALLED_ERROR =

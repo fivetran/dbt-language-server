@@ -33,7 +33,7 @@ import { FileChangeListener } from './FileChangeListener';
 import { ManifestParser } from './ManifestParser';
 import { ProgressReporter } from './ProgressReporter';
 import { randomNumber } from './Utils';
-import { DbtDestinationProfileCreator } from './DbtDestinationProfileCreator';
+import { DbtProfileCreator } from './DbtProfileCreator';
 import findFreePortPmfy = require('find-free-port');
 
 interface TelemetryEvent {
@@ -51,7 +51,7 @@ export class LspServer {
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
   completionProvider = new CompletionProvider();
-  dbtDestinationProfileCreator = new DbtDestinationProfileCreator();
+  dbtDestinationProfileCreator = new DbtProfileCreator();
   manifestParser = new ManifestParser();
   featureFinder = new FeatureFinder();
   fileChangeListener: FileChangeListener;
