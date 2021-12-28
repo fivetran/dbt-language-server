@@ -1,0 +1,73 @@
+bigquery-test_oauth:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: test_project
+      dataset: test_project_default
+      threads: 4
+
+bigquery-test_oauth_temporary:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth-secrets
+      project: test_project
+      dataset: test_project_default
+      threads: 4
+      token: 12345
+
+bigquery-test_oauth_refresh:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth-secrets
+      project: test_project
+      dataset: test_project_default
+      threads: 4
+      refresh_token: 12345
+      client_id: identifier.com
+      client_secret: 12345
+      token_uri: https://oauth2.googleapis.com/token
+      scopes:
+        - https://www.googleapis.com/auth/bigquery
+        - https://www.googleapis.com/auth/drive
+        - https://www.googleapis.com/auth/cloud-platform
+
+bigquery-test_service_account:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: test_project
+      keyfile: /Users/user_name/.dbt/test_project.json
+      dataset: test_project_default
+      threads: 4
+
+bigquery-test_service_account_json:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account-json
+      project: test_project
+      dataset: test_project_default
+      threads: 4
+      keyfile_json:
+        type: service_account
+        project_id: test_project
+        private_key_id: 12345
+        private_key: |
+          -----BEGIN PRIVATE KEY-----
+          ...
+          -----END PRIVATE KEY-----
+        client_id: 12345
+        client_email: client@example.org
+        auth_uri: https://accounts.google.com/o/oauth2/auth
+        token_uri: https://oauth2.googleapis.com/token
+        auth_provider_x509_cert_url: https://www.googleapis.com/oauth2/v1/certs
+        client_x509_cert_url: example.org
