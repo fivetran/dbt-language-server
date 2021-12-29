@@ -71,3 +71,23 @@ bigquery-test_service_account_json:
         token_uri: https://oauth2.googleapis.com/token
         auth_provider_x509_cert_url: https://www.googleapis.com/oauth2/v1/certs
         client_x509_cert_url: example.org
+
+bigquery-test_missing_type:
+  target: dev
+  outputs:
+    dev:
+      method: service-account
+      project: test_project
+      keyfile: /Users/user_name/.dbt/test_project.json
+      dataset: test_project_default
+      threads: 4
+
+bigquery-test_missing_method:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      project: test_project
+      keyfile: /Users/user_name/.dbt/test_project.json
+      dataset: test_project_default
+      threads: 4

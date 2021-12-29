@@ -36,6 +36,32 @@ describe('Profiles Validation', () => {
     assert.strictEqual(serviceAccountJsonProfile.error, undefined);
   });
 
+  it('Should require type', async () => {
+    //arrange
+    const yamlParser = getMockParser(BIG_QUERY_CONFIG, 'bigquery-test_missing_type');
+    const profileCreator = new DbtProfileCreator(yamlParser);
+    const errorPattern = new RegExp(`^Couldn't find section 'outputs.dev.type'.*$`);
+
+    // act
+    const profile = await profileCreator.createDbtProfile();
+
+    //assert
+    assert.match(profile && profile.error ? profile.error : '', errorPattern);
+  });
+
+  it('Should require method', async () => {
+    //arrange
+    const yamlParser = getMockParser(BIG_QUERY_CONFIG, 'bigquery-test_missing_method');
+    const profileCreator = new DbtProfileCreator(yamlParser);
+    const errorPattern = new RegExp(`^Unknown authentication method of 'bigquery' profile.*$`);
+
+    // act
+    const profile = await profileCreator.createDbtProfile();
+
+    //assert
+    assert.match(profile && profile.error ? profile.error : '', errorPattern);
+  });
+
   function getMockParser(config: string, profileName: string): YamlParser {
     const yamlParser = new YamlParser();
     yamlParser.profilesPath = getConfigPath(config);
