@@ -91,3 +91,13 @@ bigquery-test_missing_method:
       keyfile: /Users/user_name/.dbt/test_project.json
       dataset: test_project_default
       threads: 4
+
+bigquery-test_missing_project:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      keyfile: /Users/user_name/.dbt/test_project.json
+      dataset: test_project_default
+      threads: 4
