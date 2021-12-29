@@ -71,7 +71,7 @@ export class OAuthProfile implements DbtProfile {
       })
       .catch((error: string) => {
         console.log('Default Credentials not found');
-        return error;
+        return Promise.reject(error);
       });
   }
 
