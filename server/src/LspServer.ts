@@ -51,7 +51,7 @@ export class LspServer {
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
   completionProvider = new CompletionProvider();
-  dbtDestinationProfileCreator = new DbtProfileCreator();
+  dbtProfileCreator = new DbtProfileCreator();
   manifestParser = new ManifestParser();
   featureFinder = new FeatureFinder();
   fileChangeListener: FileChangeListener;
@@ -59,12 +59,7 @@ export class LspServer {
 
   constructor(private connection: _Connection) {
     this.progressReporter = new ProgressReporter(this.connection);
-    this.fileChangeListener = new FileChangeListener(
-      this.completionProvider,
-      this.dbtDestinationProfileCreator.yamlParser,
-      this.manifestParser,
-      this.dbtServer,
-    );
+    this.fileChangeListener = new FileChangeListener(this.completionProvider, this.dbtProfileCreator.yamlParser, this.manifestParser, this.dbtServer);
   }
 
   async onInitialize(params: InitializeParams): Promise<InitializeResult<any> | ResponseError<InitializeError>> {
@@ -73,7 +68,7 @@ export class LspServer {
     process.on('SIGTERM', this.onShutdown);
     process.on('SIGINT', this.onShutdown);
 
-    const profileResult = await this.dbtDestinationProfileCreator.createDbtProfile();
+    const profileResult = await this.dbtProfileCreator.createDbtProfile();
     if (profileResult.error) {
       return new ResponseError<InitializeError>(100, profileResult.error, { retry: true });
     }
@@ -82,7 +77,7 @@ export class LspServer {
       return new ResponseError<InitializeError>(100, 'Unable to parse dbt profile', { retry: true });
     }
 
-    const clientResult = await this.dbtDestinationProfileCreator.createDbtClient(profileResult.dbtProfile, profileResult.targetConfig);
+    const clientResult = await this.dbtProfileCreator.createDbtClient(profileResult.dbtProfile, profileResult.targetConfig);
     if (clientResult.error) {
       return new ResponseError<InitializeError>(100, clientResult.error, { retry: true });
     }
