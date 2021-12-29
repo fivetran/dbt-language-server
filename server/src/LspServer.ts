@@ -34,6 +34,7 @@ import { ManifestParser } from './ManifestParser';
 import { ProgressReporter } from './ProgressReporter';
 import { randomNumber } from './Utils';
 import { DbtProfileCreator } from './DbtProfileCreator';
+import { YamlParser } from './YamlParser';
 import findFreePortPmfy = require('find-free-port');
 
 interface TelemetryEvent {
@@ -51,7 +52,8 @@ export class LspServer {
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
   completionProvider = new CompletionProvider();
-  dbtProfileCreator = new DbtProfileCreator();
+  yamlParser = new YamlParser();
+  dbtProfileCreator = new DbtProfileCreator(this.yamlParser);
   manifestParser = new ManifestParser();
   featureFinder = new FeatureFinder();
   fileChangeListener: FileChangeListener;
@@ -59,7 +61,7 @@ export class LspServer {
 
   constructor(private connection: _Connection) {
     this.progressReporter = new ProgressReporter(this.connection);
-    this.fileChangeListener = new FileChangeListener(this.completionProvider, this.dbtProfileCreator.yamlParser, this.manifestParser, this.dbtServer);
+    this.fileChangeListener = new FileChangeListener(this.completionProvider, this.yamlParser, this.manifestParser, this.dbtServer);
   }
 
   async onInitialize(params: InitializeParams): Promise<InitializeResult<any> | ResponseError<InitializeError>> {

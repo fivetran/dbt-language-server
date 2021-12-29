@@ -15,11 +15,7 @@ export interface DbtClientResult {
 }
 
 export class DbtProfileCreator {
-  yamlParser: YamlParser;
-
-  constructor(yamlParser?: YamlParser) {
-    this.yamlParser = yamlParser ?? new YamlParser();
-  }
+  constructor(private yamlParser: YamlParser) {}
 
   validateProfilesFile(profiles: any, profileName: string): DbtProfileResult | undefined {
     const profile = profiles[profileName];
