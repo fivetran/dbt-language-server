@@ -3,7 +3,7 @@ import * as path from 'path';
 import { OAuthTokenBasedProfile } from '../bigquery/OAuthTokenBasedProfile';
 import { ServiceAccountJsonProfile } from '../bigquery/ServiceAccountJsonProfile';
 import { ServiceAccountProfile } from '../bigquery/ServiceAccountProfile';
-import { DbtProfileCreator } from '../DbtProfileCreator';
+import { DbtProfileCreator, DbtProfileErrorResult } from '../DbtProfileCreator';
 import { YamlParser } from '../YamlParser';
 
 describe('Profiles Validation', () => {
@@ -41,11 +41,11 @@ describe('Profiles Validation', () => {
     const serviceAccountJsonProfile = await serviceAccountJsonProfileCreator.createDbtProfile();
 
     //assert
-    assert.strictEqual(oauthProfile.error, undefined);
-    assert.strictEqual(oauthSecretsTemporaryProfile.error, undefined);
-    assert.strictEqual(oauthSecretsRefreshProfile.error, undefined);
-    assert.strictEqual(serviceAccountProfile.error, undefined);
-    assert.strictEqual(serviceAccountJsonProfile.error, undefined);
+    assert.strictEqual((oauthProfile as DbtProfileErrorResult).error, undefined);
+    assert.strictEqual((oauthSecretsTemporaryProfile as DbtProfileErrorResult).error, undefined);
+    assert.strictEqual((oauthSecretsRefreshProfile as DbtProfileErrorResult).error, undefined);
+    assert.strictEqual((serviceAccountProfile as DbtProfileErrorResult).error, undefined);
+    assert.strictEqual((serviceAccountJsonProfile as DbtProfileErrorResult).error, undefined);
   });
 
   it('Should require type', async () => {
@@ -58,7 +58,7 @@ describe('Profiles Validation', () => {
     const profile = await profileCreator.createDbtProfile();
 
     //assert
-    assert.match(profile && profile.error ? profile.error : '', errorPattern);
+    assert.match((profile as DbtProfileErrorResult).error, errorPattern);
   });
 
   it('Should require method', async () => {
@@ -71,7 +71,7 @@ describe('Profiles Validation', () => {
     const profile = await profileCreator.createDbtProfile();
 
     //assert
-    assert.match(profile && profile.error ? profile.error : '', errorPattern);
+    assert.match((profile as DbtProfileErrorResult).error, errorPattern);
   });
 
   it('Should require project', async () => {
@@ -84,7 +84,7 @@ describe('Profiles Validation', () => {
     const profile = await profileCreator.createDbtProfile();
 
     //assert
-    assert.match(profile && profile.error ? profile.error : '', errorPattern);
+    assert.match((profile as DbtProfileErrorResult).error, errorPattern);
   });
 
   it('Should require oauth temporary token', async () => {
