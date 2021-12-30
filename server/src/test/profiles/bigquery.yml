@@ -19,6 +19,16 @@ bigquery-test_oauth_temporary:
       threads: 4
       token: 12345
 
+bigquery-test_oauth_temporary_missing_token:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth-secrets
+      project: test_project
+      dataset: test_project_default
+      threads: 4
+
 bigquery-test_oauth_refresh:
   target: dev
   outputs:
@@ -37,6 +47,57 @@ bigquery-test_oauth_refresh:
         - https://www.googleapis.com/auth/drive
         - https://www.googleapis.com/auth/cloud-platform
 
+bigquery-test_oauth_refresh_missing_refresh_token:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth-secrets
+      project: test_project
+      dataset: test_project_default
+      threads: 4
+      client_id: identifier.com
+      client_secret: 12345
+      token_uri: https://oauth2.googleapis.com/token
+      scopes:
+        - https://www.googleapis.com/auth/bigquery
+        - https://www.googleapis.com/auth/drive
+        - https://www.googleapis.com/auth/cloud-platform
+
+bigquery-test_oauth_refresh_missing_client_id:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth-secrets
+      project: test_project
+      dataset: test_project_default
+      threads: 4
+      refresh_token: 12345
+      client_secret: 12345
+      token_uri: https://oauth2.googleapis.com/token
+      scopes:
+        - https://www.googleapis.com/auth/bigquery
+        - https://www.googleapis.com/auth/drive
+        - https://www.googleapis.com/auth/cloud-platform
+
+bigquery-test_oauth_refresh_missing_client_secret:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth-secrets
+      project: test_project
+      dataset: test_project_default
+      threads: 4
+      refresh_token: 12345
+      client_id: identifier.com
+      token_uri: https://oauth2.googleapis.com/token
+      scopes:
+        - https://www.googleapis.com/auth/bigquery
+        - https://www.googleapis.com/auth/drive
+        - https://www.googleapis.com/auth/cloud-platform
+
 bigquery-test_service_account:
   target: dev
   outputs:
@@ -45,6 +106,16 @@ bigquery-test_service_account:
       method: service-account
       project: test_project
       keyfile: /Users/user_name/.dbt/test_project.json
+      dataset: test_project_default
+      threads: 4
+
+bigquery-test_service_account_missing_keyfile:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: test_project
       dataset: test_project_default
       threads: 4
 
@@ -71,6 +142,16 @@ bigquery-test_service_account_json:
         token_uri: https://oauth2.googleapis.com/token
         auth_provider_x509_cert_url: https://www.googleapis.com/oauth2/v1/certs
         client_x509_cert_url: example.org
+
+bigquery-test_service_account_json_missing_keyfile_json:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account-json
+      project: test_project
+      dataset: test_project_default
+      threads: 4
 
 bigquery-test_missing_type:
   target: dev
