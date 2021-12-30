@@ -1,5 +1,7 @@
 import * as path from 'path';
+import * as assert from 'assert';
 import { YamlParser } from '../YamlParser';
+import { DbtProfile } from '../DbtProfile';
 
 const PROFILES_PATH = path.resolve(__dirname, '../../src/test/profiles');
 
@@ -31,4 +33,9 @@ export function getMockParser(config: string, profileName: string): YamlParser {
 
 export function getConfigPath(p: string): string {
   return path.resolve(PROFILES_PATH, p);
+}
+
+export async function shouldRequireProfileField(profiles: any, profile: DbtProfile, profileName: string, field: string): Promise<void> {
+  const missingFieldResult = await profile.validateProfile(profiles[profileName].outputs.dev);
+  assert.strictEqual(missingFieldResult, field);
 }
