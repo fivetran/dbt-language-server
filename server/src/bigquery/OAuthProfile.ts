@@ -29,23 +29,19 @@ export class OAuthProfile implements DbtProfile {
     return undefined;
   }
 
-  createClient(profile: any): DbtDestinationClient {
+  async createClient(profile: any): Promise<DbtDestinationClient | string> {
     const project = profile.project;
     const options: BigQueryOptions = {
       projectId: project,
     };
     const bigQuery = new BigQuery(options);
-    return new BigQueryClient(project, bigQuery);
-  }
-
-  async authenticateClient(client: DbtDestinationClient): Promise<string | undefined> {
-    const bigQueryClient = <BigQueryClient>client;
+    const bigQueryClient = new BigQueryClient(project, bigQuery);
 
     const credentialsResult = await this.getCredentials(bigQueryClient);
     if (!credentialsResult) {
       const testResult = bigQueryClient.test();
       if (!testResult) {
-        return undefined;
+        return bigQueryClient;
       }
     }
 
@@ -54,7 +50,12 @@ export class OAuthProfile implements DbtProfile {
       return authenticateResult;
     }
 
-    return bigQueryClient.test();
+    const testResult = await bigQueryClient.test();
+    if (testResult) {
+      return testResult;
+    }
+
+    return bigQueryClient;
   }
 
   private async getCredentials(bigQueryClient: BigQueryClient): Promise<string | undefined> {

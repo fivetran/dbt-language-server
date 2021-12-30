@@ -26,7 +26,7 @@ export class ServiceAccountJsonProfile implements DbtProfile {
     return this.validateKeyFileJson(keyFileJson);
   }
 
-  createClient(profile: any): DbtDestinationClient {
+  async createClient(profile: any): Promise<DbtDestinationClient | string> {
     const project = profile.project;
     const keyFileJson = JSON.stringify(profile.keyfile_json);
 
@@ -36,11 +36,14 @@ export class ServiceAccountJsonProfile implements DbtProfile {
       credentials: content,
     };
     const bigQuery = new BigQuery(options);
-    return new BigQueryClient(project, bigQuery);
-  }
+    const client = new BigQueryClient(project, bigQuery);
 
-  authenticateClient(client: DbtDestinationClient): Promise<string | undefined> {
-    return client.test();
+    const testResult = await client.test();
+    if (testResult) {
+      return testResult;
+    }
+
+    return client;
   }
 
   private validateKeyFileJson(keyFileJson: any): string | undefined {

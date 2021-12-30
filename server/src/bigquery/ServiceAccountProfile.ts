@@ -26,7 +26,7 @@ export class ServiceAccountProfile implements DbtProfile {
     return undefined;
   }
 
-  createClient(profile: any): DbtDestinationClient {
+  async createClient(profile: any): Promise<DbtDestinationClient | string> {
     const project = profile.project;
     const keyFilePath = YamlParserUtils.replaceTilde(profile.keyfile);
 
@@ -35,10 +35,13 @@ export class ServiceAccountProfile implements DbtProfile {
       keyFilename: keyFilePath,
     };
     const bigQuery = new BigQuery(options);
-    return new BigQueryClient(project, bigQuery);
-  }
+    const client = new BigQueryClient(project, bigQuery);
 
-  authenticateClient(client: DbtDestinationClient): Promise<string | undefined> {
-    return client.test();
+    const testResult = await client.test();
+    if (testResult) {
+      return testResult;
+    }
+
+    return client;
   }
 }

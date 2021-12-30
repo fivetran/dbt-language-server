@@ -16,14 +16,7 @@ export interface DbtProfile {
   /**
    * Creates destination client according to dbt profile settings
    * @param profile profile specified in profiles.yml
-   * @returns destination client
+   * @returns authenticated client or error string otherwise
    */
-  createClient(profile: any): DbtDestinationClient;
-
-  /**
-   * Authenticates client
-   * @param client profile client
-   * @returns undefined in case of authentication success and error string otherwise
-   */
-  authenticateClient(client: DbtDestinationClient): Promise<string | undefined>;
+  createClient(profile: any): Promise<DbtDestinationClient | string>;
 }
