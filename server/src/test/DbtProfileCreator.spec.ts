@@ -19,33 +19,12 @@ describe('Profiles Validation', () => {
   const BIG_QUERY_MISSING_METHOD = 'bigquery-test_missing_method';
   const BIG_QUERY_MISSING_PROJECT = 'bigquery-test_missing_project';
 
-  it('Should pass valid BigQuery profiles', async () => {
-    //arrange
-    const oauthYamlParser = getMockParser(BIG_QUERY_CONFIG, BIG_QUERY_OAUTH);
-    const oauthSecretsTemporaryYamlParser = getMockParser(BIG_QUERY_CONFIG, BIG_QUERY_OAUTH_TEMPORARY);
-    const oauthSecretsRefreshYamlParser = getMockParser(BIG_QUERY_CONFIG, BIG_QUERY_OAUTH_REFRESH);
-    const serviceAccountYamlParser = getMockParser(BIG_QUERY_CONFIG, BIG_QUERY_SERVICE_ACCOUNT);
-    const serviceAccountJsonYamlParser = getMockParser(BIG_QUERY_CONFIG, BIG_QUERY_SERVICE_ACCOUNT_JSON);
-
-    const oauthProfileCreator = new DbtProfileCreator(oauthYamlParser);
-    const oauthSecretsTemporaryProfileCreator = new DbtProfileCreator(oauthSecretsTemporaryYamlParser);
-    const oauthSecretsRefreshProfileCreator = new DbtProfileCreator(oauthSecretsRefreshYamlParser);
-    const serviceAccountProfileCreator = new DbtProfileCreator(serviceAccountYamlParser);
-    const serviceAccountJsonProfileCreator = new DbtProfileCreator(serviceAccountJsonYamlParser);
-
-    //act
-    const oauthProfile = await oauthProfileCreator.createDbtProfile();
-    const oauthSecretsTemporaryProfile = await oauthSecretsTemporaryProfileCreator.createDbtProfile();
-    const oauthSecretsRefreshProfile = await oauthSecretsRefreshProfileCreator.createDbtProfile();
-    const serviceAccountProfile = await serviceAccountProfileCreator.createDbtProfile();
-    const serviceAccountJsonProfile = await serviceAccountJsonProfileCreator.createDbtProfile();
-
-    //assert
-    assert.strictEqual((oauthProfile as DbtProfileErrorResult).error, undefined);
-    assert.strictEqual((oauthSecretsTemporaryProfile as DbtProfileErrorResult).error, undefined);
-    assert.strictEqual((oauthSecretsRefreshProfile as DbtProfileErrorResult).error, undefined);
-    assert.strictEqual((serviceAccountProfile as DbtProfileErrorResult).error, undefined);
-    assert.strictEqual((serviceAccountJsonProfile as DbtProfileErrorResult).error, undefined);
+  it('Should pass valid profiles', async () => {
+    await shouldPassValidProfile(BIG_QUERY_OAUTH);
+    await shouldPassValidProfile(BIG_QUERY_OAUTH_TEMPORARY);
+    await shouldPassValidProfile(BIG_QUERY_OAUTH_REFRESH);
+    await shouldPassValidProfile(BIG_QUERY_SERVICE_ACCOUNT);
+    await shouldPassValidProfile(BIG_QUERY_SERVICE_ACCOUNT_JSON);
   });
 
   it('Should require type', async () => {
@@ -158,6 +137,13 @@ describe('Profiles Validation', () => {
     //assert
     assert.strictEqual(missingKeyFileJsonResult, 'keyfile_json');
   });
+
+  async function shouldPassValidProfile(profileName: string): Promise<void> {
+    const yamlParser = getMockParser(BIG_QUERY_CONFIG, profileName);
+    const profileCreator = new DbtProfileCreator(yamlParser);
+    const profile = await profileCreator.createDbtProfile();
+    assert.strictEqual((profile as DbtProfileErrorResult).error, undefined);
+  }
 
   function getMockParser(config: string, profileName: string): YamlParser {
     const yamlParser = new YamlParser();
