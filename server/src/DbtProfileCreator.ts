@@ -119,17 +119,15 @@ export class DbtProfileCreator {
   }
 
   async createDbtClient(dbtProfile: DbtProfile, targetConfig: any): Promise<DbtClientResult> {
-    const client = dbtProfile.createClient(targetConfig);
-    const authenticateResult = await dbtProfile.authenticateClient(client);
-    if (authenticateResult) {
+    const client = await dbtProfile.createClient(targetConfig);
+    if (typeof client == 'string') {
       return {
-        client: undefined,
-        error: authenticateResult,
+        error: client as string,
       };
     }
 
     return {
-      client: client,
+      client: client as DbtDestinationClient,
     };
   }
 
