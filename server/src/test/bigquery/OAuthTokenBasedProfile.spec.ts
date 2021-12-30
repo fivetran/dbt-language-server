@@ -4,10 +4,10 @@ import { OAuthTokenBasedProfile } from '../../bigquery/OAuthTokenBasedProfile';
 import {
   getConfigPath,
   BIG_QUERY_CONFIG,
-  BIG_QUERY_OAUTH_TEMPORARY_MISSING_TOKEN,
-  BIG_QUERY_OAUTH_REFRESH_MISSING_REFRESH_TOKEN,
-  BIG_QUERY_OAUTH_REFRESH_MISSING_CLIENT_ID,
-  BIG_QUERY_OAUTH_REFRESH_MISSING_CLIENT_SECRET,
+  BQ_OAUTH_TEMPORARY_MISSING_TOKEN,
+  BQ_OAUTH_REFRESH_MISSING_REFRESH_TOKEN,
+  BQ_OAUTH_REFRESH_MISSING_CLIENT_ID,
+  BQ_OAUTH_REFRESH_MISSING_CLIENT_SECRET,
 } from '../helper';
 
 describe('OAuth token based profile', () => {
@@ -17,7 +17,7 @@ describe('OAuth token based profile', () => {
     const oauthTokenBasedProfile = new OAuthTokenBasedProfile();
 
     //act
-    const missingTokenResult = oauthTokenBasedProfile.validateProfile(profiles[BIG_QUERY_OAUTH_TEMPORARY_MISSING_TOKEN].outputs.dev);
+    const missingTokenResult = oauthTokenBasedProfile.validateProfile(profiles[BQ_OAUTH_TEMPORARY_MISSING_TOKEN].outputs.dev);
 
     //assert
     assert.strictEqual(missingTokenResult, 'token');
@@ -29,9 +29,9 @@ describe('OAuth token based profile', () => {
     const oauthTokenBasedProfile = new OAuthTokenBasedProfile();
 
     //act
-    const missingRefreshTokenResult = oauthTokenBasedProfile.validateProfile(profiles[BIG_QUERY_OAUTH_REFRESH_MISSING_REFRESH_TOKEN].outputs.dev);
-    const missingClientIdResult = oauthTokenBasedProfile.validateProfile(profiles[BIG_QUERY_OAUTH_REFRESH_MISSING_CLIENT_ID].outputs.dev);
-    const missingClientSecretResult = oauthTokenBasedProfile.validateProfile(profiles[BIG_QUERY_OAUTH_REFRESH_MISSING_CLIENT_SECRET].outputs.dev);
+    const missingRefreshTokenResult = oauthTokenBasedProfile.validateProfile(profiles[BQ_OAUTH_REFRESH_MISSING_REFRESH_TOKEN].outputs.dev);
+    const missingClientIdResult = oauthTokenBasedProfile.validateProfile(profiles[BQ_OAUTH_REFRESH_MISSING_CLIENT_ID].outputs.dev);
+    const missingClientSecretResult = oauthTokenBasedProfile.validateProfile(profiles[BQ_OAUTH_REFRESH_MISSING_CLIENT_SECRET].outputs.dev);
 
     //assert
     assert.strictEqual(missingRefreshTokenResult, 'refresh_token');

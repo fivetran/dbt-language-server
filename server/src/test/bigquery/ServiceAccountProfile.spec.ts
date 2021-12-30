@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { YamlParser } from '../../YamlParser';
 import { ServiceAccountProfile } from '../../bigquery/ServiceAccountProfile';
-import { getConfigPath, BIG_QUERY_CONFIG, BIG_QUERY_SERVICE_ACCOUNT_MISSING_KEYFILE } from '../helper';
+import { getConfigPath, BIG_QUERY_CONFIG, BQ_SERVICE_ACCOUNT_MISSING_KEYFILE } from '../helper';
 
 describe('Service account profile', () => {
   it('Should require service account fields', async () => {
@@ -10,7 +10,7 @@ describe('Service account profile', () => {
     const serviceAccountProfile = new ServiceAccountProfile();
 
     //act
-    const missingKeyFileResult = serviceAccountProfile.validateProfile(profiles[BIG_QUERY_SERVICE_ACCOUNT_MISSING_KEYFILE].outputs.dev);
+    const missingKeyFileResult = serviceAccountProfile.validateProfile(profiles[BQ_SERVICE_ACCOUNT_MISSING_KEYFILE].outputs.dev);
 
     //assert
     assert.strictEqual(missingKeyFileResult, 'keyfile');
