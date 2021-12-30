@@ -50,9 +50,14 @@ describe('Profiles Validation', () => {
   }
 
   async function shouldPassValidProfile(profileName: string): Promise<void> {
+    //arrange
     const yamlParser = getMockParser(BIG_QUERY_CONFIG, profileName);
     const profileCreator = new DbtProfileCreator(yamlParser);
+
+    //act
     const profile = await profileCreator.createDbtProfile();
+
+    //assert
     assert.strictEqual((profile as DbtProfileErrorResult).error, undefined);
   }
 });
