@@ -23,43 +23,31 @@ describe('Profiles Validation', () => {
   });
 
   it('Should require type', async () => {
-    //arrange
-    const yamlParser = getMockParser(BIG_QUERY_CONFIG, BIG_QUERY_MISSING_TYPE);
-    const profileCreator = new DbtProfileCreator(yamlParser);
     const errorPattern = new RegExp(`^Couldn't find section 'outputs.dev.type'.*$`);
-
-    //act
-    const profile = await profileCreator.createDbtProfile();
-
-    //assert
-    assert.match((profile as DbtProfileErrorResult).error, errorPattern);
+    await shouldRequireField(BIG_QUERY_MISSING_TYPE, errorPattern);
   });
 
   it('Should require method', async () => {
-    //arrange
-    const yamlParser = getMockParser(BIG_QUERY_CONFIG, BIG_QUERY_MISSING_METHOD);
-    const profileCreator = new DbtProfileCreator(yamlParser);
     const errorPattern = new RegExp(`^Unknown authentication method of 'bigquery' profile.*$`);
-
-    //act
-    const profile = await profileCreator.createDbtProfile();
-
-    //assert
-    assert.match((profile as DbtProfileErrorResult).error, errorPattern);
+    await shouldRequireField(BIG_QUERY_MISSING_METHOD, errorPattern);
   });
 
   it('Should require project', async () => {
-    //arrange
-    const yamlParser = getMockParser(BIG_QUERY_CONFIG, BIG_QUERY_MISSING_PROJECT);
-    const profileCreator = new DbtProfileCreator(yamlParser);
     const errorPattern = new RegExp(`^Couldn't find section 'project'.*$`);
+    await shouldRequireField(BIG_QUERY_MISSING_PROJECT, errorPattern);
+  });
+
+  async function shouldRequireField(profileName: string, errorPattern: RegExp): Promise<void> {
+    //arrange
+    const yamlParser = getMockParser(BIG_QUERY_CONFIG, profileName);
+    const profileCreator = new DbtProfileCreator(yamlParser);
 
     //act
     const profile = await profileCreator.createDbtProfile();
 
     //assert
     assert.match((profile as DbtProfileErrorResult).error, errorPattern);
-  });
+  }
 
   async function shouldPassValidProfile(profileName: string): Promise<void> {
     const yamlParser = getMockParser(BIG_QUERY_CONFIG, profileName);
