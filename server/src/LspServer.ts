@@ -33,7 +33,7 @@ import { FileChangeListener } from './FileChangeListener';
 import { ManifestParser } from './ManifestParser';
 import { ProgressReporter } from './ProgressReporter';
 import { randomNumber } from './Utils';
-import { DbtProfileCreator, ErrorResult, DbtProfileSuccessfulResult, DbtClientSuccessfulResult } from './DbtProfileCreator';
+import { DbtProfileCreator } from './DbtProfileCreator';
 import { YamlParser } from './YamlParser';
 import findFreePortPmfy = require('find-free-port');
 
@@ -71,22 +71,16 @@ export class LspServer {
     process.on('SIGINT', this.onShutdown);
 
     const profileResult = await this.dbtProfileCreator.createDbtProfile();
-    const profileSuccessfulResult = profileResult as DbtProfileSuccessfulResult;
-    const profileErrorResult = profileResult as ErrorResult;
-
-    if (profileErrorResult.error) {
-      return new ResponseError<InitializeError>(100, profileErrorResult.error, { retry: true });
+    if ('error' in profileResult) {
+      return new ResponseError<InitializeError>(100, profileResult.error, { retry: true });
     }
 
-    const clientResult = await this.dbtProfileCreator.createDbtClient(profileSuccessfulResult.dbtProfile, profileSuccessfulResult.targetConfig);
-    const clientSuccessfulResult = clientResult as DbtClientSuccessfulResult;
-    const clientErrorResult = clientResult as ErrorResult;
-
-    if (clientErrorResult.error) {
-      return new ResponseError<InitializeError>(100, clientErrorResult.error, { retry: true });
+    const clientResult = await this.dbtProfileCreator.createDbtClient(profileResult.dbtProfile, profileResult.targetConfig);
+    if ('error' in clientResult) {
+      return new ResponseError<InitializeError>(100, clientResult.error, { retry: true });
     }
 
-    this.bigQueryClient = <BigQueryClient>clientSuccessfulResult.client;
+    this.bigQueryClient = <BigQueryClient>clientResult.client;
 
     this.initializeDestinationDefinition();
 
