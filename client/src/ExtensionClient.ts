@@ -93,6 +93,9 @@ export class ExtensionClient {
       if (editor.document.uri.toString() === SqlPreviewContentProvider.uri.toString()) {
         return;
       }
+      if (!this.workspaceFolders.some(p => editor.document.uri.path.indexOf(p) != -1)) {
+        return;
+      }
 
       this.previewContentProvider.changeActiveDocument(editor.document.uri);
 
