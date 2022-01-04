@@ -33,13 +33,7 @@ import { FileChangeListener } from './FileChangeListener';
 import { ManifestParser } from './ManifestParser';
 import { ProgressReporter } from './ProgressReporter';
 import { randomNumber } from './Utils';
-import {
-  DbtProfileCreator,
-  DbtProfileSuccessfulResult,
-  DbtProfileErrorResult,
-  DbtClientSuccessfulResult,
-  DbtClientErrorResult,
-} from './DbtProfileCreator';
+import { DbtProfileCreator, ErrorResult, DbtProfileSuccessfulResult, DbtClientSuccessfulResult } from './DbtProfileCreator';
 import { YamlParser } from './YamlParser';
 import findFreePortPmfy = require('find-free-port');
 
@@ -78,7 +72,7 @@ export class LspServer {
 
     const profileResult = await this.dbtProfileCreator.createDbtProfile();
     const profileSuccessfulResult = profileResult as DbtProfileSuccessfulResult;
-    const profileErrorResult = profileResult as DbtProfileErrorResult;
+    const profileErrorResult = profileResult as ErrorResult;
 
     if (profileErrorResult.error) {
       return new ResponseError<InitializeError>(100, profileErrorResult.error, { retry: true });
@@ -86,7 +80,7 @@ export class LspServer {
 
     const clientResult = await this.dbtProfileCreator.createDbtClient(profileSuccessfulResult.dbtProfile, profileSuccessfulResult.targetConfig);
     const clientSuccessfulResult = clientResult as DbtClientSuccessfulResult;
-    const clientErrorResult = clientResult as DbtClientErrorResult;
+    const clientErrorResult = clientResult as ErrorResult;
 
     if (clientErrorResult.error) {
       return new ResponseError<InitializeError>(100, clientErrorResult.error, { retry: true });

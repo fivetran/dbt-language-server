@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { DbtProfileCreator, DbtProfileErrorResult } from '../DbtProfileCreator';
+import { DbtProfileCreator, ErrorResult } from '../DbtProfileCreator';
 import {
   getMockParser,
   BIG_QUERY_CONFIG,
@@ -46,7 +46,7 @@ describe('Profiles Validation', () => {
     const profile = await profileCreator.createDbtProfile();
 
     //assert
-    assert.match((profile as DbtProfileErrorResult).error, errorPattern);
+    assert.match((profile as ErrorResult).error, errorPattern);
   }
 
   async function shouldPassValidProfile(profileName: string): Promise<void> {
@@ -58,6 +58,6 @@ describe('Profiles Validation', () => {
     const profile = await profileCreator.createDbtProfile();
 
     //assert
-    assert.strictEqual((profile as DbtProfileErrorResult).error, undefined);
+    assert.strictEqual((profile as ErrorResult).error, undefined);
   }
 });

@@ -3,31 +3,27 @@ import { YamlParser } from './YamlParser';
 import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtProfileType';
 import { DbtProfile } from './DbtProfile';
 
+export interface ErrorResult {
+  error: string;
+}
+
 export interface DbtProfileSuccessfulResult {
   dbtProfile: DbtProfile;
   targetConfig: any;
 }
 
-export interface DbtProfileErrorResult {
-  error: string;
-}
-
-export type DbtProfileResult = DbtProfileSuccessfulResult | DbtProfileErrorResult;
+export type DbtProfileResult = DbtProfileSuccessfulResult | ErrorResult;
 
 export interface DbtClientSuccessfulResult {
   client: DbtDestinationClient;
 }
 
-export interface DbtClientErrorResult {
-  error: string;
-}
-
-export type DbtClientResult = DbtClientSuccessfulResult | DbtClientErrorResult;
+export type DbtClientResult = DbtClientSuccessfulResult | ErrorResult;
 
 export class DbtProfileCreator {
   constructor(private yamlParser: YamlParser) {}
 
-  validateProfilesFile(profiles: any, profileName: string): DbtProfileErrorResult | undefined {
+  validateProfilesFile(profiles: any, profileName: string): ErrorResult | undefined {
     const profile = profiles[profileName];
     if (!profile) {
       return DbtProfileCreator.errorResult(
@@ -131,16 +127,14 @@ export class DbtProfileCreator {
     };
   }
 
-  cantFindSectionError(profileName: string, section: string, docsUrl?: string): DbtProfileErrorResult {
+  cantFindSectionError(profileName: string, section: string, docsUrl?: string): ErrorResult {
     const text = `Couldn't find section '${section}' for profile '${profileName}'. Check your '${this.yamlParser.profilesPath}' file. ${
       docsUrl ?? ''
     }`;
     return DbtProfileCreator.errorResult(text);
   }
 
-  static errorResult(text: string): {
-    error: string;
-  } {
+  static errorResult(text: string): ErrorResult {
     return {
       error: text,
     };
