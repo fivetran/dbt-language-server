@@ -15,6 +15,7 @@ export class ExtensionClient {
   progressHandler = new ProgressHandler();
   workspaceHelper = new WorkspaceHelper();
   clients: Map<string, DbtLanguageClient> = new Map();
+  workspaceFolders: string[] = [];
 
   constructor(private context: ExtensionContext) {
     this.serverAbsolutePath = this.context.asAbsolutePath(path.join('server', 'out', 'server.js'));
@@ -36,6 +37,10 @@ export class ExtensionClient {
       }
     });
 
+    if (workspace.workspaceFolders) {
+      this.workspaceFolders = workspace.workspaceFolders.map(f => f.uri.path);
+    }
+
     this.registerSqlPreviewContentProvider(this.context);
 
     this.registerCommands();
@@ -51,6 +56,9 @@ export class ExtensionClient {
       }
       const { document } = window.activeTextEditor;
       if (!SUPPORTED_LANG_IDS.includes(document.languageId)) {
+        return;
+      }
+      if (!this.workspaceFolders.some(p => document.uri.path.indexOf(p) != -1)) {
         return;
       }
 
