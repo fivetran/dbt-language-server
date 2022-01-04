@@ -15,7 +15,6 @@ export class ExtensionClient {
   progressHandler = new ProgressHandler();
   workspaceHelper = new WorkspaceHelper();
   clients: Map<string, DbtLanguageClient> = new Map();
-  workspaceFolders: string[] = [];
 
   constructor(private context: ExtensionContext) {
     this.serverAbsolutePath = this.context.asAbsolutePath(path.join('server', 'out', 'server.js'));
@@ -37,10 +36,6 @@ export class ExtensionClient {
       }
     });
 
-    if (workspace.workspaceFolders) {
-      this.workspaceFolders = workspace.workspaceFolders.map(f => f.uri.path);
-    }
-
     this.registerSqlPreviewContentProvider(this.context);
 
     this.registerCommands();
@@ -58,13 +53,14 @@ export class ExtensionClient {
       if (!SUPPORTED_LANG_IDS.includes(document.languageId)) {
         return;
       }
-      if (!this.workspaceFolders.some(p => document.uri.path.indexOf(p) != -1)) {
-        return;
-      }
 
       const uri = document.uri.toString() === SqlPreviewContentProvider.uri.toString() ? this.previewContentProvider.activeDocUri : document.uri;
-      (await this.getClient(uri))?.sendNotification('custom/dbtCompile', uri.toString());
-      await commands.executeCommand('editor.showQueryPreview');
+
+      const client = await this.getClient(uri);
+      if (client) {
+        client.sendNotification('custom/dbtCompile', uri.toString());
+        await commands.executeCommand('editor.showQueryPreview');
+      }
     });
 
     this.registerCommand('editor.afterFunctionCompletion', async () => {
@@ -93,7 +89,9 @@ export class ExtensionClient {
       if (editor.document.uri.toString() === SqlPreviewContentProvider.uri.toString()) {
         return;
       }
-      if (!this.workspaceFolders.some(p => editor.document.uri.path.indexOf(p) != -1)) {
+
+      const projectUri = await this.getDbtProjectUri(editor.document.uri);
+      if (!projectUri) {
         return;
       }
 
