@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { ChildProcess } from 'child_process';
 import { v4 as uuid } from 'uuid';
 import { Command } from './dbt_commands/Command';
 import { ProcessExecutor } from './ProcessExecutor';
@@ -81,7 +80,7 @@ export class DbtServer {
   static readonly PROCESS_EXECUTOR = new ProcessExecutor();
 
   port?: number;
-  dbtProcess?: ChildProcess;
+  rpcPid?: number;
   startDeferred = deferred<void>();
 
   async startDbtRpc(command: Command, port: number): Promise<void> {
@@ -89,22 +88,30 @@ export class DbtServer {
 
     try {
       let started = false;
-      console.log(`Starting dbt: ${command.toString()}`);
+      console.log(`Starting dbt-rpc: ${command.toString()}`);
       const promiseWithChid = DbtServer.PROCESS_EXECUTOR.execProcess(command.toString(), async (data: string) => {
-        if (!started && data.includes('Serving RPC server')) {
-          try {
-            // We should wait some time to ensure that port was not in use
-            await Promise.all([this.ensureCompilationFinished(), new Promise(resolve => setTimeout(resolve, 1500))]);
-          } catch (e) {
-            // The server is started here but there is some problem with project compilation
-            console.log(e);
+        if (!started) {
+          if (!this.rpcPid) {
+            const matchResults = data.match(/"process": (\d*)/);
+            if (matchResults?.length === 2) {
+              this.rpcPid = Number(matchResults[1]);
+            }
           }
-          console.log('dbt rpc started');
-          started = true;
-          this.startDeferred.resolve();
+
+          if (data.includes('Serving RPC server')) {
+            try {
+              // We should wait some time to ensure that port was not in use
+              await Promise.all([this.ensureCompilationFinished(), new Promise(resolve => setTimeout(resolve, 1500))]);
+            } catch (e) {
+              // The server is started here but there is some problem with project compilation
+              console.log(e);
+            }
+            console.log('dbt rpc started');
+            started = true;
+            this.startDeferred.resolve();
+          }
         }
       });
-      this.dbtProcess = promiseWithChid.child;
 
       promiseWithChid.catch(e => {
         console.log('dbt rpc command failed: ' + e);
@@ -140,7 +147,9 @@ export class DbtServer {
   }
 
   refreshServer(): void {
-    this.dbtProcess?.kill('SIGHUP');
+    if (this.rpcPid) {
+      process.kill(this.rpcPid, 'SIGHUP');
+    }
   }
 
   async getCurrentStatus(): Promise<StatusResponse | undefined> {
@@ -248,8 +257,8 @@ export class DbtServer {
   }
 
   dispose(): void {
-    if (this.dbtProcess && !this.dbtProcess.kill('SIGTERM')) {
-      this.dbtProcess.kill('SIGKILL');
+    if (this.rpcPid && !process.kill(this.rpcPid, 'SIGTERM')) {
+      process.kill(this.rpcPid, 'SIGKILL');
     }
   }
 }
