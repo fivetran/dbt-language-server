@@ -173,8 +173,9 @@ export async function triggerCompletion(
   return (await vscode.commands.executeCommand('vscode.executeCompletionItemProvider', docUri, position, triggerChar)) as vscode.CompletionList;
 }
 
-export function getManifestModels(): string[] {
-  const manifestLocation = path.join(TEST_FIXTURE_PATH, 'target', MANIFEST_FILE_NAME);
+export function getManifestModels(projectFolder: string): string[] {
+  const projectPath = path.resolve(PROJECTS_PATH, projectFolder);
+  const manifestLocation = path.join(projectPath, 'target', MANIFEST_FILE_NAME);
   try {
     const content = readFileSync(manifestLocation, 'utf8');
     const manifest = JSON.parse(content);
