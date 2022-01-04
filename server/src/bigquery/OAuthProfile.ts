@@ -37,7 +37,7 @@ export class OAuthProfile implements DbtProfile {
     const bigQuery = new BigQuery(options);
     const bigQueryClient = new BigQueryClient(project, bigQuery);
 
-    const credentialsResult = await this.getCredentials(bigQueryClient);
+    const credentialsResult = await this.checkDefaultCredentials(bigQueryClient);
     if (!credentialsResult) {
       const testResult = await bigQueryClient.test();
       if (!testResult) {
@@ -58,7 +58,7 @@ export class OAuthProfile implements DbtProfile {
     return bigQueryClient;
   }
 
-  private async getCredentials(bigQueryClient: BigQueryClient): Promise<string | undefined> {
+  private async checkDefaultCredentials(bigQueryClient: BigQueryClient): Promise<string | undefined> {
     return bigQueryClient.bigQuery.authClient
       .getCredentials()
       .then(() => {
