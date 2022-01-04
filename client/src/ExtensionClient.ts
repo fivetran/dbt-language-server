@@ -55,8 +55,12 @@ export class ExtensionClient {
       }
 
       const uri = document.uri.toString() === SqlPreviewContentProvider.uri.toString() ? this.previewContentProvider.activeDocUri : document.uri;
-      (await this.getClient(uri))?.sendNotification('custom/dbtCompile', uri.toString());
-      await commands.executeCommand('editor.showQueryPreview');
+
+      const client = await this.getClient(uri);
+      if (client) {
+        client.sendNotification('custom/dbtCompile', uri.toString());
+        await commands.executeCommand('editor.showQueryPreview');
+      }
     });
 
     this.registerCommand('editor.afterFunctionCompletion', async () => {
@@ -83,6 +87,11 @@ export class ExtensionClient {
     const providerRegistrations = workspace.registerTextDocumentContentProvider(SqlPreviewContentProvider.scheme, this.previewContentProvider);
     const commandRegistration = commands.registerTextEditorCommand('editor.showQueryPreview', async (editor: TextEditor) => {
       if (editor.document.uri.toString() === SqlPreviewContentProvider.uri.toString()) {
+        return;
+      }
+
+      const projectUri = await this.getDbtProjectUri(editor.document.uri);
+      if (!projectUri) {
         return;
       }
 
