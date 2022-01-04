@@ -58,6 +58,6 @@ describe('Profiles Validation', () => {
     const profile = await profileCreator.createDbtProfile();
 
     //assert
-    assert.strictEqual((profile as ErrorResult).error, undefined);
+    assert.strictEqual('error' in profile, false);
   }
 });
