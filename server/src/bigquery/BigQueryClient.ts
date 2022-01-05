@@ -1,22 +1,35 @@
-import { Client } from '../DbtProfile';
+import { DbtDestinationClient } from '../DbtDestinationClient';
 import { BigQuery, DatasetsResponse } from '@google-cloud/bigquery';
 
-export class BigQueryClient extends Client {
+export class BigQueryClient implements DbtDestinationClient {
+  static readonly BQ_TEST_CLIENT_DATASETS_LIMIT = 1;
+
   _project: string;
   bigQuery: BigQuery;
 
   constructor(project: string, bigQuery: BigQuery) {
-    super();
     this._project = project;
     this.bigQuery = bigQuery;
+  }
+
+  async test(): Promise<string | undefined> {
+    try {
+      await this.getDatasets(BigQueryClient.BQ_TEST_CLIENT_DATASETS_LIMIT);
+    } catch (e: any) {
+      const message = `Test connection failed. Reason: ${e.message}.`;
+      console.log(message);
+      return message;
+    }
+
+    return undefined;
   }
 
   get project(): string {
     return this._project;
   }
 
-  async getDatasets(): Promise<DatasetsResponse> {
-    return await this.bigQuery.getDatasets();
+  async getDatasets(maxResults?: number): Promise<DatasetsResponse> {
+    return await this.bigQuery.getDatasets({ maxResults });
   }
 
   async getTableSchema(dataSet: string, tableName: string): Promise<any> {

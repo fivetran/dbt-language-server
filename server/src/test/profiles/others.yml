@@ -1,0 +1,5 @@
+unknown-type:
+  target: dev
+  outputs:
+    dev:
+      type: unknown

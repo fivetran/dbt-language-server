@@ -1,6 +1,7 @@
+import { DbtProfile } from '../DbtProfile';
+import { DbtDestinationClient } from '../DbtDestinationClient';
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 import { ExternalAccountClientOptions } from 'google-auth-library';
-import { Client, DbtProfile } from '../DbtProfile';
 import { BigQueryClient } from './BigQueryClient';
 
 export class ServiceAccountJsonProfile implements DbtProfile {
@@ -25,7 +26,7 @@ export class ServiceAccountJsonProfile implements DbtProfile {
     return this.validateKeyFileJson(keyFileJson);
   }
 
-  createClient(profile: any): Client {
+  async createClient(profile: any): Promise<DbtDestinationClient | string> {
     const project = profile.project;
     const keyFileJson = JSON.stringify(profile.keyfile_json);
 
@@ -35,11 +36,14 @@ export class ServiceAccountJsonProfile implements DbtProfile {
       credentials: content,
     };
     const bigQuery = new BigQuery(options);
-    return new BigQueryClient(project, bigQuery);
-  }
+    const client = new BigQueryClient(project, bigQuery);
 
-  authenticateClient(): Promise<string | undefined> {
-    return Promise.resolve(undefined);
+    const testResult = await client.test();
+    if (testResult) {
+      return testResult;
+    }
+
+    return client;
   }
 
   private validateKeyFileJson(keyFileJson: any): string | undefined {

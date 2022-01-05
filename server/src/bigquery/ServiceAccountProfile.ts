@@ -1,4 +1,5 @@
-import { DbtProfile, Client } from '../DbtProfile';
+import { DbtProfile } from '../DbtProfile';
+import { DbtDestinationClient } from '../DbtDestinationClient';
 import { YamlParserUtils } from '../YamlParserUtils';
 import { BigQueryClient } from './BigQueryClient';
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
@@ -25,7 +26,7 @@ export class ServiceAccountProfile implements DbtProfile {
     return undefined;
   }
 
-  createClient(profile: any): Client {
+  async createClient(profile: any): Promise<DbtDestinationClient | string> {
     const project = profile.project;
     const keyFilePath = YamlParserUtils.replaceTilde(profile.keyfile);
 
@@ -34,10 +35,13 @@ export class ServiceAccountProfile implements DbtProfile {
       keyFilename: keyFilePath,
     };
     const bigQuery = new BigQuery(options);
-    return new BigQueryClient(project, bigQuery);
-  }
+    const client = new BigQueryClient(project, bigQuery);
 
-  authenticateClient(): Promise<string | undefined> {
-    return Promise.resolve(undefined);
+    const testResult = await client.test();
+    if (testResult) {
+      return testResult;
+    }
+
+    return client;
   }
 }

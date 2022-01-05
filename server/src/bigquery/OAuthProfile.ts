@@ -1,4 +1,5 @@
-import { DbtProfile, Client } from '../DbtProfile';
+import { DbtProfile } from '../DbtProfile';
+import { DbtDestinationClient } from '../DbtDestinationClient';
 import { BigQueryClient } from './BigQueryClient';
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 import { ProcessExecutor } from '../ProcessExecutor';
@@ -28,45 +29,61 @@ export class OAuthProfile implements DbtProfile {
     return undefined;
   }
 
-  createClient(profile: any): Client {
+  async createClient(profile: any): Promise<DbtDestinationClient | string> {
     const project = profile.project;
     const options: BigQueryOptions = {
       projectId: project,
     };
     const bigQuery = new BigQuery(options);
-    return new BigQueryClient(project, bigQuery);
+    const bigQueryClient = new BigQueryClient(project, bigQuery);
+
+    const credentialsResult = await this.checkDefaultCredentials(bigQueryClient);
+    if (!credentialsResult) {
+      const testResult = await bigQueryClient.test();
+      if (!testResult) {
+        return bigQueryClient;
+      }
+    }
+
+    const authenticateResult = await this.authenticate();
+    if (authenticateResult) {
+      return authenticateResult;
+    }
+
+    const testResult = await bigQueryClient.test();
+    if (testResult) {
+      return testResult;
+    }
+
+    return bigQueryClient;
   }
 
-  async authenticateClient(client: Client): Promise<string | undefined> {
-    const bigQuery = (<BigQueryClient>client).bigQuery;
-    return bigQuery.authClient
+  private async checkDefaultCredentials(bigQueryClient: BigQueryClient): Promise<string | undefined> {
+    return bigQueryClient.bigQuery.authClient
       .getCredentials()
       .then(() => {
         console.log('Default Credentials found');
         return undefined;
       })
-      .catch(async () => {
+      .catch((error: string) => {
         console.log('Default Credentials not found');
-
-        const gcloudInstalledResult = await OAuthProfile.gcloudInstalled().catch((error: string) => {
-          console.log('gcloud not installed');
-          return error;
-        });
-        if (gcloudInstalledResult) {
-          return gcloudInstalledResult;
-        }
-
-        const authenticateResult = await OAuthProfile.authenticate().catch((error: string) => {
-          console.log('gcloud authentication failed');
-          return error;
-        });
-        if (authenticateResult) {
-          return authenticateResult;
-        }
-
-        console.log('Auth succeed');
-        return undefined;
+        return error;
       });
+  }
+
+  private async authenticate(): Promise<string | undefined> {
+    const gcloudInstalledResult = await OAuthProfile.gcloudInstalled();
+    if (gcloudInstalledResult) {
+      return gcloudInstalledResult;
+    }
+
+    const authenticateResult = await OAuthProfile.authenticate();
+    if (authenticateResult) {
+      return authenticateResult;
+    }
+
+    console.log('gcloud authentication succeeded');
+    return undefined;
   }
 
   private static authenticate(): Promise<string | undefined> {
@@ -74,10 +91,16 @@ export class OAuthProfile implements DbtProfile {
     const authenticatePromise = OAuthProfile.processExecutor
       .execProcess(authenticateCommand)
       .then(() => undefined)
-      .catch(() => OAuthProfile.GCLOUD_AUTHENTICATION_ERROR);
+      .catch(() => {
+        console.log('gcloud authentication failed');
+        return OAuthProfile.GCLOUD_AUTHENTICATION_ERROR;
+      });
 
-    const timeoutPromise = new Promise<string | undefined>((_, reject) => {
-      setTimeout(reject, OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT, OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT_ERROR);
+    const timeoutPromise = new Promise<string | undefined>((resolve, _) => {
+      setTimeout(() => {
+        console.log('gcloud authentication timeout');
+        resolve(OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT_ERROR);
+      }, OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT);
     });
 
     return Promise.race([authenticatePromise, timeoutPromise]);
@@ -88,6 +111,9 @@ export class OAuthProfile implements DbtProfile {
     return OAuthProfile.processExecutor
       .execProcess(versionCommand)
       .then(() => undefined)
-      .catch(() => OAuthProfile.GCLOUD_NOT_INSTALLED_ERROR);
+      .catch(() => {
+        console.log('gcloud not installed');
+        return OAuthProfile.GCLOUD_NOT_INSTALLED_ERROR;
+      });
   }
 }

@@ -1,6 +1,9 @@
-export abstract class Client {}
+import { DbtDestinationClient } from './DbtDestinationClient';
 
 export interface DbtProfile {
+  /**
+   * @returns url with dbt profile setup docs
+   */
   getDocsUrl(): string;
 
   /**
@@ -9,12 +12,11 @@ export interface DbtProfile {
    * @returns error message or undefined if profile is valid
    */
   validateProfile(targetConfig: any): string | undefined;
-  createClient(profile: any): Client;
 
   /**
-   * Authenticates client
-   * @param client profile client
-   * @returns undefined in case of authentication success and error string otherwise
+   * Creates destination client according to dbt profile settings
+   * @param profile profile specified in profiles.yml
+   * @returns authenticated client or error string otherwise
    */
-  authenticateClient(client: Client): Promise<string | undefined>;
+  createClient(profile: any): Promise<DbtDestinationClient | string>;
 }
