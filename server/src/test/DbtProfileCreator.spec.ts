@@ -2,7 +2,6 @@ import * as assert from 'assert';
 import { YamlParser } from '../YamlParser';
 import { DbtProfileCreator, ErrorResult } from '../DbtProfileCreator';
 import {
-  getConfigPath,
   getMockParser,
   BIG_QUERY_CONFIG,
   OTHERS_CONFIG,
@@ -46,12 +45,9 @@ describe('Profiles Validation', () => {
 
   it('Should require dbt project config', async () => {
     //arrange
-    const yamlParser = new YamlParser();
-    yamlParser.profilesPath = getConfigPath(OTHERS_CONFIG);
-    yamlParser.findProfileName = (): string => {
+    const yamlParser = getMockParser(OTHERS_CONFIG, (): string => {
       throw new Error();
-    };
-
+    });
     const profileCreator = new DbtProfileCreator(yamlParser);
     const errorPattern = new RegExp(
       `^Failed to find profile name in ${YamlParser.DBT_PROJECT_FILE_NAME}\\. Make sure that you opened folder with ${YamlParser.DBT_PROJECT_FILE_NAME} file\\..*$`,

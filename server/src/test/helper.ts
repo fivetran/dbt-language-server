@@ -26,12 +26,12 @@ export const BQ_MISSING_PROJECT = 'bigquery-test_missing_project';
 
 export const OTHERS_UNKNOWN_TYPE = 'unknown-type';
 
-export function getMockParser(config: string, profileName: string): YamlParser {
+export function getMockParser(config: string, profileName: string): YamlParser;
+export function getMockParser(config: string, profileName: () => string): YamlParser;
+export function getMockParser(config: string, profileName: string | (() => string)): YamlParser {
   const yamlParser = new YamlParser();
   yamlParser.profilesPath = getConfigPath(config);
-  yamlParser.findProfileName = (): string => {
-    return profileName;
-  };
+  yamlParser.findProfileName = typeof profileName === 'string' ? (): string => profileName : profileName;
   return yamlParser;
 }
 
