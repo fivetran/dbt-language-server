@@ -6,6 +6,7 @@ import { DbtProfile } from '../DbtProfile';
 const PROFILES_PATH = path.resolve(__dirname, '../../src/test/profiles');
 
 export const BIG_QUERY_CONFIG = 'bigquery.yml';
+export const OTHERS_CONFIG = 'others.yml';
 
 export const BQ_OAUTH = 'bigquery-test_oauth';
 export const BQ_OAUTH_TEMPORARY = 'bigquery-test_oauth_temporary';
@@ -21,6 +22,8 @@ export const BQ_SERVICE_ACCOUNT_JSON_MISSING_KEYFILE_JSON = 'bigquery-test_servi
 export const BQ_MISSING_TYPE = 'bigquery-test_missing_type';
 export const BQ_MISSING_METHOD = 'bigquery-test_missing_method';
 export const BQ_MISSING_PROJECT = 'bigquery-test_missing_project';
+
+export const OTHERS_UNKNOWN_TYPE = 'unknown-type';
 
 export function getMockParser(config: string, profileName: string): YamlParser {
   const yamlParser = new YamlParser();
