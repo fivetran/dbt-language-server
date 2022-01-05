@@ -32,6 +32,7 @@ import { DestinationDefinition } from './DestinationDefinition';
 import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
 import { ManifestParser } from './ManifestParser';
+import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { randomNumber } from './Utils';
 import { YamlParser } from './YamlParser';
@@ -208,8 +209,8 @@ export class LspServer {
         this.connection,
         this.progressReporter,
         this.completionProvider,
+        new ModelCompiler(this.dbtServer, uri, this.workspaceFolder),
         this.bigQueryClient,
-        this.workspaceFolder,
       );
       this.openedDocuments.set(uri, document);
 

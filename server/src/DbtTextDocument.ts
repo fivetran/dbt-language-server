@@ -45,7 +45,6 @@ export class DbtTextDocument {
   compiledDocument: TextDocument;
   requireCompileOnSave: boolean;
 
-  modelCompiler: ModelCompiler;
   ast: AnalyzeResponse | undefined;
   schemaTracker: SchemaTracker;
   signatureHelpProvider = new SignatureHelpProvider();
@@ -56,17 +55,17 @@ export class DbtTextDocument {
     private connection: _Connection,
     private progressReporter: ProgressReporter,
     private completionProvider: CompletionProvider,
+    private modelCompiler: ModelCompiler,
     bigQueryClient: BigQueryClient,
-    workspaceFolder: string,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
-    this.modelCompiler = new ModelCompiler(dbtServer, doc.uri, workspaceFolder);
+    this.schemaTracker = new SchemaTracker(bigQueryClient);
+    this.requireCompileOnSave = false;
+
     this.modelCompiler.onCompilationError(this.onCompilationError.bind(this));
     this.modelCompiler.onCompilationFinished(this.onCompilationFinished.bind(this));
     this.modelCompiler.onFinishAllCompilationTasks(this.onFinishAllCompilationTasks.bind(this));
-    this.schemaTracker = new SchemaTracker(bigQueryClient);
-    this.requireCompileOnSave = false;
   }
 
   async didSaveTextDocument(): Promise<void> {
