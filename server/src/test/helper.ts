@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as assert from 'assert';
 import { YamlParser } from '../YamlParser';
+import { DbtProfileCreator } from '../DbtProfileCreator';
 import { DbtProfile } from '../DbtProfile';
 
 const PROFILES_PATH = path.resolve(__dirname, '../../src/test/profiles');
@@ -41,4 +42,16 @@ export function getConfigPath(p: string): string {
 export async function shouldRequireProfileField(profiles: any, profile: DbtProfile, profileName: string, field: string): Promise<void> {
   const missingFieldResult = await profile.validateProfile(profiles[profileName].outputs.dev);
   assert.strictEqual(missingFieldResult, field);
+}
+
+export async function shouldPassValidProfile(config: string, profileName: string): Promise<void> {
+  //arrange
+  const yamlParser = getMockParser(config, profileName);
+  const profileCreator = new DbtProfileCreator(yamlParser);
+
+  //act
+  const profile = await profileCreator.createDbtProfile();
+
+  //assert
+  assert.strictEqual('error' in profile, false);
 }

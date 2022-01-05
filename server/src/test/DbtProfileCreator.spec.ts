@@ -6,11 +6,6 @@ import {
   getMockParser,
   BIG_QUERY_CONFIG,
   OTHERS_CONFIG,
-  BQ_OAUTH,
-  BQ_OAUTH_TEMPORARY,
-  BQ_OAUTH_REFRESH,
-  BQ_SERVICE_ACCOUNT,
-  BQ_SERVICE_ACCOUNT_JSON,
   BQ_MISSING_TYPE,
   BQ_MISSING_METHOD,
   BQ_MISSING_PROJECT,
@@ -18,14 +13,6 @@ import {
 } from './helper';
 
 describe('Profiles Validation', () => {
-  it('Should pass valid profiles', async () => {
-    await shouldPassValidProfile(BIG_QUERY_CONFIG, BQ_OAUTH);
-    await shouldPassValidProfile(BIG_QUERY_CONFIG, BQ_OAUTH_TEMPORARY);
-    await shouldPassValidProfile(BIG_QUERY_CONFIG, BQ_OAUTH_REFRESH);
-    await shouldPassValidProfile(BIG_QUERY_CONFIG, BQ_SERVICE_ACCOUNT);
-    await shouldPassValidProfile(BIG_QUERY_CONFIG, BQ_SERVICE_ACCOUNT_JSON);
-  });
-
   it('Should require type', async () => {
     const errorPattern = new RegExp(`^Couldn't find section 'outputs.dev.type'.*$`);
     await shouldReturnError(BIG_QUERY_CONFIG, BQ_MISSING_TYPE, errorPattern);
@@ -87,17 +74,5 @@ describe('Profiles Validation', () => {
 
     //assert
     assert.match((profile as ErrorResult).error, errorPattern);
-  }
-
-  async function shouldPassValidProfile(config: string, profileName: string): Promise<void> {
-    //arrange
-    const yamlParser = getMockParser(config, profileName);
-    const profileCreator = new DbtProfileCreator(yamlParser);
-
-    //act
-    const profile = await profileCreator.createDbtProfile();
-
-    //assert
-    assert.strictEqual('error' in profile, false);
   }
 });
