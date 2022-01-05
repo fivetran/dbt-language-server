@@ -23,6 +23,7 @@ import {
 } from 'vscode-languageserver';
 import { BigQueryClient } from './bigquery/BigQueryClient';
 import { CompletionProvider } from './CompletionProvider';
+import { DbtProfileCreator } from './DbtProfileCreator';
 import { DbtServer as DbtServer } from './DbtServer';
 import { DbtTextDocument } from './DbtTextDocument';
 import { getStringVersion } from './DbtVersion';
@@ -33,7 +34,6 @@ import { FileChangeListener } from './FileChangeListener';
 import { ManifestParser } from './ManifestParser';
 import { ProgressReporter } from './ProgressReporter';
 import { randomNumber } from './Utils';
-import { DbtProfileCreator } from './DbtProfileCreator';
 import { YamlParser } from './YamlParser';
 import findFreePortPmfy = require('find-free-port');
 

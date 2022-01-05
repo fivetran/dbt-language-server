@@ -61,7 +61,10 @@ export class DbtTextDocument {
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
-    this.modelCompiler = new ModelCompiler(this, dbtServer, workspaceFolder);
+    this.modelCompiler = new ModelCompiler(dbtServer, doc.uri, workspaceFolder);
+    this.modelCompiler.onCompilationError(this.onCompilationError.bind(this));
+    this.modelCompiler.onCompilationFinished(this.onCompilationFinished.bind(this));
+    this.modelCompiler.onFinishAllCompilationTasks(this.onFinishAllCompilationTasks.bind(this));
     this.schemaTracker = new SchemaTracker(bigQueryClient);
     this.requireCompileOnSave = false;
   }
