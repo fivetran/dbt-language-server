@@ -1,13 +1,14 @@
 import * as assert from 'assert';
-import { YamlParser } from '../YamlParser';
+import { instance, mock, when } from 'ts-mockito';
 import { DbtProfileCreator, ErrorResult } from '../DbtProfileCreator';
+import { YamlParser } from '../YamlParser';
 import {
-  getMockParser,
   BIG_QUERY_CONFIG,
-  OTHERS_CONFIG,
-  BQ_MISSING_TYPE,
   BQ_MISSING_METHOD,
   BQ_MISSING_PROJECT,
+  BQ_MISSING_TYPE,
+  getConfigPath,
+  OTHERS_CONFIG,
   OTHERS_UNKNOWN_TYPE,
 } from './helper';
 
@@ -45,9 +46,11 @@ describe('Profiles Validation', () => {
 
   it('Should require dbt project config', async () => {
     //arrange
-    const yamlParser = getMockParser(OTHERS_CONFIG, (): string => {
-      throw new Error();
-    });
+    const mockYamlParser = mock(YamlParser);
+    when(mockYamlParser.findProfileName()).thenThrow(new Error());
+    const yamlParser = instance(mockYamlParser);
+    yamlParser.profilesPath = getConfigPath(OTHERS_CONFIG);
+
     const profileCreator = new DbtProfileCreator(yamlParser);
     const errorPattern = new RegExp(
       `^Failed to find profile name in ${YamlParser.DBT_PROJECT_FILE_NAME}\\. Make sure that you opened folder with ${YamlParser.DBT_PROJECT_FILE_NAME} file\\..*$`,
@@ -62,7 +65,11 @@ describe('Profiles Validation', () => {
 
   async function shouldReturnError(config: string, profileName: string, errorPattern: RegExp): Promise<void> {
     //arrange
-    const yamlParser = getMockParser(config, profileName);
+    const mockYamlParser = mock(YamlParser);
+    when(mockYamlParser.findProfileName()).thenReturn(profileName);
+    const yamlParser = instance(mockYamlParser);
+    yamlParser.profilesPath = getConfigPath(config);
+
     const profileCreator = new DbtProfileCreator(yamlParser);
 
     //act
