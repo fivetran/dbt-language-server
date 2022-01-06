@@ -1,8 +1,8 @@
-import * as path from 'path';
 import * as assert from 'assert';
-import { YamlParser } from '../YamlParser';
-import { DbtProfileCreator } from '../DbtProfileCreator';
+import * as path from 'path';
 import { DbtProfile } from '../DbtProfile';
+import { DbtProfileCreator } from '../DbtProfileCreator';
+import { YamlParser } from '../YamlParser';
 
 const PROFILES_PATH = path.resolve(__dirname, '../../src/test/profiles');
 
@@ -54,4 +54,8 @@ export async function shouldPassValidProfile(config: string, profileName: string
 
   //assert
   assert.strictEqual('error' in profile, false);
+}
+
+export function sleep(ms: number): Promise<unknown> {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
