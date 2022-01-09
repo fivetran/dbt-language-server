@@ -59,7 +59,12 @@ export class DbtLanguageClient implements Disposable {
           }),
 
           this.client.onRequest('custom/getPython', async () => {
-            return await new PythonExtension().getPython(this.workspaceFolder);
+            try {
+              return await new PythonExtension().getPython(this.workspaceFolder);
+            } catch (e) {
+              console.log(`Error while getting python: ${JSON.stringify(e)}`);
+              return 'python3';
+            }
           }),
 
           await this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),

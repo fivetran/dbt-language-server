@@ -29,7 +29,7 @@ export class BigQueryClient implements DbtDestinationClient {
   }
 
   async getDatasets(maxResults?: number): Promise<DatasetsResponse> {
-    return await this.bigQuery.getDatasets({ maxResults });
+    return this.bigQuery.getDatasets({ maxResults });
   }
 
   async getTableSchema(dataSet: string, tableName: string): Promise<any> {

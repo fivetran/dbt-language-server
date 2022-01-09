@@ -21,7 +21,11 @@ export class DbtCompileJob {
   async getResult(): Promise<PollResponse | undefined> {
     if (this.startCompileResponse) {
       if (!this.startCompileResponse.error) {
-        return await this.dbtServer.pollOnceCompileResult(this.startCompileResponse.result.request_token);
+        try {
+          return await this.dbtServer.pollOnceCompileResult(this.startCompileResponse.result.request_token);
+        } catch (e) {
+          console.log(`Error while polling task result: ${JSON.stringify(e)}`);
+        }
       } else {
         if (this.tryCount >= DbtCompileJob.MAX_RETRIES) {
           return <PollResponse>{
