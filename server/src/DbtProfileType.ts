@@ -1,8 +1,8 @@
-import { DbtProfile } from './DbtProfile';
 import { OAuthProfile } from './bigquery/OAuthProfile';
 import { OAuthTokenBasedProfile } from './bigquery/OAuthTokenBasedProfile';
-import { ServiceAccountProfile } from './bigquery/ServiceAccountProfile';
 import { ServiceAccountJsonProfile } from './bigquery/ServiceAccountJsonProfile';
+import { ServiceAccountProfile } from './bigquery/ServiceAccountProfile';
+import { DbtProfile } from './DbtProfile';
 
 export enum DbtProfileType {
   BigQuery = 'bigquery',

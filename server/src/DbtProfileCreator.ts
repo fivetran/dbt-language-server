@@ -1,7 +1,7 @@
 import { DbtDestinationClient } from './DbtDestinationClient';
-import { YamlParser } from './YamlParser';
-import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtProfileType';
 import { DbtProfile } from './DbtProfile';
+import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtProfileType';
+import { YamlParser } from './YamlParser';
 
 export interface ErrorResult {
   error: string;

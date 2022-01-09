@@ -1,5 +1,5 @@
-import { DbtDestinationClient } from '../DbtDestinationClient';
 import { BigQuery, DatasetsResponse } from '@google-cloud/bigquery';
+import { DbtDestinationClient } from '../DbtDestinationClient';
 
 export class BigQueryClient implements DbtDestinationClient {
   static readonly BQ_TEST_CLIENT_DATASETS_LIMIT = 1;

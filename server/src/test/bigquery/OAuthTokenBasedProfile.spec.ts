@@ -1,16 +1,16 @@
-import { YamlParser } from '../../YamlParser';
 import { OAuthTokenBasedProfile } from '../../bigquery/OAuthTokenBasedProfile';
+import { YamlParser } from '../../YamlParser';
 import {
-  getConfigPath,
-  shouldRequireProfileField,
-  shouldPassValidProfile,
   BIG_QUERY_CONFIG,
-  BQ_OAUTH_TEMPORARY,
   BQ_OAUTH_REFRESH,
-  BQ_OAUTH_TEMPORARY_MISSING_TOKEN,
-  BQ_OAUTH_REFRESH_MISSING_REFRESH_TOKEN,
   BQ_OAUTH_REFRESH_MISSING_CLIENT_ID,
   BQ_OAUTH_REFRESH_MISSING_CLIENT_SECRET,
+  BQ_OAUTH_REFRESH_MISSING_REFRESH_TOKEN,
+  BQ_OAUTH_TEMPORARY,
+  BQ_OAUTH_TEMPORARY_MISSING_TOKEN,
+  getConfigPath,
+  shouldPassValidProfile,
+  shouldRequireProfileField,
 } from '../helper';
 
 describe('OAuth token based profile', () => {

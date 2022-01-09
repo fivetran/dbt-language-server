@@ -1,12 +1,12 @@
-import { YamlParser } from '../../YamlParser';
 import { ServiceAccountProfile } from '../../bigquery/ServiceAccountProfile';
+import { YamlParser } from '../../YamlParser';
 import {
-  getConfigPath,
-  shouldRequireProfileField,
-  shouldPassValidProfile,
   BIG_QUERY_CONFIG,
   BQ_SERVICE_ACCOUNT,
   BQ_SERVICE_ACCOUNT_MISSING_KEYFILE,
+  getConfigPath,
+  shouldPassValidProfile,
+  shouldRequireProfileField,
 } from '../helper';
 
 describe('Service account profile', () => {

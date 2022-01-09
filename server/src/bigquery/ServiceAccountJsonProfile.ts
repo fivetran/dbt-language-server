@@ -1,7 +1,7 @@
-import { DbtProfile } from '../DbtProfile';
-import { DbtDestinationClient } from '../DbtDestinationClient';
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 import { ExternalAccountClientOptions } from 'google-auth-library';
+import { DbtDestinationClient } from '../DbtDestinationClient';
+import { DbtProfile } from '../DbtProfile';
 import { BigQueryClient } from './BigQueryClient';
 
 export class ServiceAccountJsonProfile implements DbtProfile {

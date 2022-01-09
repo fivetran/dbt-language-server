@@ -1,8 +1,8 @@
 import { DidChangeWatchedFilesParams } from 'vscode-languageserver';
 import { CompletionProvider } from './CompletionProvider';
-import { YamlParser } from './YamlParser';
-import { ManifestParser } from './ManifestParser';
 import { DbtServer } from './DbtServer';
+import { ManifestParser } from './ManifestParser';
+import { YamlParser } from './YamlParser';
 
 export class FileChangeListener {
   dbtTargetPath?: string;

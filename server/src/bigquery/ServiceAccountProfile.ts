@@ -1,8 +1,8 @@
-import { DbtProfile } from '../DbtProfile';
+import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 import { DbtDestinationClient } from '../DbtDestinationClient';
+import { DbtProfile } from '../DbtProfile';
 import { YamlParserUtils } from '../YamlParserUtils';
 import { BigQueryClient } from './BigQueryClient';
-import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 
 export class ServiceAccountProfile implements DbtProfile {
   static readonly BQ_SERVICE_ACCOUNT_FILE_DOCS =
