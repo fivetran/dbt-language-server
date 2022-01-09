@@ -6,7 +6,7 @@ import { ZetaSqlAst } from '../ZetaSqlAst';
 
 describe('ZetaSqlAst', () => {
   function createAst(fileName: string): AnalyzeResponse {
-    const data = fs.readFileSync(__dirname + `/../../src/test/ast/${fileName}.json`, 'utf8');
+    const data = fs.readFileSync(`${__dirname}/../../src/test/ast/${fileName}.json`, 'utf8');
     return JSON.parse(data);
   }
 

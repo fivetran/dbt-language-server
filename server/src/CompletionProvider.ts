@@ -320,7 +320,7 @@ export class CompletionProvider {
               label: `${tableName}.${column.name}`,
               kind: CompletionItemKind.Value,
               detail: `${column.type}`,
-              sortText: 1 + `${tableName}.${column.name}`,
+              sortText: `1${tableName}.${column.name}`,
             },
         );
       });
@@ -337,7 +337,7 @@ export class CompletionProvider {
               label: `${column.name}`,
               kind: CompletionItemKind.Value,
               detail: `${tableName} ${column.type}`,
-              sortText: 1 + `${column.name}`,
+              sortText: `1${column.name}`,
             },
         );
       }

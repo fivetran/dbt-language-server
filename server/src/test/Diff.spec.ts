@@ -107,7 +107,7 @@ describe('Diff', () => {
 
   function shouldReturnCorrespondingLineNumberForOldText(fileName: string, newLineNumber: number, expectedOldLineNumber: number): void {
     // arrange
-    const filesRootPath = __dirname + '/../../src/test/diff/';
+    const filesRootPath = `${__dirname}/../../src/test/diff/`;
     const raw = fs.readFileSync(`${filesRootPath}raw/${fileName}.sql`, 'utf8');
     const compiled = fs.readFileSync(`${filesRootPath}compiled/${fileName}.sql`, 'utf8');
 

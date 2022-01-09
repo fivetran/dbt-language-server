@@ -62,7 +62,7 @@ export class ZetaSqlCatalog {
             const simpleColumn = new SimpleColumn(t.getTableName(), newColumn.name, new SimpleType(typeKind));
             table.addSimpleColumn(simpleColumn);
           } else {
-            console.log('Cannot find SimpleType for ' + newColumn.type);
+            console.log(`Cannot find SimpleType for ${newColumn.type}`);
           }
         }
       }

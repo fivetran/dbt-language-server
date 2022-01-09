@@ -66,7 +66,7 @@ export class LspServer {
   }
 
   async onInitialize(params: InitializeParams): Promise<InitializeResult<any> | ResponseError<InitializeError>> {
-    console.log('Starting server for folder ' + process.cwd());
+    console.log(`Starting server for folder ${process.cwd()}`);
 
     process.on('SIGTERM', this.onShutdown);
     process.on('SIGINT', this.onShutdown);
@@ -141,7 +141,7 @@ export class LspServer {
   }
 
   sendTelemetry(name: string, properties?: { [key: string]: string }): void {
-    console.log('Telemetry log: ' + JSON.stringify(properties));
+    console.log(`Telemetry log: ${JSON.stringify(properties)}`);
     this.connection.sendNotification(TelemetryEventNotification.type, <TelemetryEvent>{ name: name, properties: properties });
   }
 

@@ -10,7 +10,7 @@ async function main(): Promise<void> {
     await prepareBigQuery();
 
     const extensionDevelopmentPath = process.argv[2];
-    console.log('Running tests for path: ' + extensionDevelopmentPath);
+    console.log(`Running tests for path: ${extensionDevelopmentPath}`);
     const defaultCachePath = path.resolve(extensionDevelopmentPath, '.vscode-test');
     const extensionsInstallPath = path.join(defaultCachePath, 'extensions');
 

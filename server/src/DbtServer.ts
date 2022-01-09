@@ -116,7 +116,7 @@ export class DbtServer {
       });
 
       promiseWithChid.catch(e => {
-        console.log('dbt rpc command failed: ' + e);
+        console.log(`dbt rpc command failed: ${JSON.stringify(e)}`);
         this.startDeferred.reject(e.stdout);
       });
 

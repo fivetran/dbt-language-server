@@ -129,7 +129,7 @@ export class ZetaSqlAst {
           }
           if (nodeName === NODE.resolvedFunctionCallNode) {
             const typedNode = <ResolvedFunctionCallProto>node;
-            if (typedNode.parent?.function?.name === 'ZetaSQL:' + text) {
+            if (typedNode.parent?.function?.name === `ZetaSQL:${text}`) {
               result.function = true;
             }
           }

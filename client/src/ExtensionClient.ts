@@ -158,7 +158,7 @@ export class ExtensionClient {
     do {
       uri = Uri.joinPath(uri, '..');
       try {
-        await workspace.fs.stat(uri.with({ path: uri.path + '/dbt_project.yml' }));
+        await workspace.fs.stat(uri.with({ path: `${uri.path}/dbt_project.yml` }));
         return uri;
       } catch (e) {
         // file does not exist

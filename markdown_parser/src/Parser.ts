@@ -174,10 +174,9 @@ async function parseAndSave(): Promise<void> {
 
   functionInfos.push(...additionalFields);
 
-  const code =
-    `import { FunctionInfo } from './SignatureHelpProvider';
+  const code = `import { FunctionInfo } from './SignatureHelpProvider';
     
-    export const HelpProviderWords: FunctionInfo[] =` + JSON.stringify(functionInfos);
+    export const HelpProviderWords: FunctionInfo[] = ${JSON.stringify(functionInfos)}`;
 
   const prettier = await import('prettier');
   const options = await prettier.resolveConfig('./.prettierrc');
@@ -185,7 +184,7 @@ async function parseAndSave(): Promise<void> {
     throw new Error("Can't find options from ./.prettierrc");
   }
   const formatted = await prettier.format(code, options);
-  fs.writeFileSync(__dirname + '/../../server/src/HelpProviderWords.ts', formatted);
+  fs.writeFileSync(`${__dirname}/../../server/src/HelpProviderWords.ts`, formatted);
 }
 
 function parseText(token: Token): string {
