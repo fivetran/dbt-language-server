@@ -6,7 +6,7 @@
     "sourceType": "module",
     "project": ["./server/tsconfig.json", "./client/tsconfig.json", "./e2e/tsconfig.json", "./markdown_parser/tsconfig.json"]
   },
-  "plugins": ["@typescript-eslint", "sonarjs"],
+  "plugins": ["@typescript-eslint", "sonarjs", "prettier"],
 
   "extends": [
     "eslint:recommended",
@@ -20,7 +20,9 @@
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "@typescript-eslint/no-explicit-any": ["off"],
 
-    "sonarjs/cognitive-complexity": ["off"] // TODO: enable
+    "sonarjs/cognitive-complexity": ["off"], // TODO: enable
+
+    "prettier/prettier": "error"
   },
   "ignorePatterns": ["**/*.d.ts"]
 }
