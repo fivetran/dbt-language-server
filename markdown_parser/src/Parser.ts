@@ -109,7 +109,7 @@ async function parseAndSave(): Promise<void> {
             continue;
           }
           const functionInfo: FunctionInfo = {
-            name: name,
+            name,
             sinatures: [],
           };
           i += 3;
@@ -160,7 +160,7 @@ async function parseAndSave(): Promise<void> {
             const description = parseText(tokens[i + 1]);
             if (functionInfo.sinatures.length === 0) {
               // There is no signature in md file for the function
-              functionInfo.sinatures.push({ signature: '', description: description });
+              functionInfo.sinatures.push({ signature: '', description });
             }
             functionInfo.sinatures[0].description = description;
           }

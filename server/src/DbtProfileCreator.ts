@@ -109,8 +109,8 @@ export class DbtProfileCreator {
     }
 
     return {
-      dbtProfile: dbtProfile,
-      targetConfig: targetConfig,
+      dbtProfile,
+      targetConfig,
     };
   }
 

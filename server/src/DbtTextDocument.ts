@@ -196,7 +196,7 @@ export class DbtTextDocument {
 
         const diagnostic: Diagnostic = {
           severity: DiagnosticSeverity.Error,
-          range: range,
+          range,
           message: matchResults[1],
         };
         diagnostics.push(diagnostic);

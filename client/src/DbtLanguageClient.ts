@@ -26,8 +26,8 @@ export class DbtLanguageClient implements Disposable {
   ) {
     const debugOptions = { execArgv: ['--nolazy', `--inspect=${port}`] };
     const serverOptions = {
-      run: { module: module, transport: TransportKind.ipc },
-      debug: { module: module, transport: TransportKind.ipc, options: debugOptions },
+      run: { module, transport: TransportKind.ipc },
+      debug: { module, transport: TransportKind.ipc, options: debugOptions },
     };
 
     const clientOptions = {
@@ -35,7 +35,7 @@ export class DbtLanguageClient implements Disposable {
       synchronize: {
         fileEvents: [workspace.createFileSystemWatcher('**/dbt_project.yml'), workspace.createFileSystemWatcher('**/manifest.json')],
       },
-      outputChannel: outputChannel,
+      outputChannel,
       workspaceFolder: <WorkspaceFolder>{ uri: dbtProjectUri },
     };
 

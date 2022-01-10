@@ -27,7 +27,7 @@ describe('ZetaSqlAst', () => {
   }
 
   function createParseLocationRange(start: number, end: number): ParseLocationRangeProto {
-    return { start: start, end: end, filename: '' };
+    return { start, end, filename: '' };
   }
 
   it('simple.json', () => {

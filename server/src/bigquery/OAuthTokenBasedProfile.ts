@@ -92,9 +92,9 @@ export class OAuthTokenBasedProfile implements DbtProfile {
     });
 
     const refreshClient = new UserRefreshClient({
-      clientId: clientId,
-      clientSecret: clientSecret,
-      refreshToken: refreshToken,
+      clientId,
+      clientSecret,
+      refreshToken,
     });
     bigQuery.authClient.cachedCredential = refreshClient;
 

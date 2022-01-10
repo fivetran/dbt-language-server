@@ -156,7 +156,7 @@ export class ZetaSqlAst {
           if (nodeName !== NODE.resolvedTableScanNode) {
             const parseLocationRange = this.getParseLocationRange(node);
             if (parseLocationRange) {
-              parentNodes.push({ name: nodeName, parseLocationRange: parseLocationRange, value: node });
+              parentNodes.push({ name: nodeName, parseLocationRange, value: node });
             }
           }
 
