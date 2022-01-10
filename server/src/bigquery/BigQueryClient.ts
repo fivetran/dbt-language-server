@@ -36,6 +36,7 @@ export class BigQueryClient implements DbtDestinationClient {
       return metadata[0].schema;
     } catch (e: any) {
       console.log(e.message);
+      return undefined;
     }
   }
 }

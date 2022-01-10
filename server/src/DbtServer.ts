@@ -122,7 +122,7 @@ export class DbtServer {
         this.startDeferred.reject(e.stdout);
       });
 
-      return await this.startDeferred.promise;
+      await this.startDeferred.promise;
     } catch (e) {
       this.startDeferred.reject(e);
     }
@@ -253,7 +253,7 @@ export class DbtServer {
         const message = data?.error?.data?.message;
         if (message && message.includes('invalid_grant')) {
           console.warn('Reauth required for dbt!');
-          return;
+          return undefined;
         }
       }
       return data;

@@ -258,7 +258,7 @@ export class DbtTextDocument {
       );
     }
     if (['(', '"', "'"].includes(completionParams.context?.triggerCharacter ?? '')) {
-      return;
+      return undefined;
     }
 
     let completionInfo = undefined;
