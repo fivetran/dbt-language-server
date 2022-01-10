@@ -10,3 +10,5 @@ To debug the extension in Ubuntu Linux container:
   ```
 - Use Cmd+Shift+P and 'Remote-Containers: Reopen Folder Locally', 'Remote-Containers: Reopen in Container' commands to switch between local environment and docker container environment
 - If you switch the environment don't forget to do `npm i` because of platforms specific dependencies
+
+**Note:** You can find full documentation in [Create a development container](https://code.visualstudio.com/docs/remote/create-dev-container).
