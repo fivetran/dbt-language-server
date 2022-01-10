@@ -16,7 +16,7 @@ Windows users can develop dbt projects via WSL.
 
 VS Code runs extensions in one of two places: locally on the UI / client side, or in WSL. You need to install dbt-language-server in WSL. See ['Managing extensions'](https://code.visualstudio.com/docs/remote/wsl#_managing-extensions).
 
-## Developing dbt projects
+## Open your dbt project in VS Code
 **Note:** See [detailed instructions](https://code.visualstudio.com/docs/remote/wsl#_open-a-remote-folder-or-workspace).
 
 ### From the WSL terminal
