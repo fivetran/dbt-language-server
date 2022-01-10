@@ -1,8 +1,9 @@
-import * as path from 'path';
 import * as assert from 'assert';
-import { YamlParser } from '../YamlParser';
-import { DbtProfileCreator } from '../DbtProfileCreator';
+import * as path from 'path';
+import { instance, mock, when } from 'ts-mockito';
 import { DbtProfile } from '../DbtProfile';
+import { DbtProfileCreator } from '../DbtProfileCreator';
+import { YamlParser } from '../YamlParser';
 
 const PROFILES_PATH = path.resolve(__dirname, '../../src/test/profiles');
 
@@ -26,15 +27,6 @@ export const BQ_MISSING_PROJECT = 'bigquery-test_missing_project';
 
 export const OTHERS_UNKNOWN_TYPE = 'unknown-type';
 
-export function getMockParser(config: string, profileName: string): YamlParser;
-export function getMockParser(config: string, profileName: () => string): YamlParser;
-export function getMockParser(config: string, profileName: string | (() => string)): YamlParser {
-  const yamlParser = new YamlParser();
-  yamlParser.profilesPath = getConfigPath(config);
-  yamlParser.findProfileName = typeof profileName === 'string' ? (): string => profileName : profileName;
-  return yamlParser;
-}
-
 export function getConfigPath(p: string): string {
   return path.resolve(PROFILES_PATH, p);
 }
@@ -46,7 +38,11 @@ export async function shouldRequireProfileField(profiles: any, profile: DbtProfi
 
 export async function shouldPassValidProfile(config: string, profileName: string): Promise<void> {
   //arrange
-  const yamlParser = getMockParser(config, profileName);
+  const mockYamlParser = mock(YamlParser);
+  when(mockYamlParser.findProfileName()).thenReturn(profileName);
+  const yamlParser = instance(mockYamlParser);
+  yamlParser.profilesPath = getConfigPath(config);
+
   const profileCreator = new DbtProfileCreator(yamlParser);
 
   //act
@@ -54,4 +50,8 @@ export async function shouldPassValidProfile(config: string, profileName: string
 
   //assert
   assert.strictEqual('error' in profile, false);
+}
+
+export function sleep(ms: number): Promise<unknown> {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }

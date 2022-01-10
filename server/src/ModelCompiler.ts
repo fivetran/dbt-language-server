@@ -1,19 +1,36 @@
+import { Emitter, Event } from 'vscode-languageserver';
 import { DbtCompileJob } from './DbtCompileJob';
 import { CompileResult, DbtServer } from './DbtServer';
-import { DbtTextDocument } from './DbtTextDocument';
 
 export class ModelCompiler {
-  dbtCompileTaskQueue: DbtCompileJob[] = [];
-  compilationInProgress = false;
-  pollIsRunning = false;
+  private dbtCompileTaskQueue: DbtCompileJob[] = [];
+  private pollIsRunning = false;
 
-  constructor(private dbtTextDocument: DbtTextDocument, private dbtServer: DbtServer, private workspaceFolder: string) {}
+  private onCompilationErrorEmitter = new Emitter<string>();
+  private onCompilationFinishedEmitter = new Emitter<string>();
+  private onFinishAllCompilationTasksEmitter = new Emitter<void>();
+
+  compilationInProgress = false;
+
+  get onCompilationError(): Event<string> {
+    return this.onCompilationErrorEmitter.event;
+  }
+
+  get onCompilationFinished(): Event<string> {
+    return this.onCompilationFinishedEmitter.event;
+  }
+
+  get onFinishAllCompilationTasks(): Event<void> {
+    return this.onFinishAllCompilationTasksEmitter.event;
+  }
+
+  constructor(private dbtServer: DbtServer, private documentUri: string, private workspaceFolder: string) {}
 
   async compile(): Promise<void> {
     this.compilationInProgress = true;
     const status = await this.dbtServer.getCurrentStatus();
     if (status?.error?.data?.message) {
-      await this.dbtTextDocument.onCompilationError(status.error.data.message);
+      this.onCompilationErrorEmitter.fire(status.error.data.message);
       return;
     }
 
@@ -27,15 +44,13 @@ export class ModelCompiler {
   }
 
   startNewTask(): void {
-    const documentUri = this.dbtTextDocument.rawDocument.uri;
-
-    const index = documentUri.indexOf(this.workspaceFolder);
+    const index = this.documentUri.indexOf(this.workspaceFolder);
     if (index == -1) {
       console.log('Opened file is not a part of project workspace. Compile request declined.');
       return;
     }
 
-    const modelPath = documentUri.slice(index + this.workspaceFolder.length + 1);
+    const modelPath = this.documentUri.slice(index + this.workspaceFolder.length + 1);
 
     if (modelPath) {
       const task = new DbtCompileJob(this.dbtServer, modelPath);
@@ -69,7 +84,7 @@ export class ModelCompiler {
           }
 
           if (response?.error) {
-            await this.dbtTextDocument.onCompilationError(response?.error.data?.message ?? 'dbt compile error');
+            this.onCompilationErrorEmitter.fire(response?.error.data?.message ?? 'dbt compile error');
             break;
           }
 
@@ -77,7 +92,7 @@ export class ModelCompiler {
 
           if (compiledNodes.length > 0) {
             const compiledSql = compiledNodes[0].node.compiled_sql;
-            await this.dbtTextDocument.onCompilationFinished(compiledSql);
+            this.onCompilationFinishedEmitter.fire(compiledSql);
           }
           break;
         }
@@ -90,7 +105,7 @@ export class ModelCompiler {
     }
     this.pollIsRunning = false;
     this.compilationInProgress = false;
-    this.dbtTextDocument.onFinishAllCompilationTasks();
+    this.onFinishAllCompilationTasksEmitter.fire();
   }
 
   wait(ms: number): Promise<void> {
