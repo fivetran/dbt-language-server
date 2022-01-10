@@ -39,8 +39,8 @@ export class OAuthProfile implements DbtProfile {
 
     const credentialsResult = await this.checkDefaultCredentials(bigQueryClient);
     if (!credentialsResult) {
-      const testResult = await bigQueryClient.test();
-      if (!testResult) {
+      const firstTestResult = await bigQueryClient.test();
+      if (!firstTestResult) {
         return bigQueryClient;
       }
     }
@@ -50,9 +50,9 @@ export class OAuthProfile implements DbtProfile {
       return authenticateResult;
     }
 
-    const testResult = await bigQueryClient.test();
-    if (testResult) {
-      return testResult;
+    const secondTestResult = await bigQueryClient.test();
+    if (secondTestResult) {
+      return secondTestResult;
     }
 
     return bigQueryClient;
