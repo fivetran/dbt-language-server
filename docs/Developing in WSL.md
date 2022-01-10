@@ -1,6 +1,6 @@
 # Developing in WSL
 
-Windows users can develop dbt projects via WSL.
+Windows users can use this extension via WSL.
 
 **Note:** This extension tested with WSL 2 only but previous versions also can work.
 
