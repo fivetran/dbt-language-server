@@ -14,6 +14,9 @@ export class ProgressHandler {
         this.progressDeferred?.resolve();
         this.progressDeferred = undefined;
         break;
+      default:
+        console.log('Received event that is not supported');
+        break;
     }
   }
 

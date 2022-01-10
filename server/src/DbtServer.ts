@@ -44,9 +44,11 @@ interface Response {
   };
 }
 
+type State = 'ready' | 'compiling' | 'error';
+
 export interface StatusResponse extends Response {
   result: {
-    state: 'ready' | 'compiling' | 'error';
+    state: State;
     pid: number;
     error?: {
       message: string;
@@ -141,6 +143,9 @@ export class DbtServer {
             case 'error':
               clearInterval(intervalId);
               reject(status.result.error);
+              break;
+            default:
+              console.log('State is not supported');
               break;
           }
         }
