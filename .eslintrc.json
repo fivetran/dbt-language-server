@@ -32,6 +32,7 @@
     "no-promise-executor-return": ["error"],
     "object-shorthand": ["error"],
     "no-path-concat": ["error"],
+    "no-else-return": ["error"],
 
     "@typescript-eslint/no-shadow": ["error"],
     "@typescript-eslint/no-floating-promises": ["error"],

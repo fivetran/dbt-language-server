@@ -25,9 +25,8 @@ export class OAuthTokenBasedProfile implements DbtProfile {
 
     if (refreshToken || clientId || clientSecret) {
       return this.validateRefreshTokenProfile(refreshToken, clientId, clientSecret);
-    } else {
-      return this.validateTemporaryTokenProfile(token);
     }
+    return this.validateTemporaryTokenProfile(token);
   }
 
   private validateRefreshTokenProfile(
