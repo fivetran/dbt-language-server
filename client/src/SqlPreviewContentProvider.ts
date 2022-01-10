@@ -1,30 +1,30 @@
-import * as vscode from 'vscode';
+import { Event, EventEmitter, TextDocumentContentProvider, Uri } from 'vscode';
 
-export default class SqlPreviewContentProvider implements vscode.TextDocumentContentProvider {
+export default class SqlPreviewContentProvider implements TextDocumentContentProvider {
   static scheme = 'query-preview';
-  static uri = vscode.Uri.parse(`${SqlPreviewContentProvider.scheme}:Preview?dbt-language-server`);
+  static uri = Uri.parse(`${SqlPreviewContentProvider.scheme}:Preview?dbt-language-server`);
   texts = new Map<string, string>();
 
-  activeDocUri: vscode.Uri = vscode.Uri.parse('');
+  activeDocUri: Uri = Uri.parse('');
 
-  private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
+  private onDidChangeEmitter = new EventEmitter<Uri>();
 
   update(uri: string, text: string): void {
     this.texts.set(uri, text);
-    this._onDidChange.fire(SqlPreviewContentProvider.uri);
+    this.onDidChangeEmitter.fire(SqlPreviewContentProvider.uri);
   }
 
-  changeActiveDocument(uri: vscode.Uri): void {
+  changeActiveDocument(uri: Uri): void {
     this.activeDocUri = uri;
-    this._onDidChange.fire(SqlPreviewContentProvider.uri);
+    this.onDidChangeEmitter.fire(SqlPreviewContentProvider.uri);
   }
 
   dispose(): void {
-    this._onDidChange.dispose();
+    this.onDidChangeEmitter.dispose();
   }
 
-  get onDidChange(): vscode.Event<vscode.Uri> {
-    return this._onDidChange.event;
+  get onDidChange(): Event<Uri> {
+    return this.onDidChangeEmitter.event;
   }
 
   provideTextDocumentContent(): string {

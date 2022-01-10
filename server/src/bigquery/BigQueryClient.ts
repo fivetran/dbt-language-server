@@ -4,11 +4,11 @@ import { DbtDestinationClient } from '../DbtDestinationClient';
 export class BigQueryClient implements DbtDestinationClient {
   static readonly BQ_TEST_CLIENT_DATASETS_LIMIT = 1;
 
-  _project: string;
+  project: string;
   bigQuery: BigQuery;
 
   constructor(project: string, bigQuery: BigQuery) {
-    this._project = project;
+    this.project = project;
     this.bigQuery = bigQuery;
   }
 
@@ -22,10 +22,6 @@ export class BigQueryClient implements DbtDestinationClient {
     }
 
     return undefined;
-  }
-
-  get project(): string {
-    return this._project;
   }
 
   async getDatasets(maxResults?: number): Promise<DatasetsResponse> {
