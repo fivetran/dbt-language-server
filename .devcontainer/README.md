@@ -1,6 +1,6 @@
 To debug the extension in Ubuntu Linux container:
 - Install the [Remote Development extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack)
-- Modify devcontainer.json to mount your ~/.dbt floder, files with credentials and test projects to the container
+- Modify ./.devcontainer/devcontainer.json to mount your ~/.dbt floder, files with credentials and test projects to the container
   ```json
   "mounts": [
     "source=/Users/user/.dbt/,target=/home/vscode/.dbt/,type=bind,readonly",
