@@ -40,7 +40,7 @@ describe('Profiles Validation', () => {
   });
 
   it('Should require dbt project config', async () => {
-    //arrange
+    // arrange
     const mockYamlParser = mock(YamlParser);
     when(mockYamlParser.findProfileName()).thenThrow(new Error());
     const yamlParser = instance(mockYamlParser);
@@ -51,15 +51,15 @@ describe('Profiles Validation', () => {
       `^Failed to find profile name in ${YamlParser.DBT_PROJECT_FILE_NAME}\\. Make sure that you opened folder with ${YamlParser.DBT_PROJECT_FILE_NAME} file\\..*$`,
     );
 
-    //act
+    // act
     const profile = await profileCreator.createDbtProfile();
 
-    //assert
+    // assert
     assert.match((profile as ErrorResult).error, errorPattern);
   });
 
   async function shouldReturnError(config: string, profileName: string, errorPattern: RegExp): Promise<void> {
-    //arrange
+    // arrange
     const mockYamlParser = mock(YamlParser);
     when(mockYamlParser.findProfileName()).thenReturn(profileName);
     const yamlParser = instance(mockYamlParser);
@@ -67,10 +67,10 @@ describe('Profiles Validation', () => {
 
     const profileCreator = new DbtProfileCreator(yamlParser);
 
-    //act
+    // act
     const profile = await profileCreator.createDbtProfile();
 
-    //assert
+    // assert
     assert.match((profile as ErrorResult).error, errorPattern);
   }
 });
