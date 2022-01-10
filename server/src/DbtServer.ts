@@ -107,6 +107,9 @@ export class DbtServer {
               console.log(e);
             }
             console.log('dbt rpc started');
+            if (!this.rpcPid) {
+              this.startDeferred.reject("Couldn't find dbt-rpc process id");
+            }
             started = true;
             this.startDeferred.resolve();
           }
