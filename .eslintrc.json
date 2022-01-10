@@ -40,6 +40,7 @@
     "no-redeclare": ["error"],
     "no-lonely-if": ["error"],
     "no-cond-assign": ["error"],
+    "prefer-regex-literals": ["error"],
 
     "@typescript-eslint/no-shadow": ["error"],
     "@typescript-eslint/no-floating-promises": ["error"],
