@@ -4,7 +4,7 @@ import { ServiceAccountJsonProfile } from './bigquery/ServiceAccountJsonProfile'
 import { ServiceAccountProfile } from './bigquery/ServiceAccountProfile';
 import { DbtProfile } from './DbtProfile';
 
-export enum DbtProfileType {
+enum DbtProfileType {
   BigQuery = 'bigquery',
 }
 

@@ -25,8 +25,8 @@ suite('Errors', () => {
     await testDiagnostics(docUri, []);
   });
 
-  function testDiagnostics(docUri: vscode.Uri, diagnostics: vscode.Diagnostic[]): void {
-    const actualDiagnostics = vscode.languages.getDiagnostics(docUri);
+  function testDiagnostics(uri: vscode.Uri, diagnostics: vscode.Diagnostic[]): void {
+    const actualDiagnostics = vscode.languages.getDiagnostics(uri);
 
     assert.strictEqual(actualDiagnostics.length, diagnostics.length);
     if (diagnostics.length === 1) {

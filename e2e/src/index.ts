@@ -14,9 +14,9 @@ export function run(): Promise<void> {
 
   return new Promise((resolve, reject) => {
     const startTime = performance.now();
-    glob('**.spec.js', { cwd: testsRoot }, (err, files) => {
-      if (err) {
-        return reject(err);
+    glob('**.spec.js', { cwd: testsRoot }, (e, files) => {
+      if (e) {
+        return reject(e);
       }
 
       // Add files to the test suite
