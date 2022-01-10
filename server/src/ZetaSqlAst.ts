@@ -162,9 +162,9 @@ export class ZetaSqlAst {
 
           if (nodeName === NODE.resolvedTableScanNode) {
             const typedNode = <ResolvedTableScanProto>node;
-            const resolvedTables = completionInfo.resolvedTables;
+            const { resolvedTables } = completionInfo;
             if (typedNode.table && typedNode.table.fullName) {
-              const fullName = typedNode.table.fullName;
+              const { fullName } = typedNode.table;
               if (!resolvedTables.get(fullName)) {
                 resolvedTables.set(fullName, []);
                 typedNode.parent?.columnList?.forEach(column => {
@@ -236,12 +236,12 @@ export class ZetaSqlAst {
   }
 
   getParseLocationRange(node: any): ParseLocationRangeProto__Output | undefined {
-    let parent = node.parent;
+    let { parent } = node;
     while (parent) {
       if (this.isParseLocationRangeExist(parent.parseLocationRange)) {
         return <ParseLocationRangeProto__Output>parent.parseLocationRange;
       }
-      parent = parent.parent;
+      ({ parent } = parent);
     }
     return undefined;
   }

@@ -31,12 +31,12 @@ export class DbtProfileCreator {
       );
     }
 
-    const target = profile.target;
+    const { target } = profile;
     if (!target) {
       return this.cantFindSectionError(profileName, 'target');
     }
 
-    const outputs = profile.outputs;
+    const { outputs } = profile;
     if (!outputs) {
       return this.cantFindSectionError(profileName, 'outputs');
     }
@@ -46,12 +46,12 @@ export class DbtProfileCreator {
       return this.cantFindSectionError(profileName, `outputs.${target}`);
     }
 
-    const type = outputsTarget.type;
+    const { type } = outputsTarget;
     if (!type) {
       return this.cantFindSectionError(profileName, `outputs.${target}.type`);
     }
 
-    const method = outputsTarget.method;
+    const { method } = outputsTarget;
     const authMethods = PROFILE_METHODS.get(type);
     if (!authMethods) {
       return DbtProfileCreator.errorResult(`Currently, '${type}' profile is not supported. Check your '${this.yamlParser.profilesPath}' file.`);
@@ -86,10 +86,9 @@ export class DbtProfileCreator {
     }
 
     const profile = profiles[profileName];
-    const target = profile.target;
+    const { target } = profile;
     const targetConfig = profile.outputs[target];
-    const type = targetConfig.type;
-    const method = targetConfig.method;
+    const { type, method } = targetConfig;
 
     if (![...PROFILE_METHODS.keys()].find(t => t === type)) {
       return DbtProfileCreator.errorResult(`Profile type '${type}' is not supported.`);

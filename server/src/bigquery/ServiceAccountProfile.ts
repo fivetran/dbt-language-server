@@ -13,7 +13,7 @@ export class ServiceAccountProfile implements DbtProfile {
   }
 
   validateProfile(targetConfig: any): string | undefined {
-    const project = targetConfig.project;
+    const { project } = targetConfig;
     if (!project) {
       return 'project';
     }
@@ -27,7 +27,7 @@ export class ServiceAccountProfile implements DbtProfile {
   }
 
   async createClient(profile: any): Promise<DbtDestinationClient | string> {
-    const project = profile.project;
+    const { project } = profile;
     const keyFilePath = YamlParserUtils.replaceTilde(profile.keyfile);
 
     const options: BigQueryOptions = {

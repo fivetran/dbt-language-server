@@ -85,8 +85,7 @@ describe('Diff', () => {
 
   function shouldReturnCorrespondingCharacterFor(oldLine: string, newLine: string, params: number[][]): void {
     for (const param of params) {
-      const newCharacter = param[0];
-      const expectedOldCharacter = param[1];
+      const [newCharacter, expectedOldCharacter] = param;
       shouldReturnCorrespondingCharacterForOldText(oldLine, newLine, newCharacter, expectedOldCharacter);
     }
   }

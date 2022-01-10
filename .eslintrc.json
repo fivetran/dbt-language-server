@@ -35,7 +35,7 @@
     "no-else-return": ["error"],
     "no-useless-constructor": ["off"],
     "no-empty-function": ["off"],
-
+    "prefer-destructuring": ["error"],
 
     "@typescript-eslint/no-shadow": ["error"],
     "@typescript-eslint/no-floating-promises": ["error"],

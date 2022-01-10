@@ -13,12 +13,12 @@ export class OAuthTokenBasedProfile implements DbtProfile {
   }
 
   validateProfile(targetConfig: any): string | undefined {
-    const project = targetConfig.project;
+    const { project } = targetConfig;
     if (!project) {
       return 'project';
     }
 
-    const token = targetConfig.token;
+    const { token } = targetConfig;
     const refreshToken = targetConfig.refresh_token;
     const clientId = targetConfig.client_id;
     const clientSecret = targetConfig.client_secret;
@@ -57,12 +57,12 @@ export class OAuthTokenBasedProfile implements DbtProfile {
   }
 
   async createClient(profile: any): Promise<DbtDestinationClient | string> {
-    const project = profile.project;
-    const token = profile.token;
+    const { project } = profile;
+    const { token } = profile;
     const refreshToken = profile.refresh_token;
     const clientId = profile.client_id;
     const clientSecret = profile.client_secret;
-    const scopes = profile.scopes;
+    const { scopes } = profile;
 
     const bigQuery =
       refreshToken && clientId && clientSecret

@@ -313,7 +313,7 @@ export class CompletionProvider {
 
     if (tables.size > 1) {
       return [...tables.entries()].flatMap(e => {
-        const tableName = e[0];
+        const [tableName] = e;
         return e[1].columns.map(
           column =>
             <CompletionItem>{

@@ -11,7 +11,7 @@ export class ManifestParser {
     try {
       const content = readFileSync(manifestLocation, 'utf8');
       const manifest = JSON.parse(content);
-      const nodes = manifest.nodes;
+      const { nodes } = manifest;
 
       if (nodes) {
         return Object.values(<any[]>nodes)

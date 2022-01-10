@@ -87,7 +87,7 @@ export class LspServer {
 
     this.initializeNotifications();
 
-    const capabilities = params.capabilities;
+    const { capabilities } = params;
     // Does the client support the `workspace/configuration` request?
     // If not, we fall back using global settings.
     this.hasConfigurationCapability = !!(capabilities.workspace && !!capabilities.workspace.configuration);
@@ -194,7 +194,7 @@ export class LspServer {
   }
 
   async onDidOpenTextDocument(params: DidOpenTextDocumentParams): Promise<void> {
-    const uri = params.textDocument.uri;
+    const { uri } = params.textDocument;
     let document = this.openedDocuments.get(uri);
 
     if (this.workspaceFolder === undefined) {

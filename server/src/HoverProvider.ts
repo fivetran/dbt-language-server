@@ -14,7 +14,7 @@ export class HoverProvider {
 
     let hint;
     if (hoverInfo.outputColumn) {
-      const outputColumn = hoverInfo.outputColumn;
+      const { outputColumn } = hoverInfo;
       if (outputColumn.column?.tableName === '$query' || outputColumn?.column?.name !== outputColumn?.name) {
         hint = `Alias: ${outputColumn?.name}`;
       } else if (outputColumn?.name) {

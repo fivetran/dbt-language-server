@@ -79,6 +79,7 @@
     "format": "prettier --write \"client/src/**/*.ts\" \"server/src/**/*.ts\" \"markdown_parser/src/**/*.ts\" \"e2e/src/**/*.ts\"",
     "postinstall": "cd client && npm install && cd ../server && npm install && cd ../markdown_parser && npm install && cd ../e2e && npm install && cd ..",
     "lint": "eslint . --ext .ts",
+    "lint-fix": "eslint . --ext .ts --fix",
     "test": "mocha \"server/out/test/**/*.spec.js\"",
     "clean": "rm -rf client/out && rm -rf server/out",
     "prepare-zetasql": "cp -R ./server/node_modules/@fivetrandevelopers/zetasql/lib/protos/ ./server/out/protos/ && cp -R ./server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql/ ./server/out/zetasql/",

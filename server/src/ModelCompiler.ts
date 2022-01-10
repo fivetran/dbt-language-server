@@ -68,7 +68,7 @@ export class ModelCompiler {
     this.pollIsRunning = true;
 
     while (this.dbtCompileTaskQueue.length > 0) {
-      const length = this.dbtCompileTaskQueue.length;
+      const { length } = this.dbtCompileTaskQueue;
 
       for (let i = length - 1; i >= 0; i--) {
         const task = this.dbtCompileTaskQueue[i];
