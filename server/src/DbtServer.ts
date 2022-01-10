@@ -100,8 +100,7 @@ export class DbtServer {
 
           if (data.includes('Serving RPC server')) {
             try {
-              // We should wait some time to ensure that port was not in use
-              await Promise.all([this.ensureCompilationFinished(), new Promise(resolve => setTimeout(resolve, 1500))]);
+              await this.ensureCompilationFinished();
             } catch (e) {
               // The server is started here but there is some problem with project compilation
               console.log(e);
