@@ -26,7 +26,7 @@ VS Code runs extensions in one of two places: locally on the UI / client side, o
 
 ### From VS Code
 1. Start VS Code.
-2. Press ```F1```, select Remote-WSL: New Window for the default distro or Remote-WSL: New Window using Distro for a specific distro.
+2. Press ```F1```, select **Remote-WSL: New Window** for the default distro or **Remote-WSL: New Window using Distro** for a specific distro.
 3. Use the File menu to open your folder.
 
 ### From the Windows command prompt
