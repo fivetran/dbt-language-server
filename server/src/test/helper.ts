@@ -53,5 +53,7 @@ export async function shouldPassValidProfile(config: string, profileName: string
 }
 
 export function sleep(ms: number): Promise<unknown> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
 }

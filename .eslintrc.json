@@ -29,6 +29,7 @@
     "operator-assignment": ["error"],
     "no-return-await": ["off"],
     "no-shadow": ["off"],
+    "no-promise-executor-return": ["error"],
 
     "@typescript-eslint/no-shadow": ["error"],
     "@typescript-eslint/no-floating-promises": ["error"],
