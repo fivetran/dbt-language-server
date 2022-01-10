@@ -26,6 +26,7 @@
     "default-case": ["error"],
     "no-underscore-dangle": ["error"],
     "consistent-return": ["error"],
+    "operator-assignment": ["error"],
 
     "@typescript-eslint/no-floating-promises": ["error"],
     "@typescript-eslint/explicit-function-return-type": ["error"],
