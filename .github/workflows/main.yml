@@ -61,12 +61,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dbt-version: ['dbt-bigquery==0.20.2', 'dbt-bigquery dbt-rpc'] # Run tests on latest version and version used in https://github.com/fivetran/analytics/blob/main/dbt_ft_prod/deployment.yml#L1
+        include: # Run tests on latest version and version used in https://github.com/fivetran/analytics/blob/main/dbt_ft_prod/deployment.yml#L1
+          - dbt-version: 'dbt-bigquery==0.20.2'
+            os: macos-latest
+            target: darwin-x64
+          
+          - dbt-version: 'dbt-bigquery dbt-rpc'
+            os: macos-latest
+            target: darwin-x64
 
-    runs-on: macos-latest
+          - dbt-version: 'dbt-bigquery dbt-rpc'
+            os: ubuntu-latest
+            target: linux-x64
+            prepare-for-tests: |
+              Xvfb -ac :99 -screen 0 1280x1024x16 &
+              export DISPLAY=:99
+
+    runs-on: ${{ matrix.os }}
     steps:
       - name: set environment variable with file name
-        run: echo "FILE_NAME=${{ github.sha }}-darwin-x64.vsix" >> $GITHUB_ENV
+        run: echo "FILE_NAME=${{ github.sha }}-${{ matrix.target }}.vsix" >> $GITHUB_ENV
 
       - name: load e2e tests and vsix from cache
         uses: actions/cache@v2
@@ -74,7 +88,7 @@ jobs:
           path: |
             ./e2e
             ./${{ env.FILE_NAME }}
-          key: darwin-x64-${{ github.sha }}
+          key: ${{ matrix.target }}-${{ github.sha }}
 
       - uses: actions/setup-node@v2
         with:
@@ -163,13 +177,17 @@ jobs:
       #     TELEGRAM_CHAT_ID: ${{ secrets.CHAT_ID }}
 
       - run: unzip ${{ env.FILE_NAME }} -d e2e-tests
-      - run: node e2e/out/runTest $(pwd)/e2e-tests/extension
+      
+      - name: run e2e tests
+        run: |
+          ${{ matrix.prepare-for-tests }}
+          node e2e/out/runTest $(pwd)/e2e-tests/extension
 
       - name: upload logs
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.dbt-version }}
+          name: ${{ matrix.os }}_${{ matrix.dbt-version }}
           path: ./.vscode-test/user-data/logs/**/*dbt Language Server.log
 
   publish:
