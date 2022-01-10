@@ -37,18 +37,22 @@ describe('DbtTextDocument', () => {
     await document.forceRecompile();
 
     // assert
-    await sleep(DbtTextDocument.DEBOUNCE_TIMEOUT);
+    await sleepMoreThanDebounceTime();
     verify(mockModelCompiler.compile()).once();
   });
 
   it('Should compile twice if debounce timeout exceeded between compile calls', async () => {
     // act
     await document.forceRecompile();
-    await sleep(DbtTextDocument.DEBOUNCE_TIMEOUT);
+    await sleepMoreThanDebounceTime();
     await document.forceRecompile();
 
     // assert
-    await sleep(DbtTextDocument.DEBOUNCE_TIMEOUT);
+    await sleepMoreThanDebounceTime();
     verify(mockModelCompiler.compile()).twice();
   });
+
+  async function sleepMoreThanDebounceTime(): Promise<void> {
+    await sleep(1.3 * DbtTextDocument.DEBOUNCE_TIMEOUT);
+  }
 });
