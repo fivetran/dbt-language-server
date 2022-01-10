@@ -45,7 +45,7 @@ export class ModelCompiler {
 
   startNewTask(): void {
     const index = this.documentUri.indexOf(this.workspaceFolder);
-    if (index == -1) {
+    if (index === -1) {
       console.log('Opened file is not a part of project workspace. Compile request declined.');
       return;
     }

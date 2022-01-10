@@ -56,7 +56,7 @@ export class DbtProfileCreator {
     if (!authMethods) {
       return DbtProfileCreator.errorResult(`Currently, '${type}' profile is not supported. Check your '${this.yamlParser.profilesPath}' file.`);
     }
-    if (authMethods.length > 0 && (!method || authMethods.indexOf(method) == -1)) {
+    if (authMethods.length > 0 && (!method || authMethods.indexOf(method) === -1)) {
       return DbtProfileCreator.errorResult(`Unknown authentication method of '${type}' profile. Check your '${this.yamlParser.profilesPath}' file.`);
     }
 
@@ -115,7 +115,7 @@ export class DbtProfileCreator {
 
   async createDbtClient(dbtProfile: DbtProfile, targetConfig: any): Promise<DbtClientResult> {
     const client = await dbtProfile.createClient(targetConfig);
-    if (typeof client == 'string') {
+    if (typeof client === 'string') {
       return {
         error: client as string,
       };
