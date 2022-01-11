@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { instance, mock, when } from 'ts-mockito';
-import { DbtProfileCreator, ErrorResult } from '../DbtProfileCreator';
+import { DbtProfileCreator } from '../DbtProfileCreator';
 import { YamlParser } from '../YamlParser';
 import {
   BIG_QUERY_CONFIG,
@@ -14,33 +14,33 @@ import {
 
 describe('Profiles Validation', () => {
   it('Should require type', async () => {
-    const errorPattern = new RegExp(`^Couldn't find section 'outputs.dev.type'.*$`);
+    const errorPattern = "Couldn't find section 'outputs.dev.type'";
     await shouldReturnError(BIG_QUERY_CONFIG, BQ_MISSING_TYPE, errorPattern);
   });
 
   it('Should require method', async () => {
-    const errorPattern = new RegExp(`^Unknown authentication method of 'bigquery' profile.*$`);
+    const errorPattern = "Unknown authentication method of 'bigquery' profile";
     await shouldReturnError(BIG_QUERY_CONFIG, BQ_MISSING_METHOD, errorPattern);
   });
 
   it('Should require project', async () => {
-    const errorPattern = new RegExp(`^Couldn't find section 'project'.*$`);
+    const errorPattern = "Couldn't find section 'project'";
     await shouldReturnError(BIG_QUERY_CONFIG, BQ_MISSING_PROJECT, errorPattern);
   });
 
   it('Should handle profile without credentials', async () => {
     const notExistingProfile = 'not-existing-profile';
-    const errorPattern = new RegExp(`^Couldn't find credentials for profile '${notExistingProfile}'.*$`);
+    const errorPattern = `Couldn't find credentials for profile '${notExistingProfile}'`;
     await shouldReturnError(OTHERS_CONFIG, notExistingProfile, errorPattern);
   });
 
   it('Should handle not supported type', async () => {
-    const errorPattern = new RegExp(`^Currently, 'unknown' profile is not supported\\. Check your.*$`);
+    const errorPattern = "Currently, 'unknown' profile is not supported. Check your";
     await shouldReturnError(OTHERS_CONFIG, OTHERS_UNKNOWN_TYPE, errorPattern);
   });
 
   it('Should handle profiles file not found', async () => {
-    const errorPattern = new RegExp(`^Failed to open and parse file.*$`);
+    const errorPattern = 'Failed to open and parse file';
     await shouldReturnError('not_existing_config.yml', 'not-existing-profile', errorPattern);
   });
 
@@ -52,18 +52,16 @@ describe('Profiles Validation', () => {
     yamlParser.profilesPath = getConfigPath(OTHERS_CONFIG);
 
     const profileCreator = new DbtProfileCreator(yamlParser);
-    const errorPattern = new RegExp(
-      `^Failed to find profile name in ${YamlParser.DBT_PROJECT_FILE_NAME}\\. Make sure that you opened folder with ${YamlParser.DBT_PROJECT_FILE_NAME} file\\..*$`,
-    );
+    const errorPattern = `Failed to find profile name in ${YamlParser.DBT_PROJECT_FILE_NAME}. Make sure that you opened folder with ${YamlParser.DBT_PROJECT_FILE_NAME} file.`;
 
     //act
     const profile = await profileCreator.createDbtProfile();
 
     //assert
-    assert.match((profile as ErrorResult).error, errorPattern);
+    assert.strictEqual(profile.err && profile.val.includes(errorPattern), true);
   });
 
-  async function shouldReturnError(config: string, profileName: string, errorPattern: RegExp): Promise<void> {
+  async function shouldReturnError(config: string, profileName: string, errorPattern: string): Promise<void> {
     //arrange
     const mockYamlParser = mock(YamlParser);
     when(mockYamlParser.findProfileName()).thenReturn(profileName);
@@ -76,6 +74,6 @@ describe('Profiles Validation', () => {
     const profile = await profileCreator.createDbtProfile();
 
     //assert
-    assert.match((profile as ErrorResult).error, errorPattern);
+    assert.strictEqual(profile.err && profile.val.includes(errorPattern), true);
   }
 });

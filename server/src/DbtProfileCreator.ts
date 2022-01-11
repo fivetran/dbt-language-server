@@ -1,29 +1,18 @@
+import { Ok, Err, Result } from 'ts-results';
 import { DbtDestinationClient } from './DbtDestinationClient';
 import { YamlParser } from './YamlParser';
 import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtProfileType';
 import { DbtProfile } from './DbtProfile';
 
-export interface ErrorResult {
-  error: string;
-}
-
-export interface DbtProfileSuccessfulResult {
+export interface DbtProfileResult {
   dbtProfile: DbtProfile;
   targetConfig: any;
 }
 
-export type DbtProfileResult = DbtProfileSuccessfulResult | ErrorResult;
-
-export interface DbtClientSuccessfulResult {
-  client: DbtDestinationClient;
-}
-
-export type DbtClientResult = DbtClientSuccessfulResult | ErrorResult;
-
 export class DbtProfileCreator {
   constructor(private yamlParser: YamlParser) {}
 
-  validateProfilesFile(profiles: any, profileName: string): ErrorResult | undefined {
+  validateProfilesFile(profiles: any, profileName: string): Result<void, string> {
     const profile = profiles[profileName];
     if (!profile) {
       return DbtProfileCreator.errorResult(
@@ -60,10 +49,10 @@ export class DbtProfileCreator {
       return DbtProfileCreator.errorResult(`Unknown authentication method of '${type}' profile. Check your '${this.yamlParser.profilesPath}' file.`);
     }
 
-    return undefined;
+    return Ok.EMPTY;
   }
 
-  async createDbtProfile(): Promise<DbtProfileResult> {
+  async createDbtProfile(): Promise<Result<DbtProfileResult, string>> {
     let profiles = undefined;
     try {
       profiles = YamlParser.parseYamlFile(this.yamlParser.profilesPath);
@@ -81,8 +70,8 @@ export class DbtProfileCreator {
       );
     }
     const validationResult = this.validateProfilesFile(profiles, profileName);
-    if (validationResult) {
-      return validationResult;
+    if (validationResult.err) {
+      return Err(validationResult.val);
     }
 
     const profile = profiles[profileName];
@@ -108,35 +97,29 @@ export class DbtProfileCreator {
       return this.cantFindSectionError(profileName, result, docsUrl);
     }
 
-    return {
+    return Ok({
       dbtProfile: dbtProfile,
       targetConfig: targetConfig,
-    };
+    });
   }
 
-  async createDbtClient(dbtProfile: DbtProfile, targetConfig: any): Promise<DbtClientResult> {
+  async createDbtClient(dbtProfile: DbtProfile, targetConfig: any): Promise<Result<DbtDestinationClient, string>> {
     const client = await dbtProfile.createClient(targetConfig);
     if (typeof client == 'string') {
-      return {
-        error: client as string,
-      };
+      return Err(client as string);
     }
 
-    return {
-      client: client as DbtDestinationClient,
-    };
+    return Ok(client as DbtDestinationClient);
   }
 
-  cantFindSectionError(profileName: string, section: string, docsUrl?: string): ErrorResult {
+  cantFindSectionError(profileName: string, section: string, docsUrl?: string): Result<any, string> {
     const text = `Couldn't find section '${section}' for profile '${profileName}'. Check your '${this.yamlParser.profilesPath}' file. ${
       docsUrl ?? ''
     }`;
     return DbtProfileCreator.errorResult(text);
   }
 
-  static errorResult(text: string): ErrorResult {
-    return {
-      error: text,
-    };
+  static errorResult(text: string): Result<any, string> {
+    return Err(text);
   }
 }

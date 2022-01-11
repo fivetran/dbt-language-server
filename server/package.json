@@ -11,6 +11,7 @@
     "fast-diff": "^1.2.0",
     "find-free-port": "^2.0.0",
     "request": "^2.88.2",
+    "ts-results": "^3.3.0",
     "vscode-languageserver": "^7.0.0",
     "vscode-languageserver-textdocument": "^1.0.3",
     "yaml": "^2.0.0-8"
