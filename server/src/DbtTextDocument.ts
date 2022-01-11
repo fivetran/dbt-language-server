@@ -87,18 +87,35 @@ export class DbtTextDocument {
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
       this.requireCompileOnSave = true;
     } else {
-      const compiledContentChanges = params.contentChanges.map(c => {
-        if (!TextDocumentContentChangeEvent.isIncremental(c)) {
-          throw new Error('Incremental updates expected');
-        }
-        return <TextDocumentContentChangeEvent>{
-          text: c.text,
-          range: Range.create(
-            this.convertPosition(this.compiledDocument.getText(), this.rawDocument.getText(), c.range.start),
-            this.convertPosition(this.compiledDocument.getText(), this.rawDocument.getText(), c.range.end),
-          ),
-        };
-      });
+      const removedRanges = Diff.getRemovedRanges(this.rawDocument.getText(), this.compiledDocument.getText());
+      const compiledContentChanges = params.contentChanges
+        .filter(
+          c =>
+            !removedRanges.some(r => {
+              if (!TextDocumentContentChangeEvent.isIncremental(c)) {
+                throw new Error('Incremental updates expected');
+              }
+              const changeRange = {
+                startLine: c.range.start.line,
+                startPosition: c.range.start.character,
+                endLine: c.range.end.line,
+                endPosition: c.range.end.character,
+              };
+              return Diff.isRangeInsideAnother(changeRange, r);
+            }),
+        )
+        .map(c => {
+          if (!TextDocumentContentChangeEvent.isIncremental(c)) {
+            throw new Error('Incremental updates expected');
+          }
+          return <TextDocumentContentChangeEvent>{
+            text: c.text,
+            range: Range.create(
+              this.convertPosition(this.compiledDocument.getText(), this.rawDocument.getText(), c.range.start),
+              this.convertPosition(this.compiledDocument.getText(), this.rawDocument.getText(), c.range.end),
+            ),
+          };
+        });
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
       TextDocument.update(this.compiledDocument, compiledContentChanges, params.textDocument.version);
     }
