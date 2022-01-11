@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 import * as fs from 'fs';
 import { Diff } from '../Diff';
+import { Range } from 'vscode-languageserver';
 
 describe('Diff', () => {
   it('config_at_the_beginning', () => {
@@ -81,6 +82,25 @@ describe('Diff', () => {
 
   it('Should return char for not compiled line when jinja located at the beginning', () => {
     shouldReturnCorrespondingCharacterFor(' `project-abcde-400`.`transforms`.`table_volume_filled` t', ` {{ref('table_volume_filled')}} t`, [[0, 0]]);
+  });
+
+  it('Should return removed ranges', () => {
+    // arrange
+    const fileName = 'if';
+    const expectedRanges = [Range.create(0, 0, 8, 2), Range.create(43, 0, 43, 25), Range.create(46, 0, 46, 11)];
+
+    const filesRootPath = __dirname + '/../../src/test/diff/';
+    const raw = fs.readFileSync(`${filesRootPath}raw/${fileName}.sql`, 'utf8');
+    const compiled = fs.readFileSync(`${filesRootPath}compiled/${fileName}.sql`, 'utf8');
+
+    // act
+    const removedRanges = Diff.getRemovedRanges(raw, compiled);
+
+    // assert
+    assert.strictEqual(removedRanges.length, expectedRanges.length);
+    for (let i = 0; i < expectedRanges.length; i++) {
+      assert.strictEqual(Diff.rangesEquals(removedRanges[i], expectedRanges[i]), true);
+    }
   });
 
   function shouldReturnCorrespondingCharacterFor(oldLine: string, newLine: string, params: number[][]): void {
