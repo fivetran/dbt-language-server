@@ -9,7 +9,7 @@ suite('Errors', () => {
     // arrange
     await activateAndWait(docUri);
 
-    // assert,
+    // assert
     await testDiagnostics(docUri, [new vscode.Diagnostic(new vscode.Range(0, 8, 0, 12), 'Syntax error: SELECT list must not be empty')]);
   });
 
