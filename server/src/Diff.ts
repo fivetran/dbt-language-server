@@ -93,7 +93,7 @@ export class Diff {
   }
 
   static getLastLineLength(str: string): number {
-    const lastLineBreak = str.lastIndexOf('/n');
+    const lastLineBreak = str.lastIndexOf('\n');
     return lastLineBreak == -1 ? str.length : str.length - lastLineBreak - 1;
   }
 
