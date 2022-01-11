@@ -95,13 +95,8 @@ export class DbtTextDocument {
               if (!TextDocumentContentChangeEvent.isIncremental(c)) {
                 throw new Error('Incremental updates expected');
               }
-              const changeRange = {
-                startLine: c.range.start.line,
-                startPosition: c.range.start.character,
-                endLine: c.range.end.line,
-                endPosition: c.range.end.character,
-              };
-              return Diff.isRangeInsideAnother(changeRange, r);
+              const changeRange = Range.create(c.range.start.line, c.range.start.character, c.range.end.line, c.range.end.character);
+              return !Diff.rangesEquals(changeRange, r) && Diff.rangeContains(changeRange, r);
             }),
         )
         .map(c => {

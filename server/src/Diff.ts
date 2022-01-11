@@ -1,11 +1,5 @@
 import * as fastDiff from 'fast-diff';
-
-export interface Range {
-  startLine: number;
-  startPosition: number;
-  endLine: number;
-  endPosition: number;
-}
+import { Range } from 'vscode-languageserver';
 
 export class Diff {
   static getRemovedRanges(oldString: string, newString: string): Range[] {
@@ -37,12 +31,7 @@ export class Diff {
       }
 
       if (diffType === fastDiff.DELETE) {
-        result.push({
-          startLine: currentLine,
-          startPosition: currentPosition,
-          endLine: nextLine,
-          endPosition: nextPosition,
-        });
+        result.push(Range.create(currentLine, currentPosition, nextLine, nextPosition));
       }
 
       currentLine = nextLine;
@@ -108,10 +97,19 @@ export class Diff {
     return lastLineBreak == -1 ? str.length : str.length - lastLineBreak - 1;
   }
 
-  static isRangeInsideAnother(test: Range, range: Range): boolean {
+  static rangesEquals(first: Range, second: Range): boolean {
     return (
-      (test.startLine > range.startLine || (test.startLine == range.startLine && test.startPosition >= range.startPosition)) &&
-      (test.endLine < range.endLine || (test.endLine == range.endLine && test.endPosition <= range.endPosition))
+      first.start.line == second.start.line &&
+      first.start.character == second.start.character &&
+      first.end.line == second.end.line &&
+      first.end.character == second.end.character
+    );
+  }
+
+  static rangeContains(inner: Range, outer: Range): boolean {
+    return (
+      (inner.start.line > outer.start.line || (inner.start.line == outer.start.line && inner.start.character >= outer.start.character)) &&
+      (inner.end.line < outer.end.line || (inner.end.line == outer.end.line && inner.end.character <= outer.end.character))
     );
   }
 }
