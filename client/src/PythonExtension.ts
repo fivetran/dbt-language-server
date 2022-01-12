@@ -14,7 +14,7 @@ export class PythonExtension {
 
     const details = extension.exports.settings.getExecutionDetails(workspaceFolder?.uri);
 
-    const [path] = details;
+    const [path] = details.execCommand;
 
     console.log(`Python path used: ${path}`);
     return path;
