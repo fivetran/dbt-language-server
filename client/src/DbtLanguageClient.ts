@@ -1,4 +1,4 @@
-import { Disposable, OutputChannel, Uri, workspace, WorkspaceFolder } from 'vscode';
+import { Disposable, OutputChannel, Uri, window, workspace, WorkspaceFolder } from 'vscode';
 import { LanguageClient, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { SUPPORTED_LANG_IDS } from './ExtensionClient';
 import { ProgressHandler } from './ProgressHandler';
@@ -62,7 +62,7 @@ export class DbtLanguageClient implements Disposable {
             try {
               return await new PythonExtension().getPython(this.workspaceFolder);
             } catch (err) {
-              console.log(`Error while getting python: ${JSON.stringify(err)}`);
+              await window.showErrorMessage(`Error while getting python: ${JSON.stringify(err)}`);
               return 'python3';
             }
           }),
