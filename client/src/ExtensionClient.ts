@@ -155,15 +155,16 @@ export class ExtensionClient {
 
     const outerWorkspace = this.workspaceHelper.getOuterMostWorkspaceFolder(folder);
 
+    let currentUri = uri;
     do {
-      uri = Uri.joinPath(uri, '..');
+      currentUri = Uri.joinPath(currentUri, '..');
       try {
-        await workspace.fs.stat(uri.with({ path: uri.path + '/dbt_project.yml' }));
-        return uri;
+        await workspace.fs.stat(currentUri.with({ path: `${currentUri.path}/dbt_project.yml` }));
+        return currentUri;
       } catch (e) {
         // file does not exist
       }
-    } while (uri.path !== outerWorkspace.uri.path);
+    } while (currentUri.path !== outerWorkspace.uri.path);
     return undefined;
   }
 

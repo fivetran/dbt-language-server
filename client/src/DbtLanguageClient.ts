@@ -1,4 +1,4 @@
-import { Disposable, OutputChannel, Uri, workspace, WorkspaceFolder } from 'vscode';
+import { Disposable, OutputChannel, Uri, window, workspace, WorkspaceFolder } from 'vscode';
 import { LanguageClient, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { SUPPORTED_LANG_IDS } from './ExtensionClient';
 import { ProgressHandler } from './ProgressHandler';
@@ -26,8 +26,8 @@ export class DbtLanguageClient implements Disposable {
   ) {
     const debugOptions = { execArgv: ['--nolazy', `--inspect=${port}`] };
     const serverOptions = {
-      run: { module: module, transport: TransportKind.ipc },
-      debug: { module: module, transport: TransportKind.ipc, options: debugOptions },
+      run: { module, transport: TransportKind.ipc },
+      debug: { module, transport: TransportKind.ipc, options: debugOptions },
     };
 
     const clientOptions = {
@@ -35,7 +35,7 @@ export class DbtLanguageClient implements Disposable {
       synchronize: {
         fileEvents: [workspace.createFileSystemWatcher('**/dbt_project.yml'), workspace.createFileSystemWatcher('**/manifest.json')],
       },
-      outputChannel: outputChannel,
+      outputChannel,
       workspaceFolder: <WorkspaceFolder>{ uri: dbtProjectUri },
     };
 
@@ -59,7 +59,12 @@ export class DbtLanguageClient implements Disposable {
           }),
 
           this.client.onRequest('custom/getPython', async () => {
-            return await new PythonExtension().getPython(this.workspaceFolder);
+            try {
+              return await new PythonExtension().getPython(this.workspaceFolder);
+            } catch (err) {
+              await window.showErrorMessage(`Error while getting python: ${JSON.stringify(err)}`);
+              return 'python3';
+            }
           }),
 
           await this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),

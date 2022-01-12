@@ -45,7 +45,7 @@ export class ModelCompiler {
 
   startNewTask(): void {
     const index = this.documentUri.indexOf(this.workspaceFolder);
-    if (index == -1) {
+    if (index === -1) {
       console.log('Opened file is not a part of project workspace. Compile request declined.');
       return;
     }
@@ -68,7 +68,7 @@ export class ModelCompiler {
     this.pollIsRunning = true;
 
     while (this.dbtCompileTaskQueue.length > 0) {
-      const length = this.dbtCompileTaskQueue.length;
+      const { length } = this.dbtCompileTaskQueue;
 
       for (let i = length - 1; i >= 0; i--) {
         const task = this.dbtCompileTaskQueue[i];
@@ -109,6 +109,8 @@ export class ModelCompiler {
   }
 
   wait(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise(resolve => {
+      setTimeout(resolve, ms);
+    });
   }
 }

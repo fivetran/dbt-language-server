@@ -1,4 +1,4 @@
-import { shouldPassValidProfile, BQ_OAUTH, BIG_QUERY_CONFIG } from '../helper';
+import { BIG_QUERY_CONFIG, BQ_OAUTH, shouldPassValidProfile } from '../helper';
 
 describe('OAuth profile', () => {
   it('Should pass valid profile', async () => {

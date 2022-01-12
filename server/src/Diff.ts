@@ -30,14 +30,12 @@ export class Diff {
         } else {
           currentNumber += diffCount;
         }
+      } else if (newNumber < currentNumber + diffCount) {
+        oldNumber += newNumber - currentNumber;
+        currentNumber = newNumber;
       } else {
-        if (newNumber < currentNumber + diffCount) {
-          oldNumber += newNumber - currentNumber;
-          currentNumber = newNumber;
-        } else {
-          oldNumber += diffCount;
-          currentNumber += diffCount;
-        }
+        oldNumber += diffCount;
+        currentNumber += diffCount;
       }
 
       if (currentNumber >= newNumber) {

@@ -85,8 +85,7 @@ describe('Diff', () => {
 
   function shouldReturnCorrespondingCharacterFor(oldLine: string, newLine: string, params: number[][]): void {
     for (const param of params) {
-      const newCharacter = param[0];
-      const expectedOldCharacter = param[1];
+      const [newCharacter, expectedOldCharacter] = param;
       shouldReturnCorrespondingCharacterForOldText(oldLine, newLine, newCharacter, expectedOldCharacter);
     }
   }
@@ -107,7 +106,7 @@ describe('Diff', () => {
 
   function shouldReturnCorrespondingLineNumberForOldText(fileName: string, newLineNumber: number, expectedOldLineNumber: number): void {
     // arrange
-    const filesRootPath = __dirname + '/../../src/test/diff/';
+    const filesRootPath = `${__dirname}/../../src/test/diff/`;
     const raw = fs.readFileSync(`${filesRootPath}raw/${fileName}.sql`, 'utf8');
     const compiled = fs.readFileSync(`${filesRootPath}compiled/${fileName}.sql`, 'utf8');
 

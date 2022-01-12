@@ -63,7 +63,9 @@ export function getDiagnostics(uri: vscode.Uri): vscode.Diagnostic[] {
 }
 
 export function sleep(ms: number): Promise<unknown> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
 }
 
 export const getDocPath = (p: string): string => {

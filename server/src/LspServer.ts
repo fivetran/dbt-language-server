@@ -66,7 +66,7 @@ export class LspServer {
   }
 
   async onInitialize(params: InitializeParams): Promise<InitializeResult<any> | ResponseError<InitializeError>> {
-    console.log('Starting server for folder ' + process.cwd());
+    console.log(`Starting server for folder ${process.cwd()}`);
 
     process.on('SIGTERM', this.onShutdown);
     process.on('SIGINT', this.onShutdown);
@@ -87,7 +87,7 @@ export class LspServer {
 
     this.initializeNotifications();
 
-    const capabilities = params.capabilities;
+    const { capabilities } = params;
     // Does the client support the `workspace/configuration` request?
     // If not, we fall back using global settings.
     this.hasConfigurationCapability = !!(capabilities.workspace && !!capabilities.workspace.configuration);
@@ -141,8 +141,8 @@ export class LspServer {
   }
 
   sendTelemetry(name: string, properties?: { [key: string]: string }): void {
-    console.log('Telemetry log: ' + JSON.stringify(properties));
-    this.connection.sendNotification(TelemetryEventNotification.type, <TelemetryEvent>{ name: name, properties: properties });
+    console.log(`Telemetry log: ${JSON.stringify(properties)}`);
+    this.connection.sendNotification(TelemetryEventNotification.type, <TelemetryEvent>{ name, properties });
   }
 
   async startDbtRpc(command: Command, port: number): Promise<void> {
@@ -194,7 +194,7 @@ export class LspServer {
   }
 
   async onDidOpenTextDocument(params: DidOpenTextDocumentParams): Promise<void> {
-    const uri = params.textDocument.uri;
+    const { uri } = params.textDocument;
     let document = this.openedDocuments.get(uri);
 
     if (this.workspaceFolder === undefined) {

@@ -1,8 +1,8 @@
-import { DbtProfile } from '../DbtProfile';
-import { DbtDestinationClient } from '../DbtDestinationClient';
-import { BigQueryClient } from './BigQueryClient';
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
+import { DbtDestinationClient } from '../DbtDestinationClient';
+import { DbtProfile } from '../DbtProfile';
 import { ProcessExecutor } from '../ProcessExecutor';
+import { BigQueryClient } from './BigQueryClient';
 
 export class OAuthProfile implements DbtProfile {
   static readonly BQ_OAUTH_DOCS =
@@ -21,7 +21,7 @@ export class OAuthProfile implements DbtProfile {
   }
 
   validateProfile(targetConfig: any): string | undefined {
-    const project = targetConfig.project;
+    const { project } = targetConfig;
     if (!project) {
       return 'project';
     }
@@ -30,7 +30,7 @@ export class OAuthProfile implements DbtProfile {
   }
 
   async createClient(profile: any): Promise<DbtDestinationClient | string> {
-    const project = profile.project;
+    const { project } = profile;
     const options: BigQueryOptions = {
       projectId: project,
     };
@@ -39,8 +39,8 @@ export class OAuthProfile implements DbtProfile {
 
     const credentialsResult = await this.checkDefaultCredentials(bigQueryClient);
     if (!credentialsResult) {
-      const testResult = await bigQueryClient.test();
-      if (!testResult) {
+      const firstTestResult = await bigQueryClient.test();
+      if (!firstTestResult) {
         return bigQueryClient;
       }
     }
@@ -50,9 +50,9 @@ export class OAuthProfile implements DbtProfile {
       return authenticateResult;
     }
 
-    const testResult = await bigQueryClient.test();
-    if (testResult) {
-      return testResult;
+    const secondTestResult = await bigQueryClient.test();
+    if (secondTestResult) {
+      return secondTestResult;
     }
 
     return bigQueryClient;

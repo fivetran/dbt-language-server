@@ -37,7 +37,7 @@ export async function shouldRequireProfileField(profiles: any, profile: DbtProfi
 }
 
 export async function shouldPassValidProfile(config: string, profileName: string): Promise<void> {
-  //arrange
+  // arrange
   const mockYamlParser = mock(YamlParser);
   when(mockYamlParser.findProfileName()).thenReturn(profileName);
   const yamlParser = instance(mockYamlParser);
@@ -45,13 +45,15 @@ export async function shouldPassValidProfile(config: string, profileName: string
 
   const profileCreator = new DbtProfileCreator(yamlParser);
 
-  //act
+  // act
   const profile = await profileCreator.createDbtProfile();
 
-  //assert
+  // assert
   assert.strictEqual('error' in profile, false);
 }
 
 export function sleep(ms: number): Promise<unknown> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
 }

@@ -1,14 +1,14 @@
-import { DbtDestinationClient } from '../DbtDestinationClient';
 import { BigQuery, DatasetsResponse } from '@google-cloud/bigquery';
+import { DbtDestinationClient } from '../DbtDestinationClient';
 
 export class BigQueryClient implements DbtDestinationClient {
   static readonly BQ_TEST_CLIENT_DATASETS_LIMIT = 1;
 
-  _project: string;
+  project: string;
   bigQuery: BigQuery;
 
   constructor(project: string, bigQuery: BigQuery) {
-    this._project = project;
+    this.project = project;
     this.bigQuery = bigQuery;
   }
 
@@ -24,12 +24,8 @@ export class BigQueryClient implements DbtDestinationClient {
     return undefined;
   }
 
-  get project(): string {
-    return this._project;
-  }
-
   async getDatasets(maxResults?: number): Promise<DatasetsResponse> {
-    return await this.bigQuery.getDatasets({ maxResults });
+    return this.bigQuery.getDatasets({ maxResults });
   }
 
   async getTableSchema(dataSet: string, tableName: string): Promise<any> {
@@ -40,6 +36,7 @@ export class BigQueryClient implements DbtDestinationClient {
       return metadata[0].schema;
     } catch (e: any) {
       console.log(e.message);
+      return undefined;
     }
   }
 }

@@ -1,8 +1,8 @@
-import { DbtProfile } from '../DbtProfile';
-import { DbtDestinationClient } from '../DbtDestinationClient';
-import { BigQueryClient } from './BigQueryClient';
 import { BigQuery } from '@google-cloud/bigquery';
 import { UserRefreshClient } from 'google-auth-library';
+import { DbtDestinationClient } from '../DbtDestinationClient';
+import { DbtProfile } from '../DbtProfile';
+import { BigQueryClient } from './BigQueryClient';
 
 export class OAuthTokenBasedProfile implements DbtProfile {
   static readonly BQ_OAUTH_TOKEN_BASED_DOCS =
@@ -13,21 +13,20 @@ export class OAuthTokenBasedProfile implements DbtProfile {
   }
 
   validateProfile(targetConfig: any): string | undefined {
-    const project = targetConfig.project;
+    const { project } = targetConfig;
     if (!project) {
       return 'project';
     }
 
-    const token = targetConfig.token;
+    const { token } = targetConfig;
     const refreshToken = targetConfig.refresh_token;
     const clientId = targetConfig.client_id;
     const clientSecret = targetConfig.client_secret;
 
     if (refreshToken || clientId || clientSecret) {
       return this.validateRefreshTokenProfile(refreshToken, clientId, clientSecret);
-    } else {
-      return this.validateTemporaryTokenProfile(token);
     }
+    return this.validateTemporaryTokenProfile(token);
   }
 
   private validateRefreshTokenProfile(
@@ -58,12 +57,12 @@ export class OAuthTokenBasedProfile implements DbtProfile {
   }
 
   async createClient(profile: any): Promise<DbtDestinationClient | string> {
-    const project = profile.project;
-    const token = profile.token;
+    const { project } = profile;
+    const { token } = profile;
     const refreshToken = profile.refresh_token;
     const clientId = profile.client_id;
     const clientSecret = profile.client_secret;
-    const scopes = profile.scopes;
+    const { scopes } = profile;
 
     const bigQuery =
       refreshToken && clientId && clientSecret
@@ -92,9 +91,9 @@ export class OAuthTokenBasedProfile implements DbtProfile {
     });
 
     const refreshClient = new UserRefreshClient({
-      clientId: clientId,
-      clientSecret: clientSecret,
-      refreshToken: refreshToken,
+      clientId,
+      clientSecret,
+      refreshToken,
     });
     bigQuery.authClient.cachedCredential = refreshClient;
 

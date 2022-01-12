@@ -8,7 +8,7 @@ export class TableDefinition {
     if (name.length === 1 && name[0].indexOf('.') > 0) {
       // for query with: inner join `singular-vector-135519.pg_public.test_table`
       this.name = name[0].split('.');
-      this.rawName = name[0];
+      [this.rawName] = name;
     } else {
       this.name = name;
     }

@@ -1,7 +1,7 @@
-import { DbtProfile } from '../DbtProfile';
-import { DbtDestinationClient } from '../DbtDestinationClient';
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 import { ExternalAccountClientOptions } from 'google-auth-library';
+import { DbtDestinationClient } from '../DbtDestinationClient';
+import { DbtProfile } from '../DbtProfile';
 import { BigQueryClient } from './BigQueryClient';
 
 export class ServiceAccountJsonProfile implements DbtProfile {
@@ -13,7 +13,7 @@ export class ServiceAccountJsonProfile implements DbtProfile {
   }
 
   validateProfile(targetConfig: any): string | undefined {
-    const project = targetConfig.project;
+    const { project } = targetConfig;
     if (!project) {
       return 'project';
     }
@@ -27,7 +27,7 @@ export class ServiceAccountJsonProfile implements DbtProfile {
   }
 
   async createClient(profile: any): Promise<DbtDestinationClient | string> {
-    const project = profile.project;
+    const { project } = profile;
     const keyFileJson = JSON.stringify(profile.keyfile_json);
 
     const content = <ExternalAccountClientOptions>JSON.parse(keyFileJson);

@@ -7,7 +7,7 @@ import { JinjaParser } from '../JinjaParser';
 describe('JinjaParser', () => {
   function shouldFindAllJinjas(fileName: string, ranges: Range[]): void {
     // arrange
-    const doc = TextDocument.create('uri', 'id', 1, fs.readFileSync(__dirname + `/../../src/test/sql_files/${fileName}.sql`, 'utf8'));
+    const doc = TextDocument.create('uri', 'id', 1, fs.readFileSync(`${__dirname}/../../src/test/sql_files/${fileName}.sql`, 'utf8'));
 
     // act
     const jinjas = new JinjaParser().findAllJinjas(doc);

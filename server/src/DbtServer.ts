@@ -44,9 +44,11 @@ interface Response {
   };
 }
 
+type State = 'ready' | 'compiling' | 'error';
+
 export interface StatusResponse extends Response {
   result: {
-    state: 'ready' | 'compiling' | 'error';
+    state: State;
     pid: number;
     error?: {
       message: string;
@@ -116,11 +118,11 @@ export class DbtServer {
       });
 
       promiseWithChid.catch(e => {
-        console.log('dbt rpc command failed: ' + e);
+        console.log(`dbt rpc command failed: ${JSON.stringify(e)}`);
         this.startDeferred.reject(e.stdout);
       });
 
-      return this.startDeferred.promise;
+      await this.startDeferred.promise;
     } catch (e) {
       this.startDeferred.reject(e);
     }
@@ -141,6 +143,9 @@ export class DbtServer {
             case 'error':
               clearInterval(intervalId);
               reject(status.result.error);
+              break;
+            default:
+              console.log('State is not supported');
               break;
           }
         }
@@ -169,7 +174,7 @@ export class DbtServer {
       },
     };
 
-    return await this.makePostRequest<StatusResponse>(data);
+    return this.makePostRequest<StatusResponse>(data);
   }
 
   async compileModel(modelName: string): Promise<CompileResponse | undefined> {
@@ -182,7 +187,7 @@ export class DbtServer {
       },
     };
 
-    return await this.makePostRequest<CompileResponse>(data);
+    return this.makePostRequest<CompileResponse>(data);
   }
 
   async compileSql(sql: string): Promise<CompileResponse> {
@@ -222,7 +227,7 @@ export class DbtServer {
       },
     };
 
-    return await this.makePostRequest<PollResponse>(data);
+    return this.makePostRequest<PollResponse>(data);
   }
 
   async kill(requestToken: string): Promise<void> {
@@ -248,7 +253,7 @@ export class DbtServer {
         const message = data?.error?.data?.message;
         if (message && message.includes('invalid_grant')) {
           console.warn('Reauth required for dbt!');
-          return;
+          return undefined;
         }
       }
       return data;

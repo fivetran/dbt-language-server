@@ -115,21 +115,21 @@ export class ZetaSqlAst {
         resolvedStatementNode,
         (node: any, nodeName?: string) => {
           if (nodeName === NODE.resolvedQueryStmtNode) {
-            const typedNode = <ResolvedQueryStmtProto>node;
-            result.outputColumn = typedNode.outputColumnList?.find(c => c.name === text);
-            if (!result.outputColumn && typedNode.outputColumnList?.find(c => c.column?.tableName === text)) {
+            const queryStmtNode = <ResolvedQueryStmtProto>node;
+            result.outputColumn = queryStmtNode.outputColumnList?.find(c => c.name === text);
+            if (!result.outputColumn && queryStmtNode.outputColumnList?.find(c => c.column?.tableName === text)) {
               result.tableName = text;
             }
           }
           if (nodeName === NODE.resolvedTableScanNode) {
-            const typedNode = <ResolvedTableScanProto>node;
-            if (typedNode.table?.fullName === text || typedNode.table?.name === text) {
-              result.tableName = typedNode.table?.fullName ?? typedNode.table?.name;
+            const tableScanNode = <ResolvedTableScanProto>node;
+            if (tableScanNode.table?.fullName === text || tableScanNode.table?.name === text) {
+              result.tableName = tableScanNode.table?.fullName ?? tableScanNode.table?.name;
             }
           }
           if (nodeName === NODE.resolvedFunctionCallNode) {
-            const typedNode = <ResolvedFunctionCallProto>node;
-            if (typedNode.parent?.function?.name === 'ZetaSQL:' + text) {
+            const functionCallNode = <ResolvedFunctionCallProto>node;
+            if (functionCallNode.parent?.function?.name === `ZetaSQL:${text}`) {
               result.function = true;
             }
           }
@@ -156,15 +156,15 @@ export class ZetaSqlAst {
           if (nodeName !== NODE.resolvedTableScanNode) {
             const parseLocationRange = this.getParseLocationRange(node);
             if (parseLocationRange) {
-              parentNodes.push({ name: nodeName, parseLocationRange: parseLocationRange, value: node });
+              parentNodes.push({ name: nodeName, parseLocationRange, value: node });
             }
           }
 
           if (nodeName === NODE.resolvedTableScanNode) {
             const typedNode = <ResolvedTableScanProto>node;
-            const resolvedTables = completionInfo.resolvedTables;
+            const { resolvedTables } = completionInfo;
             if (typedNode.table && typedNode.table.fullName) {
-              const fullName = typedNode.table.fullName;
+              const { fullName } = typedNode.table;
               if (!resolvedTables.get(fullName)) {
                 resolvedTables.set(fullName, []);
                 typedNode.parent?.columnList?.forEach(column => {
@@ -196,13 +196,13 @@ export class ZetaSqlAst {
                 }
                 parentNode.activeTableLocationRanges.push(parseLocationRange);
                 if (offset < parseLocationRange?.start || parseLocationRange.end < offset) {
-                  const typedNode = <ResolvedTableScanProto>node;
+                  const tableScanNode = <ResolvedTableScanProto>node;
                   const tables = <Map<string, ActiveTableInfo>>parentNode.activeTables;
-                  const tableName = typedNode.table?.name;
-                  if (tableName && !tables.has(tableName) && typedNode.parent?.columnList) {
+                  const tableName = tableScanNode.table?.name;
+                  if (tableName && !tables.has(tableName) && tableScanNode.parent?.columnList) {
                     tables.set(tableName, {
-                      alias: typedNode.alias || undefined, // for some tables alias is '' in ast
-                      columns: typedNode.parent.columnList.map(
+                      alias: tableScanNode.alias || undefined, // for some tables alias is '' in ast
+                      columns: tableScanNode.parent.columnList.map(
                         c =>
                           <ResolvedColumn>{
                             name: c.name,
@@ -218,10 +218,10 @@ export class ZetaSqlAst {
               parseLocationRange?.start === parentNode.parseLocationRange.start &&
               parseLocationRange?.end === parentNode.parseLocationRange.end
             ) {
-              const node = parentNodes.pop();
-              if (node.activeTableLocationRanges?.length > 0) {
-                completionInfo.activeTableLocationRanges = node.activeTableLocationRanges;
-                completionInfo.activeTables = node.activeTables;
+              const n = parentNodes.pop();
+              if (n.activeTableLocationRanges?.length > 0) {
+                completionInfo.activeTableLocationRanges = n.activeTableLocationRanges;
+                completionInfo.activeTables = n.activeTables;
               }
             }
           }
@@ -236,12 +236,12 @@ export class ZetaSqlAst {
   }
 
   getParseLocationRange(node: any): ParseLocationRangeProto__Output | undefined {
-    let parent = node.parent;
+    let { parent } = node;
     while (parent) {
       if (this.isParseLocationRangeExist(parent.parseLocationRange)) {
         return <ParseLocationRangeProto__Output>parent.parseLocationRange;
       }
-      parent = parent.parent;
+      ({ parent } = parent);
     }
     return undefined;
   }

@@ -156,7 +156,7 @@ export class DbtTextDocument {
 
   async sendDiagnostics(dbtCompilationError?: string): Promise<void> {
     if (dbtCompilationError) {
-      const diagnostics: Diagnostic[] = [
+      const dbtDiagnostics: Diagnostic[] = [
         {
           severity: DiagnosticSeverity.Error,
           range: Range.create(0, 0, 0, 0),
@@ -164,7 +164,7 @@ export class DbtTextDocument {
         },
       ];
 
-      this.connection.sendDiagnostics({ uri: this.getRawDocUri(), diagnostics });
+      this.connection.sendDiagnostics({ uri: this.getRawDocUri(), diagnostics: dbtDiagnostics });
       return;
     }
 
@@ -179,7 +179,7 @@ export class DbtTextDocument {
       },
     };
 
-    const diagnostics: Diagnostic[] = [];
+    const sqlDiagnostics: Diagnostic[] = [];
     try {
       this.ast = await ZetaSQLClient.getInstance().analyze(analyzeRequest);
       console.log('AST was successfully received');
@@ -196,13 +196,13 @@ export class DbtTextDocument {
 
         const diagnostic: Diagnostic = {
           severity: DiagnosticSeverity.Error,
-          range: range,
+          range,
           message: matchResults[1],
         };
-        diagnostics.push(diagnostic);
+        sqlDiagnostics.push(diagnostic);
       }
     }
-    this.connection.sendDiagnostics({ uri: this.getRawDocUri(), diagnostics });
+    this.connection.sendDiagnostics({ uri: this.getRawDocUri(), diagnostics: sqlDiagnostics });
   }
 
   async ensureCatalogInitialized(): Promise<void> {
@@ -258,7 +258,7 @@ export class DbtTextDocument {
       );
     }
     if (['(', '"', "'"].includes(completionParams.context?.triggerCharacter ?? '')) {
-      return;
+      return undefined;
     }
 
     let completionInfo = undefined;
