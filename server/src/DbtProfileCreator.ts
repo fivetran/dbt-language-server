@@ -92,9 +92,9 @@ export class DbtProfileCreator {
     const dbtProfile = profileBuilder();
 
     const result = dbtProfile.validateProfile(targetConfig);
-    if (result !== undefined) {
+    if (result.err) {
       const docsUrl = dbtProfile.getDocsUrl();
-      return this.cantFindSectionError(profileName, result, docsUrl);
+      return this.cantFindSectionError(profileName, result.val, docsUrl);
     }
 
     return Ok({
@@ -104,12 +104,7 @@ export class DbtProfileCreator {
   }
 
   async createDbtClient(dbtProfile: DbtProfile, targetConfig: any): Promise<Result<DbtDestinationClient, string>> {
-    const client = await dbtProfile.createClient(targetConfig);
-    if (typeof client == 'string') {
-      return Err(client as string);
-    }
-
-    return Ok(client as DbtDestinationClient);
+    return await dbtProfile.createClient(targetConfig);
   }
 
   cantFindSectionError(profileName: string, section: string, docsUrl?: string): Result<any, string> {

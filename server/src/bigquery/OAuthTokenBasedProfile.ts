@@ -1,3 +1,4 @@
+import { Ok, Err, Result } from 'ts-results';
 import { DbtProfile } from '../DbtProfile';
 import { DbtDestinationClient } from '../DbtDestinationClient';
 import { BigQueryClient } from './BigQueryClient';
@@ -12,10 +13,10 @@ export class OAuthTokenBasedProfile implements DbtProfile {
     return OAuthTokenBasedProfile.BQ_OAUTH_TOKEN_BASED_DOCS;
   }
 
-  validateProfile(targetConfig: any): string | undefined {
+  validateProfile(targetConfig: any): Result<void, string> {
     const project = targetConfig.project;
     if (!project) {
-      return 'project';
+      return Err('project');
     }
 
     const token = targetConfig.token;
@@ -34,30 +35,30 @@ export class OAuthTokenBasedProfile implements DbtProfile {
     refreshToken: string | undefined,
     clientId: string | undefined,
     clientSecret: string | undefined,
-  ): string | undefined {
+  ): Result<void, string> {
     if (!refreshToken) {
-      return 'refresh_token';
+      return Err('refresh_token');
     }
 
     if (!clientId) {
-      return 'client_id';
+      return Err('client_id');
     }
 
     if (!clientSecret) {
-      return 'client_secret';
+      return Err('client_secret');
     }
 
-    return undefined;
+    return Ok.EMPTY;
   }
 
-  private validateTemporaryTokenProfile(token: string | undefined): string | undefined {
+  private validateTemporaryTokenProfile(token: string | undefined): Result<void, string> {
     if (!token) {
-      return 'token';
+      return Err('token');
     }
-    return undefined;
+    return Ok.EMPTY;
   }
 
-  async createClient(profile: any): Promise<DbtDestinationClient | string> {
+  async createClient(profile: any): Promise<Result<DbtDestinationClient, string>> {
     const project = profile.project;
     const token = profile.token;
     const refreshToken = profile.refresh_token;
@@ -73,10 +74,10 @@ export class OAuthTokenBasedProfile implements DbtProfile {
 
     const testResult = await client.test();
     if (testResult.err) {
-      return testResult.val;
+      return Err(testResult.val);
     }
 
-    return client;
+    return Ok(client);
   }
 
   private createRefreshTokenBigQueryClient(

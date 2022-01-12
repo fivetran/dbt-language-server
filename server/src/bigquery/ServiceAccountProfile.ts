@@ -1,3 +1,4 @@
+import { Ok, Err, Result } from 'ts-results';
 import { DbtProfile } from '../DbtProfile';
 import { DbtDestinationClient } from '../DbtDestinationClient';
 import { YamlParserUtils } from '../YamlParserUtils';
@@ -12,21 +13,21 @@ export class ServiceAccountProfile implements DbtProfile {
     return ServiceAccountProfile.BQ_SERVICE_ACCOUNT_FILE_DOCS;
   }
 
-  validateProfile(targetConfig: any): string | undefined {
+  validateProfile(targetConfig: any): Result<void, string> {
     const project = targetConfig.project;
     if (!project) {
-      return 'project';
+      return Err('project');
     }
 
     const keyFilePath = targetConfig.keyfile;
     if (!keyFilePath) {
-      return 'keyfile';
+      return Err('keyfile');
     }
 
-    return undefined;
+    return Ok.EMPTY;
   }
 
-  async createClient(profile: any): Promise<DbtDestinationClient | string> {
+  async createClient(profile: any): Promise<Result<DbtDestinationClient, string>> {
     const project = profile.project;
     const keyFilePath = YamlParserUtils.replaceTilde(profile.keyfile);
 
@@ -39,9 +40,9 @@ export class ServiceAccountProfile implements DbtProfile {
 
     const testResult = await client.test();
     if (testResult.err) {
-      return testResult.val;
+      return Err(testResult.val);
     }
 
-    return client;
+    return Ok(client);
   }
 }

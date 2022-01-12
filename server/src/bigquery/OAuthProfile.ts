@@ -1,3 +1,4 @@
+import { Ok, Err, Result } from 'ts-results';
 import { DbtProfile } from '../DbtProfile';
 import { DbtDestinationClient } from '../DbtDestinationClient';
 import { BigQueryClient } from './BigQueryClient';
@@ -20,16 +21,15 @@ export class OAuthProfile implements DbtProfile {
     return OAuthProfile.BQ_OAUTH_DOCS;
   }
 
-  validateProfile(targetConfig: any): string | undefined {
+  validateProfile(targetConfig: any): Result<void, string> {
     const project = targetConfig.project;
     if (!project) {
-      return 'project';
+      return Err('project');
     }
-
-    return undefined;
+    return Ok.EMPTY;
   }
 
-  async createClient(profile: any): Promise<DbtDestinationClient | string> {
+  async createClient(profile: any): Promise<Result<DbtDestinationClient, string>> {
     const project = profile.project;
     const options: BigQueryOptions = {
       projectId: project,
@@ -41,21 +41,21 @@ export class OAuthProfile implements DbtProfile {
     if (!credentialsResult) {
       const testResult = await bigQueryClient.test();
       if (testResult.ok) {
-        return bigQueryClient;
+        return Ok(bigQueryClient);
       }
     }
 
     const authenticateResult = await this.authenticate();
     if (authenticateResult) {
-      return authenticateResult;
+      return Err(authenticateResult);
     }
 
     const testResult = await bigQueryClient.test();
     if (testResult.err) {
-      return testResult.val;
+      return Err(testResult.val);
     }
 
-    return bigQueryClient;
+    return Ok(bigQueryClient);
   }
 
   private async checkDefaultCredentials(bigQueryClient: BigQueryClient): Promise<string | undefined> {
