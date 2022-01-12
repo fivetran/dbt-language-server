@@ -1,3 +1,4 @@
+import { Ok, Err, Result } from 'ts-results';
 import { DbtDestinationClient } from '../DbtDestinationClient';
 import { BigQuery, DatasetsResponse } from '@google-cloud/bigquery';
 
@@ -12,16 +13,16 @@ export class BigQueryClient implements DbtDestinationClient {
     this.bigQuery = bigQuery;
   }
 
-  async test(): Promise<string | undefined> {
+  async test(): Promise<Result<void, string>> {
     try {
       await this.getDatasets(BigQueryClient.BQ_TEST_CLIENT_DATASETS_LIMIT);
     } catch (e: any) {
       const message = `Test connection failed. Reason: ${e.message}.`;
       console.log(message);
-      return message;
+      return Err(message);
     }
 
-    return undefined;
+    return Ok.EMPTY;
   }
 
   get project(): string {
