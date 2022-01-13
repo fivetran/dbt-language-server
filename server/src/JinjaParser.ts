@@ -54,14 +54,15 @@ export class JinjaParser {
 
     for (const jinjaExpression of jinjaExpressions) {
       const blockMatch = jinjaExpression.expression.match(JinjaParser.JINJA_BLOCK_PATTERN);
-      if (blockMatch && blockMatch[1] && JinjaParser.JINJA_BLOCKS.some(b => b[0] === blockMatch[1] || b[1] === blockMatch[1])) {
+
+      if (blockMatch && blockMatch[1] && JinjaParser.JINJA_BLOCKS.some(b => b[0] === blockMatch[1])) {
         jinjaBlocks.push({
           expression: blockMatch[1],
           range: jinjaExpression.range,
         });
       }
 
-      if (blockMatch && blockMatch[2] && JinjaParser.JINJA_BLOCKS.some(b => b[0] === blockMatch[2] || b[1] === blockMatch[2])) {
+      if (blockMatch && blockMatch[2] && JinjaParser.JINJA_BLOCKS.some(b => b[1] === blockMatch[2])) {
         jinjaBlocks.push({
           expression: blockMatch[2],
           range: jinjaExpression.range,
