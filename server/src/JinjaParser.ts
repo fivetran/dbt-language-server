@@ -17,7 +17,7 @@ export class JinjaParser {
     ['macro', 'endmacro'],
   ];
 
-  findAllJinjaRanges(rawDocument: TextDocument): Range[] | undefined {
+  findAllJinjaRanges(rawDocument: TextDocument): Range[] {
     const jinjaExpressions = this.findAllJinjaExpressions(rawDocument);
     const jinjaBlocks = this.findAllJinjaBlocks(jinjaExpressions);
 

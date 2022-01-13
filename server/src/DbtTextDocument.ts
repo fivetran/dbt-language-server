@@ -125,10 +125,6 @@ export class DbtTextDocument {
     }
 
     const jinjas = DbtTextDocument.jinjaParser.findAllJinjaRanges(this.rawDocument);
-    if (!jinjas) {
-      return true;
-    }
-
     if (jinjas.length > 0 && DbtTextDocument.jinjaParser.isJinjaModified(jinjas, changes)) {
       return true;
     }
