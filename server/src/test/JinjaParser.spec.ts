@@ -17,7 +17,7 @@ describe('JinjaParser', () => {
     assert.deepStrictEqual(jinjas, ranges);
   }
 
-  it('findAllJinjas_shouldFindAllJinjas', () => {
+  it('findAllJinjaRanges_shouldFindAllJinjaRanges', () => {
     shouldFindAllJinjaRanges('simple_query', []);
     shouldFindAllJinjaRanges('without_expressions', []);
     shouldFindAllJinjaRanges('one_at_the_beginning', [Range.create(0, 0, 7, 2)]);
