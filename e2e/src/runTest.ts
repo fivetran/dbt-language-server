@@ -63,6 +63,8 @@ async function prepareBigQuery(): Promise<void> {
     { name: 'phone', type: 'STRING' },
     { name: 'profile_id', type: 'STRING' },
   ]);
+
+  await ensureTableExists(bigQuery, dsName, 'table_exists', [{ name: 'id', type: 'INTEGER' }]);
 }
 
 async function ensureTableExists(bigQuery: BigQuery, dsName: string, tableName: string, columns: TableField[]): Promise<void> {

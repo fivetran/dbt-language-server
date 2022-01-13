@@ -11,7 +11,9 @@ const PROJECTS_PATH = path.resolve(__dirname, '../projects');
 const TEST_FIXTURE_PATH = path.resolve(PROJECTS_PATH, 'test-fixture');
 
 vscode.workspace.onDidChangeTextDocument(onDidChangeTextDocument);
-let promiseResolve: () => void;
+
+let previewPromiseResolve: () => void;
+let documentPromiseResolve: () => void;
 
 export async function activateAndWait(docUri: vscode.Uri): Promise<void> {
   // The extensionId is `publisher.name` from package.json
@@ -23,7 +25,7 @@ export async function activateAndWait(docUri: vscode.Uri): Promise<void> {
   const existingEditor = vscode.window.visibleTextEditors.find(e => e.document.uri.path === docUri.path);
   const doNotWaitChanges =
     existingEditor && existingEditor.document.getText() === vscode.window.activeTextEditor?.document.getText() && getPreviewEditor();
-  const activateFinished = doNotWaitChanges ? Promise.resolve() : createPreviewChangesPromise();
+  const activateFinished = doNotWaitChanges ? Promise.resolve() : createChangePromise('preview');
 
   await ext.activate();
   doc = await vscode.workspace.openTextDocument(docUri);
@@ -33,12 +35,25 @@ export async function activateAndWait(docUri: vscode.Uri): Promise<void> {
 }
 
 function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
-  if (e.document.uri.path === 'Preview') {
-    if (e.contentChanges.length === 1 && e.contentChanges[0].text === '') {
-      return;
-    }
-    promiseResolve();
+  if (e.contentChanges.length === 1 && e.contentChanges[0].text === '') {
+    return;
   }
+
+  if (e.document.uri.path === 'Preview' && previewPromiseResolve) {
+    previewPromiseResolve();
+  } else if (e.document === doc && documentPromiseResolve) {
+    documentPromiseResolve();
+  }
+}
+
+export async function waitDocumentModification(func: () => any): Promise<void> {
+  const promise = createChangePromise('document');
+  await func();
+  await promise;
+}
+
+export function getMainEditorText(): string {
+  return doc.getText();
 }
 
 export async function showPreview(): Promise<void> {
@@ -107,14 +122,18 @@ export async function replaceText(oldText: string, newText: string): Promise<voi
 }
 
 async function edit(callback: (editBuilder: TextEditorEdit) => void): Promise<void> {
-  const editFinished = createPreviewChangesPromise();
+  const editFinished = createChangePromise('preview');
   await editor.edit(callback);
   await editFinished;
 }
 
-async function createPreviewChangesPromise(): Promise<void> {
+async function createChangePromise(type: 'preview' | 'document'): Promise<void> {
   return new Promise<void>(resolve => {
-    promiseResolve = resolve;
+    if (type === 'preview') {
+      previewPromiseResolve = resolve;
+    } else if (type === 'document') {
+      documentPromiseResolve = resolve;
+    }
   });
 }
 
