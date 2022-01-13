@@ -124,7 +124,12 @@ export class DbtTextDocument {
       }
     }
 
+    // todo: try / catch => require recompile
     const jinjas = DbtTextDocument.jinjaParser.findAllJinjas(this.rawDocument);
+    if (!jinjas) {
+      return true;
+    }
+
     if (jinjas.length > 0 && DbtTextDocument.jinjaParser.isJinjaModified(jinjas, changes)) {
       return true;
     }
