@@ -13,7 +13,7 @@ describe('JinjaParser', () => {
     const jinjas = new JinjaParser().findAllJinjaRanges(doc);
 
     // assert
-    assert.strictEqual(jinjas.length, ranges.length);
+    assert.strictEqual(jinjas?.length, ranges.length);
     assert.deepStrictEqual(jinjas, ranges);
   }
 
