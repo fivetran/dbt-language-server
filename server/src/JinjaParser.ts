@@ -19,18 +19,19 @@ export class JinjaParser {
 
   findAllJinjaRanges(rawDocument: TextDocument): Range[] {
     const jinjaExpressions = this.findAllJinjaExpressions(rawDocument);
-    const jinjaBlocks = this.findAllJinjaBlocks(jinjaExpressions);
+    const jinjaRanges = jinjaExpressions.map(e => e.range);
 
+    const jinjaBlocks = this.findAllJinjaBlocks(jinjaExpressions);
     if (!jinjaBlocks || jinjaBlocks.length === 0) {
-      return jinjaExpressions.map(e => e.range);
+      return jinjaRanges;
     }
 
     const blockRanges = this.findJinjaBlockRanges(jinjaBlocks);
     if (blockRanges) {
-      return jinjaExpressions.map(e => e.range).concat(blockRanges);
+      return jinjaRanges.concat(blockRanges);
     }
 
-    return jinjaExpressions.map(e => e.range);
+    return jinjaRanges;
   }
 
   findAllJinjaExpressions(rawDocument: TextDocument): ParseNode[] {
