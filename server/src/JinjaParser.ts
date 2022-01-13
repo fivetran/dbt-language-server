@@ -17,12 +17,12 @@ export class JinjaParser {
     ['macro', 'endmacro'],
   ];
 
-  findAllJinjaRanges(rawDocument: TextDocument): Range[] {
+  findAllJinjaRanges(rawDocument: TextDocument): Range[] | undefined {
     const jinjaExpressions = this.findAllJinjaExpressions(rawDocument);
     const jinjaRanges = jinjaExpressions.map(e => e.range);
 
     const jinjaBlocks = this.findAllJinjaBlocks(jinjaExpressions);
-    if (!jinjaBlocks || jinjaBlocks.length === 0) {
+    if (jinjaBlocks.length === 0) {
       return jinjaRanges;
     }
 
@@ -49,7 +49,7 @@ export class JinjaParser {
     return jinjaExpressions;
   }
 
-  findAllJinjaBlocks(jinjaExpressions: ParseNode[]): ParseNode[] | undefined {
+  findAllJinjaBlocks(jinjaExpressions: ParseNode[]): ParseNode[] {
     const jinjaBlocks = [];
 
     for (const jinjaExpression of jinjaExpressions) {
