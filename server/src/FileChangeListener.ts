@@ -36,7 +36,7 @@ export class FileChangeListener {
   }
 
   updateModels(): void {
-    this.completionProvider.setDbtModels(this.manifestParser.getModels(this.resolveTargetPath()));
+    this.completionProvider.setDbtModels(this.manifestParser.parse(this.yamlParser.findTargetPath()).models);
   }
 
   resolveTargetPath(): string {

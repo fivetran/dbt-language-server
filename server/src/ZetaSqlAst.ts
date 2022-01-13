@@ -5,6 +5,7 @@ import { ResolvedFunctionCallProto } from '@fivetrandevelopers/zetasql/lib/types
 import { ResolvedOutputColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedOutputColumnProto';
 import { ResolvedQueryStmtProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedQueryStmtProto';
 import { ResolvedTableScanProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedTableScanProto';
+import { extractDatasetFromFullName } from './Utils';
 
 export class ZetaSqlAst {
   propertyNames = [
@@ -231,15 +232,53 @@ export class ZetaSqlAst {
     return completionInfo;
   }
 
-  isParseLocationRangeExist(parseLocationRange?: ParseLocationRangeProto): boolean {
-    return parseLocationRange?.start !== undefined && parseLocationRange.end !== undefined;
+  getResolvedTables(ast: AnalyzeResponse, text: string): ResolvedTable[] {
+    const result: ResolvedTable[] = [];
+    const resolvedStatementNode = ast.resolvedStatement && ast.resolvedStatement.node ? ast.resolvedStatement[ast.resolvedStatement.node] : undefined;
+    if (resolvedStatementNode) {
+      this.traversal(
+        resolvedStatementNode,
+        (node: any, nodeName?: string) => {
+          if (nodeName === NODE.resolvedTableScanNode) {
+            const typedNode = <ResolvedTableScanProto>node;
+            const name = typedNode.table?.fullName;
+            const parseLocationRange = this.requireParseLocationRange(typedNode.parent?.parent?.parseLocationRange);
+            if (name && parseLocationRange) {
+              try {
+                const dataset = extractDatasetFromFullName(text.substring(parseLocationRange.start, parseLocationRange.end), name);
+                result.push({
+                  schema: dataset,
+                  name,
+                  location: {
+                    start: parseLocationRange.start,
+                    end: parseLocationRange.end,
+                  },
+                });
+              } catch (e) {
+                console.log(e);
+              }
+            }
+          }
+        },
+        ast.resolvedStatement?.node,
+      );
+    }
+    return result;
+  }
+
+  requireParseLocationRange(parseLocationRange?: ParseLocationRangeProto | null): ParseLocationRangeProto__Output | undefined {
+    if (parseLocationRange?.start !== undefined && parseLocationRange.end !== undefined) {
+      return <ParseLocationRangeProto__Output>parseLocationRange;
+    }
+    return undefined;
   }
 
   getParseLocationRange(node: any): ParseLocationRangeProto__Output | undefined {
     let { parent } = node;
     while (parent) {
-      if (this.isParseLocationRangeExist(parent.parseLocationRange)) {
-        return <ParseLocationRangeProto__Output>parent.parseLocationRange;
+      const parseLocationRange = this.requireParseLocationRange(parent.parseLocationRange);
+      if (parseLocationRange) {
+        return parseLocationRange;
       }
       ({ parent } = parent);
     }
@@ -302,7 +341,7 @@ export interface HoverInfo {
 
 export interface CompletionInfo {
   resolvedTables: Map<string, string[]>;
-  activeTableLocationRanges?: ParseLocationRangeProto[];
+  activeTableLocationRanges?: Location[];
   activeTables?: Map<string, ActiveTableInfo>;
 }
 
@@ -314,4 +353,15 @@ export interface ActiveTableInfo {
 export interface ResolvedColumn {
   name: string;
   type?: string;
+}
+
+export interface ResolvedTable {
+  schema: string;
+  name: string;
+  location: Location;
+}
+
+export interface Location {
+  start: number;
+  end: number;
 }

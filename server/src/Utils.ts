@@ -82,3 +82,16 @@ export const deferred = <T>(): DeferredResult<T> => {
 export function randomNumber(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
+
+/**
+ *  @returns extracted dataset from full name
+ *  @throws error otherwise
+ */
+export function extractDatasetFromFullName(fullName: string, tableName: string): string {
+  const zeroOrOneQuote = '`?';
+  const m = fullName.match(new RegExp(`${zeroOrOneQuote}([^.]*?)${zeroOrOneQuote}.${zeroOrOneQuote}${tableName}`));
+  if (m && m.length > 1) {
+    return m[1];
+  }
+  throw new Error("Can't extract dataset");
+}
