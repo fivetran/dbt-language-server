@@ -31,7 +31,7 @@ export class JinjaParser {
       return jinjaRanges.concat(blockRanges);
     }
 
-    return jinjaRanges;
+    return undefined;
   }
 
   findAllJinjaExpressions(rawDocument: TextDocument): ParseNode[] {
