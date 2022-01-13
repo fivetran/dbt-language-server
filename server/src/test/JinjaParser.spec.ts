@@ -10,7 +10,7 @@ describe('JinjaParser', () => {
     const doc = TextDocument.create('uri', 'id', 1, fs.readFileSync(`${__dirname}/../../src/test/sql_files/${fileName}.sql`, 'utf8'));
 
     // act
-    const jinjas = new JinjaParser().findAllJinjas(doc);
+    const jinjas = new JinjaParser().findAllJinjaRanges(doc);
 
     // assert
     assert.strictEqual(jinjas?.length, ranges.length);

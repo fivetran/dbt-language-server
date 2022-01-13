@@ -2,6 +2,11 @@ import { Position, Range, TextDocumentContentChangeEvent } from 'vscode-language
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { comparePositions, rangesOverlap } from './Utils';
 
+interface ParseNode {
+  expression: string;
+  range: Range;
+}
+
 export class JinjaParser {
   static readonly JINJA_PATTERN = /{{[\s\S]*?}}|{%[\s\S]*?%}|{#[\s\S]*?#}/g;
   static readonly JINJA_BLOCK_PATTERN = /{%\s*(docs|if|for|macro)\s+.*%}|{%\s*(enddocs|endif|endfor|endmacro)\s*%}/;
@@ -12,48 +17,74 @@ export class JinjaParser {
     ['macro', 'endmacro'],
   ];
 
-  findAllJinjas(rawDocument: TextDocument): Range[] | undefined {
+  findAllJinjaRanges(rawDocument: TextDocument): Range[] | undefined {
+    const jinjaExpressions = this.findAllJinjaExpressions(rawDocument);
+    const jinjaBlocks = this.findAllJinjaBlocks(jinjaExpressions);
+
+    if (!jinjaBlocks || jinjaBlocks.length === 0) {
+      return jinjaExpressions.map(e => e.range);
+    }
+
+    const blockRanges = this.findJinjaBlockRanges(jinjaBlocks);
+    if (blockRanges) {
+      return jinjaExpressions.map(e => e.range).concat(blockRanges);
+    }
+
+    return jinjaExpressions.map(e => e.range);
+  }
+
+  findAllJinjaExpressions(rawDocument: TextDocument): ParseNode[] {
     const text = rawDocument.getText();
-    const jinjas = [];
-    const blockJinjas = [];
+    const jinjaExpressions = [];
     let m: RegExpExecArray | null;
 
     while ((m = JinjaParser.JINJA_PATTERN.exec(text))) {
-      const jinja = {
-        start: rawDocument.positionAt(m.index),
-        end: rawDocument.positionAt(m.index + m[0].length),
-      };
-      jinjas.push(jinja);
+      jinjaExpressions.push({
+        expression: m[0],
+        range: Range.create(rawDocument.positionAt(m.index), rawDocument.positionAt(m.index + m[0].length)),
+      });
+    }
 
-      const blockMatch = m[0].match(JinjaParser.JINJA_BLOCK_PATTERN);
+    return jinjaExpressions;
+  }
+
+  findAllJinjaBlocks(jinjaExpressions: ParseNode[]): ParseNode[] | undefined {
+    const jinjaBlocks = [];
+
+    for (const jinjaExpression of jinjaExpressions) {
+      const blockMatch = jinjaExpression.expression.match(JinjaParser.JINJA_BLOCK_PATTERN);
       if (blockMatch && blockMatch[1] && JinjaParser.JINJA_BLOCKS.some(b => b[0] === blockMatch[1] || b[1] === blockMatch[1])) {
-        blockJinjas.push({
-          block: blockMatch[1],
-          start: jinja.start,
-          end: jinja.end,
+        jinjaBlocks.push({
+          expression: blockMatch[1],
+          range: jinjaExpression.range,
         });
       }
 
       if (blockMatch && blockMatch[2] && JinjaParser.JINJA_BLOCKS.some(b => b[0] === blockMatch[2] || b[1] === blockMatch[2])) {
-        blockJinjas.push({
-          block: blockMatch[2],
-          start: jinja.start,
-          end: jinja.end,
+        jinjaBlocks.push({
+          expression: blockMatch[2],
+          range: jinjaExpression.range,
         });
       }
     }
 
-    blockJinjas.sort((j1, j2) => comparePositions(j1.start, j2.start));
+    jinjaBlocks.sort((j1, j2) => comparePositions(j1.range.start, j2.range.start));
 
-    const blocksStartPositions = new Map<string, Position[]>();
-    JinjaParser.JINJA_BLOCKS.forEach(b => blocksStartPositions.set(b[0], []));
+    return jinjaBlocks;
+  }
 
-    for (const blockJinja of blockJinjas) {
-      if (JinjaParser.JINJA_BLOCKS.some(b => b[0] === blockJinja.block)) {
-        blocksStartPositions.get(blockJinja.block)?.push(blockJinja.start);
+  findJinjaBlockRanges(blockJinjaExpressions: ParseNode[]): Range[] | undefined {
+    const jinjaBlockRanges = [];
+
+    const startBlocksPositions = new Map<string, Position[]>();
+    JinjaParser.JINJA_BLOCKS.forEach(b => startBlocksPositions.set(b[0], []));
+
+    for (const blockJinja of blockJinjaExpressions) {
+      if (JinjaParser.JINJA_BLOCKS.some(b => b[0] === blockJinja.expression)) {
+        startBlocksPositions.get(blockJinja.expression)?.push(blockJinja.range.start);
       } else {
-        const [[startBlock]] = JinjaParser.JINJA_BLOCKS.filter(b => b[1] === blockJinja.block);
-        const positions = blocksStartPositions.get(startBlock);
+        const [[startBlock]] = JinjaParser.JINJA_BLOCKS.filter(b => b[1] === blockJinja.expression);
+        const positions = startBlocksPositions.get(startBlock);
 
         if (!positions || positions.length === 0) {
           return undefined;
@@ -61,15 +92,20 @@ export class JinjaParser {
 
         const lastStartPosition = positions[positions.length - 1];
         positions.pop();
-        // blocksStartPositions.set(startBlock, );
-        jinjas.push({
+        jinjaBlockRanges.push({
           start: lastStartPosition,
-          end: blockJinja.end,
+          end: blockJinja.range.end,
         });
       }
     }
 
-    return jinjas;
+    for (const [, positions] of startBlocksPositions.entries()) {
+      if (positions.length > 0) {
+        return undefined;
+      }
+    }
+
+    return jinjaBlockRanges;
   }
 
   hasJinjas(text: string): boolean {
