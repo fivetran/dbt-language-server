@@ -5,18 +5,6 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { JinjaParser } from '../JinjaParser';
 
 describe('JinjaParser', () => {
-  function shouldFindAllJinjaRanges(fileName: string, ranges: Range[]): void {
-    // arrange
-    const doc = TextDocument.create('uri', 'id', 1, fs.readFileSync(`${__dirname}/../../src/test/sql_files/${fileName}.sql`, 'utf8'));
-
-    // act
-    const jinjas = new JinjaParser().findAllJinjaRanges(doc);
-
-    // assert
-    assert.strictEqual(jinjas?.length, ranges.length);
-    assert.deepStrictEqual(jinjas, ranges);
-  }
-
   it('findAllJinjaRanges_shouldFindAllJinjaRanges', () => {
     shouldFindAllJinjaRanges('simple_query', []);
     shouldFindAllJinjaRanges('without_expressions', []);
@@ -38,4 +26,28 @@ describe('JinjaParser', () => {
       Range.create(4, 4, 6, 16),
     ]);
   });
+
+  it('Should fail with extra open jinja blocks', () => {
+    shouldFail('extra_if');
+  });
+
+  it('Should fail with extra close jinja blocks', () => {
+    shouldFail('extra_endif');
+  });
+
+  function shouldFindAllJinjaRanges(fileName: string, ranges: Range[]): void {
+    const result = findAllJinjaRangesInFile(fileName);
+    assert.strictEqual(result?.length, ranges.length);
+    assert.deepStrictEqual(result, ranges);
+  }
+
+  function shouldFail(fileName: string): void {
+    const result = findAllJinjaRangesInFile(fileName);
+    assert.strictEqual(result, undefined);
+  }
+
+  function findAllJinjaRangesInFile(fileName: string): Range[] | undefined {
+    const doc = TextDocument.create('uri', 'id', 1, fs.readFileSync(`${__dirname}/../../src/test/sql_files/${fileName}.sql`, 'utf8'));
+    return new JinjaParser().findAllJinjaRanges(doc);
+  }
 });
