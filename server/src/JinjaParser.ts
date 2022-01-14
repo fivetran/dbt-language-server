@@ -88,16 +88,15 @@ export class JinjaParser {
         const [[startBlock]] = JinjaParser.JINJA_BLOCKS.filter(b => b[1] === blockJinja.expression);
         const positions = startBlocksPositions.get(startBlock);
 
-        if (!positions || positions.length === 0) {
+        const lastStartPosition = positions ? positions.pop() : undefined;
+        if (lastStartPosition) {
+          jinjaBlockRanges.push({
+            start: lastStartPosition,
+            end: blockJinja.range.end,
+          });
+        } else {
           return undefined;
         }
-
-        const lastStartPosition = positions[positions.length - 1];
-        positions.pop();
-        jinjaBlockRanges.push({
-          start: lastStartPosition,
-          end: blockJinja.range.end,
-        });
       }
     }
 
