@@ -1,4 +1,4 @@
-import { WorkDoneProgress, WorkDoneProgressBegin, WorkDoneProgressEnd, _Connection } from 'vscode-languageserver';
+import { WorkDoneProgress, _Connection } from 'vscode-languageserver';
 
 export class ProgressReporter {
   static uris = new Set<string>();
@@ -14,8 +14,9 @@ export class ProgressReporter {
     if (uri) {
       ProgressReporter.uris.add(uri);
     }
-    this.connection.sendProgress(WorkDoneProgress.type, ProgressReporter.token, <WorkDoneProgressBegin>{
+    this.connection.sendProgress(WorkDoneProgress.type, ProgressReporter.token, {
       kind: 'begin',
+      title: 'dbt Language Server',
     });
   }
 
@@ -24,7 +25,7 @@ export class ProgressReporter {
       ProgressReporter.uris.delete(uri);
     }
     if (ProgressReporter.uris.size === 0) {
-      this.connection.sendProgress(WorkDoneProgress.type, ProgressReporter.token, <WorkDoneProgressEnd>{ kind: 'end' });
+      this.connection.sendProgress(WorkDoneProgress.type, ProgressReporter.token, { kind: 'end' });
     }
   }
 }

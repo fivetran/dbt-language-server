@@ -247,14 +247,11 @@ export class CompletionProvider {
   onJinjaCompletion(textBeforeCursor: string): CompletionItem[] {
     if (textBeforeCursor.match(CompletionProvider.ENDS_WITH_REF)) {
       const edsWithQoute = textBeforeCursor.match(CompletionProvider.ENDS_WITH_QUOTE);
-      return this.dbtModels.map(
-        m =>
-          <CompletionItem>{
-            label: edsWithQoute ? m.name : `'${m.name}'`,
-            kind: CompletionItemKind.Value,
-            detail: 'Model',
-          },
-      );
+      return this.dbtModels.map<CompletionItem>(m => ({
+        label: edsWithQoute ? m.name : `'${m.name}'`,
+        kind: CompletionItemKind.Value,
+        detail: 'Model',
+      }));
     }
     return [];
   }
@@ -301,29 +298,23 @@ export class CompletionProvider {
   getColumnsForActiveTables(tables: Map<string, ActiveTableInfo>): CompletionItem[] {
     if (tables.size === 1) {
       const [tableInfo] = tables;
-      return tableInfo[1].columns.map(
-        c =>
-          <CompletionItem>{
-            label: c.name,
-            kind: CompletionItemKind.Value,
-            detail: `${tableInfo[0] ?? ''} ${c.type}`,
-            sortText: 1 + c.name,
-          },
-      );
+      return tableInfo[1].columns.map<CompletionItem>(c => ({
+        label: c.name,
+        kind: CompletionItemKind.Value,
+        detail: `${tableInfo[0] ?? ''} ${c.type}`,
+        sortText: 1 + c.name,
+      }));
     }
 
     if (tables.size > 1) {
       return [...tables.entries()].flatMap(e => {
         const [tableName] = e;
-        return e[1].columns.map(
-          column =>
-            <CompletionItem>{
-              label: `${tableName}.${column.name}`,
-              kind: CompletionItemKind.Value,
-              detail: `${column.type}`,
-              sortText: `1${tableName}.${column.name}`,
-            },
-        );
+        return e[1].columns.map<CompletionItem>(column => ({
+          label: `${tableName}.${column.name}`,
+          kind: CompletionItemKind.Value,
+          detail: `${column.type}`,
+          sortText: `1${tableName}.${column.name}`,
+        }));
       });
     }
     return [];
@@ -332,15 +323,12 @@ export class CompletionProvider {
   getColumnsForActiveTable(text: string, tables: Map<string, ActiveTableInfo>): CompletionItem[] {
     for (const [tableName, tableInfo] of tables) {
       if (text === tableName || text === tableInfo.alias) {
-        return tableInfo.columns.map(
-          column =>
-            <CompletionItem>{
-              label: `${column.name}`,
-              kind: CompletionItemKind.Value,
-              detail: `${tableName} ${column.type}`,
-              sortText: `1${column.name}`,
-            },
-        );
+        return tableInfo.columns.map<CompletionItem>(column => ({
+          label: `${column.name}`,
+          kind: CompletionItemKind.Value,
+          detail: `${tableName} ${column.type}`,
+          sortText: `1${column.name}`,
+        }));
       }
     }
     return [];
@@ -350,59 +338,47 @@ export class CompletionProvider {
     const tables = await destinationDefinition.getTables(datasetName);
     return tables
       .filter(t => t.id)
-      .map(
-        t =>
-          <CompletionItem>{
-            label: t.id,
-            kind: CompletionItemKind.Value,
-            detail: `Table in ${destinationDefinition.activeProject}.${datasetName}`,
-          },
-      );
+      .map<CompletionItem>(t => ({
+        label: t.id ?? '',
+        kind: CompletionItemKind.Value,
+        detail: `Table in ${destinationDefinition.activeProject}.${datasetName}`,
+      }));
   }
 
   getDatasets(destinationDefinition: DestinationDefinition): CompletionItem[] {
     return destinationDefinition
       .getDatasets()
       .filter(d => d.id)
-      .map(
-        d =>
-          <CompletionItem>{
-            label: d.id,
-            kind: CompletionItemKind.Value,
-            detail: `Dataset in ${destinationDefinition.activeProject}`,
-            commitCharacters: ['.'],
-          },
-      );
+      .map<CompletionItem>(d => ({
+        label: d.id ?? '',
+        kind: CompletionItemKind.Value,
+        detail: `Dataset in ${destinationDefinition.activeProject}`,
+        commitCharacters: ['.'],
+      }));
   }
 
   getKeywords(): CompletionItem[] {
-    return CompletionProvider.BQ_KEYWORDS.map(
-      k =>
-        <CompletionItem>{
-          label: k,
-          kind: CompletionItemKind.Keyword,
-          detail: '',
-        },
-    );
+    return CompletionProvider.BQ_KEYWORDS.map<CompletionItem>(k => ({
+      label: k,
+      kind: CompletionItemKind.Keyword,
+      detail: '',
+    }));
   }
 
   getFunctions(): CompletionItem[] {
-    return HelpProviderWords.map(
-      w =>
-        <CompletionItem>{
-          label: w.name,
-          kind: CompletionItemKind.Function,
-          detail: w.sinatures[0].signature,
-          documentation: w.sinatures[0].description,
-        },
-    );
+    return HelpProviderWords.map<CompletionItem>(w => ({
+      label: w.name,
+      kind: CompletionItemKind.Function,
+      detail: w.sinatures[0].signature,
+      documentation: w.sinatures[0].description,
+    }));
   }
 
   getAllColumnsFromAst(completionInfo: CompletionInfo): CompletionItem[] {
     const result: CompletionItem[] = [];
     for (const [tableName, columnNames] of completionInfo.resolvedTables) {
       columnNames.forEach(c =>
-        result.push(<CompletionItem>{
+        result.push({
           label: c,
           kind: CompletionItemKind.Value,
           detail: `Column in ${tableName}`,

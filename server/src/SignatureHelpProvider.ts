@@ -18,16 +18,13 @@ export class SignatureHelpProvider {
     const index = HelpProviderWords.findIndex(w => w.name === text);
     if (index !== -1) {
       return {
-        signatures: HelpProviderWords[index].sinatures.map(
-          s =>
-            <SignatureInformation>{
-              label: s.signature,
-              documentation: {
-                kind: MarkupKind.Markdown,
-                value: s.description,
-              },
-            },
-        ),
+        signatures: HelpProviderWords[index].sinatures.map<SignatureInformation>(s => ({
+          label: s.signature,
+          documentation: {
+            kind: MarkupKind.Markdown,
+            value: s.description,
+          },
+        })),
         activeSignature: 0,
         activeParameter: null,
       };

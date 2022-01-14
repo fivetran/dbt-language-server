@@ -81,7 +81,7 @@ export class LspServer {
       return new ResponseError<InitializeError>(100, clientResult.error, { retry: true });
     }
 
-    this.bigQueryClient = <BigQueryClient>clientResult.client;
+    this.bigQueryClient = clientResult.client as BigQueryClient;
 
     this.initializeDestinationDefinition();
 
@@ -94,7 +94,7 @@ export class LspServer {
 
     this.workspaceFolder = process.cwd();
 
-    return <InitializeResult>{
+    return {
       capabilities: {
         textDocumentSync: TextDocumentSyncKind.Incremental,
         hoverProvider: true,
@@ -143,7 +143,7 @@ export class LspServer {
 
   sendTelemetry(name: string, properties?: { [key: string]: string }): void {
     console.log(`Telemetry log: ${JSON.stringify(properties)}`);
-    this.connection.sendNotification(TelemetryEventNotification.type, <TelemetryEvent>{ name, properties });
+    this.connection.sendNotification<TelemetryEvent>(TelemetryEventNotification.type, { name, properties });
   }
 
   async startDbtRpc(command: Command, port: number): Promise<void> {

@@ -15,22 +15,19 @@ export class ManifestParser {
       const { nodes } = manifest;
 
       if (nodes) {
-        return <ManifestJson>{
-          models: Object.values(<any[]>nodes)
+        return {
+          models: Object.values(nodes as any[])
             .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_MODEL)
-            .map(
-              n =>
-                <ManifestNode>{
-                  name: n.name,
-                  database: n.database,
-                  schema: n.schema,
-                },
-            ),
+            .map<ManifestNode>(n => ({
+              name: n.name,
+              database: n.database,
+              schema: n.schema,
+            })),
         };
       }
     } catch (e) {
       console.log(`Failed to read ${ManifestParser.MANIFEST_FILE_NAME}`, e);
     }
-    return <ManifestJson>{};
+    return { models: [] };
   }
 }

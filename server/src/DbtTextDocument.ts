@@ -90,11 +90,11 @@ export class DbtTextDocument {
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
       this.requireCompileOnSave = true;
     } else {
-      const compiledContentChanges = params.contentChanges.map(c => {
+      const compiledContentChanges = params.contentChanges.map<TextDocumentContentChangeEvent>(c => {
         if (!TextDocumentContentChangeEvent.isIncremental(c)) {
           throw new Error('Incremental updates expected');
         }
-        return <TextDocumentContentChangeEvent>{
+        return {
           text: c.text,
           range: Range.create(
             this.convertPosition(this.compiledDocument.getText(), this.rawDocument.getText(), c.range.start),

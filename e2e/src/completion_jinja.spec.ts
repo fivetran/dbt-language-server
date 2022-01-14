@@ -37,13 +37,14 @@ suite('Should do completion inside jinjas expression', () => {
     const actualCompletionList = await triggerCompletion(docUri, new vscode.Position(0, 22));
 
     // assert
-    const actualLabels = actualCompletionList.items.map(i => <string>i.label);
-    getCompletionList(false).items.forEach(i => assert.ok(!actualLabels.includes(<string>i.label)));
-    getCompletionList(true).items.forEach(i => assert.ok(!actualLabels.includes(<string>i.label)));
+    actualCompletionList.items.forEach(i => i.label instanceof String);
+    const actualLabels = actualCompletionList.items.map<string>(i => i.label as string);
+    getCompletionList(false).items.forEach(i => assert.ok(!actualLabels.includes(i.label as string)));
+    getCompletionList(true).items.forEach(i => assert.ok(!actualLabels.includes(i.label as string)));
   });
 
   function getCompletionList(withQuotes: boolean): { items: vscode.CompletionItem[] } {
-    return { items: getLabels().map(l => <CompletionItem>{ label: withQuotes ? `'${l}'` : l, kind: vscode.CompletionItemKind.Value }) };
+    return { items: getLabels().map<CompletionItem>(l => ({ label: withQuotes ? `'${l}'` : l, kind: vscode.CompletionItemKind.Value })) };
   }
 
   function getLabels(): string[] {

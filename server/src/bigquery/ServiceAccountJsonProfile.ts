@@ -30,7 +30,7 @@ export class ServiceAccountJsonProfile implements DbtProfile {
     const { project } = profile;
     const keyFileJson = JSON.stringify(profile.keyfile_json);
 
-    const content = <ExternalAccountClientOptions>JSON.parse(keyFileJson);
+    const content = JSON.parse(keyFileJson) as ExternalAccountClientOptions;
     const options: BigQueryOptions = {
       projectId: project,
       credentials: content,

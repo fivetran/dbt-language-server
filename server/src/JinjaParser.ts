@@ -43,13 +43,10 @@ export class JinjaParser {
   }
 
   findAllJinjaExpressions(rawDocument: TextDocument): ParseNode[] {
-    return this.findByPattern(rawDocument, JinjaParser.JINJA_PATTERN).map(
-      m =>
-        <ParseNode>{
-          expression: m[0],
-          range: Range.create(rawDocument.positionAt(m.index), rawDocument.positionAt(m.index + m[0].length)),
-        },
-    );
+    return this.findByPattern(rawDocument, JinjaParser.JINJA_PATTERN).map<ParseNode>(m => ({
+      expression: m[0],
+      range: Range.create(rawDocument.positionAt(m.index), rawDocument.positionAt(m.index + m[0].length)),
+    }));
   }
 
   findAllJinjaBlocks(jinjaExpressions: ParseNode[]): ParseNode[] {
@@ -115,16 +112,13 @@ export class JinjaParser {
   }
 
   findAllRefs(rawDocument: TextDocument): Ref[] {
-    return this.findByPattern(rawDocument, JinjaParser.JINJA_REF_PATTERN).map(
-      m =>
-        <Ref>{
-          modelName: m[1],
-          range: {
-            start: rawDocument.positionAt(m.index),
-            end: rawDocument.positionAt(m.index + m[0].length),
-          },
-        },
-    );
+    return this.findByPattern(rawDocument, JinjaParser.JINJA_REF_PATTERN).map<Ref>(m => ({
+      modelName: m[1],
+      range: {
+        start: rawDocument.positionAt(m.index),
+        end: rawDocument.positionAt(m.index + m[0].length),
+      },
+    }));
   }
 
   private findByPattern(rawDocument: TextDocument, pattern: RegExp): RegExpExecArray[] {

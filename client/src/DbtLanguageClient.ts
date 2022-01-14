@@ -36,7 +36,7 @@ export class DbtLanguageClient implements Disposable {
         fileEvents: [workspace.createFileSystemWatcher('**/dbt_project.yml'), workspace.createFileSystemWatcher('**/manifest.json')],
       },
       outputChannel,
-      workspaceFolder: <WorkspaceFolder>{ uri: dbtProjectUri },
+      workspaceFolder: { uri: dbtProjectUri, name: dbtProjectUri.path, index: port },
     };
 
     this.workspaceFolder = workspace.getWorkspaceFolder(dbtProjectUri);

@@ -21,14 +21,11 @@ describe('SqlRefConverter', () => {
   }
 
   function createManifestNodes(count: number): ManifestNode[] {
-    return [...Array(count).keys()].map(
-      n =>
-        <ManifestNode>{
-          name: `test_model${n}`,
-          database: 'db',
-          schema: 'schema',
-        },
-    );
+    return [...Array(count).keys()].map<ManifestNode>(n => ({
+      name: `test_model${n}`,
+      database: 'db',
+      schema: 'schema',
+    }));
   }
 
   function createResolvedTable(index: number, start: number, end: number): ResolvedTable {
