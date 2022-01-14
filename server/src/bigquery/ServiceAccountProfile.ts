@@ -38,8 +38,8 @@ export class ServiceAccountProfile implements DbtProfile {
     const client = new BigQueryClient(project, bigQuery);
 
     const testResult = await client.test();
-    if (testResult) {
-      return testResult;
+    if (testResult.isErr()) {
+      return testResult.error;
     }
 
     return client;

@@ -51,8 +51,8 @@ export class OAuthProfile implements DbtProfile {
     }
 
     const secondTestResult = await bigQueryClient.test();
-    if (secondTestResult) {
-      return secondTestResult;
+    if (secondTestResult.isErr()) {
+      return secondTestResult.error;
     }
 
     return bigQueryClient;
