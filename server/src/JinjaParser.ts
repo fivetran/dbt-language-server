@@ -13,6 +13,11 @@ export class JinjaParser {
   static readonly JINJA_OPEN_BLOCKS = ['docs', 'if', 'for', 'macro'];
   static readonly JINJA_CLOSE_BLOCKS = ['enddocs', 'endif', 'endfor', 'endmacro'];
 
+  /**
+   * Finds all jinja statements ranges and ranges of jinja blocks: 'docs', 'if', 'for', 'macro'.
+   * @param rawDocument editable text document
+   * @returns all founded ranges or undefined if parsing failed
+   */
   findAllJinjaRanges(rawDocument: TextDocument): Range[] | undefined {
     const jinjaExpressions = this.findAllJinjaExpressions(rawDocument);
     const jinjaRanges = jinjaExpressions.map(e => e.range);
