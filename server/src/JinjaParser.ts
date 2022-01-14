@@ -50,17 +50,15 @@ export class JinjaParser {
 
     for (const jinjaExpression of jinjaExpressions) {
       const blockMatch = jinjaExpression.expression.match(JinjaParser.JINJA_BLOCK_PATTERN);
-
-      if (blockMatch && blockMatch[1] && JinjaParser.JINJA_OPEN_BLOCKS.includes(blockMatch[1])) {
+      const block =
+        blockMatch && blockMatch.length >= 2 && blockMatch[1] && JinjaParser.JINJA_OPEN_BLOCKS.includes(blockMatch[1])
+          ? blockMatch[1]
+          : blockMatch && blockMatch.length >= 3 && blockMatch[2] && JinjaParser.JINJA_CLOSE_BLOCKS.includes(blockMatch[2])
+          ? blockMatch[2]
+          : undefined;
+      if (block) {
         jinjaBlocks.push({
-          expression: blockMatch[1],
-          range: jinjaExpression.range,
-        });
-      }
-
-      if (blockMatch && blockMatch[2] && JinjaParser.JINJA_CLOSE_BLOCKS.includes(blockMatch[2])) {
-        jinjaBlocks.push({
-          expression: blockMatch[2],
+          expression: block,
           range: jinjaExpression.range,
         });
       }
@@ -75,13 +73,13 @@ export class JinjaParser {
     const jinjaBlockRanges = [];
 
     const startBlocksPositions = new Map<string, Position[]>();
-    JinjaParser.JINJA_BLOCKS.forEach(b => startBlocksPositions.set(b[0], []));
+    JinjaParser.JINJA_OPEN_BLOCKS.forEach(b => startBlocksPositions.set(b, []));
 
     for (const blockJinja of blockJinjaExpressions) {
-      if (JinjaParser.JINJA_BLOCKS.some(b => b[0] === blockJinja.expression)) {
+      if (JinjaParser.JINJA_OPEN_BLOCKS.includes(blockJinja.expression)) {
         startBlocksPositions.get(blockJinja.expression)?.push(blockJinja.range.start);
       } else {
-        const [[startBlock]] = JinjaParser.JINJA_BLOCKS.filter(b => b[1] === blockJinja.expression);
+        const startBlock = JinjaParser.JINJA_OPEN_BLOCKS[JinjaParser.JINJA_CLOSE_BLOCKS.indexOf(blockJinja.expression)];
         const positions = startBlocksPositions.get(startBlock);
 
         const lastStartPosition = positions ? positions.pop() : undefined;
