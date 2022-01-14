@@ -10,12 +10,8 @@ interface ParseNode {
 export class JinjaParser {
   static readonly JINJA_PATTERN = /{{[\s\S]*?}}|{%[\s\S]*?%}|{#[\s\S]*?#}/g;
   static readonly JINJA_BLOCK_PATTERN = /{%\s*(docs|if|for|macro)\s+.*%}|{%\s*(enddocs|endif|endfor|endmacro)\s*%}/;
-  static readonly JINJA_BLOCKS = [
-    ['docs', 'enddocs'],
-    ['if', 'endif'],
-    ['for', 'endfor'],
-    ['macro', 'endmacro'],
-  ];
+  static readonly JINJA_OPEN_BLOCKS = ['docs', 'if', 'for', 'macro'];
+  static readonly JINJA_CLOSE_BLOCKS = ['enddocs', 'endif', 'endfor', 'endmacro'];
 
   findAllJinjaRanges(rawDocument: TextDocument): Range[] | undefined {
     const jinjaExpressions = this.findAllJinjaExpressions(rawDocument);
@@ -55,14 +51,14 @@ export class JinjaParser {
     for (const jinjaExpression of jinjaExpressions) {
       const blockMatch = jinjaExpression.expression.match(JinjaParser.JINJA_BLOCK_PATTERN);
 
-      if (blockMatch && blockMatch[1] && JinjaParser.JINJA_BLOCKS.some(b => b[0] === blockMatch[1])) {
+      if (blockMatch && blockMatch[1] && JinjaParser.JINJA_OPEN_BLOCKS.includes(blockMatch[1])) {
         jinjaBlocks.push({
           expression: blockMatch[1],
           range: jinjaExpression.range,
         });
       }
 
-      if (blockMatch && blockMatch[2] && JinjaParser.JINJA_BLOCKS.some(b => b[1] === blockMatch[2])) {
+      if (blockMatch && blockMatch[2] && JinjaParser.JINJA_CLOSE_BLOCKS.includes(blockMatch[2])) {
         jinjaBlocks.push({
           expression: blockMatch[2],
           range: jinjaExpression.range,
