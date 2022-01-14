@@ -16,7 +16,7 @@ export function run(): Promise<void> {
     const startTime = performance.now();
     glob('**.spec.js', { cwd: testsRoot }, (e, files) => {
       if (e) {
-        return reject(e);
+        reject(e);
       }
 
       // Add files to the test suite
@@ -38,7 +38,6 @@ export function run(): Promise<void> {
         console.error(err);
         reject(err);
       }
-      return resolve();
     });
   });
 }
