@@ -1,5 +1,5 @@
 import { BigQuery, TableField } from '@google-cloud/bigquery';
-import { downloadAndUnzipVSCode, resolveCliPathFromVSCodeExecutablePath, runTests } from '@vscode/test-electron';
+import { downloadAndUnzipVSCode, resolveCliArgsFromVSCodeExecutablePath, runTests } from '@vscode/test-electron';
 import { spawnSync } from 'child_process';
 import { homedir } from 'os';
 import * as path from 'path';
@@ -16,8 +16,8 @@ async function main(): Promise<void> {
 
     const vscodeExecutablePath = await downloadAndUnzipVSCode();
 
-    const cliPath = resolveCliPathFromVSCodeExecutablePath(vscodeExecutablePath);
-    spawnSync(cliPath, ['--install-extension=ms-python.python', `--extensions-dir=${extensionsInstallPath}`], {
+    const [cli, ...args] = resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath);
+    spawnSync(cli, [...args, '--install-extension=ms-python.python', `--extensions-dir=${extensionsInstallPath}`], {
       encoding: 'utf-8',
       stdio: 'inherit',
     });
@@ -28,7 +28,7 @@ async function main(): Promise<void> {
       extensionDevelopmentPath,
       extensionTestsPath,
       launchArgs: [path.resolve(__dirname, '../projects/test-workspace.code-workspace'), `--extensions-dir=${extensionsInstallPath}`],
-      extensionTestsEnv: { CLI_PATH: cliPath, EXTENSIONS_INSTALL_PATH: extensionsInstallPath, DBT_LS_DISABLE_TELEMETRY: 'true' },
+      extensionTestsEnv: { CLI_PATH: cli, EXTENSIONS_INSTALL_PATH: extensionsInstallPath, DBT_LS_DISABLE_TELEMETRY: 'true' },
     });
   } catch (err) {
     console.error('Failed to run tests');
