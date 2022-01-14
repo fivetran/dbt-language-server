@@ -1,3 +1,4 @@
+import { Result } from 'neverthrow';
 import { DbtDestinationClient } from './DbtDestinationClient';
 
 export interface DbtProfile {
@@ -9,9 +10,9 @@ export interface DbtProfile {
   /**
    * Validates dbt profile according to specified type and authentication method
    * @param targetConfig target config specified in profiles.yml
-   * @returns error message or undefined if profile is valid
+   * @returns missing field or empty if profile is valid
    */
-  validateProfile(targetConfig: any): string | undefined;
+  validateProfile(targetConfig: any): Result<void, string>;
 
   /**
    * Creates destination client according to dbt profile settings

@@ -1,4 +1,5 @@
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
+import { err, ok, Result } from 'neverthrow';
 import { DbtDestinationClient } from '../DbtDestinationClient';
 import { DbtProfile } from '../DbtProfile';
 import { YamlParserUtils } from '../YamlParserUtils';
@@ -12,18 +13,18 @@ export class ServiceAccountProfile implements DbtProfile {
     return ServiceAccountProfile.BQ_SERVICE_ACCOUNT_FILE_DOCS;
   }
 
-  validateProfile(targetConfig: any): string | undefined {
+  validateProfile(targetConfig: any): Result<void, string> {
     const { project } = targetConfig;
     if (!project) {
-      return 'project';
+      return err('project');
     }
 
     const keyFilePath = targetConfig.keyfile;
     if (!keyFilePath) {
-      return 'keyfile';
+      return err('keyfile');
     }
 
-    return undefined;
+    return ok(undefined);
   }
 
   async createClient(profile: any): Promise<DbtDestinationClient | string> {

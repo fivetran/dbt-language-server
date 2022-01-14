@@ -1,5 +1,6 @@
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 import { ExternalAccountClientOptions } from 'google-auth-library';
+import { err, ok, Result } from 'neverthrow';
 import { DbtDestinationClient } from '../DbtDestinationClient';
 import { DbtProfile } from '../DbtProfile';
 import { BigQueryClient } from './BigQueryClient';
@@ -12,15 +13,15 @@ export class ServiceAccountJsonProfile implements DbtProfile {
     return ServiceAccountJsonProfile.BQ_SERVICE_ACCOUNT_JSON_DOCS;
   }
 
-  validateProfile(targetConfig: any): string | undefined {
+  validateProfile(targetConfig: any): Result<void, string> {
     const { project } = targetConfig;
     if (!project) {
-      return 'project';
+      return err('project');
     }
 
     const keyFileJson = targetConfig.keyfile_json;
     if (!keyFileJson) {
-      return 'keyfile_json';
+      return err('keyfile_json');
     }
 
     return this.validateKeyFileJson(keyFileJson);
@@ -46,11 +47,11 @@ export class ServiceAccountJsonProfile implements DbtProfile {
     return client;
   }
 
-  private validateKeyFileJson(keyFileJson: any): string | undefined {
+  private validateKeyFileJson(keyFileJson: any): Result<void, string> {
     const privateKey = keyFileJson.private_key;
     if (!privateKey) {
-      return 'private_key';
+      return err('private_key');
     }
-    return undefined;
+    return ok(undefined);
   }
 }

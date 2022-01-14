@@ -102,9 +102,9 @@ export class DbtProfileCreator {
     const dbtProfile = profileBuilder();
 
     const result = dbtProfile.validateProfile(targetConfig);
-    if (result !== undefined) {
+    if (result.isErr()) {
       const docsUrl = dbtProfile.getDocsUrl();
-      return this.cantFindSectionError(profileName, result, docsUrl);
+      return this.cantFindSectionError(profileName, result.error, docsUrl);
     }
 
     return {

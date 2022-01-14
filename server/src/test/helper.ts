@@ -33,7 +33,7 @@ export function getConfigPath(p: string): string {
 
 export async function shouldRequireProfileField(profiles: any, profile: DbtProfile, profileName: string, field: string): Promise<void> {
   const missingFieldResult = await profile.validateProfile(profiles[profileName].outputs.dev);
-  assert.strictEqual(missingFieldResult, field);
+  assert.strictEqual(missingFieldResult.unwrapOr(undefined), field);
 }
 
 export async function shouldPassValidProfile(config: string, profileName: string): Promise<void> {
