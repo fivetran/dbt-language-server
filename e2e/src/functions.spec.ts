@@ -12,12 +12,12 @@ suite('Functions', () => {
     await setTestContent('select max(');
 
     // act
-    const help = (await vscode.commands.executeCommand(
+    const help = await vscode.commands.executeCommand<vscode.SignatureHelp>(
       'vscode.executeSignatureHelpProvider',
       docUri,
       new vscode.Position(0, 11),
       '(',
-    )) as vscode.SignatureHelp;
+    );
 
     // assert
     assert.strictEqual(help.signatures.length, 1);

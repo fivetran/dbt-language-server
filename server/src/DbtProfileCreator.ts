@@ -117,12 +117,12 @@ export class DbtProfileCreator {
     const client = await dbtProfile.createClient(targetConfig);
     if (typeof client === 'string') {
       return {
-        error: client as string,
+        error: client,
       };
     }
 
     return {
-      client: client as DbtDestinationClient,
+      client,
     };
   }
 

@@ -188,5 +188,5 @@ export async function triggerCompletion(
   triggerChar?: string,
 ): Promise<vscode.CompletionList<vscode.CompletionItem>> {
   // Executing the command `vscode.executeCompletionItemProvider` to simulate triggering completion
-  return (await vscode.commands.executeCommand('vscode.executeCompletionItemProvider', docUri, position, triggerChar)) as vscode.CompletionList;
+  return vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', docUri, position, triggerChar);
 }

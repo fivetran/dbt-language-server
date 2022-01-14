@@ -52,6 +52,7 @@
     "@typescript-eslint/return-await": ["error"],
     "@typescript-eslint/no-useless-constructor": ["error"],
     "@typescript-eslint/no-empty-function": ["error"],
+    "@typescript-eslint/no-unnecessary-type-assertion": ["error"],
 
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 
