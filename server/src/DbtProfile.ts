@@ -19,5 +19,5 @@ export interface DbtProfile {
    * @param profile profile specified in profiles.yml
    * @returns authenticated client or error string otherwise
    */
-  createClient(profile: any): Promise<DbtDestinationClient | string>;
+  createClient(profile: any): Promise<Result<DbtDestinationClient, string>>;
 }

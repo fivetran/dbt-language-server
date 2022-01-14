@@ -27,7 +27,7 @@ export class ServiceAccountJsonProfile implements DbtProfile {
     return this.validateKeyFileJson(keyFileJson);
   }
 
-  async createClient(profile: any): Promise<DbtDestinationClient | string> {
+  async createClient(profile: any): Promise<Result<DbtDestinationClient, string>> {
     const { project } = profile;
     const keyFileJson = JSON.stringify(profile.keyfile_json);
 
@@ -41,10 +41,10 @@ export class ServiceAccountJsonProfile implements DbtProfile {
 
     const testResult = await client.test();
     if (testResult.isErr()) {
-      return testResult.error;
+      return err(testResult.error);
     }
 
-    return client;
+    return ok(client);
   }
 
   private validateKeyFileJson(keyFileJson: any): Result<void, string> {

@@ -27,7 +27,7 @@ export class ServiceAccountProfile implements DbtProfile {
     return ok(undefined);
   }
 
-  async createClient(profile: any): Promise<DbtDestinationClient | string> {
+  async createClient(profile: any): Promise<Result<DbtDestinationClient, string>> {
     const { project } = profile;
     const keyFilePath = YamlParserUtils.replaceTilde(profile.keyfile);
 
@@ -40,9 +40,9 @@ export class ServiceAccountProfile implements DbtProfile {
 
     const testResult = await client.test();
     if (testResult.isErr()) {
-      return testResult.error;
+      return err(testResult.error);
     }
 
-    return client;
+    return ok(client);
   }
 }
