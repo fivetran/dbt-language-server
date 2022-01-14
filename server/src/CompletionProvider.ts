@@ -250,7 +250,7 @@ export class CompletionProvider {
       return this.dbtModels.map(
         m =>
           <CompletionItem>{
-            label: edsWithQoute ? m : `'${m}'`,
+            label: edsWithQoute ? m.name : `'${m.name}'`,
             kind: CompletionItemKind.Value,
             detail: 'Model',
           },
