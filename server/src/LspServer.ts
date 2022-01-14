@@ -90,7 +90,7 @@ export class LspServer {
     const { capabilities } = params;
     // Does the client support the `workspace/configuration` request?
     // If not, we fall back using global settings.
-    this.hasConfigurationCapability = !!(capabilities.workspace && !!capabilities.workspace.configuration);
+    this.hasConfigurationCapability = Boolean(capabilities.workspace?.configuration);
 
     this.workspaceFolder = process.cwd();
 
