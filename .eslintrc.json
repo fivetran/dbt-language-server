@@ -12,7 +12,8 @@
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:sonarjs/recommended"
+    "plugin:sonarjs/recommended",
+    "plugin:eslint-plugin-neverthrow/recommended"
   ],
   "rules": {
     "no-param-reassign":["error"],
