@@ -1,12 +1,13 @@
 import assert = require('assert');
 import { Range, uinteger } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { JinjaParser } from '../JinjaParser';
 import { ManifestNode } from '../ManifestJson';
 import { Change, SqlRefConverter } from '../SqlRefConverter';
 import { ResolvedTable } from '../ZetaSqlAst';
 
 describe('SqlRefConverter', () => {
-  const SQL_REF_CONVERTER = new SqlRefConverter();
+  const SQL_REF_CONVERTER = new SqlRefConverter(new JinjaParser());
 
   function shouldConvertRefToSql(rawDocumentString: string, dbtModels: ManifestNode[], expectedChanges: Change[]): void {
     // arrange

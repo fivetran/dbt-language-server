@@ -10,11 +10,11 @@ export interface Change {
 }
 
 export class SqlRefConverter {
-  static readonly JINJA_PARSER = new JinjaParser();
+  constructor(private jinjaParser: JinjaParser) {}
 
   /** @returns array with ranges in the existing document and new texts for these ranges */
   refToSql(docWithRef: TextDocument, dbtModels: ManifestNode[]): Change[] {
-    const refs = SqlRefConverter.JINJA_PARSER.findAllRefs(docWithRef);
+    const refs = this.jinjaParser.findAllRefs(docWithRef);
     const changes = [];
     for (const ref of refs) {
       const model = dbtModels.find(m => m.name === ref.modelName);

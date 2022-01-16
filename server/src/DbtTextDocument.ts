@@ -50,7 +50,7 @@ export class DbtTextDocument {
   ast: AnalyzeResponse | undefined;
   schemaTracker: SchemaTracker;
   signatureHelpProvider = new SignatureHelpProvider();
-  sqlRefConverter = new SqlRefConverter();
+  sqlRefConverter = new SqlRefConverter(DbtTextDocument.JINJA_PARSER);
 
   constructor(
     doc: TextDocumentItem,
