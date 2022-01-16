@@ -65,29 +65,36 @@
           "when": "editorLangId =~ /sql$/"
         }
       ],
-      "editor/context": [
-        {
-          "command": "editor.showQueryPreview",
-          "group": "navigation@1.31",
-          "when": "editorLangId =~ /sql$/"
-        },
+      "dbt": [
         {
           "command": "dbt.compile",
-          "group": "navigation@1.31",
-          "when": "editorLangId =~ /sql$/"
+          "group": "1_common"
+        },
+        {
+          "command": "editor.showQueryPreview",
+          "group": "1_common"
         },
         {
           "command": "dbt.refToSql",
-          "group": "navigation@1.31",
-          "when": "editorLangId =~ /sql$/"
+          "group": "2_ref_sql"
         },
         {
           "command": "dbt.sqlToRef",
-          "group": "navigation@1.31",
+          "group": "2_ref_sql"
+        }
+      ],
+      "editor/context": [
+        {
+          "submenu": "dbt",
+          "group": "navigation",
           "when": "editorLangId =~ /sql$/"
         }
       ]
-    }
+    },
+    "submenus": [{
+      "id": "dbt",
+      "label": "dbt"
+    }]
   },
   "aiKey": "0a32611a-7944-4c4d-93c9-5c260a61395b",
   "scripts": {
