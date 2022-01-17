@@ -1,5 +1,4 @@
 import { err, ok, Result } from 'neverthrow';
-import { DbtDestinationClient } from './DbtDestinationClient';
 import { DbtProfile } from './DbtProfile';
 import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtProfileType';
 import { YamlParser } from './YamlParser';
@@ -98,10 +97,6 @@ export class DbtProfileCreator {
       dbtProfile,
       targetConfig,
     });
-  }
-
-  async createDbtClient(dbtProfile: DbtProfile, targetConfig: any): Promise<Result<DbtDestinationClient, string>> {
-    return dbtProfile.createClient(targetConfig);
   }
 
   cantFindSectionError(profileName: string, section: string, docsUrl?: string): Result<any, string> {
