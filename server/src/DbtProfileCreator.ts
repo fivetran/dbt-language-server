@@ -101,12 +101,7 @@ export class DbtProfileCreator {
   }
 
   async createDbtClient(dbtProfile: DbtProfile, targetConfig: any): Promise<Result<DbtDestinationClient, string>> {
-    const client = await dbtProfile.createClient(targetConfig);
-    if (client.isErr()) {
-      return err(client.error);
-    }
-
-    return ok(client.value);
+    return dbtProfile.createClient(targetConfig);
   }
 
   cantFindSectionError(profileName: string, section: string, docsUrl?: string): Result<any, string> {
