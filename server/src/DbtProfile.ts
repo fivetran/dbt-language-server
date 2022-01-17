@@ -10,7 +10,7 @@ export interface DbtProfile {
   /**
    * Validates dbt profile according to specified type and authentication method
    * @param targetConfig target config specified in profiles.yml
-   * @returns missing field or empty if profile is valid
+   * @returns Err with missing field or Ok if profile is valid
    */
   validateProfile(targetConfig: any): Result<void, string>;
 
