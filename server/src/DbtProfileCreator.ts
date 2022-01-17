@@ -1,4 +1,4 @@
-import { err, ok, Result } from 'neverthrow';
+import { Err, err, ok, Result } from 'neverthrow';
 import { DbtProfile } from './DbtProfile';
 import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtProfileType';
 import { YamlParser } from './YamlParser';
@@ -99,7 +99,7 @@ export class DbtProfileCreator {
     });
   }
 
-  cantFindSectionError(profileName: string, section: string, docsUrl?: string): Result<any, string> {
+  cantFindSectionError(profileName: string, section: string, docsUrl?: string): Err<never, string> {
     const text = `Couldn't find section '${section}' for profile '${profileName}'. Check your '${this.yamlParser.profilesPath}' file. ${
       docsUrl ?? ''
     }`;
