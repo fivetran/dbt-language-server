@@ -9,6 +9,7 @@ export function run(): Promise<void> {
     color: true,
     bail: true,
     timeout: '70s',
+    slow: 15000,
   });
 
   const testsRoot = __dirname;
