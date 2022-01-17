@@ -105,10 +105,8 @@ export class JinjaParser {
       }
     }
 
-    for (const [, positions] of startBlocksPositions.entries()) {
-      if (positions.length > 0) {
-        return undefined;
-      }
+    if ([...startBlocksPositions.values()].some(p => p.length > 0)) {
+      return undefined;
     }
 
     return jinjaBlockRanges;
