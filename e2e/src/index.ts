@@ -2,13 +2,16 @@ import * as glob from 'glob';
 import * as Mocha from 'mocha';
 import * as path from 'path';
 import { performance } from 'perf_hooks';
+import { doc, getPreviewText } from './helper';
 
 export function run(): Promise<void> {
   const mocha = new Mocha({
     ui: 'tdd',
     color: true,
+    bail: true,
+    timeout: '70s',
+    slow: 15000,
   });
-  mocha.timeout(70000);
 
   const testsRoot = __dirname;
 
@@ -26,7 +29,7 @@ export function run(): Promise<void> {
 
       try {
         // Run the mocha test
-        mocha.run(failures => {
+        const runner = mocha.run(failures => {
           console.log(`E2E tests duration: ${(performance.now() - startTime) / 1000} seconds.`);
           if (failures > 0) {
             reject(new Error(`${failures} tests failed.`));
@@ -34,6 +37,9 @@ export function run(): Promise<void> {
             resolve();
           }
         });
+        runner.on('fail', async () =>
+          console.log(`Content of document when test failed:\n${doc.getText()}\nPreview content:\n${await getPreviewText()}`),
+        );
       } catch (err) {
         console.error(err);
         reject(err);
