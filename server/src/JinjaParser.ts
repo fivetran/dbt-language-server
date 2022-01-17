@@ -55,12 +55,8 @@ export class JinjaParser {
 
     for (const jinjaExpression of jinjaExpressions) {
       const blockMatch = jinjaExpression.expression.match(JinjaParser.JINJA_BLOCK_PATTERN);
-      const block =
-        blockMatch && blockMatch.length >= 2 && blockMatch[1] && JinjaParser.JINJA_OPEN_BLOCKS.includes(blockMatch[1])
-          ? blockMatch[1]
-          : blockMatch && blockMatch.length >= 3 && blockMatch[2] && JinjaParser.JINJA_CLOSE_BLOCKS.includes(blockMatch[2])
-          ? blockMatch[2]
-          : undefined;
+      const block = this.getJinjaBlock(blockMatch);
+
       if (block) {
         jinjaBlocks.push({
           expression: block,
@@ -72,6 +68,18 @@ export class JinjaParser {
     jinjaBlocks.sort((j1, j2) => comparePositions(j1.range.start, j2.range.start));
 
     return jinjaBlocks;
+  }
+
+  getJinjaBlock(blockMatch: RegExpMatchArray | null): string | undefined {
+    if (blockMatch) {
+      if (blockMatch.length >= 2 && blockMatch[1] && JinjaParser.JINJA_OPEN_BLOCKS.includes(blockMatch[1])) {
+        return blockMatch[1];
+      }
+      if (blockMatch.length >= 3 && blockMatch[2] && JinjaParser.JINJA_CLOSE_BLOCKS.includes(blockMatch[2])) {
+        return blockMatch[2];
+      }
+    }
+    return undefined;
   }
 
   findJinjaBlockRanges(blockJinjaExpressions: ParseNode[]): Range[] | undefined {
