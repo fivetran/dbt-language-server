@@ -87,7 +87,7 @@ export class JinjaParser {
         const startBlock = JinjaParser.JINJA_OPEN_BLOCKS[JinjaParser.JINJA_CLOSE_BLOCKS.indexOf(blockJinja.expression)];
         const positions = startBlocksPositions.get(startBlock);
 
-        const lastStartPosition = positions ? positions.pop() : undefined;
+        const lastStartPosition = positions?.pop();
         if (lastStartPosition) {
           jinjaBlockRanges.push({
             start: lastStartPosition,
