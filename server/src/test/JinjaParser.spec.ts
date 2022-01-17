@@ -64,8 +64,35 @@ describe('JinjaParser', () => {
     ]);
   });
 
-  it('findAllRefs should find one ref for ref with single quotes', () => {
-    shouldFindAllRefs("{{ref('m')}}", [{ modelName: 'm', range: Range.create(0, 0, 0, 12) }]);
+  it('findAllRefs should find one ref for jinja with spaces after ref', () => {
+    shouldFindAllRefs("{{ref   ('m')}}", [{ modelName: 'm', range: Range.create(0, 0, 0, 15) }]);
+  });
+
+  it('findAllRefs should find one ref for jinja with space after and before bracket', () => {
+    shouldFindAllRefs("{{ref( 'm'  )}}", [{ modelName: 'm', range: Range.create(0, 0, 0, 15) }]);
+  });
+  it('findAllRefs should find one ref for jinja with space everywhere', () => {
+    shouldFindAllRefs("{{   ref  (  'm'  )  }}  ", [{ modelName: 'm', range: Range.create(0, 0, 0, 23) }]);
+  });
+
+  it('findAllRefs should find one ref for jinja with new lines', () => {
+    shouldFindAllRefs(
+      `{{
+       ref
+       (
+       'm'
+       )
+       }}`,
+      [{ modelName: 'm', range: Range.create(0, 0, 5, 9) }],
+    );
+  });
+
+  it('findAllRefs should not find ref with different quotes', () => {
+    shouldFindAllRefs('{{ref(\'m")}}', []);
+  });
+
+  it('findAllRefs should not find ref with space between curly braces', () => {
+    shouldFindAllRefs("{ {ref('m')}}", []);
   });
 
   function shouldFindAllJinjaRanges(fileName: string, ranges: Range[]): void {
