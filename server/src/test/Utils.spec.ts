@@ -1,7 +1,8 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import { assertThat } from 'hamjest';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Position, Range } from 'vscode-languageserver-types';
-import { comparePositions, extractDatasetFromFullName, getJinjaContentOffset, rangesOverlap } from '../Utils';
+import { comparePositions, extractDatasetFromFullName, getIdentifierRangeAtPosition, getJinjaContentOffset, rangesOverlap } from '../Utils';
 
 describe('Utils', () => {
   it('comparePositions_shouldComparePositions', () => {
@@ -59,4 +60,36 @@ describe('Utils', () => {
     assertThat(extractDatasetFromFullName('project.dataset.table', 'table'), 'dataset');
     assertThat(extractDatasetFromFullName('`project.dataset.table`', 'table'), 'dataset');
   });
+
+  it('getIdentifierRangeAtPosition should return range', () => {
+    getIdentifierRangeAtPositionShouldReturnRange(Position.create(0, 0), 'First second third', Range.create(0, 0, 0, 5));
+    getIdentifierRangeAtPositionShouldReturnRange(Position.create(0, 5), 'First second third', Range.create(0, 0, 0, 5));
+    getIdentifierRangeAtPositionShouldReturnRange(Position.create(0, 6), 'First second third', Range.create(0, 6, 0, 12));
+
+    getIdentifierRangeAtPositionShouldReturnRange(Position.create(0, 6), '111 222 333', Range.create(0, 4, 0, 7));
+
+    getIdentifierRangeAtPositionShouldReturnRange(Position.create(0, 0), 'First.second third', Range.create(0, 0, 0, 5));
+    getIdentifierRangeAtPositionShouldReturnRange(Position.create(0, 6), 'First.second third', Range.create(0, 6, 0, 12));
+    getIdentifierRangeAtPositionShouldReturnRange(Position.create(0, 8), 'First.second third', Range.create(0, 6, 0, 12));
+
+    getIdentifierRangeAtPositionShouldReturnRange(Position.create(0, 0), 'First1second third', Range.create(0, 0, 0, 12));
+    getIdentifierRangeAtPositionShouldReturnRange(Position.create(0, 0), '`First` second third', Range.create(0, 0, 0, 7));
+    getIdentifierRangeAtPositionShouldReturnRange(Position.create(0, 0), '`First`.second third', Range.create(0, 0, 0, 7));
+    getIdentifierRangeAtPositionShouldReturnRange(
+      Position.create(1, 7),
+      `
+       First`,
+      Range.create(1, 7, 1, 12),
+    );
+    getIdentifierRangeAtPositionShouldReturnRange(
+      Position.create(1, 500),
+      `
+       First`,
+      Range.create(1, 7, 1, 12),
+    );
+  });
+
+  function getIdentifierRangeAtPositionShouldReturnRange(position: Position, text: string, expectedRange: Range): void {
+    assertThat(getIdentifierRangeAtPosition(position, text), expectedRange);
+  }
 });

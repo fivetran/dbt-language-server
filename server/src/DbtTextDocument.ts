@@ -32,12 +32,11 @@ import { ProgressReporter } from './ProgressReporter';
 import { SchemaTracker } from './SchemaTracker';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { SqlRefConverter } from './SqlRefConverter';
-import { debounce, getJinjaContentOffset } from './Utils';
+import { debounce, getIdentifierRangeAtPosition, getJinjaContentOffset } from './Utils';
 import { ZetaSqlAst } from './ZetaSqlAst';
 import { ZetaSqlCatalog } from './ZetaSqlCatalog';
 
 export class DbtTextDocument {
-  static readonly NON_WORD_PATTERN = /\W/;
   static DEBOUNCE_TIMEOUT = 300;
 
   static readonly ZETA_SQL_AST = new ZetaSqlAst();
@@ -132,7 +131,7 @@ export class DbtTextDocument {
   }
 
   forceRecompile(): void {
-    this.progressReporter.sendStart(this.getRawDocUri());
+    this.progressReporter.sendStart(this.rawDocument.uri);
     this.debouncedCompile();
   }
 
@@ -166,17 +165,9 @@ export class DbtTextDocument {
   }
 
   debouncedCompile = debounce(async () => {
-    this.progressReporter.sendStart(this.getRawDocUri());
+    this.progressReporter.sendStart(this.rawDocument.uri);
     await this.modelCompiler.compile();
   }, DbtTextDocument.DEBOUNCE_TIMEOUT);
-
-  getLines(): string[] {
-    return this.rawDocument.getText().split('\n');
-  }
-
-  getRawDocUri(): string {
-    return this.rawDocument.uri;
-  }
 
   getText(range?: Range): string {
     return this.rawDocument.getText(range);
@@ -192,7 +183,7 @@ export class DbtTextDocument {
         },
       ];
 
-      this.connection.sendDiagnostics({ uri: this.getRawDocUri(), diagnostics: dbtDiagnostics });
+      this.connection.sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: dbtDiagnostics });
       return;
     }
 
@@ -221,7 +212,7 @@ export class DbtTextDocument {
         const characterInCompiledDoc = matchResults[3] - 1;
         const lineInRawDoc = Diff.getOldLineNumber(this.rawDocument.getText(), this.compiledDocument.getText(), lineInCompiledDoc);
         const position = Position.create(lineInRawDoc, characterInCompiledDoc);
-        const range = this.getIdentifierRangeAtPosition(position);
+        const range = getIdentifierRangeAtPosition(position, this.rawDocument.getText());
 
         const diagnostic: Diagnostic = {
           severity: DiagnosticSeverity.Error,
@@ -231,7 +222,7 @@ export class DbtTextDocument {
         sqlDiagnostics.push(diagnostic);
       }
     }
-    this.connection.sendDiagnostics({ uri: this.getRawDocUri(), diagnostics: sqlDiagnostics });
+    this.connection.sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: sqlDiagnostics });
   }
 
   async ensureCatalogInitialized(): Promise<void> {
@@ -248,7 +239,7 @@ export class DbtTextDocument {
 
   async onCompilationError(dbtCompilationError: string): Promise<void> {
     await this.sendDiagnostics(dbtCompilationError);
-    this.connection.sendNotification('custom/updateQueryPreview', [this.getRawDocUri(), this.rawDocument.getText()]);
+    this.connection.sendNotification('custom/updateQueryPreview', [this.rawDocument.uri, this.rawDocument.getText()]);
   }
 
   async onCompilationFinished(compiledSql: string): Promise<void> {
@@ -256,19 +247,19 @@ export class DbtTextDocument {
 
     await this.ensureCatalogInitialized();
     await this.sendDiagnostics();
-    this.connection.sendNotification('custom/updateQueryPreview', [this.getRawDocUri(), compiledSql]);
+    this.connection.sendNotification('custom/updateQueryPreview', [this.rawDocument.uri, compiledSql]);
 
     if (!this.modelCompiler.compilationInProgress) {
-      this.progressReporter.sendFinish(this.getRawDocUri());
+      this.progressReporter.sendFinish(this.rawDocument.uri);
     }
   }
 
   onFinishAllCompilationTasks(): void {
-    this.progressReporter.sendFinish(this.getRawDocUri());
+    this.progressReporter.sendFinish(this.rawDocument.uri);
   }
 
   onHover(hoverParams: HoverParams): Hover | null {
-    const range = this.getIdentifierRangeAtPosition(hoverParams.position);
+    const range = getIdentifierRangeAtPosition(hoverParams.position, this.rawDocument.getText());
     const text = this.getText(range);
     return HoverProvider.hoverOnText(text, this.ast);
   }
@@ -278,7 +269,7 @@ export class DbtTextDocument {
       completionParams.position.line,
       completionParams.position.character > 0 ? completionParams.position.character - 1 : 0,
     );
-    const text = this.getText(this.getIdentifierRangeAtPosition(previousPosition));
+    const text = this.getText(getIdentifierRangeAtPosition(previousPosition, this.rawDocument.getText()));
 
     const jinjaContentOffset = getJinjaContentOffset(this.rawDocument, completionParams.position);
     if (jinjaContentOffset !== -1) {
@@ -304,36 +295,9 @@ export class DbtTextDocument {
     return this.signatureHelpProvider.onSignatureHelp(params, text);
   }
 
-  getIdentifierRangeAtPosition(position: Position): Range {
-    const lines = this.getLines();
-    if (lines.length === 0) {
-      return Range.create(position, position);
-    }
-    const line = Math.min(lines.length - 1, Math.max(0, position.line));
-    const lineText = lines[line];
-    const charIndex = Math.max(0, Math.min(lineText.length - 1, Math.max(0, position.character)));
-    const textBeforeChar = lineText.substring(0, charIndex);
-    if ((textBeforeChar.split('`').length - 1) % 2 !== 0) {
-      return Range.create(line, textBeforeChar.lastIndexOf('`'), line, lineText.indexOf('`', charIndex) + 1);
-    }
-    if (lineText[charIndex] === '`') {
-      return Range.create(line, charIndex, line, lineText.indexOf('`', charIndex + 1) + 1);
-    }
-    let startChar = charIndex;
-    while (startChar > 0 && !DbtTextDocument.NON_WORD_PATTERN.test(lineText.charAt(startChar - 1))) {
-      --startChar;
-    }
-    let endChar = charIndex;
-    while (endChar < lineText.length && !DbtTextDocument.NON_WORD_PATTERN.test(lineText.charAt(endChar))) {
-      ++endChar;
-    }
-
-    return startChar === endChar ? Range.create(position, position) : Range.create(line, startChar, line, endChar);
-  }
-
   getTextRangeBeforeBracket(cursorPosition: Position): Range {
-    const lines = this.getLines();
-    if (lines.length === 0) {
+    const lines = this.rawDocument.getText().split('\n');
+    if (!lines) {
       return Range.create(cursorPosition, cursorPosition);
     }
     const line = Math.min(lines.length - 1, Math.max(0, cursorPosition.line));
