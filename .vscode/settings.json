@@ -13,6 +13,7 @@
 	"mochaExplorer.watch": "server/out/**/*.js",
 
 	"cSpell.words": [
-		"gcloud"
-	],
+		"gcloud",
+		"neverthrow"
+	]
 }

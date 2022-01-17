@@ -72,16 +72,16 @@ export class LspServer {
     process.on('SIGINT', this.onShutdown);
 
     const profileResult = await this.dbtProfileCreator.createDbtProfile();
-    if ('error' in profileResult) {
+    if (profileResult.isErr()) {
       return new ResponseError<InitializeError>(100, profileResult.error, { retry: true });
     }
 
-    const clientResult = await this.dbtProfileCreator.createDbtClient(profileResult.dbtProfile, profileResult.targetConfig);
-    if ('error' in clientResult) {
+    const clientResult = await profileResult.value.dbtProfile.createClient(profileResult.value.targetConfig);
+    if (clientResult.isErr()) {
       return new ResponseError<InitializeError>(100, clientResult.error, { retry: true });
     }
 
-    this.bigQueryClient = clientResult.client as BigQueryClient;
+    this.bigQueryClient = clientResult.value as BigQueryClient;
 
     this.initializeDestinationDefinition();
 

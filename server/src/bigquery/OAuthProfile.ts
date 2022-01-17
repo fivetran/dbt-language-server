@@ -1,4 +1,5 @@
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
+import { err, ok, Result } from 'neverthrow';
 import { DbtDestinationClient } from '../DbtDestinationClient';
 import { DbtProfile } from '../DbtProfile';
 import { ProcessExecutor } from '../ProcessExecutor';
@@ -20,16 +21,16 @@ export class OAuthProfile implements DbtProfile {
     return OAuthProfile.BQ_OAUTH_DOCS;
   }
 
-  validateProfile(targetConfig: any): string | undefined {
+  validateProfile(targetConfig: any): Result<void, string> {
     const { project } = targetConfig;
     if (!project) {
-      return 'project';
+      return err('project');
     }
 
-    return undefined;
+    return ok(undefined);
   }
 
-  async createClient(profile: any): Promise<DbtDestinationClient | string> {
+  async createClient(profile: any): Promise<Result<DbtDestinationClient, string>> {
     const { project } = profile;
     const options: BigQueryOptions = {
       projectId: project,
@@ -38,82 +39,76 @@ export class OAuthProfile implements DbtProfile {
     const bigQueryClient = new BigQueryClient(project, bigQuery);
 
     const credentialsResult = await this.checkDefaultCredentials(bigQueryClient);
-    if (!credentialsResult) {
+    if (credentialsResult.isOk()) {
       const firstTestResult = await bigQueryClient.test();
-      if (!firstTestResult) {
-        return bigQueryClient;
+      if (firstTestResult.isOk()) {
+        return ok(bigQueryClient);
       }
     }
 
     const authenticateResult = await this.authenticate();
-    if (authenticateResult) {
-      return authenticateResult;
+    if (authenticateResult.isErr()) {
+      console.log(authenticateResult.error);
+      return err(authenticateResult.error);
     }
+    console.log('gcloud authentication succeeded');
 
     const secondTestResult = await bigQueryClient.test();
-    if (secondTestResult) {
-      return secondTestResult;
+    if (secondTestResult.isErr()) {
+      return err(secondTestResult.error);
     }
 
-    return bigQueryClient;
+    return ok(bigQueryClient);
   }
 
-  private async checkDefaultCredentials(bigQueryClient: BigQueryClient): Promise<string | undefined> {
+  private async checkDefaultCredentials(bigQueryClient: BigQueryClient): Promise<Result<void, string>> {
     return bigQueryClient.bigQuery.authClient
       .getCredentials()
       .then(() => {
         console.log('Default Credentials found');
-        return undefined;
+        return ok(undefined);
       })
       .catch((error: string) => {
         console.log('Default Credentials not found');
-        return error;
+        return err(error);
       });
   }
 
-  private async authenticate(): Promise<string | undefined> {
+  private async authenticate(): Promise<Result<void, string>> {
     const gcloudInstalledResult = await OAuthProfile.gcloudInstalled();
-    if (gcloudInstalledResult) {
-      return gcloudInstalledResult;
+    if (gcloudInstalledResult.isErr()) {
+      return err(gcloudInstalledResult.error);
     }
 
     const authenticateResult = await OAuthProfile.authenticate();
-    if (authenticateResult) {
-      return authenticateResult;
+    if (authenticateResult.isErr()) {
+      return err(authenticateResult.error);
     }
 
-    console.log('gcloud authentication succeeded');
-    return undefined;
+    return ok(undefined);
   }
 
-  private static authenticate(): Promise<string | undefined> {
+  private static authenticate(): Promise<Result<void, string>> {
     const authenticateCommand = 'gcloud auth application-default login';
     const authenticatePromise = OAuthProfile.processExecutor
       .execProcess(authenticateCommand)
-      .then(() => undefined)
-      .catch(() => {
-        console.log('gcloud authentication failed');
-        return OAuthProfile.GCLOUD_AUTHENTICATION_ERROR;
-      });
+      .then(() => ok(undefined))
+      .catch(() => err(OAuthProfile.GCLOUD_AUTHENTICATION_ERROR));
 
-    const timeoutPromise = new Promise<string | undefined>((resolve, _) => {
+    const timeoutPromise = new Promise<Result<void, string>>((resolve, _) => {
       setTimeout(() => {
-        console.log('gcloud authentication timeout');
-        resolve(OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT_ERROR);
+        resolve(err(OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT_ERROR));
       }, OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT);
     });
 
     return Promise.race([authenticatePromise, timeoutPromise]);
   }
 
-  private static gcloudInstalled(): Promise<string | undefined> {
+  private static gcloudInstalled(): Promise<Result<void, string>> {
     const versionCommand = 'gcloud --version';
     return OAuthProfile.processExecutor
       .execProcess(versionCommand)
-      .then(() => undefined)
-      .catch(() => {
-        console.log('gcloud not installed');
-        return OAuthProfile.GCLOUD_NOT_INSTALLED_ERROR;
-      });
+      .then(() => ok(undefined))
+      .catch(() => err(OAuthProfile.GCLOUD_NOT_INSTALLED_ERROR));
   }
 }
