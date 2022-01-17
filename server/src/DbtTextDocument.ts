@@ -124,12 +124,9 @@ export class DbtTextDocument {
       }
     }
 
-    const jinjas = DbtTextDocument.jinjaParser.findAllJinjas(this.rawDocument);
-    if (jinjas.length > 0 && DbtTextDocument.jinjaParser.isJinjaModified(jinjas, changes)) {
-      return true;
-    }
+    const jinjas = DbtTextDocument.jinjaParser.findAllJinjaRanges(this.rawDocument);
 
-    return false;
+    return jinjas === undefined || (jinjas.length > 0 && DbtTextDocument.jinjaParser.isJinjaModified(jinjas, changes));
   }
 
   async forceRecompile(): Promise<void> {
