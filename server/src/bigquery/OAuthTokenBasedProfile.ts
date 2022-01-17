@@ -1,5 +1,6 @@
 import { BigQuery } from '@google-cloud/bigquery';
 import { UserRefreshClient } from 'google-auth-library';
+import { err, ok, Result } from 'neverthrow';
 import { DbtDestinationClient } from '../DbtDestinationClient';
 import { DbtProfile } from '../DbtProfile';
 import { BigQueryClient } from './BigQueryClient';
@@ -12,10 +13,10 @@ export class OAuthTokenBasedProfile implements DbtProfile {
     return OAuthTokenBasedProfile.BQ_OAUTH_TOKEN_BASED_DOCS;
   }
 
-  validateProfile(targetConfig: any): string | undefined {
+  validateProfile(targetConfig: any): Result<void, string> {
     const { project } = targetConfig;
     if (!project) {
-      return 'project';
+      return err('project');
     }
 
     const { token } = targetConfig;
@@ -33,30 +34,30 @@ export class OAuthTokenBasedProfile implements DbtProfile {
     refreshToken: string | undefined,
     clientId: string | undefined,
     clientSecret: string | undefined,
-  ): string | undefined {
+  ): Result<void, string> {
     if (!refreshToken) {
-      return 'refresh_token';
+      return err('refresh_token');
     }
 
     if (!clientId) {
-      return 'client_id';
+      return err('client_id');
     }
 
     if (!clientSecret) {
-      return 'client_secret';
+      return err('client_secret');
     }
 
-    return undefined;
+    return ok(undefined);
   }
 
-  private validateTemporaryTokenProfile(token: string | undefined): string | undefined {
+  private validateTemporaryTokenProfile(token: string | undefined): Result<void, string> {
     if (!token) {
-      return 'token';
+      return err('token');
     }
-    return undefined;
+    return ok(undefined);
   }
 
-  async createClient(profile: any): Promise<DbtDestinationClient | string> {
+  async createClient(profile: any): Promise<Result<DbtDestinationClient, string>> {
     const { project } = profile;
     const { token } = profile;
     const refreshToken = profile.refresh_token;
@@ -71,11 +72,11 @@ export class OAuthTokenBasedProfile implements DbtProfile {
     const client = new BigQueryClient(project, bigQuery);
 
     const testResult = await client.test();
-    if (testResult) {
-      return testResult;
+    if (testResult.isErr()) {
+      return err(testResult.error);
     }
 
-    return client;
+    return ok(client);
   }
 
   private createRefreshTokenBigQueryClient(

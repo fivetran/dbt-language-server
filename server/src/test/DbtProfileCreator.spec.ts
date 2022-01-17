@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { instance, mock, when } from 'ts-mockito';
-import { DbtProfileCreator, ErrorResult } from '../DbtProfileCreator';
+import { DbtProfileCreator } from '../DbtProfileCreator';
 import { YamlParser } from '../YamlParser';
 import {
   BIG_QUERY_CONFIG,
@@ -55,7 +55,8 @@ describe('Profiles Validation', () => {
     const profile = await profileCreator.createDbtProfile();
 
     // assert
-    assert.match((profile as ErrorResult).error, errorPattern);
+    assert.ok(profile.isErr());
+    assert.match(profile.error, errorPattern);
   });
 
   async function shouldReturnError(config: string, profileName: string, errorPattern: RegExp): Promise<void> {
@@ -71,6 +72,7 @@ describe('Profiles Validation', () => {
     const profile = await profileCreator.createDbtProfile();
 
     // assert
-    assert.match((profile as ErrorResult).error, errorPattern);
+    assert.ok(profile.isErr());
+    assert.match(profile.error, errorPattern);
   }
 });
