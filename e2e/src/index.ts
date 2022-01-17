@@ -7,6 +7,7 @@ export function run(): Promise<void> {
   const mocha = new Mocha({
     ui: 'tdd',
     color: true,
+    bail: true,
   });
   mocha.timeout(70000);
 
