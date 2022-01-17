@@ -48,8 +48,10 @@ export class OAuthProfile implements DbtProfile {
 
     const authenticateResult = await this.authenticate();
     if (authenticateResult.isErr()) {
+      console.log(authenticateResult.error);
       return err(authenticateResult.error);
     }
+    console.log('gcloud authentication succeeded');
 
     const secondTestResult = await bigQueryClient.test();
     if (secondTestResult.isErr()) {
@@ -83,7 +85,6 @@ export class OAuthProfile implements DbtProfile {
       return err(authenticateResult.error);
     }
 
-    console.log('gcloud authentication succeeded');
     return ok(undefined);
   }
 
@@ -92,14 +93,10 @@ export class OAuthProfile implements DbtProfile {
     const authenticatePromise = OAuthProfile.processExecutor
       .execProcess(authenticateCommand)
       .then(() => ok(undefined))
-      .catch(() => {
-        console.log('gcloud authentication failed');
-        return err(OAuthProfile.GCLOUD_AUTHENTICATION_ERROR);
-      });
+      .catch(() => err(OAuthProfile.GCLOUD_AUTHENTICATION_ERROR));
 
     const timeoutPromise = new Promise<Result<void, string>>((resolve, _) => {
       setTimeout(() => {
-        console.log('gcloud authentication timeout');
         resolve(err(OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT_ERROR));
       }, OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT);
     });
@@ -112,9 +109,6 @@ export class OAuthProfile implements DbtProfile {
     return OAuthProfile.processExecutor
       .execProcess(versionCommand)
       .then(() => ok(undefined))
-      .catch(() => {
-        console.log('gcloud not installed');
-        return err(OAuthProfile.GCLOUD_NOT_INSTALLED_ERROR);
-      });
+      .catch(() => err(OAuthProfile.GCLOUD_NOT_INSTALLED_ERROR));
   }
 }
