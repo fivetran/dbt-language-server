@@ -76,9 +76,7 @@ export class JinjaParser {
 
   findJinjaBlockRanges(blockJinjaExpressions: ParseNode[]): Range[] | undefined {
     const jinjaBlockRanges = [];
-
-    const startBlocksPositions = new Map<string, Position[]>();
-    JinjaParser.JINJA_OPEN_BLOCKS.forEach(b => startBlocksPositions.set(b, []));
+    const startBlocksPositions = new Map(JinjaParser.JINJA_OPEN_BLOCKS.map<[string, Position[]]>(b => [b, []]));
 
     for (const blockJinja of blockJinjaExpressions) {
       if (JinjaParser.JINJA_OPEN_BLOCKS.includes(blockJinja.expression)) {
