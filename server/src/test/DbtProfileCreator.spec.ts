@@ -55,7 +55,8 @@ describe('Profiles Validation', () => {
     const profile = await profileCreator.createDbtProfile();
 
     // assert
-    assert.match(profile.isErr() ? profile.error : '', errorPattern);
+    assert.ok(profile.isErr());
+    assert.match(profile.error, errorPattern);
   });
 
   async function shouldReturnError(config: string, profileName: string, errorPattern: RegExp): Promise<void> {
@@ -71,6 +72,7 @@ describe('Profiles Validation', () => {
     const profile = await profileCreator.createDbtProfile();
 
     // assert
-    assert.match(profile.isErr() ? profile.error : '', errorPattern);
+    assert.ok(profile.isErr());
+    assert.match(profile.error, errorPattern);
   }
 });
