@@ -22,7 +22,7 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { BigQueryClient } from './bigquery/BigQueryClient';
 import { CompletionProvider } from './CompletionProvider';
-import { DbtServer } from './DbtServer';
+import { DbtRpcServer } from './DbtRpcServer';
 import { DestinationDefinition } from './DestinationDefinition';
 import { Diff as Diff } from './Diff';
 import { HoverProvider } from './HoverProvider';
@@ -70,10 +70,10 @@ export class DbtTextDocument {
     this.modelCompiler.onFinishAllCompilationTasks(this.onFinishAllCompilationTasks.bind(this));
   }
 
-  async didSaveTextDocument(dbtServer: DbtServer): Promise<void> {
+  async didSaveTextDocument(dbtRpcServer: DbtRpcServer): Promise<void> {
     if (this.requireCompileOnSave) {
       this.requireCompileOnSave = false;
-      dbtServer.refreshServer();
+      dbtRpcServer.refreshServer();
       await this.debouncedCompile();
     } else {
       await this.onCompilationFinished(this.compiledDocument.getText());
