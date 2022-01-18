@@ -77,18 +77,18 @@ export class ModelCompiler {
         if (!response) {
           continue;
         }
-        if (response?.error || response?.result.state !== 'running') {
+        if (response.error || response.result.state !== 'running') {
           const tasksToKill = this.dbtCompileTaskQueue.splice(0, i + 1);
           for (let j = 0; j < i; j++) {
             void tasksToKill[j].kill();
           }
 
-          if (response?.error) {
-            this.onCompilationErrorEmitter.fire(response?.error.data?.message ?? 'dbt compile error');
+          if (response.error) {
+            this.onCompilationErrorEmitter.fire(response.error.data?.message ?? 'dbt compile error');
             break;
           }
 
-          const compiledNodes = response?.result.results;
+          const compiledNodes = response.result.results;
 
           if (compiledNodes && compiledNodes.length > 0) {
             const compiledSql = compiledNodes[0].node.compiled_sql;

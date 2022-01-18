@@ -4,7 +4,7 @@ import { ZetaSQLBuiltinFunctionOptions } from '@fivetrandevelopers/zetasql/lib/Z
 import { TableDefinition } from './TableDefinition';
 
 export class ZetaSqlCatalog {
-  private static instance: ZetaSqlCatalog;
+  private static instance: ZetaSqlCatalog | undefined;
 
   readonly catalog = new SimpleCatalog('catalog');
 
@@ -78,6 +78,7 @@ export class ZetaSqlCatalog {
   }
 
   async registerAllLanguageFeatures(): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- builtinFunctionOptions from external lib can be null
     if (!this.catalog.builtinFunctionOptions) {
       const languageOptions = await new LanguageOptions().enableMaximumLanguageFeatures();
       await this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions(languageOptions));

@@ -86,8 +86,8 @@ export class DbtRpcServer {
   }
 
   dispose(): void {
-    if (this.rpcPid && !process.kill(this.rpcPid, 'SIGTERM')) {
-      process.kill(this.rpcPid, 'SIGKILL');
+    if (this.rpcPid) {
+      process.kill(this.rpcPid, 'SIGTERM');
     }
   }
 }

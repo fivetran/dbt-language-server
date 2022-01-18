@@ -19,7 +19,7 @@ describe('ZetaSqlAst', () => {
 
     // assert
     assert.strictEqual(result.activeTableLocationRanges?.length, ranges.length);
-    assert.deepStrictEqual(result.activeTableLocationRanges?.sort(), ranges.sort());
+    assert.deepStrictEqual(result.activeTableLocationRanges.sort(), ranges.sort());
   }
 
   function shouldReturnLocationOfTableNameInQuery(fileName: string, cursorOffset: number, start: number, end: number): void {

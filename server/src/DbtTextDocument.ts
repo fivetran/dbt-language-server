@@ -306,7 +306,7 @@ export class DbtTextDocument {
 
   getIdentifierRangeAtPosition(position: Position): Range {
     const lines = this.getLines();
-    if (!lines) {
+    if (lines.length === 0) {
       return Range.create(position, position);
     }
     const line = Math.min(lines.length - 1, Math.max(0, position.line));
@@ -333,7 +333,7 @@ export class DbtTextDocument {
 
   getTextRangeBeforeBracket(cursorPosition: Position): Range {
     const lines = this.getLines();
-    if (!lines) {
+    if (lines.length === 0) {
       return Range.create(cursorPosition, cursorPosition);
     }
     const line = Math.min(lines.length - 1, Math.max(0, cursorPosition.line));

@@ -266,9 +266,9 @@ export class CompletionProvider {
 
     if (completionInfo?.activeTables) {
       if (сompletionParams.context?.triggerKind === CompletionTriggerKind.TriggerCharacter) {
-        result.push(...this.getColumnsForActiveTable(text, completionInfo?.activeTables));
+        result.push(...this.getColumnsForActiveTable(text, completionInfo.activeTables));
       } else {
-        result.push(...this.getColumnsForActiveTables(completionInfo?.activeTables));
+        result.push(...this.getColumnsForActiveTables(completionInfo.activeTables));
       }
     } else if (сompletionParams.context?.triggerKind !== CompletionTriggerKind.TriggerCharacter) {
       result.push(...this.getDatasets(destinationDefinition));
@@ -301,7 +301,7 @@ export class CompletionProvider {
       return tableInfo[1].columns.map<CompletionItem>(c => ({
         label: c.name,
         kind: CompletionItemKind.Value,
-        detail: `${tableInfo[0] ?? ''} ${c.type}`,
+        detail: `${tableInfo[0]} ${c.type}`,
         sortText: 1 + c.name,
       }));
     }

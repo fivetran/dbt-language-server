@@ -203,7 +203,7 @@ export class LspServer {
     }
 
     const document = this.openedDocuments.get(params.textDocument.uri);
-    if (document && this.dbtRpcServer) {
+    if (document) {
       await document.didSaveTextDocument(this.dbtRpcServer);
     }
   }
@@ -290,7 +290,7 @@ export class LspServer {
 
   dispose(): void {
     console.log('Dispose start...');
-    this.dbtRpcServer?.dispose();
+    this.dbtRpcServer.dispose();
     void terminateServer();
     console.log('Dispose end.');
   }
