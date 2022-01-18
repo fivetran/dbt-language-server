@@ -1,6 +1,6 @@
 import { Emitter, Event } from 'vscode-languageserver';
 import { DbtCompileJob } from './DbtCompileJob';
-import { DbtServer } from './DbtServer';
+import { DbtRpcClient } from './DbtRpcClient';
 
 export class ModelCompiler {
   private dbtCompileTaskQueue: DbtCompileJob[] = [];
@@ -24,11 +24,11 @@ export class ModelCompiler {
     return this.onFinishAllCompilationTasksEmitter.event;
   }
 
-  constructor(private dbtServer: DbtServer, private documentUri: string, private workspaceFolder: string) {}
+  constructor(private dbtRpcClient: DbtRpcClient, private documentUri: string, private workspaceFolder: string) {}
 
   async compile(): Promise<void> {
     this.compilationInProgress = true;
-    const status = await this.dbtServer.getCurrentStatus();
+    const status = await this.dbtRpcClient.getStatus();
     if (status?.error?.data?.message) {
       this.onCompilationErrorEmitter.fire(status.error.data.message);
       return;
@@ -53,7 +53,7 @@ export class ModelCompiler {
     const modelPath = this.documentUri.slice(index + this.workspaceFolder.length + 1);
 
     if (modelPath) {
-      const task = new DbtCompileJob(this.dbtServer, modelPath);
+      const task = new DbtCompileJob(this.dbtRpcClient, modelPath);
       this.dbtCompileTaskQueue.push(task);
       void task.runCompile();
     } else {

@@ -54,7 +54,6 @@ export class DbtTextDocument {
 
   constructor(
     doc: TextDocumentItem,
-    private dbtServer: DbtServer,
     private connection: _Connection,
     private progressReporter: ProgressReporter,
     private completionProvider: CompletionProvider,
@@ -71,10 +70,10 @@ export class DbtTextDocument {
     this.modelCompiler.onFinishAllCompilationTasks(this.onFinishAllCompilationTasks.bind(this));
   }
 
-  async didSaveTextDocument(): Promise<void> {
+  async didSaveTextDocument(dbtServer: DbtServer): Promise<void> {
     if (this.requireCompileOnSave) {
       this.requireCompileOnSave = false;
-      this.dbtServer.refreshServer();
+      dbtServer.refreshServer();
       await this.debouncedCompile();
     } else {
       await this.onCompilationFinished(this.compiledDocument.getText());

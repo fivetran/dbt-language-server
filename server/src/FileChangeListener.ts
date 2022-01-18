@@ -22,7 +22,7 @@ export class FileChangeListener {
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
     for (const change of params.changes) {
       if (change.uri.endsWith(YamlParser.DBT_PROJECT_FILE_NAME)) {
-        this.dbtServer.refreshServer();
+        this.dbtServer?.refreshServer();
         this.updateTargetPath();
         this.updateModels();
       } else if (change.uri.endsWith(`${this.resolveTargetPath()}/${YamlParser.DBT_MANIFEST_FILE_NAME}`)) {

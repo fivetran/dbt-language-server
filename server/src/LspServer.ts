@@ -24,7 +24,8 @@ import {
 import { BigQueryClient } from './bigquery/BigQueryClient';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtProfileCreator } from './DbtProfileCreator';
-import { DbtServer as DbtServer } from './DbtServer';
+import { DbtRpcClient } from './DbtRpcClient';
+import { DbtServer } from './DbtServer';
 import { DbtTextDocument } from './DbtTextDocument';
 import { getStringVersion } from './DbtVersion';
 import { Command } from './dbt_commands/Command';
@@ -50,6 +51,7 @@ export class LspServer {
 
   hasConfigurationCapability = false;
   dbtServer = new DbtServer();
+  dbtRpcClient = new DbtRpcClient();
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
   completionProvider = new CompletionProvider();
@@ -147,8 +149,9 @@ export class LspServer {
   }
 
   async startDbtRpc(command: Command, port: number): Promise<void> {
+    this.dbtRpcClient.setPort(port);
     try {
-      await this.dbtServer.startDbtRpc(command, port);
+      await this.dbtServer.startDbtRpc(command, this.dbtRpcClient);
       const initTime = performance.now() - this.initStart;
       this.sendTelemetry('log', {
         dbtVersion: getStringVersion(this.featureFinder.version),
@@ -200,8 +203,8 @@ export class LspServer {
     }
 
     const document = this.openedDocuments.get(params.textDocument.uri);
-    if (document) {
-      await document.didSaveTextDocument();
+    if (document && this.dbtServer) {
+      await document.didSaveTextDocument(this.dbtServer);
     }
   }
 
@@ -217,11 +220,10 @@ export class LspServer {
     if (!document && this.bigQueryClient) {
       document = new DbtTextDocument(
         params.textDocument,
-        this.dbtServer,
         this.connection,
         this.progressReporter,
         this.completionProvider,
-        new ModelCompiler(this.dbtServer, uri, this.workspaceFolder),
+        new ModelCompiler(this.dbtRpcClient, uri, this.workspaceFolder),
         this.bigQueryClient,
       );
       this.openedDocuments.set(uri, document);
@@ -288,7 +290,7 @@ export class LspServer {
 
   dispose(): void {
     console.log('Dispose start...');
-    this.dbtServer.dispose();
+    this.dbtServer?.dispose();
     void terminateServer();
     console.log('Dispose end.');
   }

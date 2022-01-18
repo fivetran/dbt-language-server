@@ -1,92 +1,18 @@
-import axios from 'axios';
-import { v4 as uuid } from 'uuid';
+import { DbtRpcClient } from './DbtRpcClient';
 import { Command } from './dbt_commands/Command';
 import { ProcessExecutor } from './ProcessExecutor';
 import { deferred } from './Utils';
 
-interface PostData {
-  jsonrpc: '2.0';
-  method: 'status' | 'compile' | 'compile_sql' | 'poll' | 'kill';
-  id: string;
-  params?: StatusParams | CompileModelParams | CompileSqlParams | PollParams | KillParams;
-}
-
-interface Params {
-  timeout?: number;
-}
-
-type StatusParams = Params;
-
-interface CompileModelParams extends Params {
-  threads?: string;
-  models: string;
-}
-
-interface CompileSqlParams extends Params {
-  sql: string;
-  name: string;
-}
-
-interface PollParams extends Params {
-  request_token: string;
-  logs: false;
-}
-
-interface KillParams extends Params {
-  task_id: string;
-}
-
-interface Response {
-  error?: {
-    data?: {
-      message?: string;
-    };
-  };
-}
-
-type State = 'ready' | 'compiling' | 'error';
-
-export interface StatusResponse extends Response {
-  result: {
-    state: State;
-    pid: number;
-    error?: {
-      message: string;
-    };
-  };
-}
-
-export interface CompileResponse extends Response {
-  result: {
-    request_token: string;
-  };
-}
-
-export interface PollResponse extends Response {
-  result: {
-    state: string;
-    elapsed: number;
-    results?: CompileResult[];
-  };
-}
-
-export interface CompileResult {
-  status: string;
-  node: {
-    compiled: boolean;
-    compiled_sql: string;
-  };
-}
-
 export class DbtServer {
   static readonly PROCESS_EXECUTOR = new ProcessExecutor();
 
-  port?: number;
-  rpcPid?: number;
   startDeferred = deferred<void>();
 
-  async startDbtRpc(command: Command, port: number): Promise<void> {
-    this.port = port;
+  private dbtRpcClient?: DbtRpcClient;
+  private rpcPid?: number;
+
+  async startDbtRpc(command: Command, dbtRpcClient: DbtRpcClient): Promise<void> {
+    this.dbtRpcClient = dbtRpcClient;
 
     try {
       let started = false;
@@ -131,7 +57,7 @@ export class DbtServer {
   async ensureCompilationFinished(): Promise<void> {
     return new Promise((resolve, reject) => {
       const intervalId = setInterval(async () => {
-        const status = await this.getStatus();
+        const status = await this.dbtRpcClient?.getStatus();
         if (status) {
           switch (status.result.state) {
             case 'compiling':
@@ -157,110 +83,6 @@ export class DbtServer {
     if (this.rpcPid) {
       process.kill(this.rpcPid, 'SIGHUP');
     }
-  }
-
-  async getCurrentStatus(): Promise<StatusResponse | undefined> {
-    await this.startDeferred.promise;
-    return this.getStatus();
-  }
-
-  async getStatus(): Promise<StatusResponse | undefined> {
-    const data: PostData = {
-      jsonrpc: '2.0',
-      method: 'status',
-      id: uuid(),
-      params: {
-        timeout: 1,
-      },
-    };
-
-    return this.makePostRequest<StatusResponse>(data);
-  }
-
-  async compileModel(modelName: string): Promise<CompileResponse | undefined> {
-    const data: PostData = {
-      jsonrpc: '2.0',
-      method: 'compile',
-      id: uuid(),
-      params: {
-        models: modelName,
-      },
-    };
-
-    return this.makePostRequest<CompileResponse>(data);
-  }
-
-  async compileSql(sql: string): Promise<CompileResponse> {
-    const data: PostData = {
-      jsonrpc: '2.0',
-      method: 'compile_sql',
-      id: uuid(),
-      params: {
-        timeout: 60,
-        sql: Buffer.from(sql).toString('base64'),
-        name: 'compile_sql',
-      },
-    };
-
-    const result = await this.makePostRequest<CompileResponse>(data);
-    if (!result) {
-      return {
-        result: { request_token: '' },
-        error: {
-          data: {
-            message: 'Error while running compile sql',
-          },
-        },
-      };
-    }
-    return result;
-  }
-
-  async pollOnceCompileResult(requestToken: string): Promise<PollResponse | undefined> {
-    const data: PostData = {
-      jsonrpc: '2.0',
-      method: 'poll',
-      id: uuid(),
-      params: {
-        request_token: requestToken,
-        logs: false,
-      },
-    };
-
-    return this.makePostRequest<PollResponse>(data);
-  }
-
-  async kill(requestToken: string): Promise<void> {
-    const data: PostData = {
-      jsonrpc: '2.0',
-      method: 'kill',
-      id: uuid(),
-      params: {
-        task_id: requestToken,
-        timeout: 1,
-      },
-    };
-
-    await this.makePostRequest<any>(data);
-  }
-
-  async makePostRequest<T extends Response>(postData: unknown): Promise<T | undefined> {
-    try {
-      const response = await axios.post<T>(`http://localhost:${this.port}/jsonrpc`, postData, { timeout: 6000 });
-      // console.log(response);
-      const { data } = response;
-      if (data?.error?.data?.message) {
-        const message = data?.error?.data?.message;
-        if (message && message.includes('invalid_grant')) {
-          console.warn('Reauth required for dbt!');
-          return undefined;
-        }
-      }
-      return data;
-    } catch (error) {
-      console.error(error);
-    }
-    return undefined;
   }
 
   dispose(): void {
