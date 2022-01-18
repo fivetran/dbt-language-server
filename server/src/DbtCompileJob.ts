@@ -28,9 +28,9 @@ export class DbtCompileJob {
         }
       } else {
         if (this.tryCount >= DbtCompileJob.MAX_RETRIES) {
-          return <PollResponse>{
+          return {
             error: this.startCompileResponse.error,
-            result: { state: 'error' },
+            result: { state: 'error', elapsed: 0 },
           };
         }
         this.startCompileResponse = undefined;

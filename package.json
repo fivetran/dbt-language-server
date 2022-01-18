@@ -47,6 +47,14 @@
       {
         "command": "dbt.compile",
         "title": "dbt compile"
+      },
+      {
+        "command": "dbt.refToSql",
+        "title": "Convert ref to SQL"
+      },
+      {
+        "command": "dbt.sqlToRef",
+        "title": "Convert SQL to ref"
       }
     ],
     "menus": {
@@ -57,19 +65,36 @@
           "when": "editorLangId =~ /sql$/"
         }
       ],
-      "editor/context": [
-        {
-          "command": "editor.showQueryPreview",
-          "group": "navigation@1.31",
-          "when": "editorLangId =~ /sql$/"
-        },
+      "dbt": [
         {
           "command": "dbt.compile",
-          "group": "navigation@1.31",
+          "group": "1_common"
+        },
+        {
+          "command": "editor.showQueryPreview",
+          "group": "1_common"
+        },
+        {
+          "command": "dbt.refToSql",
+          "group": "2_ref_sql"
+        },
+        {
+          "command": "dbt.sqlToRef",
+          "group": "2_ref_sql"
+        }
+      ],
+      "editor/context": [
+        {
+          "submenu": "dbt",
+          "group": "navigation",
           "when": "editorLangId =~ /sql$/"
         }
       ]
-    }
+    },
+    "submenus": [{
+      "id": "dbt",
+      "label": "dbt"
+    }]
   },
   "aiKey": "0a32611a-7944-4c4d-93c9-5c260a61395b",
   "scripts": {
@@ -80,8 +105,9 @@
     "postinstall": "cd client && npm install && cd ../server && npm install && cd ../markdown_parser && npm install && cd ../e2e && npm install && cd ..",
     "lint": "eslint . --ext .ts",
     "lint-fix": "eslint . --ext .ts --fix",
-    "test": "mocha \"server/out/test/**/*.spec.js\"",
+    "test": "mocha",
     "clean": "rm -rf client/out && rm -rf server/out",
+    "clean-install": "npm run clean && npm ci",
     "prepare-zetasql": "cp -R ./server/node_modules/@fivetrandevelopers/zetasql/lib/protos/ ./server/out/protos/ && cp -R ./server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql/ ./server/out/zetasql/",
     "webpack": "npm run clean && webpack --mode production --config ./client/webpack.config.js && webpack --mode production --config ./server/webpack.config.js && npm run prepare-zetasql",
     "webpack:dev": "npm run clean && webpack --mode none --config ./client/webpack.config.js && webpack --mode none --config ./server/webpack.config.js && npm run prepare-zetasql",

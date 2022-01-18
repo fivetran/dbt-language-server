@@ -4,7 +4,7 @@ import { ZetaSqlCatalog } from '../ZetaSqlCatalog';
 
 describe('ZetaSqlCatalogTest', () => {
   beforeEach(async () => {
-    (<any>ZetaSqlCatalog).instance = null;
+    (ZetaSqlCatalog as any).instance = null;
   });
 
   const PROJECT_ID = 'project_id';

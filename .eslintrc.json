@@ -42,6 +42,7 @@
     "no-cond-assign": ["error"],
     "prefer-regex-literals": ["error"],
     "spaced-comment": ["error"],
+    "no-implicit-coercion": ["error"],
 
     "@typescript-eslint/no-shadow": ["error"],
     "@typescript-eslint/no-floating-promises": ["error"],
@@ -51,6 +52,8 @@
     "@typescript-eslint/return-await": ["error"],
     "@typescript-eslint/no-useless-constructor": ["error"],
     "@typescript-eslint/no-empty-function": ["error"],
+    "@typescript-eslint/no-unnecessary-type-assertion": ["error"],
+    "@typescript-eslint/consistent-type-assertions": ["error", {"assertionStyle": "as", "objectLiteralTypeAssertions": "never"}],
 
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 

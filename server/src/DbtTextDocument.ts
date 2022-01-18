@@ -16,6 +16,7 @@ import {
   SignatureHelpParams,
   TextDocumentContentChangeEvent,
   TextDocumentItem,
+  WorkspaceChange,
   _Connection,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -30,6 +31,7 @@ import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SchemaTracker } from './SchemaTracker';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
+import { SqlRefConverter } from './SqlRefConverter';
 import { debounce, getJinjaContentOffset } from './Utils';
 import { ZetaSqlAst } from './ZetaSqlAst';
 import { ZetaSqlCatalog } from './ZetaSqlCatalog';
@@ -38,8 +40,8 @@ export class DbtTextDocument {
   static readonly NON_WORD_PATTERN = /\W/;
   static readonly DEBOUNCE_TIMEOUT = 300;
 
-  static zetaSqlAst = new ZetaSqlAst();
-  static jinjaParser = new JinjaParser();
+  static readonly ZETA_SQL_AST = new ZetaSqlAst();
+  static readonly JINJA_PARSER = new JinjaParser();
 
   rawDocument: TextDocument;
   compiledDocument: TextDocument;
@@ -48,6 +50,7 @@ export class DbtTextDocument {
   ast: AnalyzeResponse | undefined;
   schemaTracker: SchemaTracker;
   signatureHelpProvider = new SignatureHelpProvider();
+  sqlRefConverter = new SqlRefConverter(DbtTextDocument.JINJA_PARSER);
 
   constructor(
     doc: TextDocumentItem,
@@ -87,11 +90,11 @@ export class DbtTextDocument {
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
       this.requireCompileOnSave = true;
     } else {
-      const compiledContentChanges = params.contentChanges.map(c => {
+      const compiledContentChanges = params.contentChanges.map<TextDocumentContentChangeEvent>(c => {
         if (!TextDocumentContentChangeEvent.isIncremental(c)) {
           throw new Error('Incremental updates expected');
         }
-        return <TextDocumentContentChangeEvent>{
+        return {
           text: c.text,
           range: Range.create(
             this.convertPosition(this.compiledDocument.getText(), this.rawDocument.getText(), c.range.start),
@@ -119,19 +122,48 @@ export class DbtTextDocument {
     }
 
     for (const change of changes) {
-      if (DbtTextDocument.jinjaParser.hasJinjas(change.text)) {
+      if (DbtTextDocument.JINJA_PARSER.hasJinjas(change.text)) {
         return true;
       }
     }
 
-    const jinjas = DbtTextDocument.jinjaParser.findAllJinjaRanges(this.rawDocument);
+    const jinjas = DbtTextDocument.JINJA_PARSER.findAllJinjaRanges(this.rawDocument);
 
-    return jinjas === undefined || (jinjas.length > 0 && DbtTextDocument.jinjaParser.isJinjaModified(jinjas, changes));
+    return jinjas === undefined || (jinjas.length > 0 && DbtTextDocument.JINJA_PARSER.isJinjaModified(jinjas, changes));
   }
 
   async forceRecompile(): Promise<void> {
     this.progressReporter.sendStart(this.getRawDocUri());
     await this.debouncedCompile();
+  }
+
+  async refToSql(): Promise<void> {
+    const workspaceChange = new WorkspaceChange();
+    const textChange = workspaceChange.getTextEditChange(this.rawDocument.uri);
+
+    this.sqlRefConverter.refToSql(this.rawDocument, this.completionProvider.dbtModels).forEach(c => {
+      textChange.replace(c.range, c.newText);
+    });
+    await this.connection.workspace.applyEdit(workspaceChange.edit);
+  }
+
+  async sqlToRef(): Promise<void> {
+    if (!this.ast) {
+      return;
+    }
+
+    const workspaceChange = new WorkspaceChange();
+    const textChange = workspaceChange.getTextEditChange(this.rawDocument.uri);
+    const resolvedTables = DbtTextDocument.ZETA_SQL_AST.getResolvedTables(this.ast, this.compiledDocument.getText());
+
+    this.sqlRefConverter.sqlToRef(this.compiledDocument, resolvedTables, this.completionProvider.dbtModels).forEach(c => {
+      const range = Range.create(
+        this.convertPosition(this.rawDocument.getText(), this.compiledDocument.getText(), c.range.start),
+        this.convertPosition(this.rawDocument.getText(), this.compiledDocument.getText(), c.range.end),
+      );
+      textChange.replace(range, c.newText);
+    });
+    await this.connection.workspace.applyEdit(workspaceChange.edit);
   }
 
   debouncedCompile = debounce(async () => {
@@ -170,7 +202,8 @@ export class DbtTextDocument {
       registeredCatalogId: ZetaSqlCatalog.getInstance().catalog.registeredId,
 
       options: {
-        parseLocationRecordType: ParseLocationRecordType.PARSE_LOCATION_RECORD_FULL_NODE_SCOPE,
+        parseLocationRecordType: ParseLocationRecordType.PARSE_LOCATION_RECORD_CODE_SEARCH,
+
         errorMessageMode: ErrorMessageMode.ERROR_MESSAGE_ONE_LINE,
         languageOptions: ZetaSqlCatalog.getInstance().catalog.builtinFunctionOptions.languageOptions,
       },
@@ -262,7 +295,7 @@ export class DbtTextDocument {
     if (this.ast) {
       const line = Diff.getOldLineNumber(this.compiledDocument.getText(), this.rawDocument.getText(), completionParams.position.line);
       const offset = this.compiledDocument.offsetAt(Position.create(line, completionParams.position.character));
-      completionInfo = DbtTextDocument.zetaSqlAst.getCompletionInfo(this.ast, offset);
+      completionInfo = DbtTextDocument.ZETA_SQL_AST.getCompletionInfo(this.ast, offset);
     }
     return this.completionProvider.onSqlCompletion(text, completionParams, destinationDefinition, completionInfo);
   }

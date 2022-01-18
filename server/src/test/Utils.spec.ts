@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Position, Range } from 'vscode-languageserver-types';
-import { comparePositions, getJinjaContentOffset, rangesOverlap } from '../Utils';
+import { comparePositions, extractDatasetFromFullName, getJinjaContentOffset, rangesOverlap } from '../Utils';
 
 describe('Utils', () => {
   it('comparePositions_shouldComparePositions', () => {
@@ -50,5 +50,13 @@ describe('Utils', () => {
     function shouldReturnJinjaContentOffset(docContent: string, cursorCharPos: number, expected: number): void {
       assert.strictEqual(getJinjaContentOffset(TextDocument.create('test', 'sql', 0, docContent), Position.create(0, cursorCharPos)), expected);
     }
+  });
+  it('extractDatasetFromFullName should extract dataset', () => {
+    assert.strictEqual(extractDatasetFromFullName('`project`.`dataset`.`table`', 'table'), 'dataset');
+    assert.strictEqual(extractDatasetFromFullName('`project`.`dataset`.table', 'table'), 'dataset');
+    assert.strictEqual(extractDatasetFromFullName('`project`.dataset.table', 'table'), 'dataset');
+    assert.strictEqual(extractDatasetFromFullName('project.`dataset`.table', 'table'), 'dataset');
+    assert.strictEqual(extractDatasetFromFullName('project.dataset.table', 'table'), 'dataset');
+    assert.strictEqual(extractDatasetFromFullName('`project.dataset.table`', 'table'), 'dataset');
   });
 });

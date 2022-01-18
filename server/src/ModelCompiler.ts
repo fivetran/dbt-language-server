@@ -1,6 +1,6 @@
 import { Emitter, Event } from 'vscode-languageserver';
 import { DbtCompileJob } from './DbtCompileJob';
-import { CompileResult, DbtServer } from './DbtServer';
+import { DbtServer } from './DbtServer';
 
 export class ModelCompiler {
   private dbtCompileTaskQueue: DbtCompileJob[] = [];
@@ -88,9 +88,9 @@ export class ModelCompiler {
             break;
           }
 
-          const compiledNodes = <CompileResult[]>response?.result.results;
+          const compiledNodes = response?.result.results;
 
-          if (compiledNodes.length > 0) {
+          if (compiledNodes && compiledNodes.length > 0) {
             const compiledSql = compiledNodes[0].node.compiled_sql;
             this.onCompilationFinishedEmitter.fire(compiledSql);
           }

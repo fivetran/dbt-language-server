@@ -12,18 +12,19 @@ suite('Functions', () => {
     await setTestContent('select max(');
 
     // act
-    const help = (await vscode.commands.executeCommand(
+    const help = await vscode.commands.executeCommand<vscode.SignatureHelp>(
       'vscode.executeSignatureHelpProvider',
       docUri,
       new vscode.Position(0, 11),
       '(',
-    )) as vscode.SignatureHelp;
+    );
 
     // assert
     assert.strictEqual(help.signatures.length, 1);
     assert.strictEqual(help.signatures[0].label, 'MAX(\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n');
+    assert.ok(help.signatures[0].documentation instanceof vscode.MarkdownString);
     assert.strictEqual(
-      (<vscode.MarkdownString>help.signatures[0].documentation).value,
+      help.signatures[0].documentation.value,
       'Returns the maximum value of non-`NULL` expressions. Returns `NULL` if there\nare zero input rows or `expression` evaluates to `NULL` for all rows.\nReturns `NaN` if the input contains a `NaN`.',
     );
   });

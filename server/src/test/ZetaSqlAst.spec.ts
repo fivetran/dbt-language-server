@@ -37,30 +37,30 @@ describe('ZetaSqlAst', () => {
   });
 
   it('multipleWith.json', () => {
-    shouldReturnLocationOfTableNameInQuery('multipleWith', 35, 140, 193);
-    shouldReturnLocationOfTableNameInQuery('multipleWith', 45, 140, 193);
-    shouldReturnLocationOfTableNameInQuery('multipleWith', 160, 140, 193);
-    shouldReturnLocationOfTableNameInQuery('multipleWith', 193, 140, 193);
+    shouldReturnLocationOfTableNameInQuery('multipleWith', 35, 138, 191);
+    shouldReturnLocationOfTableNameInQuery('multipleWith', 45, 138, 191);
+    shouldReturnLocationOfTableNameInQuery('multipleWith', 160, 138, 191);
+    shouldReturnLocationOfTableNameInQuery('multipleWith', 191, 138, 191);
 
-    shouldReturnLocationOfTableNameInQuery('multipleWith', 229, 532, 561);
-    shouldReturnLocationOfTableNameInQuery('multipleWith', 288, 532, 561);
-    shouldReturnLocationOfTableNameInQuery('multipleWith', 532, 532, 561);
-    shouldReturnLocationOfTableNameInQuery('multipleWith', 705, 532, 561);
+    shouldReturnLocationOfTableNameInQuery('multipleWith', 229, 530, 559);
+    shouldReturnLocationOfTableNameInQuery('multipleWith', 288, 530, 559);
+    shouldReturnLocationOfTableNameInQuery('multipleWith', 532, 530, 559);
+    shouldReturnLocationOfTableNameInQuery('multipleWith', 703, 530, 559);
 
-    shouldReturnLocationOfTableNameInQuery('multipleWith', 1567, 1586, 1658);
-    shouldReturnLocationOfTableNameInQuery('multipleWith', 1576, 1586, 1658);
-    shouldReturnLocationOfTableNameInQuery('multipleWith', 1658, 1586, 1658);
+    shouldReturnLocationOfTableNameInQuery('multipleWith', 1567, 1584, 1656);
+    shouldReturnLocationOfTableNameInQuery('multipleWith', 1576, 1584, 1656);
+    shouldReturnLocationOfTableNameInQuery('multipleWith', 1656, 1584, 1656);
   });
 
   describe('resolvedSetOperationScanNode.json', () => {
     function shouldReturnTablesForresolvedSetOperationScanNode(cursorOffset: number): void {
       shouldReturnLocationsOfTableNameInQuery('resolvedSetOperationScanNode', cursorOffset, [
-        createParseLocationRange(97, 142),
-        createParseLocationRange(256, 301),
-        createParseLocationRange(415, 460),
-        createParseLocationRange(573, 618),
-        createParseLocationRange(745, 801),
-        createParseLocationRange(919, 968),
+        createParseLocationRange(96, 141),
+        createParseLocationRange(255, 300),
+        createParseLocationRange(414, 459),
+        createParseLocationRange(572, 617),
+        createParseLocationRange(744, 800),
+        createParseLocationRange(918, 967),
       ]);
     }
 

@@ -7,6 +7,11 @@
 	"editor.defaultFormatter": "esbenp.prettier-vscode",
 	"editor.formatOnSave": true,
 	"typescript.tsc.autoDetect": "off",
+
+	"mochaExplorer.files": "server/out/test/**/*.js",
+	"mochaExplorer.require": "source-map-support/register",
+	"mochaExplorer.watch": "server/out/**/*.js",
+
 	"cSpell.words": [
 		"gcloud",
 		"neverthrow"

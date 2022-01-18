@@ -81,7 +81,7 @@ export class LspServer {
       return new ResponseError<InitializeError>(100, clientResult.error, { retry: true });
     }
 
-    this.bigQueryClient = <BigQueryClient>clientResult.value;
+    this.bigQueryClient = clientResult.value as BigQueryClient;
 
     this.initializeDestinationDefinition();
 
@@ -90,11 +90,11 @@ export class LspServer {
     const { capabilities } = params;
     // Does the client support the `workspace/configuration` request?
     // If not, we fall back using global settings.
-    this.hasConfigurationCapability = !!(capabilities.workspace && !!capabilities.workspace.configuration);
+    this.hasConfigurationCapability = Boolean(capabilities.workspace?.configuration);
 
     this.workspaceFolder = process.cwd();
 
-    return <InitializeResult>{
+    return {
       capabilities: {
         textDocumentSync: TextDocumentSyncKind.Incremental,
         hoverProvider: true,
@@ -111,6 +111,7 @@ export class LspServer {
 
   initializeNotifications(): void {
     this.connection.onNotification('custom/dbtCompile', this.onDbtCompile.bind(this));
+    this.connection.onNotification('custom/convertTo', this.convertTo.bind(this));
   }
 
   async onInitialized(): Promise<void> {
@@ -142,7 +143,7 @@ export class LspServer {
 
   sendTelemetry(name: string, properties?: { [key: string]: string }): void {
     console.log(`Telemetry log: ${JSON.stringify(properties)}`);
-    this.connection.sendNotification(TelemetryEventNotification.type, <TelemetryEvent>{ name, properties });
+    this.connection.sendNotification<TelemetryEvent>(TelemetryEventNotification.type, { name, properties });
   }
 
   async startDbtRpc(command: Command, port: number): Promise<void> {
@@ -165,6 +166,17 @@ export class LspServer {
     const document = this.openedDocuments.get(uri);
     if (document) {
       await document.forceRecompile();
+    }
+  }
+
+  async convertTo(params: any): Promise<void> {
+    const document = this.openedDocuments.get(params.uri);
+    if (document) {
+      if (params.to === 'sql') {
+        await document.refToSql();
+      } else if (params.to === 'ref') {
+        await document.sqlToRef();
+      }
     }
   }
 

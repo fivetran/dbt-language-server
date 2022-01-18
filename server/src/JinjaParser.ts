@@ -7,9 +7,16 @@ interface ParseNode {
   range: Range;
 }
 
+export interface Ref {
+  modelName: string;
+  range: Range;
+}
+
 export class JinjaParser {
   static readonly JINJA_PATTERN = /{{[\s\S]*?}}|{%[\s\S]*?%}|{#[\s\S]*?#}/g;
+  static readonly JINJA_REF_PATTERN = /{{\s*ref\s*\(\s*(?<start_quote>['|"])(.*?)\k<start_quote>\s*\)\s*}}/g;
   static readonly JINJA_BLOCK_PATTERN = /{%\s*(docs|if|for|macro)\s+.*%}|{%\s*(enddocs|endif|endfor|endmacro)\s*%}/;
+
   static readonly JINJA_OPEN_BLOCKS = ['docs', 'if', 'for', 'macro'];
   static readonly JINJA_CLOSE_BLOCKS = ['enddocs', 'endif', 'endfor', 'endmacro'];
 
@@ -36,18 +43,10 @@ export class JinjaParser {
   }
 
   findAllJinjaExpressions(rawDocument: TextDocument): ParseNode[] {
-    const text = rawDocument.getText();
-    const jinjaExpressions = [];
-    let m: RegExpExecArray | null;
-
-    while ((m = JinjaParser.JINJA_PATTERN.exec(text))) {
-      jinjaExpressions.push({
-        expression: m[0],
-        range: Range.create(rawDocument.positionAt(m.index), rawDocument.positionAt(m.index + m[0].length)),
-      });
-    }
-
-    return jinjaExpressions;
+    return this.findByPattern(rawDocument, JinjaParser.JINJA_PATTERN).map<ParseNode>(m => ({
+      expression: m[0],
+      range: Range.create(rawDocument.positionAt(m.index), rawDocument.positionAt(m.index + m[0].length)),
+    }));
   }
 
   findAllJinjaBlocks(jinjaExpressions: ParseNode[]): ParseNode[] {
@@ -110,6 +109,27 @@ export class JinjaParser {
     }
 
     return jinjaBlockRanges;
+  }
+
+  findAllRefs(rawDocument: TextDocument): Ref[] {
+    return this.findByPattern(rawDocument, JinjaParser.JINJA_REF_PATTERN).map<Ref>(m => ({
+      modelName: m[2],
+      range: {
+        start: rawDocument.positionAt(m.index),
+        end: rawDocument.positionAt(m.index + m[0].length),
+      },
+    }));
+  }
+
+  private findByPattern(rawDocument: TextDocument, pattern: RegExp): RegExpExecArray[] {
+    const text = rawDocument.getText();
+    const result = [];
+    let m: RegExpExecArray | null;
+
+    while ((m = pattern.exec(text))) {
+      result.push(m);
+    }
+    return result;
   }
 
   hasJinjas(text: string): boolean {

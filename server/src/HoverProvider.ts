@@ -18,7 +18,7 @@ export class HoverProvider {
       if (outputColumn.column?.tableName === '$query' || outputColumn?.column?.name !== outputColumn?.name) {
         hint = `Alias: ${outputColumn?.name}`;
       } else if (outputColumn?.name) {
-        hint = HoverProvider.getColumnHint(outputColumn?.column?.tableName, outputColumn?.name, <TypeKind>outputColumn?.column?.type?.typeKind);
+        hint = HoverProvider.getColumnHint(outputColumn?.column?.tableName, outputColumn?.name, outputColumn?.column?.type?.typeKind as TypeKind);
       }
     } else if (hoverInfo.withQueryName) {
       hint = `Temporary table introduced in a WITH clause: ${hoverInfo.withQueryName}`;
@@ -39,7 +39,7 @@ export class HoverProvider {
   }
 
   static getColumnHint(tableName?: string, columnName?: string, columnTypeKind?: TypeKind): string {
-    const type = new SimpleType(<TypeKind>columnTypeKind).getTypeName();
+    const type = columnTypeKind ? new SimpleType(columnTypeKind).getTypeName() : 'unknown';
     return `Table: ${tableName}\nColumn: ${columnName}\nType: ${type}`;
   }
 }

@@ -17,10 +17,14 @@ async function main(): Promise<void> {
     const vscodeExecutablePath = await downloadAndUnzipVSCode();
 
     const [cli, ...args] = resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath);
-    spawnSync(cli, [...args, '--install-extension=ms-python.python', `--extensions-dir=${extensionsInstallPath}`], {
+    const installResult = spawnSync(cli, [...args, '--install-extension=ms-python.python', `--extensions-dir=${extensionsInstallPath}`], {
       encoding: 'utf-8',
       stdio: 'inherit',
     });
+    if (installResult.status !== 0) {
+      console.error('Failed to install python extension');
+      process.exit(1);
+    }
 
     const extensionTestsPath = path.resolve(__dirname, './index');
 
@@ -63,6 +67,8 @@ async function prepareBigQuery(): Promise<void> {
     { name: 'phone', type: 'STRING' },
     { name: 'profile_id', type: 'STRING' },
   ]);
+
+  await ensureTableExists(bigQuery, dsName, 'table_exists', [{ name: 'id', type: 'INTEGER' }]);
 }
 
 async function ensureTableExists(bigQuery: BigQuery, dsName: string, tableName: string, columns: TableField[]): Promise<void> {
