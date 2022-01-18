@@ -75,8 +75,8 @@ function getPreviewEditor(): vscode.TextEditor | undefined {
   return vscode.window.visibleTextEditors.find(e => e.document.uri.toString() === 'query-preview:Preview?dbt-language-server');
 }
 
-export function getDiagnostics(uri: vscode.Uri): vscode.Diagnostic[] {
-  return vscode.languages.getDiagnostics(uri);
+export function getDiagnostics(): vscode.Diagnostic[] {
+  return vscode.languages.getDiagnostics(doc.uri);
 }
 
 export function sleep(ms: number): Promise<unknown> {

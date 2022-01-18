@@ -2,7 +2,7 @@ import * as glob from 'glob';
 import * as Mocha from 'mocha';
 import * as path from 'path';
 import { performance } from 'perf_hooks';
-import { doc, getPreviewText } from './helper';
+import { doc, getDiagnostics, getPreviewText } from './helper';
 
 export function run(): Promise<void> {
   const mocha = new Mocha({
@@ -37,9 +37,11 @@ export function run(): Promise<void> {
             resolve();
           }
         });
-        runner.on('fail', async () =>
-          console.log(`Content of document when test failed:\n${doc.getText()}\nPreview content:\n${await getPreviewText()}`),
-        );
+        runner.on('fail', async () => {
+          console.log(`Content of document when test failed:\n${doc.getText()}`);
+          console.log(`Preview content:\n${await getPreviewText()}`);
+          console.log(`Diagnostics:\n${JSON.stringify(await getDiagnostics())}`);
+        });
       } catch (err) {
         console.error(err);
         reject(err);
