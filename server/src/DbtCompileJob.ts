@@ -2,6 +2,7 @@ import { CompileResponse, DbtRpcClient, PollResponse } from './DbtRpcClient';
 
 export class DbtCompileJob {
   static readonly MAX_RETRIES = 5;
+  static readonly UNKNOWN_ERROR = 'Unknown dbt-rpc error';
 
   startCompileResponse: CompileResponse | undefined;
   tryCount = 0;
@@ -10,28 +11,22 @@ export class DbtCompileJob {
 
   async runCompile(): Promise<void> {
     this.startCompileResponse = await this.dbtRpcClient.compileModel(this.modelName);
+    this.tryCount++;
   }
 
   async getResult(): Promise<PollResponse | undefined> {
-    if (this.startCompileResponse) {
-      if (!this.startCompileResponse.error) {
-        try {
-          return await this.dbtRpcClient.pollOnceCompileResult(this.startCompileResponse.result.request_token);
-        } catch (e) {
-          console.log(`Error while polling task result: ${JSON.stringify(e)}`);
-        }
-      } else {
-        if (this.tryCount >= DbtCompileJob.MAX_RETRIES) {
-          return {
-            error: this.startCompileResponse.error,
-            result: { state: 'error', elapsed: 0 },
-          };
-        }
-        this.startCompileResponse = undefined;
-        void this.runCompile();
-      }
-      this.tryCount++;
+    if (this.startCompileResponse && !this.startCompileResponse.error) {
+      return this.dbtRpcClient.pollOnceCompileResult(this.startCompileResponse.result.request_token);
     }
+    if (this.tryCount >= DbtCompileJob.MAX_RETRIES) {
+      return {
+        error: this.startCompileResponse?.error ?? { data: { message: DbtCompileJob.UNKNOWN_ERROR } },
+        result: { state: 'error', elapsed: 0 },
+      };
+    }
+    this.startCompileResponse = undefined;
+    void this.runCompile();
+
     return undefined;
   }
 
