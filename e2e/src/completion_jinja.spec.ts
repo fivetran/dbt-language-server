@@ -48,6 +48,6 @@ suite('Should do completion inside jinjas expression', () => {
   }
 
   function getLabels(): string[] {
-    return ['completion_jinja', 'test_table1', 'users'];
+    return ['completion_jinja', 'join_ref', 'test_table1', 'users'];
   }
 });

@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { activateAndWait, getCustomDocUri, testCompletion } from './helper';
 
 suite('Should suggest completions after ref aliases', () => {
-  const PROJECT_FILE_NAME = 'completion-ref/models/join_ref.sql';
+  const PROJECT_FILE_NAME = 'completion-jinja/models/join_ref.sql';
 
   test('Should suggest columns for ref alias after press . in select', async () => {
     await shouldSuggestUsersTableColumns(new vscode.Position(7, 9));

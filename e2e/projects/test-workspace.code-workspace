@@ -4,9 +4,6 @@
         "path": "completion-jinja"
       },
       {
-        "path": "completion-ref"
-      },
-      {
         "path": "test-fixture"
       },
       {
