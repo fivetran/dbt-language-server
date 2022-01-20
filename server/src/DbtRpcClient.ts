@@ -10,9 +10,7 @@ export interface PollResponse extends Response {
 }
 
 export interface CompileResult {
-  status: string;
   node: {
-    compiled: boolean;
     compiled_sql: string;
   };
 }
@@ -124,7 +122,6 @@ export class DbtRpcClient {
 
   async makePostRequest<T extends Response>(postData: unknown): Promise<T | undefined> {
     try {
-      console.log(JSON.stringify(postData));
       const response = await axios.post<T>(`http://localhost:${this.port}/jsonrpc`, postData, { timeout: 6000 });
       return response.data;
     } catch (e) {

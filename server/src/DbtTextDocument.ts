@@ -67,7 +67,7 @@ export class DbtTextDocument {
 
     this.modelCompiler.onCompilationError(this.onCompilationError.bind(this));
     this.modelCompiler.onCompilationFinished(this.onCompilationFinished.bind(this));
-    this.modelCompiler.onFinishAllCompilationTasks(this.onFinishAllCompilationTasks.bind(this));
+    this.modelCompiler.onFinishAllCompilationJobs(this.onFinishAllCompilationTasks.bind(this));
   }
 
   async didSaveTextDocument(dbtRpcServer: DbtRpcServer): Promise<void> {

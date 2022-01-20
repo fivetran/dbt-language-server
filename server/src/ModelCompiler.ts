@@ -3,12 +3,12 @@ import { DbtCompileJob } from './DbtCompileJob';
 import { DbtRpcClient } from './DbtRpcClient';
 
 export class ModelCompiler {
-  private dbtCompileTaskQueue: DbtCompileJob[] = [];
+  private dbtCompileJobQueue: DbtCompileJob[] = [];
   private pollIsRunning = false;
 
   private onCompilationErrorEmitter = new Emitter<string>();
   private onCompilationFinishedEmitter = new Emitter<string>();
-  private onFinishAllCompilationTasksEmitter = new Emitter<void>();
+  private onFinishAllCompilationJobsEmitter = new Emitter<void>();
 
   compilationInProgress = false;
 
@@ -20,8 +20,8 @@ export class ModelCompiler {
     return this.onCompilationFinishedEmitter.event;
   }
 
-  get onFinishAllCompilationTasks(): Event<void> {
-    return this.onFinishAllCompilationTasksEmitter.event;
+  get onFinishAllCompilationJobs(): Event<void> {
+    return this.onFinishAllCompilationJobsEmitter.event;
   }
 
   constructor(private dbtRpcClient: DbtRpcClient, private documentUri: string, private workspaceFolder: string) {}
@@ -34,16 +34,16 @@ export class ModelCompiler {
       return;
     }
 
-    if (this.dbtCompileTaskQueue.length > 3) {
-      const taskToKill = this.dbtCompileTaskQueue.shift();
-      void taskToKill?.kill();
+    if (this.dbtCompileJobQueue.length > 3) {
+      const jobToStop = this.dbtCompileJobQueue.shift();
+      void jobToStop?.stop();
     }
-    this.startNewTask();
+    this.startNewJob();
 
     await this.pollResults();
   }
 
-  startNewTask(): void {
+  startNewJob(): void {
     const index = this.documentUri.indexOf(this.workspaceFolder);
     if (index === -1) {
       console.log('Opened file is not a part of project workspace. Compile request declined.');
@@ -53,9 +53,9 @@ export class ModelCompiler {
     const modelPath = this.documentUri.slice(index + this.workspaceFolder.length + 1);
 
     if (modelPath) {
-      const task = new DbtCompileJob(this.dbtRpcClient, modelPath);
-      this.dbtCompileTaskQueue.push(task);
-      void task.runCompile();
+      const job = new DbtCompileJob(this.dbtRpcClient, modelPath);
+      this.dbtCompileJobQueue.push(job);
+      void job.start();
     } else {
       console.log('Unable to determine model path');
     }
@@ -67,45 +67,36 @@ export class ModelCompiler {
     }
     this.pollIsRunning = true;
 
-    while (this.dbtCompileTaskQueue.length > 0) {
-      const { length } = this.dbtCompileTaskQueue;
+    while (this.dbtCompileJobQueue.length > 0) {
+      const { length } = this.dbtCompileJobQueue;
 
       for (let i = length - 1; i >= 0; i--) {
-        const task = this.dbtCompileTaskQueue[i];
-        const response = await task.getResult();
+        const job = this.dbtCompileJobQueue[i];
+        const { result } = job;
 
-        if (!response) {
-          continue;
-        }
-        if (response.error || response.result.state !== 'running') {
-          const tasksToKill = this.dbtCompileTaskQueue.splice(0, i + 1);
+        if (result) {
+          const jobsToStop = this.dbtCompileJobQueue.splice(0, i + 1);
           for (let j = 0; j < i; j++) {
-            void tasksToKill[j].kill();
+            void jobsToStop[j].stop();
           }
 
-          if (response.error) {
-            this.onCompilationErrorEmitter.fire(response.error.data?.message ?? 'dbt compile error');
-            break;
-          }
-
-          const compiledNodes = response.result.results;
-
-          if (compiledNodes && compiledNodes.length > 0) {
-            const compiledSql = compiledNodes[0].node.compiled_sql;
-            this.onCompilationFinishedEmitter.fire(compiledSql);
+          if (result.isErr()) {
+            this.onCompilationErrorEmitter.fire(result.error);
+          } else {
+            this.onCompilationFinishedEmitter.fire(result.value);
           }
           break;
         }
       }
 
-      if (this.dbtCompileTaskQueue.length === 0) {
+      if (this.dbtCompileJobQueue.length === 0) {
         break;
       }
       await this.wait(500);
     }
     this.pollIsRunning = false;
     this.compilationInProgress = false;
-    this.onFinishAllCompilationTasksEmitter.fire();
+    this.onFinishAllCompilationJobsEmitter.fire();
   }
 
   wait(ms: number): Promise<void> {

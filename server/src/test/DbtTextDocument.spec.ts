@@ -15,7 +15,7 @@ describe('DbtTextDocument', () => {
     mockModelCompiler = mock(ModelCompiler);
     when(mockModelCompiler.onCompilationError).thenReturn(new Emitter<string>().event);
     when(mockModelCompiler.onCompilationFinished).thenReturn(new Emitter<string>().event);
-    when(mockModelCompiler.onFinishAllCompilationTasks).thenReturn(new Emitter<void>().event);
+    when(mockModelCompiler.onFinishAllCompilationJobs).thenReturn(new Emitter<void>().event);
 
     document = new DbtTextDocument(
       mock(TextDocumentItem),
