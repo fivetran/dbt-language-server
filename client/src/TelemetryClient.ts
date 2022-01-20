@@ -1,7 +1,7 @@
+import TelemetryReporter from '@vscode/extension-telemetry';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ExtensionContext } from 'vscode';
-import TelemetryReporter from 'vscode-extension-telemetry';
 
 export class TelemetryClient {
   private static client: TelemetryReporter;
