@@ -26,6 +26,7 @@ describe('SqlRefConverter', () => {
       name: `test_model${n}`,
       database: 'db',
       schema: 'schema',
+      package: 'sample',
     }));
   }
 
@@ -72,7 +73,11 @@ describe('SqlRefConverter', () => {
     const sql = 'select * from `db`.`schema`.`test_model0`';
     const doc = TextDocument.create('test', 'sql', 0, sql);
 
-    const changes = SQL_REF_CONVERTER.sqlToRef(doc, [createResolvedTable(0, 14, 41)], [{ name: 'test_model0', database: 'db', schema: 'schema' }]);
+    const changes = SQL_REF_CONVERTER.sqlToRef(
+      doc,
+      [createResolvedTable(0, 14, 41)],
+      [{ name: 'test_model0', database: 'db', schema: 'schema', package: 'sample' }],
+    );
 
     assert.strictEqual(changes.length, 1);
     assert.deepStrictEqual(changes, [

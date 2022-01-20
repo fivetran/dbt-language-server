@@ -1,6 +1,7 @@
 import { DidChangeWatchedFilesParams } from 'vscode-languageserver';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtServer } from './DbtServer';
+import { DefinitionProvider } from './DefinitionProvider';
 import { ManifestParser } from './ManifestParser';
 import { YamlParser } from './YamlParser';
 
@@ -9,6 +10,7 @@ export class FileChangeListener {
 
   constructor(
     private completionProvider: CompletionProvider,
+    private definitionProvider: DefinitionProvider,
     private yamlParser: YamlParser,
     private manifestParser: ManifestParser,
     private dbtServer: DbtServer,
@@ -36,7 +38,9 @@ export class FileChangeListener {
   }
 
   updateModels(): void {
-    this.completionProvider.setDbtModels(this.manifestParser.parse(this.yamlParser.findTargetPath()).models);
+    const { models } = this.manifestParser.parse(this.yamlParser.findTargetPath());
+    this.completionProvider.setDbtModels(models);
+    this.definitionProvider.setDbtModels(models);
   }
 
   resolveTargetPath(): string {

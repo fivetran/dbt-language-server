@@ -3,6 +3,8 @@ import { performance } from 'perf_hooks';
 import {
   CompletionItem,
   CompletionParams,
+  DefinitionLink,
+  DefinitionParams,
   DidChangeConfigurationNotification,
   DidChangeTextDocumentParams,
   DidChangeWatchedFilesParams,
@@ -28,6 +30,7 @@ import { DbtServer as DbtServer } from './DbtServer';
 import { DbtTextDocument } from './DbtTextDocument';
 import { getStringVersion } from './DbtVersion';
 import { Command } from './dbt_commands/Command';
+import { DefinitionProvider } from './DefinitionProvider';
 import { DestinationDefinition } from './DestinationDefinition';
 import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
@@ -53,6 +56,7 @@ export class LspServer {
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
   completionProvider = new CompletionProvider();
+  definitionProvider = new DefinitionProvider();
   yamlParser = new YamlParser();
   dbtProfileCreator = new DbtProfileCreator(this.yamlParser);
   manifestParser = new ManifestParser();
@@ -62,7 +66,13 @@ export class LspServer {
 
   constructor(private connection: _Connection) {
     this.progressReporter = new ProgressReporter(this.connection);
-    this.fileChangeListener = new FileChangeListener(this.completionProvider, this.yamlParser, this.manifestParser, this.dbtServer);
+    this.fileChangeListener = new FileChangeListener(
+      this.completionProvider,
+      this.definitionProvider,
+      this.yamlParser,
+      this.manifestParser,
+      this.dbtServer,
+    );
   }
 
   async onInitialize(params: InitializeParams): Promise<InitializeResult<any> | ResponseError<InitializeError>> {
@@ -93,6 +103,7 @@ export class LspServer {
     this.hasConfigurationCapability = Boolean(capabilities.workspace?.configuration);
 
     this.workspaceFolder = process.cwd();
+    this.manifestParser.setWorkspaceFolder(this.workspaceFolder);
 
     return {
       capabilities: {
@@ -105,6 +116,7 @@ export class LspServer {
         signatureHelpProvider: {
           triggerCharacters: ['('],
         },
+        definitionProvider: true,
       },
     };
   }
@@ -221,6 +233,7 @@ export class LspServer {
         this.connection,
         this.progressReporter,
         this.completionProvider,
+        this.definitionProvider,
         new ModelCompiler(this.dbtServer, uri, this.workspaceFolder),
         this.bigQueryClient,
       );
@@ -276,6 +289,11 @@ export class LspServer {
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
     const document = this.openedDocuments.get(params.textDocument.uri);
     return document?.onSignatureHelp(params);
+  }
+
+  onDefinition(definitionParams: DefinitionParams): DefinitionLink[] | undefined {
+    const document = this.openedDocuments.get(definitionParams.textDocument.uri);
+    return document?.onDefinition(definitionParams);
   }
 
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {

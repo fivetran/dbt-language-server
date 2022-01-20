@@ -4,6 +4,7 @@ import { BigQueryClient } from '../bigquery/BigQueryClient';
 import { CompletionProvider } from '../CompletionProvider';
 import { DbtServer } from '../DbtServer';
 import { DbtTextDocument } from '../DbtTextDocument';
+import { DefinitionProvider } from '../DefinitionProvider';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProgressReporter } from '../ProgressReporter';
 import { sleep } from './helper';
@@ -24,6 +25,7 @@ describe('DbtTextDocument', () => {
       mock<_Connection>(),
       mock(ProgressReporter),
       mock(CompletionProvider),
+      mock(DefinitionProvider),
       instance(mockModelCompiler),
       mock(BigQueryClient),
     );

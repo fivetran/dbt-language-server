@@ -7,6 +7,12 @@ export class ManifestParser {
   static readonly RESOURCE_TYPE_MODEL = 'model';
   static readonly PROJECT_PATH = './';
 
+  workspaceFolder = '';
+
+  setWorkspaceFolder(workspaceFolder: string): void {
+    this.workspaceFolder = workspaceFolder;
+  }
+
   parse(targetPath: string): ManifestJson {
     const manifestLocation = path.join(ManifestParser.PROJECT_PATH, targetPath, ManifestParser.MANIFEST_FILE_NAME);
     try {
@@ -14,7 +20,7 @@ export class ManifestParser {
       const manifest = JSON.parse(content);
       const { nodes } = manifest;
 
-      if (nodes) {
+      if (nodes && this.workspaceFolder) {
         return {
           models: Object.values(nodes as any[])
             .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_MODEL)
@@ -22,6 +28,7 @@ export class ManifestParser {
               name: n.name,
               database: n.database,
               schema: n.schema,
+              package: `${this.workspaceFolder}/models/${n.name}.sql`,
             })),
         };
       }

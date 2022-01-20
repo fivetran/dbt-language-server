@@ -52,7 +52,7 @@ export function getJinjaContentOffset(doc: TextDocument, cursorPos: Position): n
   return -1;
 }
 
-function positionInRange(position: Position, range: Range): boolean {
+export function positionInRange(position: Position, range: Range): boolean {
   return comparePositions(range.start, position) <= 0 && comparePositions(range.end, position) >= 0;
 }
 

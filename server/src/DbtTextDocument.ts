@@ -5,6 +5,8 @@ import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/z
 import {
   CompletionItem,
   CompletionParams,
+  DefinitionLink,
+  DefinitionParams,
   Diagnostic,
   DiagnosticSeverity,
   DidChangeTextDocumentParams,
@@ -23,6 +25,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { BigQueryClient } from './bigquery/BigQueryClient';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtServer } from './DbtServer';
+import { DefinitionProvider } from './DefinitionProvider';
 import { DestinationDefinition } from './DestinationDefinition';
 import { Diff as Diff } from './Diff';
 import { HoverProvider } from './HoverProvider';
@@ -32,7 +35,7 @@ import { ProgressReporter } from './ProgressReporter';
 import { SchemaTracker } from './SchemaTracker';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { SqlRefConverter } from './SqlRefConverter';
-import { debounce, getJinjaContentOffset } from './Utils';
+import { debounce, getJinjaContentOffset, positionInRange } from './Utils';
 import { ZetaSqlAst } from './ZetaSqlAst';
 import { ZetaSqlCatalog } from './ZetaSqlCatalog';
 
@@ -58,6 +61,7 @@ export class DbtTextDocument {
     private connection: _Connection,
     private progressReporter: ProgressReporter,
     private completionProvider: CompletionProvider,
+    private definitionProvider: DefinitionProvider,
     private modelCompiler: ModelCompiler,
     bigQueryClient: BigQueryClient,
   ) {
@@ -303,6 +307,16 @@ export class DbtTextDocument {
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
     const text = this.getText(this.getTextRangeBeforeBracket(params.position));
     return this.signatureHelpProvider.onSignatureHelp(params, text);
+  }
+
+  onDefinition(definitionParams: DefinitionParams): DefinitionLink[] | undefined {
+    const refs = DbtTextDocument.JINJA_PARSER.findAllRefs(this.rawDocument);
+    for (const ref of refs) {
+      if (positionInRange(definitionParams.position, ref.range)) {
+        return this.definitionProvider.onRefDefinition(ref.modelName);
+      }
+    }
+    return undefined;
   }
 
   getIdentifierRangeAtPosition(position: Position): Range {
