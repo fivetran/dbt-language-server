@@ -1,7 +1,8 @@
 import { AnalyzeRequest, ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
-import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
+import { AnalyzeResponse, AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRecordType';
+import { err, ok, Result } from 'neverthrow';
 import {
   CompletionItem,
   CompletionParams,
@@ -169,16 +170,12 @@ export class DbtTextDocument {
     await this.modelCompiler.compile();
   }, DbtTextDocument.DEBOUNCE_TIMEOUT);
 
-  getText(range?: Range): string {
-    return this.rawDocument.getText(range);
-  }
-
   async sendDiagnostics(dbtCompilationError?: string): Promise<void> {
     if (dbtCompilationError) {
       const dbtDiagnostics: Diagnostic[] = [
         {
           severity: DiagnosticSeverity.Error,
-          range: Range.create(0, 0, 0, 0),
+          range: Range.create(0, 0, 0, 100),
           message: dbtCompilationError,
         },
       ];
@@ -187,6 +184,40 @@ export class DbtTextDocument {
       return;
     }
 
+    const rawDocDiagnostics: Diagnostic[] = [];
+    const compiledDocDiagnostics: Diagnostic[] = [];
+
+    const astOrError = await this.getAstOrError();
+    if (astOrError.isOk()) {
+      this.ast = astOrError.value;
+    } else {
+      // Parse string like 'Unrecognized name: paused1; Did you mean paused? [at 9:3]'
+      const matchResults = astOrError.error.match(/(.*?) \[at (\d+):(\d+)\]/);
+      if (matchResults) {
+        const [, errorText] = matchResults;
+        const lineInCompiledDoc = Number(matchResults[2]) - 1;
+        const characterInCompiledDoc = Number(matchResults[3]) - 1;
+        const lineInRawDoc = Diff.getOldLineNumber(this.rawDocument.getText(), this.compiledDocument.getText(), lineInCompiledDoc);
+
+        rawDocDiagnostics.push(this.createDiagnostic(this.rawDocument.getText(), lineInRawDoc, characterInCompiledDoc, errorText));
+        compiledDocDiagnostics.push(this.createDiagnostic(this.compiledDocument.getText(), lineInCompiledDoc, characterInCompiledDoc, errorText));
+      }
+    }
+    this.connection.sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: rawDocDiagnostics });
+    this.connection.sendDiagnostics({ uri: 'query-preview:Preview?dbt-language-server', diagnostics: compiledDocDiagnostics });
+  }
+
+  createDiagnostic(docText: string, line: number, character: number, message: string): Diagnostic {
+    const position = Position.create(line, character);
+    const range = getIdentifierRangeAtPosition(position, docText);
+    return {
+      severity: DiagnosticSeverity.Error,
+      range,
+      message,
+    };
+  }
+
+  async getAstOrError(): Promise<Result<AnalyzeResponse__Output, string>> {
     const analyzeRequest: AnalyzeRequest = {
       sqlStatement: this.compiledDocument.getText(),
       registeredCatalogId: ZetaSqlCatalog.getInstance().catalog.registeredId,
@@ -199,30 +230,14 @@ export class DbtTextDocument {
       },
     };
 
-    const sqlDiagnostics: Diagnostic[] = [];
     try {
-      this.ast = await ZetaSQLClient.getInstance().analyze(analyzeRequest);
+      const ast = await ZetaSQLClient.getInstance().analyze(analyzeRequest);
       console.log('AST was successfully received');
+      return ok(ast);
     } catch (e: any) {
       console.log('There was an error wile parsing SQL query');
-      // Parse string like 'Unrecognized name: paused1; Did you mean paused? [at 9:3]'
-      if (e.code === 3) {
-        const matchResults = e.details.match(/(.*?) \[at (\d+):(\d+)\]/);
-        const lineInCompiledDoc = matchResults[2] - 1;
-        const characterInCompiledDoc = matchResults[3] - 1;
-        const lineInRawDoc = Diff.getOldLineNumber(this.rawDocument.getText(), this.compiledDocument.getText(), lineInCompiledDoc);
-        const position = Position.create(lineInRawDoc, characterInCompiledDoc);
-        const range = getIdentifierRangeAtPosition(position, this.rawDocument.getText());
-
-        const diagnostic: Diagnostic = {
-          severity: DiagnosticSeverity.Error,
-          range,
-          message: matchResults[1],
-        };
-        sqlDiagnostics.push(diagnostic);
-      }
+      return err(e.details);
     }
-    this.connection.sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: sqlDiagnostics });
   }
 
   async ensureCatalogInitialized(): Promise<void> {
@@ -238,16 +253,16 @@ export class DbtTextDocument {
   }
 
   async onCompilationError(dbtCompilationError: string): Promise<void> {
-    await this.sendDiagnostics(dbtCompilationError);
     this.connection.sendNotification('custom/updateQueryPreview', [this.rawDocument.uri, this.rawDocument.getText()]);
+    await this.sendDiagnostics(dbtCompilationError);
   }
 
   async onCompilationFinished(compiledSql: string): Promise<void> {
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
 
     await this.ensureCatalogInitialized();
-    await this.sendDiagnostics();
     this.connection.sendNotification('custom/updateQueryPreview', [this.rawDocument.uri, compiledSql]);
+    await this.sendDiagnostics();
 
     if (!this.modelCompiler.compilationInProgress) {
       this.progressReporter.sendFinish(this.rawDocument.uri);
@@ -260,7 +275,7 @@ export class DbtTextDocument {
 
   onHover(hoverParams: HoverParams): Hover | null {
     const range = getIdentifierRangeAtPosition(hoverParams.position, this.rawDocument.getText());
-    const text = this.getText(range);
+    const text = this.rawDocument.getText(range);
     return HoverProvider.hoverOnText(text, this.ast);
   }
 
@@ -269,7 +284,7 @@ export class DbtTextDocument {
       completionParams.position.line,
       completionParams.position.character > 0 ? completionParams.position.character - 1 : 0,
     );
-    const text = this.getText(getIdentifierRangeAtPosition(previousPosition, this.rawDocument.getText()));
+    const text = this.rawDocument.getText(getIdentifierRangeAtPosition(previousPosition, this.rawDocument.getText()));
 
     const jinjaContentOffset = getJinjaContentOffset(this.rawDocument, completionParams.position);
     if (jinjaContentOffset !== -1) {
@@ -291,7 +306,7 @@ export class DbtTextDocument {
   }
 
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
-    const text = this.getText(this.getTextRangeBeforeBracket(params.position));
+    const text = this.rawDocument.getText(this.getTextRangeBeforeBracket(params.position));
     return this.signatureHelpProvider.onSignatureHelp(params, text);
   }
 

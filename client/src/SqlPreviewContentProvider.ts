@@ -1,8 +1,9 @@
 import { Event, EventEmitter, TextDocumentContentProvider, Uri } from 'vscode';
 
 export default class SqlPreviewContentProvider implements TextDocumentContentProvider {
-  static scheme = 'query-preview';
-  static uri = Uri.parse(`${SqlPreviewContentProvider.scheme}:Preview?dbt-language-server`);
+  static readonly SCHEME = 'query-preview';
+  static readonly URI = Uri.parse(`${SqlPreviewContentProvider.SCHEME}:Preview?dbt-language-server`);
+
   texts = new Map<string, string>();
 
   activeDocUri: Uri = Uri.parse('');
@@ -11,12 +12,12 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
 
   update(uri: string, text: string): void {
     this.texts.set(uri, text);
-    this.onDidChangeEmitter.fire(SqlPreviewContentProvider.uri);
+    this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
   }
 
   changeActiveDocument(uri: Uri): void {
     this.activeDocUri = uri;
-    this.onDidChangeEmitter.fire(SqlPreviewContentProvider.uri);
+    this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
   }
 
   dispose(): void {
