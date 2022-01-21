@@ -9,7 +9,7 @@ suite('ref to sql', () => {
     });
 
     const text = getMainEditorText();
-    assertThat(text, endsWith(endOfQuery), `Actual text: ${text}`);
+    assertThat(text, endsWith(endOfQuery));
   }
 
   test('Should convert ref to sql and then to ref', async () => {

@@ -1,4 +1,4 @@
-import { assertThat, contains } from 'hamjest';
+import { assertThat, contains, not } from 'hamjest';
 import * as vscode from 'vscode';
 import { CompletionItem } from 'vscode';
 import { activateAndWait, getCustomDocUri, setTestContent, testCompletion, triggerCompletion } from './helper';
@@ -20,7 +20,7 @@ suite('Should do completion inside jinjas expression', () => {
     await testCompletion(docUri, new vscode.Position(0, 20), getCompletionList(true));
   });
 
-  test('Should suggest models for ref function by pressing "\'"', async () => {
+  test("Should suggest models for ref function by pressing ' ", async () => {
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
     await activateAndWait(docUri);
     await setTestContent(`select * from {{ref('`);
@@ -38,9 +38,9 @@ suite('Should do completion inside jinjas expression', () => {
 
     // assert
     actualCompletionList.items.forEach(i => i.label instanceof String);
-    const actualLabels = actualCompletionList.items.map<string>(i => i.label as string);
-    getCompletionList(false).items.forEach(i => assertThat(actualLabels, !contains(i.label as string)));
-    getCompletionList(true).items.forEach(i => assertThat(actualLabels, !contains(i.label as string)));
+    const actualLabels = actualCompletionList.items.map(i => i.label as string);
+    getCompletionList(false).items.forEach(i => assertThat(actualLabels, not(contains(i.label as string))));
+    getCompletionList(true).items.forEach(i => assertThat(actualLabels, not(contains(i.label as string))));
   });
 
   function getCompletionList(withQuotes: boolean): { items: vscode.CompletionItem[] } {
