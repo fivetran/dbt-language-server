@@ -5,14 +5,21 @@ import { assertThat } from 'hamjest';
 import { ZetaSqlAst } from '../ZetaSqlAst';
 
 describe('ZetaSqlAst', () => {
-  function createAst(fileName: string): AnalyzeResponse {
-    const data = fs.readFileSync(`${__dirname}/../../src/test/ast/${fileName}.json`, 'utf8');
-    return JSON.parse(data);
+  const AST = new Map<string, AnalyzeResponse>();
+
+  function getAst(fileName: string): AnalyzeResponse {
+    let ast = AST.get(fileName);
+    if (!ast) {
+      const data = fs.readFileSync(`${__dirname}/../../src/test/ast/${fileName}.json`, 'utf8');
+      ast = JSON.parse(data) as AnalyzeResponse;
+      AST.set(fileName, ast);
+    }
+    return ast;
   }
 
   function shouldReturnLocationsOfTableNameInQuery(fileName: string, cursorOffset: number, ranges: ParseLocationRangeProto[]): void {
     // arrange
-    const ast = createAst(fileName);
+    const ast = getAst(fileName);
 
     // act
     const result = new ZetaSqlAst().getCompletionInfo(ast, cursorOffset);

@@ -165,10 +165,10 @@ export class LspServer {
     }
   }
 
-  async onDbtCompile(uri: string): Promise<void> {
+  onDbtCompile(uri: string): void {
     const document = this.openedDocuments.get(uri);
     if (document) {
-      await document.forceRecompile();
+      document.forceRecompile();
     }
   }
 

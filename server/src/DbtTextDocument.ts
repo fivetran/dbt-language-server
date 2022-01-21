@@ -38,7 +38,7 @@ import { ZetaSqlCatalog } from './ZetaSqlCatalog';
 
 export class DbtTextDocument {
   static readonly NON_WORD_PATTERN = /\W/;
-  static readonly DEBOUNCE_TIMEOUT = 300;
+  static DEBOUNCE_TIMEOUT = 300;
 
   static readonly ZETA_SQL_AST = new ZetaSqlAst();
   static readonly JINJA_PARSER = new JinjaParser();
@@ -131,9 +131,9 @@ export class DbtTextDocument {
     return jinjas === undefined || (jinjas.length > 0 && DbtTextDocument.JINJA_PARSER.isJinjaModified(jinjas, changes));
   }
 
-  async forceRecompile(): Promise<void> {
+  forceRecompile(): void {
     this.progressReporter.sendStart(this.getRawDocUri());
-    await this.debouncedCompile();
+    this.debouncedCompile();
   }
 
   async refToSql(): Promise<void> {
