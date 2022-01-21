@@ -136,7 +136,7 @@ describe('DbtCompileJob', () => {
     const mockDbtRpcClient = mock(DbtRpcClient);
     DbtCompileJob.COMPILE_MODEL_MAX_RETRIES = 1;
 
-    when(mockDbtRpcClient.compileModel(MODEL)).thenReturn(Promise.resolve(undefined)).thenReturn(Promise.resolve(undefined));
+    when(mockDbtRpcClient.compileModel(MODEL)).thenReturn(Promise.resolve(undefined));
 
     const compileJob = new DbtCompileJob(instance(mockDbtRpcClient), MODEL);
 
