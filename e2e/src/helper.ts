@@ -190,3 +190,7 @@ export async function triggerCompletion(
   // Executing the command `vscode.executeCompletionItemProvider` to simulate triggering completion
   return vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', docUri, position, triggerChar);
 }
+
+export async function triggerDefinition(docUri: vscode.Uri, position: vscode.Position): Promise<vscode.DefinitionLink[]> {
+  return vscode.commands.executeCommand<vscode.DefinitionLink[]>('vscode.executeDefinitionProvider', docUri, position);
+}
