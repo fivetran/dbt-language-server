@@ -24,12 +24,9 @@ export class DefinitionProvider {
       return undefined;
     }
 
-    // todo: projects opened via in WSL / SSH ?
-    const targetUri = path.join(this.workspaceFolder, modelDefinitions[0].originalFilePath);
-
     return [
       LocationLink.create(
-        targetUri,
+        path.join(this.workspaceFolder, modelDefinitions[0].originalFilePath),
         Range.create(Position.create(0, 0), Position.create(0, 0)),
         Range.create(Position.create(0, 0), Position.create(0, 0)),
         originSelectionRange,
