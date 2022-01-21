@@ -38,7 +38,7 @@ import { ZetaSqlCatalog } from './ZetaSqlCatalog';
 
 export class DbtTextDocument {
   static readonly NON_WORD_PATTERN = /\W/;
-  static readonly DEBOUNCE_TIMEOUT = 300;
+  static DEBOUNCE_TIMEOUT = 300;
 
   static readonly ZETA_SQL_AST = new ZetaSqlAst();
   static readonly JINJA_PARSER = new JinjaParser();
@@ -74,17 +74,17 @@ export class DbtTextDocument {
     if (this.requireCompileOnSave) {
       this.requireCompileOnSave = false;
       dbtRpcServer.refreshServer();
-      await this.debouncedCompile();
+      this.debouncedCompile();
     } else {
       await this.onCompilationFinished(this.compiledDocument.getText());
     }
   }
 
-  async didOpenTextDocument(): Promise<void> {
-    await this.debouncedCompile();
+  didOpenTextDocument(): void {
+    this.debouncedCompile();
   }
 
-  async didChangeTextDocument(params: DidChangeTextDocumentParams): Promise<void> {
+  didChangeTextDocument(params: DidChangeTextDocumentParams): void {
     if (this.requireCompileOnSave || this.isDbtCompileNeeded(params.contentChanges)) {
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
       this.requireCompileOnSave = true;
@@ -131,9 +131,9 @@ export class DbtTextDocument {
     return jinjas === undefined || (jinjas.length > 0 && DbtTextDocument.JINJA_PARSER.isJinjaModified(jinjas, changes));
   }
 
-  async forceRecompile(): Promise<void> {
+  forceRecompile(): void {
     this.progressReporter.sendStart(this.getRawDocUri());
-    await this.debouncedCompile();
+    this.debouncedCompile();
   }
 
   async refToSql(): Promise<void> {

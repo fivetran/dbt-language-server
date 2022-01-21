@@ -37,10 +37,10 @@ export function run(): Promise<void> {
             resolve();
           }
         });
-        runner.on('fail', async () => {
+        runner.on('fail', () => {
           console.log(`Content of document when test failed:\n${doc.getText()}`);
-          console.log(`Preview content:\n${await getPreviewText()}`);
-          console.log(`Diagnostics:\n${JSON.stringify(await getDiagnostics())}`);
+          console.log(`Preview content:\n${getPreviewText()}`);
+          console.log(`Diagnostics:\n${JSON.stringify(getDiagnostics())}`);
         });
       } catch (err) {
         console.error(err);

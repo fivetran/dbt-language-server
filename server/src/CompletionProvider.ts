@@ -302,7 +302,7 @@ export class CompletionProvider {
         label: c.name,
         kind: CompletionItemKind.Value,
         detail: `${tableInfo[0]} ${c.type}`,
-        sortText: 1 + c.name,
+        sortText: `1${c.name}`,
       }));
     }
 

@@ -1,5 +1,5 @@
-import * as assert from 'assert';
 import * as fs from 'fs';
+import { assertThat } from 'hamjest';
 import { Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { JinjaParser, Ref } from '../JinjaParser';
@@ -97,8 +97,9 @@ describe('JinjaParser', () => {
 
   function shouldFindAllJinjaRanges(fileName: string, ranges: Range[]): void {
     const result = findAllJinjaRangesInFile(fileName);
-    assert.strictEqual(result?.length, ranges.length);
-    assert.deepStrictEqual(result, ranges);
+
+    assertThat(result?.length, ranges.length);
+    assertThat(result, ranges);
   }
 
   function shouldFindAllRefs(rawDocumentString: string, expectedRefs: Ref[]): void {
@@ -109,13 +110,13 @@ describe('JinjaParser', () => {
     const refs = JINJA_PARSER.findAllRefs(doc);
 
     // assert
-    assert.strictEqual(refs.length, expectedRefs.length);
-    assert.deepStrictEqual(refs, expectedRefs);
+    assertThat(refs.length, expectedRefs.length);
+    assertThat(refs, expectedRefs);
   }
 
   function shouldFail(fileName: string): void {
     const result = findAllJinjaRangesInFile(fileName);
-    assert.strictEqual(result, undefined);
+    assertThat(result, undefined);
   }
 
   function findAllJinjaRangesInFile(fileName: string): Range[] | undefined {

@@ -70,7 +70,7 @@ describe('DbtCompileJob', () => {
     });
   }
 
-  beforeEach(async () => {
+  beforeEach(() => {
     DbtCompileJob.COMPILE_MODEL_MAX_RETRIES = 10;
     DbtCompileJob.COMPILE_MODEL_TIMEOUT_MS = 0;
 

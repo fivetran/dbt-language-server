@@ -4,7 +4,7 @@ import Token = require('markdown-it/lib/token');
 
 interface FunctionInfo {
   name: string;
-  sinatures: SignatureInfo[];
+  signatures: SignatureInfo[];
 }
 
 interface SignatureInfo {
@@ -76,7 +76,7 @@ const exceptionList = [
 const additionalFields = [
   {
     name: 'to_json_string',
-    sinatures: [
+    signatures: [
       {
         signature: 'TO_JSON_STRING(value[, pretty_print])\n',
         description:
@@ -110,7 +110,7 @@ async function parseAndSave(): Promise<void> {
           }
           const functionInfo: FunctionInfo = {
             name,
-            sinatures: [],
+            signatures: [],
           };
           i += 3;
           token = tokens[i];
@@ -119,15 +119,15 @@ async function parseAndSave(): Promise<void> {
             if (token.content.startsWith('1.')) {
               const signatures = token.content.split('\n');
               for (const signature of signatures) {
-                functionInfo.sinatures.push({ signature: signature.substring(3), description: '' });
+                functionInfo.signatures.push({ signature: signature.substring(3), description: '' });
               }
             } else {
-              functionInfo.sinatures.push({ signature: token.content, description: '' });
+              functionInfo.signatures.push({ signature: token.content, description: '' });
             }
           } else {
             while (token.type !== 'paragraph_open') {
               if (token.type === 'fence') {
-                functionInfo.sinatures.push({
+                functionInfo.signatures.push({
                   signature: token.content,
                   description: '',
                 });
@@ -149,7 +149,7 @@ async function parseAndSave(): Promise<void> {
             let j = 0;
             while (token.type !== 'ordered_list_close') {
               if (token.type === 'inline') {
-                functionInfo.sinatures[j].description = parseText(token);
+                functionInfo.signatures[j].description = parseText(token);
                 j++;
               }
 
@@ -158,11 +158,11 @@ async function parseAndSave(): Promise<void> {
             }
           } else {
             const description = parseText(tokens[i + 1]);
-            if (functionInfo.sinatures.length === 0) {
+            if (functionInfo.signatures.length === 0) {
               // There is no signature in md file for the function
-              functionInfo.sinatures.push({ signature: '', description });
+              functionInfo.signatures.push({ signature: '', description });
             }
-            functionInfo.sinatures[0].description = description;
+            functionInfo.signatures[0].description = description;
           }
           functionInfos.push(functionInfo);
         }
@@ -183,7 +183,7 @@ async function parseAndSave(): Promise<void> {
   if (options === null) {
     throw new Error("Can't find options from ./.prettierrc");
   }
-  const formatted = await prettier.format(code, options);
+  const formatted = prettier.format(code, options);
   fs.writeFileSync(`${__dirname}/../../server/src/HelpProviderWords.ts`, formatted);
 }
 

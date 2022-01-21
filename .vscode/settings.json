@@ -52,7 +52,13 @@
 		"keyfile",
 		"samuelcolvin",
 		"jinjahtml",
-		"Fivetran"
+		"Fivetran",
+		"sonarjs",
+		"eqeqeq",
+		"no-cond-assign",
+		"hamjest",
+		"softbreak",
+		"protos"
 	],
 	"cSpell.language": "en,en-GB"
 }

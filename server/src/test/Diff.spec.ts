@@ -1,8 +1,11 @@
-import * as assert from 'assert';
 import * as fs from 'fs';
+import { assertThat } from 'hamjest';
 import { Diff } from '../Diff';
 
 describe('Diff', () => {
+  type content = { raw: string; compiled: string };
+  const FILES = new Map<string, content>();
+
   it('config_at_the_beginning', () => {
     shouldReturnCorrespondingLineNumber('config_at_the_beginning', [
       [2, 9],
@@ -95,7 +98,7 @@ describe('Diff', () => {
     const actualOldCharacter = Diff.getOldCharacter(oldLine, newLine, newCharacter);
 
     // assert
-    assert.strictEqual(actualOldCharacter, expectedOldCharacter);
+    assertThat(actualOldCharacter, expectedOldCharacter);
   }
 
   function shouldReturnCorrespondingLineNumber(fileName: string, params: number[][]): void {
@@ -106,14 +109,24 @@ describe('Diff', () => {
 
   function shouldReturnCorrespondingLineNumberForOldText(fileName: string, newLineNumber: number, expectedOldLineNumber: number): void {
     // arrange
-    const filesRootPath = `${__dirname}/../../src/test/diff/`;
-    const raw = fs.readFileSync(`${filesRootPath}raw/${fileName}.sql`, 'utf8');
-    const compiled = fs.readFileSync(`${filesRootPath}compiled/${fileName}.sql`, 'utf8');
+    const fileContent = getFilesContent(fileName);
 
     // act
-    const number = Diff.getOldLineNumber(raw, compiled, newLineNumber);
+    const number = Diff.getOldLineNumber(fileContent.raw, fileContent.compiled, newLineNumber);
 
     // assert
-    assert.strictEqual(number, expectedOldLineNumber);
+    assertThat(number, expectedOldLineNumber);
+  }
+
+  function getFilesContent(fileName: string): content {
+    let fileContent = FILES.get(fileName);
+    if (!fileContent) {
+      const filesRootPath = `${__dirname}/../../src/test/diff/`;
+      const raw = fs.readFileSync(`${filesRootPath}raw/${fileName}.sql`, 'utf8');
+      const compiled = fs.readFileSync(`${filesRootPath}compiled/${fileName}.sql`, 'utf8');
+      fileContent = { raw, compiled };
+      FILES.set(fileName, fileContent);
+    }
+    return fileContent;
   }
 });
