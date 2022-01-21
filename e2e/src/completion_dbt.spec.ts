@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { activateAndWait, getDocUri, testCompletion } from './helper';
 
 suite('Should do completion with jinjas in query', () => {
-  test('Should suggest table colums', async () => {
+  test('Should suggest table columns', async () => {
     const docUri = getDocUri('simple_select_dbt.sql');
     await activateAndWait(docUri);
 

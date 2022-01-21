@@ -3,7 +3,7 @@ import { FunctionInfo } from './SignatureHelpProvider';
 export const HelpProviderWords: FunctionInfo[] = [
   {
     name: 'any_value',
-    sinatures: [
+    signatures: [
       {
         signature: 'ANY_VALUE(\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
         description:
@@ -13,7 +13,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'array_agg',
-    sinatures: [
+    signatures: [
       {
         signature:
           'ARRAY_AGG(\n  [DISTINCT]\n  expression\n  [{IGNORE|RESPECT} NULLS]\n  [HAVING {MAX | MIN} expression2]\n  [ORDER BY key [{ASC|DESC}] [, ... ]]\n  [LIMIT n]\n)\n[OVER (...)]\n',
@@ -23,7 +23,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'array_concat_agg',
-    sinatures: [
+    signatures: [
       {
         signature: 'ARRAY_CONCAT_AGG(\n  expression\n  [HAVING {MAX | MIN} expression2]\n  [ORDER BY key [{ASC|DESC}] [, ... ]]\n  [LIMIT n]\n)\n',
         description:
@@ -33,7 +33,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'avg',
-    sinatures: [
+    signatures: [
       {
         signature: 'AVG(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
         description: 'Returns the average of non-`NULL` input values, or `NaN` if the input contains a\n`NaN`.',
@@ -42,7 +42,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'bit_and',
-    sinatures: [
+    signatures: [
       {
         signature: 'BIT_AND(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n',
         description: 'Performs a bitwise AND operation on `expression` and returns the result.',
@@ -51,7 +51,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'bit_or',
-    sinatures: [
+    signatures: [
       {
         signature: 'BIT_OR(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n',
         description: 'Performs a bitwise OR operation on `expression` and returns the result.',
@@ -60,7 +60,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'bit_xor',
-    sinatures: [
+    signatures: [
       {
         signature: 'BIT_XOR(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n',
         description: 'Performs a bitwise XOR operation on `expression` and returns the result.',
@@ -69,7 +69,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'count',
-    sinatures: [
+    signatures: [
       { signature: 'COUNT(*)  [OVER (...)]\n', description: 'Returns the number of rows in the input.' },
       {
         signature: 'COUNT(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
@@ -79,7 +79,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'countif',
-    sinatures: [
+    signatures: [
       {
         signature: 'COUNTIF(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
         description:
@@ -89,7 +89,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'logical_and',
-    sinatures: [
+    signatures: [
       {
         signature: 'LOGICAL_AND(\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
         description:
@@ -99,7 +99,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'logical_or',
-    sinatures: [
+    signatures: [
       {
         signature: 'LOGICAL_OR(\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
         description:
@@ -109,7 +109,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'max',
-    sinatures: [
+    signatures: [
       {
         signature: 'MAX(\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
         description:
@@ -119,7 +119,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'min',
-    sinatures: [
+    signatures: [
       {
         signature: 'MIN(\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
         description:
@@ -129,7 +129,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'string_agg',
-    sinatures: [
+    signatures: [
       {
         signature:
           'STRING_AGG(\n  [DISTINCT]\n  expression [, delimiter]\n  [HAVING {MAX | MIN} expression2]\n  [ORDER BY key [{ASC|DESC}] [, ... ]]\n  [LIMIT n]\n)\n[OVER (...)]\n',
@@ -140,7 +140,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'sum',
-    sinatures: [
+    signatures: [
       {
         signature: 'SUM(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
         description: 'Returns the sum of non-null values.',
@@ -149,7 +149,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'corr',
-    sinatures: [
+    signatures: [
       {
         signature: 'CORR(\n  X1, X2\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
         description:
@@ -159,7 +159,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'covar_pop',
-    sinatures: [
+    signatures: [
       {
         signature: 'COVAR_POP(\n  X1, X2\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
         description:
@@ -169,7 +169,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'covar_samp',
-    sinatures: [
+    signatures: [
       {
         signature: 'COVAR_SAMP(\n  X1, X2\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
         description:
@@ -179,7 +179,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'stddev_pop',
-    sinatures: [
+    signatures: [
       {
         signature: 'STDDEV_POP(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
         description: 'Returns the population (biased) standard deviation of the values. The return\nresult is between `0` and `+Inf`.',
@@ -188,7 +188,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'stddev_samp',
-    sinatures: [
+    signatures: [
       {
         signature: 'STDDEV_SAMP(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
         description: 'Returns the sample (unbiased) standard deviation of the values. The return\nresult is between `0` and `+Inf`.',
@@ -197,7 +197,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'stddev',
-    sinatures: [
+    signatures: [
       {
         signature: 'STDDEV(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
         description: 'An alias of STDDEV_SAMP.',
@@ -206,7 +206,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'var_pop',
-    sinatures: [
+    signatures: [
       {
         signature: 'VAR_POP(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
         description: 'Returns the population (biased) variance of the values. The return result is\nbetween `0` and `+Inf`.',
@@ -215,7 +215,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'var_samp',
-    sinatures: [
+    signatures: [
       {
         signature: 'VAR_SAMP(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
         description: 'Returns the sample (unbiased) variance of the values. The return result is\nbetween `0` and `+Inf`.',
@@ -224,7 +224,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'variance',
-    sinatures: [
+    signatures: [
       {
         signature: 'VARIANCE(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
         description: 'An alias of VAR_SAMP.',
@@ -233,7 +233,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'approx_count_distinct',
-    sinatures: [
+    signatures: [
       {
         signature: 'APPROX_COUNT_DISTINCT(\n  expression\n)\n',
         description:
@@ -243,7 +243,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'approx_quantiles',
-    sinatures: [
+    signatures: [
       {
         signature: 'APPROX_QUANTILES(\n  [DISTINCT]\n  expression, number\n  [{IGNORE|RESPECT} NULLS]\n  [HAVING {MAX | MIN} expression2]\n)\n',
         description:
@@ -253,7 +253,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'approx_top_count',
-    sinatures: [
+    signatures: [
       {
         signature: 'APPROX_TOP_COUNT(\n  expression, number\n  [HAVING {MAX | MIN} expression2]\n)\n',
         description: 'Returns the approximate top elements of `expression`. The `number` parameter\nspecifies the number of elements returned.',
@@ -262,7 +262,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'approx_top_sum',
-    sinatures: [
+    signatures: [
       {
         signature: 'APPROX_TOP_SUM(\n  expression, weight, number\n  [HAVING {MAX | MIN} expression2]\n)\n',
         description:
@@ -272,7 +272,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'hll_count.init',
-    sinatures: [
+    signatures: [
       {
         signature: 'HLL_COUNT.INIT(input [, precision])\n',
         description:
@@ -282,7 +282,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'hll_count.merge',
-    sinatures: [
+    signatures: [
       {
         signature: 'HLL_COUNT.MERGE(sketch)\n',
         description: 'An aggregate function that returns the cardinality of several\nHLL++ set sketches by computing their union.',
@@ -291,7 +291,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'hll_count.merge_partial',
-    sinatures: [
+    signatures: [
       {
         signature: 'HLL_COUNT.MERGE_PARTIAL(sketch)\n',
         description: 'An aggregate function that takes one or more\nHLL++ `sketch`\ninputs and merges them into a new sketch.',
@@ -300,13 +300,13 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'hll_count.extract',
-    sinatures: [
+    signatures: [
       { signature: 'HLL_COUNT.EXTRACT(sketch)\n', description: 'A scalar function that extracts a cardinality estimate of a single\nHLL++ sketch.' },
     ],
   },
   {
     name: 'kll_quantiles.init_int64',
-    sinatures: [
+    signatures: [
       {
         signature: 'KLL_QUANTILES.INIT_INT64(input[, precision[, weight => input_weight]])\n',
         description:
@@ -316,7 +316,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'kll_quantiles.init_uint64',
-    sinatures: [
+    signatures: [
       {
         signature: 'KLL_QUANTILES.INIT_UINT64(input[, precision[, weight => input_weight]])\n',
         description: 'Like `KLL_QUANTILES.INIT_INT64`, but accepts\n`input` of type `UINT64`.',
@@ -325,7 +325,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'kll_quantiles.init_double',
-    sinatures: [
+    signatures: [
       {
         signature: 'KLL_QUANTILES.INIT_DOUBLE(input[, precision[, weight => input_weight]])\n',
         description: 'Like `KLL_QUANTILES.INIT_INT64`, but accepts\n`input` of type `DOUBLE`.',
@@ -334,7 +334,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'kll_quantiles.merge_partial',
-    sinatures: [
+    signatures: [
       {
         signature: 'KLL_QUANTILES.MERGE_PARTIAL(sketch)\n',
         description:
@@ -344,7 +344,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'kll_quantiles.merge_int64',
-    sinatures: [
+    signatures: [
       {
         signature: 'KLL_QUANTILES.MERGE_INT64(sketch, number)\n',
         description:
@@ -354,7 +354,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'kll_quantiles.merge_uint64',
-    sinatures: [
+    signatures: [
       {
         signature: 'KLL_QUANTILES.MERGE_UINT64(sketch, number)\n',
         description: 'Like `KLL_QUANTILES.MERGE_INT64`, but accepts\n`input` of type `UINT64`.',
@@ -363,7 +363,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'kll_quantiles.merge_double',
-    sinatures: [
+    signatures: [
       {
         signature: 'KLL_QUANTILES.MERGE_DOUBLE(sketch, number)\n',
         description: 'Like `KLL_QUANTILES.MERGE_INT64`, but accepts\n`input` of type `DOUBLE`.',
@@ -372,7 +372,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'kll_quantiles.merge_point_int64',
-    sinatures: [
+    signatures: [
       {
         signature: 'KLL_QUANTILES.MERGE_POINT_INT64(sketch, phi)\n',
         description:
@@ -382,7 +382,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'kll_quantiles.merge_point_uint64',
-    sinatures: [
+    signatures: [
       {
         signature: 'KLL_QUANTILES.MERGE_POINT_UINT64(sketch, phi)\n',
         description: 'Like `KLL_QUANTILES.MERGE_POINT_INT64`, but\naccepts `input` of type `UINT64`.',
@@ -391,7 +391,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'kll_quantiles.merge_point_double',
-    sinatures: [
+    signatures: [
       {
         signature: 'KLL_QUANTILES.MERGE_POINT_DOUBLE(sketch, phi)\n',
         description: 'Like `KLL_QUANTILES.MERGE_POINT_INT64`, but\naccepts `input` of type `DOUBLE`.',
@@ -400,7 +400,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'kll_quantiles.extract_int64',
-    sinatures: [
+    signatures: [
       {
         signature: 'KLL_QUANTILES.EXTRACT_INT64(sketch, number)\n',
         description:
@@ -410,7 +410,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'kll_quantiles.extract_uint64',
-    sinatures: [
+    signatures: [
       {
         signature: 'KLL_QUANTILES.EXTRACT_UINT64(sketch, number)\n',
         description: 'Like `KLL_QUANTILES.EXTRACT_INT64`, but accepts\nsketches initialized on data of type of type `UINT64`.',
@@ -419,7 +419,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'kll_quantiles.extract_double',
-    sinatures: [
+    signatures: [
       {
         signature: 'KLL_QUANTILES.EXTRACT_DOUBLE(sketch, number)\n',
         description: 'Like `KLL_QUANTILES.EXTRACT_INT64`, but accepts\nsketches initialized on data of type of type `DOUBLE`.',
@@ -428,7 +428,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'kll_quantiles.extract_point_int64',
-    sinatures: [
+    signatures: [
       {
         signature: 'KLL_QUANTILES.EXTRACT_POINT_INT64(sketch, phi)\n',
         description:
@@ -438,7 +438,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'kll_quantiles.extract_point_uint64',
-    sinatures: [
+    signatures: [
       {
         signature: 'KLL_QUANTILES.EXTRACT_POINT_UINT64(sketch, phi)\n',
         description: 'Like `KLL_QUANTILES.EXTRACT_POINT_INT64`,\nbut accepts sketches initialized on data of type of type\n`UINT64`.',
@@ -447,7 +447,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'kll_quantiles.extract_point_double',
-    sinatures: [
+    signatures: [
       {
         signature: 'KLL_QUANTILES.EXTRACT_POINT_DOUBLE(sketch, phi)\n',
         description: 'Like `KLL_QUANTILES.EXTRACT_POINT_INT64`,\nbut accepts sketches initialized on data of type of type\n`DOUBLE`.',
@@ -456,7 +456,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'rank',
-    sinatures: [
+    signatures: [
       {
         signature: '',
         description:
@@ -466,7 +466,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'dense_rank',
-    sinatures: [
+    signatures: [
       {
         signature: '',
         description:
@@ -476,7 +476,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'percent_rank',
-    sinatures: [
+    signatures: [
       {
         signature: '',
         description:
@@ -486,7 +486,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'cume_dist',
-    sinatures: [
+    signatures: [
       {
         signature: '',
         description:
@@ -496,7 +496,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'ntile',
-    sinatures: [
+    signatures: [
       {
         signature: 'NTILE(constant_integer_expression)\n',
         description:
@@ -506,7 +506,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'row_number',
-    sinatures: [
+    signatures: [
       {
         signature: '',
         description:
@@ -514,10 +514,13 @@ export const HelpProviderWords: FunctionInfo[] = [
       },
     ],
   },
-  { name: 'bit_count', sinatures: [{ signature: 'BIT_COUNT(expression)\n', description: 'The input, `expression`, must be an\ninteger or BYTES.' }] },
+  {
+    name: 'bit_count',
+    signatures: [{ signature: 'BIT_COUNT(expression)\n', description: 'The input, `expression`, must be an\ninteger or BYTES.' }],
+  },
   {
     name: 'abs',
-    sinatures: [
+    signatures: [
       {
         signature: 'ABS(X)\n',
         description:
@@ -527,7 +530,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'sign',
-    sinatures: [
+    signatures: [
       {
         signature: 'SIGN(X)\n',
         description:
@@ -535,11 +538,11 @@ export const HelpProviderWords: FunctionInfo[] = [
       },
     ],
   },
-  { name: 'is_inf', sinatures: [{ signature: 'IS_INF(X)\n', description: 'Returns `TRUE` if the value is positive or negative infinity.' }] },
-  { name: 'is_nan', sinatures: [{ signature: 'IS_NAN(X)\n', description: 'Returns `TRUE` if the value is a `NaN` value.' }] },
+  { name: 'is_inf', signatures: [{ signature: 'IS_INF(X)\n', description: 'Returns `TRUE` if the value is positive or negative infinity.' }] },
+  { name: 'is_nan', signatures: [{ signature: 'IS_NAN(X)\n', description: 'Returns `TRUE` if the value is a `NaN` value.' }] },
   {
     name: 'ieee_divide',
-    sinatures: [
+    signatures: [
       {
         signature: 'IEEE_DIVIDE(X, Y)\n',
         description:
@@ -549,17 +552,17 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'rand',
-    sinatures: [
+    signatures: [
       {
         signature: 'RAND()\n',
         description: 'Generates a pseudo-random value of type `DOUBLE` in\nthe range of [0, 1), inclusive of 0 and exclusive of 1.',
       },
     ],
   },
-  { name: 'sqrt', sinatures: [{ signature: 'SQRT(X)\n', description: 'Computes the square root of X. Generates an error if X is less than 0.' }] },
+  { name: 'sqrt', signatures: [{ signature: 'SQRT(X)\n', description: 'Computes the square root of X. Generates an error if X is less than 0.' }] },
   {
     name: 'pow',
-    sinatures: [
+    signatures: [
       {
         signature: 'POW(X, Y)\n',
         description:
@@ -567,10 +570,10 @@ export const HelpProviderWords: FunctionInfo[] = [
       },
     ],
   },
-  { name: 'power', sinatures: [{ signature: 'POWER(X, Y)\n', description: 'Synonym of `POW(X, Y)`.' }] },
+  { name: 'power', signatures: [{ signature: 'POWER(X, Y)\n', description: 'Synonym of `POW(X, Y)`.' }] },
   {
     name: 'exp',
-    sinatures: [
+    signatures: [
       {
         signature: 'EXP(X)\n',
         description:
@@ -580,23 +583,23 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'ln',
-    sinatures: [
+    signatures: [
       { signature: 'LN(X)\n', description: 'Computes the natural logarithm of X. Generates an error if X is less than or\nequal to zero.' },
     ],
   },
   {
     name: 'log',
-    sinatures: [
+    signatures: [
       {
         signature: 'LOG(X [, Y])\n',
         description: 'If only X is present, `LOG` is a synonym of `LN`. If Y is also present,\n`LOG` computes the logarithm of X to base Y.',
       },
     ],
   },
-  { name: 'log10', sinatures: [{ signature: 'LOG10(X)\n', description: 'Similar to `LOG`, but computes logarithm to base 10.' }] },
+  { name: 'log10', signatures: [{ signature: 'LOG10(X)\n', description: 'Similar to `LOG`, but computes logarithm to base 10.' }] },
   {
     name: 'greatest',
-    sinatures: [
+    signatures: [
       {
         signature: 'GREATEST(X1,...,XN)\n',
         description:
@@ -606,7 +609,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'least',
-    sinatures: [
+    signatures: [
       {
         signature: 'LEAST(X1,...,XN)\n',
         description:
@@ -616,7 +619,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'div',
-    sinatures: [
+    signatures: [
       {
         signature: 'DIV(X, Y)\n',
         description: 'Returns the result of integer division of X by Y. Division by zero returns\nan error. Division by -1 may overflow.',
@@ -625,7 +628,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'safe_divide',
-    sinatures: [
+    signatures: [
       {
         signature: 'SAFE_DIVIDE(X, Y)\n',
         description:
@@ -635,7 +638,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'safe_multiply',
-    sinatures: [
+    signatures: [
       {
         signature: 'SAFE_MULTIPLY(X, Y)\n',
         description: 'Equivalent to the multiplication operator (<code>*</code>), but returns\n<code>NULL</code> if overflow occurs.',
@@ -644,7 +647,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'safe_negate',
-    sinatures: [
+    signatures: [
       {
         signature: 'SAFE_NEGATE(X)\n',
         description: 'Equivalent to the unary minus operator (<code>-</code>), but returns\n<code>NULL</code> if overflow occurs.',
@@ -653,7 +656,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'safe_add',
-    sinatures: [
+    signatures: [
       {
         signature: 'SAFE_ADD(X, Y)\n',
         description: 'Equivalent to the addition operator (<code>+</code>), but returns\n<code>NULL</code> if overflow occurs.',
@@ -662,7 +665,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'safe_subtract',
-    sinatures: [
+    signatures: [
       {
         signature: 'SAFE_SUBTRACT(X, Y)\n',
         description:
@@ -672,7 +675,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'mod',
-    sinatures: [
+    signatures: [
       {
         signature: 'MOD(X, Y)\n',
         description:
@@ -682,7 +685,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'round',
-    sinatures: [
+    signatures: [
       {
         signature: 'ROUND(X [, N])\n',
         description:
@@ -692,7 +695,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'trunc',
-    sinatures: [
+    signatures: [
       {
         signature: 'TRUNC(X [, N])\n',
         description:
@@ -700,13 +703,13 @@ export const HelpProviderWords: FunctionInfo[] = [
       },
     ],
   },
-  { name: 'ceil', sinatures: [{ signature: 'CEIL(X)\n', description: 'Returns the smallest integral value that is not less than X.' }] },
-  { name: 'ceiling', sinatures: [{ signature: 'CEILING(X)\n', description: 'Synonym of CEIL(X)' }] },
-  { name: 'floor', sinatures: [{ signature: 'FLOOR(X)\n', description: 'Returns the largest integral value that is not greater than X.' }] },
-  { name: 'cos', sinatures: [{ signature: 'COS(X)\n', description: 'Computes the cosine of X where X is specified in radians. Never fails.' }] },
+  { name: 'ceil', signatures: [{ signature: 'CEIL(X)\n', description: 'Returns the smallest integral value that is not less than X.' }] },
+  { name: 'ceiling', signatures: [{ signature: 'CEILING(X)\n', description: 'Synonym of CEIL(X)' }] },
+  { name: 'floor', signatures: [{ signature: 'FLOOR(X)\n', description: 'Returns the largest integral value that is not greater than X.' }] },
+  { name: 'cos', signatures: [{ signature: 'COS(X)\n', description: 'Computes the cosine of X where X is specified in radians. Never fails.' }] },
   {
     name: 'cosh',
-    sinatures: [
+    signatures: [
       {
         signature: 'COSH(X)\n',
         description: 'Computes the hyperbolic cosine of X where X is specified in radians.\nGenerates an error if overflow occurs.',
@@ -715,7 +718,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'acos',
-    sinatures: [
+    signatures: [
       {
         signature: 'ACOS(X)\n',
         description:
@@ -725,14 +728,14 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'acosh',
-    sinatures: [
+    signatures: [
       { signature: 'ACOSH(X)\n', description: 'Computes the inverse hyperbolic cosine of X. Generates an error if X is a value\nless than 1.' },
     ],
   },
-  { name: 'sin', sinatures: [{ signature: 'SIN(X)\n', description: 'Computes the sine of X where X is specified in radians. Never fails.' }] },
+  { name: 'sin', signatures: [{ signature: 'SIN(X)\n', description: 'Computes the sine of X where X is specified in radians. Never fails.' }] },
   {
     name: 'sinh',
-    sinatures: [
+    signatures: [
       {
         signature: 'SINH(X)\n',
         description: 'Computes the hyperbolic sine of X where X is specified in radians. Generates\nan error if overflow occurs.',
@@ -741,7 +744,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'asin',
-    sinatures: [
+    signatures: [
       {
         signature: 'ASIN(X)\n',
         description:
@@ -749,20 +752,20 @@ export const HelpProviderWords: FunctionInfo[] = [
       },
     ],
   },
-  { name: 'asinh', sinatures: [{ signature: 'ASINH(X)\n', description: 'Computes the inverse hyperbolic sine of X. Does not fail.' }] },
+  { name: 'asinh', signatures: [{ signature: 'ASINH(X)\n', description: 'Computes the inverse hyperbolic sine of X. Does not fail.' }] },
   {
     name: 'tan',
-    sinatures: [
+    signatures: [
       { signature: 'TAN(X)\n', description: 'Computes the tangent of X where X is specified in radians. Generates an error if\noverflow occurs.' },
     ],
   },
   {
     name: 'tanh',
-    sinatures: [{ signature: 'TANH(X)\n', description: 'Computes the hyperbolic tangent of X where X is specified in radians. Does not\nfail.' }],
+    signatures: [{ signature: 'TANH(X)\n', description: 'Computes the hyperbolic tangent of X where X is specified in radians. Does not\nfail.' }],
   },
   {
     name: 'atan',
-    sinatures: [
+    signatures: [
       {
         signature: 'ATAN(X)\n',
         description: 'Computes the principal value of the inverse tangent of X. The return value is\nin the range [-π/2,π/2]. Does not fail.',
@@ -771,7 +774,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'atanh',
-    sinatures: [
+    signatures: [
       {
         signature: 'ATANH(X)\n',
         description: 'Computes the inverse hyperbolic tangent of X. Generates an error if X is outside\nof the range [-1, 1].',
@@ -780,7 +783,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'atan2',
-    sinatures: [
+    signatures: [
       {
         signature: 'ATAN2(X, Y)\n',
         description:
@@ -790,7 +793,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'first_value',
-    sinatures: [
+    signatures: [
       {
         signature: 'FIRST_VALUE (value_expression [{RESPECT | IGNORE} NULLS])\n',
         description: 'Returns the value of the `value_expression` for the first row in the current\nwindow frame.',
@@ -799,7 +802,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'last_value',
-    sinatures: [
+    signatures: [
       {
         signature: 'LAST_VALUE (value_expression [{RESPECT | IGNORE} NULLS])\n',
         description: 'Returns the value of the `value_expression` for the last row in the current\nwindow frame.',
@@ -808,7 +811,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'nth_value',
-    sinatures: [
+    signatures: [
       {
         signature: 'NTH_VALUE (value_expression, constant_integer_expression [{RESPECT | IGNORE} NULLS])\n',
         description:
@@ -818,7 +821,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'lead',
-    sinatures: [
+    signatures: [
       {
         signature: 'LEAD (value_expression[, offset [, default_expression]])\n',
         description:
@@ -828,7 +831,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'lag',
-    sinatures: [
+    signatures: [
       {
         signature: 'LAG (value_expression[, offset [, default_expression]])\n',
         description:
@@ -838,7 +841,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'percentile_cont',
-    sinatures: [
+    signatures: [
       {
         signature: 'PERCENTILE_CONT (value_expression, percentile [{RESPECT | IGNORE} NULLS])\n',
         description: 'Computes the specified percentile value for the value_expression, with linear\ninterpolation.',
@@ -847,7 +850,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'percentile_disc',
-    sinatures: [
+    signatures: [
       {
         signature: 'PERCENTILE_DISC (value_expression, percentile [{RESPECT | IGNORE} NULLS])\n',
         description:
@@ -857,7 +860,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'farm_fingerprint',
-    sinatures: [
+    signatures: [
       {
         signature: 'FARM_FINGERPRINT(value)\n',
         description:
@@ -867,11 +870,11 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'fingerprint',
-    sinatures: [{ signature: 'FINGERPRINT(input)\n', description: 'Computes the fingerprint of the `STRING`\nor `BYTES` input using Fingerprint.' }],
+    signatures: [{ signature: 'FINGERPRINT(input)\n', description: 'Computes the fingerprint of the `STRING`\nor `BYTES` input using Fingerprint.' }],
   },
   {
     name: 'md5',
-    sinatures: [
+    signatures: [
       {
         signature: 'MD5(input)\n',
         description:
@@ -881,7 +884,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'sha1',
-    sinatures: [
+    signatures: [
       {
         signature: 'SHA1(input)\n',
         description:
@@ -891,7 +894,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'sha256',
-    sinatures: [
+    signatures: [
       {
         signature: 'SHA256(input)\n',
         description:
@@ -901,7 +904,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'sha512',
-    sinatures: [
+    signatures: [
       {
         signature: 'SHA512(input)\n',
         description:
@@ -911,7 +914,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'ascii',
-    sinatures: [
+    signatures: [
       {
         signature: 'ASCII(value)\n',
         description:
@@ -921,7 +924,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'byte_length',
-    sinatures: [
+    signatures: [
       {
         signature: 'BYTE_LENGTH(value)\n',
         description:
@@ -929,11 +932,11 @@ export const HelpProviderWords: FunctionInfo[] = [
       },
     ],
   },
-  { name: 'char_length', sinatures: [{ signature: 'CHAR_LENGTH(value)\n', description: 'Returns the length of the `STRING` in characters.' }] },
-  { name: 'character_length', sinatures: [{ signature: 'CHARACTER_LENGTH(value)\n', description: 'Synonym for CHAR_LENGTH.' }] },
+  { name: 'char_length', signatures: [{ signature: 'CHAR_LENGTH(value)\n', description: 'Returns the length of the `STRING` in characters.' }] },
+  { name: 'character_length', signatures: [{ signature: 'CHARACTER_LENGTH(value)\n', description: 'Synonym for CHAR_LENGTH.' }] },
   {
     name: 'chr',
-    sinatures: [
+    signatures: [
       {
         signature: 'CHR(value)\n',
         description:
@@ -943,7 +946,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'code_points_to_bytes',
-    sinatures: [
+    signatures: [
       {
         signature: 'CODE_POINTS_TO_BYTES(ascii_values)\n',
         description: 'Takes an array of extended ASCII\ncode points\n(`ARRAY` of `INT64`) and returns `BYTES`.',
@@ -952,7 +955,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'code_points_to_string',
-    sinatures: [
+    signatures: [
       {
         signature: 'CODE_POINTS_TO_STRING(value)\n',
         description:
@@ -962,7 +965,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'concat',
-    sinatures: [
+    signatures: [
       {
         signature: 'CONCAT(value1[, ...])\n',
         description: 'Concatenates one or more values into a single result. All values must be\n`BYTES` or data types that can be cast to `STRING`.',
@@ -971,17 +974,17 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'ends_with',
-    sinatures: [
+    signatures: [
       {
         signature: 'ENDS_WITH(value1, value2)\n',
         description: 'Takes two `STRING` or `BYTES` values. Returns `TRUE` if the second\nvalue is a suffix of the first.',
       },
     ],
   },
-  { name: 'format', sinatures: [{ signature: '', description: '`FORMAT` formats a data type expression as a string.' }] },
+  { name: 'format', signatures: [{ signature: '', description: '`FORMAT` formats a data type expression as a string.' }] },
   {
     name: 'from_base32',
-    sinatures: [
+    signatures: [
       {
         signature: 'FROM_BASE32(string_expr)\n',
         description:
@@ -991,7 +994,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'from_base64',
-    sinatures: [
+    signatures: [
       {
         signature: 'FROM_BASE64(string_expr)\n',
         description:
@@ -1001,17 +1004,17 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'from_hex',
-    sinatures: [
+    signatures: [
       {
         signature: 'FROM_HEX(string)\n',
         description:
-          'Converts a hexadecimal-encoded `STRING` into `BYTES` format. Returns an error\nif the input `STRING` contains characters outside the range\n`(0..9, A..F, a..f)`. The lettercase of the characters does not matter. If the\ninput `STRING` has an odd number of characters, the function acts as if the\ninput has an additional leading `0`. To convert `BYTES` to a hexadecimal-encoded\n`STRING`, use TO_HEX.',
+          'Converts a hexadecimal-encoded `STRING` into `BYTES` format. Returns an error\nif the input `STRING` contains characters outside the range\n`(0..9, A..F, a..f)`. The letter case of the characters does not matter. If the\ninput `STRING` has an odd number of characters, the function acts as if the\ninput has an additional leading `0`. To convert `BYTES` to a hexadecimal-encoded\n`STRING`, use TO_HEX.',
       },
     ],
   },
   {
     name: 'initcap',
-    sinatures: [
+    signatures: [
       {
         signature: 'INITCAP(value[, delimiters])\n',
         description:
@@ -1021,7 +1024,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'instr',
-    sinatures: [
+    signatures: [
       {
         signature: 'INSTR(source_value, search_value[, position[, occurrence]])\n',
         description:
@@ -1031,7 +1034,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'left',
-    sinatures: [
+    signatures: [
       {
         signature: 'LEFT(value, length)\n',
         description:
@@ -1041,7 +1044,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'length',
-    sinatures: [
+    signatures: [
       {
         signature: 'LENGTH(value)\n',
         description:
@@ -1051,7 +1054,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'lpad',
-    sinatures: [
+    signatures: [
       {
         signature: 'LPAD(original_value, return_length[, pattern])\n',
         description:
@@ -1061,7 +1064,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'lower',
-    sinatures: [
+    signatures: [
       {
         signature: 'LOWER(value)\n',
         description:
@@ -1069,10 +1072,10 @@ export const HelpProviderWords: FunctionInfo[] = [
       },
     ],
   },
-  { name: 'ltrim', sinatures: [{ signature: 'LTRIM(value1[, value2])\n', description: 'Identical to TRIM, but only removes leading characters.' }] },
+  { name: 'ltrim', signatures: [{ signature: 'LTRIM(value1[, value2])\n', description: 'Identical to TRIM, but only removes leading characters.' }] },
   {
     name: 'normalize',
-    sinatures: [
+    signatures: [
       {
         signature: 'NORMALIZE(value[, normalization_mode])\n',
         description: 'Takes a string value and returns it as a normalized string. If you do not\nprovide a normalization mode, `NFC` is used.',
@@ -1081,7 +1084,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'normalize_and_casefold',
-    sinatures: [
+    signatures: [
       {
         signature: 'NORMALIZE_AND_CASEFOLD(value[, normalization_mode])\n',
         description: 'Takes a string value and returns it as a normalized string with\nnormalization.',
@@ -1090,13 +1093,13 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'octet_length',
-    sinatures: [
+    signatures: [
       { signature: 'OCTET_LENGTH(value)\n', description: 'Returns `TRUE` if `value` is a partial match for the regular expression,\n`regexp`.' },
     ],
   },
   {
     name: 'regexp_extract',
-    sinatures: [
+    signatures: [
       {
         signature: 'REGEXP_EXTRACT(value, regexp)\n',
         description: 'Returns the first substring in `value` that matches the regular expression,\n`regexp`. Returns `NULL` if there is no match.',
@@ -1105,7 +1108,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'regexp_extract_all',
-    sinatures: [
+    signatures: [
       {
         signature: 'REGEXP_EXTRACT_ALL(value, regexp)\n',
         description: 'Returns an array of all substrings of `value` that match the regular expression,\n`regexp`.',
@@ -1114,7 +1117,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'regexp_instr',
-    sinatures: [
+    signatures: [
       {
         signature: 'REGEXP_INSTR(source_value, regexp [, position[, occurrence, [occurrence_position]]])\n',
         description:
@@ -1124,11 +1127,11 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'regexp_match',
-    sinatures: [{ signature: '', description: 'Returns `TRUE` if `value` is a full match for the regular expression, `regexp`.' }],
+    signatures: [{ signature: '', description: 'Returns `TRUE` if `value` is a full match for the regular expression, `regexp`.' }],
   },
   {
     name: 'regexp_replace',
-    sinatures: [
+    signatures: [
       {
         signature: 'REGEXP_REPLACE(value, regexp, replacement)\n',
         description: 'Returns a `STRING` where all substrings of `value` that\nmatch regular expression `regexp` are replaced with `replacement`.',
@@ -1137,7 +1140,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'replace',
-    sinatures: [
+    signatures: [
       {
         signature: 'REPLACE(original_value, from_value, to_value)\n',
         description:
@@ -1147,7 +1150,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'repeat',
-    sinatures: [
+    signatures: [
       {
         signature: 'REPEAT(original_value, repetitions)\n',
         description:
@@ -1155,10 +1158,10 @@ export const HelpProviderWords: FunctionInfo[] = [
       },
     ],
   },
-  { name: 'reverse', sinatures: [{ signature: 'REVERSE(value)\n', description: 'Returns the reverse of the input `STRING` or `BYTES`.' }] },
+  { name: 'reverse', signatures: [{ signature: 'REVERSE(value)\n', description: 'Returns the reverse of the input `STRING` or `BYTES`.' }] },
   {
     name: 'right',
-    sinatures: [
+    signatures: [
       {
         signature: 'RIGHT(value, length)\n',
         description:
@@ -1168,7 +1171,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'rpad',
-    sinatures: [
+    signatures: [
       {
         signature: 'RPAD(original_value, return_length[, pattern])\n',
         description:
@@ -1176,10 +1179,13 @@ export const HelpProviderWords: FunctionInfo[] = [
       },
     ],
   },
-  { name: 'rtrim', sinatures: [{ signature: 'RTRIM(value1[, value2])\n', description: 'Identical to TRIM, but only removes trailing characters.' }] },
+  {
+    name: 'rtrim',
+    signatures: [{ signature: 'RTRIM(value1[, value2])\n', description: 'Identical to TRIM, but only removes trailing characters.' }],
+  },
   {
     name: 'safe_convert_bytes_to_string',
-    sinatures: [
+    signatures: [
       {
         signature: 'SAFE_CONVERT_BYTES_TO_STRING(value)\n',
         description:
@@ -1189,12 +1195,12 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'soundex',
-    sinatures: [{ signature: 'SOUNDEX(value)\n', description: 'Returns a `STRING` that represents the\nSoundex code for `value`.' }],
+    signatures: [{ signature: 'SOUNDEX(value)\n', description: 'Returns a `STRING` that represents the\nSoundex code for `value`.' }],
   },
-  { name: 'split', sinatures: [{ signature: 'SPLIT(value[, delimiter])\n', description: 'Splits `value` using the `delimiter` argument.' }] },
+  { name: 'split', signatures: [{ signature: 'SPLIT(value[, delimiter])\n', description: 'Splits `value` using the `delimiter` argument.' }] },
   {
     name: 'starts_with',
-    sinatures: [
+    signatures: [
       {
         signature: 'STARTS_WITH(value1, value2)\n',
         description: 'Takes two `STRING` or `BYTES` values. Returns `TRUE` if the second value is a\nprefix of the first.',
@@ -1203,7 +1209,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'strpos',
-    sinatures: [
+    signatures: [
       {
         signature: 'STRPOS(value1, value2)\n',
         description:
@@ -1213,7 +1219,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'substr',
-    sinatures: [
+    signatures: [
       {
         signature: 'SUBSTR(value, position[, length])\n',
         description:
@@ -1223,7 +1229,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'substring',
-    sinatures: [
+    signatures: [
       {
         signature: 'SUBSTRING(value, position[, length])\n',
         description:
@@ -1233,7 +1239,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'to_base64',
-    sinatures: [
+    signatures: [
       {
         signature: 'TO_BASE64(bytes_expr)\n',
         description:
@@ -1241,10 +1247,10 @@ export const HelpProviderWords: FunctionInfo[] = [
       },
     ],
   },
-  { name: 'to_code_points', sinatures: [{ signature: 'TO_CODE_POINTS(value)\n', description: 'Takes a value and returns an array of\n`INT64`.' }] },
+  { name: 'to_code_points', signatures: [{ signature: 'TO_CODE_POINTS(value)\n', description: 'Takes a value and returns an array of\n`INT64`.' }] },
   {
     name: 'to_hex',
-    sinatures: [
+    signatures: [
       {
         signature: 'TO_HEX(bytes)\n',
         description:
@@ -1254,7 +1260,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'translate',
-    sinatures: [
+    signatures: [
       {
         signature: 'TRANSLATE(expression, source_characters, target_characters)\n',
         description:
@@ -1264,7 +1270,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'trim',
-    sinatures: [
+    signatures: [
       {
         signature: 'TRIM(value1[, value2])\n',
         description:
@@ -1274,7 +1280,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'unicode',
-    sinatures: [
+    signatures: [
       {
         signature: 'UNICODE(value)\n',
         description:
@@ -1284,7 +1290,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'upper',
-    sinatures: [
+    signatures: [
       {
         signature: 'UPPER(value)\n',
         description:
@@ -1294,7 +1300,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'json_extract',
-    sinatures: [
+    signatures: [
       {
         signature: 'JSON_EXTRACT(json_string_expr, json_path)\n',
         description:
@@ -1304,7 +1310,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'json_query',
-    sinatures: [
+    signatures: [
       {
         signature: 'JSON_QUERY(json_string_expr, json_path)\n',
         description:
@@ -1314,7 +1320,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'json_extract_scalar',
-    sinatures: [
+    signatures: [
       {
         signature: 'JSON_EXTRACT_SCALAR(json_string_expr[, json_path])\n',
         description:
@@ -1324,7 +1330,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'json_value',
-    sinatures: [
+    signatures: [
       {
         signature: 'JSON_VALUE(json_string_expr[, json_path])\n',
         description:
@@ -1334,7 +1340,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'json_query_array',
-    sinatures: [
+    signatures: [
       {
         signature: 'JSON_QUERY_ARRAY(json_string_expr[, json_path])\n',
         description:
@@ -1344,7 +1350,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'json_value_array',
-    sinatures: [
+    signatures: [
       {
         signature: 'JSON_VALUE_ARRAY(json_string_expr[, json_path])\n',
         description:
@@ -1354,7 +1360,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'parse_json',
-    sinatures: [
+    signatures: [
       {
         signature: "PARSE_JSON(json_string_expr[, wide_number_mode=>{ 'exact' | 'round' } ])\n",
         description: 'Takes a SQL `STRING` value and returns a SQL `JSON` value.\nThe `STRING` value represents a string-formatted JSON value.',
@@ -1363,11 +1369,11 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'jsonpath',
-    sinatures: [{ signature: '', description: 'The `ARRAY` function returns an `ARRAY` with one element for each row in a\nsubquery.' }],
+    signatures: [{ signature: '', description: 'The `ARRAY` function returns an `ARRAY` with one element for each row in a\nsubquery.' }],
   },
   {
     name: 'array_concat',
-    sinatures: [
+    signatures: [
       {
         signature: 'ARRAY_CONCAT(array_expression[, ...])\n',
         description: 'Concatenates one or more arrays with the same element type into a single array.',
@@ -1376,7 +1382,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'array_filter',
-    sinatures: [
+    signatures: [
       {
         signature:
           'ARRAY_FILTER(array_expression, lambda_expression)\n\nlambda_expression:\n  {\n    element_alias->boolean_expression\n    | (element_alias, index_alias)->boolean_expression\n  }\n',
@@ -1386,13 +1392,13 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'array_includes',
-    sinatures: [
+    signatures: [
       { signature: '', description: 'Takes an array and returns `TRUE` if there is an element in the array that is\nequal to the target element.' },
     ],
   },
   {
     name: 'array_includes_any',
-    sinatures: [
+    signatures: [
       {
         signature: 'ARRAY_INCLUDES_ANY(source_array_expression, target_array_expression)\n',
         description:
@@ -1402,7 +1408,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'array_length',
-    sinatures: [
+    signatures: [
       {
         signature: 'ARRAY_LENGTH(array_expression)\n',
         description: 'Returns the size of the array. Returns 0 for an empty array. Returns `NULL` if\nthe `array_expression` is `NULL`.',
@@ -1411,7 +1417,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'array_to_string',
-    sinatures: [
+    signatures: [
       {
         signature: 'ARRAY_TO_STRING(array_expression, delimiter[, null_text])\n',
         description:
@@ -1421,7 +1427,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'array_transform',
-    sinatures: [
+    signatures: [
       {
         signature:
           'ARRAY_TRANSFORM(array_expression, lambda_expression)\n\nlambda_expression:\n  {\n    element_alias->transform_expression\n    | (element_alias, index_alias)->transform_expression\n  }\n',
@@ -1431,7 +1437,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'flatten',
-    sinatures: [
+    signatures: [
       {
         signature:
           'FLATTEN(flatten_path)\n\nflatten_path:\n{\n  array_expression\n  | flatten_path.field\n  | flatten_path.array_field\n  | flatten_path.array_field[{offset_clause | safe_offset_clause}]\n}\n',
@@ -1442,7 +1448,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'generate_array',
-    sinatures: [
+    signatures: [
       {
         signature: 'GENERATE_ARRAY(start_expression, end_expression[, step_expression])\n',
         description:
@@ -1452,7 +1458,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'generate_date_array',
-    sinatures: [
+    signatures: [
       {
         signature: 'GENERATE_DATE_ARRAY(start_date, end_date[, INTERVAL INT64_expr date_part])\n',
         description: 'Returns an array of dates. The `start_date` and `end_date`\nparameters determine the inclusive start and end of the array.',
@@ -1461,7 +1467,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'generate_timestamp_array',
-    sinatures: [
+    signatures: [
       {
         signature: 'GENERATE_TIMESTAMP_ARRAY(start_timestamp, end_timestamp,\n                         INTERVAL step_expression date_part)\n',
         description:
@@ -1471,11 +1477,11 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'array_reverse',
-    sinatures: [{ signature: 'ARRAY_REVERSE(value)\n', description: 'Returns the input ARRAY with elements in reverse order.' }],
+    signatures: [{ signature: 'ARRAY_REVERSE(value)\n', description: 'Returns the input ARRAY with elements in reverse order.' }],
   },
   {
     name: 'array_is_distinct',
-    sinatures: [
+    signatures: [
       {
         signature: 'ARRAY_IS_DISTINCT(value)\n',
         description: 'Returns true if the array contains no repeated elements, using the same equality\ncomparison logic as `SELECT DISTINCT`.',
@@ -1484,13 +1490,13 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'array',
-    sinatures: [
+    signatures: [
       { signature: 'ARRAY(subquery)\n', description: 'The `ARRAY` function returns an `ARRAY` with one element for each row in a\nsubquery.' },
     ],
   },
   {
     name: 'current_date',
-    sinatures: [
+    signatures: [
       {
         signature: 'CURRENT_DATE([time_zone])\n',
         description: 'Returns the current date as of the specified or default timezone. Parentheses\nare optional when called with no\narguments.',
@@ -1499,7 +1505,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'extract',
-    sinatures: [
+    signatures: [
       {
         signature: 'EXTRACT(part FROM date_expression)\n',
         description: 'Returns the value corresponding to the specified date part. The `part` must\nbe one of:',
@@ -1508,7 +1514,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'date',
-    sinatures: [
+    signatures: [
       { signature: 'DATE(year, month, day)', description: 'Constructs a DATE from INT64 values representing\nthe year, month, and day.' },
       {
         signature: 'DATE(timestamp_expression[, timezone])',
@@ -1521,13 +1527,13 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'date_add',
-    sinatures: [
+    signatures: [
       { signature: 'DATE_ADD(date_expression, INTERVAL int64_expression date_part)\n', description: 'Adds a specified time interval to a DATE.' },
     ],
   },
   {
     name: 'date_sub',
-    sinatures: [
+    signatures: [
       {
         signature: 'DATE_SUB(date_expression, INTERVAL int64_expression date_part)\n',
         description: 'Subtracts a specified time interval from a DATE.',
@@ -1536,7 +1542,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'date_diff',
-    sinatures: [
+    signatures: [
       {
         signature: 'DATE_DIFF(date_expression_a, date_expression_b, date_part)\n',
         description:
@@ -1546,23 +1552,23 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'date_trunc',
-    sinatures: [{ signature: 'DATE_TRUNC(date_expression, date_part)\n', description: 'Truncates the date to the specified granularity.' }],
+    signatures: [{ signature: 'DATE_TRUNC(date_expression, date_part)\n', description: 'Truncates the date to the specified granularity.' }],
   },
   {
     name: 'date_from_unix_date',
-    sinatures: [
+    signatures: [
       { signature: 'DATE_FROM_UNIX_DATE(int64_expression)\n', description: 'Interprets `int64_expression` as the number of days since 1970-01-01.' },
     ],
   },
   {
     name: 'format_date',
-    sinatures: [
+    signatures: [
       { signature: 'FORMAT_DATE(format_string, date_expr)\n', description: 'Formats the `date_expr` according to the specified `format_string`.' },
     ],
   },
   {
     name: 'last_day',
-    sinatures: [
+    signatures: [
       {
         signature: 'LAST_DAY(date_expression[, date_part])\n',
         description: 'Returns the last day from a date expression. This is commonly used to return\nthe last day of the month.',
@@ -1571,14 +1577,14 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'parse_date',
-    sinatures: [
+    signatures: [
       { signature: 'PARSE_DATE(format_string, date_string)\n', description: 'Converts a string representation of date to a\n`DATE` object.' },
     ],
   },
-  { name: 'unix_date', sinatures: [{ signature: 'UNIX_DATE(date_expression)\n', description: 'Returns the number of days since 1970-01-01.' }] },
+  { name: 'unix_date', signatures: [{ signature: 'UNIX_DATE(date_expression)\n', description: 'Returns the number of days since 1970-01-01.' }] },
   {
     name: 'current_datetime',
-    sinatures: [
+    signatures: [
       {
         signature: 'CURRENT_DATETIME([timezone])\n',
         description: 'Returns the current time as a `DATETIME` object. Parentheses are optional when\ncalled with no arguments.',
@@ -1587,7 +1593,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'datetime',
-    sinatures: [
+    signatures: [
       {
         signature: 'DATETIME(year, month, day, hour, minute, second)',
         description: 'Constructs a `DATETIME` object using INT64 values\nrepresenting the year, month, day, hour, minute, and second.',
@@ -1606,7 +1612,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'datetime_add',
-    sinatures: [
+    signatures: [
       {
         signature: 'DATETIME_ADD(datetime_expression, INTERVAL int64_expression part)\n',
         description: 'Adds `int64_expression` units of `part` to the `DATETIME` object.',
@@ -1615,7 +1621,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'datetime_sub',
-    sinatures: [
+    signatures: [
       {
         signature: 'DATETIME_SUB(datetime_expression, INTERVAL int64_expression part)\n',
         description: 'Subtracts `int64_expression` units of `part` from the `DATETIME`.',
@@ -1624,7 +1630,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'datetime_diff',
-    sinatures: [
+    signatures: [
       {
         signature: 'DATETIME_DIFF(datetime_expression_a, datetime_expression_b, part)\n',
         description:
@@ -1634,13 +1640,13 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'datetime_trunc',
-    sinatures: [
+    signatures: [
       { signature: 'DATETIME_TRUNC(datetime_expression, part)\n', description: 'Truncates a `DATETIME` object to the granularity of `part`.' },
     ],
   },
   {
     name: 'format_datetime',
-    sinatures: [
+    signatures: [
       {
         signature: 'FORMAT_DATETIME(format_string, datetime_expression)\n',
         description:
@@ -1650,7 +1656,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'parse_datetime',
-    sinatures: [
+    signatures: [
       {
         signature: 'PARSE_DATETIME(format_string, datetime_string)\n',
         description: 'Converts a string representation of a datetime to a\n`DATETIME` object.',
@@ -1659,7 +1665,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'current_time',
-    sinatures: [
+    signatures: [
       {
         signature: 'CURRENT_TIME([timezone])\n',
         description: 'Returns the current time as a `TIME` object. Parentheses are optional when\ncalled with no arguments.',
@@ -1668,7 +1674,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'time',
-    sinatures: [
+    signatures: [
       {
         signature: 'TIME(hour, minute, second)',
         description: 'Constructs a `TIME` object using `INT64`\nvalues representing the hour, minute, and second.',
@@ -1684,7 +1690,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'time_add',
-    sinatures: [
+    signatures: [
       {
         signature: 'TIME_ADD(time_expression, INTERVAL int64_expression part)\n',
         description: 'Adds `int64_expression` units of `part` to the `TIME` object.',
@@ -1693,7 +1699,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'time_sub',
-    sinatures: [
+    signatures: [
       {
         signature: 'TIME_SUB(time_expression, INTERVAL int64_expression part)\n',
         description: 'Subtracts `int64_expression` units of `part` from the `TIME` object.',
@@ -1702,7 +1708,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'time_diff',
-    sinatures: [
+    signatures: [
       {
         signature: 'TIME_DIFF(time_expression_a, time_expression_b, part)\n',
         description:
@@ -1712,17 +1718,17 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'time_trunc',
-    sinatures: [{ signature: 'TIME_TRUNC(time_expression, part)\n', description: 'Truncates a `TIME` object to the granularity of `part`.' }],
+    signatures: [{ signature: 'TIME_TRUNC(time_expression, part)\n', description: 'Truncates a `TIME` object to the granularity of `part`.' }],
   },
   {
     name: 'format_time',
-    sinatures: [
+    signatures: [
       { signature: 'FORMAT_TIME(format_string, time_object)\n', description: 'Converts a string representation of time to a\n`TIME` object.' },
     ],
   },
   {
     name: 'current_timestamp',
-    sinatures: [
+    signatures: [
       {
         signature: 'CURRENT_TIMESTAMP()\n',
         description:
@@ -1732,7 +1738,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'string',
-    sinatures: [
+    signatures: [
       {
         signature: 'STRING(timestamp_expression[, timezone])\n',
         description:
@@ -1742,7 +1748,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'timestamp',
-    sinatures: [
+    signatures: [
       {
         signature: 'TIMESTAMP(string_expression[, timezone])\nTIMESTAMP(date_expression[, timezone])\nTIMESTAMP(datetime_expression[, timezone])\n',
         description: '',
@@ -1751,7 +1757,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'timestamp_add',
-    sinatures: [
+    signatures: [
       {
         signature: 'TIMESTAMP_ADD(timestamp_expression, INTERVAL int64_expression date_part)\n',
         description: 'Adds `int64_expression` units of `date_part` to the timestamp, independent of\nany time zone.',
@@ -1760,7 +1766,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'timestamp_sub',
-    sinatures: [
+    signatures: [
       {
         signature: 'TIMESTAMP_SUB(timestamp_expression, INTERVAL int64_expression date_part)\n',
         description: 'Subtracts `int64_expression` units of `date_part` from the timestamp,\nindependent of any time zone.',
@@ -1769,7 +1775,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'timestamp_diff',
-    sinatures: [
+    signatures: [
       {
         signature: 'TIMESTAMP_DIFF(timestamp_expression_a, timestamp_expression_b, date_part)\n',
         description:
@@ -1779,7 +1785,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'timestamp_trunc',
-    sinatures: [
+    signatures: [
       {
         signature: 'TIMESTAMP_TRUNC(timestamp_expression, date_part[, timezone])\n',
         description: 'Truncates a timestamp to the granularity of `date_part`.',
@@ -1788,7 +1794,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'format_timestamp',
-    sinatures: [
+    signatures: [
       {
         signature: 'FORMAT_TIMESTAMP(format_string, timestamp[, timezone])\n',
         description: 'Formats a timestamp according to the specified `format_string`.',
@@ -1797,7 +1803,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'parse_timestamp',
-    sinatures: [
+    signatures: [
       {
         signature: 'PARSE_TIMESTAMP(format_string, timestamp_string[, timezone])\n',
         description: 'Converts a string representation of a timestamp to a\n`TIMESTAMP` object.',
@@ -1806,7 +1812,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'timestamp_seconds',
-    sinatures: [
+    signatures: [
       {
         signature: 'TIMESTAMP_SECONDS(int64_expression)\n',
         description: 'Interprets `int64_expression` as the number of seconds since 1970-01-01 00:00:00\nUTC and returns a timestamp.',
@@ -1815,7 +1821,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'timestamp_millis',
-    sinatures: [
+    signatures: [
       {
         signature: 'TIMESTAMP_MILLIS(int64_expression)\n',
         description: 'Interprets `int64_expression` as the number of milliseconds since 1970-01-01\n00:00:00 UTC and returns a timestamp.',
@@ -1824,7 +1830,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'timestamp_micros',
-    sinatures: [
+    signatures: [
       {
         signature: 'TIMESTAMP_MICROS(int64_expression)\n',
         description: 'Interprets `int64_expression` as the number of microseconds since 1970-01-01\n00:00:00 UTC and returns a timestamp.',
@@ -1833,7 +1839,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'unix_seconds',
-    sinatures: [
+    signatures: [
       {
         signature: 'UNIX_SECONDS(timestamp_expression)\n',
         description: 'Returns the number of seconds since 1970-01-01 00:00:00 UTC. Truncates higher\nlevels of precision.',
@@ -1842,7 +1848,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'unix_millis',
-    sinatures: [
+    signatures: [
       {
         signature: 'UNIX_MILLIS(timestamp_expression)\n',
         description: 'Returns the number of milliseconds since 1970-01-01 00:00:00 UTC. Truncates\nhigher levels of precision.',
@@ -1851,7 +1857,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'unix_micros',
-    sinatures: [
+    signatures: [
       {
         signature: 'UNIX_MICROS(timestamp_expression)\n',
         description: 'Returns the number of microseconds since 1970-01-01 00:00:00 UTC. Truncates\nhigher levels of precision.',
@@ -1860,7 +1866,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'timestamp_from_unix_seconds',
-    sinatures: [
+    signatures: [
       {
         signature: 'TIMESTAMP_FROM_UNIX_SECONDS(int64_expression)\n',
         description:
@@ -1870,7 +1876,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'timestamp_from_unix_millis',
-    sinatures: [
+    signatures: [
       {
         signature: 'TIMESTAMP_FROM_UNIX_MILLIS(int64_expression)\n',
         description:
@@ -1880,7 +1886,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'timestamp_from_unix_micros',
-    sinatures: [
+    signatures: [
       {
         signature: 'TIMESTAMP_FROM_UNIX_MICROS(int64_expression)\n',
         description:
@@ -1890,7 +1896,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'make_interval',
-    sinatures: [
+    signatures: [
       {
         signature: 'MAKE_INTERVAL(year, month, day, hour, minute, second)\n',
         description:
@@ -1900,7 +1906,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'justify_days',
-    sinatures: [
+    signatures: [
       {
         signature: 'JUSTIFY_DAYS(interval_expression)\n',
         description:
@@ -1910,7 +1916,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'justify_hours',
-    sinatures: [
+    signatures: [
       {
         signature: 'JUSTIFY_HOURS(interval_expression)\n',
         description:
@@ -1920,15 +1926,15 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'justify_interval',
-    sinatures: [{ signature: 'JUSTIFY_INTERVAL(interval_expression)\n', description: 'Normalizes the days and time parts of the interval.' }],
+    signatures: [{ signature: 'JUSTIFY_INTERVAL(interval_expression)\n', description: 'Normalizes the days and time parts of the interval.' }],
   },
   {
     name: 'session_user',
-    sinatures: [{ signature: 'SESSION_USER()\n', description: 'Returns the email address of the user that is running the query.' }],
+    signatures: [{ signature: 'SESSION_USER()\n', description: 'Returns the email address of the user that is running the query.' }],
   },
   {
     name: 'net.ip_from_string',
-    sinatures: [
+    signatures: [
       {
         signature: 'NET.IP_FROM_STRING(addr_str)\n',
         description: 'Converts an IPv4 or IPv6 address from text (STRING) format to binary (BYTES)\nformat in network byte order.',
@@ -1937,7 +1943,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'net.safe_ip_from_string',
-    sinatures: [
+    signatures: [
       {
         signature: 'NET.SAFE_IP_FROM_STRING(addr_str)\n',
         description: 'Similar to `NET.IP_FROM_STRING`, but returns `NULL`\ninstead of throwing an error if the input is invalid.',
@@ -1946,7 +1952,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'net.ip_to_string',
-    sinatures: [
+    signatures: [
       {
         signature: 'NET.IP_TO_STRING(addr_bin)\n',
         description:
@@ -1956,7 +1962,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'net.ip_trunc',
-    sinatures: [
+    signatures: [
       {
         signature: 'NET.IP_TRUNC(addr_bin, prefix_length)\n',
         description:
@@ -1966,7 +1972,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'net.ipv4_to_int64',
-    sinatures: [
+    signatures: [
       {
         signature: 'NET.IPV4_TO_INT64(addr_bin)\n',
         description:
@@ -1976,7 +1982,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'net.ip_in_net',
-    sinatures: [
+    signatures: [
       {
         signature: 'NET.IP_IN_NET(address, subnet)\n',
         description: 'Takes an IP address and a subnet CIDR as STRING and returns true if the IP\naddress is contained in the subnet.',
@@ -1985,7 +1991,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'net.make_net',
-    sinatures: [
+    signatures: [
       {
         signature: 'NET.MAKE_NET(address, prefix_length)\n',
         description:
@@ -1995,7 +2001,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'net.host',
-    sinatures: [
+    signatures: [
       {
         signature: 'NET.HOST(url)\n',
         description:
@@ -2005,7 +2011,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'net.public_suffix',
-    sinatures: [
+    signatures: [
       {
         signature: 'NET.PUBLIC_SUFFIX(url)\n',
         description:
@@ -2015,7 +2021,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'net.reg_domain',
-    sinatures: [
+    signatures: [
       {
         signature: 'NET.REG_DOMAIN(url)\n',
         description:
@@ -2025,7 +2031,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'case',
-    sinatures: [
+    signatures: [
       {
         signature: 'CASE\n  WHEN condition THEN result\n  [ ... ]\n  [ ELSE else_result ]\nEND\n',
         description:
@@ -2035,7 +2041,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'coalesce',
-    sinatures: [
+    signatures: [
       {
         signature: 'COALESCE(expr[, ...])\n',
         description:
@@ -2045,7 +2051,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'if',
-    sinatures: [
+    signatures: [
       {
         signature: 'IF(expr, true_result, else_result)\n',
         description:
@@ -2055,7 +2061,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'ifnull',
-    sinatures: [
+    signatures: [
       {
         signature: 'IFNULL(expr, null_result)\n',
         description: 'If `expr` is NULL, return `null_result`. Otherwise, return `expr`. If `expr`\nis not NULL, `null_result` is not evaluated.',
@@ -2064,17 +2070,17 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'nullif',
-    sinatures: [
+    signatures: [
       { signature: 'NULLIF(expr, expr_to_match)\n', description: 'Returns NULL if `expr = expr_to_match` is true, otherwise\nreturns `expr`.' },
     ],
   },
   {
     name: 'error',
-    sinatures: [{ signature: 'ERROR(error_message)\n', description: 'Returns an error. The `error_message` argument is a `STRING`.' }],
+    signatures: [{ signature: 'ERROR(error_message)\n', description: 'Returns an error. The `error_message` argument is a `STRING`.' }],
   },
   {
     name: 'regexp_contains',
-    sinatures: [
+    signatures: [
       {
         signature: 'REGEXP_CONTAINS(value, regexp)\n',
         description: 'Returns `TRUE` if `value` is a partial match for the regular expression,\n`regexp`.',
@@ -2083,7 +2089,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'to_base32',
-    sinatures: [
+    signatures: [
       {
         signature: 'TO_BASE32(bytes_expr)\n',
         description:
@@ -2093,7 +2099,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'net.ip_net_mask',
-    sinatures: [
+    signatures: [
       {
         signature: 'NET.IP_NET_MASK(num_output_bytes, prefix_length)\n',
         description:
@@ -2103,7 +2109,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'net.ipv4_from_int64',
-    sinatures: [
+    signatures: [
       {
         signature: 'NET.IPV4_FROM_INT64(integer_value)\n',
         description:
@@ -2113,7 +2119,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'anon_avg',
-    sinatures: [
+    signatures: [
       {
         signature: 'ANON_AVG(expression [CLAMPED BETWEEN lower AND upper])\n',
         description:
@@ -2123,7 +2129,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'anon_count',
-    sinatures: [
+    signatures: [
       {
         signature: '',
         description:
@@ -2133,7 +2139,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'anon_percentile_cont',
-    sinatures: [
+    signatures: [
       {
         signature: 'ANON_PERCENTILE_CONT(expression, percentile [CLAMPED BETWEEN lower AND upper])\n',
         description:
@@ -2143,7 +2149,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'anon_stddev_pop',
-    sinatures: [
+    signatures: [
       {
         signature: 'ANON_STDDEV_POP(expression [CLAMPED BETWEEN lower AND upper])\n',
         description:
@@ -2153,7 +2159,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'anon_sum',
-    sinatures: [
+    signatures: [
       {
         signature: 'ANON_SUM(expression [CLAMPED BETWEEN lower AND upper])\n',
         description:
@@ -2163,7 +2169,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'anon_var_pop',
-    sinatures: [
+    signatures: [
       {
         signature: 'ANON_VAR_POP(expression [CLAMPED BETWEEN lower AND upper])\n',
         description:
@@ -2173,7 +2179,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'to_json_string',
-    sinatures: [
+    signatures: [
       {
         signature: 'TO_JSON_STRING(value[, pretty_print])\n',
         description:

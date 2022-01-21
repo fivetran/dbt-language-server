@@ -22,7 +22,7 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { BigQueryClient } from './bigquery/BigQueryClient';
 import { CompletionProvider } from './CompletionProvider';
-import { DbtServer } from './DbtServer';
+import { DbtRpcServer } from './DbtRpcServer';
 import { DestinationDefinition } from './DestinationDefinition';
 import { Diff as Diff } from './Diff';
 import { HoverProvider } from './HoverProvider';
@@ -54,7 +54,6 @@ export class DbtTextDocument {
 
   constructor(
     doc: TextDocumentItem,
-    private dbtServer: DbtServer,
     private connection: _Connection,
     private progressReporter: ProgressReporter,
     private completionProvider: CompletionProvider,
@@ -68,13 +67,13 @@ export class DbtTextDocument {
 
     this.modelCompiler.onCompilationError(this.onCompilationError.bind(this));
     this.modelCompiler.onCompilationFinished(this.onCompilationFinished.bind(this));
-    this.modelCompiler.onFinishAllCompilationTasks(this.onFinishAllCompilationTasks.bind(this));
+    this.modelCompiler.onFinishAllCompilationJobs(this.onFinishAllCompilationTasks.bind(this));
   }
 
-  async didSaveTextDocument(): Promise<void> {
+  async didSaveTextDocument(dbtRpcServer: DbtRpcServer): Promise<void> {
     if (this.requireCompileOnSave) {
       this.requireCompileOnSave = false;
-      this.dbtServer.refreshServer();
+      dbtRpcServer.refreshServer();
       await this.debouncedCompile();
     } else {
       await this.onCompilationFinished(this.compiledDocument.getText());
@@ -307,7 +306,7 @@ export class DbtTextDocument {
 
   getIdentifierRangeAtPosition(position: Position): Range {
     const lines = this.getLines();
-    if (!lines) {
+    if (lines.length === 0) {
       return Range.create(position, position);
     }
     const line = Math.min(lines.length - 1, Math.max(0, position.line));
@@ -334,7 +333,7 @@ export class DbtTextDocument {
 
   getTextRangeBeforeBracket(cursorPosition: Position): Range {
     const lines = this.getLines();
-    if (!lines) {
+    if (lines.length === 0) {
       return Range.create(cursorPosition, cursorPosition);
     }
     const line = Math.min(lines.length - 1, Math.max(0, cursorPosition.line));

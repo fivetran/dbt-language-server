@@ -9,17 +9,14 @@ export class DestinationDefinition {
 
   constructor(bigQueryClient: BigQueryClient) {
     this.activeProject = bigQueryClient.project;
-    const client = bigQueryClient;
 
-    if (client) {
-      client
-        .getDatasets()
-        .then(datasetsResponse => {
-          const [datasets] = datasetsResponse;
-          this.projects.set(this.activeProject, datasets);
-        })
-        .catch(e => console.log(`Error while fetching datasets: ${JSON.stringify(e)}`));
-    }
+    bigQueryClient
+      .getDatasets()
+      .then(datasetsResponse => {
+        const [datasets] = datasetsResponse;
+        this.projects.set(this.activeProject, datasets);
+      })
+      .catch(e => console.log(`Error while fetching datasets: ${JSON.stringify(e)}`));
   }
 
   getDatasets(projectId?: string): Dataset[] {

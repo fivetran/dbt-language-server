@@ -246,9 +246,9 @@ export class CompletionProvider {
 
   onJinjaCompletion(textBeforeCursor: string): CompletionItem[] {
     if (textBeforeCursor.match(CompletionProvider.ENDS_WITH_REF)) {
-      const edsWithQoute = textBeforeCursor.match(CompletionProvider.ENDS_WITH_QUOTE);
+      const edsWithQuote = textBeforeCursor.match(CompletionProvider.ENDS_WITH_QUOTE);
       return this.dbtModels.map<CompletionItem>(m => ({
-        label: edsWithQoute ? m.name : `'${m.name}'`,
+        label: edsWithQuote ? m.name : `'${m.name}'`,
         kind: CompletionItemKind.Value,
         detail: 'Model',
       }));
@@ -258,23 +258,23 @@ export class CompletionProvider {
 
   async onSqlCompletion(
     text: string,
-    сompletionParams: CompletionParams,
+    completionParams: CompletionParams,
     destinationDefinition: DestinationDefinition,
     completionInfo?: CompletionInfo,
   ): Promise<CompletionItem[]> {
     const result: CompletionItem[] = [];
 
     if (completionInfo?.activeTables) {
-      if (сompletionParams.context?.triggerKind === CompletionTriggerKind.TriggerCharacter) {
-        result.push(...this.getColumnsForActiveTable(text, completionInfo?.activeTables));
+      if (completionParams.context?.triggerKind === CompletionTriggerKind.TriggerCharacter) {
+        result.push(...this.getColumnsForActiveTable(text, completionInfo.activeTables));
       } else {
-        result.push(...this.getColumnsForActiveTables(completionInfo?.activeTables));
+        result.push(...this.getColumnsForActiveTables(completionInfo.activeTables));
       }
-    } else if (сompletionParams.context?.triggerKind !== CompletionTriggerKind.TriggerCharacter) {
+    } else if (completionParams.context?.triggerKind !== CompletionTriggerKind.TriggerCharacter) {
       result.push(...this.getDatasets(destinationDefinition));
     }
 
-    if (сompletionParams.context?.triggerKind === CompletionTriggerKind.TriggerCharacter) {
+    if (completionParams.context?.triggerKind === CompletionTriggerKind.TriggerCharacter) {
       result.push(...(await this.getTableSuggestions(text, destinationDefinition)));
     } else {
       result.push(...this.getKeywords());
@@ -301,7 +301,7 @@ export class CompletionProvider {
       return tableInfo[1].columns.map<CompletionItem>(c => ({
         label: c.name,
         kind: CompletionItemKind.Value,
-        detail: `${tableInfo[0] ?? ''} ${c.type}`,
+        detail: `${tableInfo[0]} ${c.type}`,
         sortText: 1 + c.name,
       }));
     }
@@ -369,8 +369,8 @@ export class CompletionProvider {
     return HelpProviderWords.map<CompletionItem>(w => ({
       label: w.name,
       kind: CompletionItemKind.Function,
-      detail: w.sinatures[0].signature,
-      documentation: w.sinatures[0].description,
+      detail: w.signatures[0].signature,
+      documentation: w.signatures[0].description,
     }));
   }
 

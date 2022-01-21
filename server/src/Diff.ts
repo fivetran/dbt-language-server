@@ -11,7 +11,7 @@ export class Diff {
 
   static getOldNumber(oldString: string, newString: string, newNumber: number, countFromDiff: (str: string) => number): number {
     const diffs = fastDiff(oldString, newString, 0);
-    if (!diffs || diffs.length === 0) {
+    if (diffs.length === 0) {
       return newNumber;
     }
 

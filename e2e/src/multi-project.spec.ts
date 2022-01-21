@@ -27,6 +27,6 @@ suite('Multi-project', () => {
     await activateAndWait(docUri);
 
     assert.strictEqual(await getPreviewText(), expectedPreview);
-    assert.strictEqual(getDiagnostics(docUri).length, 0);
+    assert.strictEqual(getDiagnostics().length, 0);
   }
 });

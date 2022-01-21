@@ -3,7 +3,7 @@ import { HelpProviderWords } from './HelpProviderWords';
 
 export interface FunctionInfo {
   name: string;
-  sinatures: SignatureInfo[];
+  signatures: SignatureInfo[];
 }
 
 export interface SignatureInfo {
@@ -18,7 +18,7 @@ export class SignatureHelpProvider {
     const index = HelpProviderWords.findIndex(w => w.name === text);
     if (index !== -1) {
       return {
-        signatures: HelpProviderWords[index].sinatures.map<SignatureInformation>(s => ({
+        signatures: HelpProviderWords[index].signatures.map<SignatureInformation>(s => ({
           label: s.signature,
           documentation: {
             kind: MarkupKind.Markdown,

@@ -5,7 +5,7 @@ export class ProcessExecutor {
   execProcess(
     command: string,
     onStdoutData?: (data: any) => void,
-    onStderrtData?: (data: any) => void,
+    onStderrData?: (data: any) => void,
   ): PromiseWithChild<{
     stdout: string;
     stderr: string;
@@ -16,8 +16,8 @@ export class ProcessExecutor {
     const childProcess = promiseWithChild.child;
 
     childProcess.stderr?.on('data', chunk => {
-      if (onStderrtData) {
-        onStderrtData(chunk);
+      if (onStderrData) {
+        onStderrData(chunk);
       }
     });
     childProcess.stdout?.on('data', chunk => {

@@ -7,13 +7,15 @@ import { TextDocumentChangeEvent, TextEditorEdit } from 'vscode';
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
 
+type voidFunc = () => void;
+
 const PROJECTS_PATH = path.resolve(__dirname, '../projects');
 const TEST_FIXTURE_PATH = path.resolve(PROJECTS_PATH, 'test-fixture');
 
 vscode.workspace.onDidChangeTextDocument(onDidChangeTextDocument);
 
-let previewPromiseResolve: () => void;
-let documentPromiseResolve: () => void;
+let previewPromiseResolve: voidFunc | undefined;
+let documentPromiseResolve: voidFunc | undefined;
 
 export async function activateAndWait(docUri: vscode.Uri): Promise<void> {
   // The extensionId is `publisher.name` from package.json
@@ -73,8 +75,8 @@ function getPreviewEditor(): vscode.TextEditor | undefined {
   return vscode.window.visibleTextEditors.find(e => e.document.uri.toString() === 'query-preview:Preview?dbt-language-server');
 }
 
-export function getDiagnostics(uri: vscode.Uri): vscode.Diagnostic[] {
-  return vscode.languages.getDiagnostics(uri);
+export function getDiagnostics(): vscode.Diagnostic[] {
+  return vscode.languages.getDiagnostics(doc.uri);
 }
 
 export function sleep(ms: number): Promise<unknown> {
@@ -131,7 +133,7 @@ async function createChangePromise(type: 'preview' | 'document'): Promise<void> 
   return new Promise<void>(resolve => {
     if (type === 'preview') {
       previewPromiseResolve = resolve;
-    } else if (type === 'document') {
+    } else {
       documentPromiseResolve = resolve;
     }
   });
@@ -150,14 +152,14 @@ export function uninstallExtension(extensionId: string): void {
 }
 
 function installUninstallExtension(command: 'install' | 'uninstall', extensionId: string): void {
-  const extensionsInstallPathParam = `--extensions-dir=${process.env['EXTENSIONS_INSTALL_PATH']}` ?? '';
+  const extensionsInstallPathParam = `--extensions-dir=${process.env['EXTENSIONS_INSTALL_PATH'] ?? ''}`;
   runCliCommand([`--${command}-extension=${extensionId}`, extensionsInstallPathParam]);
 }
 
 function runCliCommand(args: string[]): void {
   const cliPath = process.env['CLI_PATH'];
   if (!cliPath) {
-    throw new Error('CLI_PATH environment variable not foud');
+    throw new Error('CLI_PATH environment variable not found');
   }
 
   spawnSync(cliPath, args, {
