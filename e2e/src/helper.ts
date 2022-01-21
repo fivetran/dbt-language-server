@@ -28,7 +28,9 @@ export async function activateAndWait(docUri: vscode.Uri): Promise<void> {
   const doNotWaitChanges =
     existingEditor && existingEditor.document.getText() === vscode.window.activeTextEditor?.document.getText() && getPreviewEditor();
   if (doNotWaitChanges) {
-    console.log('doNotWaitChanges');
+    console.log(
+      `doNotWaitChanges. existingEditor: ${existingEditor.document.uri.toString()} activeEditor: ${vscode.window.activeTextEditor?.document}`,
+    );
   }
   const activateFinished = doNotWaitChanges ? Promise.resolve() : createChangePromise('preview');
 
