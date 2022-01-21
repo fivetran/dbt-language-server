@@ -2,7 +2,7 @@ import * as fastDiff from 'fast-diff';
 
 export class Diff {
   static getOldLineNumber(oldString: string, newString: string, newLineNumber: number): number {
-    return this.getOldNumber(oldString, newString, newLineNumber, Diff.getLinesCount);
+    return this.getOldNumber(oldString, newString, newLineNumber, str => Diff.getLinesCount(str));
   }
 
   static getOldCharacter(oldLine: string, newLine: string, newCharacter: number): number {

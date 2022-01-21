@@ -57,7 +57,8 @@
 		"eqeqeq",
 		"no-cond-assign",
 		"hamjest",
-		"softbreak"
+		"softbreak",
+		"protos"
 	],
 	"cSpell.language": "en,en-GB"
 }

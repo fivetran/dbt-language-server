@@ -25,7 +25,7 @@ export class ExtensionClient {
     console.log('Extension "dbt-language-server" is now active!');
 
     workspace.onDidOpenTextDocument(this.onDidOpenTextDocument.bind(this));
-    workspace.textDocuments.forEach(t => this.onDidOpenTextDocument(t));
+    workspace.textDocuments.forEach(t => void this.onDidOpenTextDocument(t));
     workspace.onDidChangeWorkspaceFolders(event => {
       for (const folder of event.removed) {
         const client = this.clients.get(folder.uri.toString());
