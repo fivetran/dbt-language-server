@@ -27,6 +27,9 @@ export async function activateAndWait(docUri: vscode.Uri): Promise<void> {
   const existingEditor = vscode.window.visibleTextEditors.find(e => e.document.uri.path === docUri.path);
   const doNotWaitChanges =
     existingEditor && existingEditor.document.getText() === vscode.window.activeTextEditor?.document.getText() && getPreviewEditor();
+  if (doNotWaitChanges) {
+    console.log('doNotWaitChanges');
+  }
   const activateFinished = doNotWaitChanges ? Promise.resolve() : createChangePromise('preview');
 
   await ext.activate();
@@ -37,6 +40,7 @@ export async function activateAndWait(docUri: vscode.Uri): Promise<void> {
 }
 
 function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
+  console.log(JSON.stringify(e.contentChanges));
   if (e.contentChanges.length === 1 && e.contentChanges[0].text === '') {
     return;
   }
