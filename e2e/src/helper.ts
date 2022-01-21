@@ -66,7 +66,7 @@ export async function showPreview(): Promise<void> {
   await vscode.commands.executeCommand('editor.showQueryPreview');
 }
 
-export async function getPreviewText(): Promise<string> {
+export function getPreviewText(): string {
   const previewEditor = getPreviewEditor();
   if (!previewEditor) {
     throw new Error('Preview editor not found');

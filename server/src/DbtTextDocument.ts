@@ -74,17 +74,17 @@ export class DbtTextDocument {
     if (this.requireCompileOnSave) {
       this.requireCompileOnSave = false;
       dbtRpcServer.refreshServer();
-      await this.debouncedCompile();
+      this.debouncedCompile();
     } else {
       await this.onCompilationFinished(this.compiledDocument.getText());
     }
   }
 
-  async didOpenTextDocument(): Promise<void> {
-    await this.debouncedCompile();
+  didOpenTextDocument(): void {
+    this.debouncedCompile();
   }
 
-  async didChangeTextDocument(params: DidChangeTextDocumentParams): Promise<void> {
+  didChangeTextDocument(params: DidChangeTextDocumentParams): void {
     if (this.requireCompileOnSave || this.isDbtCompileNeeded(params.contentChanges)) {
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
       this.requireCompileOnSave = true;

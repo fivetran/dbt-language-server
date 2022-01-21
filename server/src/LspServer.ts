@@ -73,7 +73,7 @@ export class LspServer {
     process.on('SIGTERM', this.onShutdown);
     process.on('SIGINT', this.onShutdown);
 
-    const profileResult = await this.dbtProfileCreator.createDbtProfile();
+    const profileResult = this.dbtProfileCreator.createDbtProfile();
     if (profileResult.isErr()) {
       return new ResponseError<InitializeError>(100, profileResult.error, { retry: true });
     }
@@ -231,7 +231,7 @@ export class LspServer {
       if (!(await this.isDbtReady())) {
         return;
       }
-      await document.didOpenTextDocument();
+      document.didOpenTextDocument();
     }
   }
 
@@ -241,7 +241,7 @@ export class LspServer {
     }
     const document = this.openedDocuments.get(params.textDocument.uri);
     if (document) {
-      await document.didChangeTextDocument(params);
+      document.didChangeTextDocument(params);
     }
   }
 
@@ -258,7 +258,7 @@ export class LspServer {
     this.openedDocuments.delete(params.textDocument.uri);
   }
 
-  async onHover(hoverParams: HoverParams): Promise<Hover | null | undefined> {
+  onHover(hoverParams: HoverParams): Hover | null | undefined {
     const document = this.openedDocuments.get(hoverParams.textDocument.uri);
     return document?.onHover(hoverParams);
   }

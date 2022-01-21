@@ -21,7 +21,7 @@ export class ExtensionClient {
     this.outputChannel = window.createOutputChannel('dbt Language Server');
   }
 
-  public async onActivate(): Promise<void> {
+  public onActivate(): void {
     console.log('Extension "dbt-language-server" is now active!');
 
     workspace.onDidOpenTextDocument(this.onDidOpenTextDocument.bind(this));

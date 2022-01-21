@@ -32,13 +32,13 @@ export function getConfigPath(p: string): string {
   return path.resolve(PROFILES_PATH, p);
 }
 
-export async function shouldRequireProfileField(profiles: any, profile: DbtProfile, profileName: string, field: string): Promise<void> {
-  const missingFieldResult = await profile.validateProfile(profiles[profileName].outputs.dev);
+export function shouldRequireProfileField(profiles: any, profile: DbtProfile, profileName: string, field: string): void {
+  const missingFieldResult = profile.validateProfile(profiles[profileName].outputs.dev);
   assert.ok(missingFieldResult.isErr());
   assertThat(missingFieldResult.error, field);
 }
 
-export async function shouldPassValidProfile(config: string, profileName: string): Promise<void> {
+export function shouldPassValidProfile(config: string, profileName: string): void {
   // arrange
   const mockYamlParser = mock(YamlParser);
   when(mockYamlParser.findProfileName()).thenReturn(profileName);
@@ -48,7 +48,7 @@ export async function shouldPassValidProfile(config: string, profileName: string
   const profileCreator = new DbtProfileCreator(yamlParser);
 
   // act
-  const profile = await profileCreator.createDbtProfile();
+  const profile = profileCreator.createDbtProfile();
 
   // assert
   assertThat('error' in profile, false);

@@ -5,10 +5,10 @@ import { deferred, DeferredResult } from './Utils';
 export class ProgressHandler {
   progressDeferred?: DeferredResult<void>;
 
-  async onProgress(value: WorkDoneProgressBegin | WorkDoneProgressReport | WorkDoneProgressEnd): Promise<void> {
+  onProgress(value: WorkDoneProgressBegin | WorkDoneProgressReport | WorkDoneProgressEnd): void {
     switch (value.kind) {
       case 'begin':
-        await this.begin();
+        this.begin();
         break;
       case 'end':
         this.progressDeferred?.resolve();
@@ -20,7 +20,7 @@ export class ProgressHandler {
     }
   }
 
-  async begin(): Promise<void> {
+  begin(): void {
     if (!this.progressDeferred) {
       this.progressDeferred = deferred<void>();
 

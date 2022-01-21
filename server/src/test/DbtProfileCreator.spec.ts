@@ -14,33 +14,33 @@ import {
 } from './helper';
 
 describe('Profiles Validation', () => {
-  it('Should require type', async () => {
-    await shouldReturnError(BIG_QUERY_CONFIG, BQ_MISSING_TYPE, /^Couldn't find section 'outputs.dev.type'.*$/);
+  it('Should require type', () => {
+    shouldReturnError(BIG_QUERY_CONFIG, BQ_MISSING_TYPE, /^Couldn't find section 'outputs.dev.type'.*$/);
   });
 
-  it('Should require method', async () => {
-    await shouldReturnError(BIG_QUERY_CONFIG, BQ_MISSING_METHOD, /^Unknown authentication method of 'bigquery' profile.*$/);
+  it('Should require method', () => {
+    shouldReturnError(BIG_QUERY_CONFIG, BQ_MISSING_METHOD, /^Unknown authentication method of 'bigquery' profile.*$/);
   });
 
-  it('Should require project', async () => {
-    await shouldReturnError(BIG_QUERY_CONFIG, BQ_MISSING_PROJECT, /^Couldn't find section 'project'.*$/);
+  it('Should require project', () => {
+    shouldReturnError(BIG_QUERY_CONFIG, BQ_MISSING_PROJECT, /^Couldn't find section 'project'.*$/);
   });
 
-  it('Should handle profile without credentials', async () => {
+  it('Should handle profile without credentials', () => {
     const notExistingProfile = 'not-existing-profile';
     const errorPattern = new RegExp(`^Couldn't find credentials for profile '${notExistingProfile}'.*$`);
-    await shouldReturnError(OTHERS_CONFIG, notExistingProfile, errorPattern);
+    shouldReturnError(OTHERS_CONFIG, notExistingProfile, errorPattern);
   });
 
-  it('Should handle not supported type', async () => {
-    await shouldReturnError(OTHERS_CONFIG, OTHERS_UNKNOWN_TYPE, /^Currently, 'unknown' profile is not supported. Check your.*$/);
+  it('Should handle not supported type', () => {
+    shouldReturnError(OTHERS_CONFIG, OTHERS_UNKNOWN_TYPE, /^Currently, 'unknown' profile is not supported. Check your.*$/);
   });
 
-  it('Should handle profiles file not found', async () => {
-    await shouldReturnError('not_existing_config.yml', 'not-existing-profile', /^Failed to open and parse file.*$/);
+  it('Should handle profiles file not found', () => {
+    shouldReturnError('not_existing_config.yml', 'not-existing-profile', /^Failed to open and parse file.*$/);
   });
 
-  it('Should require dbt project config', async () => {
+  it('Should require dbt project config', () => {
     // arrange
     const mockYamlParser = mock(YamlParser);
     when(mockYamlParser.findProfileName()).thenThrow(new Error());
@@ -53,14 +53,14 @@ describe('Profiles Validation', () => {
     );
 
     // act
-    const profile = await profileCreator.createDbtProfile();
+    const profile = profileCreator.createDbtProfile();
 
     // assert
     assert.ok(profile.isErr());
     assertThat(profile.error, matchesPattern(errorPattern));
   });
 
-  async function shouldReturnError(config: string, profileName: string, errorPattern: RegExp): Promise<void> {
+  function shouldReturnError(config: string, profileName: string, errorPattern: RegExp): void {
     // arrange
     const mockYamlParser = mock(YamlParser);
     when(mockYamlParser.findProfileName()).thenReturn(profileName);
@@ -70,7 +70,7 @@ describe('Profiles Validation', () => {
     const profileCreator = new DbtProfileCreator(yamlParser);
 
     // act
-    const profile = await profileCreator.createDbtProfile();
+    const profile = profileCreator.createDbtProfile();
 
     // assert
     assert.ok(profile.isErr());

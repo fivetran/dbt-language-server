@@ -11,7 +11,7 @@ describe('DbtTextDocument', () => {
   let document: DbtTextDocument;
   let mockModelCompiler: ModelCompiler;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     DbtTextDocument.DEBOUNCE_TIMEOUT = 1;
 
     mockModelCompiler = mock(ModelCompiler);

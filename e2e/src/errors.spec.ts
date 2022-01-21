@@ -10,7 +10,7 @@ suite('Errors', () => {
     await activateAndWait(docUri);
 
     // assert
-    await testDiagnostics(docUri, [new vscode.Diagnostic(new vscode.Range(0, 8, 0, 12), 'Syntax error: SELECT list must not be empty')]);
+    testDiagnostics(docUri, [new vscode.Diagnostic(new vscode.Range(0, 8, 0, 12), 'Syntax error: SELECT list must not be empty')]);
   });
 
   test('Should show no errors after fix query', async () => {
@@ -22,7 +22,7 @@ suite('Errors', () => {
 
     // assert
     await sleep(1000);
-    await testDiagnostics(docUri, []);
+    testDiagnostics(docUri, []);
   });
 
   function testDiagnostics(uri: vscode.Uri, diagnostics: vscode.Diagnostic[]): void {

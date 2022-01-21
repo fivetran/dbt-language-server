@@ -3,7 +3,7 @@ import { TableDefinition } from '../TableDefinition';
 import { ZetaSqlCatalog } from '../ZetaSqlCatalog';
 
 describe('ZetaSqlCatalogTest', () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     (ZetaSqlCatalog as any).instance = null;
   });
 

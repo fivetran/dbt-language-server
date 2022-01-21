@@ -14,23 +14,23 @@ import {
 } from '../helper';
 
 describe('OAuth token based profile', () => {
-  it('Should pass valid profiles', async () => {
-    await shouldPassValidProfile(BIG_QUERY_CONFIG, BQ_OAUTH_TEMPORARY);
-    await shouldPassValidProfile(BIG_QUERY_CONFIG, BQ_OAUTH_REFRESH);
+  it('Should pass valid profiles', () => {
+    shouldPassValidProfile(BIG_QUERY_CONFIG, BQ_OAUTH_TEMPORARY);
+    shouldPassValidProfile(BIG_QUERY_CONFIG, BQ_OAUTH_REFRESH);
   });
 
-  it('Should require oauth temporary token', async () => {
+  it('Should require oauth temporary token', () => {
     const profiles = YamlParser.parseYamlFile(getConfigPath(BIG_QUERY_CONFIG));
     const oauthTokenBasedProfile = new OAuthTokenBasedProfile();
-    await shouldRequireProfileField(profiles, oauthTokenBasedProfile, BQ_OAUTH_TEMPORARY_MISSING_TOKEN, 'token');
+    shouldRequireProfileField(profiles, oauthTokenBasedProfile, BQ_OAUTH_TEMPORARY_MISSING_TOKEN, 'token');
   });
 
-  it('Should require oauth refresh token fields', async () => {
+  it('Should require oauth refresh token fields', () => {
     const profiles = YamlParser.parseYamlFile(getConfigPath(BIG_QUERY_CONFIG));
     const oauthTokenBasedProfile = new OAuthTokenBasedProfile();
 
-    await shouldRequireProfileField(profiles, oauthTokenBasedProfile, BQ_OAUTH_REFRESH_MISSING_REFRESH_TOKEN, 'refresh_token');
-    await shouldRequireProfileField(profiles, oauthTokenBasedProfile, BQ_OAUTH_REFRESH_MISSING_CLIENT_ID, 'client_id');
-    await shouldRequireProfileField(profiles, oauthTokenBasedProfile, BQ_OAUTH_REFRESH_MISSING_CLIENT_SECRET, 'client_secret');
+    shouldRequireProfileField(profiles, oauthTokenBasedProfile, BQ_OAUTH_REFRESH_MISSING_REFRESH_TOKEN, 'refresh_token');
+    shouldRequireProfileField(profiles, oauthTokenBasedProfile, BQ_OAUTH_REFRESH_MISSING_CLIENT_ID, 'client_id');
+    shouldRequireProfileField(profiles, oauthTokenBasedProfile, BQ_OAUTH_REFRESH_MISSING_CLIENT_SECRET, 'client_secret');
   });
 });
