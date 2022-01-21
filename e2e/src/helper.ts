@@ -159,7 +159,7 @@ function installUninstallExtension(command: 'install' | 'uninstall', extensionId
 function runCliCommand(args: string[]): void {
   const cliPath = process.env['CLI_PATH'];
   if (!cliPath) {
-    throw new Error('CLI_PATH environment variable not foud');
+    throw new Error('CLI_PATH environment variable not found');
   }
 
   spawnSync(cliPath, args, {

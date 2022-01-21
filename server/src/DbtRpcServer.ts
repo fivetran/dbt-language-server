@@ -17,7 +17,7 @@ export class DbtRpcServer {
     try {
       let started = false;
       console.log(`Starting dbt-rpc: ${command.toString()}`);
-      const promiseWithChid = DbtRpcServer.PROCESS_EXECUTOR.execProcess(command.toString(), async (data: string) => {
+      const promiseWithChild = DbtRpcServer.PROCESS_EXECUTOR.execProcess(command.toString(), async (data: string) => {
         if (!started) {
           if (!this.rpcPid) {
             const matchResults = data.match(/"process": (\d*)/);
@@ -43,7 +43,7 @@ export class DbtRpcServer {
         }
       });
 
-      promiseWithChid.catch(e => {
+      promiseWithChild.catch(e => {
         console.log(`dbt rpc command failed: ${JSON.stringify(e)}`);
         this.startDeferred.reject(e.stdout);
       });

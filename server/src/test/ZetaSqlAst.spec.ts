@@ -53,7 +53,7 @@ describe('ZetaSqlAst', () => {
   });
 
   describe('resolvedSetOperationScanNode.json', () => {
-    function shouldReturnTablesForresolvedSetOperationScanNode(cursorOffset: number): void {
+    function shouldReturnTablesForResolvedSetOperationScanNode(cursorOffset: number): void {
       shouldReturnLocationsOfTableNameInQuery('resolvedSetOperationScanNode', cursorOffset, [
         createParseLocationRange(96, 141),
         createParseLocationRange(255, 300),
@@ -64,11 +64,11 @@ describe('ZetaSqlAst', () => {
       ]);
     }
 
-    it('shouldReturnTablesForresolvedSetOperationScanNode', () => {
-      shouldReturnTablesForresolvedSetOperationScanNode(37);
-      shouldReturnTablesForresolvedSetOperationScanNode(218);
-      shouldReturnTablesForresolvedSetOperationScanNode(670);
-      shouldReturnTablesForresolvedSetOperationScanNode(875);
+    it('shouldReturnTablesForResolvedSetOperationScanNode', () => {
+      shouldReturnTablesForResolvedSetOperationScanNode(37);
+      shouldReturnTablesForResolvedSetOperationScanNode(218);
+      shouldReturnTablesForResolvedSetOperationScanNode(670);
+      shouldReturnTablesForResolvedSetOperationScanNode(875);
     });
   });
 });

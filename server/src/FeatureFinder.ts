@@ -10,7 +10,7 @@ export class FeatureFinder {
   private static readonly NO_VERSION_CHECK_PARAM = '--no-version-check';
   private static readonly PARTIAL_PARSE_PARAM = '--partial-parse';
   private static readonly PORT_PARAM = '--port';
-  private static readonly VERSIOIN_PARAM = '--version';
+  private static readonly VERSION_PARAM = '--version';
   private static readonly LEGACY_DBT_PARAMS = [
     `${FeatureFinder.PARTIAL_PARSE_PARAM}`,
     'rpc',
@@ -98,19 +98,19 @@ export class FeatureFinder {
   }
 
   private async findDbtRpcGlobalVersion(): Promise<DbtVersion | undefined> {
-    return this.findCommandVersion(new DbtRpcCommand([FeatureFinder.VERSIOIN_PARAM]));
+    return this.findCommandVersion(new DbtRpcCommand([FeatureFinder.VERSION_PARAM]));
   }
 
   private async findDbtGlobalVersion(): Promise<DbtVersion | undefined> {
-    return this.findCommandVersion(new DbtCommand([FeatureFinder.VERSIOIN_PARAM]));
+    return this.findCommandVersion(new DbtCommand([FeatureFinder.VERSION_PARAM]));
   }
 
   private async findDbtRpcPythonVersion(): Promise<DbtVersion | undefined> {
-    return this.findCommandPythonVersion(new DbtRpcCommand([FeatureFinder.VERSIOIN_PARAM], this.python));
+    return this.findCommandPythonVersion(new DbtRpcCommand([FeatureFinder.VERSION_PARAM], this.python));
   }
 
   private async findDbtPythonVersion(): Promise<DbtVersion | undefined> {
-    return this.findCommandPythonVersion(new DbtCommand([FeatureFinder.VERSIOIN_PARAM], this.python));
+    return this.findCommandPythonVersion(new DbtCommand([FeatureFinder.VERSION_PARAM], this.python));
   }
 
   private async findCommandPythonVersion(command: Command): Promise<DbtVersion | undefined> {
