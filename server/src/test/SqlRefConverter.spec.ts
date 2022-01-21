@@ -26,7 +26,7 @@ describe('SqlRefConverter', () => {
       name: `test_model${n}`,
       database: 'db',
       schema: 'schema',
-      package: 'sample',
+      originalFilePath: `models/test_model${n}.sql`,
     }));
   }
 
@@ -76,7 +76,7 @@ describe('SqlRefConverter', () => {
     const changes = SQL_REF_CONVERTER.sqlToRef(
       doc,
       [createResolvedTable(0, 14, 41)],
-      [{ name: 'test_model0', database: 'db', schema: 'schema', package: 'sample' }],
+      [{ name: 'test_model0', database: 'db', schema: 'schema', originalFilePath: 'test.sql' }],
     );
 
     assert.strictEqual(changes.length, 1);

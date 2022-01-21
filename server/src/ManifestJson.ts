@@ -2,7 +2,7 @@ export interface ManifestNode {
   name: string;
   database: string;
   schema: string;
-  package: string;
+  originalFilePath: string;
 }
 
 export interface ManifestJson {

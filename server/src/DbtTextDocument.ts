@@ -313,7 +313,7 @@ export class DbtTextDocument {
     const refs = DbtTextDocument.JINJA_PARSER.findAllRefs(this.rawDocument);
     for (const ref of refs) {
       if (positionInRange(definitionParams.position, ref.range)) {
-        return this.definitionProvider.onRefDefinition(ref.modelName);
+        return this.definitionProvider.onRefDefinition(ref.modelName, ref.range);
       }
     }
     return undefined;
