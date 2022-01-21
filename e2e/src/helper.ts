@@ -11,6 +11,7 @@ type voidFunc = () => void;
 
 const PROJECTS_PATH = path.resolve(__dirname, '../projects');
 const TEST_FIXTURE_PATH = path.resolve(PROJECTS_PATH, 'test-fixture');
+export const PREVIEW_URI = 'query-preview:Preview?dbt-language-server';
 
 vscode.workspace.onDidChangeTextDocument(onDidChangeTextDocument);
 
@@ -78,11 +79,7 @@ export function getPreviewText(): string {
 }
 
 function getPreviewEditor(): vscode.TextEditor | undefined {
-  return vscode.window.visibleTextEditors.find(e => e.document.uri.toString() === 'query-preview:Preview?dbt-language-server');
-}
-
-export function getDiagnostics(): vscode.Diagnostic[] {
-  return vscode.languages.getDiagnostics(doc.uri);
+  return vscode.window.visibleTextEditors.find(e => e.document.uri.toString() === PREVIEW_URI);
 }
 
 export function sleep(ms: number): Promise<unknown> {
