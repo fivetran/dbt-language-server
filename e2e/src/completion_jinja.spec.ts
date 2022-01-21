@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import { assertThat, contains } from 'hamjest';
 import * as vscode from 'vscode';
 import { CompletionItem } from 'vscode';
 import { activateAndWait, getCustomDocUri, setTestContent, testCompletion, triggerCompletion } from './helper';
@@ -39,8 +39,8 @@ suite('Should do completion inside jinjas expression', () => {
     // assert
     actualCompletionList.items.forEach(i => i.label instanceof String);
     const actualLabels = actualCompletionList.items.map<string>(i => i.label as string);
-    getCompletionList(false).items.forEach(i => assert.ok(!actualLabels.includes(i.label as string)));
-    getCompletionList(true).items.forEach(i => assert.ok(!actualLabels.includes(i.label as string)));
+    getCompletionList(false).items.forEach(i => assertThat(actualLabels, !contains(i.label as string)));
+    getCompletionList(true).items.forEach(i => assertThat(actualLabels, !contains(i.label as string)));
   });
 
   function getCompletionList(withQuotes: boolean): { items: vscode.CompletionItem[] } {

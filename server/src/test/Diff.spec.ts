@@ -1,5 +1,5 @@
-import * as assert from 'assert';
 import * as fs from 'fs';
+import { assertThat } from 'hamjest';
 import { Diff } from '../Diff';
 
 describe('Diff', () => {
@@ -95,7 +95,7 @@ describe('Diff', () => {
     const actualOldCharacter = Diff.getOldCharacter(oldLine, newLine, newCharacter);
 
     // assert
-    assert.strictEqual(actualOldCharacter, expectedOldCharacter);
+    assertThat(actualOldCharacter, expectedOldCharacter);
   }
 
   function shouldReturnCorrespondingLineNumber(fileName: string, params: number[][]): void {
@@ -114,6 +114,6 @@ describe('Diff', () => {
     const number = Diff.getOldLineNumber(raw, compiled, newLineNumber);
 
     // assert
-    assert.strictEqual(number, expectedOldLineNumber);
+    assertThat(number, expectedOldLineNumber);
   }
 });

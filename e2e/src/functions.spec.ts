@@ -1,4 +1,5 @@
 import * as assert from 'assert';
+import { assertThat } from 'hamjest';
 import * as vscode from 'vscode';
 import { activateAndWait, getCursorPosition, getDocUri, setTestContent, sleep } from './helper';
 
@@ -20,10 +21,10 @@ suite('Functions', () => {
     );
 
     // assert
-    assert.strictEqual(help.signatures.length, 1);
-    assert.strictEqual(help.signatures[0].label, 'MAX(\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n');
+    assertThat(help.signatures.length, 1);
+    assertThat(help.signatures[0].label, 'MAX(\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n');
     assert.ok(help.signatures[0].documentation instanceof vscode.MarkdownString);
-    assert.strictEqual(
+    assertThat(
       help.signatures[0].documentation.value,
       'Returns the maximum value of non-`NULL` expressions. Returns `NULL` if there\nare zero input rows or `expression` evaluates to `NULL` for all rows.\nReturns `NaN` if the input contains a `NaN`.',
     );
@@ -40,6 +41,6 @@ suite('Functions', () => {
 
     // assert
     await sleep(300);
-    assert.deepStrictEqual(getCursorPosition(), new vscode.Position(0, 11));
+    assertThat(getCursorPosition(), new vscode.Position(0, 11));
   });
 });

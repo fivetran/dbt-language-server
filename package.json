@@ -91,10 +91,12 @@
         }
       ]
     },
-    "submenus": [{
-      "id": "dbt",
-      "label": "dbt"
-    }]
+    "submenus": [
+      {
+        "id": "dbt",
+        "label": "dbt"
+      }
+    ]
   },
   "aiKey": "0a32611a-7944-4c4d-93c9-5c260a61395b",
   "scripts": {
@@ -122,6 +124,7 @@
     "eslint": "^8.6.0",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-sonarjs": "^0.11.0",
+    "hamjest": "^3.7.3",
     "husky": "^7.0.4",
     "lint-staged": "^12.1.7",
     "merge-options": "^3.0.4",

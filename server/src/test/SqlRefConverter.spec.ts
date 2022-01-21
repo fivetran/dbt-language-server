@@ -1,4 +1,4 @@
-import assert = require('assert');
+import { assertThat } from 'hamjest';
 import { Range, uinteger } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { JinjaParser } from '../JinjaParser';
@@ -17,8 +17,8 @@ describe('SqlRefConverter', () => {
     const changes = SQL_REF_CONVERTER.refToSql(doc, dbtModels);
 
     // assert
-    assert.strictEqual(changes.length, dbtModels.length);
-    assert.deepStrictEqual(changes, expectedChanges);
+    assertThat(changes.length, dbtModels.length);
+    assertThat(changes, expectedChanges);
   }
 
   function createManifestNodes(count: number): ManifestNode[] {
@@ -74,8 +74,8 @@ describe('SqlRefConverter', () => {
 
     const changes = SQL_REF_CONVERTER.sqlToRef(doc, [createResolvedTable(0, 14, 41)], [{ name: 'test_model0', database: 'db', schema: 'schema' }]);
 
-    assert.strictEqual(changes.length, 1);
-    assert.deepStrictEqual(changes, [
+    assertThat(changes.length, 1);
+    assertThat(changes, [
       {
         range: Range.create(0, 14, 0, 41),
         newText: "{{ ref('test_model0') }}",
@@ -89,8 +89,8 @@ describe('SqlRefConverter', () => {
 
     const changes = SQL_REF_CONVERTER.sqlToRef(doc, [createResolvedTable(1, 14, 41), createResolvedTable(2, 54, 81)], createManifestNodes(3));
 
-    assert.strictEqual(changes.length, 2);
-    assert.deepStrictEqual(changes, [
+    assertThat(changes.length, 2);
+    assertThat(changes, [
       {
         range: Range.create(0, 14, 0, 41),
         newText: "{{ ref('test_model1') }}",

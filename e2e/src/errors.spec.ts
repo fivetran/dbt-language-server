@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import { assertThat } from 'hamjest';
 import * as vscode from 'vscode';
 import { activateAndWait, getDocUri, insertText, sleep } from './helper';
 
@@ -28,10 +28,10 @@ suite('Errors', () => {
   function testDiagnostics(uri: vscode.Uri, diagnostics: vscode.Diagnostic[]): void {
     const actualDiagnostics = vscode.languages.getDiagnostics(uri);
 
-    assert.strictEqual(actualDiagnostics.length, diagnostics.length);
+    assertThat(actualDiagnostics.length, diagnostics.length);
     if (diagnostics.length === 1) {
-      assert.strictEqual(actualDiagnostics[0].message, 'Syntax error: SELECT list must not be empty');
-      assert.deepStrictEqual(actualDiagnostics[0].range, new vscode.Range(0, 8, 0, 12));
+      assertThat(actualDiagnostics[0].message, 'Syntax error: SELECT list must not be empty');
+      assertThat(actualDiagnostics[0].range, new vscode.Range(0, 8, 0, 12));
     }
   }
 });

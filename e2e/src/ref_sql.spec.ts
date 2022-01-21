@@ -1,4 +1,4 @@
-import assert = require('assert');
+import { assertThat, endsWith } from 'hamjest';
 import { commands } from 'vscode';
 import { activateAndWait, getDocUri, getMainEditorText, waitDocumentModification } from './helper';
 
@@ -9,7 +9,7 @@ suite('ref to sql', () => {
     });
 
     const text = getMainEditorText();
-    assert.ok(text.endsWith(endOfQuery), `Actual text: ${text}`);
+    assertThat(text, endsWith(endOfQuery), `Actual text: ${text}`);
   }
 
   test('Should convert ref to sql and then to ref', async () => {

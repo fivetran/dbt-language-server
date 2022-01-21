@@ -1,5 +1,5 @@
-import * as assert from 'assert';
 import { spawnSync } from 'child_process';
+import { assertThat, greaterThanOrEqualTo } from 'hamjest';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { TextDocumentChangeEvent, TextEditorEdit } from 'vscode';
@@ -176,11 +176,11 @@ export async function testCompletion(
 ): Promise<void> {
   const actualCompletionList = await triggerCompletion(docUri, position, triggerChar);
 
-  assert.ok(actualCompletionList.items.length >= expectedCompletionList.items.length);
+  assertThat(actualCompletionList.items.length, greaterThanOrEqualTo(expectedCompletionList.items.length));
   expectedCompletionList.items.forEach((expectedItem, i) => {
     const actualItem = actualCompletionList.items[i];
-    assert.strictEqual(actualItem.label, expectedItem.label);
-    assert.strictEqual(actualItem.kind, expectedItem.kind);
+    assertThat(actualItem.label, expectedItem.label);
+    assertThat(actualItem.kind, expectedItem.kind);
   });
 }
 

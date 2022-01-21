@@ -1,4 +1,5 @@
 import * as assert from 'assert';
+import { assertThat, matchesPattern } from 'hamjest';
 import { instance, mock, when } from 'ts-mockito';
 import { DbtProfileCreator } from '../DbtProfileCreator';
 import { YamlParser } from '../YamlParser';
@@ -56,7 +57,7 @@ describe('Profiles Validation', () => {
 
     // assert
     assert.ok(profile.isErr());
-    assert.match(profile.error, errorPattern);
+    assertThat(profile.error, matchesPattern(errorPattern));
   });
 
   async function shouldReturnError(config: string, profileName: string, errorPattern: RegExp): Promise<void> {
@@ -73,6 +74,6 @@ describe('Profiles Validation', () => {
 
     // assert
     assert.ok(profile.isErr());
-    assert.match(profile.error, errorPattern);
+    assertThat(profile.error, matchesPattern(errorPattern));
   }
 });
