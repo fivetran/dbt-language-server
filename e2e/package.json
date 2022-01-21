@@ -9,6 +9,7 @@
     "@types/glob": "^7.2.0",
     "@types/vscode": "^1.63.1",
     "@vscode/test-electron": "^2.0.2",
+    "hamjest": "^3.7.3",
     "mocha": "^9.1.3"
   }
 }
