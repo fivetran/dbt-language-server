@@ -28,7 +28,6 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
   }
 
   provideTextDocumentContent(): string {
-    const text = this.activeDocUri ? this.texts.get(this.activeDocUri.toString()) : '';
-    return text ?? '';
+    return this.texts.get(this.activeDocUri.toString()) ?? '';
   }
 }

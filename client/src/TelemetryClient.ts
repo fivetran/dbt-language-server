@@ -1,10 +1,10 @@
+import TelemetryReporter from '@vscode/extension-telemetry';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ExtensionContext } from 'vscode';
-import TelemetryReporter from 'vscode-extension-telemetry';
 
 export class TelemetryClient {
-  private static client: TelemetryReporter;
+  private static client: TelemetryReporter | undefined;
 
   static sendEvent(eventName: string, properties?: { [key: string]: string }): void {
     if (TelemetryClient.client) {
@@ -30,9 +30,9 @@ export class TelemetryClient {
     // const packageJson = extensions.getExtension('dbt-language-server').packageJSON;
     if (packageJson.name && packageJson.version && packageJson.aiKey) {
       TelemetryClient.client = new TelemetryReporter(packageJson.name, packageJson.version, packageJson.aiKey);
+      context.subscriptions.push(TelemetryClient.client);
     } else {
       console.log('Telemetry was not activated');
     }
-    context.subscriptions.push(TelemetryClient.client);
   }
 }

@@ -3,6 +3,7 @@
 	// for the documentation about the extensions.json format
 	"recommendations": [
 		"esbenp.prettier-vscode",
-		"hbenl.vscode-mocha-test-adapter"
+		"hbenl.vscode-mocha-test-adapter",
+		"streetsidesoftware.code-spell-checker"
 	]
 }

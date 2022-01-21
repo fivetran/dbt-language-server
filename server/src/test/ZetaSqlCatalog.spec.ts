@@ -50,16 +50,16 @@ describe('ZetaSqlCatalogTest', () => {
     const datasets = expectedProjectId ? zetaSqlCatalog.catalog.catalogs.get(expectedProjectId)?.catalogs : zetaSqlCatalog.catalog.catalogs;
     if (expectedDataSet) {
       assert.strictEqual(datasets?.size, 1);
-      assert.strictEqual(datasets?.get(expectedDataSet)?.name, expectedDataSet);
+      assert.strictEqual(datasets.get(expectedDataSet)?.name, expectedDataSet);
     }
 
     const tables = expectedDataSet ? datasets?.get(DATA_SET)?.tables : zetaSqlCatalog.catalog.tables;
     assert.strictEqual(tables?.size, 1);
-    assert.strictEqual(tables?.get(table)?.name, table);
+    assert.strictEqual(tables.get(table)?.name, table);
 
-    const columns = tables?.get(table)?.columns;
+    const columns = tables.get(table)?.columns;
     assert.strictEqual(columns?.length, expectedColumns.length);
-    assert.deepStrictEqual(columns?.map(c => c.getName()).sort(), expectedColumns.sort());
+    assert.deepStrictEqual(columns.map(c => c.getName()).sort(), expectedColumns.sort());
   }
 
   it('register_shouldRegisterProjectDataSetAndTable', async () => {

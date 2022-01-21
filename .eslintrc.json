@@ -54,7 +54,8 @@
     "@typescript-eslint/no-empty-function": ["error"],
     "@typescript-eslint/no-unnecessary-type-assertion": ["error"],
     "@typescript-eslint/consistent-type-assertions": ["error", {"assertionStyle": "as", "objectLiteralTypeAssertions": "never"}],
-
+    "@typescript-eslint/no-unnecessary-condition": ["error"],
+    
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 
     "prettier/prettier": ["error"]

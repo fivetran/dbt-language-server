@@ -26,7 +26,8 @@ import {
 import { BigQueryClient } from './bigquery/BigQueryClient';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtProfileCreator } from './DbtProfileCreator';
-import { DbtServer as DbtServer } from './DbtServer';
+import { DbtRpcClient } from './DbtRpcClient';
+import { DbtRpcServer } from './DbtRpcServer';
 import { DbtTextDocument } from './DbtTextDocument';
 import { getStringVersion } from './DbtVersion';
 import { Command } from './dbt_commands/Command';
@@ -52,7 +53,8 @@ export class LspServer {
   destinationDefinition?: DestinationDefinition;
 
   hasConfigurationCapability = false;
-  dbtServer = new DbtServer();
+  dbtRpcServer = new DbtRpcServer();
+  dbtRpcClient = new DbtRpcClient();
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
   completionProvider = new CompletionProvider();
@@ -71,7 +73,7 @@ export class LspServer {
       this.definitionProvider,
       this.yamlParser,
       this.manifestParser,
-      this.dbtServer,
+      this.dbtRpcServer,
     );
   }
 
@@ -159,8 +161,9 @@ export class LspServer {
   }
 
   async startDbtRpc(command: Command, port: number): Promise<void> {
+    this.dbtRpcClient.setPort(port);
     try {
-      await this.dbtServer.startDbtRpc(command, port);
+      await this.dbtRpcServer.startDbtRpc(command, this.dbtRpcClient);
       const initTime = performance.now() - this.initStart;
       this.sendTelemetry('log', {
         dbtVersion: getStringVersion(this.featureFinder.version),
@@ -213,7 +216,7 @@ export class LspServer {
 
     const document = this.openedDocuments.get(params.textDocument.uri);
     if (document) {
-      await document.didSaveTextDocument();
+      await document.didSaveTextDocument(this.dbtRpcServer);
     }
   }
 
@@ -229,12 +232,11 @@ export class LspServer {
     if (!document && this.bigQueryClient) {
       document = new DbtTextDocument(
         params.textDocument,
-        this.dbtServer,
         this.connection,
         this.progressReporter,
         this.completionProvider,
         this.definitionProvider,
-        new ModelCompiler(this.dbtServer, uri, this.workspaceFolder),
+        new ModelCompiler(this.dbtRpcClient, uri, this.workspaceFolder),
         this.bigQueryClient,
       );
       this.openedDocuments.set(uri, document);
@@ -258,7 +260,7 @@ export class LspServer {
 
   async isDbtReady(): Promise<boolean> {
     try {
-      await this.dbtServer.startDeferred.promise;
+      await this.dbtRpcServer.startDeferred.promise;
       return true;
     } catch (e) {
       return false;
@@ -306,7 +308,7 @@ export class LspServer {
 
   dispose(): void {
     console.log('Dispose start...');
-    this.dbtServer.dispose();
+    this.dbtRpcServer.dispose();
     void terminateServer();
     console.log('Dispose end.');
   }

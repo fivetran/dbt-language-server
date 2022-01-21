@@ -2,7 +2,6 @@ import { instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentItem, _Connection } from 'vscode-languageserver';
 import { BigQueryClient } from '../bigquery/BigQueryClient';
 import { CompletionProvider } from '../CompletionProvider';
-import { DbtServer } from '../DbtServer';
 import { DbtTextDocument } from '../DbtTextDocument';
 import { DefinitionProvider } from '../DefinitionProvider';
 import { ModelCompiler } from '../ModelCompiler';
@@ -17,11 +16,10 @@ describe('DbtTextDocument', () => {
     mockModelCompiler = mock(ModelCompiler);
     when(mockModelCompiler.onCompilationError).thenReturn(new Emitter<string>().event);
     when(mockModelCompiler.onCompilationFinished).thenReturn(new Emitter<string>().event);
-    when(mockModelCompiler.onFinishAllCompilationTasks).thenReturn(new Emitter<void>().event);
+    when(mockModelCompiler.onFinishAllCompilationJobs).thenReturn(new Emitter<void>().event);
 
     document = new DbtTextDocument(
       mock(TextDocumentItem),
-      mock(DbtServer),
       mock<_Connection>(),
       mock(ProgressReporter),
       mock(CompletionProvider),

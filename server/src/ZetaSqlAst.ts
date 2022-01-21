@@ -125,7 +125,7 @@ export class ZetaSqlAst {
           if (nodeName === NODE.resolvedTableScanNode) {
             const tableScanNode: ResolvedTableScanProto = node;
             if (tableScanNode.table?.fullName === text || tableScanNode.table?.name === text) {
-              result.tableName = tableScanNode.table?.fullName ?? tableScanNode.table?.name;
+              result.tableName = tableScanNode.table.fullName ?? tableScanNode.table.name;
             }
           }
           if (nodeName === NODE.resolvedFunctionCallNode) {
@@ -196,7 +196,7 @@ export class ZetaSqlAst {
                   parentNode.activeTables = new Map();
                 }
                 parentNode.activeTableLocationRanges.push(parseLocationRange);
-                if (offset < parseLocationRange?.start || parseLocationRange.end < offset) {
+                if (offset < parseLocationRange.start || parseLocationRange.end < offset) {
                   const tableScanNode: ResolvedTableScanProto = node;
                   const tables: Map<string, ActiveTableInfo> = parentNode.activeTables;
                   const tableName = tableScanNode.table?.name;
