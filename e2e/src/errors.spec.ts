@@ -12,7 +12,7 @@ suite('Errors', () => {
     await activateAndWait(DOC_URI);
 
     // assert
-    testDiagnostics(DOC_URI, [new Diagnostic(new Range(0, 8, 0, 12), ERROR)]);
+    await testDiagnostics(DOC_URI, [new Diagnostic(new Range(0, 8, 0, 12), ERROR)]);
   });
 
   test('Should show no errors after fix query', async () => {
@@ -23,11 +23,12 @@ suite('Errors', () => {
     await insertText(new Position(0, 7), '*');
 
     // assert
-    await sleep(1000);
-    testDiagnostics(DOC_URI, []);
+    await testDiagnostics(DOC_URI, []);
   });
 
-  function testDiagnostics(uri: vscode.Uri, diagnostics: Diagnostic[]): void {
+  async function testDiagnostics(uri: vscode.Uri, diagnostics: Diagnostic[]): Promise<void> {
+    await sleep(1000);
+
     const rawDocDiagnostics = languages.getDiagnostics(uri);
     const previewDiagnostics = languages.getDiagnostics(Uri.parse(PREVIEW_URI));
 
