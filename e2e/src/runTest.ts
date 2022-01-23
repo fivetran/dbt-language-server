@@ -1,5 +1,5 @@
 import { BigQuery, TableField } from '@google-cloud/bigquery';
-import { downloadAndUnzipVSCode, resolveCliArgsFromVSCodeExecutablePath, runTests } from '@vscode/test-electron';
+import { downloadAndUnzipVSCode, resolveCliArgsFromVSCodeExecutablePath, runTests, SilentReporter } from '@vscode/test-electron';
 import { spawnSync } from 'child_process';
 import { homedir } from 'os';
 import * as path from 'path';
@@ -14,7 +14,7 @@ async function main(): Promise<void> {
     const defaultCachePath = path.resolve(extensionDevelopmentPath, '.vscode-test');
     const extensionsInstallPath = path.join(defaultCachePath, 'extensions');
 
-    const vscodeExecutablePath = await downloadAndUnzipVSCode();
+    const vscodeExecutablePath = await downloadAndUnzipVSCode('stable', undefined, new SilentReporter());
 
     const [cli, ...args] = resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath);
     const installResult = spawnSync(cli, [...args, '--install-extension=ms-python.python', `--extensions-dir=${extensionsInstallPath}`], {
