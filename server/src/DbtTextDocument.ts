@@ -47,7 +47,7 @@ export class DbtTextDocument {
   compiledDocument: TextDocument;
   requireCompileOnSave: boolean;
 
-  ast: AnalyzeResponse | undefined;
+  ast?: AnalyzeResponse;
   schemaTracker: SchemaTracker;
   signatureHelpProvider = new SignatureHelpProvider();
   sqlRefConverter = new SqlRefConverter(DbtTextDocument.JINJA_PARSER);
@@ -170,29 +170,13 @@ export class DbtTextDocument {
     await this.modelCompiler.compile();
   }, DbtTextDocument.DEBOUNCE_TIMEOUT);
 
-  async sendDiagnostics(dbtCompilationError?: string): Promise<void> {
-    if (dbtCompilationError) {
-      const dbtDiagnostics: Diagnostic[] = [
-        {
-          severity: DiagnosticSeverity.Error,
-          range: Range.create(0, 0, 0, 100),
-          message: dbtCompilationError,
-        },
-      ];
-
-      this.connection.sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: dbtDiagnostics });
-      return;
-    }
-
+  getDiagnostics(astResult: Result<AnalyzeResponse__Output, string>): Diagnostic[][] {
     const rawDocDiagnostics: Diagnostic[] = [];
     const compiledDocDiagnostics: Diagnostic[] = [];
 
-    const astOrError = await this.getAstOrError();
-    if (astOrError.isOk()) {
-      this.ast = astOrError.value;
-    } else {
+    if (astResult.isErr()) {
       // Parse string like 'Unrecognized name: paused1; Did you mean paused? [at 9:3]'
-      const matchResults = astOrError.error.match(/(.*?) \[at (\d+):(\d+)\]/);
+      const matchResults = astResult.error.match(/(.*?) \[at (\d+):(\d+)\]/);
       if (matchResults) {
         const [, errorText] = matchResults;
         const lineInCompiledDoc = Number(matchResults[2]) - 1;
@@ -203,8 +187,7 @@ export class DbtTextDocument {
         compiledDocDiagnostics.push(this.createDiagnostic(this.compiledDocument.getText(), lineInCompiledDoc, characterInCompiledDoc, errorText));
       }
     }
-    this.connection.sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: rawDocDiagnostics });
-    this.connection.sendDiagnostics({ uri: 'query-preview:Preview?dbt-language-server', diagnostics: compiledDocDiagnostics });
+    return [rawDocDiagnostics, compiledDocDiagnostics];
   }
 
   createDiagnostic(docText: string, line: number, character: number, message: string): Diagnostic {
@@ -252,21 +235,39 @@ export class DbtTextDocument {
     this.schemaTracker.resetHasNewTables();
   }
 
-  async onCompilationError(dbtCompilationError: string): Promise<void> {
-    this.connection.sendNotification('custom/updateQueryPreview', [this.rawDocument.uri, this.rawDocument.getText()]);
-    await this.sendDiagnostics(dbtCompilationError);
+  onCompilationError(dbtCompilationError: string): void {
+    const dbtDiagnostics: Diagnostic[] = [
+      {
+        severity: DiagnosticSeverity.Error,
+        range: Range.create(0, 0, 0, 100),
+        message: dbtCompilationError,
+      },
+    ];
+
+    this.sendUpdateQueryPreview(this.rawDocument.getText(), dbtDiagnostics);
+    this.connection.sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: dbtDiagnostics });
   }
 
   async onCompilationFinished(compiledSql: string): Promise<void> {
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
 
     await this.ensureCatalogInitialized();
-    this.connection.sendNotification('custom/updateQueryPreview', [this.rawDocument.uri, compiledSql]);
-    await this.sendDiagnostics();
+    const astResult = await this.getAstOrError();
+    if (astResult.isOk()) {
+      this.ast = astResult.value;
+    }
+
+    const [rawDocDiagnostics, compiledDocDiagnostics] = this.getDiagnostics(astResult);
+    this.sendUpdateQueryPreview(compiledSql, compiledDocDiagnostics);
+    this.connection.sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: rawDocDiagnostics });
 
     if (!this.modelCompiler.compilationInProgress) {
       this.progressReporter.sendFinish(this.rawDocument.uri);
     }
+  }
+
+  sendUpdateQueryPreview(previewText: string, diagnostics: Diagnostic[]): void {
+    this.connection.sendNotification('custom/updateQueryPreview', { uri: this.rawDocument.uri, previewText, diagnostics });
   }
 
   onFinishAllCompilationTasks(): void {

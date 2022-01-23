@@ -1,4 +1,16 @@
-import { commands, ExtensionContext, languages, OutputChannel, TextDocument, TextEditor, Uri, ViewColumn, window, workspace } from 'vscode';
+import {
+  commands,
+  DiagnosticCollection,
+  ExtensionContext,
+  languages,
+  OutputChannel,
+  TextDocument,
+  TextEditor,
+  Uri,
+  ViewColumn,
+  window,
+  workspace,
+} from 'vscode';
 import { DbtLanguageClient } from './DbtLanguageClient';
 import { ProgressHandler } from './ProgressHandler';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
@@ -33,6 +45,11 @@ export class ExtensionClient {
           this.clients.delete(folder.uri.toString());
           void client.stop();
         }
+      }
+    });
+    workspace.onDidChangeTextDocument(e => {
+      if (e.document.uri.toString() === SqlPreviewContentProvider.URI.toString()) {
+        this.previewContentProvider.updatePreviewDiagnostics(this.getDiagnostics());
       }
     });
 
@@ -122,6 +139,7 @@ export class ExtensionClient {
       const doc = await workspace.openTextDocument(SqlPreviewContentProvider.URI);
       await window.showTextDocument(doc, ViewColumn.Beside, true);
       await languages.setTextDocumentLanguage(doc, 'sql');
+      this.previewContentProvider.updatePreviewDiagnostics(this.getDiagnostics());
     });
 
     const eventRegistration = window.onDidChangeActiveTextEditor(e => {
@@ -132,6 +150,11 @@ export class ExtensionClient {
     });
 
     context.subscriptions.push(this.previewContentProvider, commandRegistration, providerRegistrations, eventRegistration);
+  }
+
+  getDiagnostics(): DiagnosticCollection | undefined {
+    const [[, client]] = this.clients;
+    return client.client.diagnostics;
   }
 
   async onDidOpenTextDocument(document: TextDocument): Promise<void> {

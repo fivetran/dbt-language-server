@@ -1,18 +1,32 @@
-import { Event, EventEmitter, TextDocumentContentProvider, Uri } from 'vscode';
+import { Diagnostic, DiagnosticCollection, DiagnosticSeverity, Event, EventEmitter, TextDocumentContentProvider, Uri } from 'vscode';
+
+interface PreviewInfo {
+  previewText: string;
+  diagnostics: Diagnostic[];
+}
 
 export default class SqlPreviewContentProvider implements TextDocumentContentProvider {
   static readonly SCHEME = 'query-preview';
   static readonly URI = Uri.parse(`${SqlPreviewContentProvider.SCHEME}:Preview?dbt-language-server`);
 
-  texts = new Map<string, string>();
+  previewInfos = new Map<string, PreviewInfo>();
 
   activeDocUri: Uri = Uri.parse('');
 
   private onDidChangeEmitter = new EventEmitter<Uri>();
 
-  update(uri: string, text: string): void {
-    this.texts.set(uri, text);
+  update(uri: string, previewText: string, diagnostics: Diagnostic[]): void {
+    if (diagnostics.length > 0) {
+      diagnostics[0].severity = DiagnosticSeverity.Error;
+    }
+
+    this.previewInfos.set(uri, { previewText, diagnostics });
     this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
+  }
+
+  updatePreviewDiagnostics(diagnostics?: DiagnosticCollection): void {
+    const previewDiagnostics = this.previewInfos.get(this.activeDocUri.toString())?.diagnostics ?? [];
+    diagnostics?.set(SqlPreviewContentProvider.URI, previewDiagnostics);
   }
 
   changeActiveDocument(uri: Uri): void {
@@ -29,6 +43,6 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
   }
 
   provideTextDocumentContent(): string {
-    return this.texts.get(this.activeDocUri.toString()) ?? '';
+    return this.previewInfos.get(this.activeDocUri.toString())?.previewText ?? '';
   }
 }
