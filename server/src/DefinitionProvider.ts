@@ -1,17 +1,22 @@
 import * as path from 'path';
 import { DefinitionLink, integer, LocationLink, Position, Range } from 'vscode-languageserver';
-import { ManifestNode } from './ManifestJson';
+import { ManifestMacro, ManifestModel } from './ManifestJson';
 
 export class DefinitionProvider {
-  dbtModels: ManifestNode[] = [];
+  dbtModels: ManifestModel[] = [];
+  dbtMacros: ManifestMacro[] = [];
   workspaceFolder: string | undefined;
 
   setWorkspaceFolder(workspaceFolder: string): void {
     this.workspaceFolder = workspaceFolder;
   }
 
-  setDbtModels(dbtModels: ManifestNode[]): void {
+  setDbtModels(dbtModels: ManifestModel[]): void {
     this.dbtModels = dbtModels;
+  }
+
+  setDbtMacros(dbtMacros: ManifestMacro[]): void {
+    this.dbtMacros = dbtMacros;
   }
 
   onRefDefinition(modelName: string, originSelectionRange: Range): DefinitionLink[] | undefined {
@@ -32,5 +37,10 @@ export class DefinitionProvider {
         originSelectionRange,
       ),
     ];
+  }
+
+  onMacroDefinition(): DefinitionLink[] | undefined {
+    // todo: implement
+    return undefined;
   }
 }

@@ -1,14 +1,23 @@
-export interface ManifestNode {
+export interface ManifestModel {
   name: string;
   database: string;
   schema: string;
   originalFilePath: string;
+  dependsOn?: {
+    macros?: string[];
+  };
+}
+
+export interface ManifestMacro {
+  uniqueId: string;
+  originalFilePath: string;
 }
 
 export interface ManifestJson {
-  models: ManifestNode[];
+  models: ManifestModel[];
+  macros: ManifestMacro[];
 }
 
-export function getFromClauseString(model: ManifestNode): string {
+export function getFromClauseString(model: ManifestModel): string {
   return `\`${model.database}\`.\`${model.schema}\`.\`${model.name}\``;
 }

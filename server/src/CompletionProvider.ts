@@ -1,7 +1,7 @@
 import { Command, CompletionItem, CompletionItemKind, CompletionParams, CompletionTriggerKind } from 'vscode-languageserver';
 import { DestinationDefinition } from './DestinationDefinition';
 import { HelpProviderWords } from './HelpProviderWords';
-import { ManifestNode } from './ManifestJson';
+import { ManifestModel } from './ManifestJson';
 import { ActiveTableInfo, CompletionInfo } from './ZetaSqlAst';
 
 export class CompletionProvider {
@@ -242,7 +242,7 @@ export class CompletionProvider {
 
   static readonly DBT_KEYWORDS = ['ref'];
 
-  dbtModels: ManifestNode[] = [];
+  dbtModels: ManifestModel[] = [];
 
   onJinjaCompletion(textBeforeCursor: string): CompletionItem[] {
     if (textBeforeCursor.match(CompletionProvider.ENDS_WITH_REF)) {
@@ -388,7 +388,7 @@ export class CompletionProvider {
     return result;
   }
 
-  setDbtModels(dbtModels: ManifestNode[]): void {
+  setDbtModels(dbtModels: ManifestModel[]): void {
     this.dbtModels = dbtModels;
   }
 }

@@ -18,7 +18,7 @@ export class FileChangeListener {
 
   onInit(): void {
     this.updateTargetPath();
-    this.updateModels();
+    this.updateManifestNodes();
   }
 
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
@@ -26,9 +26,9 @@ export class FileChangeListener {
       if (change.uri.endsWith(YamlParser.DBT_PROJECT_FILE_NAME)) {
         this.dbtRpcServer.refreshServer();
         this.updateTargetPath();
-        this.updateModels();
+        this.updateManifestNodes();
       } else if (change.uri.endsWith(`${this.resolveTargetPath()}/${YamlParser.DBT_MANIFEST_FILE_NAME}`)) {
-        this.updateModels();
+        this.updateManifestNodes();
       }
     }
   }
@@ -37,10 +37,11 @@ export class FileChangeListener {
     this.dbtTargetPath = this.yamlParser.findTargetPath();
   }
 
-  updateModels(): void {
-    const { models } = this.manifestParser.parse(this.yamlParser.findTargetPath());
+  updateManifestNodes(): void {
+    const { models, macros } = this.manifestParser.parse(this.yamlParser.findTargetPath());
     this.completionProvider.setDbtModels(models);
     this.definitionProvider.setDbtModels(models);
+    this.definitionProvider.setDbtMacros(macros);
   }
 
   resolveTargetPath(): string {

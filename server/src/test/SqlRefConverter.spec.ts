@@ -2,14 +2,14 @@ import assert = require('assert');
 import { Range, uinteger } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { JinjaParser } from '../JinjaParser';
-import { ManifestNode } from '../ManifestJson';
+import { ManifestModel } from '../ManifestJson';
 import { Change, SqlRefConverter } from '../SqlRefConverter';
 import { ResolvedTable } from '../ZetaSqlAst';
 
 describe('SqlRefConverter', () => {
   const SQL_REF_CONVERTER = new SqlRefConverter(new JinjaParser());
 
-  function shouldConvertRefToSql(rawDocumentString: string, dbtModels: ManifestNode[], expectedChanges: Change[]): void {
+  function shouldConvertRefToSql(rawDocumentString: string, dbtModels: ManifestModel[], expectedChanges: Change[]): void {
     // arrange
     const doc = TextDocument.create('test', 'sql', 0, rawDocumentString);
 
@@ -21,8 +21,8 @@ describe('SqlRefConverter', () => {
     assert.deepStrictEqual(changes, expectedChanges);
   }
 
-  function createManifestNodes(count: number): ManifestNode[] {
-    return [...Array(count).keys()].map<ManifestNode>(n => ({
+  function createManifestNodes(count: number): ManifestModel[] {
+    return [...Array(count).keys()].map<ManifestModel>(n => ({
       name: `test_model${n}`,
       database: 'db',
       schema: 'schema',
