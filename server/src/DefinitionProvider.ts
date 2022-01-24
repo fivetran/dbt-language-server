@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { DefinitionLink, LocationLink, Position, Range } from 'vscode-languageserver';
+import { DefinitionLink, integer, LocationLink, Position, Range } from 'vscode-languageserver';
 import { ManifestNode } from './ManifestJson';
 
 export class DefinitionProvider {
@@ -27,7 +27,7 @@ export class DefinitionProvider {
     return [
       LocationLink.create(
         path.join(this.workspaceFolder, modelDefinitions[0].originalFilePath),
-        Range.create(Position.create(0, 0), Position.create(0, 0)),
+        Range.create(Position.create(0, 0), Position.create(integer.MAX_VALUE, integer.MAX_VALUE)),
         Range.create(Position.create(0, 0), Position.create(0, 0)),
         originSelectionRange,
       ),
