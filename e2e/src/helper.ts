@@ -194,6 +194,6 @@ export async function testCompletion(docUri: Uri, position: Position, expectedCo
 }
 
 export async function triggerCompletion(docUri: Uri, position: Position, triggerChar?: string): Promise<CompletionList<CompletionItem>> {
-  // Executing the command `executeCompletionItemProvider` to simulate triggering completion
+  // Simulate triggering completion
   return commands.executeCommand<CompletionList>('vscode.executeCompletionItemProvider', docUri, position, triggerChar);
 }
