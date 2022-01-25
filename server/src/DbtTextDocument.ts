@@ -35,7 +35,7 @@ import { ProgressReporter } from './ProgressReporter';
 import { SchemaTracker } from './SchemaTracker';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { SqlRefConverter } from './SqlRefConverter';
-import { debounce, getJinjaContentOffset, positionInRange } from './Utils';
+import { debounce, getDocumentModelName, getJinjaContentOffset, positionInRange } from './Utils';
 import { ZetaSqlAst } from './ZetaSqlAst';
 import { ZetaSqlCatalog } from './ZetaSqlCatalog';
 
@@ -315,6 +315,17 @@ export class DbtTextDocument {
         return this.definitionProvider.onRefDefinition(ref.modelName, ref.range);
       }
     }
+
+    const expressions = DbtTextDocument.JINJA_PARSER.findAllExpressions(this.rawDocument);
+    const documentModelName = getDocumentModelName(this.rawDocument);
+    if (documentModelName) {
+      for (const expression of expressions) {
+        if (positionInRange(definitionParams.position, expression.range)) {
+          return this.definitionProvider.onExpressionDefinition(this.rawDocument, documentModelName, expression, definitionParams.position);
+        }
+      }
+    }
+
     return undefined;
   }
 

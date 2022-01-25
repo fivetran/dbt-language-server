@@ -13,27 +13,38 @@ export class ManifestParser {
     try {
       const content = readFileSync(manifestLocation, 'utf8');
       const manifest = JSON.parse(content);
-      const { nodes } = manifest;
+      const { nodes, macros } = manifest;
+
+      let models: ManifestModel[] = [];
+      let macrosDefinitions: ManifestMacro[] = [];
 
       if (nodes) {
-        return {
-          models: Object.values(nodes as any[])
-            .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_MODEL)
-            .map<ManifestModel>(n => ({
-              name: n.name,
-              database: n.database,
-              schema: n.schema,
-              originalFilePath: n.original_file_path,
-              dependsOn: n.depends_on,
-            })),
-          macros: Object.values(nodes as any[])
-            .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_MACRO)
-            .map<ManifestMacro>(n => ({
-              uniqueId: n.unique_id,
-              originalFilePath: n.original_file_path,
-            })),
-        };
+        models = Object.values(nodes as any[])
+          .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_MODEL)
+          .map<ManifestModel>(n => ({
+            name: n.name,
+            database: n.database,
+            schema: n.schema,
+            originalFilePath: n.original_file_path,
+            dependsOn: {
+              macros: n.depends_on.macros,
+            },
+          }));
       }
+
+      if (macros) {
+        macrosDefinitions = Object.values(macros as any[])
+          .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_MACRO)
+          .map<ManifestMacro>(n => ({
+            uniqueId: n.unique_id,
+            originalFilePath: n.original_file_path,
+          }));
+      }
+
+      return {
+        models,
+        macros: macrosDefinitions,
+      };
     } catch (e) {
       console.log(`Failed to read ${ManifestParser.MANIFEST_FILE_NAME}`, e);
     }

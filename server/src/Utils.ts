@@ -1,6 +1,8 @@
 import { Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
+const MODEL_NAME_PATTERN = /.+\/(?<filename>[\s\S]+)\.sql$/;
+
 export function rangesOverlap(range1: Range, range2: Range): boolean {
   return (
     positionInRange(range2.start, range1) ||
@@ -94,4 +96,9 @@ export function extractDatasetFromFullName(fullName: string, tableName: string):
     return m[1];
   }
   throw new Error("Can't extract dataset");
+}
+
+export function getDocumentModelName(rawDocument: TextDocument): string | undefined {
+  const modelMatch = MODEL_NAME_PATTERN.exec(rawDocument.uri);
+  return modelMatch ? modelMatch.groups?.['filename'] : undefined;
 }

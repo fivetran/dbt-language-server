@@ -26,8 +26,10 @@ export class FileChangeListener {
       if (change.uri.endsWith(YamlParser.DBT_PROJECT_FILE_NAME)) {
         this.dbtRpcServer.refreshServer();
         this.updateTargetPath();
+        this.updateProjectName();
         this.updateManifestNodes();
       } else if (change.uri.endsWith(`${this.resolveTargetPath()}/${YamlParser.DBT_MANIFEST_FILE_NAME}`)) {
+        this.updateProjectName();
         this.updateManifestNodes();
       }
     }
@@ -35,6 +37,10 @@ export class FileChangeListener {
 
   updateTargetPath(): void {
     this.dbtTargetPath = this.yamlParser.findTargetPath();
+  }
+
+  updateProjectName(): void {
+    this.definitionProvider.setProjectName(this.yamlParser.findProjectName());
   }
 
   updateManifestNodes(): void {
