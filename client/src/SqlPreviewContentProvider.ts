@@ -17,6 +17,7 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
 
   update(uri: string, previewText: string, diagnostics: Diagnostic[]): void {
     if (diagnostics.length > 0) {
+      // We need to set Error severity on client since vscode-languageserver.DiagnosticSeverity.Error !== vscode.DiagnosticSeverity.Error
       diagnostics[0].severity = DiagnosticSeverity.Error;
     }
 
