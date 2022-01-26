@@ -2,7 +2,8 @@ import * as glob from 'glob';
 import * as Mocha from 'mocha';
 import * as path from 'path';
 import { performance } from 'perf_hooks';
-import { doc, getDiagnostics, getPreviewText } from './helper';
+import { languages, Uri } from 'vscode';
+import { doc, getPreviewText, PREVIEW_URI } from './helper';
 
 export function run(): Promise<void> {
   const mocha = new Mocha({
@@ -40,7 +41,7 @@ export function run(): Promise<void> {
         runner.on('fail', () => {
           console.log(`Content of document when test failed:\n${doc.getText()}`);
           console.log(`Preview content:\n${getPreviewText()}`);
-          console.log(`Diagnostics:\n${JSON.stringify(getDiagnostics())}`);
+          console.log(`Preview diagnostics:\n${JSON.stringify(languages.getDiagnostics(Uri.parse(PREVIEW_URI)))}`);
         });
       } catch (err) {
         console.error(err);

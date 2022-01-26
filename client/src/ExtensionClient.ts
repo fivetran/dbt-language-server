@@ -1,4 +1,16 @@
-import { commands, ExtensionContext, languages, OutputChannel, TextDocument, TextEditor, Uri, ViewColumn, window, workspace } from 'vscode';
+import {
+  commands,
+  DiagnosticCollection,
+  ExtensionContext,
+  languages,
+  OutputChannel,
+  TextDocument,
+  TextEditor,
+  Uri,
+  ViewColumn,
+  window,
+  workspace,
+} from 'vscode';
 import { DbtLanguageClient } from './DbtLanguageClient';
 import { ProgressHandler } from './ProgressHandler';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
@@ -35,6 +47,11 @@ export class ExtensionClient {
         }
       }
     });
+    workspace.onDidChangeTextDocument(e => {
+      if (e.document.uri.toString() === SqlPreviewContentProvider.URI.toString()) {
+        this.previewContentProvider.updatePreviewDiagnostics(this.getDiagnostics());
+      }
+    });
 
     this.registerSqlPreviewContentProvider(this.context);
 
@@ -51,7 +68,7 @@ export class ExtensionClient {
         return;
       }
 
-      const uri = document.uri.toString() === SqlPreviewContentProvider.uri.toString() ? this.previewContentProvider.activeDocUri : document.uri;
+      const uri = document.uri.toString() === SqlPreviewContentProvider.URI.toString() ? this.previewContentProvider.activeDocUri : document.uri;
 
       const client = await this.getClient(uri);
       if (client) {
@@ -106,9 +123,9 @@ export class ExtensionClient {
   }
 
   registerSqlPreviewContentProvider(context: ExtensionContext): void {
-    const providerRegistrations = workspace.registerTextDocumentContentProvider(SqlPreviewContentProvider.scheme, this.previewContentProvider);
+    const providerRegistrations = workspace.registerTextDocumentContentProvider(SqlPreviewContentProvider.SCHEME, this.previewContentProvider);
     const commandRegistration = commands.registerTextEditorCommand('editor.showQueryPreview', async (editor: TextEditor) => {
-      if (editor.document.uri.toString() === SqlPreviewContentProvider.uri.toString()) {
+      if (editor.document.uri.toString() === SqlPreviewContentProvider.URI.toString()) {
         return;
       }
 
@@ -119,19 +136,25 @@ export class ExtensionClient {
 
       this.previewContentProvider.changeActiveDocument(editor.document.uri);
 
-      const doc = await workspace.openTextDocument(SqlPreviewContentProvider.uri);
+      const doc = await workspace.openTextDocument(SqlPreviewContentProvider.URI);
       await window.showTextDocument(doc, ViewColumn.Beside, true);
       await languages.setTextDocumentLanguage(doc, 'sql');
+      this.previewContentProvider.updatePreviewDiagnostics(this.getDiagnostics());
     });
 
     const eventRegistration = window.onDidChangeActiveTextEditor(e => {
-      if (!e || e.document.uri.toString() === SqlPreviewContentProvider.uri.toString()) {
+      if (!e || e.document.uri.toString() === SqlPreviewContentProvider.URI.toString()) {
         return;
       }
       this.previewContentProvider.changeActiveDocument(e.document.uri);
     });
 
     context.subscriptions.push(this.previewContentProvider, commandRegistration, providerRegistrations, eventRegistration);
+  }
+
+  getDiagnostics(): DiagnosticCollection | undefined {
+    const [[, client]] = this.clients;
+    return client.client.diagnostics;
   }
 
   async onDidOpenTextDocument(document: TextDocument): Promise<void> {

@@ -1,5 +1,5 @@
-import * as assert from 'assert';
 import { assertThat } from 'hamjest';
+import { err } from 'neverthrow';
 import * as path from 'path';
 import { instance, mock, when } from 'ts-mockito';
 import { DbtProfile } from '../DbtProfile';
@@ -34,8 +34,7 @@ export function getConfigPath(p: string): string {
 
 export function shouldRequireProfileField(profiles: any, profile: DbtProfile, profileName: string, field: string): void {
   const missingFieldResult = profile.validateProfile(profiles[profileName].outputs.dev);
-  assert.ok(missingFieldResult.isErr());
-  assertThat(missingFieldResult.error, field);
+  assertThat(missingFieldResult, err(field));
 }
 
 export function shouldPassValidProfile(config: string, profileName: string): void {

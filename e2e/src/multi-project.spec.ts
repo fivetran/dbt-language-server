@@ -1,6 +1,6 @@
 import { assertThat } from 'hamjest';
-import { Uri } from 'vscode';
-import { activateAndWait, getCustomDocUri, getDiagnostics, getDocUri, getPreviewText } from './helper';
+import { languages, Uri } from 'vscode';
+import { activateAndWait, getCustomDocUri, getDocUri, getPreviewText, PREVIEW_URI, sleep } from './helper';
 
 suite('Multi-project', () => {
   test('Should run several dbt instances', async () => {
@@ -27,6 +27,8 @@ suite('Multi-project', () => {
     await activateAndWait(docUri);
 
     assertThat(getPreviewText(), expectedPreview);
-    assertThat(getDiagnostics().length, 0);
+    await sleep(100);
+    assertThat(languages.getDiagnostics(docUri).length, 0);
+    assertThat(languages.getDiagnostics(Uri.parse(PREVIEW_URI)).length, 0);
   }
 });
