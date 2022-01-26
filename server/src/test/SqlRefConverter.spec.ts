@@ -23,10 +23,12 @@ describe('SqlRefConverter', () => {
 
   function createManifestNodes(count: number): ManifestModel[] {
     return [...Array(count).keys()].map<ManifestModel>(n => ({
+      uniqueId: `model.package.test_model${n}`,
+      rootPath: '/Users/test/dbt_project',
+      originalFilePath: `models/test_model${n}.sql`,
       name: `test_model${n}`,
       database: 'db',
       schema: 'schema',
-      originalFilePath: `models/test_model${n}.sql`,
     }));
   }
 
@@ -76,7 +78,16 @@ describe('SqlRefConverter', () => {
     const changes = SQL_REF_CONVERTER.sqlToRef(
       doc,
       [createResolvedTable(0, 14, 41)],
-      [{ name: 'test_model0', database: 'db', schema: 'schema', originalFilePath: 'test.sql' }],
+      [
+        {
+          uniqueId: `model.package.test_model0`,
+          rootPath: '/Users/test/dbt_project',
+          originalFilePath: 'test_model0.sql',
+          name: 'test_model0',
+          database: 'db',
+          schema: 'schema',
+        },
+      ],
     );
 
     assert.strictEqual(changes.length, 1);
