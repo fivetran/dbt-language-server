@@ -35,7 +35,7 @@ import { DefinitionProvider } from './DefinitionProvider';
 import { DestinationDefinition } from './DestinationDefinition';
 import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
-import { ManifestParser } from './ManifestParser';
+import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { randomNumber } from './Utils';

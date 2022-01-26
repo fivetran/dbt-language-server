@@ -1,11 +1,12 @@
 import { readFileSync } from 'fs';
 import * as path from 'path';
-import { ManifestJson, ManifestMacro, ManifestModel } from './ManifestJson';
+import { ManifestJson, ManifestMacro, ManifestModel, ManifestSource } from './ManifestJson';
 
 export class ManifestParser {
   static readonly MANIFEST_FILE_NAME = 'manifest.json';
   static readonly RESOURCE_TYPE_MODEL = 'model';
   static readonly RESOURCE_TYPE_MACRO = 'macro';
+  static readonly RESOURCE_TYPE_SOURCE = 'source';
   static readonly PROJECT_PATH = './';
 
   parse(targetPath: string): ManifestJson {
@@ -13,19 +14,22 @@ export class ManifestParser {
     try {
       const content = readFileSync(manifestLocation, 'utf8');
       const manifest = JSON.parse(content);
-      const { nodes, macros } = manifest;
+      const { nodes, macros, sources } = manifest;
 
-      let models: ManifestModel[] = [];
+      let modelsDefinitions: ManifestModel[] = [];
       let macrosDefinitions: ManifestMacro[] = [];
+      let sourcesDefinitions: ManifestSource[] = [];
 
       if (nodes) {
-        models = Object.values(nodes as any[])
+        modelsDefinitions = Object.values(nodes as any[])
           .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_MODEL)
           .map<ManifestModel>(n => ({
+            uniqueId: n.unique_id,
+            rootPath: n.root_path,
+            originalFilePath: n.original_file_path,
             name: n.name,
             database: n.database,
             schema: n.schema,
-            originalFilePath: n.original_file_path,
             dependsOn: {
               macros: n.depends_on.macros,
             },
@@ -37,17 +41,34 @@ export class ManifestParser {
           .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_MACRO)
           .map<ManifestMacro>(n => ({
             uniqueId: n.unique_id,
+            rootPath: n.root_path,
             originalFilePath: n.original_file_path,
+            name: n.name,
+            packageName: n.package_name,
+          }));
+      }
+
+      if (sources) {
+        sourcesDefinitions = Object.values(sources as any[])
+          .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_SOURCE)
+          .map<ManifestSource>(n => ({
+            uniqueId: n.unique_id,
+            rootPath: n.root_path,
+            originalFilePath: n.original_file_path,
+            name: n.name,
+            sourceName: n.source_name,
+            columns: n.columns.array.map((c: any) => c.name),
           }));
       }
 
       return {
-        models,
+        models: modelsDefinitions,
         macros: macrosDefinitions,
+        sources: sourcesDefinitions,
       };
     } catch (e) {
       console.log(`Failed to read ${ManifestParser.MANIFEST_FILE_NAME}`, e);
     }
-    return { models: [], macros: [] };
+    return { models: [], macros: [], sources: [] };
   }
 }

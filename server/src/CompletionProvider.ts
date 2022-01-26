@@ -1,7 +1,7 @@
 import { Command, CompletionItem, CompletionItemKind, CompletionParams, CompletionTriggerKind } from 'vscode-languageserver';
 import { DestinationDefinition } from './DestinationDefinition';
 import { HelpProviderWords } from './HelpProviderWords';
-import { ManifestModel } from './ManifestJson';
+import { ManifestModel } from './manifest/ManifestJson';
 import { ActiveTableInfo, CompletionInfo } from './ZetaSqlAst';
 
 export class CompletionProvider {

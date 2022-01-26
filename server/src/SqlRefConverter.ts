@@ -1,7 +1,7 @@
 import { Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { JinjaParser } from './JinjaParser';
-import { getFromClauseString, ManifestModel } from './ManifestJson';
+import { getFromClauseString, ManifestModel } from './manifest/ManifestJson';
 import { ResolvedTable } from './ZetaSqlAst';
 
 export interface Change {

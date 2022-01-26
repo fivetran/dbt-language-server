@@ -2,7 +2,7 @@ import assert = require('assert');
 import { Range, uinteger } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { JinjaParser } from '../JinjaParser';
-import { ManifestModel } from '../ManifestJson';
+import { ManifestModel } from '../manifest/ManifestJson';
 import { Change, SqlRefConverter } from '../SqlRefConverter';
 import { ResolvedTable } from '../ZetaSqlAst';
 

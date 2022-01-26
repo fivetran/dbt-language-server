@@ -2,7 +2,7 @@ import { DidChangeWatchedFilesParams } from 'vscode-languageserver';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtRpcServer } from './DbtRpcServer';
 import { DefinitionProvider } from './DefinitionProvider';
-import { ManifestParser } from './ManifestParser';
+import { ManifestParser } from './manifest/ManifestParser';
 import { YamlParser } from './YamlParser';
 
 export class FileChangeListener {

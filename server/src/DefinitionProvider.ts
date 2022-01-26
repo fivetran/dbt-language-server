@@ -2,7 +2,7 @@ import * as path from 'path';
 import { DefinitionLink, integer, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Expression } from './JinjaParser';
-import { ManifestMacro, ManifestModel } from './ManifestJson';
+import { ManifestMacro, ManifestModel } from './manifest/ManifestJson';
 import { positionInRange } from './Utils';
 
 export class DefinitionProvider {
