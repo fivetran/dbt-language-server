@@ -57,7 +57,7 @@ export class ManifestParser {
             originalFilePath: n.original_file_path,
             name: n.name,
             sourceName: n.source_name,
-            columns: n.columns.array.map((c: any) => c.name),
+            columns: Object.values(n.columns as any[]).map(c => c.name),
           }));
       }
 
