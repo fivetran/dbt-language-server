@@ -219,7 +219,7 @@ export class DbtTextDocument {
       return ok(ast);
     } catch (e: any) {
       console.log('There was an error wile parsing SQL query');
-      return err(e.details);
+      return err(e.details ?? 'Unknown parser error [at 0:0]');
     }
   }
 
