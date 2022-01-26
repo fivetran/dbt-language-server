@@ -1,20 +1,38 @@
-import { DidChangeWatchedFilesParams } from 'vscode-languageserver';
-import { CompletionProvider } from './CompletionProvider';
-import { DbtRpcServer } from './DbtRpcServer';
-import { DefinitionProvider } from './DefinitionProvider';
+import { DidChangeWatchedFilesParams, Emitter, Event } from 'vscode-languageserver';
+import { ManifestMacro, ManifestModel, ManifestSource } from './manifest/ManifestJson';
 import { ManifestParser } from './manifest/ManifestParser';
 import { YamlParser } from './YamlParser';
 
 export class FileChangeListener {
+  private onProjectFileChangedEmitter = new Emitter<void>();
+  private onProjectNameChangedEmitter = new Emitter<string | undefined>();
+  private onModelsChangedEmitter = new Emitter<ManifestModel[]>();
+  private onMacrosChangedEmitter = new Emitter<ManifestMacro[]>();
+  private onSourcesChangedEmitter = new Emitter<ManifestSource[]>();
+
   dbtTargetPath?: string;
 
-  constructor(
-    private completionProvider: CompletionProvider,
-    private definitionProvider: DefinitionProvider,
-    private yamlParser: YamlParser,
-    private manifestParser: ManifestParser,
-    private dbtRpcServer: DbtRpcServer,
-  ) {}
+  constructor(private yamlParser: YamlParser, private manifestParser: ManifestParser) {}
+
+  get onProjectFileChanged(): Event<void> {
+    return this.onProjectFileChangedEmitter.event;
+  }
+
+  get onProjectNameChanged(): Event<string | undefined> {
+    return this.onProjectNameChangedEmitter.event;
+  }
+
+  get onModelsChanged(): Event<ManifestModel[]> {
+    return this.onModelsChangedEmitter.event;
+  }
+
+  get onMacrosChanged(): Event<ManifestMacro[]> {
+    return this.onMacrosChangedEmitter.event;
+  }
+
+  get onSourcesChanged(): Event<ManifestSource[]> {
+    return this.onSourcesChangedEmitter.event;
+  }
 
   onInit(): void {
     this.updateTargetPath();
@@ -24,7 +42,7 @@ export class FileChangeListener {
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
     for (const change of params.changes) {
       if (change.uri.endsWith(YamlParser.DBT_PROJECT_FILE_NAME)) {
-        this.dbtRpcServer.refreshServer();
+        this.onProjectFileChangedEmitter.fire();
         this.updateTargetPath();
         this.updateProjectName();
         this.updateManifestNodes();
@@ -40,14 +58,14 @@ export class FileChangeListener {
   }
 
   updateProjectName(): void {
-    this.definitionProvider.setProjectName(this.yamlParser.findProjectName());
+    this.onProjectNameChangedEmitter.fire(this.yamlParser.findProjectName());
   }
 
   updateManifestNodes(): void {
-    const { models, macros } = this.manifestParser.parse(this.yamlParser.findTargetPath());
-    this.completionProvider.setDbtModels(models);
-    this.definitionProvider.setDbtModels(models);
-    this.definitionProvider.setDbtMacros(macros);
+    const { models, macros, sources } = this.manifestParser.parse(this.yamlParser.findTargetPath());
+    this.onModelsChangedEmitter.fire(models);
+    this.onMacrosChangedEmitter.fire(macros);
+    this.onSourcesChangedEmitter.fire(sources);
   }
 
   resolveTargetPath(): string {

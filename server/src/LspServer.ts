@@ -57,24 +57,26 @@ export class LspServer {
   dbtRpcClient = new DbtRpcClient();
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
-  completionProvider = new CompletionProvider();
-  definitionProvider = new DefinitionProvider();
+  fileChangeListener: FileChangeListener;
+  completionProvider: CompletionProvider;
+  definitionProvider: DefinitionProvider;
   yamlParser = new YamlParser();
   dbtProfileCreator = new DbtProfileCreator(this.yamlParser);
   manifestParser = new ManifestParser();
   featureFinder = new FeatureFinder();
-  fileChangeListener: FileChangeListener;
   initStart = performance.now();
 
   constructor(private connection: _Connection) {
     this.progressReporter = new ProgressReporter(this.connection);
-    this.fileChangeListener = new FileChangeListener(
-      this.completionProvider,
-      this.definitionProvider,
-      this.yamlParser,
-      this.manifestParser,
-      this.dbtRpcServer,
+    this.fileChangeListener = new FileChangeListener(this.yamlParser, this.manifestParser);
+    this.completionProvider = new CompletionProvider(this.fileChangeListener.onModelsChanged);
+    this.definitionProvider = new DefinitionProvider(
+      this.fileChangeListener.onProjectNameChanged,
+      this.fileChangeListener.onModelsChanged,
+      this.fileChangeListener.onMacrosChanged,
+      this.fileChangeListener.onSourcesChanged,
     );
+    this.fileChangeListener.onProjectFileChanged(this.onProjectFileChanged.bind(this));
   }
 
   async onInitialize(params: InitializeParams): Promise<InitializeResult<any> | ResponseError<InitializeError>> {
@@ -300,6 +302,10 @@ export class LspServer {
 
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
     this.fileChangeListener.onDidChangeWatchedFiles(params);
+  }
+
+  onProjectFileChanged(): void {
+    this.dbtRpcServer.refreshServer();
   }
 
   onShutdown(): void {

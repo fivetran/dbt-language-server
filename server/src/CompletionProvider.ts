@@ -1,4 +1,4 @@
-import { Command, CompletionItem, CompletionItemKind, CompletionParams, CompletionTriggerKind } from 'vscode-languageserver';
+import { Command, CompletionItem, CompletionItemKind, CompletionParams, CompletionTriggerKind, Event } from 'vscode-languageserver';
 import { DestinationDefinition } from './DestinationDefinition';
 import { HelpProviderWords } from './HelpProviderWords';
 import { ManifestModel } from './manifest/ManifestJson';
@@ -244,6 +244,10 @@ export class CompletionProvider {
 
   dbtModels: ManifestModel[] = [];
 
+  constructor(onModelsChanged: Event<ManifestModel[]>) {
+    onModelsChanged(this.onModelsChanged.bind(this));
+  }
+
   onJinjaCompletion(textBeforeCursor: string): CompletionItem[] {
     if (textBeforeCursor.match(CompletionProvider.ENDS_WITH_REF)) {
       const edsWithQuote = textBeforeCursor.match(CompletionProvider.ENDS_WITH_QUOTE);
@@ -388,7 +392,7 @@ export class CompletionProvider {
     return result;
   }
 
-  setDbtModels(dbtModels: ManifestModel[]): void {
+  onModelsChanged(dbtModels: ManifestModel[]): void {
     this.dbtModels = dbtModels;
   }
 }
