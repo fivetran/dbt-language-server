@@ -15,6 +15,8 @@ export interface IWordAtPosition {
   readonly endColumn: number;
 }
 
+export const USUAL_WORD_SEPARATORS = '`~!@#$%^&*()-=+[{]}\\|;:\'",.<>/?';
+
 const DEFAULT_CONFIG = {
   maxLen: 1000,
   windowSize: 15,
@@ -165,7 +167,7 @@ function findRegexMatchEnclosingPosition(wordDefinition: RegExp, text: string, p
 }
 
 export function ensureValidWordDefinition(wordDefinition?: RegExp | null): RegExp {
-  let result: RegExp = DEFAULT_WORD_REGEXP;
+  let result: RegExp = createWordRegExp();
 
   if (wordDefinition && wordDefinition instanceof RegExp) {
     if (!wordDefinition.global) {
@@ -201,7 +203,3 @@ function createWordRegExp(allowInWords = ''): RegExp {
   source += '\\s]+)';
   return new RegExp(source, 'g');
 }
-
-// catches numbers (including floating numbers) in the first group, and alphanum in the second
-export const DEFAULT_WORD_REGEXP = createWordRegExp();
-export const USUAL_WORD_SEPARATORS = '`~!@#$%^&*()-=+[{]}\\|;:\'",.<>/?';
