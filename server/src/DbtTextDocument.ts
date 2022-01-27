@@ -1,7 +1,8 @@
 import { AnalyzeRequest, ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
-import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
+import { AnalyzeResponse, AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRecordType';
+import { err, ok, Result } from 'neverthrow';
 import {
   CompletionItem,
   CompletionParams,
@@ -35,13 +36,12 @@ import { ProgressReporter } from './ProgressReporter';
 import { SchemaTracker } from './SchemaTracker';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { SqlRefConverter } from './SqlRefConverter';
-import { debounce, getDocumentModelName, getJinjaContentOffset, positionInRange } from './Utils';
+import { debounce, getDocumentModelName, getIdentifierRangeAtPosition, getJinjaContentOffset, positionInRange } from './Utils';
 import { ZetaSqlAst } from './ZetaSqlAst';
 import { ZetaSqlCatalog } from './ZetaSqlCatalog';
 
 export class DbtTextDocument {
-  static readonly NON_WORD_PATTERN = /\W/;
-  static readonly DEBOUNCE_TIMEOUT = 300;
+  static DEBOUNCE_TIMEOUT = 300;
 
   static readonly ZETA_SQL_AST = new ZetaSqlAst();
   static readonly JINJA_PARSER = new JinjaParser();
@@ -50,7 +50,7 @@ export class DbtTextDocument {
   compiledDocument: TextDocument;
   requireCompileOnSave: boolean;
 
-  ast: AnalyzeResponse | undefined;
+  ast?: AnalyzeResponse;
   schemaTracker: SchemaTracker;
   signatureHelpProvider = new SignatureHelpProvider();
   sqlRefConverter = new SqlRefConverter(DbtTextDocument.JINJA_PARSER);
@@ -78,17 +78,17 @@ export class DbtTextDocument {
     if (this.requireCompileOnSave) {
       this.requireCompileOnSave = false;
       dbtRpcServer.refreshServer();
-      await this.debouncedCompile();
+      this.debouncedCompile();
     } else {
       await this.onCompilationFinished(this.compiledDocument.getText());
     }
   }
 
-  async didOpenTextDocument(): Promise<void> {
-    await this.debouncedCompile();
+  didOpenTextDocument(): void {
+    this.debouncedCompile();
   }
 
-  async didChangeTextDocument(params: DidChangeTextDocumentParams): Promise<void> {
+  didChangeTextDocument(params: DidChangeTextDocumentParams): void {
     if (this.requireCompileOnSave || this.isDbtCompileNeeded(params.contentChanges)) {
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
       this.requireCompileOnSave = true;
@@ -135,9 +135,9 @@ export class DbtTextDocument {
     return jinjas === undefined || (jinjas.length > 0 && DbtTextDocument.JINJA_PARSER.isJinjaModified(jinjas, changes));
   }
 
-  async forceRecompile(): Promise<void> {
-    this.progressReporter.sendStart(this.getRawDocUri());
-    await this.debouncedCompile();
+  forceRecompile(): void {
+    this.progressReporter.sendStart(this.rawDocument.uri);
+    this.debouncedCompile();
   }
 
   async refToSql(): Promise<void> {
@@ -170,36 +170,41 @@ export class DbtTextDocument {
   }
 
   debouncedCompile = debounce(async () => {
-    this.progressReporter.sendStart(this.getRawDocUri());
+    this.progressReporter.sendStart(this.rawDocument.uri);
     await this.modelCompiler.compile();
   }, DbtTextDocument.DEBOUNCE_TIMEOUT);
 
-  getLines(): string[] {
-    return this.rawDocument.getText().split('\n');
-  }
+  getDiagnostics(astResult: Result<AnalyzeResponse__Output, string>): Diagnostic[][] {
+    const rawDocDiagnostics: Diagnostic[] = [];
+    const compiledDocDiagnostics: Diagnostic[] = [];
 
-  getRawDocUri(): string {
-    return this.rawDocument.uri;
-  }
+    if (astResult.isErr()) {
+      // Parse string like 'Unrecognized name: paused1; Did you mean paused? [at 9:3]'
+      const matchResults = astResult.error.match(/(.*?) \[at (\d+):(\d+)\]/);
+      if (matchResults) {
+        const [, errorText] = matchResults;
+        const lineInCompiledDoc = Number(matchResults[2]) - 1;
+        const characterInCompiledDoc = Number(matchResults[3]) - 1;
+        const lineInRawDoc = Diff.getOldLineNumber(this.rawDocument.getText(), this.compiledDocument.getText(), lineInCompiledDoc);
 
-  getText(range?: Range): string {
-    return this.rawDocument.getText(range);
-  }
-
-  async sendDiagnostics(dbtCompilationError?: string): Promise<void> {
-    if (dbtCompilationError) {
-      const dbtDiagnostics: Diagnostic[] = [
-        {
-          severity: DiagnosticSeverity.Error,
-          range: Range.create(0, 0, 0, 0),
-          message: dbtCompilationError,
-        },
-      ];
-
-      this.connection.sendDiagnostics({ uri: this.getRawDocUri(), diagnostics: dbtDiagnostics });
-      return;
+        rawDocDiagnostics.push(this.createDiagnostic(this.rawDocument.getText(), lineInRawDoc, characterInCompiledDoc, errorText));
+        compiledDocDiagnostics.push(this.createDiagnostic(this.compiledDocument.getText(), lineInCompiledDoc, characterInCompiledDoc, errorText));
+      }
     }
+    return [rawDocDiagnostics, compiledDocDiagnostics];
+  }
 
+  createDiagnostic(docText: string, line: number, character: number, message: string): Diagnostic {
+    const position = Position.create(line, character);
+    const range = getIdentifierRangeAtPosition(position, docText);
+    return {
+      severity: DiagnosticSeverity.Error,
+      range,
+      message,
+    };
+  }
+
+  async getAstOrError(): Promise<Result<AnalyzeResponse__Output, string>> {
     const analyzeRequest: AnalyzeRequest = {
       sqlStatement: this.compiledDocument.getText(),
       registeredCatalogId: ZetaSqlCatalog.getInstance().catalog.registeredId,
@@ -212,30 +217,14 @@ export class DbtTextDocument {
       },
     };
 
-    const sqlDiagnostics: Diagnostic[] = [];
     try {
-      this.ast = await ZetaSQLClient.getInstance().analyze(analyzeRequest);
+      const ast = await ZetaSQLClient.getInstance().analyze(analyzeRequest);
       console.log('AST was successfully received');
+      return ok(ast);
     } catch (e: any) {
       console.log('There was an error wile parsing SQL query');
-      // Parse string like 'Unrecognized name: paused1; Did you mean paused? [at 9:3]'
-      if (e.code === 3) {
-        const matchResults = e.details.match(/(.*?) \[at (\d+):(\d+)\]/);
-        const lineInCompiledDoc = matchResults[2] - 1;
-        const characterInCompiledDoc = matchResults[3] - 1;
-        const lineInRawDoc = Diff.getOldLineNumber(this.rawDocument.getText(), this.compiledDocument.getText(), lineInCompiledDoc);
-        const position = Position.create(lineInRawDoc, characterInCompiledDoc);
-        const range = this.getIdentifierRangeAtPosition(position);
-
-        const diagnostic: Diagnostic = {
-          severity: DiagnosticSeverity.Error,
-          range,
-          message: matchResults[1],
-        };
-        sqlDiagnostics.push(diagnostic);
-      }
+      return err(e.details ?? 'Unknown parser error [at 0:0]');
     }
-    this.connection.sendDiagnostics({ uri: this.getRawDocUri(), diagnostics: sqlDiagnostics });
   }
 
   async ensureCatalogInitialized(): Promise<void> {
@@ -250,30 +239,48 @@ export class DbtTextDocument {
     this.schemaTracker.resetHasNewTables();
   }
 
-  async onCompilationError(dbtCompilationError: string): Promise<void> {
-    await this.sendDiagnostics(dbtCompilationError);
-    this.connection.sendNotification('custom/updateQueryPreview', [this.getRawDocUri(), this.rawDocument.getText()]);
+  onCompilationError(dbtCompilationError: string): void {
+    const dbtDiagnostics: Diagnostic[] = [
+      {
+        severity: DiagnosticSeverity.Error,
+        range: Range.create(0, 0, 0, 100),
+        message: dbtCompilationError,
+      },
+    ];
+
+    this.sendUpdateQueryPreview(this.rawDocument.getText(), dbtDiagnostics);
+    this.connection.sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: dbtDiagnostics });
   }
 
   async onCompilationFinished(compiledSql: string): Promise<void> {
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
 
     await this.ensureCatalogInitialized();
-    await this.sendDiagnostics();
-    this.connection.sendNotification('custom/updateQueryPreview', [this.getRawDocUri(), compiledSql]);
+    const astResult = await this.getAstOrError();
+    if (astResult.isOk()) {
+      this.ast = astResult.value;
+    }
+
+    const [rawDocDiagnostics, compiledDocDiagnostics] = this.getDiagnostics(astResult);
+    this.sendUpdateQueryPreview(compiledSql, compiledDocDiagnostics);
+    this.connection.sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: rawDocDiagnostics });
 
     if (!this.modelCompiler.compilationInProgress) {
-      this.progressReporter.sendFinish(this.getRawDocUri());
+      this.progressReporter.sendFinish(this.rawDocument.uri);
     }
   }
 
+  sendUpdateQueryPreview(previewText: string, diagnostics: Diagnostic[]): void {
+    this.connection.sendNotification('custom/updateQueryPreview', { uri: this.rawDocument.uri, previewText, diagnostics });
+  }
+
   onFinishAllCompilationTasks(): void {
-    this.progressReporter.sendFinish(this.getRawDocUri());
+    this.progressReporter.sendFinish(this.rawDocument.uri);
   }
 
   onHover(hoverParams: HoverParams): Hover | null {
-    const range = this.getIdentifierRangeAtPosition(hoverParams.position);
-    const text = this.getText(range);
+    const range = getIdentifierRangeAtPosition(hoverParams.position, this.rawDocument.getText());
+    const text = this.rawDocument.getText(range);
     return HoverProvider.hoverOnText(text, this.ast);
   }
 
@@ -282,7 +289,7 @@ export class DbtTextDocument {
       completionParams.position.line,
       completionParams.position.character > 0 ? completionParams.position.character - 1 : 0,
     );
-    const text = this.getText(this.getIdentifierRangeAtPosition(previousPosition));
+    const text = this.rawDocument.getText(getIdentifierRangeAtPosition(previousPosition, this.rawDocument.getText()));
 
     const jinjaContentOffset = getJinjaContentOffset(this.rawDocument, completionParams.position);
     if (jinjaContentOffset !== -1) {
@@ -304,7 +311,7 @@ export class DbtTextDocument {
   }
 
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
-    const text = this.getText(this.getTextRangeBeforeBracket(params.position));
+    const text = this.rawDocument.getText(this.getTextRangeBeforeBracket(params.position));
     return this.signatureHelpProvider.onSignatureHelp(params, text);
   }
 
@@ -329,35 +336,8 @@ export class DbtTextDocument {
     return undefined;
   }
 
-  getIdentifierRangeAtPosition(position: Position): Range {
-    const lines = this.getLines();
-    if (lines.length === 0) {
-      return Range.create(position, position);
-    }
-    const line = Math.min(lines.length - 1, Math.max(0, position.line));
-    const lineText = lines[line];
-    const charIndex = Math.max(0, Math.min(lineText.length - 1, Math.max(0, position.character)));
-    const textBeforeChar = lineText.substring(0, charIndex);
-    if ((textBeforeChar.split('`').length - 1) % 2 !== 0) {
-      return Range.create(line, textBeforeChar.lastIndexOf('`'), line, lineText.indexOf('`', charIndex) + 1);
-    }
-    if (lineText[charIndex] === '`') {
-      return Range.create(line, charIndex, line, lineText.indexOf('`', charIndex + 1) + 1);
-    }
-    let startChar = charIndex;
-    while (startChar > 0 && !DbtTextDocument.NON_WORD_PATTERN.test(lineText.charAt(startChar - 1))) {
-      --startChar;
-    }
-    let endChar = charIndex;
-    while (endChar < lineText.length && !DbtTextDocument.NON_WORD_PATTERN.test(lineText.charAt(endChar))) {
-      ++endChar;
-    }
-
-    return startChar === endChar ? Range.create(position, position) : Range.create(line, startChar, line, endChar);
-  }
-
   getTextRangeBeforeBracket(cursorPosition: Position): Range {
-    const lines = this.getLines();
+    const lines = this.rawDocument.getText().split('\n');
     if (lines.length === 0) {
       return Range.create(cursorPosition, cursorPosition);
     }

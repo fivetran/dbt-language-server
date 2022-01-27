@@ -2,9 +2,9 @@ import { ExtensionContext } from 'vscode';
 import { ExtensionClient } from './ExtensionClient';
 
 let extensionClient: ExtensionClient;
-export async function activate(context: ExtensionContext): Promise<void> {
+export function activate(context: ExtensionContext): void {
   extensionClient = new ExtensionClient(context);
-  await extensionClient.onActivate();
+  extensionClient.onActivate();
 }
 
 // This method is called when extension is deactivated

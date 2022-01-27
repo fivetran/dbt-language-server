@@ -1,9 +1,9 @@
-import * as assert from 'assert';
+import { assertThat } from 'hamjest';
 import { TableDefinition } from '../TableDefinition';
 import { ZetaSqlCatalog } from '../ZetaSqlCatalog';
 
 describe('ZetaSqlCatalogTest', () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     (ZetaSqlCatalog as any).instance = null;
   });
 
@@ -43,23 +43,23 @@ describe('ZetaSqlCatalogTest', () => {
     // assert
     if (expectedProjectId) {
       const projects = zetaSqlCatalog.catalog.catalogs;
-      assert.strictEqual(projects.size, 1);
-      assert.strictEqual(projects.get(expectedProjectId)?.name, expectedProjectId);
+      assertThat(projects.size, 1);
+      assertThat(projects.get(expectedProjectId)?.name, expectedProjectId);
     }
 
     const datasets = expectedProjectId ? zetaSqlCatalog.catalog.catalogs.get(expectedProjectId)?.catalogs : zetaSqlCatalog.catalog.catalogs;
     if (expectedDataSet) {
-      assert.strictEqual(datasets?.size, 1);
-      assert.strictEqual(datasets.get(expectedDataSet)?.name, expectedDataSet);
+      assertThat(datasets?.size, 1);
+      assertThat(datasets?.get(expectedDataSet)?.name, expectedDataSet);
     }
 
     const tables = expectedDataSet ? datasets?.get(DATA_SET)?.tables : zetaSqlCatalog.catalog.tables;
-    assert.strictEqual(tables?.size, 1);
-    assert.strictEqual(tables.get(table)?.name, table);
+    assertThat(tables?.size, 1);
+    assertThat(tables?.get(table)?.name, table);
 
-    const columns = tables.get(table)?.columns;
-    assert.strictEqual(columns?.length, expectedColumns.length);
-    assert.deepStrictEqual(columns.map(c => c.getName()).sort(), expectedColumns.sort());
+    const columns = tables?.get(table)?.columns;
+    assertThat(columns?.length, expectedColumns.length);
+    assertThat(columns?.map(c => c.getName()).sort(), expectedColumns.sort());
   }
 
   it('register_shouldRegisterProjectDataSetAndTable', async () => {

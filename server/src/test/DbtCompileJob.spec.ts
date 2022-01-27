@@ -1,4 +1,4 @@
-import assert = require('assert');
+import { assertThat } from 'hamjest';
 import { err, ok } from 'neverthrow';
 import { instance, mock, verify, when } from 'ts-mockito';
 import { DbtCompileJob } from '../DbtCompileJob';
@@ -70,7 +70,7 @@ describe('DbtCompileJob', () => {
     });
   }
 
-  beforeEach(async () => {
+  beforeEach(() => {
     DbtCompileJob.COMPILE_MODEL_MAX_RETRIES = 10;
     DbtCompileJob.COMPILE_MODEL_TIMEOUT_MS = 0;
 
@@ -92,7 +92,7 @@ describe('DbtCompileJob', () => {
     await compileJob.start();
 
     // assert
-    assert.deepStrictEqual(compileJob.result, ok(COMPILED_SQL));
+    assertThat(compileJob.result, ok(COMPILED_SQL));
     verify(mockDbtRpcClient.compileModel(MODEL)).times(1);
     verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(1);
   });
@@ -109,7 +109,7 @@ describe('DbtCompileJob', () => {
     await compileJob.start();
 
     // assert
-    assert.deepStrictEqual(compileJob.result, ok(COMPILED_SQL));
+    assertThat(compileJob.result, ok(COMPILED_SQL));
     verify(mockDbtRpcClient.compileModel(MODEL)).times(2);
     verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(1);
   });
@@ -127,7 +127,7 @@ describe('DbtCompileJob', () => {
     await compileJob.start();
 
     // assert
-    assert.deepStrictEqual(compileJob.result, ok(COMPILED_SQL));
+    assertThat(compileJob.result, ok(COMPILED_SQL));
     verify(mockDbtRpcClient.compileModel(MODEL)).times(2);
   });
 
@@ -144,7 +144,7 @@ describe('DbtCompileJob', () => {
     await compileJob.start();
 
     // assert
-    assert.deepStrictEqual(compileJob.result, err(DbtCompileJob.NETWORK_ERROR));
+    assertThat(compileJob.result, err(DbtCompileJob.NETWORK_ERROR));
     verify(mockDbtRpcClient.compileModel(MODEL)).times(DbtCompileJob.COMPILE_MODEL_MAX_RETRIES + 1);
   });
 
@@ -161,7 +161,7 @@ describe('DbtCompileJob', () => {
     await compileJob.start();
 
     // assert
-    assert.deepStrictEqual(compileJob.result, err(COMPILE_MODEL_ERROR));
+    assertThat(compileJob.result, err(COMPILE_MODEL_ERROR));
     verify(mockDbtRpcClient.compileModel(MODEL)).times(DbtCompileJob.COMPILE_MODEL_MAX_RETRIES + 1);
   });
 
@@ -180,7 +180,7 @@ describe('DbtCompileJob', () => {
     await startPromise;
 
     // assert
-    assert.deepStrictEqual(compileJob.result, err(DbtCompileJob.STOP_ERROR));
+    assertThat(compileJob.result, err(DbtCompileJob.STOP_ERROR));
     verify(mockDbtRpcClient.compileModel(MODEL)).once();
   });
 
@@ -197,7 +197,7 @@ describe('DbtCompileJob', () => {
     await compileJob.start();
 
     // assert
-    assert.deepStrictEqual(compileJob.result, ok(COMPILED_SQL));
+    assertThat(compileJob.result, ok(COMPILED_SQL));
     verify(mockDbtRpcClient.compileModel(MODEL)).times(1);
     verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(2);
   });
@@ -215,7 +215,7 @@ describe('DbtCompileJob', () => {
     await compileJob.start();
 
     // assert
-    assert.deepStrictEqual(compileJob.result, ok(COMPILED_SQL));
+    assertThat(compileJob.result, ok(COMPILED_SQL));
     verify(mockDbtRpcClient.compileModel(MODEL)).times(1);
     verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(2);
   });
@@ -234,7 +234,7 @@ describe('DbtCompileJob', () => {
     await compileJob.start();
 
     // assert
-    assert.deepStrictEqual(compileJob.result, err(DbtCompileJob.NETWORK_ERROR));
+    assertThat(compileJob.result, err(DbtCompileJob.NETWORK_ERROR));
     verify(mockDbtRpcClient.compileModel(MODEL)).times(1);
     verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(DbtCompileJob.MAX_RETRIES_FOR_UNKNOWN_ERROR + 1);
   });
@@ -252,7 +252,7 @@ describe('DbtCompileJob', () => {
     await compileJob.start();
 
     // assert
-    assert.deepStrictEqual(compileJob.result, err(COMPILE_MODEL_ERROR));
+    assertThat(compileJob.result, err(COMPILE_MODEL_ERROR));
     verify(mockDbtRpcClient.compileModel(MODEL)).times(1);
     verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(1);
   });

@@ -51,11 +51,11 @@ export class DbtLanguageClient implements Disposable {
       }),
     );
 
-    this.client.onDidChangeState(async e => {
+    this.client.onDidChangeState(e => {
       if (e.newState === State.Running) {
         this.disposables.push(
-          this.client.onNotification('custom/updateQueryPreview', ([uri, text]) => {
-            this.previewContentProvider.update(uri, text);
+          this.client.onNotification('custom/updateQueryPreview', ({ uri, previewText, diagnostics }) => {
+            this.previewContentProvider.update(uri, previewText, diagnostics);
           }),
 
           this.client.onRequest('custom/getPython', async () => {
@@ -67,7 +67,7 @@ export class DbtLanguageClient implements Disposable {
             }
           }),
 
-          await this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),
+          this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),
         );
 
         console.log('Client switched to state "Running"');

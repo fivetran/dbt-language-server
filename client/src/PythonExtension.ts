@@ -16,7 +16,7 @@ export class PythonExtension {
 
     const [path] = details.execCommand;
 
-    console.log(`Python path used: ${path}`);
+    console.log(`Python path used: ${path as string}`);
     return path;
   }
 }

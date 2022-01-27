@@ -49,7 +49,7 @@ export class DbtProfileCreator {
     return ok(undefined);
   }
 
-  async createDbtProfile(): Promise<Result<DbtProfileResult, string>> {
+  createDbtProfile(): Result<DbtProfileResult, string> {
     let profiles = undefined;
     try {
       profiles = YamlParser.parseYamlFile(this.yamlParser.profilesPath);

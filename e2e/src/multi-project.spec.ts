@@ -1,6 +1,6 @@
-import * as assert from 'assert';
-import { Uri } from 'vscode';
-import { activateAndWait, getCustomDocUri, getDiagnostics, getDocUri, getPreviewText } from './helper';
+import { assertThat } from 'hamjest';
+import { languages, Uri } from 'vscode';
+import { activateAndWait, getCustomDocUri, getDocUri, getPreviewText, PREVIEW_URI, sleep } from './helper';
 
 suite('Multi-project', () => {
   test('Should run several dbt instances', async () => {
@@ -20,13 +20,15 @@ suite('Multi-project', () => {
   test('Should run project with dbt version specified for workspace', async () => {
     await activateAndWait(getCustomDocUri('special-python-settings/models/version.sql'));
 
-    assert.strictEqual(await getPreviewText(), '0.20.1');
+    assertThat(getPreviewText(), '0.20.1');
   });
 
   async function testOneProject(docUri: Uri, expectedPreview: string): Promise<void> {
     await activateAndWait(docUri);
 
-    assert.strictEqual(await getPreviewText(), expectedPreview);
-    assert.strictEqual(getDiagnostics().length, 0);
+    assertThat(getPreviewText(), expectedPreview);
+    await sleep(100);
+    assertThat(languages.getDiagnostics(docUri).length, 0);
+    assertThat(languages.getDiagnostics(Uri.parse(PREVIEW_URI)).length, 0);
   }
 });

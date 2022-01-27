@@ -1,42 +1,61 @@
-import * as assert from 'assert';
 import { spawnSync } from 'child_process';
+import { assertThat, greaterThanOrEqualTo } from 'hamjest';
 import * as path from 'path';
-import * as vscode from 'vscode';
-import { TextDocumentChangeEvent, TextEditorEdit } from 'vscode';
+import {
+  commands,
+  CompletionItem,
+  CompletionList,
+  DefinitionLink,
+  extensions,
+  Position,
+  Range,
+  Selection,
+  TextDocument,
+  TextDocumentChangeEvent,
+  TextEditor,
+  TextEditorEdit,
+  Uri,
+  window,
+  workspace,
+} from 'vscode';
 
-export let doc: vscode.TextDocument;
-export let editor: vscode.TextEditor;
+export let doc: TextDocument;
+export let editor: TextEditor;
 
 type voidFunc = () => void;
 
 const PROJECTS_PATH = path.resolve(__dirname, '../projects');
 const TEST_FIXTURE_PATH = path.resolve(PROJECTS_PATH, 'test-fixture');
+export const PREVIEW_URI = 'query-preview:Preview?dbt-language-server';
 
-vscode.workspace.onDidChangeTextDocument(onDidChangeTextDocument);
+workspace.onDidChangeTextDocument(onDidChangeTextDocument);
 
 let previewPromiseResolve: voidFunc | undefined;
 let documentPromiseResolve: voidFunc | undefined;
 
-export async function activateAndWait(docUri: vscode.Uri): Promise<void> {
+export async function activateAndWait(docUri: Uri): Promise<void> {
   // The extensionId is `publisher.name` from package.json
-  const ext = vscode.extensions.getExtension('Fivetran.dbt-language-server');
+  const ext = extensions.getExtension('Fivetran.dbt-language-server');
   if (!ext) {
     throw new Error('Fivetran.dbt-language-server not found');
   }
 
-  const existingEditor = vscode.window.visibleTextEditors.find(e => e.document.uri.path === docUri.path);
-  const doNotWaitChanges =
-    existingEditor && existingEditor.document.getText() === vscode.window.activeTextEditor?.document.getText() && getPreviewEditor();
+  const existingEditor = window.visibleTextEditors.find(e => e.document.uri.path === docUri.path);
+  const doNotWaitChanges = existingEditor && existingEditor.document.getText() === window.activeTextEditor?.document.getText() && getPreviewEditor();
+  if (doNotWaitChanges) {
+    console.log(`doNotWaitChanges. existingEditor: ${existingEditor.document.uri.toString()} activeEditor: ${window.activeTextEditor?.document}`);
+  }
   const activateFinished = doNotWaitChanges ? Promise.resolve() : createChangePromise('preview');
 
   await ext.activate();
-  doc = await vscode.workspace.openTextDocument(docUri);
-  editor = await vscode.window.showTextDocument(doc);
+  doc = await workspace.openTextDocument(docUri);
+  editor = await window.showTextDocument(doc);
   await showPreview();
   await activateFinished;
 }
 
 function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
+  console.log(JSON.stringify(e.contentChanges));
   if (e.contentChanges.length === 1 && e.contentChanges[0].text === '') {
     return;
   }
@@ -59,10 +78,10 @@ export function getMainEditorText(): string {
 }
 
 export async function showPreview(): Promise<void> {
-  await vscode.commands.executeCommand('editor.showQueryPreview');
+  await commands.executeCommand('editor.showQueryPreview');
 }
 
-export async function getPreviewText(): Promise<string> {
+export function getPreviewText(): string {
   const previewEditor = getPreviewEditor();
   if (!previewEditor) {
     throw new Error('Preview editor not found');
@@ -71,12 +90,8 @@ export async function getPreviewText(): Promise<string> {
   return previewEditor.document.getText();
 }
 
-function getPreviewEditor(): vscode.TextEditor | undefined {
-  return vscode.window.visibleTextEditors.find(e => e.document.uri.toString() === 'query-preview:Preview?dbt-language-server');
-}
-
-export function getDiagnostics(): vscode.Diagnostic[] {
-  return vscode.languages.getDiagnostics(doc.uri);
+function getPreviewEditor(): TextEditor | undefined {
+  return window.visibleTextEditors.find(e => e.document.uri.toString() === PREVIEW_URI);
 }
 
 export function sleep(ms: number): Promise<unknown> {
@@ -89,25 +104,25 @@ export const getDocPath = (p: string): string => {
   return path.resolve(TEST_FIXTURE_PATH, 'models', p);
 };
 
-export const getDocUri = (p: string): vscode.Uri => {
-  return vscode.Uri.file(getDocPath(p));
+export const getDocUri = (p: string): Uri => {
+  return Uri.file(getDocPath(p));
 };
 
-export const getCustomDocUri = (p: string): vscode.Uri => {
-  return vscode.Uri.file(path.resolve(PROJECTS_PATH, p));
+export const getCustomDocUri = (p: string): Uri => {
+  return Uri.file(path.resolve(PROJECTS_PATH, p));
 };
 
 export async function setTestContent(content: string): Promise<void> {
   if (doc.getText() === content) {
     return;
   }
-  const all = new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length));
+  const all = new Range(doc.positionAt(0), doc.positionAt(doc.getText().length));
   await edit(eb => eb.replace(all, content));
   const lastPos = doc.positionAt(doc.getText().length);
-  editor.selection = new vscode.Selection(lastPos, lastPos);
+  editor.selection = new Selection(lastPos, lastPos);
 }
 
-export async function insertText(position: vscode.Position, value: string): Promise<void> {
+export async function insertText(position: Position, value: string): Promise<void> {
   return edit(eb => eb.insert(position, value));
 }
 
@@ -120,7 +135,7 @@ export async function replaceText(oldText: string, newText: string): Promise<voi
   const positionStart = editor.document.positionAt(offsetStart);
   const positionEnd = editor.document.positionAt(offsetStart + oldText.length);
 
-  return edit(eb => eb.replace(new vscode.Range(positionStart, positionEnd), newText));
+  return edit(eb => eb.replace(new Range(positionStart, positionEnd), newText));
 }
 
 async function edit(callback: (editBuilder: TextEditorEdit) => void): Promise<void> {
@@ -139,7 +154,7 @@ async function createChangePromise(type: 'preview' | 'document'): Promise<void> 
   });
 }
 
-export function getCursorPosition(): vscode.Position {
+export function getCursorPosition(): Position {
   return editor.selection.end;
 }
 
@@ -168,31 +183,22 @@ function runCliCommand(args: string[]): void {
   });
 }
 
-export async function testCompletion(
-  docUri: vscode.Uri,
-  position: vscode.Position,
-  expectedCompletionList: vscode.CompletionList,
-  triggerChar?: string,
-): Promise<void> {
+export async function testCompletion(docUri: Uri, position: Position, expectedCompletionList: CompletionList, triggerChar?: string): Promise<void> {
   const actualCompletionList = await triggerCompletion(docUri, position, triggerChar);
 
-  assert.ok(actualCompletionList.items.length >= expectedCompletionList.items.length);
+  assertThat(actualCompletionList.items.length, greaterThanOrEqualTo(expectedCompletionList.items.length));
   expectedCompletionList.items.forEach((expectedItem, i) => {
     const actualItem = actualCompletionList.items[i];
-    assert.strictEqual(actualItem.label, expectedItem.label);
-    assert.strictEqual(actualItem.kind, expectedItem.kind);
+    assertThat(actualItem.label, expectedItem.label);
+    assertThat(actualItem.kind, expectedItem.kind);
   });
 }
 
-export async function triggerCompletion(
-  docUri: vscode.Uri,
-  position: vscode.Position,
-  triggerChar?: string,
-): Promise<vscode.CompletionList<vscode.CompletionItem>> {
-  // Executing the command `vscode.executeCompletionItemProvider` to simulate triggering completion
-  return vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', docUri, position, triggerChar);
+export async function triggerCompletion(docUri: Uri, position: Position, triggerChar?: string): Promise<CompletionList<CompletionItem>> {
+  // Simulate triggering completion
+  return commands.executeCommand<CompletionList>('vscode.executeCompletionItemProvider', docUri, position, triggerChar);
 }
 
-export async function triggerDefinition(docUri: vscode.Uri, position: vscode.Position): Promise<vscode.DefinitionLink[]> {
-  return vscode.commands.executeCommand<vscode.DefinitionLink[]>('vscode.executeDefinitionProvider', docUri, position);
+export async function triggerDefinition(docUri: Uri, position: Position): Promise<DefinitionLink[]> {
+  return commands.executeCommand<DefinitionLink[]>('vscode.executeDefinitionProvider', docUri, position);
 }

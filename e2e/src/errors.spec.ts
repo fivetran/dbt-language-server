@@ -1,37 +1,52 @@
-import * as assert from 'assert';
-import * as vscode from 'vscode';
-import { activateAndWait, getDocUri, insertText, sleep } from './helper';
+import { assertThat } from 'hamjest';
+import { Diagnostic, languages, Position, Range, Uri } from 'vscode';
+import { activateAndWait, getDocUri, insertText, PREVIEW_URI, sleep } from './helper';
 
 suite('Errors', () => {
-  const docUri = getDocUri('errors.sql');
+  const DOC_URI = getDocUri('errors.sql');
+  const ERROR = 'Syntax error: SELECT list must not be empty';
 
   test('Should show error', async () => {
     // arrange
-    await activateAndWait(docUri);
+    await activateAndWait(DOC_URI);
 
     // assert
-    await testDiagnostics(docUri, [new vscode.Diagnostic(new vscode.Range(0, 8, 0, 12), 'Syntax error: SELECT list must not be empty')]);
+    await testDiagnostics(DOC_URI, [new Diagnostic(new Range(0, 8, 0, 12), ERROR)]);
   });
 
   test('Should show no errors after fix query', async () => {
     // arrange
-    await activateAndWait(docUri);
+    await activateAndWait(DOC_URI);
 
     // act
-    await insertText(new vscode.Position(0, 7), '*');
+    await insertText(new Position(0, 7), '*');
 
     // assert
-    await sleep(1000);
-    await testDiagnostics(docUri, []);
+    await testDiagnostics(DOC_URI, []);
   });
 
-  function testDiagnostics(uri: vscode.Uri, diagnostics: vscode.Diagnostic[]): void {
-    const actualDiagnostics = vscode.languages.getDiagnostics(uri);
+  async function testDiagnostics(uri: Uri, diagnostics: Diagnostic[]): Promise<void> {
+    await sleep(100);
 
-    assert.strictEqual(actualDiagnostics.length, diagnostics.length);
+    const rawDocDiagnostics = languages.getDiagnostics(uri);
+    const previewDiagnostics = languages.getDiagnostics(Uri.parse(PREVIEW_URI));
+
+    assertThat(rawDocDiagnostics.length, diagnostics.length);
+    assertThat(previewDiagnostics.length, diagnostics.length);
+
     if (diagnostics.length === 1) {
-      assert.strictEqual(actualDiagnostics[0].message, 'Syntax error: SELECT list must not be empty');
-      assert.deepStrictEqual(actualDiagnostics[0].range, new vscode.Range(0, 8, 0, 12));
+      assertThat(rawDocDiagnostics[0].message, diagnostics[0].message);
+      assertRange(rawDocDiagnostics[0].range, diagnostics[0].range);
+
+      assertThat(previewDiagnostics[0].message, diagnostics[0].message);
+      assertRange(previewDiagnostics[0].range, diagnostics[0].range);
     }
+  }
+
+  function assertRange(actualRange: Range, expectedRange: Range): void {
+    assertThat(actualRange.start.line, expectedRange.start.line);
+    assertThat(actualRange.start.character, expectedRange.start.character);
+    assertThat(actualRange.end.line, expectedRange.end.line);
+    assertThat(actualRange.end.character, expectedRange.end.character);
   }
 });

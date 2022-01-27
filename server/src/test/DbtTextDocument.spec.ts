@@ -12,7 +12,9 @@ describe('DbtTextDocument', () => {
   let document: DbtTextDocument;
   let mockModelCompiler: ModelCompiler;
 
-  beforeEach(async () => {
+  beforeEach(() => {
+    DbtTextDocument.DEBOUNCE_TIMEOUT = 1;
+
     mockModelCompiler = mock(ModelCompiler);
     when(mockModelCompiler.onCompilationError).thenReturn(new Emitter<string>().event);
     when(mockModelCompiler.onCompilationFinished).thenReturn(new Emitter<string>().event);
@@ -31,10 +33,10 @@ describe('DbtTextDocument', () => {
 
   it('Should compile only once', async () => {
     // act
-    await document.forceRecompile();
-    await document.forceRecompile();
-    await document.forceRecompile();
-    await document.forceRecompile();
+    document.forceRecompile();
+    document.forceRecompile();
+    document.forceRecompile();
+    document.forceRecompile();
 
     // assert
     await sleepMoreThanDebounceTime();
@@ -43,9 +45,9 @@ describe('DbtTextDocument', () => {
 
   it('Should compile twice if debounce timeout exceeded between compile calls', async () => {
     // act
-    await document.forceRecompile();
+    document.forceRecompile();
     await sleepMoreThanDebounceTime();
-    await document.forceRecompile();
+    document.forceRecompile();
 
     // assert
     await sleepMoreThanDebounceTime();
@@ -53,6 +55,6 @@ describe('DbtTextDocument', () => {
   });
 
   async function sleepMoreThanDebounceTime(): Promise<void> {
-    await sleep(1.3 * DbtTextDocument.DEBOUNCE_TIMEOUT);
+    await sleep(2 * DbtTextDocument.DEBOUNCE_TIMEOUT);
   }
 });
