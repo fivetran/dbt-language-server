@@ -3,7 +3,7 @@ import { DefinitionLink, Event, integer, LocationLink, Position, Range } from 'v
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Expression } from './JinjaParser';
 import { ManifestMacro, ManifestModel, ManifestSource } from './manifest/ManifestJson';
-import { positionInRange } from './Utils';
+import { positionInRange } from './utils/Utils';
 
 export class DefinitionProvider {
   static readonly DBT_PACKAGE = 'dbt';

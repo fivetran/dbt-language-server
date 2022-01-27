@@ -1,6 +1,6 @@
 import { Position, Range, TextDocumentContentChangeEvent } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { comparePositions, rangesOverlap } from './Utils';
+import { comparePositions, rangesOverlap } from './utils/Utils';
 
 interface ParseNode {
   expression: string;

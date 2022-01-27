@@ -1,7 +1,7 @@
 import { DbtRpcClient } from './DbtRpcClient';
 import { Command } from './dbt_commands/Command';
 import { ProcessExecutor } from './ProcessExecutor';
-import { deferred } from './Utils';
+import { deferred } from './utils/Utils';
 
 export class DbtRpcServer {
   static readonly PROCESS_EXECUTOR = new ProcessExecutor();

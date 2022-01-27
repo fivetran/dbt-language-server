@@ -36,7 +36,7 @@ import { ProgressReporter } from './ProgressReporter';
 import { SchemaTracker } from './SchemaTracker';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { SqlRefConverter } from './SqlRefConverter';
-import { debounce, getDocumentModelName, getIdentifierRangeAtPosition, getJinjaContentOffset, positionInRange } from './Utils';
+import { debounce, getDocumentModelName, getIdentifierRangeAtPosition, getJinjaContentOffset, positionInRange } from './utils/Utils';
 import { ZetaSqlAst } from './ZetaSqlAst';
 import { ZetaSqlCatalog } from './ZetaSqlCatalog';
 

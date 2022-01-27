@@ -2,7 +2,7 @@
 import { assertThat } from 'hamjest';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Position, Range } from 'vscode-languageserver-types';
-import { comparePositions, extractDatasetFromFullName, getIdentifierRangeAtPosition, getJinjaContentOffset, rangesOverlap } from '../Utils';
+import { comparePositions, extractDatasetFromFullName, getIdentifierRangeAtPosition, getJinjaContentOffset, rangesOverlap } from '../utils/Utils';
 
 describe('Utils', () => {
   it('comparePositions_shouldComparePositions', () => {

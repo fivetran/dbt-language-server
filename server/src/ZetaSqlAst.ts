@@ -5,7 +5,7 @@ import { ResolvedFunctionCallProto } from '@fivetrandevelopers/zetasql/lib/types
 import { ResolvedOutputColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedOutputColumnProto';
 import { ResolvedQueryStmtProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedQueryStmtProto';
 import { ResolvedTableScanProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedTableScanProto';
-import { extractDatasetFromFullName } from './Utils';
+import { extractDatasetFromFullName } from './utils/Utils';
 
 export class ZetaSqlAst {
   propertyNames = [

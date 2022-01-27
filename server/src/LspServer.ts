@@ -38,7 +38,7 @@ import { FileChangeListener } from './FileChangeListener';
 import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
-import { randomNumber } from './Utils';
+import { randomNumber } from './utils/Utils';
 import { YamlParser } from './YamlParser';
 import findFreePortPmfy = require('find-free-port');
 
