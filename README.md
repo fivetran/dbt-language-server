@@ -55,10 +55,11 @@ Prior to using the extension, you need to perform the following steps:
 1. [Install bigquery-dbt and dbt-rpc](https://docs.getdbt.com/dbt-cli/installation) (e.g `python3 -m pip install dbt-bigquery dbt-rpc`)
 2. In Terminal, test that dbt-rpc works running the `dbt-rpc --version` command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g. `~/dbt-env/bin/python3`).
 3. Create a file named `profiles.yml` in the `~/.dbt/` folder and add a profile to connect to BigQuery
-   * using the [OAuth via gcloud](docs/BigQueryProfile.md#oauth-via-gcloud)
-   * using the [Service Account File](docs/BigQueryProfile.md#service-account-file)
-   * using the [Service Account JSON](docs/BigQueryProfile.md#service-account-json)
-4. Open the dbt project root folder that contains `dbt_project.yml` for the configured profile in the new VSCode window.
+   * using the [oauth via gcloud](#oauth-via-gcloud)
+   * using the [oauth token-based](#oauth-token-based)
+   * using the [service account file](#service-account-file)
+   * using the [service account json](#service-account-json)
+4. Open the dbt project the new VS Code window.
 5. Now you can open your model and see the dbt compile preview by right-clicking the code and choosing **Show query preview** from the context menu.
 
 ## Profiles
