@@ -17,6 +17,7 @@ import {
   SignatureHelpParams,
   TextDocumentContentChangeEvent,
   TextDocumentItem,
+  TextDocumentSaveReason,
   WorkspaceChange,
   _Connection,
 } from 'vscode-languageserver';
@@ -41,7 +42,6 @@ export class DbtTextDocument {
   static DEBOUNCE_TIMEOUT = 300;
 
   static readonly ZETA_SQL_AST = new ZetaSqlAst();
-  static readonly JINJA_PARSER = new JinjaParser();
 
   rawDocument: TextDocument;
   compiledDocument: TextDocument;
@@ -50,7 +50,9 @@ export class DbtTextDocument {
   ast?: AnalyzeResponse;
   schemaTracker: SchemaTracker;
   signatureHelpProvider = new SignatureHelpProvider();
-  sqlRefConverter = new SqlRefConverter(DbtTextDocument.JINJA_PARSER);
+  sqlRefConverter = new SqlRefConverter(this.jinjaParser);
+
+  firstSave = true;
 
   constructor(
     doc: TextDocumentItem,
@@ -58,6 +60,7 @@ export class DbtTextDocument {
     private progressReporter: ProgressReporter,
     private completionProvider: CompletionProvider,
     private modelCompiler: ModelCompiler,
+    private jinjaParser: JinjaParser,
     bigQueryClient: BigQueryClient,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -68,6 +71,19 @@ export class DbtTextDocument {
     this.modelCompiler.onCompilationError(this.onCompilationError.bind(this));
     this.modelCompiler.onCompilationFinished(this.onCompilationFinished.bind(this));
     this.modelCompiler.onFinishAllCompilationJobs(this.onFinishAllCompilationTasks.bind(this));
+  }
+
+  willSaveTextDocument(reason: TextDocumentSaveReason): void {
+    // Document can be modified and not saved before language server initialized, in this case we need to compile it on first save command call (see unit test).
+    if (
+      this.firstSave &&
+      !this.requireCompileOnSave &&
+      reason === TextDocumentSaveReason.Manual &&
+      this.jinjaParser.hasJinjas(this.rawDocument.getText())
+    ) {
+      this.requireCompileOnSave = true;
+    }
+    this.firstSave = false;
   }
 
   async didSaveTextDocument(dbtRpcServer: DbtRpcServer): Promise<void> {
@@ -121,14 +137,14 @@ export class DbtTextDocument {
     }
 
     for (const change of changes) {
-      if (DbtTextDocument.JINJA_PARSER.hasJinjas(change.text)) {
+      if (this.jinjaParser.hasJinjas(change.text)) {
         return true;
       }
     }
 
-    const jinjas = DbtTextDocument.JINJA_PARSER.findAllJinjaRanges(this.rawDocument);
+    const jinjas = this.jinjaParser.findAllJinjaRanges(this.rawDocument);
 
-    return jinjas === undefined || (jinjas.length > 0 && DbtTextDocument.JINJA_PARSER.isJinjaModified(jinjas, changes));
+    return jinjas === undefined || (jinjas.length > 0 && this.jinjaParser.isJinjaModified(jinjas, changes));
   }
 
   forceRecompile(): void {
