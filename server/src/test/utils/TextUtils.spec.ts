@@ -2,7 +2,7 @@ import { assertThat, instanceOf, throws } from 'hamjest';
 import { Position, Range } from 'vscode-languageserver';
 import { getWordRangeAtPosition } from '../../utils/TextUtils';
 
-describe('Utils', () => {
+describe('TextUtils', () => {
   it('getWordRangeAtPosition', () => {
     const lines = ['aaaa bbbb+cccc abc'];
     let range: Range;
