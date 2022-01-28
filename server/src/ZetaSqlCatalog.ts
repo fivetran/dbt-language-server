@@ -6,7 +6,11 @@ import { TableDefinition } from './TableDefinition';
 export class ZetaSqlCatalog {
   private static instance: ZetaSqlCatalog | undefined;
 
-  readonly catalog = new SimpleCatalog('catalog');
+  private readonly catalog = new SimpleCatalog('catalog');
+
+  getCatalog(): SimpleCatalog {
+    return this.catalog;
+  }
 
   static getInstance(): ZetaSqlCatalog {
     if (!ZetaSqlCatalog.instance) {

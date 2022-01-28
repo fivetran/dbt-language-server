@@ -18,11 +18,11 @@ import {
   TextDocumentContentChangeEvent,
   TextDocumentItem,
   TextDocumentSaveReason,
+  VersionedTextDocumentIdentifier,
   WorkspaceChange,
   _Connection,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { BigQueryClient } from './bigquery/BigQueryClient';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtRpcServer } from './DbtRpcServer';
 import { DestinationDefinition } from './DestinationDefinition';
@@ -48,7 +48,6 @@ export class DbtTextDocument {
   requireCompileOnSave: boolean;
 
   ast?: AnalyzeResponse;
-  schemaTracker: SchemaTracker;
   signatureHelpProvider = new SignatureHelpProvider();
   sqlRefConverter = new SqlRefConverter(this.jinjaParser);
 
@@ -61,11 +60,12 @@ export class DbtTextDocument {
     private completionProvider: CompletionProvider,
     private modelCompiler: ModelCompiler,
     private jinjaParser: JinjaParser,
-    bigQueryClient: BigQueryClient,
+    private schemaTracker: SchemaTracker,
+    private zetaSqlCatalog: ZetaSqlCatalog,
+    private zetaSqlClient: ZetaSQLClient,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
-    this.schemaTracker = new SchemaTracker(bigQueryClient);
     this.requireCompileOnSave = false;
 
     this.modelCompiler.onCompilationError(this.onCompilationError.bind(this));
@@ -86,18 +86,27 @@ export class DbtTextDocument {
     this.firstSave = false;
   }
 
-  async didSaveTextDocument(dbtRpcServer: DbtRpcServer): Promise<void> {
+  async didSaveTextDocument(dbtRpcServer?: DbtRpcServer): Promise<void> {
     if (this.requireCompileOnSave) {
       this.requireCompileOnSave = false;
-      dbtRpcServer.refreshServer();
+      dbtRpcServer?.refreshServer();
       this.debouncedCompile();
     } else {
       await this.onCompilationFinished(this.compiledDocument.getText());
     }
   }
 
-  didOpenTextDocument(): void {
-    this.debouncedCompile();
+  async didOpenTextDocument(): Promise<void> {
+    this.didChangeTextDocument({
+      textDocument: VersionedTextDocumentIdentifier.create(this.rawDocument.uri, this.rawDocument.version),
+      contentChanges: [
+        {
+          range: Range.create(this.rawDocument.positionAt(0), this.rawDocument.positionAt(this.rawDocument.getText().length)),
+          text: this.rawDocument.getText(),
+        },
+      ],
+    });
+    await this.didSaveTextDocument();
   }
 
   didChangeTextDocument(params: DidChangeTextDocumentParams): void {
@@ -219,18 +228,18 @@ export class DbtTextDocument {
   async getAstOrError(): Promise<Result<AnalyzeResponse__Output, string>> {
     const analyzeRequest: AnalyzeRequest = {
       sqlStatement: this.compiledDocument.getText(),
-      registeredCatalogId: ZetaSqlCatalog.getInstance().catalog.registeredId,
+      registeredCatalogId: this.zetaSqlCatalog.getCatalog().registeredId,
 
       options: {
         parseLocationRecordType: ParseLocationRecordType.PARSE_LOCATION_RECORD_CODE_SEARCH,
 
         errorMessageMode: ErrorMessageMode.ERROR_MESSAGE_ONE_LINE,
-        languageOptions: ZetaSqlCatalog.getInstance().catalog.builtinFunctionOptions.languageOptions,
+        languageOptions: this.zetaSqlCatalog.getCatalog().builtinFunctionOptions.languageOptions,
       },
     };
 
     try {
-      const ast = await ZetaSQLClient.getInstance().analyze(analyzeRequest);
+      const ast = await this.zetaSqlClient.analyze(analyzeRequest);
       console.log('AST was successfully received');
       return ok(ast);
     } catch (e: any) {
@@ -241,13 +250,13 @@ export class DbtTextDocument {
 
   async ensureCatalogInitialized(): Promise<void> {
     await this.schemaTracker.refreshTableNames(this.compiledDocument.getText());
-    if (this.schemaTracker.hasNewTables || !ZetaSqlCatalog.getInstance().isRegistered()) {
+    if (this.schemaTracker.hasNewTables || !this.zetaSqlCatalog.isRegistered()) {
       await this.registerCatalog();
     }
   }
 
   async registerCatalog(): Promise<void> {
-    await ZetaSqlCatalog.getInstance().register(this.schemaTracker.tableDefinitions);
+    await this.zetaSqlCatalog.register(this.schemaTracker.tableDefinitions);
     this.schemaTracker.resetHasNewTables();
   }
 

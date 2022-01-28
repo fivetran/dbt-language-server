@@ -1,13 +1,16 @@
+import { SimpleCatalog, ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { instance, mock, verify, when } from 'ts-mockito';
-import { Emitter, TextDocumentItem, TextDocumentSaveReason, _Connection } from 'vscode-languageserver';
-import { BigQueryClient } from '../bigquery/BigQueryClient';
+import { Emitter, TextDocumentSaveReason, _Connection } from 'vscode-languageserver';
 import { CompletionProvider } from '../CompletionProvider';
 import { DbtRpcServer } from '../DbtRpcServer';
 import { DbtTextDocument } from '../DbtTextDocument';
 import { JinjaParser } from '../JinjaParser';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProgressReporter } from '../ProgressReporter';
+import { SchemaTracker } from '../SchemaTracker';
+import { ZetaSqlCatalog } from '../ZetaSqlCatalog';
 import { sleep } from './helper';
+import Long = require('long');
 
 describe('DbtTextDocument', () => {
   const TEXT = 'select 1;';
@@ -15,6 +18,9 @@ describe('DbtTextDocument', () => {
   let document: DbtTextDocument;
   let mockModelCompiler: ModelCompiler;
   let mockJinjaParser: JinjaParser;
+  let mockSchemaTracker: SchemaTracker;
+  let mockZetaSqlCatalog: ZetaSqlCatalog;
+  let mockZetaSqlClient: ZetaSQLClient;
 
   beforeEach(() => {
     DbtTextDocument.DEBOUNCE_TIMEOUT = 0;
@@ -25,7 +31,16 @@ describe('DbtTextDocument', () => {
     when(mockModelCompiler.onFinishAllCompilationJobs).thenReturn(new Emitter<void>().event);
 
     mockJinjaParser = mock(JinjaParser);
-    TextDocumentItem;
+    mockSchemaTracker = mock(SchemaTracker);
+    mockZetaSqlCatalog = mock(ZetaSqlCatalog);
+
+    const simpleCatalog = new SimpleCatalog('catalog');
+    simpleCatalog.registeredId = new Long(1);
+    simpleCatalog.builtinFunctionOptions = { languageOptions: {} };
+    when(mockZetaSqlCatalog.getCatalog()).thenReturn(simpleCatalog);
+
+    mockZetaSqlClient = mock(ZetaSQLClient);
+
     document = new DbtTextDocument(
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
       mock<_Connection>(),
@@ -33,7 +48,9 @@ describe('DbtTextDocument', () => {
       mock(CompletionProvider),
       instance(mockModelCompiler),
       instance(mockJinjaParser),
-      mock(BigQueryClient),
+      instance(mockSchemaTracker),
+      instance(mockZetaSqlCatalog),
+      instance(mockZetaSqlClient),
     );
   });
 
@@ -67,7 +84,7 @@ describe('DbtTextDocument', () => {
     when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(true);
 
     // act
-    document.didOpenTextDocument();
+    await document.didOpenTextDocument();
     await sleepMoreThanDebounceTime();
 
     document.willSaveTextDocument(TextDocumentSaveReason.Manual);
@@ -78,6 +95,49 @@ describe('DbtTextDocument', () => {
     // assert
     verify(mockRpcServer.refreshServer()).once();
     verify(mockModelCompiler.compile()).twice();
+  });
+
+  it('Should not compile for first save in Auto save mode', async () => {
+    // arrange
+    when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(true);
+
+    // act
+    await document.didOpenTextDocument();
+    await sleepMoreThanDebounceTime();
+
+    document.willSaveTextDocument(TextDocumentSaveReason.AfterDelay);
+    const mockRpcServer = mock(DbtRpcServer);
+    await document.didSaveTextDocument(instance(mockRpcServer));
+    await sleepMoreThanDebounceTime();
+
+    // assert
+    verify(mockRpcServer.refreshServer()).never();
+    verify(mockModelCompiler.compile()).once();
+  });
+
+  it('Should not compile once when opening', async () => {
+    // arrange
+    when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(true);
+
+    // act
+    await document.didOpenTextDocument();
+    await sleepMoreThanDebounceTime();
+
+    // assert
+    verify(mockModelCompiler.compile()).once();
+  });
+
+  it('Should not compile query without jinja', async () => {
+    // arrange
+    when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(false);
+    when(mockJinjaParser.findAllJinjaRanges(document.rawDocument)).thenReturn([]);
+
+    // act
+    await document.didOpenTextDocument();
+    await sleepMoreThanDebounceTime();
+
+    // assert
+    verify(mockModelCompiler.compile()).never();
   });
 
   async function sleepMoreThanDebounceTime(): Promise<void> {

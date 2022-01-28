@@ -37,8 +37,10 @@ import { JinjaParser } from './JinjaParser';
 import { ManifestParser } from './ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
+import { SchemaTracker } from './SchemaTracker';
 import { randomNumber } from './Utils';
 import { YamlParser } from './YamlParser';
+import { ZetaSqlCatalog } from './ZetaSqlCatalog';
 import findFreePortPmfy = require('find-free-port');
 
 interface TelemetryEvent {
@@ -232,6 +234,10 @@ export class LspServer {
     }
 
     if (!document && this.bigQueryClient) {
+      if (!(await this.isDbtReady())) {
+        return;
+      }
+
       document = new DbtTextDocument(
         params.textDocument,
         this.connection,
@@ -239,14 +245,13 @@ export class LspServer {
         this.completionProvider,
         new ModelCompiler(this.dbtRpcClient, uri, this.workspaceFolder),
         new JinjaParser(),
-        this.bigQueryClient,
+        new SchemaTracker(this.bigQueryClient),
+        ZetaSqlCatalog.getInstance(),
+        ZetaSQLClient.getInstance(),
       );
       this.openedDocuments.set(uri, document);
 
-      if (!(await this.isDbtReady())) {
-        return;
-      }
-      document.didOpenTextDocument();
+      await document.didOpenTextDocument();
     }
   }
 
