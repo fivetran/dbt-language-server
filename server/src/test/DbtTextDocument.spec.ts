@@ -3,7 +3,7 @@ import { Emitter, TextDocumentItem, _Connection } from 'vscode-languageserver';
 import { BigQueryClient } from '../bigquery/BigQueryClient';
 import { CompletionProvider } from '../CompletionProvider';
 import { DbtTextDocument } from '../DbtTextDocument';
-import { DefinitionProvider } from '../DefinitionProvider';
+import { JinjaDefinitionProvider } from '../definition/JinjaDefinitionProvider';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProgressReporter } from '../ProgressReporter';
 import { sleep } from './helper';
@@ -25,7 +25,7 @@ describe('DbtTextDocument', () => {
       mock<_Connection>(),
       mock(ProgressReporter),
       mock(CompletionProvider),
-      mock(DefinitionProvider),
+      mock(JinjaDefinitionProvider),
       instance(mockModelCompiler),
       mock(BigQueryClient),
     );

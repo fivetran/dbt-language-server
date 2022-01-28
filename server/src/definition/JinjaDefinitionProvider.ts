@@ -1,12 +1,12 @@
 import * as path from 'path';
 import { DefinitionLink, Event, integer, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { Expression } from './JinjaParser';
-import { ManifestMacro, ManifestModel, ManifestSource } from './manifest/ManifestJson';
-import { getWordRangeAtPosition } from './utils/TextUtils';
-import { getAbsoluteRange, getRelativePosition } from './utils/Utils';
+import { Expression } from '../JinjaParser';
+import { ManifestMacro, ManifestModel, ManifestSource } from '../manifest/ManifestJson';
+import { getWordRangeAtPosition } from '../utils/TextUtils';
+import { getAbsoluteRange, getRelativePosition } from '../utils/Utils';
 
-export class DefinitionProvider {
+export class JinjaDefinitionProvider {
   static readonly MODEL_PATTERN = /todo/;
   static readonly MACRO_PATTERN = /todo/;
   static readonly SOURCE_PATTERN = /(source)\([^)]*\)/;
@@ -48,19 +48,17 @@ export class DefinitionProvider {
   }
 
   onExpressionDefinition(document: TextDocument, expression: Expression, position: Position): DefinitionLink[] | undefined {
-    const expressionLines = expression.expression.split('\n');
-
-    const refDefinitions = this.searchRefDefinitions(document, position, expressionLines);
+    const refDefinitions = this.searchRefDefinitions(document, position, expression);
     if (refDefinitions) {
       return refDefinitions;
     }
 
-    const macroDefinitions = this.searchMacroDefinitions();
+    const macroDefinitions = this.searchMacroDefinitions(document, position, expression);
     if (macroDefinitions) {
       return macroDefinitions;
     }
 
-    const sourceDefinitions = this.searchSourceDefinitions(document, position, expression, expressionLines);
+    const sourceDefinitions = this.searchSourceDefinitions(document, position, expression);
     if (sourceDefinitions) {
       return sourceDefinitions;
     }
@@ -68,23 +66,21 @@ export class DefinitionProvider {
     return undefined;
   }
 
-  private searchRefDefinitions(document: TextDocument, position: Position, lines: string[]): DefinitionLink[] | undefined {
-    if (!lines[0].startsWith('{{')) {
+  private searchRefDefinitions(document: TextDocument, position: Position, expression: Expression): DefinitionLink[] | undefined {
+    const expressionLines = expression.expression.split('\n');
+    if (!expressionLines[0].startsWith('{{')) {
       return undefined;
     }
     return undefined;
   }
 
-  private searchMacroDefinitions(): DefinitionLink[] | undefined {
+  private searchMacroDefinitions(_document: TextDocument, _position: Position, _expression: Expression): DefinitionLink[] | undefined {
+    // const expressionLines = expression.expression.split('\n');
     return undefined;
   }
 
-  private searchSourceDefinitions(
-    document: TextDocument,
-    position: Position,
-    expression: Expression,
-    expressionLines: string[],
-  ): DefinitionLink[] | undefined {
+  private searchSourceDefinitions(document: TextDocument, position: Position, expression: Expression): DefinitionLink[] | undefined {
+    const expressionLines = expression.expression.split('\n');
     if (!expressionLines[0].startsWith('{{')) {
       return undefined;
     }
@@ -93,11 +89,11 @@ export class DefinitionProvider {
     if (relativePosition === undefined) {
       return undefined;
     }
-    const wordRange = getWordRangeAtPosition(relativePosition, DefinitionProvider.SOURCE_PATTERN, expressionLines);
+    const wordRange = getWordRangeAtPosition(relativePosition, JinjaDefinitionProvider.SOURCE_PATTERN, expressionLines);
 
     if (wordRange) {
       const word = document.getText(getAbsoluteRange(expression.range.start, wordRange));
-      const sourceMatch = word.match(DefinitionProvider.SOURCE_PARTS_PATTERN);
+      const sourceMatch = word.match(JinjaDefinitionProvider.SOURCE_PARTS_PATTERN);
       if (sourceMatch === null) {
         return undefined;
       }

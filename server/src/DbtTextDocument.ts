@@ -26,7 +26,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { BigQueryClient } from './bigquery/BigQueryClient';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtRpcServer } from './DbtRpcServer';
-import { DefinitionProvider } from './DefinitionProvider';
+import { JinjaDefinitionProvider } from './definition/JinjaDefinitionProvider';
 import { DestinationDefinition } from './DestinationDefinition';
 import { Diff as Diff } from './Diff';
 import { HoverProvider } from './HoverProvider';
@@ -60,7 +60,7 @@ export class DbtTextDocument {
     private connection: _Connection,
     private progressReporter: ProgressReporter,
     private completionProvider: CompletionProvider,
-    private definitionProvider: DefinitionProvider,
+    private jinjaDefinitionProvider: JinjaDefinitionProvider,
     private modelCompiler: ModelCompiler,
     bigQueryClient: BigQueryClient,
   ) {
@@ -319,7 +319,7 @@ export class DbtTextDocument {
     const expressions = DbtTextDocument.JINJA_PARSER.findAllExpressions(this.rawDocument);
     for (const expression of expressions) {
       if (positionInRange(definitionParams.position, expression.range)) {
-        return this.definitionProvider.onExpressionDefinition(this.rawDocument, expression, definitionParams.position);
+        return this.jinjaDefinitionProvider.onExpressionDefinition(this.rawDocument, expression, definitionParams.position);
       }
     }
     return undefined;

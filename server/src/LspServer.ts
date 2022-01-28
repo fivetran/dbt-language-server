@@ -31,7 +31,7 @@ import { DbtRpcServer } from './DbtRpcServer';
 import { DbtTextDocument } from './DbtTextDocument';
 import { getStringVersion } from './DbtVersion';
 import { Command } from './dbt_commands/Command';
-import { DefinitionProvider } from './DefinitionProvider';
+import { JinjaDefinitionProvider } from './definition/JinjaDefinitionProvider';
 import { DestinationDefinition } from './DestinationDefinition';
 import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
@@ -59,7 +59,7 @@ export class LspServer {
   progressReporter: ProgressReporter;
   fileChangeListener: FileChangeListener;
   completionProvider: CompletionProvider;
-  definitionProvider: DefinitionProvider;
+  jinjaDefinitionProvider: JinjaDefinitionProvider;
   yamlParser = new YamlParser();
   dbtProfileCreator = new DbtProfileCreator(this.yamlParser);
   manifestParser = new ManifestParser();
@@ -70,7 +70,7 @@ export class LspServer {
     this.progressReporter = new ProgressReporter(this.connection);
     this.fileChangeListener = new FileChangeListener(this.yamlParser, this.manifestParser);
     this.completionProvider = new CompletionProvider(this.fileChangeListener.onModelsChanged);
-    this.definitionProvider = new DefinitionProvider(
+    this.jinjaDefinitionProvider = new JinjaDefinitionProvider(
       this.fileChangeListener.onProjectNameChanged,
       this.fileChangeListener.onModelsChanged,
       this.fileChangeListener.onMacrosChanged,
@@ -236,7 +236,7 @@ export class LspServer {
         this.connection,
         this.progressReporter,
         this.completionProvider,
-        this.definitionProvider,
+        this.jinjaDefinitionProvider,
         new ModelCompiler(this.dbtRpcClient, uri, this.workspaceFolder),
         this.bigQueryClient,
       );
