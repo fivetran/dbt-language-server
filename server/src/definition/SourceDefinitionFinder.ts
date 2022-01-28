@@ -5,9 +5,11 @@ import { Expression } from '../JinjaParser';
 import { ManifestSource } from '../manifest/ManifestJson';
 import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { getAbsoluteRange, getRelativePosition } from '../utils/Utils';
-import { JinjaDefinitionProvider } from './JinjaDefinitionProvider';
 
 export class SourceDefinitionFinder {
+  static readonly SOURCE_PATTERN = /(source)\([^)]*\)/;
+  static readonly SOURCE_PARTS_PATTERN = /(?!['"])(\w+)(?=['"])/g;
+
   searchSourceDefinitions(
     document: TextDocument,
     position: Position,
@@ -23,11 +25,11 @@ export class SourceDefinitionFinder {
     if (relativePosition === undefined) {
       return undefined;
     }
-    const wordRange = getWordRangeAtPosition(relativePosition, JinjaDefinitionProvider.SOURCE_PATTERN, expressionLines);
+    const wordRange = getWordRangeAtPosition(relativePosition, SourceDefinitionFinder.SOURCE_PATTERN, expressionLines);
 
     if (wordRange) {
       const word = document.getText(getAbsoluteRange(expression.range.start, wordRange));
-      const sourceMatch = word.match(JinjaDefinitionProvider.SOURCE_PARTS_PATTERN);
+      const sourceMatch = word.match(SourceDefinitionFinder.SOURCE_PARTS_PATTERN);
       if (sourceMatch === null) {
         return undefined;
       }

@@ -8,11 +8,6 @@ import { SourceDefinitionFinder } from './SourceDefinitionFinder';
 
 export class JinjaDefinitionProvider {
   static readonly MODEL_PATTERN = /todo/;
-  static readonly MACRO_PATTERN = /todo/;
-  static readonly SOURCE_PATTERN = /(source)\([^)]*\)/;
-  static readonly SOURCE_PARTS_PATTERN = /(?!['"])(\w+)(?=['"])/g;
-
-  static readonly DBT_PACKAGE = 'dbt';
 
   modelDefinitionFinder = new ModelDefinitionFinder();
   macroDefinitionFinder = new MacroDefinitionFinder();
@@ -57,9 +52,11 @@ export class JinjaDefinitionProvider {
       return refDefinitions;
     }
 
-    const macroDefinitions = this.macroDefinitionFinder.searchMacroDefinitions(document, position, expression, this.dbtMacros);
-    if (macroDefinitions) {
-      return macroDefinitions;
+    if (this.projectName) {
+      const macroDefinitions = this.macroDefinitionFinder.searchMacroDefinitions(document, position, expression, this.projectName, this.dbtMacros);
+      if (macroDefinitions) {
+        return macroDefinitions;
+      }
     }
 
     const sourceDefinitions = this.sourceDefinitionFinder.searchSourceDefinitions(document, position, expression, this.dbtSources);
