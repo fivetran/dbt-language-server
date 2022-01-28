@@ -36,7 +36,7 @@ import { ProgressReporter } from './ProgressReporter';
 import { SchemaTracker } from './SchemaTracker';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { SqlRefConverter } from './SqlRefConverter';
-import { debounce, getDocumentModelName, getIdentifierRangeAtPosition, getJinjaContentOffset, positionInRange } from './utils/Utils';
+import { debounce, getIdentifierRangeAtPosition, getJinjaContentOffset, positionInRange } from './utils/Utils';
 import { ZetaSqlAst } from './ZetaSqlAst';
 import { ZetaSqlCatalog } from './ZetaSqlCatalog';
 
@@ -316,23 +316,12 @@ export class DbtTextDocument {
   }
 
   onDefinition(definitionParams: DefinitionParams): DefinitionLink[] | undefined {
-    const refs = DbtTextDocument.JINJA_PARSER.findAllRefs(this.rawDocument);
-    for (const ref of refs) {
-      if (positionInRange(definitionParams.position, ref.range)) {
-        return this.definitionProvider.onRefDefinition(ref.modelName, ref.range);
-      }
-    }
-
     const expressions = DbtTextDocument.JINJA_PARSER.findAllExpressions(this.rawDocument);
-    const documentModelName = getDocumentModelName(this.rawDocument);
-    if (documentModelName) {
-      for (const expression of expressions) {
-        if (positionInRange(definitionParams.position, expression.range)) {
-          return this.definitionProvider.onExpressionDefinition(this.rawDocument, documentModelName, expression, definitionParams.position);
-        }
+    for (const expression of expressions) {
+      if (positionInRange(definitionParams.position, expression.range)) {
+        return this.definitionProvider.onExpressionDefinition(this.rawDocument, expression, definitionParams.position);
       }
     }
-
     return undefined;
   }
 

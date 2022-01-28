@@ -20,7 +20,7 @@ export interface Expression {
 export class JinjaParser {
   static readonly JINJA_PATTERN = /{{[\s\S]*?}}|{%[\s\S]*?%}|{#[\s\S]*?#}/g;
   static readonly JINJA_REF_PATTERN = /{{\s*ref\s*\(\s*(?<start_quote>['|"])(.*?)\k<start_quote>\s*\)\s*}}/g;
-  static readonly JINJA_EXPRESSION_PATTERN = /{{([\s\S])+?}}/g;
+  static readonly JINJA_EXPRESSION_PATTERN = /{{[\s\S]*?}}|{%[\s\S]*?%}/g;
   static readonly JINJA_BLOCK_PATTERN = /{%\s*(docs|if|for|macro)\s+.*%}|{%\s*(enddocs|endif|endfor|endmacro)\s*%}/;
 
   static readonly JINJA_OPEN_BLOCKS = ['docs', 'if', 'for', 'macro'];

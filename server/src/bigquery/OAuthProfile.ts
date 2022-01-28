@@ -51,7 +51,9 @@ export class OAuthProfile implements DbtProfile {
       console.log(authenticateResult.error);
       return err(authenticateResult.error);
     }
+
     console.log('gcloud authentication succeeded');
+    bigQueryClient.bigQuery = new BigQuery(options);
 
     const secondTestResult = await bigQueryClient.test();
     if (secondTestResult.isErr()) {

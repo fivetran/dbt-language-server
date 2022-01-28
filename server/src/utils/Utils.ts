@@ -1,7 +1,6 @@
 import { Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
-const MODEL_NAME_PATTERN = /.+\/(?<filename>[\s\S]+)\.sql$/;
 const NON_WORD_PATTERN = /\W/;
 
 export function rangesOverlap(range1: Range, range2: Range): boolean {
@@ -29,6 +28,24 @@ export function comparePositions(position1: Position, position2: Position): numb
   }
 
   return 0;
+}
+
+export function getAbsoluteRange(absolutePosition: Position, relativeRange: Range): Range {
+  return Range.create(getAbsolutePosition(absolutePosition, relativeRange.start), getAbsolutePosition(absolutePosition, relativeRange.end));
+}
+
+export function getAbsolutePosition(absolute: Position, relative: Position): Position {
+  return Position.create(absolute.line + relative.line, relative.line === 0 ? absolute.character + relative.character : relative.character);
+}
+
+export function getRelativePosition(absoluteRange: Range, absolutePosition: Position): Position | undefined {
+  if (!positionInRange(absolutePosition, absoluteRange)) {
+    return undefined;
+  }
+  return Position.create(
+    absolutePosition.line - absoluteRange.start.line,
+    absolutePosition.line === absoluteRange.start.line ? absolutePosition.character - absoluteRange.start.character : absolutePosition.character,
+  );
 }
 
 export function getIdentifierRangeAtPosition(position: Position, text: string): Range {
@@ -125,9 +142,4 @@ export function extractDatasetFromFullName(fullName: string, tableName: string):
     return m[1];
   }
   throw new Error("Can't extract dataset");
-}
-
-export function getDocumentModelName(rawDocument: TextDocument): string | undefined {
-  const modelMatch = MODEL_NAME_PATTERN.exec(rawDocument.uri);
-  return modelMatch ? modelMatch.groups?.['filename'] : undefined;
 }

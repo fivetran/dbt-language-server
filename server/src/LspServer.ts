@@ -107,7 +107,6 @@ export class LspServer {
     this.hasConfigurationCapability = Boolean(capabilities.workspace?.configuration);
 
     this.workspaceFolder = process.cwd();
-    this.definitionProvider.setWorkspaceFolder(this.workspaceFolder);
 
     return {
       capabilities: {

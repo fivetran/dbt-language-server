@@ -3,12 +3,17 @@ import { DefinitionLink, Event, integer, LocationLink, Position, Range } from 'v
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Expression } from './JinjaParser';
 import { ManifestMacro, ManifestModel, ManifestSource } from './manifest/ManifestJson';
-import { positionInRange } from './utils/Utils';
+import { getWordRangeAtPosition } from './utils/TextUtils';
+import { getAbsoluteRange, getRelativePosition } from './utils/Utils';
 
 export class DefinitionProvider {
+  static readonly MODEL_PATTERN = /todo/;
+  static readonly MACRO_PATTERN = /todo/;
+  static readonly SOURCE_PATTERN = /(source)\([^)]*\)/;
+  static readonly SOURCE_PARTS_PATTERN = /(?!['"])(\w+)(?=['"])/g;
+
   static readonly DBT_PACKAGE = 'dbt';
 
-  workspaceFolder: string | undefined;
   projectName: string | undefined;
   dbtModels: ManifestModel[] = [];
   dbtMacros: ManifestMacro[] = [];
@@ -24,10 +29,6 @@ export class DefinitionProvider {
     onModelsChanged(this.onModelsChanged.bind(this));
     onMacrosChanged(this.onMacrosChanged.bind(this));
     onSourcesChanged(this.onSourcesChanged.bind(this));
-  }
-
-  setWorkspaceFolder(workspaceFolder: string): void {
-    this.workspaceFolder = workspaceFolder;
   }
 
   onProjectNameChanged(projectName: string | undefined): void {
@@ -46,74 +47,79 @@ export class DefinitionProvider {
     this.dbtSources = dbtSources;
   }
 
-  onRefDefinition(modelName: string, originSelectionRange: Range): DefinitionLink[] | undefined {
-    if (this.workspaceFolder === undefined) {
-      return undefined;
+  onExpressionDefinition(document: TextDocument, expression: Expression, position: Position): DefinitionLink[] | undefined {
+    const expressionLines = expression.expression.split('\n');
+
+    const refDefinitions = this.searchRefDefinitions(document, position, expressionLines);
+    if (refDefinitions) {
+      return refDefinitions;
     }
 
-    const modelDefinitions = this.dbtModels.filter(m => m.name === modelName);
-    if (modelDefinitions.length === 0) {
-      return undefined;
+    const macroDefinitions = this.searchMacroDefinitions();
+    if (macroDefinitions) {
+      return macroDefinitions;
     }
 
-    return [
-      LocationLink.create(
-        path.join(this.workspaceFolder, modelDefinitions[0].originalFilePath),
-        Range.create(Position.create(0, 0), Position.create(integer.MAX_VALUE, integer.MAX_VALUE)),
-        Range.create(Position.create(0, 0), Position.create(0, 0)),
-        originSelectionRange,
-      ),
-    ];
+    const sourceDefinitions = this.searchSourceDefinitions(document, position, expression, expressionLines);
+    if (sourceDefinitions) {
+      return sourceDefinitions;
+    }
+
+    return undefined;
   }
 
-  onExpressionDefinition(
+  private searchRefDefinitions(document: TextDocument, position: Position, lines: string[]): DefinitionLink[] | undefined {
+    if (!lines[0].startsWith('{{')) {
+      return undefined;
+    }
+    return undefined;
+  }
+
+  private searchMacroDefinitions(): DefinitionLink[] | undefined {
+    return undefined;
+  }
+
+  private searchSourceDefinitions(
     document: TextDocument,
-    documentModelName: string,
-    expression: Expression,
     position: Position,
+    expression: Expression,
+    expressionLines: string[],
   ): DefinitionLink[] | undefined {
-    if (this.workspaceFolder === undefined) {
+    if (!expressionLines[0].startsWith('{{')) {
       return undefined;
     }
 
-    const manifestModels = this.dbtModels.filter(m => m.name === documentModelName);
-    if (manifestModels.length !== 1) {
+    const relativePosition = getRelativePosition(expression.range, position);
+    if (relativePosition === undefined) {
       return undefined;
     }
+    const wordRange = getWordRangeAtPosition(relativePosition, DefinitionProvider.SOURCE_PATTERN, expressionLines);
 
-    const macrosDependencies = manifestModels[0].dependsOn?.macros;
-    if (!macrosDependencies) {
-      return undefined;
-    }
-
-    for (const macroDependency of macrosDependencies) {
-      const macroParts = macroDependency.split('.');
-      const macrosSearch =
-        macroParts[1] === this.projectName || macroParts[1] === DefinitionProvider.DBT_PACKAGE ? macroParts[2] : `${macroParts[1]}.${macroParts[2]}`;
-      const search = expression.expression.indexOf(macrosSearch);
-
-      if (search === -1) {
-        continue;
+    if (wordRange) {
+      const word = document.getText(getAbsoluteRange(expression.range.start, wordRange));
+      const sourceMatch = word.match(DefinitionProvider.SOURCE_PARTS_PATTERN);
+      if (sourceMatch === null) {
+        return undefined;
+      }
+      if (sourceMatch.length < 2) {
+        return undefined;
       }
 
-      const macroRange = Range.create(
-        document.positionAt(document.offsetAt(expression.range.start) + search),
-        document.positionAt(document.offsetAt(expression.range.start) + search + macrosSearch.length),
-      );
-
-      if (positionInRange(position, macroRange)) {
-        const macro = this.dbtMacros.filter(m => m.uniqueId === macroDependency);
-        return macro.length === 1
-          ? [
-              LocationLink.create(
-                path.join(this.workspaceFolder, macro[0].originalFilePath),
-                Range.create(Position.create(0, 0), Position.create(integer.MAX_VALUE, integer.MAX_VALUE)),
-                Range.create(Position.create(0, 0), Position.create(0, 0)),
-                macroRange,
-              ),
-            ]
-          : undefined;
+      const [sourceName, tableName] = sourceMatch;
+      const sourcesSearch = this.dbtSources.filter(s => s.sourceName === sourceName && s.name === tableName);
+      if (sourcesSearch.length === 0) {
+        return undefined;
       }
+
+      const [selectedSource] = sourcesSearch;
+      return [
+        LocationLink.create(
+          path.join(selectedSource.rootPath, selectedSource.originalFilePath),
+          Range.create(Position.create(0, 0), Position.create(integer.MAX_VALUE, integer.MAX_VALUE)),
+          Range.create(Position.create(0, 0), Position.create(0, 0)),
+          getAbsoluteRange(expression.range.start, wordRange),
+        ),
+      ];
     }
 
     return undefined;
