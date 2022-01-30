@@ -1,60 +1,54 @@
+import { strictEqual } from 'assert';
 import { assertThat, instanceOf, throws } from 'hamjest';
 import { Position, Range } from 'vscode-languageserver';
 import { getWordRangeAtPosition } from '../../utils/TextUtils';
 
 describe('TextUtils', () => {
-  it('getWordRangeAtPosition', () => {
-    const lines = ['aaaa bbbb+cccc abc'];
-    let range: Range;
+  it('getWordRangeAtPosition should find words', () => {
+    const textLines = ['aaaa bbbb+cccc abc'];
+    let range: Range | undefined;
 
-    // ignore bad regular expresson /.*/
-    assertThat(() => getWordRangeAtPosition(Position.create(0, 2), /.*/, lines)!, throws(instanceOf(Error)));
+    range = getWordRangeAtPosition(Position.create(0, 5), /[a-z+]+/, textLines);
+    assertThat(range?.start.line, 0);
+    assertThat(range?.start.character, 5);
+    assertThat(range?.end.line, 0);
+    assertThat(range?.end.character, 14);
 
-    range = getWordRangeAtPosition(Position.create(0, 5), /[a-z+]+/, lines)!;
-    assertThat(range.start.line, 0);
-    assertThat(range.start.character, 5);
-    assertThat(range.end.line, 0);
-    assertThat(range.end.character, 14);
+    range = getWordRangeAtPosition(Position.create(0, 17), /[a-z+]+/, textLines);
+    assertThat(range?.start.line, 0);
+    assertThat(range?.start.character, 15);
+    assertThat(range?.end.line, 0);
+    assertThat(range?.end.character, 18);
 
-    range = getWordRangeAtPosition(Position.create(0, 17), /[a-z+]+/, lines)!;
-    assertThat(range.start.line, 0);
-    assertThat(range.start.character, 15);
-    assertThat(range.end.line, 0);
-    assertThat(range.end.character, 18);
-
-    range = getWordRangeAtPosition(Position.create(0, 11), /yy/, lines)!;
+    range = getWordRangeAtPosition(Position.create(0, 11), /yy/, textLines);
     assertThat(range, undefined);
   });
 
-  //   it("getWordRangeAtPosition doesn't quite use the regex as expected, #29102", function () {
-  //     data = new ExtHostDocumentData(
-  //       undefined!,
-  //       URI.file(''),
-  //       ['some text here', '/** foo bar */', 'function() {', '	"far boo"', '}'],
-  //       '\n',
-  //       1,
-  //       'text',
-  //       false,
-  //     );
+  it('getWordRangeAtPosition should ignore bad regular expression', () => {
+    const textLines = ['aaaa bbbb+cccc abc'];
+    assertThat(() => getWordRangeAtPosition(Position.create(0, 2), /.*/, textLines), throws(instanceOf(Error)));
+  });
 
-  //     let range = data.document.getWordRangeAtPosition(new Position(0, 0), /\/\*.+\*\//);
-  //     assert.strictEqual(range, undefined);
+  it("getWordRangeAtPosition doesn't quite use the regex as expected", function () {
+    const textLines = ['some text here', '/** foo bar */', 'function() {', '	"far boo"', '}'];
+    let range = getWordRangeAtPosition(Position.create(0, 0), /\/\*.+\*\//, textLines);
+    assertThat(range, undefined);
 
-  //     range = data.document.getWordRangeAtPosition(new Position(1, 0), /\/\*.+\*\//)!;
-  //     assert.strictEqual(range.start.line, 1);
-  //     assert.strictEqual(range.start.character, 0);
-  //     assert.strictEqual(range.end.line, 1);
-  //     assert.strictEqual(range.end.character, 14);
+    range = getWordRangeAtPosition(Position.create(1, 0), /\/\*.+\*\//, textLines);
+    assertThat(range?.start.line, 1);
+    assertThat(range?.start.character, 0);
+    assertThat(range?.end.line, 1);
+    assertThat(range?.end.character, 14);
 
-  //     range = data.document.getWordRangeAtPosition(new Position(3, 0), /("|').*\1/);
-  //     assert.strictEqual(range, undefined);
+    range = getWordRangeAtPosition(Position.create(3, 0), /("|').*\1/, textLines);
+    strictEqual(range, undefined);
 
-  //     range = data.document.getWordRangeAtPosition(new Position(3, 1), /("|').*\1/)!;
-  //     assert.strictEqual(range.start.line, 3);
-  //     assert.strictEqual(range.start.character, 1);
-  //     assert.strictEqual(range.end.line, 3);
-  //     assert.strictEqual(range.end.character, 10);
-  //   });
+    range = getWordRangeAtPosition(Position.create(3, 1), /("|').*\1/, textLines);
+    assertThat(range?.start.line, 3);
+    assertThat(range?.start.character, 1);
+    assertThat(range?.end.line, 3);
+    assertThat(range?.end.character, 10);
+  });
 
   //   it('getWordRangeAtPosition can freeze the extension host #95319', function () {
   //     const regex =
