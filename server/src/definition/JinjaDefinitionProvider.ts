@@ -7,8 +7,6 @@ import { ModelDefinitionFinder } from './ModelDefinitionFinder';
 import { SourceDefinitionFinder } from './SourceDefinitionFinder';
 
 export class JinjaDefinitionProvider {
-  static readonly MODEL_PATTERN = /todo/;
-
   modelDefinitionFinder = new ModelDefinitionFinder();
   macroDefinitionFinder = new MacroDefinitionFinder();
   sourceDefinitionFinder = new SourceDefinitionFinder();
@@ -47,9 +45,11 @@ export class JinjaDefinitionProvider {
   }
 
   onExpressionDefinition(document: TextDocument, expression: Expression, position: Position): DefinitionLink[] | undefined {
-    const refDefinitions = this.modelDefinitionFinder.searchModelDefinitions(document, position, expression, this.dbtModels);
-    if (refDefinitions) {
-      return refDefinitions;
+    if (this.projectName) {
+      const refDefinitions = this.modelDefinitionFinder.searchModelDefinitions(document, position, expression, this.projectName, this.dbtModels);
+      if (refDefinitions) {
+        return refDefinitions;
+      }
     }
 
     if (this.projectName) {
