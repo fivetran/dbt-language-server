@@ -17,10 +17,6 @@ export class SourceDefinitionFinder {
     dbtSources: ManifestSource[],
   ): DefinitionLink[] | undefined {
     const expressionLines = expression.expression.split('\n');
-    if (!expressionLines[0].startsWith('{{')) {
-      return undefined;
-    }
-
     const relativePosition = getRelativePosition(expression.range, position);
     if (relativePosition === undefined) {
       return undefined;

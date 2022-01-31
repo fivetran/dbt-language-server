@@ -45,7 +45,7 @@ export class JinjaDefinitionProvider {
   }
 
   onExpressionDefinition(document: TextDocument, expression: Expression, position: Position): DefinitionLink[] | undefined {
-    if (this.projectName) {
+    if (this.projectName && this.isExpression(expression.expression)) {
       const refDefinitions = this.modelDefinitionFinder.searchModelDefinitions(document, position, expression, this.projectName, this.dbtModels);
       if (refDefinitions) {
         return refDefinitions;
@@ -59,11 +59,21 @@ export class JinjaDefinitionProvider {
       }
     }
 
-    const sourceDefinitions = this.sourceDefinitionFinder.searchSourceDefinitions(document, position, expression, this.dbtSources);
-    if (sourceDefinitions) {
-      return sourceDefinitions;
+    if (this.isExpression(expression.expression)) {
+      const sourceDefinitions = this.sourceDefinitionFinder.searchSourceDefinitions(document, position, expression, this.dbtSources);
+      if (sourceDefinitions) {
+        return sourceDefinitions;
+      }
     }
 
     return undefined;
+  }
+
+  isExpression(expression: string): boolean {
+    return expression.match(/^{\s*{/) !== null;
+  }
+
+  isStatement(expression: string): boolean {
+    return expression.match(/^{%/) !== null;
   }
 }
