@@ -79,7 +79,7 @@ describe('DbtTextDocument', () => {
     });
   });
 
-  it('Should compile for first save in Manual save mode', async () => {
+  it('Should compile for first save in Not Auto save mode', async () => {
     // arrange
     when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(true);
 

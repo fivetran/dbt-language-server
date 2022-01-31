@@ -78,7 +78,7 @@ export class DbtTextDocument {
     if (
       this.firstSave &&
       !this.requireCompileOnSave &&
-      reason === TextDocumentSaveReason.Manual &&
+      reason !== TextDocumentSaveReason.AfterDelay &&
       this.jinjaParser.hasJinjas(this.rawDocument.getText())
     ) {
       this.requireCompileOnSave = true;
