@@ -17,6 +17,10 @@ export class MacroDefinitionFinder {
     projectName: string,
     dbtMacros: ManifestMacro[],
   ): DefinitionLink[] | undefined {
+    //
+    // todo: skip self-definition or not?
+    //
+
     const expressionLines = expression.expression.split('\n');
 
     const relativePosition = getRelativePosition(expression.range, position);
