@@ -341,7 +341,7 @@ export class DbtTextDocument {
   }
 
   onDefinition(definitionParams: DefinitionParams): DefinitionLink[] | undefined {
-    const expressions = DbtTextDocument.JINJA_PARSER.findAllExpressions(this.rawDocument);
+    const expressions = this.jinjaParser.findAllExpressions(this.rawDocument);
     for (const expression of expressions) {
       if (positionInRange(definitionParams.position, expression.range)) {
         return this.jinjaDefinitionProvider.onExpressionDefinition(this.rawDocument, expression, definitionParams.position);
