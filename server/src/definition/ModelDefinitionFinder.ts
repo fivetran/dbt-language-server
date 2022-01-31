@@ -7,7 +7,7 @@ import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { getAbsoluteRange, getRelativePosition } from '../utils/Utils';
 
 export class ModelDefinitionFinder {
-  static readonly REF_PATTERN = /(ref)\([^)]+\)/;
+  static readonly REF_PATTERN = /(ref)\s*\([^)]+\)/;
   static readonly REF_PARTS_PATTERN = /\(\s*('[^']+'|"[^"]+")(\s*,\s*('[^']+'|"[^"]+"))?\s*\)/g;
 
   searchModelDefinitions(
