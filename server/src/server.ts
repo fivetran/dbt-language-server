@@ -15,6 +15,7 @@ connection.onCompletionResolve(server.onCompletionResolve.bind(server));
 connection.onSignatureHelp(server.onSignatureHelp.bind(server));
 connection.onDefinition(server.onDefinition.bind(server));
 
+connection.onWillSaveTextDocument(server.onWillSaveTextDocument.bind(server));
 connection.onDidSaveTextDocument(server.onDidSaveTextDocument.bind(server));
 connection.onDidOpenTextDocument(server.onDidOpenTextDocument.bind(server));
 connection.onDidChangeTextDocument(server.onDidChangeTextDocument.bind(server));
