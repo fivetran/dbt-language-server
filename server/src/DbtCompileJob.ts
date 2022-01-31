@@ -96,7 +96,7 @@ export class DbtCompileJob {
       }
 
       const compiledSql = this.getCompiledSql(pollResponse);
-      return compiledSql ? ok(compiledSql) : err("Couldn't find compiled sql");
+      return compiledSql === undefined ? err("Couldn't find compiled sql") : ok(compiledSql);
     } catch (e) {
       return err(e instanceof Error ? e.message : JSON.stringify(e));
     }
@@ -104,7 +104,13 @@ export class DbtCompileJob {
 
   getCompiledSql(pollResponse: PollResponse): string | undefined {
     const compiledNodes = pollResponse.result.results;
-    return compiledNodes && compiledNodes.length > 0 ? compiledNodes[0].node.compiled_sql : undefined;
+    if (compiledNodes && compiledNodes.length > 0) {
+      return compiledNodes[0].node.compiled_sql;
+    }
+    if (pollResponse.result.state === 'success') {
+      return '';
+    }
+    return undefined;
   }
 
   async stop(): Promise<void> {

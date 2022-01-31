@@ -23,7 +23,7 @@ export class JinjaParser {
   /**
    * Finds all jinja statements ranges and ranges of jinja blocks: 'docs', 'if', 'for', 'macro'.
    * @param rawDocument editable text document
-   * @returns all founded ranges or undefined if parsing failed
+   * @returns all found ranges or undefined if parsing failed
    */
   findAllJinjaRanges(rawDocument: TextDocument): Range[] | undefined {
     const jinjaExpressions = this.findAllJinjaExpressions(rawDocument);

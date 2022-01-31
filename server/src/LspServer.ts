@@ -19,6 +19,7 @@ import {
   SignatureHelpParams,
   TelemetryEventNotification,
   TextDocumentSyncKind,
+  WillSaveTextDocumentParams,
   _Connection,
 } from 'vscode-languageserver';
 import { BigQueryClient } from './bigquery/BigQueryClient';
@@ -32,11 +33,14 @@ import { Command } from './dbt_commands/Command';
 import { DestinationDefinition } from './DestinationDefinition';
 import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
+import { JinjaParser } from './JinjaParser';
 import { ManifestParser } from './ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
+import { SchemaTracker } from './SchemaTracker';
 import { randomNumber } from './Utils';
 import { YamlParser } from './YamlParser';
+import { ZetaSqlCatalog } from './ZetaSqlCatalog';
 import findFreePortPmfy = require('find-free-port');
 
 interface TelemetryEvent {
@@ -98,7 +102,12 @@ export class LspServer {
 
     return {
       capabilities: {
-        textDocumentSync: TextDocumentSyncKind.Incremental,
+        textDocumentSync: {
+          openClose: true,
+          change: TextDocumentSyncKind.Incremental,
+          willSave: true,
+          save: true,
+        },
         hoverProvider: true,
         completionProvider: {
           resolveProvider: true,
@@ -197,6 +206,13 @@ export class LspServer {
     }
   }
 
+  onWillSaveTextDocument(params: WillSaveTextDocumentParams): void {
+    const document = this.openedDocuments.get(params.textDocument.uri);
+    if (document) {
+      document.willSaveTextDocument(params.reason);
+    }
+  }
+
   async onDidSaveTextDocument(params: DidSaveTextDocumentParams): Promise<void> {
     if (!(await this.isDbtReady())) {
       return;
@@ -218,20 +234,24 @@ export class LspServer {
     }
 
     if (!document && this.bigQueryClient) {
+      if (!(await this.isDbtReady())) {
+        return;
+      }
+
       document = new DbtTextDocument(
         params.textDocument,
         this.connection,
         this.progressReporter,
         this.completionProvider,
         new ModelCompiler(this.dbtRpcClient, uri, this.workspaceFolder),
-        this.bigQueryClient,
+        new JinjaParser(),
+        new SchemaTracker(this.bigQueryClient),
+        ZetaSqlCatalog.getInstance(),
+        ZetaSQLClient.getInstance(),
       );
       this.openedDocuments.set(uri, document);
 
-      if (!(await this.isDbtReady())) {
-        return;
-      }
-      document.didOpenTextDocument();
+      await document.didOpenTextDocument();
     }
   }
 
