@@ -48,6 +48,11 @@ export function getRelativePosition(absoluteRange: Range, absolutePosition: Posi
   );
 }
 
+export function getPositionByIndex(text: string, index: number): Position {
+  const lines = text.substring(0, index).split('\n');
+  return Position.create(lines.length - 1, lines[lines.length - 1].length);
+}
+
 export function getIdentifierRangeAtPosition(position: Position, text: string): Range {
   const lines = text.split('\n');
   if (lines.length === 0) {

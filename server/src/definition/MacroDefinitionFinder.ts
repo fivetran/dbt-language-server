@@ -1,10 +1,11 @@
+import * as fs from 'fs';
 import * as path from 'path';
 import { DefinitionLink, integer, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Expression } from '../JinjaParser';
 import { ManifestMacro } from '../manifest/ManifestJson';
 import { getWordRangeAtPosition } from '../utils/TextUtils';
-import { getAbsoluteRange, getRelativePosition } from '../utils/Utils';
+import { getAbsoluteRange, getPositionByIndex, getRelativePosition } from '../utils/Utils';
 
 export class MacroDefinitionFinder {
   static readonly MACRO_PATTERN = /(\w+\.?\w+)\s*\(/;
@@ -17,12 +18,7 @@ export class MacroDefinitionFinder {
     projectName: string,
     dbtMacros: ManifestMacro[],
   ): DefinitionLink[] | undefined {
-    //
-    // todo: skip self-definition or not?
-    //
-
     const expressionLines = expression.expression.split('\n');
-
     const relativePosition = getRelativePosition(expression.range, position);
     if (relativePosition === undefined) {
       return undefined;
@@ -49,16 +45,46 @@ export class MacroDefinitionFinder {
       }
 
       const [selectedMacro] = macrosSearch;
-      return [
-        LocationLink.create(
-          path.join(selectedMacro.rootPath, selectedMacro.originalFilePath),
-          Range.create(Position.create(0, 0), Position.create(integer.MAX_VALUE, integer.MAX_VALUE)),
-          Range.create(Position.create(0, 0), Position.create(0, 0)),
-          getAbsoluteRange(expression.range.start, wordRange),
-        ),
-      ];
+      const macroFilePath = path.join(selectedMacro.rootPath, selectedMacro.originalFilePath);
+      const [definitionRange, selectionRange] = this.getMacroRange(selectedMacro.name, macroFilePath);
+
+      return [LocationLink.create(macroFilePath, definitionRange, selectionRange, getAbsoluteRange(expression.range.start, wordRange))];
     }
 
     return undefined;
+  }
+
+  getMacroRange(macro: string, macroFilePath: string): [Range, Range] {
+    const macroDefinitionFileContent = fs.readFileSync(macroFilePath, 'utf8');
+
+    const startMacroPattern = new RegExp(`{%\\s*macro\\s*(?<macro_name>${macro})\\s*\\(`);
+    const startMacroMatch = startMacroPattern.exec(macroDefinitionFileContent);
+
+    const endMacroPattern = /{%\s*endmacro\s*%}/g;
+    const endMacroMatches = [];
+    let match: RegExpExecArray | null;
+    while ((match = endMacroPattern.exec(macroDefinitionFileContent))) {
+      endMacroMatches.push(match);
+    }
+
+    if (startMacroMatch && endMacroMatches.length > 0) {
+      const endMacroMatch = endMacroMatches
+        .filter(m => m.index > startMacroMatch.index)
+        .reduce((prev, curr) => (prev.index < curr.index ? prev : curr));
+      const definitionRange = Range.create(
+        getPositionByIndex(macroDefinitionFileContent, startMacroMatch.index),
+        getPositionByIndex(macroDefinitionFileContent, endMacroMatch.index + endMacroMatch[0].length),
+      );
+      const selectionRange = Range.create(
+        getPositionByIndex(macroDefinitionFileContent, startMacroMatch.index + startMacroMatch[0].indexOf(macro)),
+        getPositionByIndex(macroDefinitionFileContent, startMacroMatch.index + startMacroMatch[0].indexOf(macro) + macro.length),
+      );
+      return [definitionRange, selectionRange];
+    }
+
+    return [
+      Range.create(Position.create(0, 0), Position.create(integer.MAX_VALUE, integer.MAX_VALUE)),
+      Range.create(Position.create(0, 0), Position.create(integer.MAX_VALUE, integer.MAX_VALUE)),
+    ];
   }
 }
