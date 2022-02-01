@@ -39,7 +39,7 @@ jobs:
       - name: set environment variable with file name
         run: echo "FILE_NAME=${{ github.sha }}-${{ matrix.target }}.vsix" >> $GITHUB_ENV
 
-      - name: delete libraries for other platrofms
+      - name: delete libraries for other platforms
         run: |
           cd server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql/
           find . ! -name '${{ matrix.zetasql-lib }}' -type f -exec rm -f {} +
