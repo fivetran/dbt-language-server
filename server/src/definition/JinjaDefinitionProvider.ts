@@ -3,11 +3,11 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Expression } from '../JinjaParser';
 import { ManifestMacro, ManifestModel, ManifestSource } from '../manifest/ManifestJson';
 import { MacroDefinitionFinder } from './MacroDefinitionFinder';
-import { ModelDefinitionFinder } from './ModelDefinitionFinder';
+import { RefDefinitionFinder } from './RefDefinitionFinder';
 import { SourceDefinitionFinder } from './SourceDefinitionFinder';
 
 export class JinjaDefinitionProvider {
-  modelDefinitionFinder = new ModelDefinitionFinder();
+  refDefinitionFinder = new RefDefinitionFinder();
   macroDefinitionFinder = new MacroDefinitionFinder();
   sourceDefinitionFinder = new SourceDefinitionFinder();
 
@@ -46,7 +46,7 @@ export class JinjaDefinitionProvider {
 
   onExpressionDefinition(document: TextDocument, expression: Expression, position: Position): DefinitionLink[] | undefined {
     if (this.projectName && this.isExpression(expression.expression)) {
-      const refDefinitions = this.modelDefinitionFinder.searchModelDefinitions(document, position, expression, this.projectName, this.dbtModels);
+      const refDefinitions = this.refDefinitionFinder.searchModelDefinitions(document, position, expression, this.projectName, this.dbtModels);
       if (refDefinitions) {
         return refDefinitions;
       }

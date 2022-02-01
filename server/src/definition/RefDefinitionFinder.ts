@@ -6,7 +6,7 @@ import { ManifestModel } from '../manifest/ManifestJson';
 import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { getAbsolutePosition, getAbsoluteRange, getRelativePosition, positionInRange } from '../utils/Utils';
 
-export class ModelDefinitionFinder {
+export class RefDefinitionFinder {
   static readonly REF_PATTERN = /ref\s*\(\s*('[^)']*'|"[^)"]*")(\s*,\s*('[^)']*'|"[^)"]*"))?\s*\)/;
   static readonly REF_PARTS_PATTERN = /'[^']*'|"[^*]*"/g;
 
@@ -22,13 +22,13 @@ export class ModelDefinitionFinder {
     if (relativePosition === undefined) {
       return undefined;
     }
-    const wordRange = getWordRangeAtPosition(relativePosition, ModelDefinitionFinder.REF_PATTERN, expressionLines);
+    const wordRange = getWordRangeAtPosition(relativePosition, RefDefinitionFinder.REF_PATTERN, expressionLines);
 
     if (wordRange) {
       const word = document.getText(getAbsoluteRange(expression.range.start, wordRange));
       const matches = [];
       let match: RegExpExecArray | null;
-      while ((match = ModelDefinitionFinder.REF_PARTS_PATTERN.exec(word))) {
+      while ((match = RefDefinitionFinder.REF_PARTS_PATTERN.exec(word))) {
         matches.push({
           text: match[0],
           index: match.index,
