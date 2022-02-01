@@ -66,38 +66,15 @@ describe('TextUtils', () => {
   //     assert.strictEqual(data.document.getText(range), 'TaskDefinition');
   //   });
 
-  //   it('Rename popup sometimes populates with text on the left side omitted #96013', function () {
-  //     const regex = /(-?\d*\.\d\w*)|([^\`\~\!\@\#\$\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g;
-  //     const line = 'int abcdefhijklmnopqwvrstxyz;';
+  it('Rename popup sometimes populates with text on the left side omitted #96013', function () {
+    const regex = /(-?\d*\.\d\w*)|([^`~!@#$%^&*()\-=+[{\]}\\|;:'",.<>/?\s]+)/g;
+    const line = 'int abcdefhijklmnopqwvrstxyz;';
 
-  //     data = new ExtHostDocumentData(undefined!, URI.file(''), [line], '\n', 1, 'text', false);
+    const range = getWordRangeAtPosition(Position.create(0, 27), regex, [line]);
 
-  //     let range = data.document.getWordRangeAtPosition(new Position(0, 27), regex)!;
-  //     assert.strictEqual(range.start.line, 0);
-  //     assert.strictEqual(range.end.line, 0);
-  //     assert.strictEqual(range.start.character, 4);
-  //     assert.strictEqual(range.end.character, 28);
-  //   });
-
-  //   it('Custom snippet $TM_SELECTED_TEXT not show suggestion #108892', function () {
-  //     data = new ExtHostDocumentData(
-  //       undefined!,
-  //       URI.file(''),
-  //       [
-  //         `        <p><span xml:lang="en">Sheldon</span>, soprannominato "<span xml:lang="en">Shelly</span> dalla madre e dalla sorella, è nato a <span xml:lang="en">Galveston</span>, in <span xml:lang="en">Texas</span>, il 26 febbraio 1980 in un supermercato. È stato un bambino prodigio, come testimoniato dal suo quoziente d'intelligenza (187, di molto superiore alla norma) e dalla sua rapida carriera scolastica: si è diplomato all'eta di 11 anni approdando alla stessa età alla formazione universitaria e all'età di 16 anni ha ottenuto il suo primo dottorato di ricerca. All'inizio della serie e per gran parte di essa vive con il coinquilino Leonard nell'appartamento 4A al 2311 <span xml:lang="en">North Los Robles Avenue</span> di <span xml:lang="en">Pasadena</span>, per poi trasferirsi nell'appartamento di <span xml:lang="en">Penny</span> con <span xml:lang="en">Amy</span> nella decima stagione. Come più volte afferma lui stesso possiede una memoria eidetica e un orecchio assoluto. È stato educato da una madre estremamente religiosa e, in più occasioni, questo aspetto contrasta con il rigore scientifico di <span xml:lang="en">Sheldon</span>; tuttavia la donna sembra essere l'unica persona in grado di comandarlo a bacchetta.</p>`,
-  //       ],
-  //       '\n',
-  //       1,
-  //       'text',
-  //       false,
-  //     );
-
-  //     const pos = new Position(0, 55);
-  //     const range = data.document.getWordRangeAtPosition(pos)!;
-  //     assert.strictEqual(range.start.line, 0);
-  //     assert.strictEqual(range.end.line, 0);
-  //     assert.strictEqual(range.start.character, 47);
-  //     assert.strictEqual(range.end.character, 61);
-  //     assert.strictEqual(data.document.getText(range), 'soprannominato');
-  //   });
+    assertThat(range?.start.line, 0);
+    assertThat(range?.end.line, 0);
+    assertThat(range?.start.character, 4);
+    assertThat(range?.end.character, 28);
+  });
 });
