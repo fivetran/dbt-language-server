@@ -48,6 +48,7 @@ export class MacroDefinitionFinder {
       const macroFilePath = path.join(selectedMacro.rootPath, selectedMacro.originalFilePath);
       const [definitionRange, selectionRange] = this.getMacroRange(selectedMacro.name, macroFilePath);
 
+      wordRange.end.character -= 1;
       return [LocationLink.create(macroFilePath, definitionRange, selectionRange, getAbsoluteRange(expression.range.start, wordRange))];
     }
 
