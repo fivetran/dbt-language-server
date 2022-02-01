@@ -23,24 +23,23 @@ const DEFAULT_CONFIG = {
   timeBudget: 150,
 };
 
-export function getWordRangeAtPosition(_position: Position, regexp: RegExp, _lines: string[]): Range | undefined {
-  const position = validatePosition(_position, _lines);
+export function getWordRangeAtPosition(position: Position, regexp: RegExp, lines: string[]): Range | undefined {
+  const validPosition = validatePosition(position, lines);
 
   if (regExpLeadsToEndlessLoop(regexp)) {
-    // use default when custom-regexp is bad
     throw new Error(`[getWordRangeAtPosition]: ignoring custom regexp '${regexp.source}' because it matches the empty string.`);
   }
 
-  const wordAtText = getWordAtText(position.character + 1, ensureValidWordDefinition(regexp), _lines[position.line], 0);
+  const wordAtText = getWordAtText(validPosition.character + 1, ensureValidWordDefinition(regexp), lines[validPosition.line], 0);
 
   if (wordAtText) {
-    return Range.create(position.line, wordAtText.startColumn - 1, position.line, wordAtText.endColumn - 1);
+    return Range.create(validPosition.line, wordAtText.startColumn - 1, validPosition.line, wordAtText.endColumn - 1);
   }
   return undefined;
 }
 
-export function validatePosition(position: Position, _lines: string[]): Position {
-  if (_lines.length === 0) {
+export function validatePosition(position: Position, lines: string[]): Position {
+  if (lines.length === 0) {
     return Position.create(0, 0);
   }
 
@@ -51,12 +50,12 @@ export function validatePosition(position: Position, _lines: string[]): Position
     line = 0;
     character = 0;
     hasChanged = true;
-  } else if (line >= _lines.length) {
-    line = _lines.length - 1;
-    character = _lines[line].length;
+  } else if (line >= lines.length) {
+    line = lines.length - 1;
+    character = lines[line].length;
     hasChanged = true;
   } else {
-    const maxCharacter = _lines[line].length;
+    const maxCharacter = lines[line].length;
     if (character < 0) {
       character = 0;
       hasChanged = true;
@@ -88,12 +87,12 @@ export function regExpLeadsToEndlessLoop(regexp: RegExp): boolean {
 export function getWordAtText(
   column: number,
   wordDefinition: RegExp,
-  _text: string,
-  _textOffset: number,
+  inputText: string,
+  inputTextOffset: number,
   config = DEFAULT_CONFIG,
 ): IWordAtPosition | null {
-  let text: string = _text;
-  let textOffset: number = _textOffset;
+  let text: string = inputText;
+  let textOffset: number = inputTextOffset;
 
   if (text.length > config.maxLen) {
     // don't throw strings that long at the regexp
