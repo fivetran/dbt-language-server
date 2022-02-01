@@ -104,10 +104,7 @@
       "path": "client/out/**/*"
     },
     {
-      "path": "server/out/**/*"
-    },
-    {
-      "path": "server/node_modules/**/*"
+      "path": "server/out/**/*.js"
     }
   ],
   "scripts": {
