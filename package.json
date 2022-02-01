@@ -99,9 +99,20 @@
     ]
   },
   "aiKey": "0a32611a-7944-4c4d-93c9-5c260a61395b",
+  "size-limit": [
+    {
+      "path": "client/out/**/*"
+    },
+    {
+      "path": "server/out/**/*"
+    },
+    {
+      "path": "server/node_modules/**/*"
+    }
+  ],
   "scripts": {
     "vscode:prepublish": "npm run webpack && npm run prepare-node-modules",
-    "compile": "tsc -b",
+    "build": "tsc -b",
     "watch": "tsc -b -w",
     "format": "prettier --write \"client/src/**/*.ts\" \"server/src/**/*.ts\" \"markdown_parser/src/**/*.ts\" \"e2e/src/**/*.ts\"",
     "postinstall": "cd client && npm install && cd ../server && npm install && cd ../markdown_parser && npm install && cd ../e2e && npm install && cd ..",
@@ -114,9 +125,11 @@
     "webpack": "npm run clean && webpack --mode production --config ./client/webpack.config.js && webpack --mode production --config ./server/webpack.config.js && npm run prepare-zetasql",
     "webpack:dev": "npm run clean && webpack --mode none --config ./client/webpack.config.js && webpack --mode none --config ./server/webpack.config.js && npm run prepare-zetasql",
     "prepare-node-modules": "./prepare_node_modules.sh",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "size": "npm run vscode:prepublish && size-limit"
   },
   "devDependencies": {
+    "@size-limit/file": "^7.0.5",
     "@types/mocha": "^9.1.0",
     "@types/node": "^17.0.10",
     "@typescript-eslint/eslint-plugin": "^5.10.0",
@@ -130,6 +143,7 @@
     "mocha": "^9.1.4",
     "prettier": "^2.5.1",
     "prettier-plugin-organize-imports": "^2.3.4",
+    "size-limit": "^7.0.5",
     "ts-loader": "^9.2.6",
     "ts-mockito": "^2.6.1",
     "ts-node": "^10.4.0",
