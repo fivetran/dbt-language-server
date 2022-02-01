@@ -50,22 +50,6 @@ describe('TextUtils', () => {
     assertThat(range?.end.character, 10);
   });
 
-  //   it('getWordRangeAtPosition can freeze the extension host #95319', function () {
-  //     const regex =
-  //       /(https?:\/\/github\.com\/(([^\s]+)\/([^\s]+))\/([^\s]+\/)?(issues|pull)\/([0-9]+))|(([^\s]+)\/([^\s]+))?#([1-9][0-9]*)($|[\s\:\;\-\(\=])/;
-
-  //     data = new ExtHostDocumentData(undefined!, URI.file(''), [perfData._$_$_expensive], '\n', 1, 'text', false);
-
-  //     let range = data.document.getWordRangeAtPosition(new Position(0, 1_177_170), regex)!;
-  //     assert.strictEqual(range, undefined);
-
-  //     const pos = new Position(0, 1177170);
-  //     range = data.document.getWordRangeAtPosition(pos)!;
-  //     assert.ok(range);
-  //     assert.ok(range.contains(pos));
-  //     assert.strictEqual(data.document.getText(range), 'TaskDefinition');
-  //   });
-
   it('Rename popup sometimes populates with text on the left side omitted #96013', function () {
     const regex = /(-?\d*\.\d\w*)|([^`~!@#$%^&*()\-=+[{\]}\\|;:'",.<>/?\s]+)/g;
     const line = 'int abcdefhijklmnopqwvrstxyz;';
