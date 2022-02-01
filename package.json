@@ -11,6 +11,14 @@
     "bigquery",
     "sql"
   ],
+  "homepage": "https://github.com/fivetran/dbt-language-server/blob/main/README.md",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fivetran/dbt-language-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fivetran/dbt-language-server/issues"
+  },
   "extensionDependencies": [
     "ms-python.python"
   ],

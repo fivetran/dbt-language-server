@@ -45,7 +45,7 @@ jobs:
           find . ! -name '${{ matrix.zetasql-lib }}' -type f -exec rm -f {} +
 
       - name: package to vsix file
-        run: npx vsce package -o ${FILE_NAME} --target ${{ matrix.target }} --baseImagesUrl=https://storage.googleapis.com/dbt-ls-images
+        run: npx vsce package -o ${FILE_NAME} --target ${{ matrix.target }}
 
       - name: create cache
         uses: actions/cache@v2

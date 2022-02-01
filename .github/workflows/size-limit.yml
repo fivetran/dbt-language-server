@@ -5,6 +5,7 @@ on:
       - ".github/workflows/size-limit.yml"
       - "server/**"
       - "client/**"
+      - "package.json"
       - "!**.md"
 
 jobs:
