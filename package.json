@@ -110,6 +110,7 @@
   "scripts": {
     "vscode:prepublish": "npm run webpack && npm run prepare-node-modules",
     "build": "tsc -b",
+    "build:size": "npm run build && npm run vscode:prepublish",
     "watch": "tsc -b -w",
     "format": "prettier --write \"client/src/**/*.ts\" \"server/src/**/*.ts\" \"markdown_parser/src/**/*.ts\" \"e2e/src/**/*.ts\"",
     "postinstall": "cd client && npm install && cd ../server && npm install && cd ../markdown_parser && npm install && cd ../e2e && npm install && cd ..",
@@ -122,8 +123,7 @@
     "webpack": "npm run clean && webpack --mode production --config ./client/webpack.config.js && webpack --mode production --config ./server/webpack.config.js && npm run prepare-zetasql",
     "webpack:dev": "npm run clean && webpack --mode none --config ./client/webpack.config.js && webpack --mode none --config ./server/webpack.config.js && npm run prepare-zetasql",
     "prepare-node-modules": "./prepare_node_modules.sh",
-    "prepare": "husky install",
-    "size": "npm run vscode:prepublish && size-limit"
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@size-limit/file": "^7.0.5",
