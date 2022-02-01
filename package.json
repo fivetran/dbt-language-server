@@ -1,6 +1,6 @@
 {
   "name": "dbt-language-server",
-  "displayName": "dbt Language Server",
+  "displayName": "dbt Language Support",
   "description": "This extension will help you work with dbt",
   "version": "0.0.3",
   "publisher": "Fivetran",
