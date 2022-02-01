@@ -46,7 +46,7 @@ export class JinjaDefinitionProvider {
 
   onExpressionDefinition(document: TextDocument, expression: Expression, position: Position): DefinitionLink[] | undefined {
     if (this.projectName && this.isExpression(expression.expression)) {
-      const refDefinitions = this.refDefinitionFinder.searchModelDefinitions(document, position, expression, this.projectName, this.dbtModels);
+      const refDefinitions = this.refDefinitionFinder.searchRefDefinitions(document, position, expression, this.projectName, this.dbtModels);
       if (refDefinitions) {
         return refDefinitions;
       }

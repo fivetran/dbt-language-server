@@ -10,7 +10,7 @@ export class RefDefinitionFinder {
   static readonly REF_PATTERN = /ref\s*\(\s*('[^)']*'|"[^)"]*")(\s*,\s*('[^)']*'|"[^)"]*"))?\s*\)/;
   static readonly REF_PARTS_PATTERN = /'[^']*'|"[^*]*"/g;
 
-  searchModelDefinitions(
+  searchRefDefinitions(
     document: TextDocument,
     position: Position,
     expression: Expression,
