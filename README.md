@@ -172,3 +172,6 @@ my-bigquery-db:
         auth_provider_x509_cert_url: https://www.googleapis.com/oauth2/v1/certs
         client_x509_cert_url: https://www.googleapis.com/robot/v1/metadata/x509/test-bigquery%40google-test-project-id-400.iam.gserviceaccount.com
 ```
+
+## Issues
+If you found any bug, have an idea or suggestion on how to improve extension please file an issue with details here: [Issues](https://github.com/fivetran/dbt-language-server/issues)
