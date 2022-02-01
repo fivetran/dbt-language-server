@@ -41,7 +41,7 @@ export class DbtLanguageClient implements Disposable {
 
     this.workspaceFolder = workspace.getWorkspaceFolder(dbtProjectUri);
 
-    this.client = new LanguageClient('dbtLanguageServer', 'dbt Language Server', serverOptions, clientOptions);
+    this.client = new LanguageClient('dbtLanguageServer', 'dbt Language Support', serverOptions, clientOptions);
   }
 
   initialize(): void {

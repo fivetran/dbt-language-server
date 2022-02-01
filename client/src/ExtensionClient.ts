@@ -30,7 +30,7 @@ export class ExtensionClient {
 
   constructor(private context: ExtensionContext) {
     this.serverAbsolutePath = this.context.asAbsolutePath(path.join('server', 'out', 'server.js'));
-    this.outputChannel = window.createOutputChannel('dbt Language Server');
+    this.outputChannel = window.createOutputChannel('dbt Language Support');
   }
 
   public onActivate(): void {

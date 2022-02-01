@@ -1,4 +1,4 @@
-# Language Server for dbt
+# dbt Language Support
 
 This extension will help you work with dbt and BigQuery.
 
