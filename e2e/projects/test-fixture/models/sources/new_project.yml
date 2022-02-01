@@ -1,0 +1,21 @@
+version: 2
+
+sources:
+  - name: new_project
+    description: Sample new_project data
+    database: dbt_ls_e2e_dataset
+    schema: singular-vector-135519
+
+    tables:
+      - name: users
+        description: All users
+        columns:
+          - name: id
+            description: Primary key of the users table
+            tests:
+              - unique
+              - not_null
+          - name: name
+            description: User's full name
+          - name: email
+            description: User's email

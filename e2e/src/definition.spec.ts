@@ -2,14 +2,16 @@ import assert = require('assert');
 import { Position, Range } from 'vscode';
 import { activateAndWait, getDocUri, triggerDefinition } from './helper';
 
+const refSqlDocUri = getDocUri('ref_sql.sql');
+const packageRefDocUri = getDocUri('package_ref.sql');
+
 suite('ref definitions', () => {
   test('Should suggest definitions for ref without package', async () => {
     // arrange
-    const docUri = getDocUri('ref_sql.sql');
-    await activateAndWait(docUri);
+    await activateAndWait(refSqlDocUri);
 
     // act
-    const definitions = await triggerDefinition(docUri, new Position(1, 24));
+    const definitions = await triggerDefinition(refSqlDocUri, new Position(1, 24));
 
     // assert
     assert.strictEqual(definitions.length, 1);
@@ -19,12 +21,11 @@ suite('ref definitions', () => {
 
   test('Should suggest definitions for ref with package', async () => {
     // arrange
-    const docUri = getDocUri('package_ref.sql');
-    await activateAndWait(docUri);
+    await activateAndWait(packageRefDocUri);
 
     // act
-    const packageDefinitions = await triggerDefinition(docUri, new Position(5, 24));
-    const modelDefinitions = await triggerDefinition(docUri, new Position(5, 42));
+    const packageDefinitions = await triggerDefinition(packageRefDocUri, new Position(5, 24));
+    const modelDefinitions = await triggerDefinition(packageRefDocUri, new Position(5, 42));
 
     // assert
     assert.ok(packageDefinitions.length > 1);
@@ -39,12 +40,11 @@ suite('ref definitions', () => {
 suite('macro definitions', () => {
   test('Should suggest definitions for macros', async () => {
     // arrange
-    const docUri = getDocUri('package_ref.sql');
-    await activateAndWait(docUri);
+    await activateAndWait(packageRefDocUri);
 
     // act
-    const extractFirstNameDefinitions = await triggerDefinition(docUri, new Position(2, 9));
-    const extractLastNameDefinitions = await triggerDefinition(docUri, new Position(3, 9));
+    const extractFirstNameDefinitions = await triggerDefinition(packageRefDocUri, new Position(2, 9));
+    const extractLastNameDefinitions = await triggerDefinition(packageRefDocUri, new Position(3, 9));
 
     // assert
     assert.strictEqual(extractFirstNameDefinitions.length, 1);
@@ -61,4 +61,17 @@ suite('macro definitions', () => {
   });
 });
 
-// suite('source definitions', () => {});
+suite('source definitions', () => {
+  test('Should suggest definitions for source', async () => {
+    // arrange
+    await activateAndWait(packageRefDocUri);
+
+    // act
+    const sourceDefinitions = await triggerDefinition(packageRefDocUri, new Position(4, 33));
+
+    // assert
+    assert.strictEqual(sourceDefinitions.length, 1);
+    assert.ok(sourceDefinitions[0].targetUri.path.endsWith('/test-fixture/models/sources/new_project.yml'));
+    assert.deepStrictEqual(sourceDefinitions[0].originSelectionRange, new Range(new Position(4, 31), new Position(4, 36)));
+  });
+});
