@@ -2,7 +2,7 @@
 
 This extension will help you work with dbt and BigQuery.
 
-**Note:** Turning on [Auto Save](https://code.visualstudio.com/docs/editor/codebasics#_save-auto-save) is strongly recommended. With this option turned on, VS Code will save your changes after a configured delay or when focus leaves the editor. This feature is required for preview, completion and errors highlighting.
+**Note:** Turning on [Auto Save](https://code.visualstudio.com/docs/editor/codebasics#_save-auto-save) is strongly recommended. With this option turned on, VS Code will save your changes after a configured delay or when the focus leaves the editor. This feature is required for preview, completion, and error highlighting.
 
 ### Table of Contents
 
@@ -49,16 +49,16 @@ This extension will help you work with dbt and BigQuery.
 
 ## How to use
 
-Extension works on MacOS, Linux and Windows (for Windows see the additional steps in [Windows support](docs/WindowsSupport.md) article). It supports the default locations for `profiles.yml` and `dbt_project.yml` files and the BigQuery profile.
+The extension works on MacOS, Linux, and Windows (for Windows, see the additional steps in the [Windows Support](docs/WindowsSupport.md) article). It supports the default locations for `profiles.yml` and `dbt_project.yml` files and the BigQuery profile.
 
 Prior to using the extension, you need to perform the following steps:
 1. [Install bigquery-dbt and dbt-rpc](https://docs.getdbt.com/dbt-cli/installation) (e.g `python3 -m pip install dbt-bigquery dbt-rpc`)
-1. In Terminal, test that dbt-rpc works running the `dbt-rpc --version` command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g. `~/dbt-env/bin/python3`).
-1. Create a file named `profiles.yml` in the `~/.dbt/` folder and add a profile to connect to BigQuery
-   * using the [oauth via gcloud](#oauth-via-gcloud)
-   * using the [oauth token-based](#oauth-token-based)
-   * using the [service account file](#service-account-file)
-   * using the [service account json](#service-account-json)
+1. In Terminal, test that dbt-rpc works by running the `dbt-rpc --version` command or [specifying the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g., `~/dbt-env/bin/python3`).
+1. Create a file named `profiles.yml` in the `~/.dbt/` folder and add a profile to connect to BigQuery:
+   * using the [oauth via gcloud](#oauth-via-gcloud) authentication method
+   * using the [oauth token-based](#oauth-token-based) authentication method
+   * using the [service account file](#service-account-file) authentication method
+   * using the [service account json](#service-account-json) authentication method
 1. Open the dbt project in the new VS Code window.
 1. Now you can open your model and see the dbt compile preview by right-clicking the code and choosing **Show query preview** from the context menu.
 
@@ -66,14 +66,14 @@ Prior to using the extension, you need to perform the following steps:
 
 ### BigQuery Profile
 
-BigQuery profile can be setup using one of three authentication methods:
+A BigQuery profile can be set up using one of the following authentication methods:
 - [oauth via gcloud](#oauth-via-gcloud)
 - [service account file](#service-account-file)
 - [service account json](#service-account-json)
 
 #### OAuth via gcloud
 
-Example of `/Users/user/.dbt/profiles.yml` using the [OAuth via gcloud](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#oauth-via-gcloud) authorization type:
+An example of `/Users/user/.dbt/profiles.yml` using the [OAuth via gcloud](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#oauth-via-gcloud) authorization type:
 
 ```YAML
 my-bigquery-db:
@@ -89,7 +89,7 @@ my-bigquery-db:
 
 #### Oauth Token-Based
 
-Example of `/Users/user/.dbt/profiles.yml` using the [Oauth Token-Based](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#oauth-token-based) authorization type:
+An example of `/Users/user/.dbt/profiles.yml` using the [Oauth Token-Based](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#oauth-token-based) authorization type:
 
 ##### Refresh token
 
@@ -126,7 +126,7 @@ my-bigquery-db:
 
 #### Service Account File
 
-Example of `/Users/user/.dbt/profiles.yml` using the [Service Account File](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-file) authorization type:
+An example of `/Users/user/.dbt/profiles.yml` using the [Service Account File](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-file) authorization type:
 
 ```YAML
 my-bigquery-db:
@@ -143,7 +143,7 @@ my-bigquery-db:
 
 #### Service Account JSON
 
-Example of `/Users/user/.dbt/profiles.yml` using the [Service Account JSON](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-json) authorization type:
+An example of `/Users/user/.dbt/profiles.yml` using the [Service Account JSON](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-json) authorization type:
 
 ```YAML
 my-bigquery-db:
@@ -174,4 +174,4 @@ my-bigquery-db:
 ```
 
 ## Issues
-If you found any bug, have an idea or suggestion on how to improve extension please file an issue with details here: [Issues](https://github.com/fivetran/dbt-language-server/issues)
+If you have found any bug, have an idea or suggestion on how to improve extension, please file an issue and provide the details here: [Issues](https://github.com/fivetran/dbt-language-server/issues)
