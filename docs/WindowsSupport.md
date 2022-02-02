@@ -13,7 +13,7 @@ Using this extension on Windows requires additional setup steps. You can use one
 1. Install [Visual Studio Code](https://code.visualstudio.com/) on the Windows side (not in WSL).
 1. Install the [Remote Development extension pack](https://aka.ms/vscode-remote/download/extension).
 
-**Note:** See the detailed instructions [here](https://code.visualstudio.com/docs/remote/wsl#_getting-started).
+**Note:** See the [Visual Studio Code Remote - WSL documentation](https://code.visualstudio.com/docs/remote/wsl#_getting-started) for more details.
 
 ### Install dbt Language Server extension
 
@@ -79,6 +79,6 @@ code --remote wsl+<distro name> <path in WSL>
     ```json
     "source=C:/Users/your_user/.dbt/your-project-credentials.json,target=/Users/user/.dbt/your-project-credentials.json,type=bind,readonly",
     ```
-1. Use **Ctrl+Shift+P** and the 'Remote-Containers: Reopen Folder Locally', 'Remote-Containers: Reopen in Container' commands to switch between the local environment and docker container environment for your project.
+1. Use **Ctrl+Shift+P** and the **Remote-Containers: Reopen Folder Locally**, **Remote-Containers: Reopen in Container** commands to switch between the local environment and docker container environment for your project.
 
 **Note:** See the [Developing inside a Container documentation](https://code.visualstudio.com/docs/remote/containers) for detailed instructions.
