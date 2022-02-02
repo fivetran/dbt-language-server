@@ -74,7 +74,7 @@ code --remote wsl+<distro name> <path in WSL>
       ]
     }
     ```
-1. Replace the path in the `mount` section with your actual paths.
+1. Replace the path in the `mounts` section with your actual paths.
 1. If you use any absolute path in your `.dbt/profiles.yml`, add one more mount for your path and change it in the `.dbt/profiles.yml`:
     ```json
     "source=C:/Users/your_user/.dbt/your-project-credentials.json,target=/Users/user/.dbt/your-project-credentials.json,type=bind,readonly",
