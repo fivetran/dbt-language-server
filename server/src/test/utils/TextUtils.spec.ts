@@ -29,7 +29,7 @@ describe('TextUtils', () => {
     assertThat(() => getWordRangeAtPosition(Position.create(0, 2), /.*/, textLines), throws(instanceOf(Error)));
   });
 
-  it("getWordRangeAtPosition doesn't quite use the regex as expected", function () {
+  it('getWordRangeAtPosition should properly use regex', function () {
     const textLines = ['some text here', '/** foo bar */', 'function() {', '	"far boo"', '}'];
     let range = getWordRangeAtPosition(Position.create(0, 0), /\/\*.+\*\//, textLines);
     assertThat(range, undefined);
@@ -50,7 +50,7 @@ describe('TextUtils', () => {
     assertThat(range?.end.character, 10);
   });
 
-  it('Rename popup sometimes populates with text on the left side omitted #96013', function () {
+  it('getWordRangeAtPosition should find word', function () {
     const regex = /(-?\d*\.\d\w*)|([^`~!@#$%^&*()\-=+[{\]}\\|;:'",.<>/?\s]+)/g;
     const line = 'int abcdefhijklmnopqwvrstxyz;';
 
