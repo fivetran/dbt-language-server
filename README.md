@@ -49,7 +49,7 @@ This extension will help you work with dbt and BigQuery.
 
 ## How to use
 
-Extension works on MacOS, Linux and Windows (for Windows see the additional steps in [Windows support](docs/WindowsSupport.md) article). It supports the default locations for `profiles.yml` and `dbt_project.yml` files and the BigQuery destination.
+Extension works on MacOS, Linux and Windows (for Windows see the additional steps in [Windows support](docs/WindowsSupport.md) article). It supports the default locations for `profiles.yml` and `dbt_project.yml` files and the BigQuery profile.
 
 Prior to using the extension, you need to perform the following steps:
 1. [Install bigquery-dbt and dbt-rpc](https://docs.getdbt.com/dbt-cli/installation) (e.g `python3 -m pip install dbt-bigquery dbt-rpc`)
