@@ -17,7 +17,8 @@
     "url": "https://github.com/fivetran/dbt-language-server.git"
   },
   "bugs": {
-    "url": "https://github.com/fivetran/dbt-language-server/issues"
+    "url": "https://github.com/fivetran/dbt-language-server/issues",
+    "email": "pavel@fivetran.com"
   },
   "extensionDependencies": [
     "ms-python.python"
