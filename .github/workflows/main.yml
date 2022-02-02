@@ -32,20 +32,20 @@ jobs:
       - name: build and test
         run: |
           npm install
-          npm run compile
+          npm run build
           npm run lint
           npm run test
 
       - name: set environment variable with file name
         run: echo "FILE_NAME=${{ github.sha }}-${{ matrix.target }}.vsix" >> $GITHUB_ENV
 
-      - name: delete libraries for other platrofms
+      - name: delete libraries for other platforms
         run: |
           cd server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql/
           find . ! -name '${{ matrix.zetasql-lib }}' -type f -exec rm -f {} +
 
       - name: package to vsix file
-        run: npx vsce package -o ${FILE_NAME} --target ${{ matrix.target }} --baseImagesUrl=https://storage.googleapis.com/dbt-ls-images
+        run: npx vsce package -o ${FILE_NAME} --target ${{ matrix.target }}
 
       - name: create cache
         uses: actions/cache@v2
@@ -188,7 +188,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.os }}_${{ matrix.dbt-version }}
-          path: ./.vscode-test/user-data/logs/**/*dbt Language Server.log
+          path: ./.vscode-test/user-data/logs/**/*dbt Language Support.log
 
   publish:
     if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }} # main branch or have any tag started with 'v'

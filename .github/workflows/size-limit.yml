@@ -1,0 +1,21 @@
+name: "BundleSize"
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/size-limit.yml"
+      - "server/**"
+      - "client/**"
+      - "package.json"
+      - "!**.md"
+
+jobs:
+  size:
+    runs-on: macos-latest
+    env:
+      CI_JOB_NUMBER: 1
+    steps:
+      - uses: actions/checkout@v2
+      - uses: andresz1/size-limit-action@v1
+        with:
+          build_script: build:size
+          github_token: ${{ secrets.GITHUB_TOKEN }}
