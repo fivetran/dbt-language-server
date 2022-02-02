@@ -59,7 +59,7 @@ Prior to using the extension, you need to perform the following steps:
    * using the [oauth token-based](#oauth-token-based)
    * using the [service account file](#service-account-file)
    * using the [service account json](#service-account-json)
-4. Open the dbt project the new VS Code window.
+4. Open the dbt project in the new VS Code window.
 5. Now you can open your model and see the dbt compile preview by right-clicking the code and choosing **Show query preview** from the context menu.
 
 ## Profiles
