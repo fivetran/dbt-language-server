@@ -17,9 +17,9 @@ connection.onDefinition(server.onDefinition.bind(server));
 
 connection.onWillSaveTextDocument(server.onWillSaveTextDocument.bind(server));
 connection.onDidSaveTextDocument(server.onDidSaveTextDocument.bind(server));
-connection.onDidOpenTextDocument(server.onDidOpenTextDocument.bind(server));
+connection.onDidOpenTextDocument(server.onDidOpenTextDocumentDelayed.bind(server));
 connection.onDidChangeTextDocument(server.onDidChangeTextDocument.bind(server));
-connection.onDidCloseTextDocument(server.onDidCloseTextDocument.bind(server));
+connection.onDidCloseTextDocument(server.onDidCloseTextDocumentDelayed.bind(server));
 
 connection.onDidChangeWatchedFiles(server.onDidChangeWatchedFiles.bind(server));
 
