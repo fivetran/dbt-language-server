@@ -2,7 +2,7 @@
   "name": "dbt-language-server",
   "displayName": "dbt Language Support",
   "description": "This extension will help you work with dbt",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "publisher": "Fivetran",
   "license": "MIT",
   "preview": true,
