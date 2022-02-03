@@ -67,13 +67,6 @@
       }
     ],
     "menus": {
-      "editor/title": [
-        {
-          "command": "dbt.compile",
-          "group": "navigation",
-          "when": "editorLangId =~ /sql$/"
-        }
-      ],
       "dbt": [
         {
           "command": "dbt.compile",
@@ -103,7 +96,7 @@
     "submenus": [
       {
         "id": "dbt",
-        "label": "dbt"
+        "label": "dbt Language Support"
       }
     ]
   },
