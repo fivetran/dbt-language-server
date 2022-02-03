@@ -2,7 +2,7 @@
   "name": "dbt-language-server",
   "displayName": "dbt Language Support",
   "description": "This extension will help you work with dbt",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "publisher": "Fivetran",
   "license": "MIT",
   "preview": true,
@@ -17,7 +17,8 @@
     "url": "https://github.com/fivetran/dbt-language-server.git"
   },
   "bugs": {
-    "url": "https://github.com/fivetran/dbt-language-server/issues"
+    "url": "https://github.com/fivetran/dbt-language-server/issues",
+    "email": "pavel@fivetran.com"
   },
   "extensionDependencies": [
     "ms-python.python"
@@ -66,13 +67,6 @@
       }
     ],
     "menus": {
-      "editor/title": [
-        {
-          "command": "dbt.compile",
-          "group": "navigation",
-          "when": "editorLangId =~ /sql$/"
-        }
-      ],
       "dbt": [
         {
           "command": "dbt.compile",
@@ -102,7 +96,7 @@
     "submenus": [
       {
         "id": "dbt",
-        "label": "dbt"
+        "label": "dbt Language Support"
       }
     ]
   },
