@@ -27,3 +27,8 @@ jobs:
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
+        with:
+          commit-message: Update CHANGELOG.md
+          delete-branch: true
+          title: Update CHANGELOG.md
+          reviewers: pgrivachev
