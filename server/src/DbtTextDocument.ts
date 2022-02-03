@@ -1,4 +1,4 @@
-import { AnalyzeRequest, ZetaSQLClient } from '@fivetrandevelopers/zetasql';
+import { AnalyzeRequest } from '@fivetrandevelopers/zetasql';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { AnalyzeResponse, AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRecordType';
@@ -36,7 +36,7 @@ import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { SqlRefConverter } from './SqlRefConverter';
 import { debounce, getIdentifierRangeAtPosition, getJinjaContentOffset } from './Utils';
 import { ZetaSqlAst } from './ZetaSqlAst';
-import { ZetaSqlCatalog } from './ZetaSqlCatalog';
+import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 
 export class DbtTextDocument {
   static DEBOUNCE_TIMEOUT = 300;
@@ -61,8 +61,7 @@ export class DbtTextDocument {
     private modelCompiler: ModelCompiler,
     private jinjaParser: JinjaParser,
     private schemaTracker: SchemaTracker,
-    private zetaSqlCatalog: ZetaSqlCatalog,
-    private zetaSqlClient: ZetaSQLClient,
+    private zetaSqlWrapper: ZetaSqlWrapper,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -228,18 +227,18 @@ export class DbtTextDocument {
   async getAstOrError(): Promise<Result<AnalyzeResponse__Output, string>> {
     const analyzeRequest: AnalyzeRequest = {
       sqlStatement: this.compiledDocument.getText(),
-      registeredCatalogId: this.zetaSqlCatalog.getCatalog().registeredId,
+      registeredCatalogId: this.zetaSqlWrapper.getCatalog().registeredId,
 
       options: {
         parseLocationRecordType: ParseLocationRecordType.PARSE_LOCATION_RECORD_CODE_SEARCH,
 
         errorMessageMode: ErrorMessageMode.ERROR_MESSAGE_ONE_LINE,
-        languageOptions: this.zetaSqlCatalog.getCatalog().builtinFunctionOptions.languageOptions,
+        languageOptions: this.zetaSqlWrapper.getCatalog().builtinFunctionOptions.languageOptions,
       },
     };
 
     try {
-      const ast = await this.zetaSqlClient.analyze(analyzeRequest);
+      const ast = await this.zetaSqlWrapper.analyze(analyzeRequest);
       console.log('AST was successfully received');
       return ok(ast);
     } catch (e: any) {
@@ -250,13 +249,13 @@ export class DbtTextDocument {
 
   async ensureCatalogInitialized(): Promise<void> {
     await this.schemaTracker.refreshTableNames(this.compiledDocument.getText());
-    if (this.schemaTracker.hasNewTables || !this.zetaSqlCatalog.isRegistered()) {
+    if (this.schemaTracker.hasNewTables || !this.zetaSqlWrapper.isCatalogRegistered()) {
       await this.registerCatalog();
     }
   }
 
   async registerCatalog(): Promise<void> {
-    await this.zetaSqlCatalog.register(this.schemaTracker.tableDefinitions);
+    await this.zetaSqlWrapper.registerCatalog(this.schemaTracker.tableDefinitions);
     this.schemaTracker.resetHasNewTables();
   }
 

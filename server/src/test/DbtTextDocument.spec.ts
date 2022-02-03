@@ -1,4 +1,4 @@
-import { SimpleCatalog, ZetaSQLClient } from '@fivetrandevelopers/zetasql';
+import { SimpleCatalog } from '@fivetrandevelopers/zetasql';
 import { instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentSaveReason, _Connection } from 'vscode-languageserver';
 import { CompletionProvider } from '../CompletionProvider';
@@ -8,7 +8,7 @@ import { JinjaParser } from '../JinjaParser';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProgressReporter } from '../ProgressReporter';
 import { SchemaTracker } from '../SchemaTracker';
-import { ZetaSqlCatalog } from '../ZetaSqlCatalog';
+import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 import { sleep } from './helper';
 import Long = require('long');
 
@@ -19,8 +19,7 @@ describe('DbtTextDocument', () => {
   let mockModelCompiler: ModelCompiler;
   let mockJinjaParser: JinjaParser;
   let mockSchemaTracker: SchemaTracker;
-  let mockZetaSqlCatalog: ZetaSqlCatalog;
-  let mockZetaSqlClient: ZetaSQLClient;
+  let mockZetaSqlWrapper: ZetaSqlWrapper;
 
   beforeEach(() => {
     DbtTextDocument.DEBOUNCE_TIMEOUT = 0;
@@ -32,14 +31,12 @@ describe('DbtTextDocument', () => {
 
     mockJinjaParser = mock(JinjaParser);
     mockSchemaTracker = mock(SchemaTracker);
-    mockZetaSqlCatalog = mock(ZetaSqlCatalog);
+    mockZetaSqlWrapper = mock(ZetaSqlWrapper);
 
     const simpleCatalog = new SimpleCatalog('catalog');
     simpleCatalog.registeredId = new Long(1);
     simpleCatalog.builtinFunctionOptions = { languageOptions: {} };
-    when(mockZetaSqlCatalog.getCatalog()).thenReturn(simpleCatalog);
-
-    mockZetaSqlClient = mock(ZetaSQLClient);
+    when(mockZetaSqlWrapper.getCatalog()).thenReturn(simpleCatalog);
 
     document = new DbtTextDocument(
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
@@ -49,8 +46,7 @@ describe('DbtTextDocument', () => {
       instance(mockModelCompiler),
       instance(mockJinjaParser),
       instance(mockSchemaTracker),
-      instance(mockZetaSqlCatalog),
-      instance(mockZetaSqlClient),
+      instance(mockZetaSqlWrapper),
     );
   });
 
