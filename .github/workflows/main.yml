@@ -245,4 +245,4 @@ jobs:
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         env:
           VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
-        run: npx vsce publish --packagePath $(find . -iname *.vsix)
+        run: npx vsce publish --packagePath $(find . -iname "*.vsix")
