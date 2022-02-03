@@ -2,6 +2,8 @@ name: ReleaseToChangelog
 on:
   release:
     types: [published, edited]
+  workflow_dispatch:
+
 jobs:
   update-changelog:
     runs-on: ubuntu-latest
