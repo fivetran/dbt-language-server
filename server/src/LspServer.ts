@@ -60,7 +60,6 @@ export class LspServer {
   dbtRpcServer = new DbtRpcServer();
   dbtRpcClient = new DbtRpcClient();
   openedDocuments = new Map<string, DbtTextDocument>();
-  definitionTriggeredDocuments = new Map<string, number>();
   progressReporter: ProgressReporter;
   fileChangeListener: FileChangeListener;
   completionProvider: CompletionProvider;
@@ -247,14 +246,6 @@ export class LspServer {
       return;
     }
 
-    if (this.definitionTriggeredDocuments.has(params.textDocument.uri)) {
-      this.definitionTriggeredDocuments.set(params.textDocument.uri, this.definitionTriggeredDocuments.get(params.textDocument.uri)! - 1);
-      if (this.definitionTriggeredDocuments.get(params.textDocument.uri) === 0) {
-        this.definitionTriggeredDocuments.delete(params.textDocument.uri);
-      }
-      return;
-    }
-
     if (!document && this.bigQueryClient) {
       if (!(await this.isDbtReady())) {
         return;
@@ -298,13 +289,6 @@ export class LspServer {
   }
 
   onDidCloseTextDocument(params: DidCloseTextDocumentParams): void {
-    if (this.definitionTriggeredDocuments.has(params.textDocument.uri)) {
-      this.definitionTriggeredDocuments.set(params.textDocument.uri, this.definitionTriggeredDocuments.get(params.textDocument.uri)! - 1);
-      if (this.definitionTriggeredDocuments.get(params.textDocument.uri) === 0) {
-        this.definitionTriggeredDocuments.delete(params.textDocument.uri);
-      }
-      return;
-    }
     this.openedDocuments.delete(params.textDocument.uri);
   }
 
@@ -332,11 +316,7 @@ export class LspServer {
 
   onDefinition(definitionParams: DefinitionParams): DefinitionLink[] | undefined {
     const document = this.openedDocuments.get(definitionParams.textDocument.uri);
-    const definitions = document?.onDefinition(definitionParams);
-    if (definitions && definitions.length === 1 && document && !this.openedDocuments.has(document.rawDocument.uri)) {
-      definitions.forEach(d => this.definitionTriggeredDocuments.set(`file://${d.targetUri}`, 2));
-    }
-    return definitions;
+    return document?.onDefinition(definitionParams);
   }
 
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
