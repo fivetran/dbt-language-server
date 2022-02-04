@@ -54,9 +54,7 @@ jobs:
       - name: create cache
         uses: actions/cache@v2
         with:
-          path: |
-            ./e2e
-            ./${{ env.FILE_NAME }}
+          path: ./${{ env.FILE_NAME }}
           key: ${{ matrix.target }}-${{ github.sha }}
 
   run-e2e-tests:
@@ -94,17 +92,34 @@ jobs:
       - name: set environment variable with file name
         run: echo "FILE_NAME=${{ github.sha }}-${{ matrix.target }}.vsix" >> $GITHUB_ENV
 
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: fix cache issue on windows (use GNU tar instead BSD tar) # https://github.com/actions/toolkit/issues/552
+        if: matrix.os == 'windows-latest'
+        run: echo "C:/Program Files/Git/usr/bin/" >> $GITHUB_PATH
+
       - name: load e2e tests and vsix from cache
         uses: actions/cache@v2
+        id: cache
         with:
-          path: |
-            ./e2e
-            ./${{ env.FILE_NAME }}
+          path: ./${{ env.FILE_NAME }}
           key: ${{ matrix.target }}-${{ github.sha }}
+
+      - name: fail if cache not hit
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: exit 1
 
       - uses: actions/setup-node@v2
         with:
           node-version: '16.x'
+
+      - name: build tests
+        run: | # ignore postinstall script and install deps for e2e
+          npm install --ignore-scripts
+          cd e2e
+          npm install
+          npx tsc --sourceMap false --project tsconfig.json
 
       - uses: actions/setup-python@v2
         with:
@@ -112,8 +127,11 @@ jobs:
 
       - name: add custom python venv with dbt@0.20.1
         run: |
-          python3 -m venv ~/dbt_0_20_1_env
-          source ~/dbt_0_20_1_env/bin/activate
+          mkdir ~/dbt_0_20_1_env
+          ls ~
+          python -m venv ~/dbt_0_20_1_env
+          source ~/dbt_0_20_1_env/Scripts/activate
+          ls ~/dbt_0_20_1_env
           pip install dbt==0.20.1
 
       - name: prepare profile config
@@ -214,13 +232,15 @@ jobs:
 
     runs-on: macos-latest
     steps:
+      - name: fix cache issue on windows (use GNU tar instead BSD tar) # https://github.com/actions/toolkit/issues/552
+        if: matrix.os == 'windows-latest'
+        run: echo "C:/Program Files/Git/usr/bin/" >> $GITHUB_PATH
+
       - name: load darwin-x64 vsix from cache
         id: darwin-cache
         uses: actions/cache@v2
         with:
-          path: |
-            ./e2e
-            ./${{ env.VSIX_NAME }}
+          path: ./${{ env.VSIX_NAME }}
           key: darwin-x64-${{ github.sha }}
         env:
           VSIX_NAME: ${{ github.sha }}-darwin-x64.vsix
@@ -229,9 +249,7 @@ jobs:
         id: linux-cache
         uses: actions/cache@v2
         with:
-          path: |
-            ./e2e
-            ./${{ env.VSIX_NAME }}
+          path: ./${{ env.VSIX_NAME }}
           key: linux-x64-${{ github.sha }}
         env:
           VSIX_NAME: ${{ github.sha }}-linux-x64.vsix
@@ -240,9 +258,7 @@ jobs:
         id: windows-cache
         uses: actions/cache@v2
         with:
-          path: |
-            ./e2e
-            ./${{ env.VSIX_NAME }}
+          path: ./${{ env.VSIX_NAME }}
           key: win32-x64-${{ github.sha }}
         env:
           VSIX_NAME: ${{ github.sha }}-win32-x64.vsix
