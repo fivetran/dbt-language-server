@@ -37,30 +37,37 @@ export class RefDefinitionFinder {
       }
 
       const isPackageSpecified = matches.length === 2;
-      const dbtPackage = isPackageSpecified ? matches[0].text : `'${projectName}'`;
-      const model = isPackageSpecified ? matches[1].text : matches[0].text;
+      let dbtPackage;
+      let model;
+      let packageSelectionRange;
+      let modelSelectionRange;
 
-      const packageSelectionRange = isPackageSpecified
-        ? Range.create(
-            document.positionAt(document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[0].index + 1),
-            document.positionAt(
-              document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[0].index + matches[0].text.length - 1,
-            ),
-          )
-        : undefined;
-      const modelSelectionRange = isPackageSpecified
-        ? Range.create(
-            document.positionAt(document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[1].index + 1),
-            document.positionAt(
-              document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[1].index + matches[1].text.length - 1,
-            ),
-          )
-        : Range.create(
-            document.positionAt(document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[0].index + 1),
-            document.positionAt(
-              document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[0].index + matches[0].text.length - 1,
-            ),
-          );
+      if (isPackageSpecified) {
+        dbtPackage = matches[0].text;
+        model = matches[1].text;
+        packageSelectionRange = Range.create(
+          document.positionAt(document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[0].index + 1),
+          document.positionAt(
+            document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[0].index + matches[0].text.length - 1,
+          ),
+        );
+        modelSelectionRange = Range.create(
+          document.positionAt(document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[1].index + 1),
+          document.positionAt(
+            document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[1].index + matches[1].text.length - 1,
+          ),
+        );
+      } else {
+        dbtPackage = `'${projectName}'`;
+        model = matches[0].text;
+        packageSelectionRange = undefined;
+        modelSelectionRange = Range.create(
+          document.positionAt(document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[0].index + 1),
+          document.positionAt(
+            document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[0].index + matches[0].text.length - 1,
+          ),
+        );
+      }
 
       if (packageSelectionRange && positionInRange(position, packageSelectionRange)) {
         return this.searchPackageDefinition(dbtPackage, dbtModels, packageSelectionRange);
