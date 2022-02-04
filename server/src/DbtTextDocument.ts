@@ -259,14 +259,18 @@ export class DbtTextDocument {
 
   async onCompilationFinished(compiledSql: string): Promise<void> {
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
+    let rawDocDiagnostics: Diagnostic[] = [];
+    let compiledDocDiagnostics: Diagnostic[] = [];
 
-    await this.ensureCatalogInitialized();
-    const astResult = await this.getAstOrError();
-    if (astResult.isOk()) {
-      this.ast = astResult.value;
+    if (this.zetaSqlWrapper.isSupported()) {
+      await this.ensureCatalogInitialized();
+      const astResult = await this.getAstOrError();
+      if (astResult.isOk()) {
+        this.ast = astResult.value;
+      }
+      [rawDocDiagnostics, compiledDocDiagnostics] = this.getDiagnostics(astResult);
     }
 
-    const [rawDocDiagnostics, compiledDocDiagnostics] = this.getDiagnostics(astResult);
     this.sendUpdateQueryPreview(compiledSql, compiledDocDiagnostics);
     this.connection.sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: rawDocDiagnostics });
 

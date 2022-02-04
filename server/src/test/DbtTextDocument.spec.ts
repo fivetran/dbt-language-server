@@ -1,4 +1,4 @@
-import { instance, mock, verify, when } from 'ts-mockito';
+import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentSaveReason, _Connection } from 'vscode-languageserver';
 import { CompletionProvider } from '../CompletionProvider';
 import { DbtRpcServer } from '../DbtRpcServer';
@@ -30,6 +30,8 @@ describe('DbtTextDocument', () => {
     mockJinjaParser = mock(JinjaParser);
     mockSchemaTracker = mock(SchemaTracker);
     mockZetaSqlWrapper = mock(ZetaSqlWrapper);
+
+    when(mockZetaSqlWrapper.isSupported()).thenReturn(true);
 
     document = new DbtTextDocument(
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
@@ -127,6 +129,27 @@ describe('DbtTextDocument', () => {
 
     // assert
     verify(mockModelCompiler.compile()).never();
+  });
+
+  it('Should not interact with ZetaSQL if it is not supported', async () => {
+    // arrange
+    when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(false);
+    when(mockJinjaParser.findAllJinjaRanges(document.rawDocument)).thenReturn([]);
+    when(mockZetaSqlWrapper.isSupported()).thenReturn(false);
+
+    // act
+    await document.didOpenTextDocument();
+    await sleepMoreThanDebounceTime();
+
+    // assert
+    verify(mockZetaSqlWrapper.isSupported()).once();
+
+    verify(mockZetaSqlWrapper.initializeZetaSql()).never();
+    verify(mockZetaSqlWrapper.getClient()).never();
+    verify(mockZetaSqlWrapper.isCatalogRegistered()).never();
+    verify(mockZetaSqlWrapper.registerCatalog(anything())).never();
+    verify(mockZetaSqlWrapper.analyze(anything())).never();
+    verify(mockZetaSqlWrapper.terminateServer()).never();
   });
 
   async function sleepMoreThanDebounceTime(): Promise<void> {

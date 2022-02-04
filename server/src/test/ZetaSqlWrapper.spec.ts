@@ -31,7 +31,7 @@ describe('ZetaSqlWrapperTest', () => {
     getCatalog(zetaSqlWrapper).register = async (): Promise<void> => {
       // do nothing
     };
-    zetaSqlWrapper.registerAllLanguageFeatures = async (): Promise<void> => {
+    (zetaSqlWrapper as any).registerAllLanguageFeatures = async (): Promise<void> => {
       // do nothing
     };
 

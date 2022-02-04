@@ -11,6 +11,7 @@ import {
 import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
+import { ExtractTableNamesFromStatementResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ExtractTableNamesFromStatementResponse';
 import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRecordType';
 import { ZetaSQLBuiltinFunctionOptions } from '@fivetrandevelopers/zetasql/lib/ZetaSQLBuiltinFunctionOptions';
 import { TableDefinition } from './TableDefinition';
@@ -18,17 +19,37 @@ import { randomNumber } from './Utils';
 import findFreePortPmfy = require('find-free-port');
 
 export class ZetaSqlWrapper {
+  private static readonly SUPPORTED_PLATFORMS = ['darwin', 'linux'];
+
   private readonly catalog = new SimpleCatalog('catalog');
+  private supported = true;
 
   // client parameter used in tests
   constructor(private client?: ZetaSQLClient) {}
 
+  isSupported(): boolean {
+    return this.supported;
+  }
+
   async initializeZetaSql(): Promise<void> {
-    const port = await findFreePortPmfy(randomNumber(1024, 65535));
-    console.log(`Starting zetasql on port ${port}`);
-    runServer(port).catch(err => console.error(err));
-    ZetaSQLClient.init(port);
-    await this.getClient().testConnection();
+    if (ZetaSqlWrapper.SUPPORTED_PLATFORMS.includes(process.platform)) {
+      const port = await findFreePortPmfy(randomNumber(1024, 65535));
+      console.log(`Starting zetasql on port ${port}`);
+      runServer(port).catch(err => console.error(err));
+      ZetaSQLClient.init(port);
+      await this.getClient().testConnection();
+    } else {
+      this.supported = false;
+    }
+  }
+
+  async extractTableNamesFromStatement(sql: string): Promise<ExtractTableNamesFromStatementResponse__Output> {
+    if (!this.isSupported()) {
+      throw new Error('Not supported');
+    }
+    return this.getClient().extractTableNamesFromStatement({
+      sqlStatement: sql,
+    });
   }
 
   getClient(): ZetaSQLClient {
@@ -40,6 +61,9 @@ export class ZetaSqlWrapper {
   }
 
   async registerCatalog(tableDefinitions: TableDefinition[]): Promise<void> {
+    if (!this.isSupported()) {
+      return;
+    }
     for (const t of tableDefinitions) {
       let parent = this.catalog;
 
@@ -100,7 +124,7 @@ export class ZetaSqlWrapper {
     }
   }
 
-  async registerAllLanguageFeatures(): Promise<void> {
+  private async registerAllLanguageFeatures(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- builtinFunctionOptions from external lib can be null
     if (!this.catalog.builtinFunctionOptions) {
       const languageOptions = await new LanguageOptions().enableMaximumLanguageFeatures();
@@ -108,7 +132,7 @@ export class ZetaSqlWrapper {
     }
   }
 
-  async unregisterCatalog(): Promise<void> {
+  private async unregisterCatalog(): Promise<void> {
     if (this.catalog.registered) {
       try {
         await this.catalog.unregister();
