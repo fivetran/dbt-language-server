@@ -44,7 +44,7 @@ export class JinjaDefinitionProvider {
     this.dbtSources = dbtSources;
   }
 
-  onExpressionDefinition(document: TextDocument, jinja: ParseNode, position: Position): DefinitionLink[] | undefined {
+  onJinjaDefinition(document: TextDocument, jinja: ParseNode, position: Position): DefinitionLink[] | undefined {
     if (this.projectName && this.isExpression(jinja.value)) {
       const refDefinitions = this.refDefinitionFinder.searchRefDefinitions(document, position, jinja, this.projectName, this.dbtModels);
       if (refDefinitions) {

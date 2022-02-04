@@ -13,9 +13,16 @@ export interface Ref {
 }
 
 export class JinjaParser {
-  static readonly JINJA_PATTERN = /{{[\s\S]*?}}|{%[\s\S]*?%}|{#[\s\S]*?#}/g;
+  static readonly JINJA_EXPRESSION_PATTERN = '{{[\\s\\S]*?}}';
+  static readonly JINJA_STATEMENT_PATTERN = '{%[\\s\\S]*?%}';
+  static readonly JINJA_COMMENT_PATTERN = '{#[\\s\\S]*?#}';
+  static readonly JINJA_PATTERN = new RegExp(
+    `${JinjaParser.JINJA_EXPRESSION_PATTERN}|${JinjaParser.JINJA_STATEMENT_PATTERN}|${JinjaParser.JINJA_COMMENT_PATTERN}`,
+    'g',
+  );
+  static readonly EFFECTIVE_JINJA_PATTERN = new RegExp(`${JinjaParser.JINJA_EXPRESSION_PATTERN}|${JinjaParser.JINJA_STATEMENT_PATTERN}`, 'g');
+
   static readonly JINJA_REF_PATTERN = /{{\s*ref\s*\(\s*(?<start_quote>['|"])(.*?)\k<start_quote>\s*\)\s*}}/g;
-  static readonly JINJA_EXPRESSION_PATTERN = /{{[\s\S]*?}}|{%[\s\S]*?%}/g;
   static readonly JINJA_BLOCK_PATTERN = /{%\s*(docs|if|for|macro)\s+.*%}|{%\s*(enddocs|endif|endfor|endmacro)\s*%}/;
 
   static readonly JINJA_OPEN_BLOCKS = ['docs', 'if', 'for', 'macro'];
@@ -122,8 +129,8 @@ export class JinjaParser {
     }));
   }
 
-  findAllExpressions(rawDocument: TextDocument): ParseNode[] {
-    return this.findByPattern(rawDocument, JinjaParser.JINJA_EXPRESSION_PATTERN).map<ParseNode>(m => ({
+  findAllEffectiveJinjas(rawDocument: TextDocument): ParseNode[] {
+    return this.findByPattern(rawDocument, JinjaParser.EFFECTIVE_JINJA_PATTERN).map<ParseNode>(m => ({
       value: m[0],
       range: {
         start: rawDocument.positionAt(m.index),

@@ -341,10 +341,10 @@ export class DbtTextDocument {
   }
 
   onDefinition(definitionParams: DefinitionParams): DefinitionLink[] | undefined {
-    const expressions = this.jinjaParser.findAllExpressions(this.rawDocument);
-    for (const expression of expressions) {
-      if (positionInRange(definitionParams.position, expression.range)) {
-        return this.jinjaDefinitionProvider.onExpressionDefinition(this.rawDocument, expression, definitionParams.position);
+    const jinjas = this.jinjaParser.findAllEffectiveJinjas(this.rawDocument);
+    for (const jinja of jinjas) {
+      if (positionInRange(definitionParams.position, jinja.range)) {
+        return this.jinjaDefinitionProvider.onJinjaDefinition(this.rawDocument, jinja, definitionParams.position);
       }
     }
     return undefined;
