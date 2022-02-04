@@ -84,7 +84,7 @@ export class LspServer {
       this.fileChangeListener.onMacrosChanged,
       this.fileChangeListener.onSourcesChanged,
     );
-    this.fileChangeListener.onProjectFileChanged(this.onProjectFileChanged.bind(this));
+    this.fileChangeListener.onDbtProjectYmlChanged(this.onDbtProjectYmlChanged.bind(this));
   }
 
   async onInitialize(params: InitializeParams): Promise<InitializeResult<any> | ResponseError<InitializeError>> {
@@ -353,7 +353,7 @@ export class LspServer {
     this.fileChangeListener.onDidChangeWatchedFiles(params);
   }
 
-  onProjectFileChanged(): void {
+  onDbtProjectYmlChanged(): void {
     this.dbtRpcServer.refreshServer();
   }
 

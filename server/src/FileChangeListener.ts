@@ -4,7 +4,7 @@ import { ManifestParser } from './manifest/ManifestParser';
 import { YamlParser } from './YamlParser';
 
 export class FileChangeListener {
-  private onProjectFileChangedEmitter = new Emitter<void>();
+  private onDbtProjectYmlChangedEmitter = new Emitter<void>();
   private onProjectNameChangedEmitter = new Emitter<string | undefined>();
   private onModelsChangedEmitter = new Emitter<ManifestModel[]>();
   private onMacrosChangedEmitter = new Emitter<ManifestMacro[]>();
@@ -14,8 +14,8 @@ export class FileChangeListener {
 
   constructor(private yamlParser: YamlParser, private manifestParser: ManifestParser) {}
 
-  get onProjectFileChanged(): Event<void> {
-    return this.onProjectFileChangedEmitter.event;
+  get onDbtProjectYmlChanged(): Event<void> {
+    return this.onDbtProjectYmlChangedEmitter.event;
   }
 
   get onProjectNameChanged(): Event<string | undefined> {
@@ -42,7 +42,7 @@ export class FileChangeListener {
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
     for (const change of params.changes) {
       if (change.uri.endsWith(YamlParser.DBT_PROJECT_FILE_NAME)) {
-        this.onProjectFileChangedEmitter.fire();
+        this.onDbtProjectYmlChangedEmitter.fire();
         this.updateTargetPath();
         this.updateProjectName();
         this.updateManifestNodes();
