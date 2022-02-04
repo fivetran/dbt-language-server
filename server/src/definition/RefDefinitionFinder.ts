@@ -87,19 +87,17 @@ export class RefDefinitionFinder {
 
   searchModelDefinition(dbPackage: string, model: string, dbtModels: ManifestModel[], modelSelectionRange: Range): DefinitionLink[] | undefined {
     const modelId = `model.${dbPackage.substring(1).slice(0, -1)}.${model.substring(1).slice(0, -1)}`;
-    const modelsSearch = dbtModels.filter(m => m.uniqueId === modelId);
-    if (modelsSearch.length === 0) {
-      return undefined;
+    const foundModel = dbtModels.find(m => m.uniqueId === modelId);
+    if (foundModel) {
+      return [
+        LocationLink.create(
+          path.join(foundModel.rootPath, foundModel.originalFilePath),
+          Range.create(Position.create(0, 0), Position.create(integer.MAX_VALUE, integer.MAX_VALUE)),
+          Range.create(Position.create(0, 0), Position.create(0, 0)),
+          modelSelectionRange,
+        ),
+      ];
     }
-    const [selectedModel] = modelsSearch;
-
-    return [
-      LocationLink.create(
-        path.join(selectedModel.rootPath, selectedModel.originalFilePath),
-        Range.create(Position.create(0, 0), Position.create(integer.MAX_VALUE, integer.MAX_VALUE)),
-        Range.create(Position.create(0, 0), Position.create(0, 0)),
-        modelSelectionRange,
-      ),
-    ];
+    return undefined;
   }
 }
