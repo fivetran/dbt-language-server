@@ -36,12 +36,12 @@ export class MacroDefinitionFinder {
       const macroSearchIds = macro.includes('.')
         ? [`macro.${macro}`]
         : [`macro.${MacroDefinitionFinder.DBT_PACKAGE}.${macro}`, `macro.${projectName}.${macro}`];
-      const macrosSearch = dbtMacros.filter(m => macroSearchIds.includes(m.uniqueId));
-      if (macrosSearch.length === 0) {
+      const foundMacros = dbtMacros.filter(m => macroSearchIds.includes(m.uniqueId));
+      if (foundMacros.length === 0) {
         return undefined;
       }
 
-      const [selectedMacro] = macrosSearch;
+      const [selectedMacro] = foundMacros;
       const macroFilePath = path.join(selectedMacro.rootPath, selectedMacro.originalFilePath);
       const [definitionRange, selectionRange] = this.getMacroRange(selectedMacro.name, macroFilePath);
 
