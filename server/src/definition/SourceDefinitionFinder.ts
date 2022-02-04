@@ -59,18 +59,17 @@ export class SourceDefinitionFinder {
   }
 
   getTableDefinitions(source: string, table: string, dbtSources: ManifestSource[], tableSelectionRange: Range): DefinitionLink[] | undefined {
-    const sourcesSearch = dbtSources.filter(s => s.sourceName === source && s.name === table);
-    if (sourcesSearch.length === 0) {
-      return undefined;
+    const foundSource = dbtSources.find(s => s.sourceName === source && s.name === table);
+    if (foundSource) {
+      return [
+        LocationLink.create(
+          path.join(foundSource.rootPath, foundSource.originalFilePath),
+          Range.create(Position.create(0, 0), Position.create(integer.MAX_VALUE, integer.MAX_VALUE)),
+          Range.create(Position.create(0, 0), Position.create(0, 0)),
+          tableSelectionRange,
+        ),
+      ];
     }
-    const [selectedSource] = sourcesSearch;
-    return [
-      LocationLink.create(
-        path.join(selectedSource.rootPath, selectedSource.originalFilePath),
-        Range.create(Position.create(0, 0), Position.create(integer.MAX_VALUE, integer.MAX_VALUE)),
-        Range.create(Position.create(0, 0), Position.create(0, 0)),
-        tableSelectionRange,
-      ),
-    ];
+    return undefined;
   }
 }
