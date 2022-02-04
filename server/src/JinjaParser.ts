@@ -2,18 +2,13 @@ import { Position, Range, TextDocumentContentChangeEvent } from 'vscode-language
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { comparePositions, rangesOverlap } from './utils/Utils';
 
-interface ParseNode {
-  expression: string;
+export interface ParseNode {
+  value: string;
   range: Range;
 }
 
 export interface Ref {
   modelName: string;
-  range: Range;
-}
-
-export interface Expression {
-  expression: string;
   range: Range;
 }
 
@@ -50,7 +45,7 @@ export class JinjaParser {
 
   findAllJinjaExpressions(rawDocument: TextDocument): ParseNode[] {
     return this.findByPattern(rawDocument, JinjaParser.JINJA_PATTERN).map<ParseNode>(m => ({
-      expression: m[0],
+      value: m[0],
       range: Range.create(rawDocument.positionAt(m.index), rawDocument.positionAt(m.index + m[0].length)),
     }));
   }
@@ -59,12 +54,12 @@ export class JinjaParser {
     const jinjaBlocks = [];
 
     for (const jinjaExpression of jinjaExpressions) {
-      const blockMatch = jinjaExpression.expression.match(JinjaParser.JINJA_BLOCK_PATTERN);
+      const blockMatch = jinjaExpression.value.match(JinjaParser.JINJA_BLOCK_PATTERN);
       const block = this.getJinjaBlock(blockMatch);
 
       if (block) {
         jinjaBlocks.push({
-          expression: block,
+          value: block,
           range: jinjaExpression.range,
         });
       }
@@ -92,10 +87,10 @@ export class JinjaParser {
     const startBlocksPositions = new Map(JinjaParser.JINJA_OPEN_BLOCKS.map<[string, Position[]]>(b => [b, []]));
 
     for (const blockJinja of blockJinjaExpressions) {
-      if (JinjaParser.JINJA_OPEN_BLOCKS.includes(blockJinja.expression)) {
-        startBlocksPositions.get(blockJinja.expression)?.push(blockJinja.range.start);
+      if (JinjaParser.JINJA_OPEN_BLOCKS.includes(blockJinja.value)) {
+        startBlocksPositions.get(blockJinja.value)?.push(blockJinja.range.start);
       } else {
-        const startBlock = JinjaParser.JINJA_OPEN_BLOCKS[JinjaParser.JINJA_CLOSE_BLOCKS.indexOf(blockJinja.expression)];
+        const startBlock = JinjaParser.JINJA_OPEN_BLOCKS[JinjaParser.JINJA_CLOSE_BLOCKS.indexOf(blockJinja.value)];
         const positions = startBlocksPositions.get(startBlock);
 
         const lastStartPosition = positions?.pop();
@@ -127,9 +122,9 @@ export class JinjaParser {
     }));
   }
 
-  findAllExpressions(rawDocument: TextDocument): Expression[] {
-    return this.findByPattern(rawDocument, JinjaParser.JINJA_EXPRESSION_PATTERN).map<Expression>(m => ({
-      expression: m[0],
+  findAllExpressions(rawDocument: TextDocument): ParseNode[] {
+    return this.findByPattern(rawDocument, JinjaParser.JINJA_EXPRESSION_PATTERN).map<ParseNode>(m => ({
+      value: m[0],
       range: {
         start: rawDocument.positionAt(m.index),
         end: rawDocument.positionAt(m.index + m[0].length),

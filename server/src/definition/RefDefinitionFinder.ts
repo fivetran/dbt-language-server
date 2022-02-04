@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { DefinitionLink, integer, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { Expression } from '../JinjaParser';
+import { ParseNode } from '../JinjaParser';
 import { ManifestModel } from '../manifest/ManifestJson';
 import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { getAbsolutePosition, getAbsoluteRange, getRelativePosition, positionInRange } from '../utils/Utils';
@@ -13,19 +13,19 @@ export class RefDefinitionFinder {
   searchRefDefinitions(
     document: TextDocument,
     position: Position,
-    expression: Expression,
+    jinja: ParseNode,
     projectName: string,
     dbtModels: ManifestModel[],
   ): DefinitionLink[] | undefined {
-    const expressionLines = expression.expression.split('\n');
-    const relativePosition = getRelativePosition(expression.range, position);
+    const expressionLines = jinja.value.split('\n');
+    const relativePosition = getRelativePosition(jinja.range, position);
     if (relativePosition === undefined) {
       return undefined;
     }
     const wordRange = getWordRangeAtPosition(relativePosition, RefDefinitionFinder.REF_PATTERN, expressionLines);
 
     if (wordRange) {
-      const word = document.getText(getAbsoluteRange(expression.range.start, wordRange));
+      const word = document.getText(getAbsoluteRange(jinja.range.start, wordRange));
       const matches = [];
       let match: RegExpExecArray | null;
       while ((match = RefDefinitionFinder.REF_PARTS_PATTERN.exec(word))) {
@@ -41,23 +41,23 @@ export class RefDefinitionFinder {
 
       const packageSelectionRange = isPackageSpecified
         ? Range.create(
-            document.positionAt(document.offsetAt(getAbsolutePosition(expression.range.start, wordRange.start)) + matches[0].index + 1),
+            document.positionAt(document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[0].index + 1),
             document.positionAt(
-              document.offsetAt(getAbsolutePosition(expression.range.start, wordRange.start)) + matches[0].index + matches[0].text.length - 1,
+              document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[0].index + matches[0].text.length - 1,
             ),
           )
         : undefined;
       const modelSelectionRange = isPackageSpecified
         ? Range.create(
-            document.positionAt(document.offsetAt(getAbsolutePosition(expression.range.start, wordRange.start)) + matches[1].index + 1),
+            document.positionAt(document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[1].index + 1),
             document.positionAt(
-              document.offsetAt(getAbsolutePosition(expression.range.start, wordRange.start)) + matches[1].index + matches[1].text.length - 1,
+              document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[1].index + matches[1].text.length - 1,
             ),
           )
         : Range.create(
-            document.positionAt(document.offsetAt(getAbsolutePosition(expression.range.start, wordRange.start)) + matches[0].index + 1),
+            document.positionAt(document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[0].index + 1),
             document.positionAt(
-              document.offsetAt(getAbsolutePosition(expression.range.start, wordRange.start)) + matches[0].index + matches[0].text.length - 1,
+              document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[0].index + matches[0].text.length - 1,
             ),
           );
 

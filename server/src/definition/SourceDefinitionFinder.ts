@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { DefinitionLink, integer, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { Expression } from '../JinjaParser';
+import { ParseNode } from '../JinjaParser';
 import { ManifestSource } from '../manifest/ManifestJson';
 import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { getAbsolutePosition, getAbsoluteRange, getRelativePosition, positionInRange } from '../utils/Utils';
@@ -10,21 +10,16 @@ export class SourceDefinitionFinder {
   static readonly SOURCE_PATTERN = /source\s*\(\s*('[^)']*'|"[^)"]*")\s*,\s*('[^)']*'|"[^)"]*")\s*\)/;
   static readonly SOURCE_PARTS_PATTERN = /'[^']*'|"[^*]*"/g;
 
-  searchSourceDefinitions(
-    document: TextDocument,
-    position: Position,
-    expression: Expression,
-    dbtSources: ManifestSource[],
-  ): DefinitionLink[] | undefined {
-    const expressionLines = expression.expression.split('\n');
-    const relativePosition = getRelativePosition(expression.range, position);
+  searchSourceDefinitions(document: TextDocument, position: Position, jinja: ParseNode, dbtSources: ManifestSource[]): DefinitionLink[] | undefined {
+    const expressionLines = jinja.value.split('\n');
+    const relativePosition = getRelativePosition(jinja.range, position);
     if (relativePosition === undefined) {
       return undefined;
     }
     const wordRange = getWordRangeAtPosition(relativePosition, SourceDefinitionFinder.SOURCE_PATTERN, expressionLines);
 
     if (wordRange) {
-      const word = document.getText(getAbsoluteRange(expression.range.start, wordRange));
+      const word = document.getText(getAbsoluteRange(jinja.range.start, wordRange));
       const matches = [];
       let match: RegExpExecArray | null;
       while ((match = SourceDefinitionFinder.SOURCE_PARTS_PATTERN.exec(word))) {
@@ -40,12 +35,12 @@ export class SourceDefinitionFinder {
 
       const [source, table] = matches;
       const sourceSelectionRange = Range.create(
-        document.positionAt(document.offsetAt(getAbsolutePosition(expression.range.start, wordRange.start)) + source.index + 1),
-        document.positionAt(document.offsetAt(getAbsolutePosition(expression.range.start, wordRange.start)) + source.index + source.text.length - 1),
+        document.positionAt(document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + source.index + 1),
+        document.positionAt(document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + source.index + source.text.length - 1),
       );
       const tableSelectionRange = Range.create(
-        document.positionAt(document.offsetAt(getAbsolutePosition(expression.range.start, wordRange.start)) + table.index + 1),
-        document.positionAt(document.offsetAt(getAbsolutePosition(expression.range.start, wordRange.start)) + table.index + table.text.length - 1),
+        document.positionAt(document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + table.index + 1),
+        document.positionAt(document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + table.index + table.text.length - 1),
       );
 
       if (positionInRange(position, sourceSelectionRange)) {

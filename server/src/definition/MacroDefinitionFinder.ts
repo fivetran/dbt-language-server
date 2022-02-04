@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { DefinitionLink, integer, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { Expression } from '../JinjaParser';
+import { ParseNode } from '../JinjaParser';
 import { ManifestMacro } from '../manifest/ManifestJson';
 import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { getAbsoluteRange, getPositionByIndex, getRelativePosition } from '../utils/Utils';
@@ -14,19 +14,19 @@ export class MacroDefinitionFinder {
   searchMacroDefinitions(
     document: TextDocument,
     position: Position,
-    expression: Expression,
+    jinja: ParseNode,
     projectName: string,
     dbtMacros: ManifestMacro[],
   ): DefinitionLink[] | undefined {
-    const expressionLines = expression.expression.split('\n');
-    const relativePosition = getRelativePosition(expression.range, position);
+    const expressionLines = jinja.value.split('\n');
+    const relativePosition = getRelativePosition(jinja.range, position);
     if (relativePosition === undefined) {
       return undefined;
     }
     const wordRange = getWordRangeAtPosition(relativePosition, MacroDefinitionFinder.MACRO_PATTERN, expressionLines);
 
     if (wordRange) {
-      const word = document.getText(getAbsoluteRange(expression.range.start, wordRange));
+      const word = document.getText(getAbsoluteRange(jinja.range.start, wordRange));
       const macroMatch = word.match(MacroDefinitionFinder.MACRO_PATTERN);
       if (macroMatch === null) {
         return undefined;
@@ -49,7 +49,7 @@ export class MacroDefinitionFinder {
       const [definitionRange, selectionRange] = this.getMacroRange(selectedMacro.name, macroFilePath);
 
       wordRange.end.character -= 1;
-      return [LocationLink.create(macroFilePath, definitionRange, selectionRange, getAbsoluteRange(expression.range.start, wordRange))];
+      return [LocationLink.create(macroFilePath, definitionRange, selectionRange, getAbsoluteRange(jinja.range.start, wordRange))];
     }
 
     return undefined;

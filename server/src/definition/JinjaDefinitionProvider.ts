@@ -1,6 +1,6 @@
 import { DefinitionLink, Event, Position } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { Expression } from '../JinjaParser';
+import { ParseNode } from '../JinjaParser';
 import { ManifestMacro, ManifestModel, ManifestSource } from '../manifest/ManifestJson';
 import { MacroDefinitionFinder } from './MacroDefinitionFinder';
 import { RefDefinitionFinder } from './RefDefinitionFinder';
@@ -44,23 +44,23 @@ export class JinjaDefinitionProvider {
     this.dbtSources = dbtSources;
   }
 
-  onExpressionDefinition(document: TextDocument, expression: Expression, position: Position): DefinitionLink[] | undefined {
-    if (this.projectName && this.isExpression(expression.expression)) {
-      const refDefinitions = this.refDefinitionFinder.searchRefDefinitions(document, position, expression, this.projectName, this.dbtModels);
+  onExpressionDefinition(document: TextDocument, jinja: ParseNode, position: Position): DefinitionLink[] | undefined {
+    if (this.projectName && this.isExpression(jinja.value)) {
+      const refDefinitions = this.refDefinitionFinder.searchRefDefinitions(document, position, jinja, this.projectName, this.dbtModels);
       if (refDefinitions) {
         return refDefinitions;
       }
     }
 
     if (this.projectName) {
-      const macroDefinitions = this.macroDefinitionFinder.searchMacroDefinitions(document, position, expression, this.projectName, this.dbtMacros);
+      const macroDefinitions = this.macroDefinitionFinder.searchMacroDefinitions(document, position, jinja, this.projectName, this.dbtMacros);
       if (macroDefinitions) {
         return macroDefinitions;
       }
     }
 
-    if (this.isExpression(expression.expression)) {
-      const sourceDefinitions = this.sourceDefinitionFinder.searchSourceDefinitions(document, position, expression, this.dbtSources);
+    if (this.isExpression(jinja.value)) {
+      const sourceDefinitions = this.sourceDefinitionFinder.searchSourceDefinitions(document, position, jinja, this.dbtSources);
       if (sourceDefinitions) {
         return sourceDefinitions;
       }
