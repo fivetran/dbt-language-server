@@ -52,7 +52,7 @@ export class MacroDefinitionFinder {
   getMacroRange(macro: string, macroFilePath: string): [Range, Range] {
     const macroDefinitionFileContent = fs.readFileSync(macroFilePath, 'utf8');
 
-    const startMacroPattern = new RegExp(`{%\\s*macro\\s*(?<macro_name>${macro})\\s*\\(`);
+    const startMacroPattern = new RegExp(`{%\\s*macro\\s*(${macro})\\s*\\(`);
     const startMacroMatch = startMacroPattern.exec(macroDefinitionFileContent);
 
     const endMacroPattern = /{%\s*endmacro\s*%}/g;
