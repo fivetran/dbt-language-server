@@ -49,6 +49,12 @@ export class MacroDefinitionFinder {
     return undefined;
   }
 
+  /**
+   * Calculates ranges of macro definition
+   * @param macro macro name
+   * @param macroFilePath file name in which macro is defined
+   * @returns macro definition range (all between and including macro and endmacro statements) and macro selection range (macro name within macro statement)
+   */
   getMacroRange(macro: string, macroFilePath: string): [Range, Range] {
     const macroDefinitionFileContent = fs.readFileSync(macroFilePath, 'utf8');
 
