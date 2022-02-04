@@ -28,10 +28,7 @@ export class MacroDefinitionFinder {
     if (wordRange) {
       const word = document.getText(getAbsoluteRange(jinja.range.start, wordRange));
       const macroMatch = word.match(MacroDefinitionFinder.MACRO_PATTERN);
-      if (macroMatch === null) {
-        return undefined;
-      }
-      if (macroMatch.length < 1) {
+      if (macroMatch === null || macroMatch.length < 1) {
         return undefined;
       }
 
