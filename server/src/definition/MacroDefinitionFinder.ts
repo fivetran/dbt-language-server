@@ -36,17 +36,14 @@ export class MacroDefinitionFinder {
       const macroSearchIds = macro.includes('.')
         ? [`macro.${macro}`]
         : [`macro.${MacroDefinitionFinder.DBT_PACKAGE}.${macro}`, `macro.${projectName}.${macro}`];
-      const foundMacros = dbtMacros.filter(m => macroSearchIds.includes(m.uniqueId));
-      if (foundMacros.length === 0) {
-        return undefined;
+      const foundMacro = dbtMacros.find(m => macroSearchIds.includes(m.uniqueId));
+      if (foundMacro) {
+        const macroFilePath = path.join(foundMacro.rootPath, foundMacro.originalFilePath);
+        const [definitionRange, selectionRange] = this.getMacroRange(foundMacro.name, macroFilePath);
+
+        wordRange.end.character -= 1;
+        return [LocationLink.create(macroFilePath, definitionRange, selectionRange, getAbsoluteRange(jinja.range.start, wordRange))];
       }
-
-      const [selectedMacro] = foundMacros;
-      const macroFilePath = path.join(selectedMacro.rootPath, selectedMacro.originalFilePath);
-      const [definitionRange, selectionRange] = this.getMacroRange(selectedMacro.name, macroFilePath);
-
-      wordRange.end.character -= 1;
-      return [LocationLink.create(macroFilePath, definitionRange, selectionRange, getAbsoluteRange(jinja.range.start, wordRange))];
     }
 
     return undefined;
