@@ -73,7 +73,6 @@ export class LspServer {
   initStart = performance.now();
 
   openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
-  closeTextDocumentRequests = new Map<string, DidCloseTextDocumentParams>();
 
   constructor(private connection: _Connection) {
     this.progressReporter = new ProgressReporter(this.connection);
