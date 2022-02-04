@@ -1,7 +1,4 @@
-import { AnalyzeRequest } from '@fivetrandevelopers/zetasql';
-import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { AnalyzeResponse, AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
-import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRecordType';
 import { err, ok, Result } from 'neverthrow';
 import {
   CompletionItem,
@@ -225,20 +222,8 @@ export class DbtTextDocument {
   }
 
   async getAstOrError(): Promise<Result<AnalyzeResponse__Output, string>> {
-    const analyzeRequest: AnalyzeRequest = {
-      sqlStatement: this.compiledDocument.getText(),
-      registeredCatalogId: this.zetaSqlWrapper.getCatalog().registeredId,
-
-      options: {
-        parseLocationRecordType: ParseLocationRecordType.PARSE_LOCATION_RECORD_CODE_SEARCH,
-
-        errorMessageMode: ErrorMessageMode.ERROR_MESSAGE_ONE_LINE,
-        languageOptions: this.zetaSqlWrapper.getCatalog().builtinFunctionOptions.languageOptions,
-      },
-    };
-
     try {
-      const ast = await this.zetaSqlWrapper.analyze(analyzeRequest);
+      const ast = await this.zetaSqlWrapper.analyze(this.compiledDocument.getText());
       console.log('AST was successfully received');
       return ok(ast);
     } catch (e: any) {

@@ -1,4 +1,3 @@
-import { SimpleCatalog } from '@fivetrandevelopers/zetasql';
 import { instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentSaveReason, _Connection } from 'vscode-languageserver';
 import { CompletionProvider } from '../CompletionProvider';
@@ -10,7 +9,6 @@ import { ProgressReporter } from '../ProgressReporter';
 import { SchemaTracker } from '../SchemaTracker';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 import { sleep } from './helper';
-import Long = require('long');
 
 describe('DbtTextDocument', () => {
   const TEXT = 'select 1;';
@@ -32,11 +30,6 @@ describe('DbtTextDocument', () => {
     mockJinjaParser = mock(JinjaParser);
     mockSchemaTracker = mock(SchemaTracker);
     mockZetaSqlWrapper = mock(ZetaSqlWrapper);
-
-    const simpleCatalog = new SimpleCatalog('catalog');
-    simpleCatalog.registeredId = new Long(1);
-    simpleCatalog.builtinFunctionOptions = { languageOptions: {} };
-    when(mockZetaSqlWrapper.getCatalog()).thenReturn(simpleCatalog);
 
     document = new DbtTextDocument(
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },

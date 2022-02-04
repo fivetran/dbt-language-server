@@ -1,16 +1,27 @@
-import { AnalyzeRequest, runServer, SimpleCatalog, terminateServer, ZetaSQLClient } from '@fivetrandevelopers/zetasql';
+import {
+  runServer,
+  SimpleCatalog,
+  SimpleColumn,
+  SimpleTable,
+  SimpleType,
+  terminateServer,
+  TypeFactory,
+  ZetaSQLClient,
+} from '@fivetrandevelopers/zetasql';
+import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
+import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
+import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRecordType';
+import { ZetaSQLBuiltinFunctionOptions } from '@fivetrandevelopers/zetasql/lib/ZetaSQLBuiltinFunctionOptions';
 import { TableDefinition } from './TableDefinition';
 import { randomNumber } from './Utils';
-import { ZetaSqlCatalog } from './ZetaSqlCatalog';
 import findFreePortPmfy = require('find-free-port');
 
 export class ZetaSqlWrapper {
-  private catalog: ZetaSqlCatalog;
+  private readonly catalog = new SimpleCatalog('catalog');
 
-  constructor(private client?: ZetaSQLClient, catalog?: ZetaSqlCatalog) {
-    this.catalog = catalog ?? ZetaSqlCatalog.getInstance();
-  }
+  // client parameter used in tests
+  constructor(private client?: ZetaSQLClient) {}
 
   async initializeZetaSql(): Promise<void> {
     const port = await findFreePortPmfy(randomNumber(1024, 65535));
@@ -24,20 +35,101 @@ export class ZetaSqlWrapper {
     return this.client ?? ZetaSQLClient.getInstance(); // TODO refactor it on npm side
   }
 
-  getCatalog(): SimpleCatalog {
-    return this.catalog.getCatalog();
-  }
-
   isCatalogRegistered(): boolean {
-    return this.catalog.isRegistered();
+    return this.catalog.registered;
   }
 
   async registerCatalog(tableDefinitions: TableDefinition[]): Promise<void> {
-    return this.catalog.register(tableDefinitions);
+    for (const t of tableDefinitions) {
+      let parent = this.catalog;
+
+      if (!t.rawName) {
+        const projectId = t.getProjectName();
+        if (projectId) {
+          let projectCatalog = this.catalog.catalogs.get(projectId);
+          if (!projectCatalog) {
+            projectCatalog = new SimpleCatalog(projectId);
+            await this.unregisterCatalog();
+            this.catalog.addSimpleCatalog(projectCatalog);
+          }
+          parent = projectCatalog;
+        }
+
+        let dataSetCatalog = parent.catalogs.get(t.getDatasetName());
+        if (!dataSetCatalog) {
+          dataSetCatalog = new SimpleCatalog(t.getDatasetName());
+          if (parent === this.catalog) {
+            await this.unregisterCatalog();
+          }
+          parent.addSimpleCatalog(dataSetCatalog);
+        }
+        parent = dataSetCatalog;
+      }
+
+      const tableName = t.rawName ?? t.getTableName();
+      let table = parent.tables.get(tableName);
+      if (!table) {
+        if (t.rawName) {
+          await this.unregisterCatalog();
+        }
+        table = new SimpleTable(tableName);
+        parent.addSimpleTable(tableName, table);
+      }
+
+      for (const newColumn of t.schema?.fields ?? []) {
+        const existingColumn = table.columns.find(c => c.getName() === newColumn.name);
+        if (!existingColumn) {
+          const type = newColumn.type.toLowerCase();
+          const typeKind = TypeFactory.SIMPLE_TYPE_KIND_NAMES.get(type);
+          if (typeKind) {
+            const simpleColumn = new SimpleColumn(t.getTableName(), newColumn.name, new SimpleType(typeKind));
+            table.addSimpleColumn(simpleColumn);
+          } else {
+            console.log(`Cannot find SimpleType for ${newColumn.type}`);
+          }
+        }
+      }
+    }
+
+    await this.unregisterCatalog();
+    await this.registerAllLanguageFeatures();
+    try {
+      await this.catalog.register();
+    } catch (e) {
+      console.error(e);
+    }
   }
 
-  async analyze(request: AnalyzeRequest): Promise<AnalyzeResponse__Output> {
-    return this.getClient().analyze(request);
+  async registerAllLanguageFeatures(): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- builtinFunctionOptions from external lib can be null
+    if (!this.catalog.builtinFunctionOptions) {
+      const languageOptions = await new LanguageOptions().enableMaximumLanguageFeatures();
+      await this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions(languageOptions));
+    }
+  }
+
+  async unregisterCatalog(): Promise<void> {
+    if (this.catalog.registered) {
+      try {
+        await this.catalog.unregister();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }
+
+  async analyze(rawSql: string): Promise<AnalyzeResponse__Output> {
+    return this.getClient().analyze({
+      sqlStatement: rawSql,
+      registeredCatalogId: this.catalog.registeredId,
+
+      options: {
+        parseLocationRecordType: ParseLocationRecordType.PARSE_LOCATION_RECORD_CODE_SEARCH,
+
+        errorMessageMode: ErrorMessageMode.ERROR_MESSAGE_ONE_LINE,
+        languageOptions: this.catalog.builtinFunctionOptions.languageOptions,
+      },
+    });
   }
 
   async terminateServer(): Promise<void> {

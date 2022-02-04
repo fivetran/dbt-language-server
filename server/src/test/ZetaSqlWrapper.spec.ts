@@ -1,12 +1,10 @@
+import { SimpleCatalog } from '@fivetrandevelopers/zetasql';
+import * as assert from 'assert';
 import { assertThat } from 'hamjest';
 import { TableDefinition } from '../TableDefinition';
-import { ZetaSqlCatalog } from '../ZetaSqlCatalog';
+import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 
-describe('ZetaSqlCatalogTest', () => {
-  beforeEach(() => {
-    (ZetaSqlCatalog as any).instance = null;
-  });
-
+describe('ZetaSqlWrapperTest', () => {
   const PROJECT_ID = 'project_id';
   const DATA_SET = 'data_set';
   const TABLE = 'table';
@@ -16,6 +14,10 @@ describe('ZetaSqlCatalogTest', () => {
     fields: [{ name: COLUMN_NAME, type: COLUMN_TYPE }],
   };
 
+  function getCatalog(zetaSqlWrapper: ZetaSqlWrapper): SimpleCatalog {
+    return (zetaSqlWrapper as any).catalog;
+  }
+
   async function shouldRegisterOneTable(
     tableDefinitions: TableDefinition[],
     table: string,
@@ -24,44 +26,46 @@ describe('ZetaSqlCatalogTest', () => {
     expectedProjectId?: string,
   ): Promise<void> {
     // arrange
-    const zetaSqlCatalog = ZetaSqlCatalog.getInstance();
+    const zetaSqlWrapper = new ZetaSqlWrapper();
 
-    (zetaSqlCatalog as any).catalog.register = async (): Promise<void> => {
+    getCatalog(zetaSqlWrapper).register = async (): Promise<void> => {
       // do nothing
     };
-    zetaSqlCatalog.registerAllLanguageFeatures = async (): Promise<void> => {
+    zetaSqlWrapper.registerAllLanguageFeatures = async (): Promise<void> => {
       // do nothing
     };
 
     // act
     try {
-      await zetaSqlCatalog.register(tableDefinitions);
+      await zetaSqlWrapper.registerCatalog(tableDefinitions);
     } catch (e) {
       console.log(e);
     }
 
     // assert
+    const simpleCatalog = getCatalog(zetaSqlWrapper);
     if (expectedProjectId) {
-      const projects = (zetaSqlCatalog as any).catalog.catalogs;
+      const projects = simpleCatalog.catalogs;
       assertThat(projects.size, 1);
       assertThat(projects.get(expectedProjectId)?.name, expectedProjectId);
     }
 
-    const datasets = expectedProjectId
-      ? (zetaSqlCatalog as any).catalog.catalogs.get(expectedProjectId)?.catalogs
-      : (zetaSqlCatalog as any).catalog.catalogs;
+    const datasets = expectedProjectId ? simpleCatalog.catalogs.get(expectedProjectId)?.catalogs : simpleCatalog.catalogs;
     if (expectedDataSet) {
-      assertThat(datasets?.size, 1);
-      assertThat(datasets?.get(expectedDataSet)?.name, expectedDataSet);
+      assert.ok(datasets);
+      assertThat(datasets.size, 1);
+      assertThat(datasets.get(expectedDataSet)?.name, expectedDataSet);
     }
 
-    const tables = expectedDataSet ? datasets?.get(DATA_SET)?.tables : (zetaSqlCatalog as any).catalog.tables;
-    assertThat(tables?.size, 1);
-    assertThat(tables?.get(table)?.name, table);
+    const tables = expectedDataSet ? datasets?.get(DATA_SET)?.tables : simpleCatalog.tables;
+    assert.ok(tables);
+    assertThat(tables.size, 1);
+    assertThat(tables.get(table)?.name, table);
 
-    const columns = tables?.get(table)?.columns;
-    assertThat(columns?.length, expectedColumns.length);
-    assertThat(columns?.map((c: any) => c.getName()).sort(), expectedColumns.sort());
+    const columns = tables.get(table)?.columns;
+    assert.ok(columns);
+    assertThat(columns.length, expectedColumns.length);
+    assertThat(columns.map((c: any) => c.getName()).sort(), expectedColumns.sort());
   }
 
   it('register_shouldRegisterProjectDataSetAndTable', async () => {
