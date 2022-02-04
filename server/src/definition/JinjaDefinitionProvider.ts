@@ -72,8 +72,4 @@ export class JinjaDefinitionProvider {
   isExpression(expression: string): boolean {
     return expression.match(/^{\s*{/) !== null;
   }
-
-  isStatement(expression: string): boolean {
-    return expression.match(/^{%/) !== null;
-  }
 }
