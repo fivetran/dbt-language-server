@@ -1,10 +1,11 @@
 import * as path from 'path';
-import { DefinitionLink, integer, LocationLink, Position, Range } from 'vscode-languageserver';
+import { DefinitionLink, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { ParseNode } from '../JinjaParser';
 import { ManifestModel } from '../manifest/ManifestJson';
 import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { getAbsolutePosition, getAbsoluteRange, getRelativePosition, positionInRange } from '../utils/Utils';
+import { JinjaDefinitionProvider } from './JinjaDefinitionProvider';
 
 export class RefDefinitionFinder {
   static readonly REF_PATTERN = /ref\s*\(\s*('[^)']*'|"[^)"]*")(\s*,\s*('[^)']*'|"[^)"]*"))?\s*\)/;
@@ -78,8 +79,8 @@ export class RefDefinitionFinder {
       .map(m =>
         LocationLink.create(
           path.join(m.rootPath, m.originalFilePath),
-          Range.create(Position.create(0, 0), Position.create(integer.MAX_VALUE, integer.MAX_VALUE)),
-          Range.create(Position.create(0, 0), Position.create(0, 0)),
+          JinjaDefinitionProvider.MAX_RANGE,
+          JinjaDefinitionProvider.MAX_RANGE,
           packageSelectionRange,
         ),
       );
@@ -92,8 +93,8 @@ export class RefDefinitionFinder {
       return [
         LocationLink.create(
           path.join(foundModel.rootPath, foundModel.originalFilePath),
-          Range.create(Position.create(0, 0), Position.create(integer.MAX_VALUE, integer.MAX_VALUE)),
-          Range.create(Position.create(0, 0), Position.create(0, 0)),
+          JinjaDefinitionProvider.MAX_RANGE,
+          JinjaDefinitionProvider.MAX_RANGE,
           modelSelectionRange,
         ),
       ];

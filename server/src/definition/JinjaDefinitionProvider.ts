@@ -1,4 +1,4 @@
-import { DefinitionLink, Event, Position } from 'vscode-languageserver';
+import { DefinitionLink, Event, integer, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { ParseNode } from '../JinjaParser';
 import { ManifestMacro, ManifestModel, ManifestSource } from '../manifest/ManifestJson';
@@ -7,6 +7,8 @@ import { RefDefinitionFinder } from './RefDefinitionFinder';
 import { SourceDefinitionFinder } from './SourceDefinitionFinder';
 
 export class JinjaDefinitionProvider {
+  static readonly MAX_RANGE = Range.create(0, 0, integer.MAX_VALUE, integer.MAX_VALUE);
+
   refDefinitionFinder = new RefDefinitionFinder();
   macroDefinitionFinder = new MacroDefinitionFinder();
   sourceDefinitionFinder = new SourceDefinitionFinder();

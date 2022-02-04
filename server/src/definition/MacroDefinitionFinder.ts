@@ -1,11 +1,12 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { DefinitionLink, integer, LocationLink, Position, Range } from 'vscode-languageserver';
+import { DefinitionLink, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { ParseNode } from '../JinjaParser';
 import { ManifestMacro } from '../manifest/ManifestJson';
 import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { getAbsoluteRange, getPositionByIndex, getRelativePosition } from '../utils/Utils';
+import { JinjaDefinitionProvider } from './JinjaDefinitionProvider';
 
 export class MacroDefinitionFinder {
   static readonly MACRO_PATTERN = /(\w+\.?\w+)\s*\(/;
@@ -83,9 +84,6 @@ export class MacroDefinitionFinder {
       return [definitionRange, selectionRange];
     }
 
-    return [
-      Range.create(Position.create(0, 0), Position.create(integer.MAX_VALUE, integer.MAX_VALUE)),
-      Range.create(Position.create(0, 0), Position.create(integer.MAX_VALUE, integer.MAX_VALUE)),
-    ];
+    return [JinjaDefinitionProvider.MAX_RANGE, JinjaDefinitionProvider.MAX_RANGE];
   }
 }

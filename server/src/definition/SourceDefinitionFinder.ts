@@ -1,10 +1,11 @@
 import * as path from 'path';
-import { DefinitionLink, integer, LocationLink, Position, Range } from 'vscode-languageserver';
+import { DefinitionLink, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { ParseNode } from '../JinjaParser';
 import { ManifestSource } from '../manifest/ManifestJson';
 import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { getAbsolutePosition, getAbsoluteRange, getRelativePosition, positionInRange } from '../utils/Utils';
+import { JinjaDefinitionProvider } from './JinjaDefinitionProvider';
 
 export class SourceDefinitionFinder {
   static readonly SOURCE_PATTERN = /source\s*\(\s*('[^)']*'|"[^)"]*")\s*,\s*('[^)']*'|"[^)"]*")\s*\)/;
@@ -64,8 +65,8 @@ export class SourceDefinitionFinder {
       return [
         LocationLink.create(
           path.join(foundSource.rootPath, foundSource.originalFilePath),
-          Range.create(Position.create(0, 0), Position.create(integer.MAX_VALUE, integer.MAX_VALUE)),
-          Range.create(Position.create(0, 0), Position.create(0, 0)),
+          JinjaDefinitionProvider.MAX_RANGE,
+          JinjaDefinitionProvider.MAX_RANGE,
           tableSelectionRange,
         ),
       ];
