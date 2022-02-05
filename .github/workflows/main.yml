@@ -82,6 +82,7 @@ jobs:
           - dbt-version: 'dbt-bigquery dbt-rpc'
             os: windows-latest
             target: win32-x64
+            add-colon-to-key-file-path: keyFilePath=c:/${keyFilePath#*c/}
 
     runs-on: ${{ matrix.os }}
     defaults:
@@ -141,6 +142,8 @@ jobs:
 
           user=$(whoami)
           keyFilePath=$(eval echo "~${user}")/.dbt/bq-test-project.json
+          ${{ matrix.add-colon-to-key-file-path }}
+          echo ${keyFilePath}
 
           private_key=$(echo ${BQ_SERVICE_ACCOUNT} | jq '.private_key')
           read project_id private_key_id client_id client_email auth_uri token_uri auth_provider_x509_cert_url client_x509_cert_url < <(echo $(echo ${BQ_SERVICE_ACCOUNT} | jq -r '.project_id, .private_key_id, .client_id, .client_email, .auth_uri, .token_uri, .auth_provider_x509_cert_url, .client_x509_cert_url'))
