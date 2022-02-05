@@ -9,13 +9,12 @@ export class ManifestParser {
 
   parse(targetPath: string): ManifestJson {
     const manifestLocation = path.join(ManifestParser.PROJECT_PATH, targetPath, ManifestParser.MANIFEST_FILE_NAME);
-    try {
-      const content = readFileSync(manifestLocation, 'utf8');
-      const manifest = JSON.parse(content);
-      const { nodes } = manifest;
+    const content = readFileSync(manifestLocation, 'utf8');
+    const manifest = JSON.parse(content);
+    const { nodes } = manifest;
 
-      if (nodes) {
-        return {
+    return nodes
+      ? {
           models: Object.values(nodes as any[])
             .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_MODEL)
             .map<ManifestNode>(n => ({
@@ -23,11 +22,7 @@ export class ManifestParser {
               database: n.database,
               schema: n.schema,
             })),
-        };
-      }
-    } catch (e) {
-      console.log(`Failed to read ${ManifestParser.MANIFEST_FILE_NAME}`, e);
-    }
-    return { models: [] };
+        }
+      : { models: [] };
   }
 }

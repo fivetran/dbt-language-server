@@ -6,6 +6,7 @@ import { YamlParser } from './YamlParser';
 
 export class FileChangeListener {
   dbtTargetPath?: string;
+  manifestExists = false;
 
   constructor(
     private completionProvider: CompletionProvider,
@@ -36,7 +37,13 @@ export class FileChangeListener {
   }
 
   updateModels(): void {
-    this.completionProvider.setDbtModels(this.manifestParser.parse(this.yamlParser.findTargetPath()).models);
+    try {
+      this.completionProvider.setDbtModels(this.manifestParser.parse(this.yamlParser.findTargetPath()).models);
+      this.manifestExists = true;
+    } catch (e) {
+      this.manifestExists = false;
+      console.log(`Failed to read ${ManifestParser.MANIFEST_FILE_NAME}`, e);
+    }
   }
 
   resolveTargetPath(): string {

@@ -75,7 +75,7 @@ describe('DbtTextDocument', () => {
     when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(true);
 
     // act
-    await document.didOpenTextDocument();
+    await document.didOpenTextDocument(false);
     await sleepMoreThanDebounceTime();
 
     document.willSaveTextDocument(TextDocumentSaveReason.Manual);
@@ -93,7 +93,7 @@ describe('DbtTextDocument', () => {
     when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(true);
 
     // act
-    await document.didOpenTextDocument();
+    await document.didOpenTextDocument(false);
     await sleepMoreThanDebounceTime();
 
     document.willSaveTextDocument(TextDocumentSaveReason.AfterDelay);
@@ -111,7 +111,7 @@ describe('DbtTextDocument', () => {
     when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(true);
 
     // act
-    await document.didOpenTextDocument();
+    await document.didOpenTextDocument(false);
     await sleepMoreThanDebounceTime();
 
     // assert
@@ -124,11 +124,24 @@ describe('DbtTextDocument', () => {
     when(mockJinjaParser.findAllJinjaRanges(document.rawDocument)).thenReturn([]);
 
     // act
-    await document.didOpenTextDocument();
+    await document.didOpenTextDocument(false);
     await sleepMoreThanDebounceTime();
 
     // assert
     verify(mockModelCompiler.compile()).never();
+  });
+
+  it('Should compile for first open if manifest.json does not exist if jinja not found', async () => {
+    // arrange
+    when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(false);
+    when(mockJinjaParser.findAllJinjaRanges(document.rawDocument)).thenReturn([]);
+
+    // act
+    await document.didOpenTextDocument(true);
+    await sleepMoreThanDebounceTime();
+
+    // assert
+    verify(mockModelCompiler.compile()).once();
   });
 
   it('Should not interact with ZetaSQL if it is not supported', async () => {
@@ -138,7 +151,7 @@ describe('DbtTextDocument', () => {
     when(mockZetaSqlWrapper.isSupported()).thenReturn(false);
 
     // act
-    await document.didOpenTextDocument();
+    await document.didOpenTextDocument(false);
     await sleepMoreThanDebounceTime();
 
     // assert

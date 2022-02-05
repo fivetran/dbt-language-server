@@ -87,6 +87,8 @@ export class LspServer {
 
     this.bigQueryClient = clientResult.value as BigQueryClient;
 
+    this.fileChangeListener.onInit();
+
     this.initializeDestinationDefinition();
 
     this.initializeNotifications();
@@ -147,7 +149,6 @@ export class LspServer {
 
     command.addParameter(dbtPort.toString());
     await Promise.all([this.startDbtRpc(command, dbtPort), this.zetaSqlWrapper.initializeZetaSql()]);
-    this.fileChangeListener.onInit();
   }
 
   sendTelemetry(name: string, properties?: { [key: string]: string }): void {
@@ -240,7 +241,7 @@ export class LspServer {
       );
       this.openedDocuments.set(uri, document);
 
-      await document.didOpenTextDocument();
+      await document.didOpenTextDocument(!this.fileChangeListener.manifestExists);
     }
   }
 

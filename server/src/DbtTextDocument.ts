@@ -92,7 +92,10 @@ export class DbtTextDocument {
     }
   }
 
-  async didOpenTextDocument(): Promise<void> {
+  async didOpenTextDocument(requireCompile: boolean): Promise<void> {
+    if (requireCompile) {
+      this.requireCompileOnSave = true;
+    }
     this.didChangeTextDocument({
       textDocument: VersionedTextDocumentIdentifier.create(this.rawDocument.uri, this.rawDocument.version),
       contentChanges: [
