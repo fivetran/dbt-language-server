@@ -129,11 +129,11 @@ jobs:
       - name: add custom python venv with dbt@0.20.1
         run: |
           mkdir ~/dbt_0_20_1_env
-          ls ~
           python -m venv ~/dbt_0_20_1_env
-          source ~/dbt_0_20_1_env/Scripts/activate
-          ls ~/dbt_0_20_1_env
+          cd ~/dbt_0_20_1_env/Scripts
+          . activate
           pip install dbt==0.20.1
+          dbt --version
 
       - name: prepare profile config
         run: |
