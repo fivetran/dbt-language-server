@@ -85,7 +85,15 @@ jobs:
           - dbt-version: 'dbt-bigquery dbt-rpc'
             os: windows-latest
             target: win32-x64
-            add-colon-to-key-file-path: keyFilePath=c:/${keyFilePath#*c/}
+            add-colon-to-key-file-path: |
+              homedir=c:/${homedir#*c/}
+              python=${homedir}/dbt_0_20_1_env/Scripts/python
+              cat <<EOT > ${GITHUB_WORKSPACE}/e2e/projects/special-python-settings/.vscode/settings.json
+              {
+                "python.defaultInterpreterPath": "${python}",
+                "python.pythonPath": "${python}",
+              }
+              EOT
             activate-venv: |
               cd ~/dbt_0_20_1_env/Scripts
               . activate
@@ -122,7 +130,7 @@ jobs:
           node-version: '16.x'
 
       - name: build tests
-        run: | # ignore postinstall script and install deps for e2e
+        run: | # ignore postinstall script and install dependencies for e2e
           npm install --ignore-scripts
           cd e2e
           npm install
@@ -145,8 +153,9 @@ jobs:
           echo "$BQ_SERVICE_ACCOUNT" > ~/.dbt/bq-test-project.json
 
           user=$(whoami)
-          keyFilePath=$(eval echo "~${user}")/.dbt/bq-test-project.json
+          homedir=$(eval echo "~${user}")
           ${{ matrix.add-colon-to-key-file-path }}
+          keyFilePath=${homedir}/.dbt/bq-test-project.json
           echo ${keyFilePath}
 
           private_key=$(echo ${BQ_SERVICE_ACCOUNT} | jq '.private_key')
@@ -199,6 +208,7 @@ jobs:
           EOT
         env:
           BQ_SERVICE_ACCOUNT: ${{ secrets.BQ_SERVICE_ACCOUNT }}
+          GITHUB_WORKSPACE: ${{ env.GITHUB_WORKSPACE }}
 
       - name: show prepared files
         run: |
