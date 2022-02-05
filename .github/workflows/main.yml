@@ -67,10 +67,12 @@ jobs:
           - dbt-version: 'dbt-bigquery==0.20.2'
             os: macos-latest
             target: darwin-x64
+            activate-venv: source ~/dbt_0_20_1_env/bin/activate
           
           - dbt-version: 'dbt-bigquery dbt-rpc'
             os: macos-latest
             target: darwin-x64
+            activate-venv: source ~/dbt_0_20_1_env/bin/activate
 
           - dbt-version: 'dbt-bigquery dbt-rpc'
             os: ubuntu-latest
@@ -78,11 +80,15 @@ jobs:
             prepare-for-tests: |
               Xvfb -ac :99 -screen 0 1280x1024x16 &
               export DISPLAY=:99
+            activate-venv: source ~/dbt_0_20_1_env/bin/activate
 
           - dbt-version: 'dbt-bigquery dbt-rpc'
             os: windows-latest
             target: win32-x64
             add-colon-to-key-file-path: keyFilePath=c:/${keyFilePath#*c/}
+            activate-venv: |
+              cd ~/dbt_0_20_1_env/Scripts
+              . activate
 
     runs-on: ${{ matrix.os }}
     defaults:
@@ -128,10 +134,8 @@ jobs:
 
       - name: add custom python venv with dbt@0.20.1
         run: |
-          mkdir ~/dbt_0_20_1_env
           python -m venv ~/dbt_0_20_1_env
-          cd ~/dbt_0_20_1_env/Scripts
-          . activate
+          ${{ matrix.activate-venv }}
           pip install dbt==0.20.1
           dbt --version
 
