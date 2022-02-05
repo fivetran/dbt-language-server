@@ -5,7 +5,7 @@ import { performance } from 'perf_hooks';
 import { languages, Uri } from 'vscode';
 import { doc, getPreviewText, PREVIEW_URI } from './helper';
 
-const TESTS_WITHOUT_ZETASQL = ['completion_jinja.spec.js'];
+const TESTS_WITHOUT_ZETASQL = ['multi-project.spec.js' /* 'completion_jinja.spec.js' */]; // TODO: add more tests
 const ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
 
 export function run(): Promise<void> {
