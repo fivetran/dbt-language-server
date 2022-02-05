@@ -1,6 +1,7 @@
 import { DbtVersion, getStringVersion } from './DbtVersion';
 import { Command } from './dbt_commands/Command';
 import { DbtCommand } from './dbt_commands/DbtCommand';
+import { DbtCommandExecutor } from './dbt_commands/DbtCommandExecutor';
 import { DbtRpcCommand } from './dbt_commands/DbtRpcCommand';
 import { ProcessExecutor } from './ProcessExecutor';
 import { randomNumber } from './Utils';
@@ -27,6 +28,7 @@ export class FeatureFinder {
 
   private static readonly DBT_VERSION_PATTERN = /installed version: (\d+)\.(\d+)\.(\d+)/;
   private static readonly PROCESS_EXECUTOR = new ProcessExecutor();
+  static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
 
   private dbtRpcGlobal: Promise<DbtVersion | undefined>;
   private dbtGlobal: Promise<DbtVersion | undefined>;
@@ -131,7 +133,7 @@ export class FeatureFinder {
           : undefined;
     };
 
-    await FeatureFinder.PROCESS_EXECUTOR.execProcess(command.toString(), readVersion, readVersion).catch(_ => {
+    await FeatureFinder.DBT_COMMAND_EXECUTOR.execute(command, readVersion, readVersion).catch(_ => {
       // Do nothing
     });
     return version;

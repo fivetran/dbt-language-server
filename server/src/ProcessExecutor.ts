@@ -6,13 +6,14 @@ export class ProcessExecutor {
     command: string,
     onStdoutData?: (data: any) => void,
     onStderrData?: (data: any) => void,
+    env?: NodeJS.ProcessEnv,
   ): PromiseWithChild<{
     stdout: string;
     stderr: string;
   }> {
     const promisifiedExec = promisify(exec);
 
-    const promiseWithChild = promisifiedExec(command);
+    const promiseWithChild = promisifiedExec(command, { env });
     const childProcess = promiseWithChild.child;
 
     childProcess.stderr?.on('data', chunk => {
