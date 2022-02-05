@@ -205,8 +205,10 @@ jobs:
       - name: install dbt
         run: pip install ${{ matrix.dbt-version }}
 
-      - name: show dbt version
-        run: dbt --version
+      - name: show dbt info
+        run: |
+          which dbt
+          dbt --version
 
       # Uncomment lines below if you want to connect to the job via SSH
       # - name: Setup SSH via tmate for debugging
