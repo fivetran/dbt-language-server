@@ -1,4 +1,3 @@
-import { strictEqual } from 'assert';
 import { assertThat, instanceOf, throws } from 'hamjest';
 import { Position, Range } from 'vscode-languageserver';
 import { getWordRangeAtPosition } from '../../utils/TextUtils';
@@ -32,7 +31,7 @@ describe('TextUtils', () => {
     assertThat(range, Range.create(1, 0, 1, 14));
 
     range = getWordRangeAtPosition(Position.create(3, 0), /("|').*\1/, textLines);
-    strictEqual(range, undefined);
+    assertThat(range, undefined);
 
     range = getWordRangeAtPosition(Position.create(3, 1), /("|').*\1/, textLines);
     assertThat(range, Range.create(3, 1, 3, 10));
