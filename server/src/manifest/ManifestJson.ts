@@ -8,9 +8,6 @@ interface ManifestNode {
 export interface ManifestModel extends ManifestNode {
   database: string;
   schema: string;
-  dependsOn?: {
-    macros?: string[];
-  };
 }
 
 export interface ManifestMacro extends ManifestNode {

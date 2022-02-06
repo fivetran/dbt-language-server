@@ -30,9 +30,6 @@ export class ManifestParser {
             name: n.name,
             database: n.database,
             schema: n.schema,
-            dependsOn: {
-              macros: n.depends_on.macros,
-            },
           }));
       }
 
