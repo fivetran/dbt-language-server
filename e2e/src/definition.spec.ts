@@ -10,7 +10,6 @@ const packageRefDocUri = getDocUri('package_ref.sql');
 
 suite('ref definitions', () => {
   test('Should suggest definitions for ref without package', async () => {
-    // arrange
     await activateAndWait(refSqlDocUri);
     await assertDefinitions(refSqlDocUri, new Position(1, 24), [
       {
