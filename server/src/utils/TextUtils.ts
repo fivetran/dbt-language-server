@@ -139,11 +139,11 @@ export function getWordAtText(
     prevRegexIndex = regexIndex;
   }
 
-  if (match) {
+  if (match && match.index !== undefined) {
     const result = {
       word: match[0],
-      startColumn: textOffset + 1 + match.index!,
-      endColumn: textOffset + 1 + match.index! + match[0].length,
+      startColumn: textOffset + 1 + match.index,
+      endColumn: textOffset + 1 + match.index + match[0].length,
     };
     wordDefinition.lastIndex = 0;
     return result;
