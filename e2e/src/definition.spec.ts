@@ -12,14 +12,14 @@ suite('ref definitions', () => {
   test('Should suggest definitions for ref without package', async () => {
     // arrange
     await activateAndWait(refSqlDocUri);
-
-    // act
-    const definitions = await triggerDefinition(refSqlDocUri, new Position(1, 24));
-
-    // assert
-    assertThat(definitions.length, 1);
-    assertThat(definitions[0].targetUri.path, endsWith('/test-fixture/models/table_exists.sql'));
-    assertThat(definitions[0].originSelectionRange, new Range(1, 19, 1, 31));
+    await assertDefinitions(refSqlDocUri, new Position(1, 24), [
+      {
+        originSelectionRange: new Range(1, 19, 1, 31),
+        targetUri: getDocUri('/table_exists.sql'),
+        targetRange: MIN_RANGE,
+        targetSelectionRange: MAX_RANGE,
+      },
+    ]);
   });
 
   test('Should suggest definitions for ref with package', async () => {
