@@ -89,7 +89,7 @@ export class RefDefinitionFinder {
   }
 
   searchModelDefinition(dbPackage: string, model: string, dbtModels: ManifestModel[], modelSelectionRange: Range): DefinitionLink[] | undefined {
-    const modelId = `model.${dbPackage.slice(1, -1)}.${model.substring(1).slice(0, -1)}`;
+    const modelId = `model.${dbPackage.slice(1, -1)}.${model.slice(1, -1)}`;
     const foundModel = dbtModels.find(m => m.uniqueId === modelId);
     if (foundModel) {
       return [
