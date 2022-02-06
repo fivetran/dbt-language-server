@@ -1,4 +1,4 @@
-import { assertThat, endsWith, greaterThan, is } from 'hamjest';
+import { assertThat, endsWith, greaterThan, hasSize, is } from 'hamjest';
 import { DefinitionLink, Position, Range, Uri } from 'vscode';
 import { activateAndWait, getDocUri, triggerDefinition } from './helper';
 
@@ -34,7 +34,7 @@ suite('ref definitions', () => {
     assertThat(packageDefinitions.length, is(greaterThan(1)));
     assertThat(packageDefinitions[0].originSelectionRange, new Range(5, 19, 5, 33));
 
-    assertThat(modelDefinitions.length, 1);
+    assertThat(modelDefinitions, hasSize(1));
     assertThat(modelDefinitions[0].targetUri.path, endsWith('/test-fixture/models/table_exists.sql'));
     assertThat(modelDefinitions[0].originSelectionRange, new Range(5, 37, 5, 49));
   });
