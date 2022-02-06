@@ -45,14 +45,9 @@ export class SourceDefinitionFinder {
       );
 
       if (positionInRange(position, sourceSelectionRange)) {
-        return this.getTableDefinitions(
-          source.text.substring(1).slice(0, -1),
-          table.text.substring(1).slice(0, -1),
-          dbtSources,
-          sourceSelectionRange,
-        );
+        return this.getTableDefinitions(source.text.slice(1, -1), table.text.slice(1, -1), dbtSources, sourceSelectionRange);
       } else if (positionInRange(position, tableSelectionRange)) {
-        return this.getTableDefinitions(source.text.substring(1).slice(0, -1), table.text.substring(1).slice(0, -1), dbtSources, tableSelectionRange);
+        return this.getTableDefinitions(source.text.slice(1, -1), table.text.slice(1, -1), dbtSources, tableSelectionRange);
       }
     }
 
