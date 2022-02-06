@@ -35,13 +35,15 @@ export class SourceDefinitionFinder {
       }
 
       const [source, table] = matches;
+      const wordAbsoluteOffset = document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start));
+
       const sourceSelectionRange = Range.create(
-        document.positionAt(document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + source.index + 1),
-        document.positionAt(document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + source.index + source.text.length - 1),
+        document.positionAt(wordAbsoluteOffset + source.index + 1),
+        document.positionAt(wordAbsoluteOffset + source.index + source.text.length - 1),
       );
       const tableSelectionRange = Range.create(
-        document.positionAt(document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + table.index + 1),
-        document.positionAt(document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + table.index + table.text.length - 1),
+        document.positionAt(wordAbsoluteOffset + table.index + 1),
+        document.positionAt(wordAbsoluteOffset + table.index + table.text.length - 1),
       );
 
       if (positionInRange(position, sourceSelectionRange)) {
