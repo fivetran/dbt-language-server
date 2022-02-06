@@ -47,13 +47,14 @@ export class FeatureFinder {
    */
   async findDbtRpcCommand(pythonPromise: Promise<string>): Promise<Command | undefined> {
     this.python = await pythonPromise;
+    const settledResults = await Promise.allSettled([this.findDbtRpcPythonVersion(), this.findDbtPythonVersion(), this.dbtRpcGlobal, this.dbtGlobal]);
 
-    const [dbtRpcPythonVersion, dbtPythonVersion, dbtRpcGlobalVersion, dbtGlobalVersion] = await Promise.all([
-      this.findDbtRpcPythonVersion(),
-      this.findDbtPythonVersion(),
-      this.dbtRpcGlobal,
-      this.dbtGlobal,
-    ]);
+    const [dbtRpcPythonVersion, dbtPythonVersion, dbtRpcGlobalVersion, dbtGlobalVersion] = settledResults.map(v => {
+      if (v.status === 'rejected') {
+        console.log(`Rejection reason during find dbt command: ${v.reason}`);
+      }
+      return v.status === 'fulfilled' ? v.value : undefined;
+    });
 
     console.log(
       `dbtRpcGlobalVersion = ${getStringVersion(dbtRpcGlobalVersion)}, dbtGlobalVersion = ${getStringVersion(
@@ -120,23 +121,22 @@ export class FeatureFinder {
   }
 
   private async findCommandVersion(command: Command): Promise<DbtVersion | undefined> {
-    let version: DbtVersion | undefined;
-    const readVersion: (data: string) => void = (data: string) => {
-      const matchResults = data.match(FeatureFinder.DBT_VERSION_PATTERN);
-      version =
-        matchResults?.length === 4
-          ? {
-              major: Number(matchResults[1]),
-              minor: Number(matchResults[2]),
-              patch: Number(matchResults[3]),
-            }
-          : undefined;
-    };
+    const { stdout, stderr } = await FeatureFinder.DBT_COMMAND_EXECUTOR.execute(command);
+    const vFromStderr = FeatureFinder.readVersion(stderr);
+    const vFromStdout = FeatureFinder.readVersion(stdout);
 
-    await FeatureFinder.DBT_COMMAND_EXECUTOR.execute(command, readVersion, readVersion).catch(_ => {
-      // Do nothing
-    });
-    return version;
+    return vFromStderr ?? vFromStdout;
+  }
+
+  private static readVersion(data: string): DbtVersion | undefined {
+    const matchResults = data.match(FeatureFinder.DBT_VERSION_PATTERN);
+    return matchResults?.length === 4
+      ? {
+          major: Number(matchResults[1]),
+          minor: Number(matchResults[2]),
+          patch: Number(matchResults[3]),
+        }
+      : undefined;
   }
 
   private async installLatestDbtRpc(): Promise<void> {

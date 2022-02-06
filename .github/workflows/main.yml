@@ -98,6 +98,8 @@ jobs:
               cd ~/dbt_0_20_1_env/Scripts
               . activate
 
+    name: e2e:${{ matrix.target }} ${{ matrix.dbt-version }} ${{ matrix.os }}
+
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -242,7 +244,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.os }}_${{ matrix.dbt-version }}
+          name: e2e:${{ matrix.target }} ${{ matrix.dbt-version }} ${{ matrix.os }}
           path: ./.vscode-test/user-data/logs/**/*dbt Language Support.log
 
   publish:
