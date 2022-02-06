@@ -1,8 +1,11 @@
-export interface ManifestModel {
+interface ManifestNode {
   uniqueId: string;
   rootPath: string;
   originalFilePath: string;
   name: string;
+}
+
+export interface ManifestModel extends ManifestNode {
   database: string;
   schema: string;
   dependsOn?: {
@@ -10,19 +13,11 @@ export interface ManifestModel {
   };
 }
 
-export interface ManifestMacro {
-  uniqueId: string;
-  rootPath: string;
-  originalFilePath: string;
-  name: string;
+export interface ManifestMacro extends ManifestNode {
   packageName: string;
 }
 
-export interface ManifestSource {
-  uniqueId: string;
-  rootPath: string;
-  originalFilePath: string;
-  name: string;
+export interface ManifestSource extends ManifestNode {
   sourceName: string;
   columns: string[];
 }
