@@ -16,56 +16,61 @@ export class ManifestParser {
       const manifest = JSON.parse(content);
       const { nodes, macros, sources } = manifest;
 
-      let modelsDefinitions: ManifestModel[] = [];
-      let macrosDefinitions: ManifestMacro[] = [];
-      let sourcesDefinitions: ManifestSource[] = [];
-
-      if (nodes) {
-        modelsDefinitions = Object.values(nodes as any[])
-          .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_MODEL)
-          .map<ManifestModel>(n => ({
-            uniqueId: n.unique_id,
-            rootPath: n.root_path,
-            originalFilePath: n.original_file_path,
-            name: n.name,
-            database: n.database,
-            schema: n.schema,
-          }));
-      }
-
-      if (macros) {
-        macrosDefinitions = Object.values(macros as any[])
-          .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_MACRO)
-          .map<ManifestMacro>(n => ({
-            uniqueId: n.unique_id,
-            rootPath: n.root_path,
-            originalFilePath: n.original_file_path,
-            name: n.name,
-            packageName: n.package_name,
-          }));
-      }
-
-      if (sources) {
-        sourcesDefinitions = Object.values(sources as any[])
-          .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_SOURCE)
-          .map<ManifestSource>(n => ({
-            uniqueId: n.unique_id,
-            rootPath: n.root_path,
-            originalFilePath: n.original_file_path,
-            name: n.name,
-            sourceName: n.source_name,
-            columns: Object.values(n.columns as any[]).map(c => c.name),
-          }));
-      }
-
       return {
-        models: modelsDefinitions,
-        macros: macrosDefinitions,
-        sources: sourcesDefinitions,
+        models: this.parseModelDefinitions(nodes),
+        macros: this.parseMacroDefinitions(macros),
+        sources: this.parseSourceDefinitions(sources),
       };
     } catch (e) {
       console.log(`Failed to read ${ManifestParser.MANIFEST_FILE_NAME}`, e);
     }
     return { models: [], macros: [], sources: [] };
+  }
+
+  private parseModelDefinitions(nodes: any): ManifestModel[] {
+    if (nodes) {
+      return Object.values(nodes as any[])
+        .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_MODEL)
+        .map<ManifestModel>(n => ({
+          uniqueId: n.unique_id,
+          rootPath: n.root_path,
+          originalFilePath: n.original_file_path,
+          name: n.name,
+          database: n.database,
+          schema: n.schema,
+        }));
+    }
+    return [];
+  }
+
+  private parseMacroDefinitions(macros: any): ManifestMacro[] {
+    if (macros) {
+      return Object.values(macros as any[])
+        .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_MACRO)
+        .map<ManifestMacro>(n => ({
+          uniqueId: n.unique_id,
+          rootPath: n.root_path,
+          originalFilePath: n.original_file_path,
+          name: n.name,
+          packageName: n.package_name,
+        }));
+    }
+    return [];
+  }
+
+  private parseSourceDefinitions(sources: any): ManifestSource[] {
+    if (sources) {
+      return Object.values(sources as any[])
+        .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_SOURCE)
+        .map<ManifestSource>(n => ({
+          uniqueId: n.unique_id,
+          rootPath: n.root_path,
+          originalFilePath: n.original_file_path,
+          name: n.name,
+          sourceName: n.source_name,
+          columns: Object.values(n.columns as any[]).map(c => c.name),
+        }));
+    }
+    return [];
   }
 }
