@@ -9,16 +9,10 @@ describe('TextUtils', () => {
     let range: Range | undefined;
 
     range = getWordRangeAtPosition(Position.create(0, 5), /[a-z+]+/, textLines);
-    assertThat(range?.start.line, 0);
-    assertThat(range?.start.character, 5);
-    assertThat(range?.end.line, 0);
-    assertThat(range?.end.character, 14);
+    assertThat(range, Range.create(0, 5, 0, 14));
 
     range = getWordRangeAtPosition(Position.create(0, 17), /[a-z+]+/, textLines);
-    assertThat(range?.start.line, 0);
-    assertThat(range?.start.character, 15);
-    assertThat(range?.end.line, 0);
-    assertThat(range?.end.character, 18);
+    assertThat(range, Range.create(0, 15, 0, 18));
 
     range = getWordRangeAtPosition(Position.create(0, 11), /yy/, textLines);
     assertThat(range, undefined);
@@ -35,19 +29,13 @@ describe('TextUtils', () => {
     assertThat(range, undefined);
 
     range = getWordRangeAtPosition(Position.create(1, 0), /\/\*.+\*\//, textLines);
-    assertThat(range?.start.line, 1);
-    assertThat(range?.start.character, 0);
-    assertThat(range?.end.line, 1);
-    assertThat(range?.end.character, 14);
+    assertThat(range, Range.create(1, 0, 1, 14));
 
     range = getWordRangeAtPosition(Position.create(3, 0), /("|').*\1/, textLines);
     strictEqual(range, undefined);
 
     range = getWordRangeAtPosition(Position.create(3, 1), /("|').*\1/, textLines);
-    assertThat(range?.start.line, 3);
-    assertThat(range?.start.character, 1);
-    assertThat(range?.end.line, 3);
-    assertThat(range?.end.character, 10);
+    assertThat(range, Range.create(3, 1, 3, 10));
   });
 
   it('getWordRangeAtPosition should find word', function () {
@@ -56,9 +44,6 @@ describe('TextUtils', () => {
 
     const range = getWordRangeAtPosition(Position.create(0, 27), regex, [line]);
 
-    assertThat(range?.start.line, 0);
-    assertThat(range?.end.line, 0);
-    assertThat(range?.start.character, 4);
-    assertThat(range?.end.character, 28);
+    assertThat(range, Range.create(0, 4, 0, 28));
   });
 });
