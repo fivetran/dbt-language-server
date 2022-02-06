@@ -37,6 +37,7 @@ export class RefDefinitionFinder {
       }
 
       const isPackageSpecified = matches.length === 2;
+      const wordAbsoluteOffset = document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start));
       let dbtPackage;
       let model;
       let packageSelectionRange;
@@ -46,26 +47,20 @@ export class RefDefinitionFinder {
         dbtPackage = matches[0].text;
         model = matches[1].text;
         packageSelectionRange = Range.create(
-          document.positionAt(document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[0].index + 1),
-          document.positionAt(
-            document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[0].index + matches[0].text.length - 1,
-          ),
+          document.positionAt(wordAbsoluteOffset + matches[0].index + 1),
+          document.positionAt(wordAbsoluteOffset + matches[0].index + matches[0].text.length - 1),
         );
         modelSelectionRange = Range.create(
-          document.positionAt(document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[1].index + 1),
-          document.positionAt(
-            document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[1].index + matches[1].text.length - 1,
-          ),
+          document.positionAt(wordAbsoluteOffset + matches[1].index + 1),
+          document.positionAt(wordAbsoluteOffset + matches[1].index + matches[1].text.length - 1),
         );
       } else {
         dbtPackage = `'${projectName}'`;
         model = matches[0].text;
         packageSelectionRange = undefined;
         modelSelectionRange = Range.create(
-          document.positionAt(document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[0].index + 1),
-          document.positionAt(
-            document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start)) + matches[0].index + matches[0].text.length - 1,
-          ),
+          document.positionAt(wordAbsoluteOffset + matches[0].index + 1),
+          document.positionAt(wordAbsoluteOffset + matches[0].index + matches[0].text.length - 1),
         );
       }
 
