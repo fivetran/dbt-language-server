@@ -36,6 +36,7 @@ describe('DbtTextDocument', () => {
 
     document = new DbtTextDocument(
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
+      '',
       mock<_Connection>(),
       mock(ProgressReporter),
       mock(CompletionProvider),

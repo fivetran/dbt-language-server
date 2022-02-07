@@ -266,6 +266,7 @@ export class LspServer {
 
       document = new DbtTextDocument(
         params.textDocument,
+        this.workspaceFolder,
         this.connection,
         this.progressReporter,
         this.completionProvider,

@@ -55,6 +55,7 @@ export class DbtTextDocument {
 
   constructor(
     doc: TextDocumentItem,
+    private workspaceFolder: string,
     private connection: _Connection,
     private progressReporter: ProgressReporter,
     private completionProvider: CompletionProvider,
@@ -251,11 +252,24 @@ export class DbtTextDocument {
     this.schemaTracker.resetHasNewTables();
   }
 
+  getModelPath(): string {
+    const index = this.rawDocument.uri.indexOf(this.workspaceFolder);
+    return this.rawDocument.uri.slice(index + this.workspaceFolder.length + 1);
+  }
+
   onCompilationError(dbtCompilationError: string): void {
+    let line = 0;
+    if (dbtCompilationError.includes(this.getModelPath())) {
+      const match = dbtCompilationError.match(/\n\s*line (\d+)\s*\n/);
+      if (match && match.length > 1) {
+        line = Number(match[1]) - 1;
+      }
+    }
+
     const dbtDiagnostics: Diagnostic[] = [
       {
         severity: DiagnosticSeverity.Error,
-        range: Range.create(0, 0, 0, 100),
+        range: Range.create(line, 0, line, 100),
         message: dbtCompilationError,
       },
     ];
