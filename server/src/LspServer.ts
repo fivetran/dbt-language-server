@@ -52,7 +52,7 @@ interface TelemetryEvent {
 }
 
 export class LspServer {
-  static readonly OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
+  static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
 
   workspaceFolder?: string;
   bigQueryClient?: BigQueryClient;
