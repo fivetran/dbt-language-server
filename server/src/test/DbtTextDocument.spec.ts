@@ -58,7 +58,7 @@ describe('DbtTextDocument', () => {
 
       // assert
       await sleepMoreThanDebounceTime();
-      verify(mockModelCompiler.compile()).once();
+      verify(mockModelCompiler.compile(anything())).once();
     });
 
     it('Should compile twice if debounce timeout exceeded between compile calls', async () => {
@@ -69,7 +69,7 @@ describe('DbtTextDocument', () => {
 
       // assert
       await sleepMoreThanDebounceTime();
-      verify(mockModelCompiler.compile()).twice();
+      verify(mockModelCompiler.compile(anything())).twice();
     });
   });
 
@@ -88,7 +88,7 @@ describe('DbtTextDocument', () => {
 
     // assert
     verify(mockRpcServer.refreshServer()).once();
-    verify(mockModelCompiler.compile()).twice();
+    verify(mockModelCompiler.compile(anything())).twice();
   });
 
   it('Should not compile for first save in Auto save mode', async () => {
@@ -106,7 +106,7 @@ describe('DbtTextDocument', () => {
 
     // assert
     verify(mockRpcServer.refreshServer()).never();
-    verify(mockModelCompiler.compile()).once();
+    verify(mockModelCompiler.compile(anything())).once();
   });
 
   it('Should not compile once when opening', async () => {
@@ -118,7 +118,7 @@ describe('DbtTextDocument', () => {
     await sleepMoreThanDebounceTime();
 
     // assert
-    verify(mockModelCompiler.compile()).once();
+    verify(mockModelCompiler.compile(anything())).once();
   });
 
   it('Should not compile query without jinja', async () => {
@@ -131,7 +131,7 @@ describe('DbtTextDocument', () => {
     await sleepMoreThanDebounceTime();
 
     // assert
-    verify(mockModelCompiler.compile()).never();
+    verify(mockModelCompiler.compile(anything())).never();
   });
 
   it('Should compile for first open if manifest.json does not exist if jinja not found', async () => {
@@ -144,7 +144,7 @@ describe('DbtTextDocument', () => {
     await sleepMoreThanDebounceTime();
 
     // assert
-    verify(mockModelCompiler.compile()).once();
+    verify(mockModelCompiler.compile(anything())).once();
   });
 
   it('Should not interact with ZetaSQL if it is not supported', async () => {

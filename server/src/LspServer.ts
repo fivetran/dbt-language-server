@@ -271,7 +271,7 @@ export class LspServer {
         this.progressReporter,
         this.completionProvider,
         this.jinjaDefinitionProvider,
-        new ModelCompiler(this.dbtRpcClient, uri, this.workspaceFolder),
+        new ModelCompiler(this.dbtRpcClient),
         new JinjaParser(),
         new SchemaTracker(this.bigQueryClient, this.zetaSqlWrapper),
         this.zetaSqlWrapper,

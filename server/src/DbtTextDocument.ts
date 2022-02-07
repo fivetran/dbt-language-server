@@ -196,7 +196,7 @@ export class DbtTextDocument {
 
   debouncedCompile = debounce(async () => {
     this.progressReporter.sendStart(this.rawDocument.uri);
-    await this.modelCompiler.compile();
+    await this.modelCompiler.compile(this.getModelPath());
   }, DbtTextDocument.DEBOUNCE_TIMEOUT);
 
   getDiagnostics(astResult: Result<AnalyzeResponse__Output, string>): Diagnostic[][] {

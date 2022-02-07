@@ -41,6 +41,7 @@ describe('LspServer', () => {
 
     document = new DbtTextDocument(
       { uri: OPENED_URI, languageId: SQL_LANGUAGE_ID, version: 1, text: TEXT },
+      '',
       mock<_Connection>(),
       mock(ProgressReporter),
       mock(CompletionProvider),
