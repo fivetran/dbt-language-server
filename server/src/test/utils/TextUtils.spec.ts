@@ -1,5 +1,8 @@
 import { assertThat, instanceOf, throws } from 'hamjest';
 import { Position, Range } from 'vscode-languageserver';
+import { MacroDefinitionFinder } from '../../definition/MacroDefinitionFinder';
+import { RefDefinitionFinder } from '../../definition/RefDefinitionFinder';
+import { SourceDefinitionFinder } from '../../definition/SourceDefinitionFinder';
 import { getWordRangeAtPosition } from '../../utils/TextUtils';
 
 describe('TextUtils', () => {
@@ -27,6 +30,51 @@ describe('TextUtils', () => {
     const regex = /(-?\d*\.\d\w*)|([^`~!@#$%^&*()\-=+[{\]}\\|;:'",.<>/?\s]+)/g;
     const line = 'int abcdefhijklmnopqwvrstxyz;';
     assertWordRangeAtPosition(Position.create(0, 27), regex, [line], Range.create(0, 4, 0, 28));
+  });
+
+  it('getWordRangeAtPosition should find ref expressions', function () {
+    assertWordRangeAtPosition(
+      Position.create(0, 8),
+      RefDefinitionFinder.REF_PATTERN,
+      ["{{ ref('my_new_project', 'table_exists') }}"],
+      Range.create(0, 3, 0, 40),
+    );
+    assertWordRangeAtPosition(
+      Position.create(0, 14),
+      RefDefinitionFinder.REF_PATTERN,
+      ["{{  ref (  'my_new_project'  ,   'table_exists' )  }}"],
+      Range.create(0, 4, 0, 49),
+    );
+  });
+
+  it('getWordRangeAtPosition should find macro expressions', function () {
+    assertWordRangeAtPosition(
+      Position.create(0, 21),
+      MacroDefinitionFinder.MACRO_PATTERN,
+      ["{{ extract_first_name('u.name') }}"],
+      Range.create(0, 3, 0, 22),
+    );
+    assertWordRangeAtPosition(
+      Position.create(0, 21),
+      MacroDefinitionFinder.MACRO_PATTERN,
+      ["{{ extract_first_name  ('u.name') }}"],
+      Range.create(0, 3, 0, 24),
+    );
+  });
+
+  it('getWordRangeAtPosition should find source expressions', function () {
+    assertWordRangeAtPosition(
+      Position.create(0, 11),
+      SourceDefinitionFinder.SOURCE_PATTERN,
+      ["{{ source('new_project', 'users') }}"],
+      Range.create(0, 3, 0, 33),
+    );
+    assertWordRangeAtPosition(
+      Position.create(0, 36),
+      SourceDefinitionFinder.SOURCE_PATTERN,
+      ["{{  source ( 'new_project' ,  'users' )  }}"],
+      Range.create(0, 4, 0, 39),
+    );
   });
 
   function assertWordRangeAtPosition(position: Position, regex: RegExp, textLines: string[], wordRange: Range | undefined): void {
