@@ -2,14 +2,14 @@ import { assertThat } from 'hamjest';
 import { Range, uinteger } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { JinjaParser } from '../JinjaParser';
-import { ManifestNode } from '../ManifestJson';
+import { ManifestModel } from '../manifest/ManifestJson';
 import { Change, SqlRefConverter } from '../SqlRefConverter';
 import { ResolvedTable } from '../ZetaSqlAst';
 
 describe('SqlRefConverter', () => {
   const SQL_REF_CONVERTER = new SqlRefConverter(new JinjaParser());
 
-  function shouldConvertRefToSql(rawDocumentString: string, dbtModels: ManifestNode[], expectedChanges: Change[]): void {
+  function shouldConvertRefToSql(rawDocumentString: string, dbtModels: ManifestModel[], expectedChanges: Change[]): void {
     // arrange
     const doc = TextDocument.create('test', 'sql', 0, rawDocumentString);
 
@@ -21,8 +21,11 @@ describe('SqlRefConverter', () => {
     assertThat(changes, expectedChanges);
   }
 
-  function createManifestNodes(count: number): ManifestNode[] {
-    return [...Array(count).keys()].map<ManifestNode>(n => ({
+  function createManifestNodes(count: number): ManifestModel[] {
+    return [...Array(count).keys()].map<ManifestModel>(n => ({
+      uniqueId: `model.package.test_model${n}`,
+      rootPath: '/Users/test/dbt_project',
+      originalFilePath: `models/test_model${n}.sql`,
       name: `test_model${n}`,
       database: 'db',
       schema: 'schema',
@@ -72,7 +75,20 @@ describe('SqlRefConverter', () => {
     const sql = 'select * from `db`.`schema`.`test_model0`';
     const doc = TextDocument.create('test', 'sql', 0, sql);
 
-    const changes = SQL_REF_CONVERTER.sqlToRef(doc, [createResolvedTable(0, 14, 41)], [{ name: 'test_model0', database: 'db', schema: 'schema' }]);
+    const changes = SQL_REF_CONVERTER.sqlToRef(
+      doc,
+      [createResolvedTable(0, 14, 41)],
+      [
+        {
+          uniqueId: `model.package.test_model0`,
+          rootPath: '/Users/test/dbt_project',
+          originalFilePath: 'test_model0.sql',
+          name: 'test_model0',
+          database: 'db',
+          schema: 'schema',
+        },
+      ],
+    );
 
     assertThat(changes.length, 1);
     assertThat(changes, [

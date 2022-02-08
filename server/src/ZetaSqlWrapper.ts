@@ -15,7 +15,7 @@ import { ExtractTableNamesFromStatementResponse__Output } from '@fivetrandevelop
 import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRecordType';
 import { ZetaSQLBuiltinFunctionOptions } from '@fivetrandevelopers/zetasql/lib/ZetaSQLBuiltinFunctionOptions';
 import { TableDefinition } from './TableDefinition';
-import { randomNumber } from './Utils';
+import { randomNumber } from './utils/Utils';
 import findFreePortPmfy = require('find-free-port');
 
 export class ZetaSqlWrapper {

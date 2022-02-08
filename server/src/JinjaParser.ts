@@ -1,9 +1,9 @@
 import { Position, Range, TextDocumentContentChangeEvent } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { comparePositions, rangesOverlap } from './Utils';
+import { comparePositions, rangesOverlap } from './utils/Utils';
 
-interface ParseNode {
-  expression: string;
+export interface ParseNode {
+  value: string;
   range: Range;
 }
 
@@ -13,7 +13,15 @@ export interface Ref {
 }
 
 export class JinjaParser {
-  static readonly JINJA_PATTERN = /{{[\s\S]*?}}|{%[\s\S]*?%}|{#[\s\S]*?#}/g;
+  static readonly JINJA_EXPRESSION_PATTERN = '{{[\\s\\S]*?}}';
+  static readonly JINJA_STATEMENT_PATTERN = '{%[\\s\\S]*?%}';
+  static readonly JINJA_COMMENT_PATTERN = '{#[\\s\\S]*?#}';
+  static readonly JINJA_PATTERN = new RegExp(
+    `${JinjaParser.JINJA_EXPRESSION_PATTERN}|${JinjaParser.JINJA_STATEMENT_PATTERN}|${JinjaParser.JINJA_COMMENT_PATTERN}`,
+    'g',
+  );
+  static readonly EFFECTIVE_JINJA_PATTERN = new RegExp(`${JinjaParser.JINJA_EXPRESSION_PATTERN}|${JinjaParser.JINJA_STATEMENT_PATTERN}`, 'g');
+
   static readonly JINJA_REF_PATTERN = /{{\s*ref\s*\(\s*(?<start_quote>['|"])(.*?)\k<start_quote>\s*\)\s*}}/g;
   static readonly JINJA_BLOCK_PATTERN = /{%\s*(docs|if|for|macro)\s+.*%}|{%\s*(enddocs|endif|endfor|endmacro)\s*%}/;
 
@@ -42,23 +50,16 @@ export class JinjaParser {
     return undefined;
   }
 
-  findAllJinjaExpressions(rawDocument: TextDocument): ParseNode[] {
-    return this.findByPattern(rawDocument, JinjaParser.JINJA_PATTERN).map<ParseNode>(m => ({
-      expression: m[0],
-      range: Range.create(rawDocument.positionAt(m.index), rawDocument.positionAt(m.index + m[0].length)),
-    }));
-  }
-
   findAllJinjaBlocks(jinjaExpressions: ParseNode[]): ParseNode[] {
     const jinjaBlocks = [];
 
     for (const jinjaExpression of jinjaExpressions) {
-      const blockMatch = jinjaExpression.expression.match(JinjaParser.JINJA_BLOCK_PATTERN);
+      const blockMatch = jinjaExpression.value.match(JinjaParser.JINJA_BLOCK_PATTERN);
       const block = this.getJinjaBlock(blockMatch);
 
       if (block) {
         jinjaBlocks.push({
-          expression: block,
+          value: block,
           range: jinjaExpression.range,
         });
       }
@@ -86,10 +87,10 @@ export class JinjaParser {
     const startBlocksPositions = new Map(JinjaParser.JINJA_OPEN_BLOCKS.map<[string, Position[]]>(b => [b, []]));
 
     for (const blockJinja of blockJinjaExpressions) {
-      if (JinjaParser.JINJA_OPEN_BLOCKS.includes(blockJinja.expression)) {
-        startBlocksPositions.get(blockJinja.expression)?.push(blockJinja.range.start);
+      if (JinjaParser.JINJA_OPEN_BLOCKS.includes(blockJinja.value)) {
+        startBlocksPositions.get(blockJinja.value)?.push(blockJinja.range.start);
       } else {
-        const startBlock = JinjaParser.JINJA_OPEN_BLOCKS[JinjaParser.JINJA_CLOSE_BLOCKS.indexOf(blockJinja.expression)];
+        const startBlock = JinjaParser.JINJA_OPEN_BLOCKS[JinjaParser.JINJA_CLOSE_BLOCKS.indexOf(blockJinja.value)];
         const positions = startBlocksPositions.get(startBlock);
 
         const lastStartPosition = positions?.pop();
@@ -114,6 +115,24 @@ export class JinjaParser {
   findAllRefs(rawDocument: TextDocument): Ref[] {
     return this.findByPattern(rawDocument, JinjaParser.JINJA_REF_PATTERN).map<Ref>(m => ({
       modelName: m[2],
+      range: {
+        start: rawDocument.positionAt(m.index),
+        end: rawDocument.positionAt(m.index + m[0].length),
+      },
+    }));
+  }
+
+  findAllJinjaExpressions(rawDocument: TextDocument): ParseNode[] {
+    return this.findJinjas(rawDocument, JinjaParser.JINJA_PATTERN);
+  }
+
+  findAllEffectiveJinjas(rawDocument: TextDocument): ParseNode[] {
+    return this.findJinjas(rawDocument, JinjaParser.EFFECTIVE_JINJA_PATTERN);
+  }
+
+  findJinjas(rawDocument: TextDocument, pattern: RegExp): ParseNode[] {
+    return this.findByPattern(rawDocument, pattern).map<ParseNode>(m => ({
+      value: m[0],
       range: {
         start: rawDocument.positionAt(m.index),
         end: rawDocument.positionAt(m.index + m[0].length),

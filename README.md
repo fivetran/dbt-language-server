@@ -23,6 +23,15 @@ This extension will help you work with dbt and BigQuery.
 
 ## Features
 
+### Go to definition
+
+#### Macros
+![Definition Macro](images/DefinitionMacro.png)
+#### Models
+![Definition Ref](images/DefinitionRef.png)
+#### Sources
+![Definition Source](images/DefinitionSource.png)
+
 ### Highlighting errors
 
 ![Highlighting errors](images/HighlightingErrors.png)

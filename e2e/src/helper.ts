@@ -5,6 +5,7 @@ import {
   commands,
   CompletionItem,
   CompletionList,
+  DefinitionLink,
   extensions,
   Position,
   Range,
@@ -196,4 +197,8 @@ export async function testCompletion(docUri: Uri, position: Position, expectedCo
 export async function triggerCompletion(docUri: Uri, position: Position, triggerChar?: string): Promise<CompletionList<CompletionItem>> {
   // Simulate triggering completion
   return commands.executeCommand<CompletionList>('vscode.executeCompletionItemProvider', docUri, position, triggerChar);
+}
+
+export async function triggerDefinition(docUri: Uri, position: Position): Promise<DefinitionLink[]> {
+  return commands.executeCommand<DefinitionLink[]>('vscode.executeDefinitionProvider', docUri, position);
 }

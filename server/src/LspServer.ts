@@ -2,6 +2,8 @@ import { performance } from 'perf_hooks';
 import {
   CompletionItem,
   CompletionParams,
+  DefinitionLink,
+  DefinitionParams,
   DidChangeConfigurationNotification,
   DidChangeTextDocumentParams,
   DidChangeWatchedFilesParams,
@@ -29,11 +31,12 @@ import { DbtRpcServer } from './DbtRpcServer';
 import { DbtTextDocument } from './DbtTextDocument';
 import { getStringVersion } from './DbtVersion';
 import { Command } from './dbt_commands/Command';
+import { JinjaDefinitionProvider } from './definition/JinjaDefinitionProvider';
 import { DestinationDefinition } from './DestinationDefinition';
 import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
 import { JinjaParser } from './JinjaParser';
-import { ManifestParser } from './ManifestParser';
+import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SchemaTracker } from './SchemaTracker';
@@ -46,6 +49,8 @@ interface TelemetryEvent {
 }
 
 export class LspServer {
+  static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
+
   workspaceFolder?: string;
   bigQueryClient?: BigQueryClient;
   destinationDefinition?: DestinationDefinition;
@@ -55,18 +60,29 @@ export class LspServer {
   dbtRpcClient = new DbtRpcClient();
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
-  completionProvider = new CompletionProvider();
+  fileChangeListener: FileChangeListener;
+  completionProvider: CompletionProvider;
+  jinjaDefinitionProvider: JinjaDefinitionProvider;
   yamlParser = new YamlParser();
   dbtProfileCreator = new DbtProfileCreator(this.yamlParser);
   manifestParser = new ManifestParser();
   featureFinder = new FeatureFinder();
-  fileChangeListener: FileChangeListener;
   initStart = performance.now();
   zetaSqlWrapper = new ZetaSqlWrapper();
 
+  openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
+
   constructor(private connection: _Connection) {
     this.progressReporter = new ProgressReporter(this.connection);
-    this.fileChangeListener = new FileChangeListener(this.completionProvider, this.yamlParser, this.manifestParser, this.dbtRpcServer);
+    this.fileChangeListener = new FileChangeListener(this.yamlParser, this.manifestParser);
+    this.completionProvider = new CompletionProvider(this.fileChangeListener.onModelsChanged);
+    this.jinjaDefinitionProvider = new JinjaDefinitionProvider(
+      this.fileChangeListener.onProjectNameChanged,
+      this.fileChangeListener.onModelsChanged,
+      this.fileChangeListener.onMacrosChanged,
+      this.fileChangeListener.onSourcesChanged,
+    );
+    this.fileChangeListener.onDbtProjectYmlChanged(this.onDbtProjectYmlChanged.bind(this));
   }
 
   async onInitialize(params: InitializeParams): Promise<InitializeResult<any> | ResponseError<InitializeError>> {
@@ -116,6 +132,7 @@ export class LspServer {
         signatureHelpProvider: {
           triggerCharacters: ['('],
         },
+        definitionProvider: true,
       },
     };
   }
@@ -215,6 +232,24 @@ export class LspServer {
     }
   }
 
+  onDidOpenTextDocumentDelayed(params: DidOpenTextDocumentParams): Promise<void> {
+    this.openTextDocumentRequests.set(params.textDocument.uri, params);
+    return new Promise((resolve, reject) => {
+      setTimeout(async () => {
+        try {
+          const openRequest = this.openTextDocumentRequests.get(params.textDocument.uri);
+          if (openRequest) {
+            this.openTextDocumentRequests.delete(params.textDocument.uri);
+            await this.onDidOpenTextDocument(openRequest);
+          }
+          resolve();
+        } catch (e) {
+          reject();
+        }
+      }, LspServer.OPEN_CLOSE_DEBOUNCE_PERIOD);
+    });
+  }
+
   async onDidOpenTextDocument(params: DidOpenTextDocumentParams): Promise<void> {
     const { uri } = params.textDocument;
     let document = this.openedDocuments.get(uri);
@@ -234,6 +269,7 @@ export class LspServer {
         this.connection,
         this.progressReporter,
         this.completionProvider,
+        this.jinjaDefinitionProvider,
         new ModelCompiler(this.dbtRpcClient, uri, this.workspaceFolder),
         new JinjaParser(),
         new SchemaTracker(this.bigQueryClient, this.zetaSqlWrapper),
@@ -264,6 +300,14 @@ export class LspServer {
     }
   }
 
+  onDidCloseTextDocumentDelayed(params: DidCloseTextDocumentParams): void {
+    if (this.openTextDocumentRequests.has(params.textDocument.uri)) {
+      this.openTextDocumentRequests.delete(params.textDocument.uri);
+    } else {
+      this.onDidCloseTextDocument(params);
+    }
+  }
+
   onDidCloseTextDocument(params: DidCloseTextDocumentParams): void {
     this.openedDocuments.delete(params.textDocument.uri);
   }
@@ -290,8 +334,17 @@ export class LspServer {
     return document?.onSignatureHelp(params);
   }
 
+  onDefinition(definitionParams: DefinitionParams): DefinitionLink[] | undefined {
+    const document = this.openedDocuments.get(definitionParams.textDocument.uri);
+    return document?.onDefinition(definitionParams);
+  }
+
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
     this.fileChangeListener.onDidChangeWatchedFiles(params);
+  }
+
+  onDbtProjectYmlChanged(): void {
+    this.dbtRpcServer.refreshServer();
   }
 
   onShutdown(): void {

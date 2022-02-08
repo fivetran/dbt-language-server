@@ -3,6 +3,8 @@ import { err, ok, Result } from 'neverthrow';
 import {
   CompletionItem,
   CompletionParams,
+  DefinitionLink,
+  DefinitionParams,
   Diagnostic,
   DiagnosticSeverity,
   DidChangeTextDocumentParams,
@@ -22,6 +24,7 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtRpcServer } from './DbtRpcServer';
+import { JinjaDefinitionProvider } from './definition/JinjaDefinitionProvider';
 import { DestinationDefinition } from './DestinationDefinition';
 import { Diff as Diff } from './Diff';
 import { HoverProvider } from './HoverProvider';
@@ -31,7 +34,7 @@ import { ProgressReporter } from './ProgressReporter';
 import { SchemaTracker } from './SchemaTracker';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { SqlRefConverter } from './SqlRefConverter';
-import { debounce, getIdentifierRangeAtPosition, getJinjaContentOffset } from './Utils';
+import { debounce, getIdentifierRangeAtPosition, getJinjaContentOffset, positionInRange } from './utils/Utils';
 import { ZetaSqlAst } from './ZetaSqlAst';
 import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 
@@ -55,6 +58,7 @@ export class DbtTextDocument {
     private connection: _Connection,
     private progressReporter: ProgressReporter,
     private completionProvider: CompletionProvider,
+    private jinjaDefinitionProvider: JinjaDefinitionProvider,
     private modelCompiler: ModelCompiler,
     private jinjaParser: JinjaParser,
     private schemaTracker: SchemaTracker,
@@ -325,6 +329,16 @@ export class DbtTextDocument {
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
     const text = this.rawDocument.getText(this.getTextRangeBeforeBracket(params.position));
     return this.signatureHelpProvider.onSignatureHelp(params, text);
+  }
+
+  onDefinition(definitionParams: DefinitionParams): DefinitionLink[] | undefined {
+    const jinjas = this.jinjaParser.findAllEffectiveJinjas(this.rawDocument);
+    for (const jinja of jinjas) {
+      if (positionInRange(definitionParams.position, jinja.range)) {
+        return this.jinjaDefinitionProvider.onJinjaDefinition(this.rawDocument, jinja, definitionParams.position);
+      }
+    }
+    return undefined;
   }
 
   getTextRangeBeforeBracket(cursorPosition: Position): Range {

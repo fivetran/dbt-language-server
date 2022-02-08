@@ -1,7 +1,7 @@
 import { DbtRpcClient } from './DbtRpcClient';
 import { Command } from './dbt_commands/Command';
 import { DbtCommandExecutor } from './dbt_commands/DbtCommandExecutor';
-import { deferred } from './Utils';
+import { deferred } from './utils/Utils';
 
 export class DbtRpcServer {
   static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();

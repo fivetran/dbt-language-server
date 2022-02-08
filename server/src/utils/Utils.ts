@@ -30,6 +30,29 @@ export function comparePositions(position1: Position, position2: Position): numb
   return 0;
 }
 
+export function getAbsoluteRange(absolutePosition: Position, relativeRange: Range): Range {
+  return Range.create(getAbsolutePosition(absolutePosition, relativeRange.start), getAbsolutePosition(absolutePosition, relativeRange.end));
+}
+
+export function getAbsolutePosition(absolute: Position, relative: Position): Position {
+  return Position.create(absolute.line + relative.line, relative.line === 0 ? absolute.character + relative.character : relative.character);
+}
+
+export function getRelativePosition(absoluteRange: Range, absolutePosition: Position): Position | undefined {
+  if (!positionInRange(absolutePosition, absoluteRange)) {
+    return undefined;
+  }
+  return Position.create(
+    absolutePosition.line - absoluteRange.start.line,
+    absolutePosition.line === absoluteRange.start.line ? absolutePosition.character - absoluteRange.start.character : absolutePosition.character,
+  );
+}
+
+export function getPositionByIndex(text: string, index: number): Position {
+  const lines = text.substring(0, index).split('\n');
+  return Position.create(lines.length - 1, lines[lines.length - 1].length);
+}
+
 export function getIdentifierRangeAtPosition(position: Position, text: string): Range {
   const lines = text.split('\n');
   if (lines.length === 0) {
@@ -82,7 +105,7 @@ export function getJinjaContentOffset(doc: TextDocument, cursorPos: Position): n
   return -1;
 }
 
-function positionInRange(position: Position, range: Range): boolean {
+export function positionInRange(position: Position, range: Range): boolean {
   return comparePositions(range.start, position) <= 0 && comparePositions(range.end, position) >= 0;
 }
 

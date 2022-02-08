@@ -3,6 +3,7 @@ import { Emitter, TextDocumentSaveReason, _Connection } from 'vscode-languageser
 import { CompletionProvider } from '../CompletionProvider';
 import { DbtRpcServer } from '../DbtRpcServer';
 import { DbtTextDocument } from '../DbtTextDocument';
+import { JinjaDefinitionProvider } from '../definition/JinjaDefinitionProvider';
 import { JinjaParser } from '../JinjaParser';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProgressReporter } from '../ProgressReporter';
@@ -38,6 +39,7 @@ describe('DbtTextDocument', () => {
       mock<_Connection>(),
       mock(ProgressReporter),
       mock(CompletionProvider),
+      mock(JinjaDefinitionProvider),
       instance(mockModelCompiler),
       instance(mockJinjaParser),
       instance(mockSchemaTracker),
