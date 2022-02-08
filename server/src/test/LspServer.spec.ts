@@ -68,6 +68,7 @@ describe('LspServer', () => {
 
     // assert
     verify(spiedLspServer.onDidOpenTextDocument(anything())).never();
+    verify(spiedLspServer.onDidCloseTextDocument(anything())).never();
   });
 
   it('Should open document if server did not receive close request in debounce period', async () => {
@@ -106,5 +107,6 @@ describe('LspServer', () => {
 
     // assert
     verify(spiedLspServer.onDidOpenTextDocument(anything())).once();
+    verify(spiedLspServer.onDidCloseTextDocument(anything())).never();
   });
 });
