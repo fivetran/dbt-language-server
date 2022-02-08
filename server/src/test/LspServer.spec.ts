@@ -1,4 +1,3 @@
-import { ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { anything, instance, mock, spy, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentIdentifier, _Connection } from 'vscode-languageserver';
 import { CompletionProvider } from '../CompletionProvider';
@@ -9,7 +8,7 @@ import { LspServer } from '../LspServer';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProgressReporter } from '../ProgressReporter';
 import { SchemaTracker } from '../SchemaTracker';
-import { ZetaSqlCatalog } from '../ZetaSqlCatalog';
+import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 import { sleep } from './helper';
 
 describe('LspServer', () => {
@@ -21,6 +20,7 @@ describe('LspServer', () => {
   const MORE_THAN_DEBOUNCE = TEST_DEBOUNCE_PERIOD + 100;
 
   let mockModelCompiler: ModelCompiler;
+  let mockZetaSqlWrapper: ZetaSqlWrapper;
   let lspServer: LspServer;
   let spiedLspServer: LspServer;
   let document: DbtTextDocument;
@@ -36,6 +36,9 @@ describe('LspServer', () => {
     when(mockModelCompiler.onCompilationFinished).thenReturn(new Emitter<string>().event);
     when(mockModelCompiler.onFinishAllCompilationJobs).thenReturn(new Emitter<void>().event);
 
+    mockZetaSqlWrapper = mock(ZetaSqlWrapper);
+    when(mockZetaSqlWrapper.isSupported()).thenReturn(true);
+
     document = new DbtTextDocument(
       { uri: OPENED_URI, languageId: SQL_LANGUAGE_ID, version: 1, text: TEXT },
       mock<_Connection>(),
@@ -45,8 +48,7 @@ describe('LspServer', () => {
       instance(mockModelCompiler),
       mock(JinjaParser),
       mock(SchemaTracker),
-      mock(ZetaSqlCatalog),
-      mock(ZetaSQLClient),
+      instance(mockZetaSqlWrapper),
     );
     lspServer.openedDocuments.set(OPENED_URI, document);
 
