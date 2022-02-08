@@ -36,6 +36,7 @@ export class FileChangeListener {
 
   onInit(): void {
     this.updateTargetPath();
+    this.updateProjectName();
     this.updateManifestNodes();
   }
 
@@ -47,7 +48,6 @@ export class FileChangeListener {
         this.updateProjectName();
         this.updateManifestNodes();
       } else if (change.uri.endsWith(`${this.resolveTargetPath()}/${YamlParser.DBT_MANIFEST_FILE_NAME}`)) {
-        this.updateProjectName();
         this.updateManifestNodes();
       }
     }
