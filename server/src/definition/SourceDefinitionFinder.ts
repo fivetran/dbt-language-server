@@ -63,7 +63,7 @@ export class SourceDefinitionFinder {
         LocationLink.create(
           path.join(foundSource.rootPath, foundSource.originalFilePath),
           JinjaDefinitionProvider.MAX_RANGE,
-          JinjaDefinitionProvider.MIN_RANGE,
+          JinjaDefinitionProvider.MAX_RANGE,
           tableSelectionRange,
         ),
       ];

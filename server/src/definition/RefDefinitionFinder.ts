@@ -82,7 +82,7 @@ export class RefDefinitionFinder {
         LocationLink.create(
           path.join(m.rootPath, m.originalFilePath),
           JinjaDefinitionProvider.MAX_RANGE,
-          JinjaDefinitionProvider.MIN_RANGE,
+          JinjaDefinitionProvider.MAX_RANGE,
           packageSelectionRange,
         ),
       );
@@ -96,7 +96,7 @@ export class RefDefinitionFinder {
         LocationLink.create(
           path.join(foundModel.rootPath, foundModel.originalFilePath),
           JinjaDefinitionProvider.MAX_RANGE,
-          JinjaDefinitionProvider.MIN_RANGE,
+          JinjaDefinitionProvider.MAX_RANGE,
           modelSelectionRange,
         ),
       ];

@@ -7,7 +7,6 @@ import { RefDefinitionFinder } from './RefDefinitionFinder';
 import { SourceDefinitionFinder } from './SourceDefinitionFinder';
 
 export class JinjaDefinitionProvider {
-  static readonly MIN_RANGE = Range.create(0, 0, 0, 0);
   static readonly MAX_RANGE = Range.create(0, 0, integer.MAX_VALUE, integer.MAX_VALUE);
 
   refDefinitionFinder = new RefDefinitionFinder();

@@ -84,6 +84,6 @@ export class MacroDefinitionFinder {
       return [definitionRange, selectionRange];
     }
 
-    return [JinjaDefinitionProvider.MAX_RANGE, JinjaDefinitionProvider.MIN_RANGE];
+    return [JinjaDefinitionProvider.MAX_RANGE, JinjaDefinitionProvider.MAX_RANGE];
   }
 }
