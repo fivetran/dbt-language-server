@@ -2,7 +2,8 @@ import { assertThat } from 'hamjest';
 import { DefinitionLink, Position, Range, Uri } from 'vscode';
 import { activateAndWait, getCustomDocUri, getDocUri, triggerDefinition } from './helper';
 
-const MAX_RANGE = new Range(0, 0, 2147483647, 2147483647);
+const MAX_VSCODE_INTEGER = 2147483647;
+const MAX_RANGE = new Range(0, 0, MAX_VSCODE_INTEGER, MAX_VSCODE_INTEGER);
 
 const refSqlDocUri = getDocUri('ref_sql.sql');
 const packageRefDocUri = getDocUri('package_ref.sql');
