@@ -1,5 +1,4 @@
-import { SimpleCatalog, ZetaSQLClient } from '@fivetrandevelopers/zetasql';
-import { instance, mock, verify, when } from 'ts-mockito';
+import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentSaveReason, _Connection } from 'vscode-languageserver';
 import { CompletionProvider } from '../CompletionProvider';
 import { DbtRpcServer } from '../DbtRpcServer';
@@ -8,9 +7,8 @@ import { JinjaParser } from '../JinjaParser';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProgressReporter } from '../ProgressReporter';
 import { SchemaTracker } from '../SchemaTracker';
-import { ZetaSqlCatalog } from '../ZetaSqlCatalog';
+import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 import { sleep } from './helper';
-import Long = require('long');
 
 describe('DbtTextDocument', () => {
   const TEXT = 'select 1;';
@@ -19,8 +17,7 @@ describe('DbtTextDocument', () => {
   let mockModelCompiler: ModelCompiler;
   let mockJinjaParser: JinjaParser;
   let mockSchemaTracker: SchemaTracker;
-  let mockZetaSqlCatalog: ZetaSqlCatalog;
-  let mockZetaSqlClient: ZetaSQLClient;
+  let mockZetaSqlWrapper: ZetaSqlWrapper;
 
   beforeEach(() => {
     DbtTextDocument.DEBOUNCE_TIMEOUT = 0;
@@ -32,14 +29,9 @@ describe('DbtTextDocument', () => {
 
     mockJinjaParser = mock(JinjaParser);
     mockSchemaTracker = mock(SchemaTracker);
-    mockZetaSqlCatalog = mock(ZetaSqlCatalog);
+    mockZetaSqlWrapper = mock(ZetaSqlWrapper);
 
-    const simpleCatalog = new SimpleCatalog('catalog');
-    simpleCatalog.registeredId = new Long(1);
-    simpleCatalog.builtinFunctionOptions = { languageOptions: {} };
-    when(mockZetaSqlCatalog.getCatalog()).thenReturn(simpleCatalog);
-
-    mockZetaSqlClient = mock(ZetaSQLClient);
+    when(mockZetaSqlWrapper.isSupported()).thenReturn(true);
 
     document = new DbtTextDocument(
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
@@ -49,8 +41,7 @@ describe('DbtTextDocument', () => {
       instance(mockModelCompiler),
       instance(mockJinjaParser),
       instance(mockSchemaTracker),
-      instance(mockZetaSqlCatalog),
-      instance(mockZetaSqlClient),
+      instance(mockZetaSqlWrapper),
     );
   });
 
@@ -84,7 +75,7 @@ describe('DbtTextDocument', () => {
     when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(true);
 
     // act
-    await document.didOpenTextDocument();
+    await document.didOpenTextDocument(false);
     await sleepMoreThanDebounceTime();
 
     document.willSaveTextDocument(TextDocumentSaveReason.Manual);
@@ -102,7 +93,7 @@ describe('DbtTextDocument', () => {
     when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(true);
 
     // act
-    await document.didOpenTextDocument();
+    await document.didOpenTextDocument(false);
     await sleepMoreThanDebounceTime();
 
     document.willSaveTextDocument(TextDocumentSaveReason.AfterDelay);
@@ -120,7 +111,7 @@ describe('DbtTextDocument', () => {
     when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(true);
 
     // act
-    await document.didOpenTextDocument();
+    await document.didOpenTextDocument(false);
     await sleepMoreThanDebounceTime();
 
     // assert
@@ -133,11 +124,45 @@ describe('DbtTextDocument', () => {
     when(mockJinjaParser.findAllJinjaRanges(document.rawDocument)).thenReturn([]);
 
     // act
-    await document.didOpenTextDocument();
+    await document.didOpenTextDocument(false);
     await sleepMoreThanDebounceTime();
 
     // assert
     verify(mockModelCompiler.compile()).never();
+  });
+
+  it('Should compile for first open if manifest.json does not exist if jinja not found', async () => {
+    // arrange
+    when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(false);
+    when(mockJinjaParser.findAllJinjaRanges(document.rawDocument)).thenReturn([]);
+
+    // act
+    await document.didOpenTextDocument(true);
+    await sleepMoreThanDebounceTime();
+
+    // assert
+    verify(mockModelCompiler.compile()).once();
+  });
+
+  it('Should not interact with ZetaSQL if it is not supported', async () => {
+    // arrange
+    when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(false);
+    when(mockJinjaParser.findAllJinjaRanges(document.rawDocument)).thenReturn([]);
+    when(mockZetaSqlWrapper.isSupported()).thenReturn(false);
+
+    // act
+    await document.didOpenTextDocument(false);
+    await sleepMoreThanDebounceTime();
+
+    // assert
+    verify(mockZetaSqlWrapper.isSupported()).once();
+
+    verify(mockZetaSqlWrapper.initializeZetaSql()).never();
+    verify(mockZetaSqlWrapper.getClient()).never();
+    verify(mockZetaSqlWrapper.isCatalogRegistered()).never();
+    verify(mockZetaSqlWrapper.registerCatalog(anything())).never();
+    verify(mockZetaSqlWrapper.analyze(anything())).never();
+    verify(mockZetaSqlWrapper.terminateServer()).never();
   });
 
   async function sleepMoreThanDebounceTime(): Promise<void> {

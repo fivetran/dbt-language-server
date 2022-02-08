@@ -1,26 +1,69 @@
-import { SimpleCatalog, SimpleColumn, SimpleTable, SimpleType, TypeFactory } from '@fivetrandevelopers/zetasql';
+import {
+  runServer,
+  SimpleCatalog,
+  SimpleColumn,
+  SimpleTable,
+  SimpleType,
+  terminateServer,
+  TypeFactory,
+  ZetaSQLClient,
+} from '@fivetrandevelopers/zetasql';
 import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
+import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
+import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
+import { ExtractTableNamesFromStatementResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ExtractTableNamesFromStatementResponse';
+import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRecordType';
 import { ZetaSQLBuiltinFunctionOptions } from '@fivetrandevelopers/zetasql/lib/ZetaSQLBuiltinFunctionOptions';
 import { TableDefinition } from './TableDefinition';
+import { randomNumber } from './Utils';
+import findFreePortPmfy = require('find-free-port');
 
-export class ZetaSqlCatalog {
-  private static instance: ZetaSqlCatalog | undefined;
+export class ZetaSqlWrapper {
+  private static readonly MIN_PORT = 1024;
+  private static readonly MAX_PORT = 65535;
+
+  private static readonly SUPPORTED_PLATFORMS = ['darwin', 'linux'];
 
   private readonly catalog = new SimpleCatalog('catalog');
+  private supported = true;
 
-  getCatalog(): SimpleCatalog {
-    return this.catalog;
+  isSupported(): boolean {
+    return this.supported;
   }
 
-  static getInstance(): ZetaSqlCatalog {
-    if (!ZetaSqlCatalog.instance) {
-      ZetaSqlCatalog.instance = new ZetaSqlCatalog();
+  async initializeZetaSql(): Promise<void> {
+    if (ZetaSqlWrapper.SUPPORTED_PLATFORMS.includes(process.platform)) {
+      const port = await findFreePortPmfy(randomNumber(ZetaSqlWrapper.MIN_PORT, ZetaSqlWrapper.MAX_PORT));
+      console.log(`Starting zetasql on port ${port}`);
+      runServer(port).catch(err => console.error(err));
+      ZetaSQLClient.init(port);
+      await this.getClient().testConnection();
+    } else {
+      this.supported = false;
     }
-
-    return ZetaSqlCatalog.instance;
   }
 
-  async register(tableDefinitions: TableDefinition[]): Promise<void> {
+  async extractTableNamesFromStatement(sql: string): Promise<ExtractTableNamesFromStatementResponse__Output> {
+    if (!this.isSupported()) {
+      throw new Error('Not supported');
+    }
+    return this.getClient().extractTableNamesFromStatement({
+      sqlStatement: sql,
+    });
+  }
+
+  getClient(): ZetaSQLClient {
+    return ZetaSQLClient.getInstance(); // TODO refactor it on npm side
+  }
+
+  isCatalogRegistered(): boolean {
+    return this.catalog.registered;
+  }
+
+  async registerCatalog(tableDefinitions: TableDefinition[]): Promise<void> {
+    if (!this.isSupported()) {
+      throw new Error('Not supported');
+    }
     for (const t of tableDefinitions) {
       let parent = this.catalog;
 
@@ -81,7 +124,7 @@ export class ZetaSqlCatalog {
     }
   }
 
-  async registerAllLanguageFeatures(): Promise<void> {
+  private async registerAllLanguageFeatures(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- builtinFunctionOptions from external lib can be null
     if (!this.catalog.builtinFunctionOptions) {
       const languageOptions = await new LanguageOptions().enableMaximumLanguageFeatures();
@@ -89,7 +132,7 @@ export class ZetaSqlCatalog {
     }
   }
 
-  async unregisterCatalog(): Promise<void> {
+  private async unregisterCatalog(): Promise<void> {
     if (this.catalog.registered) {
       try {
         await this.catalog.unregister();
@@ -99,7 +142,23 @@ export class ZetaSqlCatalog {
     }
   }
 
-  isRegistered(): boolean {
-    return this.catalog.registered;
+  async analyze(rawSql: string): Promise<AnalyzeResponse__Output> {
+    return this.getClient().analyze({
+      sqlStatement: rawSql,
+      registeredCatalogId: this.catalog.registeredId,
+
+      options: {
+        parseLocationRecordType: ParseLocationRecordType.PARSE_LOCATION_RECORD_CODE_SEARCH,
+
+        errorMessageMode: ErrorMessageMode.ERROR_MESSAGE_ONE_LINE,
+        languageOptions: this.catalog.builtinFunctionOptions.languageOptions,
+      },
+    });
+  }
+
+  async terminateServer(): Promise<void> {
+    if (this.isSupported()) {
+      await terminateServer();
+    }
   }
 }

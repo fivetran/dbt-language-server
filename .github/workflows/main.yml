@@ -18,6 +18,10 @@ jobs:
             target: linux-x64
             zetasql-lib: libremote_server.so
 
+          - os: ubuntu-latest
+            target: win32-x64
+            zetasql-lib:
+
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -50,10 +54,8 @@ jobs:
       - name: create cache
         uses: actions/cache@v2
         with:
-          path: |
-            ./e2e
-            ./${{ env.FILE_NAME }}
-          key: ${{ matrix.target }}-${{ github.sha }}
+          path: ./${{ env.FILE_NAME }}
+          key: ${{ env.FILE_NAME }}
 
   run-e2e-tests:
     needs: test-and-package
@@ -65,10 +67,12 @@ jobs:
           - dbt-version: 'dbt-bigquery==0.20.2'
             os: macos-latest
             target: darwin-x64
+            activate-venv: source ~/dbt_0_20_1_env/bin/activate
           
           - dbt-version: 'dbt-bigquery dbt-rpc'
             os: macos-latest
             target: darwin-x64
+            activate-venv: source ~/dbt_0_20_1_env/bin/activate
 
           - dbt-version: 'dbt-bigquery dbt-rpc'
             os: ubuntu-latest
@@ -76,23 +80,64 @@ jobs:
             prepare-for-tests: |
               Xvfb -ac :99 -screen 0 1280x1024x16 &
               export DISPLAY=:99
+            activate-venv: source ~/dbt_0_20_1_env/bin/activate
+
+          # TODO: enable this tests after implementing CLI support
+          # - dbt-version: 'dbt-bigquery dbt-rpc'
+          #   os: windows-latest
+          #   target: win32-x64
+          #   add-colon-to-key-file-path: |
+          #     homedir=c:/${homedir#*c/}
+          #     python=${homedir}/dbt_0_20_1_env/Scripts/python
+          #     cat <<EOT > ${GITHUB_WORKSPACE}/e2e/projects/special-python-settings/.vscode/settings.json
+          #     {
+          #       "python.defaultInterpreterPath": "${python}",
+          #       "python.pythonPath": "${python}",
+          #     }
+          #     EOT
+          #   activate-venv: |
+          #     cd ~/dbt_0_20_1_env/Scripts
+          #     . activate
+
+    name: e2e-${{ matrix.target }} ${{ matrix.dbt-version }} ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+
     steps:
       - name: set environment variable with file name
         run: echo "FILE_NAME=${{ github.sha }}-${{ matrix.target }}.vsix" >> $GITHUB_ENV
 
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: fix cache issue on windows (use GNU tar instead BSD tar) # https://github.com/actions/toolkit/issues/552
+        if: matrix.os == 'windows-latest'
+        run: echo "C:/Program Files/Git/usr/bin/" >> $GITHUB_PATH
+
       - name: load e2e tests and vsix from cache
         uses: actions/cache@v2
+        id: cache
         with:
-          path: |
-            ./e2e
-            ./${{ env.FILE_NAME }}
-          key: ${{ matrix.target }}-${{ github.sha }}
+          path: ./${{ env.FILE_NAME }}
+          key: ${{ env.FILE_NAME }}
+
+      - name: fail if cache not hit
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: exit 1
 
       - uses: actions/setup-node@v2
         with:
           node-version: '16.x'
+
+      - name: build tests
+        run: | # ignore postinstall script and install dependencies for e2e
+          npm install --ignore-scripts
+          cd e2e
+          npm install
+          npx tsc --sourceMap false --project tsconfig.json
 
       - uses: actions/setup-python@v2
         with:
@@ -100,9 +145,10 @@ jobs:
 
       - name: add custom python venv with dbt@0.20.1
         run: |
-          python3 -m venv ~/dbt_0_20_1_env
-          source ~/dbt_0_20_1_env/bin/activate
+          python -m venv ~/dbt_0_20_1_env
+          ${{ matrix.activate-venv }}
           pip install dbt==0.20.1
+          dbt --version
 
       - name: prepare profile config
         run: |
@@ -110,7 +156,10 @@ jobs:
           echo "$BQ_SERVICE_ACCOUNT" > ~/.dbt/bq-test-project.json
 
           user=$(whoami)
-          keyFilePath=$(eval echo "~${user}")/.dbt/bq-test-project.json
+          homedir=$(eval echo "~${user}")
+          ${{ matrix.add-colon-to-key-file-path }}
+          keyFilePath=${homedir}/.dbt/bq-test-project.json
+          echo ${keyFilePath}
 
           private_key=$(echo ${BQ_SERVICE_ACCOUNT} | jq '.private_key')
           read project_id private_key_id client_id client_email auth_uri token_uri auth_provider_x509_cert_url client_x509_cert_url < <(echo $(echo ${BQ_SERVICE_ACCOUNT} | jq -r '.project_id, .private_key_id, .client_id, .client_email, .auth_uri, .token_uri, .auth_provider_x509_cert_url, .client_x509_cert_url'))
@@ -162,12 +211,21 @@ jobs:
           EOT
         env:
           BQ_SERVICE_ACCOUNT: ${{ secrets.BQ_SERVICE_ACCOUNT }}
+          GITHUB_WORKSPACE: ${{ env.GITHUB_WORKSPACE }}
+
+      - name: show prepared files
+        run: |
+          cd ~/.dbt/
+          pwd
+          ls -la
       
       - name: install dbt
         run: pip install ${{ matrix.dbt-version }}
 
-      - name: show dbt version
-        run: dbt --version
+      - name: show dbt info
+        run: |
+          which dbt
+          dbt --version
 
       # Uncomment lines below if you want to connect to the job via SSH
       # - name: Setup SSH via tmate for debugging
@@ -187,7 +245,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.os }}_${{ matrix.dbt-version }}
+          name: e2e-${{ matrix.target }} ${{ matrix.dbt-version }} ${{ matrix.os }}
           path: ./.vscode-test/user-data/logs/**/*dbt Language Support.log
 
   publish:
@@ -196,14 +254,16 @@ jobs:
 
     runs-on: macos-latest
     steps:
+      - name: fix cache issue on windows (use GNU tar instead BSD tar) # https://github.com/actions/toolkit/issues/552
+        if: matrix.os == 'windows-latest'
+        run: echo "C:/Program Files/Git/usr/bin/" >> $GITHUB_PATH
+
       - name: load darwin-x64 vsix from cache
         id: darwin-cache
         uses: actions/cache@v2
         with:
-          path: |
-            ./e2e
-            ./${{ env.VSIX_NAME }}
-          key: darwin-x64-${{ github.sha }}
+          path: ./${{ env.VSIX_NAME }}
+          key: ${{ env.VSIX_NAME }}
         env:
           VSIX_NAME: ${{ github.sha }}-darwin-x64.vsix
 
@@ -211,15 +271,22 @@ jobs:
         id: linux-cache
         uses: actions/cache@v2
         with:
-          path: |
-            ./e2e
-            ./${{ env.VSIX_NAME }}
-          key: linux-x64-${{ github.sha }}
+          path: ./${{ env.VSIX_NAME }}
+          key: ${{ env.VSIX_NAME }}
         env:
           VSIX_NAME: ${{ github.sha }}-linux-x64.vsix
 
+      - name: load win32-x64 vsix from cache
+        id: windows-cache
+        uses: actions/cache@v2
+        with:
+          path: ./${{ env.VSIX_NAME }}
+          key: ${{ env.VSIX_NAME }}
+        env:
+          VSIX_NAME: ${{ github.sha }}-win32-x64.vsix
+
       - name: fail if cache not hit
-        if: steps.darwin-cache.outputs.cache-hit != 'true' || steps.linux-cache.outputs.cache-hit != 'true'
+        if: steps.darwin-cache.outputs.cache-hit != 'true' || steps.linux-cache.outputs.cache-hit != 'true' # TODO: add windows cache-hit
         run: exit 1
 
       - name: 'google auth using service account json'

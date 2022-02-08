@@ -1,4 +1,3 @@
-import { runServer, terminateServer, ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { performance } from 'perf_hooks';
 import {
   CompletionItem,
@@ -38,10 +37,8 @@ import { ManifestParser } from './ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SchemaTracker } from './SchemaTracker';
-import { randomNumber } from './Utils';
 import { YamlParser } from './YamlParser';
-import { ZetaSqlCatalog } from './ZetaSqlCatalog';
-import findFreePortPmfy = require('find-free-port');
+import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 
 interface TelemetryEvent {
   name: string;
@@ -65,6 +62,7 @@ export class LspServer {
   featureFinder = new FeatureFinder();
   fileChangeListener: FileChangeListener;
   initStart = performance.now();
+  zetaSqlWrapper = new ZetaSqlWrapper();
 
   constructor(private connection: _Connection) {
     this.progressReporter = new ProgressReporter(this.connection);
@@ -88,6 +86,8 @@ export class LspServer {
     }
 
     this.bigQueryClient = clientResult.value as BigQueryClient;
+
+    this.fileChangeListener.onInit();
 
     this.initializeDestinationDefinition();
 
@@ -148,8 +148,7 @@ export class LspServer {
     }
 
     command.addParameter(dbtPort.toString());
-    await Promise.all([this.startDbtRpc(command, dbtPort), this.initializeZetaSql()]);
-    this.fileChangeListener.onInit();
+    await Promise.all([this.startDbtRpc(command, dbtPort), this.zetaSqlWrapper.initializeZetaSql()]);
   }
 
   sendTelemetry(name: string, properties?: { [key: string]: string }): void {
@@ -190,14 +189,6 @@ export class LspServer {
         await document.sqlToRef();
       }
     }
-  }
-
-  async initializeZetaSql(): Promise<void> {
-    const port = await findFreePortPmfy(randomNumber(1024, 65535));
-    console.log(`Starting zetasql on port ${port}`);
-    runServer(port).catch(err => console.error(err));
-    ZetaSQLClient.init(port);
-    await ZetaSQLClient.getInstance().testConnection();
   }
 
   initializeDestinationDefinition(): void {
@@ -245,13 +236,12 @@ export class LspServer {
         this.completionProvider,
         new ModelCompiler(this.dbtRpcClient, uri, this.workspaceFolder),
         new JinjaParser(),
-        new SchemaTracker(this.bigQueryClient),
-        ZetaSqlCatalog.getInstance(),
-        ZetaSQLClient.getInstance(),
+        new SchemaTracker(this.bigQueryClient, this.zetaSqlWrapper),
+        this.zetaSqlWrapper,
       );
       this.openedDocuments.set(uri, document);
 
-      await document.didOpenTextDocument();
+      await document.didOpenTextDocument(!this.fileChangeListener.manifestExists);
     }
   }
 
@@ -311,7 +301,7 @@ export class LspServer {
   dispose(): void {
     console.log('Dispose start...');
     this.dbtRpcServer.dispose();
-    void terminateServer();
+    void this.zetaSqlWrapper.terminateServer();
     console.log('Dispose end.');
   }
 }

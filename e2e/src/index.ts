@@ -5,6 +5,9 @@ import { performance } from 'perf_hooks';
 import { languages, Uri } from 'vscode';
 import { doc, getPreviewText, PREVIEW_URI } from './helper';
 
+const TESTS_WITHOUT_ZETASQL = ['multi-project.spec.js' /* 'completion_jinja.spec.js' */]; // TODO: add more tests
+const ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
+
 export function run(): Promise<void> {
   const mocha = new Mocha({
     ui: 'tdd',
@@ -18,15 +21,16 @@ export function run(): Promise<void> {
 
   return new Promise((resolve, reject) => {
     const startTime = performance.now();
+
     glob('**.spec.js', { cwd: testsRoot }, (e, files) => {
       if (e) {
         reject(e);
       }
 
       // Add files to the test suite
-      for (const f of files) {
-        mocha.addFile(path.resolve(testsRoot, f));
-      }
+      files
+        .filter(f => ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) || TESTS_WITHOUT_ZETASQL.includes(f))
+        .forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
 
       try {
         // Run the mocha test
