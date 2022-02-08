@@ -62,7 +62,7 @@ export class ZetaSqlWrapper {
 
   async registerCatalog(tableDefinitions: TableDefinition[]): Promise<void> {
     if (!this.isSupported()) {
-      return;
+      throw new Error('Not supported');
     }
     for (const t of tableDefinitions) {
       let parent = this.catalog;
@@ -157,6 +157,8 @@ export class ZetaSqlWrapper {
   }
 
   async terminateServer(): Promise<void> {
-    await terminateServer();
+    if (this.isSupported()) {
+      await terminateServer();
+    }
   }
 }
