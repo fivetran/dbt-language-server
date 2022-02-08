@@ -1,4 +1,4 @@
-import { assertThat, endsWith, greaterThan, hasSize, is } from 'hamjest';
+import { assertThat } from 'hamjest';
 import { DefinitionLink, Position, Range, Uri } from 'vscode';
 import { activateAndWait, getCustomDocUri, getDocUri, triggerDefinition } from './helper';
 
@@ -21,20 +21,29 @@ suite('ref definitions', () => {
   });
 
   test('Should suggest definitions for ref with package', async () => {
-    // arrange
     await activateAndWait(packageRefDocUri);
 
-    // act
-    const packageDefinitions = await triggerDefinition(packageRefDocUri, new Position(5, 24));
-    const modelDefinitions = await triggerDefinition(packageRefDocUri, new Position(5, 42));
+    await assertDefinitions(
+      packageRefDocUri,
+      new Position(5, 24),
+      getTestFixtureModels().map(m => {
+        return {
+          originSelectionRange: new Range(5, 19, 5, 33),
+          targetUri: getDocUri(`${m}.sql`),
+          targetRange: MAX_RANGE,
+          targetSelectionRange: MAX_RANGE,
+        };
+      }),
+    );
 
-    // assert
-    assertThat(packageDefinitions.length, is(greaterThan(1)));
-    assertThat(packageDefinitions[0].originSelectionRange, new Range(5, 19, 5, 33));
-
-    assertThat(modelDefinitions, hasSize(1));
-    assertThat(modelDefinitions[0].targetUri.path, endsWith('test-fixture/models/table_exists.sql'));
-    assertThat(modelDefinitions[0].originSelectionRange, new Range(5, 37, 5, 49));
+    await assertDefinitions(packageRefDocUri, new Position(5, 42), [
+      {
+        originSelectionRange: new Range(5, 37, 5, 49),
+        targetUri: getDocUri('table_exists.sql'),
+        targetRange: MAX_RANGE,
+        targetSelectionRange: MAX_RANGE,
+      },
+    ]);
   });
 });
 
@@ -85,4 +94,21 @@ async function assertDefinitions(docUri: Uri, position: Position, expectedDefini
     assertThat(definitions[i].targetRange, expectedDefinitions[i].targetRange);
     assertThat(definitions[i].targetSelectionRange, expectedDefinitions[i].targetSelectionRange);
   }
+}
+
+function getTestFixtureModels(): string[] {
+  return [
+    'dbt_compile',
+    'errors',
+    'functions',
+    'jinja_sql',
+    'join_tables',
+    'package_ref',
+    'ref_sql',
+    'select_with_alias',
+    'simple_select',
+    'simple_select_dbt',
+    'sql_after_jinja',
+    'table_exists',
+  ];
 }
