@@ -19,6 +19,9 @@ import { randomNumber } from './Utils';
 import findFreePortPmfy = require('find-free-port');
 
 export class ZetaSqlWrapper {
+  private static readonly MIN_PORT = 1024;
+  private static readonly MAX_PORT = 65535;
+
   private static readonly SUPPORTED_PLATFORMS = ['darwin', 'linux'];
 
   private readonly catalog = new SimpleCatalog('catalog');
@@ -33,7 +36,7 @@ export class ZetaSqlWrapper {
 
   async initializeZetaSql(): Promise<void> {
     if (ZetaSqlWrapper.SUPPORTED_PLATFORMS.includes(process.platform)) {
-      const port = await findFreePortPmfy(randomNumber(1024, 65535));
+      const port = await findFreePortPmfy(randomNumber(ZetaSqlWrapper.MIN_PORT, ZetaSqlWrapper.MAX_PORT));
       console.log(`Starting zetasql on port ${port}`);
       runServer(port).catch(err => console.error(err));
       ZetaSQLClient.init(port);
