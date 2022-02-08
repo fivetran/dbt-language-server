@@ -62,6 +62,7 @@
       "name": "E2E Tests Client",
       "type": "extensionHost",
       "request": "launch",
+      "preLaunchTask": "deleteTargetFolders",
       "runtimeExecutable": "${execPath}",
       "args": [
         // "--extensionDevelopmentPath=${workspaceRoot}/e2e-tests/extension",

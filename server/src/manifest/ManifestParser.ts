@@ -11,20 +11,15 @@ export class ManifestParser {
 
   parse(targetPath: string): ManifestJson {
     const manifestLocation = path.join(ManifestParser.PROJECT_PATH, targetPath, ManifestParser.MANIFEST_FILE_NAME);
-    try {
-      const content = readFileSync(manifestLocation, 'utf8');
-      const manifest = JSON.parse(content);
-      const { nodes, macros, sources } = manifest;
+    const content = readFileSync(manifestLocation, 'utf8');
+    const manifest = JSON.parse(content);
+    const { nodes, macros, sources } = manifest;
 
-      return {
-        models: this.parseModelDefinitions(nodes),
-        macros: this.parseMacroDefinitions(macros),
-        sources: this.parseSourceDefinitions(sources),
-      };
-    } catch (e) {
-      console.log(`Failed to read ${ManifestParser.MANIFEST_FILE_NAME}`, e);
-    }
-    return { models: [], macros: [], sources: [] };
+    return {
+      models: this.parseModelDefinitions(nodes),
+      macros: this.parseMacroDefinitions(macros),
+      sources: this.parseSourceDefinitions(sources),
+    };
   }
 
   private parseModelDefinitions(nodes: any): ManifestModel[] {

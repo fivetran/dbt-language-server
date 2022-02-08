@@ -1,27 +1,20 @@
-import { ZetaSQLClient } from '@fivetrandevelopers/zetasql';
-import { ExtractTableNamesFromStatementRequest } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ExtractTableNamesFromStatementRequest';
 import { BigQueryClient } from './bigquery/BigQueryClient';
 import { TableDefinition } from './TableDefinition';
+import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 
 export class SchemaTracker {
   tableDefinitions: TableDefinition[] = [];
-  bigQueryClient: BigQueryClient;
   hasNewTables = false;
 
-  constructor(bigQueryClient: BigQueryClient) {
-    this.bigQueryClient = bigQueryClient;
-  }
+  constructor(private bigQueryClient: BigQueryClient, private zetaSqlWrapper: ZetaSqlWrapper) {}
 
   resetHasNewTables(): void {
     this.hasNewTables = false;
   }
 
   async findTableNames(sql: string): Promise<TableDefinition[] | undefined> {
-    const request: ExtractTableNamesFromStatementRequest = {
-      sqlStatement: sql,
-    };
     try {
-      const extractResult = await ZetaSQLClient.getInstance().extractTableNamesFromStatement(request);
+      const extractResult = await this.zetaSqlWrapper.extractTableNamesFromStatement(sql);
       return extractResult.tableName.map(t => new TableDefinition(t.tableNameSegment));
     } catch (e) {
       console.log(e);

@@ -11,6 +11,7 @@ export class FileChangeListener {
   private onSourcesChangedEmitter = new Emitter<ManifestSource[]>();
 
   dbtTargetPath?: string;
+  manifestExists = false;
 
   constructor(private yamlParser: YamlParser, private manifestParser: ManifestParser) {}
 
@@ -62,10 +63,16 @@ export class FileChangeListener {
   }
 
   updateManifestNodes(): void {
-    const { models, macros, sources } = this.manifestParser.parse(this.yamlParser.findTargetPath());
-    this.onModelsChangedEmitter.fire(models);
-    this.onMacrosChangedEmitter.fire(macros);
-    this.onSourcesChangedEmitter.fire(sources);
+    try {
+      const { models, macros, sources } = this.manifestParser.parse(this.yamlParser.findTargetPath());
+      this.onModelsChangedEmitter.fire(models);
+      this.onMacrosChangedEmitter.fire(macros);
+      this.onSourcesChangedEmitter.fire(sources);
+      this.manifestExists = true;
+    } catch (e) {
+      this.manifestExists = false;
+      console.log(`Failed to read ${ManifestParser.MANIFEST_FILE_NAME}`, e);
+    }
   }
 
   resolveTargetPath(): string {

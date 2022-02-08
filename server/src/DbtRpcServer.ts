@@ -1,10 +1,10 @@
 import { DbtRpcClient } from './DbtRpcClient';
 import { Command } from './dbt_commands/Command';
-import { ProcessExecutor } from './ProcessExecutor';
+import { DbtCommandExecutor } from './dbt_commands/DbtCommandExecutor';
 import { deferred } from './utils/Utils';
 
 export class DbtRpcServer {
-  static readonly PROCESS_EXECUTOR = new ProcessExecutor();
+  static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
 
   startDeferred = deferred<void>();
 
@@ -17,7 +17,7 @@ export class DbtRpcServer {
     try {
       let started = false;
       console.log(`Starting dbt-rpc: ${command.toString()}`);
-      const promiseWithChild = DbtRpcServer.PROCESS_EXECUTOR.execProcess(command.toString(), async (data: string) => {
+      const promiseWithChild = DbtRpcServer.DBT_COMMAND_EXECUTOR.execute(command, async (data: string) => {
         if (!started) {
           if (!this.rpcPid) {
             const matchResults = data.match(/"process": (\d*)/);
