@@ -27,9 +27,6 @@ export class ZetaSqlWrapper {
   private readonly catalog = new SimpleCatalog('catalog');
   private supported = true;
 
-  // client parameter used in tests
-  constructor(private client?: ZetaSQLClient) {}
-
   isSupported(): boolean {
     return this.supported;
   }
@@ -56,7 +53,7 @@ export class ZetaSqlWrapper {
   }
 
   getClient(): ZetaSQLClient {
-    return this.client ?? ZetaSQLClient.getInstance(); // TODO refactor it on npm side
+    return ZetaSQLClient.getInstance(); // TODO refactor it on npm side
   }
 
   isCatalogRegistered(): boolean {
