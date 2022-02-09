@@ -6,10 +6,12 @@ import {
   DefinitionLink,
   DefinitionParams,
   Diagnostic,
+  DiagnosticRelatedInformation,
   DiagnosticSeverity,
   DidChangeTextDocumentParams,
   Hover,
   HoverParams,
+  Location,
   Position,
   Range,
   SignatureHelp,
@@ -37,10 +39,12 @@ import { SqlRefConverter } from './SqlRefConverter';
 import { debounce, getIdentifierRangeAtPosition, getJinjaContentOffset, positionInRange } from './utils/Utils';
 import { ZetaSqlAst } from './ZetaSqlAst';
 import { ZetaSqlWrapper } from './ZetaSqlWrapper';
+import path = require('path');
 
 export class DbtTextDocument {
   static DEBOUNCE_TIMEOUT = 300;
 
+  static readonly DEFAULT_DBT_ERROR_RANGE = Range.create(0, 0, 0, 100);
   static readonly ZETA_SQL_AST = new ZetaSqlAst();
 
   rawDocument: TextDocument;
@@ -258,24 +262,40 @@ export class DbtTextDocument {
   }
 
   onCompilationError(dbtCompilationError: string): void {
-    let line = 0;
-    if (dbtCompilationError.includes(this.getModelPath())) {
-      const match = dbtCompilationError.match(/\n\s*line (\d+)\s*\n/);
-      if (match && match.length > 1) {
-        line = Number(match[1]) - 1;
+    let errorLine = 0;
+    const relatedInformation: DiagnosticRelatedInformation[] = [];
+    const lineMatch = dbtCompilationError.match(/\n\s*line (\d+)\s*\n/);
+    if (lineMatch && lineMatch.length > 1) {
+      errorLine = Number(lineMatch[1]) - 1;
+    }
+
+    if (!dbtCompilationError.includes(this.getModelPath())) {
+      const match = dbtCompilationError.match(/(Compilation Error in model \w+ \((.*)\)\n.*)\n/);
+      if (match && match.length > 2) {
+        const [, error, modelPath] = match;
+
+        relatedInformation.push({
+          location: Location.create(path.join(this.workspaceFolder, modelPath), this.getDbtErrorRange(errorLine)),
+          message: error,
+        });
       }
     }
 
     const dbtDiagnostics: Diagnostic[] = [
       {
         severity: DiagnosticSeverity.Error,
-        range: Range.create(line, 0, line, 100),
-        message: dbtCompilationError,
+        range: this.getDbtErrorRange(relatedInformation.length > 0 ? 0 : errorLine),
+        message: relatedInformation.length > 0 ? 'Error in other file' : dbtCompilationError,
+        relatedInformation,
       },
     ];
 
     this.sendUpdateQueryPreview(this.rawDocument.getText(), dbtDiagnostics);
     this.connection.sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: dbtDiagnostics });
+  }
+
+  getDbtErrorRange(errorLine: number): Range {
+    return Range.create(errorLine, 0, errorLine, 100);
   }
 
   async onCompilationFinished(compiledSql: string): Promise<void> {
