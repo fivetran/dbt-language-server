@@ -6,12 +6,9 @@ import {
   DefinitionLink,
   DefinitionParams,
   Diagnostic,
-  DiagnosticRelatedInformation,
-  DiagnosticSeverity,
   DidChangeTextDocumentParams,
   Hover,
   HoverParams,
-  Location,
   Position,
   Range,
   SignatureHelp,
@@ -28,6 +25,7 @@ import { CompletionProvider } from './CompletionProvider';
 import { DbtRpcServer } from './DbtRpcServer';
 import { JinjaDefinitionProvider } from './definition/JinjaDefinitionProvider';
 import { DestinationDefinition } from './DestinationDefinition';
+import { DiagnosticGenerator } from './DiagnosticGenerator';
 import { Diff as Diff } from './Diff';
 import { HoverProvider } from './HoverProvider';
 import { JinjaParser } from './JinjaParser';
@@ -39,7 +37,6 @@ import { SqlRefConverter } from './SqlRefConverter';
 import { debounce, getIdentifierRangeAtPosition, getJinjaContentOffset, positionInRange } from './utils/Utils';
 import { ZetaSqlAst } from './ZetaSqlAst';
 import { ZetaSqlWrapper } from './ZetaSqlWrapper';
-import path = require('path');
 
 export class DbtTextDocument {
   static DEBOUNCE_TIMEOUT = 300;
@@ -54,6 +51,7 @@ export class DbtTextDocument {
   ast?: AnalyzeResponse;
   signatureHelpProvider = new SignatureHelpProvider();
   sqlRefConverter = new SqlRefConverter(this.jinjaParser);
+  diagnosticGenerator = new DiagnosticGenerator();
 
   firstSave = true;
 
@@ -203,36 +201,6 @@ export class DbtTextDocument {
     await this.modelCompiler.compile(this.getModelPath());
   }, DbtTextDocument.DEBOUNCE_TIMEOUT);
 
-  getDiagnostics(astResult: Result<AnalyzeResponse__Output, string>): Diagnostic[][] {
-    const rawDocDiagnostics: Diagnostic[] = [];
-    const compiledDocDiagnostics: Diagnostic[] = [];
-
-    if (astResult.isErr()) {
-      // Parse string like 'Unrecognized name: paused1; Did you mean paused? [at 9:3]'
-      const matchResults = astResult.error.match(/(.*?) \[at (\d+):(\d+)\]/);
-      if (matchResults) {
-        const [, errorText] = matchResults;
-        const lineInCompiledDoc = Number(matchResults[2]) - 1;
-        const characterInCompiledDoc = Number(matchResults[3]) - 1;
-        const lineInRawDoc = Diff.getOldLineNumber(this.rawDocument.getText(), this.compiledDocument.getText(), lineInCompiledDoc);
-
-        rawDocDiagnostics.push(this.createDiagnostic(this.rawDocument.getText(), lineInRawDoc, characterInCompiledDoc, errorText));
-        compiledDocDiagnostics.push(this.createDiagnostic(this.compiledDocument.getText(), lineInCompiledDoc, characterInCompiledDoc, errorText));
-      }
-    }
-    return [rawDocDiagnostics, compiledDocDiagnostics];
-  }
-
-  createDiagnostic(docText: string, line: number, character: number, message: string): Diagnostic {
-    const position = Position.create(line, character);
-    const range = getIdentifierRangeAtPosition(position, docText);
-    return {
-      severity: DiagnosticSeverity.Error,
-      range,
-      message,
-    };
-  }
-
   async getAstOrError(): Promise<Result<AnalyzeResponse__Output, string>> {
     try {
       const ast = await this.zetaSqlWrapper.analyze(this.compiledDocument.getText());
@@ -262,40 +230,10 @@ export class DbtTextDocument {
   }
 
   onCompilationError(dbtCompilationError: string): void {
-    let errorLine = 0;
-    const relatedInformation: DiagnosticRelatedInformation[] = [];
-    const lineMatch = dbtCompilationError.match(/\n\s*line (\d+)\s*\n/);
-    if (lineMatch && lineMatch.length > 1) {
-      errorLine = Number(lineMatch[1]) - 1;
-    }
+    const diagnostics = this.diagnosticGenerator.getDbtErrorDiagnostics(dbtCompilationError, this.getModelPath(), this.workspaceFolder);
 
-    if (!dbtCompilationError.includes(this.getModelPath())) {
-      const match = dbtCompilationError.match(/(Compilation Error in model \w+ \((.*)\)\n.*)\n/);
-      if (match && match.length > 2) {
-        const [, error, modelPath] = match;
-
-        relatedInformation.push({
-          location: Location.create(path.join(this.workspaceFolder, modelPath), this.getDbtErrorRange(errorLine)),
-          message: error,
-        });
-      }
-    }
-
-    const dbtDiagnostics: Diagnostic[] = [
-      {
-        severity: DiagnosticSeverity.Error,
-        range: this.getDbtErrorRange(relatedInformation.length > 0 ? 0 : errorLine),
-        message: relatedInformation.length > 0 ? 'Error in other file' : dbtCompilationError,
-        relatedInformation,
-      },
-    ];
-
-    this.sendUpdateQueryPreview(this.rawDocument.getText(), dbtDiagnostics);
-    this.connection.sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: dbtDiagnostics });
-  }
-
-  getDbtErrorRange(errorLine: number): Range {
-    return Range.create(errorLine, 0, errorLine, 100);
+    this.sendUpdateQueryPreview(this.rawDocument.getText(), diagnostics);
+    this.connection.sendDiagnostics({ uri: this.rawDocument.uri, diagnostics });
   }
 
   async onCompilationFinished(compiledSql: string): Promise<void> {
@@ -309,7 +247,11 @@ export class DbtTextDocument {
       if (astResult.isOk()) {
         this.ast = astResult.value;
       }
-      [rawDocDiagnostics, compiledDocDiagnostics] = this.getDiagnostics(astResult);
+      [rawDocDiagnostics, compiledDocDiagnostics] = this.diagnosticGenerator.getDiagnosticsFromAst(
+        astResult,
+        this.rawDocument.getText(),
+        this.compiledDocument.getText(),
+      );
     }
 
     this.sendUpdateQueryPreview(compiledSql, compiledDocDiagnostics);

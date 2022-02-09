@@ -1,4 +1,15 @@
-import { Diagnostic, DiagnosticCollection, DiagnosticSeverity, Event, EventEmitter, TextDocumentContentProvider, Uri } from 'vscode';
+import {
+  Diagnostic,
+  DiagnosticCollection,
+  DiagnosticRelatedInformation,
+  DiagnosticSeverity,
+  Event,
+  EventEmitter,
+  Location,
+  Range,
+  TextDocumentContentProvider,
+  Uri,
+} from 'vscode';
 
 interface PreviewInfo {
   previewText: string;
@@ -16,10 +27,30 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
   private onDidChangeEmitter = new EventEmitter<Uri>();
 
   update(uri: string, previewText: string, diagnostics: Diagnostic[]): void {
-    // We need to set Error severity on client since vscode-languageserver.DiagnosticSeverity.Error !== vscode.DiagnosticSeverity.Error
+    // We need to recreate Diagnostic due to its client and server inconsistency
     diagnostics.forEach(d => (d.severity = DiagnosticSeverity.Error));
+    this.previewInfos.set(uri, {
+      previewText,
+      diagnostics: diagnostics.map<Diagnostic>(d => {
+        const diag = new Diagnostic(d.range, d.message, DiagnosticSeverity.Error);
+        if (d.relatedInformation && d.relatedInformation.length > 0) {
+          const newUri = Uri.parse(d.relatedInformation[0].location.uri.toString());
+          const rangeFromServer = d.relatedInformation[0].location.range;
+          const range = new Range(
+            rangeFromServer.start.line,
+            rangeFromServer.start.character,
+            rangeFromServer.end.line,
+            rangeFromServer.end.character,
+          );
+          const location = new Location(newUri, range);
+          diag.relatedInformation = [new DiagnosticRelatedInformation(location, d.relatedInformation[0].message)];
+        } else {
+          diag.relatedInformation = [];
+        }
 
-    this.previewInfos.set(uri, { previewText, diagnostics });
+        return diag;
+      }),
+    });
     this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
   }
 

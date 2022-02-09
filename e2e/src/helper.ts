@@ -81,6 +81,10 @@ export async function showPreview(): Promise<void> {
   await commands.executeCommand('editor.showQueryPreview');
 }
 
+export async function closeAllEditors(): Promise<void> {
+  await commands.executeCommand('workbench.action.closeAllEditors');
+}
+
 export function getPreviewText(): string {
   const previewEditor = getPreviewEditor();
   if (!previewEditor) {
