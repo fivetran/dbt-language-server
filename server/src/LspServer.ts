@@ -269,7 +269,7 @@ export class LspServer {
       return;
     }
 
-    if (!document && this.bigQueryClient) {
+    if (!document) {
       if (!(await this.isDbtReady())) {
         return;
       }
@@ -282,8 +282,8 @@ export class LspServer {
         this.jinjaDefinitionProvider,
         new ModelCompiler(this.dbtRpcClient, uri, this.workspaceFolder),
         new JinjaParser(),
-        new SchemaTracker(this.bigQueryClient, this.zetaSqlWrapper),
-        this.zetaSqlWrapper,
+        this.bigQueryClient ? new SchemaTracker(this.bigQueryClient, this.zetaSqlWrapper) : undefined,
+        this.bigQueryClient ? this.zetaSqlWrapper : undefined,
       );
       this.openedDocuments.set(uri, document);
 
