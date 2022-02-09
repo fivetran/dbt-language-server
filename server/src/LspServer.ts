@@ -86,17 +86,11 @@ export class LspServer {
     this.fileChangeListener.onDbtProjectYmlChanged(this.onDbtProjectYmlChanged.bind(this));
   }
 
-  async onInitialize(params: InitializeParams): Promise<InitializeResult<any> | ResponseError<InitializeError>> {
+  onInitialize(params: InitializeParams): InitializeResult<any> | ResponseError<InitializeError> {
     console.log(`Starting server for folder ${process.cwd()}`);
 
     process.on('SIGTERM', () => this.onShutdown());
     process.on('SIGINT', () => this.onShutdown());
-
-    const destinationInitializeResult = await this.initializeDestination();
-    if (destinationInitializeResult.isErr()) {
-      // todo: show notification ?
-      console.log(destinationInitializeResult.error);
-    }
 
     this.fileChangeListener.onInit();
 
@@ -158,7 +152,13 @@ export class LspServer {
     }
 
     command.addParameter(dbtPort.toString());
-    await Promise.all([this.startDbtRpc(command, dbtPort), this.zetaSqlWrapper.initializeZetaSql()]);
+
+    const initializeDestinationResult = await this.initializeDestination();
+    if (initializeDestinationResult.isErr()) {
+      void this.connection.window.showWarningMessage(`Failed to setup dbt profile. ${initializeDestinationResult.error}`);
+    }
+
+    await this.startDbtRpc(command, dbtPort);
   }
 
   sendTelemetry(name: string, properties?: { [key: string]: string }): void {
@@ -215,6 +215,8 @@ export class LspServer {
 
       this.bigQueryClient = clientResult.value as BigQueryClient;
       this.destinationDefinition = new DestinationDefinition(this.bigQueryClient);
+
+      await this.zetaSqlWrapper.initializeZetaSql();
 
       return ok(undefined);
     } catch (e) {
