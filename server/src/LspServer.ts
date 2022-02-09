@@ -1,3 +1,4 @@
+import { err, ok, Result } from 'neverthrow';
 import { performance } from 'perf_hooks';
 import {
   CompletionItem,
@@ -91,21 +92,13 @@ export class LspServer {
     process.on('SIGTERM', () => this.onShutdown());
     process.on('SIGINT', () => this.onShutdown());
 
-    const profileResult = this.dbtProfileCreator.createDbtProfile();
-    if (profileResult.isErr()) {
-      return new ResponseError<InitializeError>(100, profileResult.error, { retry: true });
+    const destinationInitializeResult = await this.initializeDestination();
+    if (destinationInitializeResult.isErr()) {
+      // todo: show notification ?
+      console.log(destinationInitializeResult.error);
     }
-
-    const clientResult = await profileResult.value.dbtProfile.createClient(profileResult.value.targetConfig);
-    if (clientResult.isErr()) {
-      return new ResponseError<InitializeError>(100, clientResult.error, { retry: true });
-    }
-
-    this.bigQueryClient = clientResult.value as BigQueryClient;
 
     this.fileChangeListener.onInit();
-
-    this.initializeDestinationDefinition();
 
     this.initializeNotifications();
 
@@ -208,9 +201,24 @@ export class LspServer {
     }
   }
 
-  initializeDestinationDefinition(): void {
-    if (this.bigQueryClient) {
+  async initializeDestination(): Promise<Result<void, string>> {
+    try {
+      const profileResult = this.dbtProfileCreator.createDbtProfile();
+      if (profileResult.isErr()) {
+        return err(profileResult.error);
+      }
+
+      const clientResult = await profileResult.value.dbtProfile.createClient(profileResult.value.targetConfig);
+      if (clientResult.isErr()) {
+        return err(clientResult.error);
+      }
+
+      this.bigQueryClient = clientResult.value as BigQueryClient;
       this.destinationDefinition = new DestinationDefinition(this.bigQueryClient);
+
+      return ok(undefined);
+    } catch (e) {
+      return err('Data Warehouse initialization failed.');
     }
   }
 
