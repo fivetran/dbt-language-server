@@ -276,7 +276,7 @@ export class DbtTextDocument {
     let rawDocDiagnostics: Diagnostic[] = [];
     let compiledDocDiagnostics: Diagnostic[] = [];
 
-    if (this.zetaSqlWrapper && this.zetaSqlWrapper.isSupported()) {
+    if (this.zetaSqlWrapper?.isSupported()) {
       await this.ensureCatalogInitialized();
       const astResult = await this.getAstOrError();
       if (astResult.isOk()) {
