@@ -298,7 +298,7 @@ export class LspServer {
         new ModelCompiler(this.dbtRpcClient, uri, this.workspaceFolder),
         new JinjaParser(),
         this.bigQueryClient && this.zetaSqlWrapper ? new SchemaTracker(this.bigQueryClient, this.zetaSqlWrapper) : undefined,
-        this.zetaSqlWrapper ? this.zetaSqlWrapper : undefined,
+        this.zetaSqlWrapper,
       );
       this.openedDocuments.set(uri, document);
 
