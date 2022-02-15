@@ -53,8 +53,10 @@ export class LspServer {
   static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
 
   workspaceFolder?: string;
+
   bigQueryClient?: BigQueryClient;
   destinationDefinition?: DestinationDefinition;
+  zetaSqlWrapper?: ZetaSqlWrapper;
 
   hasConfigurationCapability = false;
   dbtRpcServer = new DbtRpcServer();
@@ -69,7 +71,6 @@ export class LspServer {
   manifestParser = new ManifestParser();
   featureFinder = new FeatureFinder();
   initStart = performance.now();
-  zetaSqlWrapper = new ZetaSqlWrapper();
 
   openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
 
@@ -229,6 +230,7 @@ export class LspServer {
       this.bigQueryClient = clientResult.value as BigQueryClient;
       this.destinationDefinition = new DestinationDefinition(this.bigQueryClient);
 
+      this.zetaSqlWrapper = new ZetaSqlWrapper();
       await this.zetaSqlWrapper.initializeZetaSql();
 
       return ok(undefined);
@@ -295,8 +297,8 @@ export class LspServer {
         this.jinjaDefinitionProvider,
         new ModelCompiler(this.dbtRpcClient, uri, this.workspaceFolder),
         new JinjaParser(),
-        this.bigQueryClient ? new SchemaTracker(this.bigQueryClient, this.zetaSqlWrapper) : undefined,
-        this.bigQueryClient ? this.zetaSqlWrapper : undefined,
+        this.bigQueryClient && this.zetaSqlWrapper ? new SchemaTracker(this.bigQueryClient, this.zetaSqlWrapper) : undefined,
+        this.zetaSqlWrapper ? this.zetaSqlWrapper : undefined,
       );
       this.openedDocuments.set(uri, document);
 
@@ -377,7 +379,7 @@ export class LspServer {
   dispose(): void {
     console.log('Dispose start...');
     this.dbtRpcServer.dispose();
-    void this.zetaSqlWrapper.terminateServer();
+    void this.zetaSqlWrapper?.terminateServer();
     console.log('Dispose end.');
   }
 }
