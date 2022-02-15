@@ -134,31 +134,44 @@ export class LspServer {
       // Register for all configuration changes.
       await this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
     }
+
+    const initializeDestinationResult = await this.initializeDestination();
+    if (initializeDestinationResult.isErr()) {
+      void this.connection.window.showWarningMessage(
+        `Only common dbt features will be available. Dbt profile was not configured. ${initializeDestinationResult.error}`,
+      );
+    }
+
     const [command, dbtPort] = await Promise.all([
       this.featureFinder.findDbtRpcCommand(this.connection.sendRequest('custom/getPython')),
       this.featureFinder.findFreePort(),
     ]);
 
     if (command === undefined) {
-      const errorMessageResult = await this.connection.window.showErrorMessage(
+      return this.onInitializedRetry(
         `Failed to find dbt-rpc. You can use 'python3 -m pip install dbt-bigquery dbt-rpc' command to install it. Check in Terminal that dbt-rpc works running 'dbt-rpc --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g. ~/dbt-env/bin/python3).`,
-        { title: 'Retry', id: 'retry' },
       );
-      if (errorMessageResult?.id === 'retry') {
-        this.featureFinder = new FeatureFinder();
-        await this.onInitialized();
-      }
-      return;
     }
 
     command.addParameter(dbtPort.toString());
+    await this.startDbtRpc(command, dbtPort);
 
-    const initializeDestinationResult = await this.initializeDestination();
-    if (initializeDestinationResult.isErr()) {
-      void this.connection.window.showWarningMessage(`Failed to setup dbt profile. ${initializeDestinationResult.error}`);
+    try {
+      await this.dbtRpcServer.startDeferred.promise;
+    } catch (e) {
+      return this.onInitializedRetry('Failed to start dbt rpc. Check your dbt profile configuration.');
     }
 
-    await this.startDbtRpc(command, dbtPort);
+    return Promise.resolve();
+  }
+
+  async onInitializedRetry(message: string): Promise<void> {
+    const errorMessageResult = await this.connection.window.showErrorMessage(message, { title: 'Retry', id: 'retry' });
+    if (errorMessageResult?.id === 'retry') {
+      this.featureFinder = new FeatureFinder();
+      return this.onInitialized();
+    }
+    return Promise.resolve();
   }
 
   sendTelemetry(name: string, properties?: { [key: string]: string }): void {
