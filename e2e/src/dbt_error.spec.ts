@@ -48,5 +48,6 @@ suite('Should show dbt error and link to it', () => {
 
     await activateAndWait(DOC_WITH_ERROR);
     await replaceText(LINE_WITH_ERROR, ORIGINAL_LINE);
+    await assertDiagnostics(DOC_WITH_ERROR, []);
   });
 });
