@@ -89,7 +89,7 @@
         {
           "submenu": "dbt",
           "group": "navigation",
-          "when": "resourceExtname == .sql && !editorReadonly"
+          "when": "editorLangId =~ /^sql$|^jinja-sql$|^sql-bigquery$/ && !editorReadonly"
         }
       ]
     },
