@@ -89,7 +89,7 @@
         {
           "submenu": "dbt",
           "group": "navigation",
-          "when": "editorLangId =~ /sql$/"
+          "when": "resourceExtname == .sql && !editorReadonly"
         }
       ]
     },
