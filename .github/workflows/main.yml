@@ -144,9 +144,10 @@ jobs:
           python-version: '3.7.x'
 
       - name: add custom python venv with dbt@0.20.1
-        run: |
+        run: | # https://github.com/dbt-labs/dbt-core/issues/4745
           python -m venv ~/dbt_0_20_1_env
           ${{ matrix.activate-venv }}
+          pip install --force-reinstall MarkupSafe==2.0.1
           pip install dbt==0.20.1
           dbt --version
 
