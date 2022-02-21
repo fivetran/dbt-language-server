@@ -64,17 +64,17 @@ jobs:
       fail-fast: false
       matrix:
         include: # Run tests on latest version and version used in https://github.com/fivetran/analytics/blob/main/dbt_ft_prod/deployment.yml#L1
-          - dbt-version: 'dbt-bigquery==0.20.2'
+          - dbt-version: 'pip install --force-reinstall MarkupSafe==2.0.1 && pip install dbt-bigquery==0.20.2'
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_0_20_1_env/bin/activate
           
-          - dbt-version: 'dbt-bigquery dbt-rpc'
+          - dbt-version: 'pip install dbt-bigquery dbt-rpc'
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_0_20_1_env/bin/activate
 
-          - dbt-version: 'dbt-bigquery dbt-rpc'
+          - dbt-version: 'pip install dbt-bigquery dbt-rpc'
             os: ubuntu-latest
             target: linux-x64
             prepare-for-tests: |
@@ -221,7 +221,7 @@ jobs:
           ls -la
       
       - name: install dbt
-        run: pip install ${{ matrix.dbt-version }}
+        run: ${{ matrix.dbt-version }}
 
       - name: show dbt info
         run: |
