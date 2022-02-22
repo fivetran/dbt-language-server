@@ -69,12 +69,12 @@ jobs:
             target: darwin-x64
             activate-venv: source ~/dbt_0_20_1_env/bin/activate
           
-          - install-dbt: 'pip install dbt-bigquery dbt-rpc'
+          - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_0_20_1_env/bin/activate
 
-          - install-dbt: 'pip install dbt-bigquery dbt-rpc'
+          - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
             os: ubuntu-latest
             target: linux-x64
             prepare-for-tests: |
@@ -83,7 +83,7 @@ jobs:
             activate-venv: source ~/dbt_0_20_1_env/bin/activate
 
           # TODO: enable this tests after implementing CLI support
-          # - install-dbt: 'pip install dbt-bigquery dbt-rpc'
+          # - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
           #   os: windows-latest
           #   target: win32-x64
           #   add-colon-to-key-file-path: |
