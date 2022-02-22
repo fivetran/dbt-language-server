@@ -1,13 +1,17 @@
 import { BigQuery, TableField } from '@google-cloud/bigquery';
 import { downloadAndUnzipVSCode, resolveCliArgsFromVSCodeExecutablePath, runTests, SilentReporter } from '@vscode/test-electron';
 import { spawnSync } from 'child_process';
+import * as fs from 'fs';
 import { homedir } from 'os';
 import * as path from 'path';
+import { Client } from 'pg';
+import * as yaml from 'yaml';
 
 // Expected parameter: path to the folder with the extension package.json
 async function main(): Promise<void> {
   try {
     await prepareBigQuery();
+    await preparePostgres();
 
     const [, , extensionDevelopmentPath] = process.argv;
     console.log(`Running tests for path: ${extensionDevelopmentPath}`);
@@ -80,6 +84,35 @@ async function ensureTableExists(bigQuery: BigQuery, dsName: string, tableName: 
       schema: columns,
     });
   }
+}
+
+async function preparePostgres(): Promise<void> {
+  const createUsersTableQuery =
+    'create table if not exists vscode_language_server.users(' +
+    ' id bigserial primary key,' +
+    ' name text not null,' +
+    ' division text not null,' +
+    ' role text not null,' +
+    ' email text not null,' +
+    ' phone text not null,' +
+    ' profile_id text not null' +
+    ');';
+
+  const content = fs.readFileSync(`${homedir()}/.dbt/profiles.yml`, 'utf8');
+  const profiles = yaml.parse(content, { uniqueKeys: false });
+
+  const postgresProfile = profiles['e2e-test-project-postgres'].outputs.prod;
+
+  const client = new Client({
+    user: postgresProfile.user,
+    host: postgresProfile.host,
+    database: postgresProfile.dbname,
+    password: postgresProfile.password,
+    port: postgresProfile.port,
+  });
+
+  await client.connect();
+  await client.query(createUsersTableQuery);
 }
 
 main().catch(e => console.error(e));
