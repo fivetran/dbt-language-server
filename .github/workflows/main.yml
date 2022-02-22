@@ -230,6 +230,7 @@ jobs:
           EOT
         env:
           BQ_SERVICE_ACCOUNT: ${{ secrets.BQ_SERVICE_ACCOUNT }}
+          PG_CONNECTION_PARAMS: ${{ secrets.PG_CONNECTION_PARAMS }}
           GITHUB_WORKSPACE: ${{ env.GITHUB_WORKSPACE }}
 
       - name: show prepared files
