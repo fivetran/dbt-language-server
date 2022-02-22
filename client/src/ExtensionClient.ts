@@ -18,7 +18,7 @@ import { TelemetryClient } from './TelemetryClient';
 import { WorkspaceHelper } from './WorkspaceHelper';
 import path = require('path');
 
-export const SUPPORTED_LANG_IDS = ['sql', 'jinja-sql'];
+export const SUPPORTED_LANG_IDS = ['sql', 'jinja-sql', 'sql-bigquery'];
 
 export class ExtensionClient {
   serverAbsolutePath: string;
