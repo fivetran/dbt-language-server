@@ -7,6 +7,7 @@ import {
   DefinitionParams,
   Diagnostic,
   DidChangeTextDocumentParams,
+  Emitter,
   Hover,
   HoverParams,
   Position,
@@ -53,6 +54,7 @@ export class DbtTextDocument {
   sqlRefConverter = new SqlRefConverter(this.jinjaParser);
   diagnosticGenerator = new DiagnosticGenerator();
 
+  hasDbtError = false;
   firstSave = true;
 
   constructor(
@@ -66,6 +68,7 @@ export class DbtTextDocument {
     private jinjaParser: JinjaParser,
     private schemaTracker: SchemaTracker,
     private zetaSqlWrapper: ZetaSqlWrapper,
+    private onGlobalDbtErrorFixedEmitter: Emitter<void>,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -74,6 +77,7 @@ export class DbtTextDocument {
     this.modelCompiler.onCompilationError(this.onCompilationError.bind(this));
     this.modelCompiler.onCompilationFinished(this.onCompilationFinished.bind(this));
     this.modelCompiler.onFinishAllCompilationJobs(this.onFinishAllCompilationTasks.bind(this));
+    this.onGlobalDbtErrorFixedEmitter.event(this.onDbtErrorFixed.bind(this));
   }
 
   willSaveTextDocument(reason: TextDocumentSaveReason): void {
@@ -230,13 +234,25 @@ export class DbtTextDocument {
   }
 
   onCompilationError(dbtCompilationError: string): void {
+    this.hasDbtError = true;
     const diagnostics = this.diagnosticGenerator.getDbtErrorDiagnostics(dbtCompilationError, this.getModelPath(), this.workspaceFolder);
 
-    this.sendUpdateQueryPreview(this.rawDocument.getText(), diagnostics);
-    this.connection.sendDiagnostics({ uri: this.rawDocument.uri, diagnostics });
+    this.sendUpdateQueryPreview(this.rawDocument.getText());
+    this.sendDiagnostics(diagnostics, diagnostics);
+  }
+
+  onDbtErrorFixed(): void {
+    if (this.hasDbtError) {
+      this.hasDbtError = false;
+      this.sendDiagnostics([], []);
+    }
   }
 
   async onCompilationFinished(compiledSql: string): Promise<void> {
+    if (this.hasDbtError) {
+      this.hasDbtError = false;
+      this.onGlobalDbtErrorFixedEmitter.fire();
+    }
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
     let rawDocDiagnostics: Diagnostic[] = [];
     let compiledDocDiagnostics: Diagnostic[] = [];
@@ -254,16 +270,21 @@ export class DbtTextDocument {
       );
     }
 
-    this.sendUpdateQueryPreview(compiledSql, compiledDocDiagnostics);
-    this.connection.sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: rawDocDiagnostics });
+    this.sendUpdateQueryPreview(compiledSql);
+    this.sendDiagnostics(rawDocDiagnostics, compiledDocDiagnostics);
 
     if (!this.modelCompiler.compilationInProgress) {
       this.progressReporter.sendFinish(this.rawDocument.uri);
     }
   }
 
-  sendUpdateQueryPreview(previewText: string, diagnostics: Diagnostic[]): void {
-    this.connection.sendNotification('custom/updateQueryPreview', { uri: this.rawDocument.uri, previewText, diagnostics });
+  sendUpdateQueryPreview(previewText: string): void {
+    this.connection.sendNotification('custom/updateQueryPreview', { uri: this.rawDocument.uri, previewText });
+  }
+
+  sendDiagnostics(rawDocDiagnostics: Diagnostic[], compiledDocDiagnostics: Diagnostic[]): void {
+    this.connection.sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: rawDocDiagnostics });
+    this.connection.sendNotification('custom/updateQueryPreviewDiagnostics', { uri: this.rawDocument.uri, diagnostics: compiledDocDiagnostics });
   }
 
   onFinishAllCompilationTasks(): void {

@@ -50,6 +50,7 @@ describe('LspServer', () => {
       mock(JinjaParser),
       mock(SchemaTracker),
       instance(mockZetaSqlWrapper),
+      new Emitter<void>(),
     );
     lspServer.openedDocuments.set(OPENED_URI, document);
 

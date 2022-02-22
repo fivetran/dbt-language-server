@@ -1,3 +1,4 @@
+import { assertThat } from 'hamjest';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentSaveReason, _Connection } from 'vscode-languageserver';
 import { CompletionProvider } from '../CompletionProvider';
@@ -20,12 +21,16 @@ describe('DbtTextDocument', () => {
   let mockSchemaTracker: SchemaTracker;
   let mockZetaSqlWrapper: ZetaSqlWrapper;
 
+  const onCompilationErrorEmitter = new Emitter<string>();
+  const onCompilationFinishedEmitter = new Emitter<string>();
+  const onGlobalDbtErrorFixedEmitter = new Emitter<void>();
+
   beforeEach(() => {
     DbtTextDocument.DEBOUNCE_TIMEOUT = 0;
 
     mockModelCompiler = mock(ModelCompiler);
-    when(mockModelCompiler.onCompilationError).thenReturn(new Emitter<string>().event);
-    when(mockModelCompiler.onCompilationFinished).thenReturn(new Emitter<string>().event);
+    when(mockModelCompiler.onCompilationError).thenReturn(onCompilationErrorEmitter.event);
+    when(mockModelCompiler.onCompilationFinished).thenReturn(onCompilationFinishedEmitter.event);
     when(mockModelCompiler.onFinishAllCompilationJobs).thenReturn(new Emitter<void>().event);
 
     mockJinjaParser = mock(JinjaParser);
@@ -45,6 +50,7 @@ describe('DbtTextDocument', () => {
       instance(mockJinjaParser),
       instance(mockSchemaTracker),
       instance(mockZetaSqlWrapper),
+      onGlobalDbtErrorFixedEmitter,
     );
   });
 
@@ -166,6 +172,32 @@ describe('DbtTextDocument', () => {
     verify(mockZetaSqlWrapper.registerCatalog(anything())).never();
     verify(mockZetaSqlWrapper.analyze(anything())).never();
     verify(mockZetaSqlWrapper.terminateServer()).never();
+  });
+
+  it('Should set hasDbtError flag on dbt compilation error', () => {
+    // act
+    onCompilationErrorEmitter.fire('error');
+
+    // assert
+    assertThat(document.hasDbtError, true);
+  });
+
+  it('Should reset hasDbtError flag on dbt compilation finished', () => {
+    // act
+    document.hasDbtError = true;
+    onCompilationFinishedEmitter.fire('select 1;');
+
+    // assert
+    assertThat(document.hasDbtError, false);
+  });
+
+  it('Should reset hasDbtError flag on dbt error fixed', () => {
+    // act
+    document.hasDbtError = true;
+    onGlobalDbtErrorFixedEmitter.fire();
+
+    // assert
+    assertThat(document.hasDbtError, false);
   });
 
   async function sleepMoreThanDebounceTime(): Promise<void> {
