@@ -76,12 +76,22 @@ export class DiagnosticGenerator {
 
   private createDiagnostic(docText: string, line: number, character: number, message: string): Diagnostic {
     const position = Position.create(line, character);
-    const range = getIdentifierRangeAtPosition(position, docText);
+    const range = this.extendRangeIfSmall(getIdentifierRangeAtPosition(position, docText));
     return {
       severity: DiagnosticSeverity.Error,
       range,
       message,
     };
+  }
+
+  extendRangeIfSmall(range: Range): Range {
+    if (range.start.line === range.end.line && range.end.character === range.start.character + 1) {
+      if (range.start.character > 0) {
+        range.start.character -= 1;
+      }
+      range.end.character += 1;
+    }
+    return range;
   }
 
   private getDbtErrorRange(errorLine: number): Range {
