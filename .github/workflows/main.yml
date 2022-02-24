@@ -49,7 +49,7 @@ jobs:
           find . ! -name '${{ matrix.zetasql-lib }}' -type f -exec rm -f {} +
 
       - name: package to vsix file
-        run: npx vsce package -o ${FILE_NAME} --target ${{ matrix.target }}
+        run: npx vsce package -o ${FILE_NAME} --target ${{ matrix.target }} --githubBranch main
 
       - name: create cache
         uses: actions/cache@v2
@@ -313,4 +313,4 @@ jobs:
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         env:
           VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
-        run: npx vsce publish --packagePath $(find . -iname "*.vsix")
+        run: npx vsce publish --githubBranch main --packagePath $(find . -iname "*.vsix")
