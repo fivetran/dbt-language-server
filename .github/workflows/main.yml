@@ -64,17 +64,17 @@ jobs:
       fail-fast: false
       matrix:
         include: # Run tests on latest version and version used in https://github.com/fivetran/analytics/blob/main/dbt_ft_prod/deployment.yml#L1
-          - install-dbt: 'pip install --force-reinstall MarkupSafe==2.0.1 && pip install dbt-bigquery==0.20.2 dbt-postgres==0.20.2'
+          - install-dbt: 'pip install --force-reinstall MarkupSafe==2.0.1 && pip install dbt-bigquery==0.20.2'
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_0_20_1_env/bin/activate
           
-          - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
+          - install-dbt: 'pip install dbt-bigquery dbt-rpc'
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_0_20_1_env/bin/activate
 
-          - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
+          - install-dbt: 'pip install dbt-bigquery dbt-rpc'
             os: ubuntu-latest
             target: linux-x64
             prepare-for-tests: |
@@ -148,7 +148,7 @@ jobs:
           python -m venv ~/dbt_0_20_1_env
           ${{ matrix.activate-venv }}
           pip install --force-reinstall MarkupSafe==2.0.1
-          pip install dbt==0.20.1 dbt-bigquery==0.20.1 dbt-postgres==0.20.1
+          pip install dbt==0.20.1
           dbt --version
 
       - name: prepare profile config
@@ -165,8 +165,6 @@ jobs:
           private_key=$(echo ${BQ_SERVICE_ACCOUNT} | jq '.private_key')
           read project_id private_key_id client_id client_email auth_uri token_uri auth_provider_x509_cert_url client_x509_cert_url < <(echo $(echo ${BQ_SERVICE_ACCOUNT} | jq -r '.project_id, .private_key_id, .client_id, .client_email, .auth_uri, .token_uri, .auth_provider_x509_cert_url, .client_x509_cert_url'))
           dataset="transforms_dbt_default"
-
-          read pg_host pg_user pg_password pg_port pg_dbname pg_schema < <(echo $(echo ${PG_CONNECTION_PARAMS} | jq -r '.host, .user, .password, .port, .dbname, .schema'))
 
           cat <<EOT > ~/.dbt/profiles.yml
           e2e-test-project:
@@ -211,26 +209,9 @@ jobs:
                 keyfile: ${keyFilePath}
                 dataset: ${dataset}
                 threads: 4
-
-          e2e-test-project-postgres:
-            target: prod
-            outputs:
-              prod:
-                type: postgres
-                host: ${pg_host}
-                user: ${pg_user}
-                password: ${pg_password}
-                port: ${pg_port}
-                dbname: ${pg_dbname}
-                schema: ${pg_schema}
-                threads: 4
-                keepalives_idle: 0
-                connect_timeout: 10
-                search_path: ${pg_schema}
           EOT
         env:
           BQ_SERVICE_ACCOUNT: ${{ secrets.BQ_SERVICE_ACCOUNT }}
-          PG_CONNECTION_PARAMS: ${{ secrets.PG_CONNECTION_PARAMS }}
           GITHUB_WORKSPACE: ${{ env.GITHUB_WORKSPACE }}
 
       - name: show prepared files
