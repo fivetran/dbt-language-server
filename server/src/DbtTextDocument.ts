@@ -42,7 +42,6 @@ import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 export class DbtTextDocument {
   static DEBOUNCE_TIMEOUT = 300;
 
-  static readonly DEFAULT_DBT_ERROR_RANGE = Range.create(0, 0, 0, 100);
   static readonly ZETA_SQL_AST = new ZetaSqlAst();
 
   rawDocument: TextDocument;
