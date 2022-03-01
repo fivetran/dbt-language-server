@@ -64,17 +64,17 @@ jobs:
       fail-fast: false
       matrix:
         include: # Run tests on latest version and version used in https://github.com/fivetran/analytics/blob/main/dbt_ft_prod/deployment.yml#L1
-          - install-dbt: 'pip install --force-reinstall MarkupSafe==2.0.1 && pip install dbt-bigquery==0.20.2'
+          - install-dbt: 'pip install --force-reinstall MarkupSafe==2.0.1 && pip install dbt-bigquery==0.20.2 dbt-postgres==0.20.2'
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_0_20_1_env/bin/activate
           
-          - install-dbt: 'pip install dbt-bigquery dbt-rpc'
+          - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_0_20_1_env/bin/activate
 
-          - install-dbt: 'pip install dbt-bigquery dbt-rpc'
+          - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
             os: ubuntu-latest
             target: linux-x64
             prepare-for-tests: |
@@ -148,7 +148,7 @@ jobs:
           python -m venv ~/dbt_0_20_1_env
           ${{ matrix.activate-venv }}
           pip install --force-reinstall MarkupSafe==2.0.1
-          pip install dbt==0.20.1
+          pip install dbt==0.20.1 dbt-bigquery==0.20.1 dbt-postgres==0.20.1
           dbt --version
 
       - name: prepare profile config
