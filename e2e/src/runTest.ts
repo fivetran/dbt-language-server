@@ -115,8 +115,9 @@ async function preparePostgres(): Promise<void> {
     .connect()
     .then(async () => {
       await client.query(createUsersTableQuery);
+      console.log(`PostgreSQL destination successfully initialized.`);
     })
-    .catch(e => console.error(e));
+    .catch(e => console.error(`Failed to prepare PostgreSQL destination: ${e}`));
 }
 
 main().catch(e => console.error(e));
