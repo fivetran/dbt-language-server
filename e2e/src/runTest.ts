@@ -111,8 +111,12 @@ async function preparePostgres(): Promise<void> {
     port: postgresProfile.port,
   });
 
-  await client.connect();
-  await client.query(createUsersTableQuery);
+  return client
+    .connect()
+    .then(async () => {
+      await client.query(createUsersTableQuery);
+    })
+    .catch(e => console.error(e));
 }
 
 main().catch(e => console.error(e));
