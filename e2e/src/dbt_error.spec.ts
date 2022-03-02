@@ -17,7 +17,8 @@ suite('Should show dbt error and link to it', () => {
 
   const ERROR_LINE = 4;
 
-  test('Should show dbt error and link to it', async () => {
+  test('Should show dbt error with link to it and clear error after fix', async () => {
+    // 1. Should show error after changing text
     await activateAndWait(DOC_WITH_ERROR);
     await replaceText(ORIGINAL_LINE, LINE_WITH_ERROR);
 
@@ -30,6 +31,7 @@ suite('Should show dbt error and link to it', () => {
       },
     ]);
 
+    // 2. Should show error with link on another document
     await activateAndWait(DOC_WITHOUT_ERROR);
 
     await assertDiagnostics(DOC_WITHOUT_ERROR, [
@@ -46,6 +48,7 @@ suite('Should show dbt error and link to it', () => {
       },
     ]);
 
+    // 3. Should clear diagnostics for both documents
     await activateAndWait(DOC_WITH_ERROR);
     await replaceText(LINE_WITH_ERROR, ORIGINAL_LINE);
 
