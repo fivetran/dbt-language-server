@@ -5,7 +5,6 @@ import * as fs from 'fs';
 import { homedir } from 'os';
 import * as path from 'path';
 import { Client } from 'pg';
-import * as yaml from 'yaml';
 
 // Expected parameter: path to the folder with the extension package.json
 async function main(): Promise<void> {
@@ -87,8 +86,19 @@ async function ensureTableExists(bigQuery: BigQuery, dsName: string, tableName: 
 }
 
 async function preparePostgres(): Promise<void> {
+  const content = fs.readFileSync(`${homedir()}/.dbt/postgres.json`, 'utf8');
+  const connectionParams = JSON.parse(content);
+
+  const client = new Client({
+    user: connectionParams.user,
+    host: connectionParams.host,
+    database: connectionParams.dbname,
+    password: connectionParams.password,
+    port: connectionParams.port,
+  });
+
   const createUsersTableQuery =
-    'create table if not exists vscode_language_server.users(' +
+    `create table if not exists ${connectionParams.schema}.users(` +
     ' id bigserial primary key,' +
     ' name text not null,' +
     ' division text not null,' +
@@ -97,19 +107,6 @@ async function preparePostgres(): Promise<void> {
     ' phone text not null,' +
     ' profile_id text not null' +
     ');';
-
-  const content = fs.readFileSync(`${homedir()}/.dbt/profiles.yml`, 'utf8');
-  const profiles = yaml.parse(content, { uniqueKeys: false });
-
-  const postgresProfile = profiles['e2e-test-project-postgres'].outputs.prod;
-
-  const client = new Client({
-    user: postgresProfile.user,
-    host: postgresProfile.host,
-    database: postgresProfile.dbname,
-    password: postgresProfile.password,
-    port: postgresProfile.port,
-  });
 
   await client.connect();
   await client.query(createUsersTableQuery);
