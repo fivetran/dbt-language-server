@@ -3,8 +3,8 @@ import { activateAndWait, getCustomDocUri, getPreviewText } from './helper';
 
 suite('Postgres destination', () => {
   test('Should work with postgres destination', async () => {
-    await activateAndWait(getCustomDocUri('postgres/models/version.sql'));
+    await activateAndWait(getCustomDocUri('postgres/models/admin_users.sql'));
 
-    assertThat(getPreviewText(), '0.20.1');
+    assertThat(getPreviewText(), `select * from "postgres"."vscode_language_server"."users" where role = 'ADMIN'`);
   });
 });
