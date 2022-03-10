@@ -73,12 +73,26 @@ export async function waitDocumentModification(func: () => any): Promise<void> {
   await promise;
 }
 
+export async function waitPreviewModification(func: () => any): Promise<void> {
+  const promise = createChangePromise('preview');
+  await func();
+  await promise;
+}
+
 export function getMainEditorText(): string {
   return doc.getText();
 }
 
 export async function showPreview(): Promise<void> {
   await commands.executeCommand('editor.showQueryPreview');
+}
+
+export async function closeAllEditors(): Promise<void> {
+  await commands.executeCommand('workbench.action.closeAllEditors');
+}
+
+export async function compileDocument(): Promise<void> {
+  await commands.executeCommand('dbt.compile');
 }
 
 export function getPreviewText(): string {
@@ -139,9 +153,9 @@ export async function replaceText(oldText: string, newText: string): Promise<voi
 }
 
 async function edit(callback: (editBuilder: TextEditorEdit) => void): Promise<void> {
-  const editFinished = createChangePromise('preview');
-  await editor.edit(callback);
-  await editFinished;
+  return waitPreviewModification(async () => {
+    await editor.edit(callback);
+  });
 }
 
 async function createChangePromise(type: 'preview' | 'document'): Promise<void> {

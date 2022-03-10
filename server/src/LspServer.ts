@@ -10,6 +10,7 @@ import {
   DidCloseTextDocumentParams,
   DidOpenTextDocumentParams,
   DidSaveTextDocumentParams,
+  Emitter,
   Hover,
   HoverParams,
   InitializeError,
@@ -69,6 +70,7 @@ export class LspServer {
   featureFinder = new FeatureFinder();
   initStart = performance.now();
   zetaSqlWrapper = new ZetaSqlWrapper();
+  onGlobalDbtErrorFixedEmitter = new Emitter<void>();
 
   openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
 
@@ -266,14 +268,16 @@ export class LspServer {
 
       document = new DbtTextDocument(
         params.textDocument,
+        this.workspaceFolder,
         this.connection,
         this.progressReporter,
         this.completionProvider,
         this.jinjaDefinitionProvider,
-        new ModelCompiler(this.dbtRpcClient, uri, this.workspaceFolder),
+        new ModelCompiler(this.dbtRpcClient),
         new JinjaParser(),
         new SchemaTracker(this.bigQueryClient, this.zetaSqlWrapper),
         this.zetaSqlWrapper,
+        this.onGlobalDbtErrorFixedEmitter,
       );
       this.openedDocuments.set(uri, document);
 
@@ -355,6 +359,7 @@ export class LspServer {
     console.log('Dispose start...');
     this.dbtRpcServer.dispose();
     void this.zetaSqlWrapper.terminateServer();
+    this.onGlobalDbtErrorFixedEmitter.dispose();
     console.log('Dispose end.');
   }
 }
