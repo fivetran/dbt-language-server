@@ -16,7 +16,7 @@ export class ProgressReporter {
     }
     this.connection.sendProgress(WorkDoneProgress.type, ProgressReporter.token, {
       kind: 'begin',
-      title: 'dbt Language Support',
+      title: 'dbt Wizard',
     });
   }
 
