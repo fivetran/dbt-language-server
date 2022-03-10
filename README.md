@@ -1,4 +1,4 @@
-# dbt Language Support
+# dbt Wizard
 
 This extension will help you work with dbt and BigQuery.
 
