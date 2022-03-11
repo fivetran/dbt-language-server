@@ -1,3 +1,13 @@
+# Version 0.2.0
+
+## What's Changed
+* Rename extension to **dbt Wizard**
+* Go to model/macros/source definition
+* Run extension for documents with  language id
+* Improve error display for dbt problems
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.1.0...v0.2.0
+
 # Version 0.1.0
 
 ## What's Changed
