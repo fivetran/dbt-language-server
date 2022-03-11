@@ -2,7 +2,7 @@
   "name": "dbt-language-server",
   "displayName": "dbt Wizard",
   "description": "This extension will help you work with dbt",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "Fivetran",
   "license": "MIT",
   "preview": true,
