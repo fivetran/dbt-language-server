@@ -266,7 +266,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }}
-          path: ./.vscode-test/user-data/logs/**/*dbt Language Support.log
+          path: ./.vscode-test/user-data/logs/**/*dbt Wizard.log
 
   publish:
     if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }} # main branch or have any tag started with 'v'

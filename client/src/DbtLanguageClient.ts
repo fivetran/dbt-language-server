@@ -41,7 +41,7 @@ export class DbtLanguageClient implements Disposable {
 
     this.workspaceFolder = workspace.getWorkspaceFolder(dbtProjectUri);
 
-    this.client = new LanguageClient('dbtLanguageServer', 'dbt Language Support', serverOptions, clientOptions);
+    this.client = new LanguageClient('dbtLanguageServer', 'dbt Wizard', serverOptions, clientOptions);
   }
 
   initialize(): void {
@@ -54,8 +54,11 @@ export class DbtLanguageClient implements Disposable {
     this.client.onDidChangeState(e => {
       if (e.newState === State.Running) {
         this.disposables.push(
-          this.client.onNotification('custom/updateQueryPreview', ({ uri, previewText, diagnostics }) => {
-            this.previewContentProvider.update(uri, previewText, diagnostics);
+          this.client.onNotification('custom/updateQueryPreview', ({ uri, previewText }) => {
+            this.previewContentProvider.updateText(uri, previewText);
+          }),
+          this.client.onNotification('custom/updateQueryPreviewDiagnostics', ({ uri, diagnostics }) => {
+            this.previewContentProvider.updateDiagnostics(uri, diagnostics);
           }),
 
           this.client.onRequest('custom/getPython', async () => {

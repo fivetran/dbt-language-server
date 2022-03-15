@@ -6,8 +6,8 @@ import {
   DefinitionLink,
   DefinitionParams,
   Diagnostic,
-  DiagnosticSeverity,
   DidChangeTextDocumentParams,
+  Emitter,
   Hover,
   HoverParams,
   Position,
@@ -26,6 +26,7 @@ import { CompletionProvider } from './CompletionProvider';
 import { DbtRpcServer } from './DbtRpcServer';
 import { JinjaDefinitionProvider } from './definition/JinjaDefinitionProvider';
 import { DestinationDefinition } from './DestinationDefinition';
+import { DiagnosticGenerator } from './DiagnosticGenerator';
 import { Diff as Diff } from './Diff';
 import { HoverProvider } from './HoverProvider';
 import { JinjaParser } from './JinjaParser';
@@ -50,17 +51,21 @@ export class DbtTextDocument {
   ast?: AnalyzeResponse;
   signatureHelpProvider = new SignatureHelpProvider();
   sqlRefConverter = new SqlRefConverter(this.jinjaParser);
+  diagnosticGenerator = new DiagnosticGenerator();
 
+  hasDbtError = false;
   firstSave = true;
 
   constructor(
     doc: TextDocumentItem,
+    private workspaceFolder: string,
     private connection: _Connection,
     private progressReporter: ProgressReporter,
     private completionProvider: CompletionProvider,
     private jinjaDefinitionProvider: JinjaDefinitionProvider,
     private modelCompiler: ModelCompiler,
     private jinjaParser: JinjaParser,
+    private onGlobalDbtErrorFixedEmitter: Emitter<void>,
     private schemaTracker?: SchemaTracker,
     private zetaSqlWrapper?: ZetaSqlWrapper,
   ) {
@@ -71,6 +76,7 @@ export class DbtTextDocument {
     this.modelCompiler.onCompilationError(this.onCompilationError.bind(this));
     this.modelCompiler.onCompilationFinished(this.onCompilationFinished.bind(this));
     this.modelCompiler.onFinishAllCompilationJobs(this.onFinishAllCompilationTasks.bind(this));
+    this.onGlobalDbtErrorFixedEmitter.event(this.onDbtErrorFixed.bind(this));
   }
 
   willSaveTextDocument(reason: TextDocumentSaveReason): void {
@@ -195,38 +201,8 @@ export class DbtTextDocument {
 
   debouncedCompile = debounce(async () => {
     this.progressReporter.sendStart(this.rawDocument.uri);
-    await this.modelCompiler.compile();
+    await this.modelCompiler.compile(this.getModelPath());
   }, DbtTextDocument.DEBOUNCE_TIMEOUT);
-
-  getDiagnostics(astResult: Result<AnalyzeResponse__Output, string>): Diagnostic[][] {
-    const rawDocDiagnostics: Diagnostic[] = [];
-    const compiledDocDiagnostics: Diagnostic[] = [];
-
-    if (astResult.isErr()) {
-      // Parse string like 'Unrecognized name: paused1; Did you mean paused? [at 9:3]'
-      const matchResults = astResult.error.match(/(.*?) \[at (\d+):(\d+)\]/);
-      if (matchResults) {
-        const [, errorText] = matchResults;
-        const lineInCompiledDoc = Number(matchResults[2]) - 1;
-        const characterInCompiledDoc = Number(matchResults[3]) - 1;
-        const lineInRawDoc = Diff.getOldLineNumber(this.rawDocument.getText(), this.compiledDocument.getText(), lineInCompiledDoc);
-
-        rawDocDiagnostics.push(this.createDiagnostic(this.rawDocument.getText(), lineInRawDoc, characterInCompiledDoc, errorText));
-        compiledDocDiagnostics.push(this.createDiagnostic(this.compiledDocument.getText(), lineInCompiledDoc, characterInCompiledDoc, errorText));
-      }
-    }
-    return [rawDocDiagnostics, compiledDocDiagnostics];
-  }
-
-  createDiagnostic(docText: string, line: number, character: number, message: string): Diagnostic {
-    const position = Position.create(line, character);
-    const range = getIdentifierRangeAtPosition(position, docText);
-    return {
-      severity: DiagnosticSeverity.Error,
-      range,
-      message,
-    };
-  }
 
   async getAstOrError(): Promise<Result<AnalyzeResponse__Output, string>> {
     try {
@@ -258,20 +234,31 @@ export class DbtTextDocument {
     }
   }
 
-  onCompilationError(dbtCompilationError: string): void {
-    const dbtDiagnostics: Diagnostic[] = [
-      {
-        severity: DiagnosticSeverity.Error,
-        range: Range.create(0, 0, 0, 100),
-        message: dbtCompilationError,
-      },
-    ];
+  getModelPath(): string {
+    const index = this.rawDocument.uri.indexOf(this.workspaceFolder);
+    return this.rawDocument.uri.slice(index + this.workspaceFolder.length + 1);
+  }
 
-    this.sendUpdateQueryPreview(this.rawDocument.getText(), dbtDiagnostics);
-    this.connection.sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: dbtDiagnostics });
+  onCompilationError(dbtCompilationError: string): void {
+    this.hasDbtError = true;
+    const diagnostics = this.diagnosticGenerator.getDbtErrorDiagnostics(dbtCompilationError, this.getModelPath(), this.workspaceFolder);
+
+    this.sendUpdateQueryPreview(this.rawDocument.getText());
+    this.sendDiagnostics(diagnostics, diagnostics);
+  }
+
+  onDbtErrorFixed(): void {
+    if (this.hasDbtError) {
+      this.hasDbtError = false;
+      this.sendDiagnostics([], []);
+    }
   }
 
   async onCompilationFinished(compiledSql: string): Promise<void> {
+    if (this.hasDbtError) {
+      this.hasDbtError = false;
+      this.onGlobalDbtErrorFixedEmitter.fire();
+    }
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
     let rawDocDiagnostics: Diagnostic[] = [];
     let compiledDocDiagnostics: Diagnostic[] = [];
@@ -282,19 +269,28 @@ export class DbtTextDocument {
       if (astResult.isOk()) {
         this.ast = astResult.value;
       }
-      [rawDocDiagnostics, compiledDocDiagnostics] = this.getDiagnostics(astResult);
+      [rawDocDiagnostics, compiledDocDiagnostics] = this.diagnosticGenerator.getDiagnosticsFromAst(
+        astResult,
+        this.rawDocument.getText(),
+        this.compiledDocument.getText(),
+      );
     }
 
-    this.sendUpdateQueryPreview(compiledSql, compiledDocDiagnostics);
-    this.connection.sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: rawDocDiagnostics });
+    this.sendUpdateQueryPreview(compiledSql);
+    this.sendDiagnostics(rawDocDiagnostics, compiledDocDiagnostics);
 
     if (!this.modelCompiler.compilationInProgress) {
       this.progressReporter.sendFinish(this.rawDocument.uri);
     }
   }
 
-  sendUpdateQueryPreview(previewText: string, diagnostics: Diagnostic[]): void {
-    this.connection.sendNotification('custom/updateQueryPreview', { uri: this.rawDocument.uri, previewText, diagnostics });
+  sendUpdateQueryPreview(previewText: string): void {
+    this.connection.sendNotification('custom/updateQueryPreview', { uri: this.rawDocument.uri, previewText });
+  }
+
+  sendDiagnostics(rawDocDiagnostics: Diagnostic[], compiledDocDiagnostics: Diagnostic[]): void {
+    this.connection.sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: rawDocDiagnostics });
+    this.connection.sendNotification('custom/updateQueryPreviewDiagnostics', { uri: this.rawDocument.uri, diagnostics: compiledDocDiagnostics });
   }
 
   onFinishAllCompilationTasks(): void {

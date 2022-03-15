@@ -24,9 +24,9 @@ export class ModelCompiler {
     return this.onFinishAllCompilationJobsEmitter.event;
   }
 
-  constructor(private dbtRpcClient: DbtRpcClient, private documentUri: string, private workspaceFolder: string) {}
+  constructor(private dbtRpcClient: DbtRpcClient) {}
 
-  async compile(): Promise<void> {
+  async compile(modelPath: string): Promise<void> {
     this.compilationInProgress = true;
     const status = await this.dbtRpcClient.getStatus();
     if (status?.error?.data?.message) {
@@ -38,27 +38,15 @@ export class ModelCompiler {
       const jobToStop = this.dbtCompileJobQueue.shift();
       void jobToStop?.stop();
     }
-    this.startNewJob();
+    this.startNewJob(modelPath);
 
     await this.pollResults();
   }
 
-  startNewJob(): void {
-    const index = this.documentUri.indexOf(this.workspaceFolder);
-    if (index === -1) {
-      console.log('Opened file is not a part of project workspace. Compile request declined.');
-      return;
-    }
-
-    const modelPath = this.documentUri.slice(index + this.workspaceFolder.length + 1);
-
-    if (modelPath) {
-      const job = new DbtCompileJob(this.dbtRpcClient, modelPath);
-      this.dbtCompileJobQueue.push(job);
-      void job.start();
-    } else {
-      console.log('Unable to determine model path');
-    }
+  startNewJob(modelPath: string): void {
+    const job = new DbtCompileJob(this.dbtRpcClient, modelPath);
+    this.dbtCompileJobQueue.push(job);
+    void job.start();
   }
 
   async pollResults(): Promise<void> {

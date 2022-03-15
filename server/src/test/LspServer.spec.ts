@@ -16,8 +16,8 @@ describe('LspServer', () => {
   const LINKED_URI = 'uri_linked';
   const SQL_LANGUAGE_ID = 'sql';
   const TEXT = 'select 1;';
-  const TEST_DEBOUNCE_PERIOD = 300;
-  const MORE_THAN_DEBOUNCE = TEST_DEBOUNCE_PERIOD + 100;
+  const TEST_DEBOUNCE_PERIOD = 0;
+  const MORE_THAN_DEBOUNCE = TEST_DEBOUNCE_PERIOD + 1;
 
   let mockModelCompiler: ModelCompiler;
   let mockZetaSqlWrapper: ZetaSqlWrapper;
@@ -41,6 +41,7 @@ describe('LspServer', () => {
 
     document = new DbtTextDocument(
       { uri: OPENED_URI, languageId: SQL_LANGUAGE_ID, version: 1, text: TEXT },
+      '',
       mock<_Connection>(),
       mock(ProgressReporter),
       mock(CompletionProvider),
@@ -49,6 +50,7 @@ describe('LspServer', () => {
       mock(JinjaParser),
       mock(SchemaTracker),
       instance(mockZetaSqlWrapper),
+      new Emitter<void>(),
     );
     lspServer.openedDocuments.set(OPENED_URI, document);
 

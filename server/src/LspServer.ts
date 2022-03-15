@@ -11,6 +11,7 @@ import {
   DidCloseTextDocumentParams,
   DidOpenTextDocumentParams,
   DidSaveTextDocumentParams,
+  Emitter,
   Hover,
   HoverParams,
   InitializeError,
@@ -57,6 +58,7 @@ export class LspServer {
   bigQueryClient?: BigQueryClient;
   destinationDefinition?: DestinationDefinition;
   zetaSqlWrapper?: ZetaSqlWrapper;
+  onGlobalDbtErrorFixedEmitter = new Emitter<void>();
 
   hasConfigurationCapability = false;
   dbtRpcServer = new DbtRpcServer();
@@ -291,12 +293,14 @@ export class LspServer {
 
       document = new DbtTextDocument(
         params.textDocument,
+        this.workspaceFolder,
         this.connection,
         this.progressReporter,
         this.completionProvider,
         this.jinjaDefinitionProvider,
-        new ModelCompiler(this.dbtRpcClient, uri, this.workspaceFolder),
+        new ModelCompiler(this.dbtRpcClient),
         new JinjaParser(),
+        this.onGlobalDbtErrorFixedEmitter,
         this.bigQueryClient && this.zetaSqlWrapper ? new SchemaTracker(this.bigQueryClient, this.zetaSqlWrapper) : undefined,
         this.zetaSqlWrapper,
       );
@@ -380,6 +384,7 @@ export class LspServer {
     console.log('Dispose start...');
     this.dbtRpcServer.dispose();
     void this.zetaSqlWrapper?.terminateServer();
+    this.onGlobalDbtErrorFixedEmitter.dispose();
     console.log('Dispose end.');
   }
 }
