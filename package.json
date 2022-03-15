@@ -110,7 +110,7 @@
     }
   ],
   "scripts": {
-    "vscode:prepublish": "npm run webpack && npm run prepare-node-modules",
+    "vscode:prepublish": "npm run webpack && ./prepare_node_modules.sh",
     "build": "tsc -b",
     "build:size": "npm run build && npm run vscode:prepublish",
     "watch": "tsc -b -w",
@@ -124,7 +124,6 @@
     "prepare-zetasql": "cp -R ./server/node_modules/@fivetrandevelopers/zetasql/lib/protos/ ./server/out/protos/ && cp -R ./server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql/ ./server/out/zetasql/",
     "webpack": "npm run clean && webpack --mode production --config ./client/webpack.config.js && webpack --mode production --config ./server/webpack.config.js && npm run prepare-zetasql",
     "webpack:dev": "npm run clean && webpack --mode none --config ./client/webpack.config.js && webpack --mode none --config ./server/webpack.config.js && npm run prepare-zetasql",
-    "prepare-node-modules": "./prepare_node_modules.sh",
     "prepare": "husky install"
   },
   "devDependencies": {
