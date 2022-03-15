@@ -14,7 +14,7 @@ jobs:
             target: darwin-x64
             zetasql-lib: libremote_server.dylib
 
-          - os: macos-latest
+          - os: macos-latest # TODO: use M1 runner when possible
             target: darwin-arm64
             zetasql-lib: libremote_server_arm.dylib
 
@@ -51,6 +51,9 @@ jobs:
         run: |
           cd server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql/
           find . ! -name '${{ matrix.zetasql-lib }}' -type f -exec rm -f {} +
+
+      - name: set variable for prepare_node_modules.sh script
+        run: echo ${{ matrix.target }} > target_os
 
       - name: package to vsix file
         run: npx vsce package -o ${FILE_NAME} --target ${{ matrix.target }} --githubBranch main
