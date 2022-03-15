@@ -155,6 +155,7 @@ jobs:
         run: |
           mkdir -p ~/.dbt/
           echo "$BQ_SERVICE_ACCOUNT" > ~/.dbt/bq-test-project.json
+          echo "$PG_CONNECTION_PARAMS" > ~/.dbt/postgres.json
 
           user=$(whoami)
           homedir=$(eval echo "~${user}")
