@@ -22,6 +22,7 @@ import {
   _Connection,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { BigQueryContext } from './bigquery/BigQueryContext';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtRpcServer } from './DbtRpcServer';
 import { JinjaDefinitionProvider } from './definition/JinjaDefinitionProvider';
@@ -32,12 +33,10 @@ import { HoverProvider } from './HoverProvider';
 import { JinjaParser } from './JinjaParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
-import { SchemaTracker } from './SchemaTracker';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { SqlRefConverter } from './SqlRefConverter';
 import { debounce, getIdentifierRangeAtPosition, getJinjaContentOffset, positionInRange } from './utils/Utils';
 import { ZetaSqlAst } from './ZetaSqlAst';
-import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 
 export class DbtTextDocument {
   static DEBOUNCE_TIMEOUT = 300;
@@ -66,8 +65,7 @@ export class DbtTextDocument {
     private modelCompiler: ModelCompiler,
     private jinjaParser: JinjaParser,
     private onGlobalDbtErrorFixedEmitter: Emitter<void>,
-    private schemaTracker?: SchemaTracker,
-    private zetaSqlWrapper?: ZetaSqlWrapper,
+    private bigQueryContext: BigQueryContext,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -206,11 +204,14 @@ export class DbtTextDocument {
 
   async getAstOrError(): Promise<Result<AnalyzeResponse__Output, string>> {
     try {
-      if (!this.zetaSqlWrapper) {
+      if (!this.bigQueryContext.isPresent()) {
         throw new Error('Zeta SQL is not initialized.');
       }
-      const ast = await this.zetaSqlWrapper.analyze(this.compiledDocument.getText());
+
+      const presentContext = this.bigQueryContext.get();
+      const ast = await presentContext.zetaSqlWrapper.analyze(this.compiledDocument.getText());
       console.log('AST was successfully received');
+
       return ok(ast);
     } catch (e: any) {
       console.log('There was an error wile parsing SQL query');
@@ -219,18 +220,20 @@ export class DbtTextDocument {
   }
 
   async ensureCatalogInitialized(): Promise<void> {
-    if (this.zetaSqlWrapper && this.schemaTracker) {
-      await this.schemaTracker.refreshTableNames(this.compiledDocument.getText());
-      if (this.schemaTracker.hasNewTables || !this.zetaSqlWrapper.isCatalogRegistered()) {
+    if (this.bigQueryContext.isPresent()) {
+      const presentContext = this.bigQueryContext.get();
+      await presentContext.schemaTracker.refreshTableNames(this.compiledDocument.getText());
+      if (presentContext.schemaTracker.hasNewTables || !presentContext.zetaSqlWrapper.isCatalogRegistered()) {
         await this.registerCatalog();
       }
     }
   }
 
   async registerCatalog(): Promise<void> {
-    if (this.zetaSqlWrapper && this.schemaTracker) {
-      await this.zetaSqlWrapper.registerCatalog(this.schemaTracker.tableDefinitions);
-      this.schemaTracker.resetHasNewTables();
+    if (this.bigQueryContext.isPresent()) {
+      const presentContext = this.bigQueryContext.get();
+      await presentContext.zetaSqlWrapper.registerCatalog(presentContext.schemaTracker.tableDefinitions);
+      presentContext.schemaTracker.resetHasNewTables();
     }
   }
 
@@ -263,7 +266,7 @@ export class DbtTextDocument {
     let rawDocDiagnostics: Diagnostic[] = [];
     let compiledDocDiagnostics: Diagnostic[] = [];
 
-    if (this.zetaSqlWrapper?.isSupported()) {
+    if (this.bigQueryContext.isPresent()) {
       await this.ensureCatalogInitialized();
       const astResult = await this.getAstOrError();
       if (astResult.isOk()) {

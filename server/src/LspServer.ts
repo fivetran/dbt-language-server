@@ -26,6 +26,7 @@ import {
   _Connection,
 } from 'vscode-languageserver';
 import { BigQueryClient } from './bigquery/BigQueryClient';
+import { BigQueryContext } from './bigquery/BigQueryContext';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtProfileCreator } from './DbtProfileCreator';
 import { DbtRpcClient } from './DbtRpcClient';
@@ -41,7 +42,6 @@ import { JinjaParser } from './JinjaParser';
 import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
-import { SchemaTracker } from './SchemaTracker';
 import { YamlParser } from './YamlParser';
 import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 
@@ -291,6 +291,11 @@ export class LspServer {
         return;
       }
 
+      const bigQueryContext =
+        this.bigQueryClient && this.destinationDefinition && this.zetaSqlWrapper?.isSupported()
+          ? BigQueryContext.createPresentContext(this.bigQueryClient, this.destinationDefinition, this.zetaSqlWrapper)
+          : BigQueryContext.createEmptyContext();
+
       document = new DbtTextDocument(
         params.textDocument,
         this.workspaceFolder,
@@ -301,8 +306,7 @@ export class LspServer {
         new ModelCompiler(this.dbtRpcClient),
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,
-        this.bigQueryClient && this.zetaSqlWrapper ? new SchemaTracker(this.bigQueryClient, this.zetaSqlWrapper) : undefined,
-        this.zetaSqlWrapper,
+        bigQueryContext,
       );
       this.openedDocuments.set(uri, document);
 

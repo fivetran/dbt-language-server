@@ -1,13 +1,15 @@
 import { anything, instance, mock, spy, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentIdentifier, _Connection } from 'vscode-languageserver';
+import { BigQueryClient } from '../bigquery/BigQueryClient';
+import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { CompletionProvider } from '../CompletionProvider';
 import { DbtTextDocument } from '../DbtTextDocument';
 import { JinjaDefinitionProvider } from '../definition/JinjaDefinitionProvider';
+import { DestinationDefinition } from '../DestinationDefinition';
 import { JinjaParser } from '../JinjaParser';
 import { LspServer } from '../LspServer';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProgressReporter } from '../ProgressReporter';
-import { SchemaTracker } from '../SchemaTracker';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 import { sleep } from './helper';
 
@@ -24,6 +26,9 @@ describe('LspServer', () => {
   let lspServer: LspServer;
   let spiedLspServer: LspServer;
   let document: DbtTextDocument;
+  let mockBigQueryClient: BigQueryClient;
+  let mockDestinationDefinition: DestinationDefinition;
+  let bigQueryContext: BigQueryContext;
 
   beforeEach(() => {
     lspServer = new LspServer(mock<_Connection>());
@@ -39,6 +44,11 @@ describe('LspServer', () => {
     mockZetaSqlWrapper = mock(ZetaSqlWrapper);
     when(mockZetaSqlWrapper.isSupported()).thenReturn(true);
 
+    mockBigQueryClient = mock(BigQueryClient);
+    mockDestinationDefinition = mock(DestinationDefinition);
+
+    bigQueryContext = BigQueryContext.createPresentContext(mockBigQueryClient, mockDestinationDefinition, instance(mockZetaSqlWrapper));
+
     document = new DbtTextDocument(
       { uri: OPENED_URI, languageId: SQL_LANGUAGE_ID, version: 1, text: TEXT },
       '',
@@ -48,9 +58,8 @@ describe('LspServer', () => {
       mock(JinjaDefinitionProvider),
       instance(mockModelCompiler),
       mock(JinjaParser),
-      mock(SchemaTracker),
-      instance(mockZetaSqlWrapper),
       new Emitter<void>(),
+      bigQueryContext,
     );
     lspServer.openedDocuments.set(OPENED_URI, document);
 

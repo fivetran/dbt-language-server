@@ -1,14 +1,16 @@
 import { assertThat } from 'hamjest';
-import { anything, instance, mock, verify, when } from 'ts-mockito';
+import { anything, instance, mock, spy, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentSaveReason, _Connection } from 'vscode-languageserver';
+import { BigQueryClient } from '../bigquery/BigQueryClient';
+import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { CompletionProvider } from '../CompletionProvider';
 import { DbtRpcServer } from '../DbtRpcServer';
 import { DbtTextDocument } from '../DbtTextDocument';
 import { JinjaDefinitionProvider } from '../definition/JinjaDefinitionProvider';
+import { DestinationDefinition } from '../DestinationDefinition';
 import { JinjaParser } from '../JinjaParser';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProgressReporter } from '../ProgressReporter';
-import { SchemaTracker } from '../SchemaTracker';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 import { sleep } from './helper';
 
@@ -18,8 +20,10 @@ describe('DbtTextDocument', () => {
   let document: DbtTextDocument;
   let mockModelCompiler: ModelCompiler;
   let mockJinjaParser: JinjaParser;
-  let mockSchemaTracker: SchemaTracker;
   let mockZetaSqlWrapper: ZetaSqlWrapper;
+  let mockBigQueryClient: BigQueryClient;
+  let mockDestinationDefinition: DestinationDefinition;
+  let spiedBigQueryContext: BigQueryContext;
 
   const onCompilationErrorEmitter = new Emitter<string>();
   const onCompilationFinishedEmitter = new Emitter<string>();
@@ -34,10 +38,14 @@ describe('DbtTextDocument', () => {
     when(mockModelCompiler.onFinishAllCompilationJobs).thenReturn(new Emitter<void>().event);
 
     mockJinjaParser = mock(JinjaParser);
-    mockSchemaTracker = mock(SchemaTracker);
     mockZetaSqlWrapper = mock(ZetaSqlWrapper);
+    mockBigQueryClient = mock(BigQueryClient);
+    mockDestinationDefinition = mock(DestinationDefinition);
 
     when(mockZetaSqlWrapper.isSupported()).thenReturn(true);
+
+    const bigQueryContext = BigQueryContext.createPresentContext(mockBigQueryClient, mockDestinationDefinition, instance(mockZetaSqlWrapper));
+    spiedBigQueryContext = spy(bigQueryContext);
 
     document = new DbtTextDocument(
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
@@ -48,9 +56,8 @@ describe('DbtTextDocument', () => {
       mock(JinjaDefinitionProvider),
       instance(mockModelCompiler),
       instance(mockJinjaParser),
-      instance(mockSchemaTracker),
-      instance(mockZetaSqlWrapper),
       onGlobalDbtErrorFixedEmitter,
+      bigQueryContext,
     );
   });
 
@@ -157,14 +164,14 @@ describe('DbtTextDocument', () => {
     // arrange
     when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(false);
     when(mockJinjaParser.findAllJinjaRanges(document.rawDocument)).thenReturn([]);
-    when(mockZetaSqlWrapper.isSupported()).thenReturn(false);
+    when(spiedBigQueryContext.isPresent()).thenReturn(false);
 
     // act
     await document.didOpenTextDocument(false);
     await sleepMoreThanDebounceTime();
 
     // assert
-    verify(mockZetaSqlWrapper.isSupported()).once();
+    verify(spiedBigQueryContext.isPresent()).once();
 
     verify(mockZetaSqlWrapper.initializeZetaSql()).never();
     verify(mockZetaSqlWrapper.getClient()).never();
