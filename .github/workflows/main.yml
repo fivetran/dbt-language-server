@@ -257,7 +257,7 @@ jobs:
           path: ./.vscode-test/user-data/logs/**/*dbt Wizard.log
 
   publish:
-    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/use-new-zetasql' || startsWith(github.ref, 'refs/tags/v') }} # main branch or have any tag started with 'v'
+    if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }} # main branch or have any tag started with 'v'
     needs: [test-and-package, run-e2e-tests]
 
     runs-on: macos-latest
@@ -312,7 +312,7 @@ jobs:
           credentials_json: '${{ secrets.GCS_SERVICE_ACCOUNT }}'
 
       - name: push vsix files to GCS
-        if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/use-new-zetasql' || github.ref == 'refs/heads/linux-support' }}
+        if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/linux-support' }}
         uses: google-github-actions/upload-cloud-storage@v0
         with:
           path: .
