@@ -7,6 +7,7 @@ This extension will help you work with dbt and BigQuery.
 ### Table of Contents
 
 - [Features](#features)
+   - [Go to definition](#go-to-definition)
    - [Highlighting errors](#highlighting-errors)
    - [Signature help](#signature-help)
    - [Completion for SQL](#completion-for-sql)
