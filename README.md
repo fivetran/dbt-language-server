@@ -1,6 +1,7 @@
 # dbt Wizard
 
-This extension will help you work with dbt and BigQuery.
+This extension will help you work with [dbt](https://www.getdbt.com/).
+Also it provides additional features for BigQuery data warehouses like [Highlighting errors](#highlighting-errors), [Completion for SQL](#completion-for-sql) and etc.
 
 **Note:** Turning on [Auto Save](https://code.visualstudio.com/docs/editor/codebasics#_save-auto-save) is strongly recommended. With this option turned on, VS Code will save your changes after a configured delay or when the focus leaves the editor. This feature is required for preview, completion, and error highlighting.
 
