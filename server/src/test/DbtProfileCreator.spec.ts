@@ -57,7 +57,7 @@ describe('Profiles Validation', () => {
 
     // assert
     assert.ok(profile.isErr());
-    assertThat(profile.error, matchesPattern(errorPattern));
+    assertThat(profile.error.message, matchesPattern(errorPattern));
   });
 
   function shouldReturnError(config: string, profileName: string, errorPattern: RegExp): void {
@@ -74,6 +74,6 @@ describe('Profiles Validation', () => {
 
     // assert
     assert.ok(profile.isErr());
-    assertThat(profile.error, matchesPattern(errorPattern));
+    assertThat(profile.error.message, matchesPattern(errorPattern));
   }
 });
