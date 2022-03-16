@@ -151,9 +151,10 @@ export class LspServer {
     ]);
 
     if (command === undefined) {
-      return this.onInitializedRetry(
+      await this.onInitializedRetry(
         `Failed to find dbt-rpc. You can use 'python3 -m pip install dbt-bigquery dbt-rpc' command to install it. Check in Terminal that dbt-rpc works running 'dbt-rpc --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g. ~/dbt-env/bin/python3).`,
       );
+      return;
     }
 
     command.addParameter(dbtPort.toString());
@@ -166,19 +167,16 @@ export class LspServer {
     try {
       await this.dbtRpcServer.startDeferred.promise;
     } catch (e) {
-      return this.onInitializedRetry('Failed to start dbt rpc. Check your dbt profile configuration.');
+      await this.onInitializedRetry('Failed to start dbt rpc. Check your dbt profile configuration.');
     }
-
-    return Promise.resolve();
   }
 
   async onInitializedRetry(message: string): Promise<void> {
     const errorMessageResult = await this.connection.window.showErrorMessage(message, { title: 'Retry', id: 'retry' });
     if (errorMessageResult?.id === 'retry') {
       this.featureFinder = new FeatureFinder();
-      return this.onInitialized();
+      await this.onInitialized();
     }
-    return Promise.resolve();
   }
 
   sendTelemetry(name: string, properties?: { [key: string]: string }): void {
