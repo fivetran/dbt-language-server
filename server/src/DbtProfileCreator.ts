@@ -4,6 +4,15 @@ import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtProfileType';
 import { YamlParser } from './YamlParser';
 
 export interface DbtProfileResult {
+  type?: string;
+  method?: string;
+}
+
+export interface DbtProfileError extends DbtProfileResult {
+  message: string;
+}
+
+export interface DbtProfileSuccess extends DbtProfileResult {
   dbtProfile: DbtProfile;
   targetConfig: any;
 }
@@ -11,10 +20,10 @@ export interface DbtProfileResult {
 export class DbtProfileCreator {
   constructor(private yamlParser: YamlParser) {}
 
-  validateProfilesFile(profiles: any, profileName: string): Result<void, string> {
+  validateProfilesFile(profiles: any, profileName: string): Result<void, DbtProfileError> {
     const profile = profiles[profileName];
     if (!profile) {
-      return err(`Couldn't find credentials for profile '${profileName}'. Check your '${this.yamlParser.profilesPath}' file.`);
+      return err({ message: `Couldn't find credentials for profile '${profileName}'. Check your '${this.yamlParser.profilesPath}' file.` });
     }
 
     const { target } = profile;
@@ -40,32 +49,34 @@ export class DbtProfileCreator {
     const { method } = outputsTarget;
     const authMethods = PROFILE_METHODS.get(type);
     if (!authMethods) {
-      return err(`Currently, '${type}' profile is not supported. Check your '${this.yamlParser.profilesPath}' file.`);
+      return err({ message: `Currently, '${type}' profile is not supported. Check your '${this.yamlParser.profilesPath}' file.`, type, method });
     }
     if (authMethods.length > 0 && (!method || authMethods.indexOf(method) === -1)) {
-      return err(`Unknown authentication method of '${type}' profile. Check your '${this.yamlParser.profilesPath}' file.`);
+      return err({ message: `Unknown authentication method of '${type}' profile. Check your '${this.yamlParser.profilesPath}' file.`, type, method });
     }
 
     return ok(undefined);
   }
 
-  createDbtProfile(): Result<DbtProfileResult, string> {
+  createDbtProfile(): Result<DbtProfileSuccess, DbtProfileError> {
     let profiles = undefined;
     try {
       profiles = YamlParser.parseYamlFile(this.yamlParser.profilesPath);
     } catch (e) {
-      console.log(`Failed to open and parse file '${this.yamlParser.profilesPath}'. ${e}`);
-      return err(`Failed to open and parse file '${this.yamlParser.profilesPath}'. ${e}`);
+      const errorMessage = `Failed to open and parse file '${this.yamlParser.profilesPath}'. ${e}`;
+      console.log(errorMessage);
+      return err({ message: errorMessage });
     }
 
     let profileName = undefined;
     try {
       profileName = this.yamlParser.findProfileName();
     } catch (e) {
-      return err(
-        `Failed to find profile name in ${YamlParser.DBT_PROJECT_FILE_NAME}. Make sure that you opened folder with ${YamlParser.DBT_PROJECT_FILE_NAME} file. ${e}`,
-      );
+      const errorMessage = `Failed to find profile name in ${YamlParser.DBT_PROJECT_FILE_NAME}. Make sure that you opened folder with ${YamlParser.DBT_PROJECT_FILE_NAME} file. ${e}`;
+      console.log(errorMessage);
+      return err({ message: errorMessage });
     }
+
     const validationResult = this.validateProfilesFile(profiles, profileName);
     if (validationResult.isErr()) {
       return err(validationResult.error);
@@ -77,12 +88,12 @@ export class DbtProfileCreator {
     const { type, method } = targetConfig;
 
     if (![...PROFILE_METHODS.keys()].find(t => t === type)) {
-      return err(`Profile type '${type}' is not supported.`);
+      return err({ message: `Profile type '${type}' is not supported.`, type, method });
     }
 
     const profileBuilder = BIG_QUERY_PROFILES.get(method);
     if (!profileBuilder) {
-      return err(`Authentication method '${method}' of '${type}' profile is not supported.`);
+      return err({ message: `Authentication method '${method}' of '${type}' profile is not supported.`, type, method });
     }
 
     const dbtProfile = profileBuilder();
@@ -90,19 +101,21 @@ export class DbtProfileCreator {
     const result = dbtProfile.validateProfile(targetConfig);
     if (result.isErr()) {
       const docsUrl = dbtProfile.getDocsUrl();
-      return this.cantFindSectionError(profileName, result.error, docsUrl);
+      return this.cantFindSectionError(profileName, result.error, docsUrl, type, method);
     }
 
     return ok({
       dbtProfile,
       targetConfig,
+      type,
+      method,
     });
   }
 
-  cantFindSectionError(profileName: string, section: string, docsUrl?: string): Err<never, string> {
+  cantFindSectionError(profileName: string, section: string, docsUrl?: string, type?: string, method?: string): Err<never, DbtProfileError> {
     const text = `Couldn't find section '${section}' for profile '${profileName}'. Check your '${this.yamlParser.profilesPath}' file. ${
       docsUrl ?? ''
     }`;
-    return err(text);
+    return err({ message: text, type, method });
   }
 }

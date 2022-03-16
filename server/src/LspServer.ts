@@ -28,7 +28,7 @@ import {
 import { BigQueryClient } from './bigquery/BigQueryClient';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { CompletionProvider } from './CompletionProvider';
-import { DbtProfileCreator } from './DbtProfileCreator';
+import { DbtProfileCreator, DbtProfileError, DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcServer } from './DbtRpcServer';
 import { DbtTextDocument } from './DbtTextDocument';
@@ -157,7 +157,11 @@ export class LspServer {
     }
 
     command.addParameter(dbtPort.toString());
-    await this.startDbtRpc(command, dbtPort);
+    await this.startDbtRpc(
+      command,
+      dbtPort,
+      initializeDestinationResult.isErr() ? initializeDestinationResult.error : initializeDestinationResult.value,
+    );
 
     try {
       await this.dbtRpcServer.startDeferred.promise;
@@ -182,7 +186,7 @@ export class LspServer {
     this.connection.sendNotification<TelemetryEvent>(TelemetryEventNotification.type, { name, properties });
   }
 
-  async startDbtRpc(command: Command, port: number): Promise<void> {
+  async startDbtRpc(command: Command, port: number, destinationInitResult: DbtProfileSuccess | DbtProfileError): Promise<void> {
     this.dbtRpcClient.setPort(port);
     try {
       await this.dbtRpcServer.startDbtRpc(command, this.dbtRpcClient);
@@ -191,6 +195,8 @@ export class LspServer {
         dbtVersion: getStringVersion(this.featureFinder.version),
         python: this.featureFinder.python ?? 'undefined',
         initTime: initTime.toString(),
+        type: destinationInitResult.type ?? 'unknown type',
+        method: destinationInitResult.method ?? 'unknown method',
       });
     } catch (e) {
       console.log(e);
@@ -217,7 +223,7 @@ export class LspServer {
     }
   }
 
-  async initializeDestination(): Promise<Result<void, string>> {
+  async initializeDestination(): Promise<Result<DbtProfileSuccess, DbtProfileError>> {
     try {
       const profileResult = this.dbtProfileCreator.createDbtProfile();
       if (profileResult.isErr()) {
@@ -226,7 +232,7 @@ export class LspServer {
 
       const clientResult = await profileResult.value.dbtProfile.createClient(profileResult.value.targetConfig);
       if (clientResult.isErr()) {
-        return err(clientResult.error);
+        return err({ message: clientResult.error, type: profileResult.value.type, method: profileResult.value.method });
       }
 
       this.bigQueryClient = clientResult.value as BigQueryClient;
@@ -235,9 +241,9 @@ export class LspServer {
       this.zetaSqlWrapper = new ZetaSqlWrapper();
       await this.zetaSqlWrapper.initializeZetaSql();
 
-      return ok(undefined);
+      return ok(profileResult.value);
     } catch (e) {
-      return err('Data Warehouse initialization failed.');
+      return err({ message: 'Data Warehouse initialization failed.' });
     }
   }
 
