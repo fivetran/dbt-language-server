@@ -22,6 +22,7 @@
   // "forwardPorts": [],
 
   // Use 'postCreateCommand' to run commands after the container is created.
+  // Add needed adapter instead of dbt-bigquery (e.g. dbt-postgres)
   "onCreateCommand": "pip install dbt-bigquery dbt-rpc",
 
   "postStartCommand": "rm -rf server/node_modules/ffi-napi && npm i && npm run build",
