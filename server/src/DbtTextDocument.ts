@@ -27,7 +27,7 @@ import { DbtRpcServer } from './DbtRpcServer';
 import { JinjaDefinitionProvider } from './definition/JinjaDefinitionProvider';
 import { DestinationDefinition } from './DestinationDefinition';
 import { DiagnosticGenerator } from './DiagnosticGenerator';
-import { Diff as Diff } from './Diff';
+import { Diff } from './Diff';
 import { HoverProvider } from './HoverProvider';
 import { JinjaParser } from './JinjaParser';
 import { ModelCompiler } from './ModelCompiler';
