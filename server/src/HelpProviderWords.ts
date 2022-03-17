@@ -458,7 +458,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'rank',
     signatures: [
       {
-        signature: '',
+        signature: 'RANK()\n',
         description:
           'Returns the ordinal (1-based) rank of each row within the ordered partition.\nAll peer rows receive the same rank value. The next row or set of peer rows\nreceives a rank value which increments by the number of peers with the previous\nrank value, instead of `DENSE_RANK`, which always increments by 1.',
       },
@@ -468,7 +468,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'dense_rank',
     signatures: [
       {
-        signature: '',
+        signature: 'DENSE_RANK()\n',
         description:
           'Returns the ordinal (1-based) rank of each row within the window partition.\nAll peer rows receive the same rank value, and the subsequent rank value is\nincremented by one.',
       },
@@ -478,9 +478,9 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'percent_rank',
     signatures: [
       {
-        signature: '',
+        signature: 'PERCENT_RANK()\n',
         description:
-          'Return the percentile rank of a row defined as (RK-1)/(NR-1), where RK is\nthe <code>RANK</code> of the row and NR is the number of rows in the partition.\nReturns 0 if NR=1.',
+          'Return the percentile rank of a row defined as (RK-1)/(NR-1), where RK is\nthe `RANK` of the row and NR is the number of rows in the partition.\nReturns 0 if NR=1.',
       },
     ],
   },
@@ -488,7 +488,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'cume_dist',
     signatures: [
       {
-        signature: '',
+        signature: 'CUME_DIST()\n',
         description:
           'Return the relative rank of a row defined as NP/NR. NP is defined to be the\nnumber of rows that either precede or are peers with the current row. NR is the\nnumber of rows in the partition.',
       },
@@ -500,7 +500,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'NTILE(constant_integer_expression)\n',
         description:
-          'This function divides the rows into <code>constant_integer_expression</code>\nbuckets based on row ordering and returns the 1-based bucket number that is\nassigned to each row. The number of rows in the buckets can differ by at most 1.\nThe remainder values (the remainder of number of rows divided by buckets) are\ndistributed one for each bucket, starting with bucket 1. If\n<code>constant_integer_expression</code> evaluates to NULL, 0 or negative, an\nerror is provided.',
+          'This function divides the rows into `constant_integer_expression`\nbuckets based on row ordering and returns the 1-based bucket number that is\nassigned to each row. The number of rows in the buckets can differ by at most 1.\nThe remainder values (the remainder of number of rows divided by buckets) are\ndistributed one for each bucket, starting with bucket 1. If\n`constant_integer_expression` evaluates to NULL, 0 or negative, an\nerror is provided.',
       },
     ],
   },
@@ -508,9 +508,9 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'row_number',
     signatures: [
       {
-        signature: '',
+        signature: 'ROW_NUMBER()\n',
         description:
-          'Does not require the <code>ORDER BY</code> clause. Returns the sequential\nrow ordinal (1-based) of each row for each ordered partition. If the\n<code>ORDER BY</code> clause is unspecified then the result is\nnon-deterministic.',
+          'Does not require the `ORDER BY` clause. Returns the sequential\nrow ordinal (1-based) of each row for each ordered partition. If the\n`ORDER BY` clause is unspecified then the result is\nnon-deterministic.',
       },
     ],
   },
@@ -603,7 +603,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'GREATEST(X1,...,XN)\n',
         description:
-          'Returns the largest value among X1,...,XN according to the < comparison.\nIf any parts of X1,...,XN are `NULL`, the return value is `NULL`.',
+          'Returns the greatest value among `X1,...,XN`. If any argument is `NULL`, returns\n`NULL`. Otherwise, in the case of floating-point arguments, if any argument is\n`NaN`, returns `NaN`. In all other cases, returns the value among `X1,...,XN`\nthat has the greatest value according to the ordering used by the `ORDER BY`\nclause. The arguments `X1, ..., XN` must be coercible to a common supertype, and\nthe supertype must support ordering.',
       },
     ],
   },
@@ -613,7 +613,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'LEAST(X1,...,XN)\n',
         description:
-          'Returns the smallest value among X1,...,XN according to the > comparison.\nIf any parts of X1,...,XN are `NULL`, the return value is `NULL`.',
+          'Returns the least value among `X1,...,XN`. If any argument is `NULL`, returns\n`NULL`. Otherwise, in the case of floating-point arguments, if any argument is\n`NaN`, returns `NaN`. In all other cases, returns the value among `X1,...,XN`\nthat has the least value according to the ordering used by the `ORDER BY`\nclause. The arguments `X1, ..., XN` must be coercible to a common supertype, and\nthe supertype must support ordering.',
       },
     ],
   },
@@ -1008,7 +1008,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'FROM_HEX(string)\n',
         description:
-          'Converts a hexadecimal-encoded `STRING` into `BYTES` format. Returns an error\nif the input `STRING` contains characters outside the range\n`(0..9, A..F, a..f)`. The letter case of the characters does not matter. If the\ninput `STRING` has an odd number of characters, the function acts as if the\ninput has an additional leading `0`. To convert `BYTES` to a hexadecimal-encoded\n`STRING`, use TO_HEX.',
+          'Converts a hexadecimal-encoded `STRING` into `BYTES` format. Returns an error\nif the input `STRING` contains characters outside the range\n`(0..9, A..F, a..f)`. The lettercase of the characters does not matter. If the\ninput `STRING` has an odd number of characters, the function acts as if the\ninput has an additional leading `0`. To convert `BYTES` to a hexadecimal-encoded\n`STRING`, use TO_HEX.',
       },
     ],
   },
@@ -1302,7 +1302,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'json_extract',
     signatures: [
       {
-        signature: 'JSON_EXTRACT(json_string_expr, json_path)\n',
+        signature: '',
         description:
           'Extracts a JSON value, such as an array or object, or a JSON scalar\nvalue, such as a string, number, or boolean. If a JSON key uses invalid\nJSONPath characters, then you can escape those characters\nusing single quotes and brackets.',
       },
@@ -1322,7 +1322,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'json_extract_scalar',
     signatures: [
       {
-        signature: 'JSON_EXTRACT_SCALAR(json_string_expr[, json_path])\n',
+        signature: '',
         description:
           'Extracts a scalar value and then returns it as a string. A scalar value can\nrepresent a string, number, or boolean. Removes the outermost quotes and\nunescapes the return values. If a JSON key uses invalid\nJSONPath characters, then you can escape those characters\nusing single quotes and brackets.',
       },
@@ -1364,6 +1364,56 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: "PARSE_JSON(json_string_expr[, wide_number_mode=>{ 'exact' | 'round' } ])\n",
         description: 'Takes a SQL `STRING` value and returns a SQL `JSON` value.\nThe `STRING` value represents a string-formatted JSON value.',
+      },
+    ],
+  },
+  {
+    name: 'string',
+    signatures: [
+      {
+        signature: '',
+        description:
+          'Takes a JSON expression, extracts a JSON string, and returns that value as a SQL\n`STRING`. If the expression is SQL `NULL`, the function returns SQL\n`NULL`. If the extracted JSON value is not a string, an error is produced.',
+      },
+    ],
+  },
+  {
+    name: 'bool',
+    signatures: [
+      {
+        signature: '',
+        description:
+          'Takes a JSON expression, extracts a JSON boolean, and returns that value as a SQL\n`BOOL`. If the expression is SQL `NULL`, the function returns SQL\n`NULL`. If the extracted JSON value is not a boolean, an error is produced.',
+      },
+    ],
+  },
+  {
+    name: 'int64',
+    signatures: [
+      {
+        signature: '',
+        description:
+          'Takes a JSON expression, extracts a JSON number and returns that value as a SQL\n`INT64`. If the expression is SQL `NULL`, the function returns SQL\n`NULL`. If the extracted JSON number has a fractional part or is outside of the\nINT64 domain, an error is produced.',
+      },
+    ],
+  },
+  {
+    name: 'double',
+    signatures: [
+      {
+        signature: '',
+        description:
+          'Takes a JSON expression, extracts a JSON number and returns that value as a SQL\n`DOUBLE`. If the expression is SQL `NULL`, the\nfunction returns SQL `NULL`. If the extracted JSON value is not a number, an\nerror is produced.',
+      },
+    ],
+  },
+  {
+    name: 'json_type',
+    signatures: [
+      {
+        signature: '',
+        description:
+          'Takes a JSON expression and returns the type of the outermost JSON value as a\nSQL `STRING`. The names of these JSON types can be returned:',
       },
     ],
   },
@@ -1439,10 +1489,9 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'flatten',
     signatures: [
       {
-        signature:
-          'FLATTEN(flatten_path)\n\nflatten_path:\n{\n  array_expression\n  | flatten_path.field\n  | flatten_path.array_field\n  | flatten_path.array_field[{offset_clause | safe_offset_clause}]\n}\n',
+        signature: 'FLATTEN(array_elements_field_access_expression)\n',
         description:
-          'Nested data can be flattened into a single, flat array with the `FLATTEN`\noperator. The `FLATTEN` operator accepts a unique type of path called the\nflatten path. The flatten path lets you traverse through the levels of a\nnested array from left to right. For example,\n`FLATTEN(column.array_field.target)` will return an array of all\n`targets` inside `column`. The flatten path can include:',
+          'Takes a nested array and flattens a specific part of it into a single, flat\narray with the\narray elements field access operator.\nReturns `NULL` if the input value is `NULL`.\nIf `NULL` array elements are\nencountered, they are added to the resulting array.',
       },
     ],
   },
@@ -1733,16 +1782,6 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'CURRENT_TIMESTAMP()\n',
         description:
           '`CURRENT_TIMESTAMP()` produces a TIMESTAMP value that is continuous,\nnon-ambiguous, has exactly 60 seconds per minute and does not repeat values over\nthe leap second. Parentheses are optional.',
-      },
-    ],
-  },
-  {
-    name: 'string',
-    signatures: [
-      {
-        signature: 'STRING(timestamp_expression[, timezone])\n',
-        description:
-          'Converts a `timestamp_expression` to a STRING data type. Supports an optional\nparameter to specify a time zone. See\nTime zone definitions for information\non how to specify a time zone.',
       },
     ],
   },
