@@ -58,4 +58,18 @@ export class BigQueryContext {
       return err(e.details ?? 'Unknown parser error [at 0:0]');
     }
   }
+
+  async ensureCatalogInitialized(compiledDocument: TextDocument): Promise<void> {
+    const presentContext = this.get();
+    await presentContext.schemaTracker.refreshTableNames(compiledDocument.getText());
+    if (presentContext.schemaTracker.hasNewTables || !presentContext.zetaSqlWrapper.isCatalogRegistered()) {
+      await this.registerCatalog();
+    }
+  }
+
+  async registerCatalog(): Promise<void> {
+    const presentContext = this.get();
+    await presentContext.zetaSqlWrapper.registerCatalog(presentContext.schemaTracker.tableDefinitions);
+    presentContext.schemaTracker.resetHasNewTables();
+  }
 }

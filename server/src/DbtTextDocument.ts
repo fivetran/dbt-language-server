@@ -201,24 +201,6 @@ export class DbtTextDocument {
     await this.modelCompiler.compile(this.getModelPath());
   }, DbtTextDocument.DEBOUNCE_TIMEOUT);
 
-  async ensureCatalogInitialized(): Promise<void> {
-    if (this.bigQueryContext.isPresent()) {
-      const presentContext = this.bigQueryContext.get();
-      await presentContext.schemaTracker.refreshTableNames(this.compiledDocument.getText());
-      if (presentContext.schemaTracker.hasNewTables || !presentContext.zetaSqlWrapper.isCatalogRegistered()) {
-        await this.registerCatalog();
-      }
-    }
-  }
-
-  async registerCatalog(): Promise<void> {
-    if (this.bigQueryContext.isPresent()) {
-      const presentContext = this.bigQueryContext.get();
-      await presentContext.zetaSqlWrapper.registerCatalog(presentContext.schemaTracker.tableDefinitions);
-      presentContext.schemaTracker.resetHasNewTables();
-    }
-  }
-
   getModelPath(): string {
     const index = this.rawDocument.uri.indexOf(this.workspaceFolder);
     return this.rawDocument.uri.slice(index + this.workspaceFolder.length + 1);
@@ -249,7 +231,7 @@ export class DbtTextDocument {
     let compiledDocDiagnostics: Diagnostic[] = [];
 
     if (this.bigQueryContext.isPresent()) {
-      await this.ensureCatalogInitialized();
+      await this.bigQueryContext.ensureCatalogInitialized(this.compiledDocument);
       const astResult = await this.bigQueryContext.getAstOrError(this.compiledDocument);
       if (astResult.isOk()) {
         this.ast = astResult.value;
