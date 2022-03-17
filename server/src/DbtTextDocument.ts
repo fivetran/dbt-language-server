@@ -1,5 +1,4 @@
-import { AnalyzeResponse, AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
-import { err, ok, Result } from 'neverthrow';
+import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import {
   CompletionItem,
   CompletionParams,
@@ -202,23 +201,6 @@ export class DbtTextDocument {
     await this.modelCompiler.compile(this.getModelPath());
   }, DbtTextDocument.DEBOUNCE_TIMEOUT);
 
-  async getAstOrError(): Promise<Result<AnalyzeResponse__Output, string>> {
-    try {
-      if (!this.bigQueryContext.isPresent()) {
-        throw new Error('Zeta SQL is not initialized.');
-      }
-
-      const presentContext = this.bigQueryContext.get();
-      const ast = await presentContext.zetaSqlWrapper.analyze(this.compiledDocument.getText());
-      console.log('AST was successfully received');
-
-      return ok(ast);
-    } catch (e: any) {
-      console.log('There was an error wile parsing SQL query');
-      return err(e.details ?? 'Unknown parser error [at 0:0]');
-    }
-  }
-
   async ensureCatalogInitialized(): Promise<void> {
     if (this.bigQueryContext.isPresent()) {
       const presentContext = this.bigQueryContext.get();
@@ -268,7 +250,7 @@ export class DbtTextDocument {
 
     if (this.bigQueryContext.isPresent()) {
       await this.ensureCatalogInitialized();
-      const astResult = await this.getAstOrError();
+      const astResult = await this.bigQueryContext.getAstOrError(this.compiledDocument);
       if (astResult.isOk()) {
         this.ast = astResult.value;
       }

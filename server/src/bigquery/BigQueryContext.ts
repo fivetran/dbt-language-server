@@ -1,3 +1,6 @@
+import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
+import { err, ok, Result } from 'neverthrow';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DestinationDefinition } from '../DestinationDefinition';
 import { SchemaTracker } from '../SchemaTracker';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
@@ -10,6 +13,8 @@ interface PresentBigQueryContext {
 }
 
 export class BigQueryContext {
+  private static CONTEXT_NOT_INITIALIZED_ERROR = 'Context is not initialized.';
+
   private constructor(public present: boolean, public presentBigQueryContext?: PresentBigQueryContext) {}
 
   public static createEmptyContext(): BigQueryContext {
@@ -35,8 +40,22 @@ export class BigQueryContext {
 
   get(): PresentBigQueryContext {
     if (!this.present) {
-      throw new Error('Context is not initialized.');
+      throw new Error(BigQueryContext.CONTEXT_NOT_INITIALIZED_ERROR);
     }
     return this.presentBigQueryContext as PresentBigQueryContext;
+  }
+
+  async getAstOrError(compiledDocument: TextDocument): Promise<Result<AnalyzeResponse__Output, string>> {
+    try {
+      const presentContext = this.get();
+
+      const ast = await presentContext.zetaSqlWrapper.analyze(compiledDocument.getText());
+      console.log('AST was successfully received');
+
+      return ok(ast);
+    } catch (e: any) {
+      console.log('There was an error wile parsing SQL query');
+      return err(e.details ?? 'Unknown parser error [at 0:0]');
+    }
   }
 }
