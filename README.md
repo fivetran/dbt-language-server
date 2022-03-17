@@ -74,10 +74,13 @@ Prior to using the extension, you need to perform the following steps:
 
 ## Profiles
 
+You can use this extension with any data warehouse which is supported by dbt. See [Available adapters](https://docs.getdbt.com/docs/available-adapters).
+
 ### BigQuery Profile
 
 A BigQuery profile can be set up using one of the following authentication methods:
 - [oauth via gcloud](#oauth-via-gcloud)
+- [oauth token-based](#oauth-token-based)
 - [service account file](#service-account-file)
 - [service account json](#service-account-json)
 
