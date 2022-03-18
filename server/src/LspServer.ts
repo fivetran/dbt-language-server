@@ -55,6 +55,7 @@ export class LspServer {
 
   workspaceFolder?: string;
 
+  bigQueryContext?: BigQueryContext;
   bigQueryClient?: BigQueryClient;
   destinationDefinition?: DestinationDefinition;
   zetaSqlWrapper?: ZetaSqlWrapper;
@@ -239,8 +240,13 @@ export class LspServer {
       this.zetaSqlWrapper = new ZetaSqlWrapper();
       await this.zetaSqlWrapper.initializeZetaSql();
 
+      this.bigQueryContext = this.zetaSqlWrapper.isSupported()
+        ? BigQueryContext.createPresentContext(this.bigQueryClient, this.destinationDefinition, this.zetaSqlWrapper)
+        : BigQueryContext.createEmptyContext();
+
       return ok(profileResult.value);
     } catch (e) {
+      this.bigQueryContext = BigQueryContext.createEmptyContext();
       return err({ message: 'Data Warehouse initialization failed.' });
     }
   }
@@ -295,10 +301,10 @@ export class LspServer {
         return;
       }
 
-      const bigQueryContext =
-        this.bigQueryClient && this.destinationDefinition && this.zetaSqlWrapper?.isSupported()
-          ? BigQueryContext.createPresentContext(this.bigQueryClient, this.destinationDefinition, this.zetaSqlWrapper)
-          : BigQueryContext.createEmptyContext();
+      if (!this.bigQueryContext) {
+        console.log('BigQuery context is not created');
+        return;
+      }
 
       document = new DbtTextDocument(
         params.textDocument,
@@ -310,7 +316,7 @@ export class LspServer {
         new ModelCompiler(this.dbtRpcClient),
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,
-        bigQueryContext,
+        this.bigQueryContext,
       );
       this.openedDocuments.set(uri, document);
 
