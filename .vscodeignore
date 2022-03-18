@@ -4,6 +4,7 @@
 
 # Whitelist needed files
 !README.md
+!CHANGELOG.md
 !LICENSE
 !package.json
 

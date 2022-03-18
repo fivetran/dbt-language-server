@@ -8,6 +8,7 @@ Also it provides additional features for BigQuery data warehouses like [Highligh
 ### Table of Contents
 
 - [Features](#features)
+   - [Go to definition](#go-to-definition)
    - [Highlighting errors](#highlighting-errors)
    - [Signature help](#signature-help)
    - [Completion for SQL](#completion-for-sql)
