@@ -227,11 +227,13 @@ export class LspServer {
     try {
       const profileResult = this.dbtProfileCreator.createDbtProfile();
       if (profileResult.isErr()) {
+        this.bigQueryContext = BigQueryContext.createEmptyContext();
         return err(profileResult.error);
       }
 
       const clientResult = await profileResult.value.dbtProfile.createClient(profileResult.value.targetConfig);
       if (clientResult.isErr()) {
+        this.bigQueryContext = BigQueryContext.createEmptyContext();
         return err({ message: clientResult.error, type: profileResult.value.type, method: profileResult.value.method });
       }
 
