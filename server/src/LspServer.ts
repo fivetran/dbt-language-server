@@ -141,6 +141,7 @@ export class LspServer {
 
     const initializeDestinationResult = await this.initializeDestination();
     if (initializeDestinationResult.isErr()) {
+      this.connection.window.showWarningMessage(initializeDestinationResult.error.message);
       this.connection.window.showWarningMessage(
         `Only common dbt features will be available. Dbt profile was not configured. ${initializeDestinationResult.error}`,
       );
