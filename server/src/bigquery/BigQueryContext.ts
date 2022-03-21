@@ -1,8 +1,10 @@
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { err, ok, Result } from 'neverthrow';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { DbtProfileCreator, DbtProfileError, DbtProfileSuccess } from '../DbtProfileCreator';
 import { DestinationDefinition } from '../DestinationDefinition';
 import { SchemaTracker } from '../SchemaTracker';
+import { YamlParser } from '../YamlParser';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 import { BigQueryClient } from './BigQueryClient';
 
@@ -15,27 +17,63 @@ interface PresentBigQueryContext {
 export class BigQueryContext {
   private static CONTEXT_NOT_INITIALIZED_ERROR = 'Context is not initialized.';
 
-  private constructor(public present: boolean, public presentBigQueryContext?: PresentBigQueryContext) {}
+  private dbtProfileCreator: DbtProfileCreator;
 
-  public static createEmptyContext(): BigQueryContext {
-    return new BigQueryContext(false);
+  private present?: boolean;
+  private presentBigQueryContext?: PresentBigQueryContext;
+
+  public constructor(private yamlParser: YamlParser) {
+    this.dbtProfileCreator = new DbtProfileCreator(this.yamlParser);
   }
 
-  public static createPresentContext(
+  public async initialize(): Promise<Result<DbtProfileSuccess, DbtProfileError>> {
+    try {
+      const profileResult = this.dbtProfileCreator.createDbtProfile();
+      if (profileResult.isErr()) {
+        this.initializeEmptyContext();
+        return err(profileResult.error);
+      }
+
+      const clientResult = await profileResult.value.dbtProfile.createClient(profileResult.value.targetConfig);
+      if (clientResult.isErr()) {
+        this.initializeEmptyContext();
+        return err({ message: clientResult.error, type: profileResult.value.type, method: profileResult.value.method });
+      }
+
+      const bigQueryClient = clientResult.value as BigQueryClient;
+      const destinationDefinition = new DestinationDefinition(bigQueryClient);
+
+      const zetaSqlWrapper = new ZetaSqlWrapper();
+      await zetaSqlWrapper.initializeZetaSql();
+
+      this.initializePresentContext(bigQueryClient, destinationDefinition, zetaSqlWrapper);
+
+      return ok(profileResult.value);
+    } catch (e) {
+      this.initializeEmptyContext();
+      return err({ message: 'Data Warehouse initialization failed.' });
+    }
+  }
+
+  private initializeEmptyContext(): void {
+    this.present = false;
+  }
+
+  private initializePresentContext(
     bigQueryClient: BigQueryClient,
     destinationDefinition: DestinationDefinition,
     zetaSqlWrapper: ZetaSqlWrapper,
-  ): BigQueryContext {
+  ): void {
     const schemaTracker = new SchemaTracker(bigQueryClient, zetaSqlWrapper);
-    return new BigQueryContext(true, {
+    this.presentBigQueryContext = {
       schemaTracker,
       destinationDefinition,
       zetaSqlWrapper,
-    });
+    };
   }
 
   isPresent(): boolean {
-    return this.present;
+    return this.present ?? false;
   }
 
   get(): PresentBigQueryContext {
@@ -71,5 +109,11 @@ export class BigQueryContext {
     const presentContext = this.get();
     await presentContext.zetaSqlWrapper.registerCatalog(presentContext.schemaTracker.tableDefinitions);
     presentContext.schemaTracker.resetHasNewTables();
+  }
+
+  public dispose(): void {
+    if (this.isPresent()) {
+      void this.get().zetaSqlWrapper.terminateServer();
+    }
   }
 }

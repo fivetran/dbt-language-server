@@ -1,17 +1,14 @@
 import { assertThat } from 'hamjest';
-import { anything, instance, mock, spy, verify, when } from 'ts-mockito';
+import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentSaveReason, _Connection } from 'vscode-languageserver';
-import { BigQueryClient } from '../bigquery/BigQueryClient';
 import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { CompletionProvider } from '../CompletionProvider';
 import { DbtRpcServer } from '../DbtRpcServer';
 import { DbtTextDocument } from '../DbtTextDocument';
 import { JinjaDefinitionProvider } from '../definition/JinjaDefinitionProvider';
-import { DestinationDefinition } from '../DestinationDefinition';
 import { JinjaParser } from '../JinjaParser';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProgressReporter } from '../ProgressReporter';
-import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 import { sleep } from './helper';
 
 describe('DbtTextDocument', () => {
@@ -20,10 +17,7 @@ describe('DbtTextDocument', () => {
   let document: DbtTextDocument;
   let mockModelCompiler: ModelCompiler;
   let mockJinjaParser: JinjaParser;
-  let mockZetaSqlWrapper: ZetaSqlWrapper;
-  let mockBigQueryClient: BigQueryClient;
-  let mockDestinationDefinition: DestinationDefinition;
-  let spiedBigQueryContext: BigQueryContext;
+  let mockBigQueryContext: BigQueryContext;
 
   const onCompilationErrorEmitter = new Emitter<string>();
   const onCompilationFinishedEmitter = new Emitter<string>();
@@ -38,14 +32,9 @@ describe('DbtTextDocument', () => {
     when(mockModelCompiler.onFinishAllCompilationJobs).thenReturn(new Emitter<void>().event);
 
     mockJinjaParser = mock(JinjaParser);
-    mockZetaSqlWrapper = mock(ZetaSqlWrapper);
-    mockBigQueryClient = mock(BigQueryClient);
-    mockDestinationDefinition = mock(DestinationDefinition);
 
-    when(mockZetaSqlWrapper.isSupported()).thenReturn(true);
-
-    const bigQueryContext = BigQueryContext.createPresentContext(mockBigQueryClient, mockDestinationDefinition, instance(mockZetaSqlWrapper));
-    spiedBigQueryContext = spy(bigQueryContext);
+    mockBigQueryContext = mock(BigQueryContext);
+    when(mockBigQueryContext.isPresent()).thenReturn(false);
 
     document = new DbtTextDocument(
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
@@ -57,7 +46,7 @@ describe('DbtTextDocument', () => {
       instance(mockModelCompiler),
       instance(mockJinjaParser),
       onGlobalDbtErrorFixedEmitter,
-      bigQueryContext,
+      instance(mockBigQueryContext),
     );
   });
 
@@ -160,25 +149,20 @@ describe('DbtTextDocument', () => {
     verify(mockModelCompiler.compile(anything())).once();
   });
 
-  it('Should not interact with ZetaSQL if it is not supported', async () => {
+  it('Should not interact with BigQueryContext if it is not present', async () => {
     // arrange
     when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(false);
     when(mockJinjaParser.findAllJinjaRanges(document.rawDocument)).thenReturn([]);
-    when(spiedBigQueryContext.isPresent()).thenReturn(false);
 
     // act
     await document.didOpenTextDocument(false);
     await sleepMoreThanDebounceTime();
 
     // assert
-    verify(spiedBigQueryContext.isPresent()).once();
-
-    verify(mockZetaSqlWrapper.initializeZetaSql()).never();
-    verify(mockZetaSqlWrapper.getClient()).never();
-    verify(mockZetaSqlWrapper.isCatalogRegistered()).never();
-    verify(mockZetaSqlWrapper.registerCatalog(anything())).never();
-    verify(mockZetaSqlWrapper.analyze(anything())).never();
-    verify(mockZetaSqlWrapper.terminateServer()).never();
+    verify(mockBigQueryContext.isPresent()).once();
+    verify(mockBigQueryContext.getAstOrError(anything())).never();
+    verify(mockBigQueryContext.ensureCatalogInitialized(anything())).never();
+    verify(mockBigQueryContext.registerCatalog()).never();
   });
 
   it('Should set hasDbtError flag on dbt compilation error', () => {

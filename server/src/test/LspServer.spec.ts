@@ -1,11 +1,9 @@
 import { anything, instance, mock, spy, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentIdentifier, _Connection } from 'vscode-languageserver';
-import { BigQueryClient } from '../bigquery/BigQueryClient';
 import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { CompletionProvider } from '../CompletionProvider';
 import { DbtTextDocument } from '../DbtTextDocument';
 import { JinjaDefinitionProvider } from '../definition/JinjaDefinitionProvider';
-import { DestinationDefinition } from '../DestinationDefinition';
 import { JinjaParser } from '../JinjaParser';
 import { LspServer } from '../LspServer';
 import { ModelCompiler } from '../ModelCompiler';
@@ -26,9 +24,7 @@ describe('LspServer', () => {
   let lspServer: LspServer;
   let spiedLspServer: LspServer;
   let document: DbtTextDocument;
-  let mockBigQueryClient: BigQueryClient;
-  let mockDestinationDefinition: DestinationDefinition;
-  let bigQueryContext: BigQueryContext;
+  let mockBigQueryContext: BigQueryContext;
 
   beforeEach(() => {
     lspServer = new LspServer(mock<_Connection>());
@@ -44,10 +40,7 @@ describe('LspServer', () => {
     mockZetaSqlWrapper = mock(ZetaSqlWrapper);
     when(mockZetaSqlWrapper.isSupported()).thenReturn(true);
 
-    mockBigQueryClient = mock(BigQueryClient);
-    mockDestinationDefinition = mock(DestinationDefinition);
-
-    bigQueryContext = BigQueryContext.createPresentContext(mockBigQueryClient, mockDestinationDefinition, instance(mockZetaSqlWrapper));
+    mockBigQueryContext = mock(BigQueryContext);
 
     document = new DbtTextDocument(
       { uri: OPENED_URI, languageId: SQL_LANGUAGE_ID, version: 1, text: TEXT },
@@ -59,7 +52,7 @@ describe('LspServer', () => {
       instance(mockModelCompiler),
       mock(JinjaParser),
       new Emitter<void>(),
-      bigQueryContext,
+      mockBigQueryContext,
     );
     lspServer.openedDocuments.set(OPENED_URI, document);
 

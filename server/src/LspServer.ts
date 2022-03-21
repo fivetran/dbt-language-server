@@ -1,4 +1,3 @@
-import { err, ok, Result } from 'neverthrow';
 import { performance } from 'perf_hooks';
 import {
   CompletionItem,
@@ -25,7 +24,6 @@ import {
   WillSaveTextDocumentParams,
   _Connection,
 } from 'vscode-languageserver';
-import { BigQueryClient } from './bigquery/BigQueryClient';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtProfileCreator, DbtProfileError, DbtProfileSuccess } from './DbtProfileCreator';
@@ -35,7 +33,6 @@ import { DbtTextDocument } from './DbtTextDocument';
 import { getStringVersion } from './DbtVersion';
 import { Command } from './dbt_commands/Command';
 import { JinjaDefinitionProvider } from './definition/JinjaDefinitionProvider';
-import { DestinationDefinition } from './DestinationDefinition';
 import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
 import { JinjaParser } from './JinjaParser';
@@ -43,7 +40,6 @@ import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { YamlParser } from './YamlParser';
-import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 
 interface TelemetryEvent {
   name: string;
@@ -54,12 +50,6 @@ export class LspServer {
   static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
 
   workspaceFolder?: string;
-
-  bigQueryContext?: BigQueryContext;
-  bigQueryClient?: BigQueryClient;
-  destinationDefinition?: DestinationDefinition;
-  zetaSqlWrapper?: ZetaSqlWrapper;
-  onGlobalDbtErrorFixedEmitter = new Emitter<void>();
 
   hasConfigurationCapability = false;
   dbtRpcServer = new DbtRpcServer();
@@ -74,6 +64,9 @@ export class LspServer {
   manifestParser = new ManifestParser();
   featureFinder = new FeatureFinder();
   initStart = performance.now();
+  onGlobalDbtErrorFixedEmitter = new Emitter<void>();
+
+  bigQueryContext: BigQueryContext;
 
   openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
 
@@ -88,6 +81,7 @@ export class LspServer {
       this.fileChangeListener.onSourcesChanged,
     );
     this.fileChangeListener.onDbtProjectYmlChanged(this.onDbtProjectYmlChanged.bind(this));
+    this.bigQueryContext = new BigQueryContext(this.yamlParser);
   }
 
   onInitialize(params: InitializeParams): InitializeResult<any> | ResponseError<InitializeError> {
@@ -139,7 +133,7 @@ export class LspServer {
       await this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
     }
 
-    const initializeDestinationResult = await this.initializeDestination();
+    const initializeDestinationResult = await this.bigQueryContext.initialize();
     if (initializeDestinationResult.isErr()) {
       this.connection.window.showWarningMessage(initializeDestinationResult.error.message);
       this.connection.window.showWarningMessage(
@@ -223,37 +217,6 @@ export class LspServer {
     }
   }
 
-  async initializeDestination(): Promise<Result<DbtProfileSuccess, DbtProfileError>> {
-    try {
-      const profileResult = this.dbtProfileCreator.createDbtProfile();
-      if (profileResult.isErr()) {
-        this.bigQueryContext = BigQueryContext.createEmptyContext();
-        return err(profileResult.error);
-      }
-
-      const clientResult = await profileResult.value.dbtProfile.createClient(profileResult.value.targetConfig);
-      if (clientResult.isErr()) {
-        this.bigQueryContext = BigQueryContext.createEmptyContext();
-        return err({ message: clientResult.error, type: profileResult.value.type, method: profileResult.value.method });
-      }
-
-      this.bigQueryClient = clientResult.value as BigQueryClient;
-      this.destinationDefinition = new DestinationDefinition(this.bigQueryClient);
-
-      this.zetaSqlWrapper = new ZetaSqlWrapper();
-      await this.zetaSqlWrapper.initializeZetaSql();
-
-      this.bigQueryContext = this.zetaSqlWrapper.isSupported()
-        ? BigQueryContext.createPresentContext(this.bigQueryClient, this.destinationDefinition, this.zetaSqlWrapper)
-        : BigQueryContext.createEmptyContext();
-
-      return ok(profileResult.value);
-    } catch (e) {
-      this.bigQueryContext = BigQueryContext.createEmptyContext();
-      return err({ message: 'Data Warehouse initialization failed.' });
-    }
-  }
-
   onWillSaveTextDocument(params: WillSaveTextDocumentParams): void {
     const document = this.openedDocuments.get(params.textDocument.uri);
     if (document) {
@@ -301,11 +264,6 @@ export class LspServer {
 
     if (!document) {
       if (!(await this.isDbtReady())) {
-        return;
-      }
-
-      if (!this.bigQueryContext) {
-        console.log('BigQuery context is not created');
         return;
       }
 
@@ -364,11 +322,11 @@ export class LspServer {
   }
 
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
-    if (!this.destinationDefinition) {
+    if (!this.bigQueryContext.isPresent()) {
       return undefined;
     }
     const document = this.openedDocuments.get(completionParams.textDocument.uri);
-    return document?.onCompletion(completionParams, this.destinationDefinition);
+    return document?.onCompletion(completionParams, this.bigQueryContext.get().destinationDefinition);
   }
 
   onCompletionResolve(item: CompletionItem): CompletionItem {
@@ -400,7 +358,7 @@ export class LspServer {
   dispose(): void {
     console.log('Dispose start...');
     this.dbtRpcServer.dispose();
-    void this.zetaSqlWrapper?.terminateServer();
+    this.bigQueryContext.dispose();
     this.onGlobalDbtErrorFixedEmitter.dispose();
     console.log('Dispose end.');
   }
