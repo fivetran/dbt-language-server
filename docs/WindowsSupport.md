@@ -46,7 +46,7 @@ code --remote wsl+<distro name> <path in WSL>
     ARG VARIANT="hirsute"
     FROM mcr.microsoft.com/vscode/devcontainers/base:0-${VARIANT}
     ```
-1. Create `./.devcontainer/devcontainer.json` file in your project's root folder and paste the following content (see [the Devcontainer.json Reference documentation](https://code.visualstudio.com/docs/remote/devcontainerjson-reference) for more information) (**note**: replace <u><i>dbt-bigquery</i></u> with your adapter like <i><u>dbt-postgres</i></u>).
+1. Create `./.devcontainer/devcontainer.json` file in your project's root folder and paste the following content (see [the Devcontainer.json Reference documentation](https://code.visualstudio.com/docs/remote/devcontainerjson-reference) for more information) (**note**: replace *dbt-bigquery* with your adapter like *dbt-postgres*).
     ```json
     {
       "name": "Ubuntu",
