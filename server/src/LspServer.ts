@@ -26,7 +26,7 @@ import {
 } from 'vscode-languageserver';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { CompletionProvider } from './CompletionProvider';
-import { DbtProfileCreator, DbtProfileResult } from './DbtProfileCreator';
+import { DbtProfileResult } from './DbtProfileCreator';
 import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcServer } from './DbtRpcServer';
 import { DbtTextDocument } from './DbtTextDocument';
@@ -60,7 +60,6 @@ export class LspServer {
   completionProvider: CompletionProvider;
   jinjaDefinitionProvider: JinjaDefinitionProvider;
   yamlParser = new YamlParser();
-  dbtProfileCreator = new DbtProfileCreator(this.yamlParser);
   manifestParser = new ManifestParser();
   featureFinder = new FeatureFinder();
   initStart = performance.now();
