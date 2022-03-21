@@ -26,7 +26,7 @@ import {
 } from 'vscode-languageserver';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { CompletionProvider } from './CompletionProvider';
-import { DbtProfileCreator, DbtProfileError, DbtProfileSuccess } from './DbtProfileCreator';
+import { DbtProfileCreator, DbtProfileResult } from './DbtProfileCreator';
 import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcServer } from './DbtRpcServer';
 import { DbtTextDocument } from './DbtTextDocument';
@@ -180,7 +180,7 @@ export class LspServer {
     this.connection.sendNotification<TelemetryEvent>(TelemetryEventNotification.type, { name, properties });
   }
 
-  async startDbtRpc(command: Command, port: number, destinationInitResult: DbtProfileSuccess | DbtProfileError): Promise<void> {
+  async startDbtRpc(command: Command, port: number, destinationInitResult: DbtProfileResult): Promise<void> {
     this.dbtRpcClient.setPort(port);
     try {
       await this.dbtRpcServer.startDbtRpc(command, this.dbtRpcClient);
