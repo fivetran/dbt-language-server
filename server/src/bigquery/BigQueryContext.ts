@@ -64,6 +64,7 @@ export class BigQueryContext {
     destinationDefinition: DestinationDefinition,
     zetaSqlWrapper: ZetaSqlWrapper,
   ): void {
+    this.present = true;
     const schemaTracker = new SchemaTracker(bigQueryClient, zetaSqlWrapper);
     this.presentBigQueryContext = {
       schemaTracker,
