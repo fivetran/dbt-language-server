@@ -26,10 +26,12 @@ export class BigQueryContext {
   ) {}
 
   public static async createContext(yamlParser: YamlParser): Promise<Result<BigQueryContext, ErrorContextInfo>> {
+    let profileResult = undefined;
+
     try {
       const dbtProfileCreator = new DbtProfileCreator(yamlParser);
 
-      const profileResult = dbtProfileCreator.createDbtProfile();
+      profileResult = dbtProfileCreator.createDbtProfile();
       if (profileResult.isErr()) {
         return BigQueryContext.createErrorContextInfo(profileResult.error.message, profileResult.error.type, profileResult.error.method);
       }
@@ -53,7 +55,15 @@ export class BigQueryContext {
         profileResult.value.method,
       );
     } catch (e) {
-      return BigQueryContext.createErrorContextInfo('Data Warehouse initialization failed.');
+      let type = undefined;
+      let method = undefined;
+
+      if (profileResult) {
+        type = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
+        method = profileResult.isOk() ? profileResult.value.method : profileResult.error.method;
+      }
+
+      return BigQueryContext.createErrorContextInfo('Data Warehouse initialization failed.', type, method);
     }
   }
 
