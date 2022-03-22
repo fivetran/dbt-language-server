@@ -64,7 +64,7 @@ export class DbtTextDocument {
     private modelCompiler: ModelCompiler,
     private jinjaParser: JinjaParser,
     private onGlobalDbtErrorFixedEmitter: Emitter<void>,
-    private bigQueryContext: BigQueryContext,
+    private bigQueryContext?: BigQueryContext,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -230,7 +230,7 @@ export class DbtTextDocument {
     let rawDocDiagnostics: Diagnostic[] = [];
     let compiledDocDiagnostics: Diagnostic[] = [];
 
-    if (this.bigQueryContext.isPresent()) {
+    if (this.bigQueryContext) {
       await this.bigQueryContext.ensureCatalogInitialized(this.compiledDocument);
       const astResult = await this.bigQueryContext.getAstOrError(this.compiledDocument);
       if (astResult.isOk()) {

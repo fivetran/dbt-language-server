@@ -24,9 +24,8 @@ import {
   WillSaveTextDocumentParams,
   _Connection,
 } from 'vscode-languageserver';
-import { BigQueryContext } from './bigquery/BigQueryContext';
+import { BigQueryContext, ContextInfo } from './bigquery/BigQueryContext';
 import { CompletionProvider } from './CompletionProvider';
-import { DbtProfileResult } from './DbtProfileCreator';
 import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcServer } from './DbtRpcServer';
 import { DbtTextDocument } from './DbtTextDocument';
@@ -65,7 +64,7 @@ export class LspServer {
   initStart = performance.now();
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
 
-  bigQueryContext: BigQueryContext;
+  bigQueryContext?: BigQueryContext;
 
   openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
 
@@ -80,7 +79,6 @@ export class LspServer {
       this.fileChangeListener.onSourcesChanged,
     );
     this.fileChangeListener.onDbtProjectYmlChanged(this.onDbtProjectYmlChanged.bind(this));
-    this.bigQueryContext = new BigQueryContext(this.yamlParser);
   }
 
   onInitialize(params: InitializeParams): InitializeResult<any> | ResponseError<InitializeError> {
@@ -132,11 +130,13 @@ export class LspServer {
       await this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
     }
 
-    const initializeDestinationResult = await this.bigQueryContext.initialize();
-    if (initializeDestinationResult.isErr()) {
-      this.connection.window.showWarningMessage(initializeDestinationResult.error.message);
+    const bigQueryContextInfo = await BigQueryContext.createContext(this.yamlParser);
+    if (bigQueryContextInfo.isOk()) {
+      this.bigQueryContext = bigQueryContextInfo.value;
+    } else {
+      this.connection.window.showWarningMessage(bigQueryContextInfo.error.error);
       this.connection.window.showWarningMessage(
-        `Only common dbt features will be available. Dbt profile was not configured. ${initializeDestinationResult.error}`,
+        `Only common dbt features will be available. Dbt profile was not configured. ${bigQueryContextInfo.error}`,
       );
     }
 
@@ -153,11 +153,7 @@ export class LspServer {
     }
 
     command.addParameter(dbtPort.toString());
-    await this.startDbtRpc(
-      command,
-      dbtPort,
-      initializeDestinationResult.isErr() ? initializeDestinationResult.error : initializeDestinationResult.value,
-    );
+    await this.startDbtRpc(command, dbtPort, bigQueryContextInfo.isErr() ? bigQueryContextInfo.error : bigQueryContextInfo.value.contextInfo);
 
     try {
       await this.dbtRpcServer.startDeferred.promise;
@@ -179,7 +175,7 @@ export class LspServer {
     this.connection.sendNotification<TelemetryEvent>(TelemetryEventNotification.type, { name, properties });
   }
 
-  async startDbtRpc(command: Command, port: number, destinationInitResult: DbtProfileResult): Promise<void> {
+  async startDbtRpc(command: Command, port: number, contextInfo: ContextInfo): Promise<void> {
     this.dbtRpcClient.setPort(port);
     try {
       await this.dbtRpcServer.startDbtRpc(command, this.dbtRpcClient);
@@ -188,8 +184,8 @@ export class LspServer {
         dbtVersion: getStringVersion(this.featureFinder.version),
         python: this.featureFinder.python ?? 'undefined',
         initTime: initTime.toString(),
-        type: destinationInitResult.type ?? 'unknown type',
-        method: destinationInitResult.method ?? 'unknown method',
+        type: contextInfo.type ?? 'unknown type',
+        method: contextInfo.method ?? 'unknown method',
       });
     } catch (e) {
       console.log(e);
@@ -321,11 +317,11 @@ export class LspServer {
   }
 
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
-    if (!this.bigQueryContext.isPresent()) {
+    if (!this.bigQueryContext) {
       return undefined;
     }
     const document = this.openedDocuments.get(completionParams.textDocument.uri);
-    return document?.onCompletion(completionParams, this.bigQueryContext.get().destinationDefinition);
+    return document?.onCompletion(completionParams, this.bigQueryContext.destinationDefinition);
   }
 
   onCompletionResolve(item: CompletionItem): CompletionItem {
@@ -357,7 +353,7 @@ export class LspServer {
   dispose(): void {
     console.log('Dispose start...');
     this.dbtRpcServer.dispose();
-    this.bigQueryContext.dispose();
+    this.bigQueryContext?.dispose();
     this.onGlobalDbtErrorFixedEmitter.dispose();
     console.log('Dispose end.');
   }

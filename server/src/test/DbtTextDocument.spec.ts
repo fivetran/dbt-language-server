@@ -1,7 +1,6 @@
 import { assertThat } from 'hamjest';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentSaveReason, _Connection } from 'vscode-languageserver';
-import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { CompletionProvider } from '../CompletionProvider';
 import { DbtRpcServer } from '../DbtRpcServer';
 import { DbtTextDocument } from '../DbtTextDocument';
@@ -17,7 +16,6 @@ describe('DbtTextDocument', () => {
   let document: DbtTextDocument;
   let mockModelCompiler: ModelCompiler;
   let mockJinjaParser: JinjaParser;
-  let mockBigQueryContext: BigQueryContext;
 
   const onCompilationErrorEmitter = new Emitter<string>();
   const onCompilationFinishedEmitter = new Emitter<string>();
@@ -33,9 +31,6 @@ describe('DbtTextDocument', () => {
 
     mockJinjaParser = mock(JinjaParser);
 
-    mockBigQueryContext = mock(BigQueryContext);
-    when(mockBigQueryContext.isPresent()).thenReturn(false);
-
     document = new DbtTextDocument(
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
       '',
@@ -46,7 +41,7 @@ describe('DbtTextDocument', () => {
       instance(mockModelCompiler),
       instance(mockJinjaParser),
       onGlobalDbtErrorFixedEmitter,
-      instance(mockBigQueryContext),
+      undefined,
     );
   });
 
@@ -147,22 +142,6 @@ describe('DbtTextDocument', () => {
 
     // assert
     verify(mockModelCompiler.compile(anything())).once();
-  });
-
-  it('Should not interact with BigQueryContext if it is not present', async () => {
-    // arrange
-    when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(false);
-    when(mockJinjaParser.findAllJinjaRanges(document.rawDocument)).thenReturn([]);
-
-    // act
-    await document.didOpenTextDocument(false);
-    await sleepMoreThanDebounceTime();
-
-    // assert
-    verify(mockBigQueryContext.isPresent()).once();
-    verify(mockBigQueryContext.getAstOrError(anything())).never();
-    verify(mockBigQueryContext.ensureCatalogInitialized(anything())).never();
-    verify(mockBigQueryContext.registerCatalog()).never();
   });
 
   it('Should set hasDbtError flag on dbt compilation error', () => {
