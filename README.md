@@ -62,8 +62,8 @@ Also, it provides additional features like [Highlighting errors](#highlighting-e
 
 The extension works on MacOS, Linux, and Windows (for Windows, see the additional steps in the [Windows Support](docs/WindowsSupport.md) article). It supports the default locations for `profiles.yml` and `dbt_project.yml` files.
 
-Prior to using the extension, you need to perform the following steps (**note**: replace *dbt-bigquery* with your adapter like *dbt-postgres*):
-1. [Install bigquery-dbt and dbt-rpc](https://docs.getdbt.com/dbt-cli/installation) (e.g `python3 -m pip install dbt-bigquery dbt-rpc`).
+Prior to using the extension, you need to perform the following steps (**note**: replace *dbt-bigquery* with your adapter, such as *dbt-postgres*):
+1. [Install bigquery-dbt and dbt-rpc](https://docs.getdbt.com/dbt-cli/installation) (e.g., `python3 -m pip install dbt-bigquery dbt-rpc`).
 1. In Terminal, test that dbt-rpc works by running the `dbt-rpc --version` command or [specifying the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g., `~/dbt-env/bin/python3`).
 1. Create a file named `profiles.yml` in the `~/.dbt/` folder and [add a profile](https://docs.getdbt.com/dbt-cli/configure-your-profile).
 1. Open the dbt project in the new VS Code window.
