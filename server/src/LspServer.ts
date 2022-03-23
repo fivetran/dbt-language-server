@@ -62,6 +62,7 @@ export class LspServer {
   manifestParser = new ManifestParser();
   featureFinder = new FeatureFinder();
   initStart = performance.now();
+  initAttempt = 0;
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
 
   bigQueryContext?: BigQueryContext;
@@ -125,6 +126,8 @@ export class LspServer {
   }
 
   async onInitialized(): Promise<void> {
+    this.initAttempt++;
+
     if (this.hasConfigurationCapability) {
       // Register for all configuration changes.
       await this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
@@ -152,10 +155,14 @@ export class LspServer {
     }
 
     command.addParameter(dbtPort.toString());
-    await this.startDbtRpc(command, dbtPort, bigQueryContextInfo.isErr() ? bigQueryContextInfo.error : bigQueryContextInfo.value.contextInfo);
+    await this.startDbtRpc(command, dbtPort);
 
     try {
       await this.dbtRpcServer.startDeferred.promise;
+
+      const contextInfo = bigQueryContextInfo.isErr() ? bigQueryContextInfo.error : bigQueryContextInfo.value.contextInfo;
+      const initTime = performance.now() - this.initStart;
+      this.logStartupInfo(contextInfo, initTime, this.initAttempt);
     } catch (e) {
       await this.onInitializedRetry('Failed to start dbt rpc. Check your dbt profile configuration.');
     }
@@ -169,23 +176,26 @@ export class LspServer {
     }
   }
 
+  logStartupInfo(contextInfo: ContextInfo, initTime: number, initAttempt: number): void {
+    this.sendTelemetry('log', {
+      dbtVersion: getStringVersion(this.featureFinder.version),
+      python: this.featureFinder.python ?? 'undefined',
+      initTime: initTime.toString(),
+      type: contextInfo.type ?? 'unknown type',
+      method: contextInfo.method ?? 'unknown method',
+      initAttempt: initAttempt.toString(),
+    });
+  }
+
   sendTelemetry(name: string, properties?: { [key: string]: string }): void {
     console.log(`Telemetry log: ${JSON.stringify(properties)}`);
     this.connection.sendNotification<TelemetryEvent>(TelemetryEventNotification.type, { name, properties });
   }
 
-  async startDbtRpc(command: Command, port: number, contextInfo: ContextInfo): Promise<void> {
+  async startDbtRpc(command: Command, port: number): Promise<void> {
     this.dbtRpcClient.setPort(port);
     try {
       await this.dbtRpcServer.startDbtRpc(command, this.dbtRpcClient);
-      const initTime = performance.now() - this.initStart;
-      this.sendTelemetry('log', {
-        dbtVersion: getStringVersion(this.featureFinder.version),
-        python: this.featureFinder.python ?? 'undefined',
-        initTime: initTime.toString(),
-        type: contextInfo.type ?? 'unknown type',
-        method: contextInfo.method ?? 'unknown method',
-      });
     } catch (e) {
       console.log(e);
     } finally {
