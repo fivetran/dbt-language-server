@@ -1,4 +1,3 @@
-import { Result } from 'neverthrow';
 import { performance } from 'perf_hooks';
 import {
   CompletionItem,
@@ -25,7 +24,7 @@ import {
   WillSaveTextDocumentParams,
   _Connection,
 } from 'vscode-languageserver';
-import { BigQueryContext, ContextInfo, ErrorContextInfo } from './bigquery/BigQueryContext';
+import { BigQueryContext, ContextInfo } from './bigquery/BigQueryContext';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcServer } from './DbtRpcServer';
@@ -63,11 +62,16 @@ export class LspServer {
   manifestParser = new ManifestParser();
   featureFinder = new FeatureFinder();
   initStart = performance.now();
-  initAttempt = 0;
+  initDestinationAttempt = 0;
+  initDbtRpcAttempt = 0;
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
 
   bigQueryContext?: BigQueryContext;
-  bigQueryContextInitializePromise?: Promise<ContextInfo>;
+
+  contextFirstInitPromiseResolve?: (value: unknown) => void;
+  contextFirstInitPromise = new Promise(resolve => {
+    this.contextFirstInitPromiseResolve = resolve;
+  });
 
   openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
 
@@ -128,27 +132,40 @@ export class LspServer {
   }
 
   async onInitialized(): Promise<void> {
-    this.initAttempt++;
-
     if (this.hasConfigurationCapability) {
       // Register for all configuration changes.
       await this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
     }
 
-    this.bigQueryContextInitializePromise = BigQueryContext.createContext(this.yamlParser).then(
-      (bigQueryContextInfo: Result<BigQueryContext, ErrorContextInfo>) => {
-        if (bigQueryContextInfo.isOk()) {
-          this.bigQueryContext = bigQueryContextInfo.value;
-          return bigQueryContextInfo.value.contextInfo;
-        }
+    const [, contextInfo] = await Promise.all([this.prepareRpcServer(), this.prepareDestination()]);
 
-        this.connection.window.showWarningMessage(
-          `Only common dbt features will be available. Dbt profile was not configured. ${bigQueryContextInfo.error}`,
-        );
+    const initTime = performance.now() - this.initStart;
+    this.logStartupInfo(contextInfo, initTime, this.initDestinationAttempt, this.initDbtRpcAttempt);
+  }
 
-        return bigQueryContextInfo.error;
-      },
+  async prepareDestination(): Promise<ContextInfo> {
+    this.initDestinationAttempt++;
+
+    const bigQueryContextInfo = await BigQueryContext.createContext(this.yamlParser);
+    if (this.contextFirstInitPromiseResolve) {
+      this.contextFirstInitPromiseResolve(true);
+    }
+
+    if (bigQueryContextInfo.isOk()) {
+      this.bigQueryContext = bigQueryContextInfo.value;
+      return this.bigQueryContext.contextInfo;
+    }
+
+    return this.showErrorDialog<ContextInfo>(
+      `Only common dbt features will be available. Dbt profile was not configured. ${bigQueryContextInfo.error}`,
+      'warning',
+      this.prepareDestination.bind(this),
+      () => Promise.resolve(bigQueryContextInfo.error),
     );
+  }
+
+  async prepareRpcServer(): Promise<void> {
+    this.initDbtRpcAttempt++;
 
     const [command, dbtPort] = await Promise.all([
       this.featureFinder.findDbtRpcCommand(this.connection.sendRequest('custom/getPython')),
@@ -156,42 +173,40 @@ export class LspServer {
     ]);
 
     if (command === undefined) {
-      await this.onInitializedRetry(
+      this.featureFinder = new FeatureFinder();
+      return this.showErrorDialog(
         `Failed to find dbt-rpc. You can use 'python3 -m pip install dbt-bigquery dbt-rpc' command to install it. Check in Terminal that dbt-rpc works running 'dbt-rpc --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g. ~/dbt-env/bin/python3).`,
+        'error',
+        this.prepareRpcServer.bind(this),
+        () => Promise.resolve(),
       );
-      return;
     }
 
     command.addParameter(dbtPort.toString());
-
-    const [, contextInfo] = await Promise.all([this.startDbtRpc(command, dbtPort), this.bigQueryContextInitializePromise]);
-
-    try {
-      await this.dbtRpcServer.startDeferred.promise;
-
-      const initTime = performance.now() - this.initStart;
-      this.logStartupInfo(contextInfo, initTime, this.initAttempt);
-    } catch (e) {
-      await this.onInitializedRetry('Failed to start dbt rpc. Check your dbt profile configuration.');
-    }
+    return this.startDbtRpc(command, dbtPort);
   }
 
-  async onInitializedRetry(message: string): Promise<void> {
-    const errorMessageResult = await this.connection.window.showErrorMessage(message, { title: 'Retry', id: 'retry' });
+  async showErrorDialog<T>(message: string, messageType: 'warning' | 'error', retry: () => Promise<T>, discontinue: () => Promise<T>): Promise<T> {
+    const actions = { title: 'Retry', id: 'retry' };
+    const errorMessageResult =
+      messageType === 'warning'
+        ? await this.connection.window.showWarningMessage(message, actions)
+        : await this.connection.window.showErrorMessage(message, actions);
     if (errorMessageResult?.id === 'retry') {
-      this.featureFinder = new FeatureFinder();
-      await this.onInitialized();
+      return retry();
     }
+    return discontinue();
   }
 
-  logStartupInfo(contextInfo: ContextInfo, initTime: number, initAttempt: number): void {
+  logStartupInfo(contextInfo: ContextInfo, initTime: number, initDestinationAttempt: number, initDbtRpcAttempt: number): void {
     this.sendTelemetry('log', {
       dbtVersion: getStringVersion(this.featureFinder.version),
       python: this.featureFinder.python ?? 'undefined',
       initTime: initTime.toString(),
       type: contextInfo.type ?? 'unknown type',
       method: contextInfo.method ?? 'unknown method',
-      initAttempt: initAttempt.toString(),
+      initDestinationAttempt: initDestinationAttempt.toString(),
+      initDbtRpcAttempt: initDbtRpcAttempt.toString(),
     });
   }
 
@@ -309,7 +324,7 @@ export class LspServer {
 
   async isLanguageServerReady(): Promise<boolean> {
     try {
-      await Promise.all([this.dbtRpcServer.startDeferred.promise, this.bigQueryContextInitializePromise]);
+      await Promise.all([this.dbtRpcServer.startDeferred.promise, this.contextFirstInitPromise]);
       return true;
     } catch (e) {
       return false;

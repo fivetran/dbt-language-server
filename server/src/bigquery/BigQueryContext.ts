@@ -27,10 +27,9 @@ export class BigQueryContext {
 
   public static async createContext(yamlParser: YamlParser): Promise<Result<BigQueryContext, ErrorContextInfo>> {
     let profileResult = undefined;
+    const dbtProfileCreator = new DbtProfileCreator(yamlParser);
 
     try {
-      const dbtProfileCreator = new DbtProfileCreator(yamlParser);
-
       profileResult = dbtProfileCreator.createDbtProfile();
       if (profileResult.isErr()) {
         return BigQueryContext.createErrorContextInfo(profileResult.error.message, profileResult.error.type, profileResult.error.method);
