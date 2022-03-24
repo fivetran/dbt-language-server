@@ -8,6 +8,8 @@
 !LICENSE
 !package.json
 
+!images/Icon.png
+
 !client/out/extension.js
 
 !server/out/**/*.js
