@@ -157,7 +157,7 @@ export class LspServer {
     }
 
     return this.showErrorDialog<ContextInfo>(
-      `Only common dbt features will be available. Dbt profile was not configured. ${bigQueryContextInfo.error}`,
+      `Only common dbt features will be available. Dbt profile was not configured. ${bigQueryContextInfo.error.error}`,
       'warning',
       this.prepareDestination.bind(this),
       () => Promise.resolve(bigQueryContextInfo.error),
