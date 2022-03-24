@@ -234,7 +234,6 @@ jobs:
         run: |
           which dbt
           dbt --version
-          dbt-rpc --version
 
       # Uncomment lines below if you want to connect to the job via SSH
       # - name: Setup SSH via tmate for debugging
