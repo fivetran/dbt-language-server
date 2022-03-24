@@ -1,3 +1,4 @@
+import { Result } from 'neverthrow';
 import { performance } from 'perf_hooks';
 import {
   CompletionItem,
@@ -24,7 +25,7 @@ import {
   WillSaveTextDocumentParams,
   _Connection,
 } from 'vscode-languageserver';
-import { BigQueryContext, ContextInfo } from './bigquery/BigQueryContext';
+import { BigQueryContext, ContextInfo, ErrorContextInfo } from './bigquery/BigQueryContext';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcServer } from './DbtRpcServer';
@@ -133,14 +134,20 @@ export class LspServer {
       await this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
     }
 
-    const bigQueryContextInfo = await BigQueryContext.createContext(this.yamlParser);
-    if (bigQueryContextInfo.isOk()) {
-      this.bigQueryContext = bigQueryContextInfo.value;
-    } else {
-      this.connection.window.showWarningMessage(
-        `Only common dbt features will be available. Dbt profile was not configured. ${bigQueryContextInfo.error}`,
-      );
-    }
+    const createContextPromise = BigQueryContext.createContext(this.yamlParser).then(
+      (bigQueryContextInfo: Result<BigQueryContext, ErrorContextInfo>) => {
+        if (bigQueryContextInfo.isOk()) {
+          this.bigQueryContext = bigQueryContextInfo.value;
+          return bigQueryContextInfo.value.contextInfo;
+        }
+
+        this.connection.window.showWarningMessage(
+          `Only common dbt features will be available. Dbt profile was not configured. ${bigQueryContextInfo.error}`,
+        );
+
+        return bigQueryContextInfo.error;
+      },
+    );
 
     const [command, dbtPort] = await Promise.all([
       this.featureFinder.findDbtRpcCommand(this.connection.sendRequest('custom/getPython')),
@@ -155,12 +162,12 @@ export class LspServer {
     }
 
     command.addParameter(dbtPort.toString());
-    await this.startDbtRpc(command, dbtPort);
+
+    const [, contextInfo] = await Promise.all([this.startDbtRpc(command, dbtPort), createContextPromise]);
 
     try {
       await this.dbtRpcServer.startDeferred.promise;
 
-      const contextInfo = bigQueryContextInfo.isErr() ? bigQueryContextInfo.error : bigQueryContextInfo.value.contextInfo;
       const initTime = performance.now() - this.initStart;
       this.logStartupInfo(contextInfo, initTime, this.initAttempt);
     } catch (e) {
