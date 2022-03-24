@@ -67,6 +67,7 @@ export class LspServer {
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
 
   bigQueryContext?: BigQueryContext;
+  bigQueryContextInitializePromise?: Promise<ContextInfo>;
 
   openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
 
@@ -134,7 +135,7 @@ export class LspServer {
       await this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
     }
 
-    const createContextPromise = BigQueryContext.createContext(this.yamlParser).then(
+    this.bigQueryContextInitializePromise = BigQueryContext.createContext(this.yamlParser).then(
       (bigQueryContextInfo: Result<BigQueryContext, ErrorContextInfo>) => {
         if (bigQueryContextInfo.isOk()) {
           this.bigQueryContext = bigQueryContextInfo.value;
@@ -163,7 +164,7 @@ export class LspServer {
 
     command.addParameter(dbtPort.toString());
 
-    const [, contextInfo] = await Promise.all([this.startDbtRpc(command, dbtPort), createContextPromise]);
+    const [, contextInfo] = await Promise.all([this.startDbtRpc(command, dbtPort), this.bigQueryContextInitializePromise]);
 
     try {
       await this.dbtRpcServer.startDeferred.promise;
@@ -236,7 +237,7 @@ export class LspServer {
   }
 
   async onDidSaveTextDocument(params: DidSaveTextDocumentParams): Promise<void> {
-    if (!(await this.isDbtReady())) {
+    if (!(await this.isLanguageServerReady())) {
       return;
     }
 
@@ -274,7 +275,7 @@ export class LspServer {
     }
 
     if (!document) {
-      if (!(await this.isDbtReady())) {
+      if (!(await this.isLanguageServerReady())) {
         return;
       }
 
@@ -297,7 +298,7 @@ export class LspServer {
   }
 
   async onDidChangeTextDocument(params: DidChangeTextDocumentParams): Promise<void> {
-    if (!(await this.isDbtReady())) {
+    if (!(await this.isLanguageServerReady())) {
       return;
     }
     const document = this.openedDocuments.get(params.textDocument.uri);
@@ -306,9 +307,9 @@ export class LspServer {
     }
   }
 
-  async isDbtReady(): Promise<boolean> {
+  async isLanguageServerReady(): Promise<boolean> {
     try {
-      await this.dbtRpcServer.startDeferred.promise;
+      await Promise.all([this.dbtRpcServer.startDeferred.promise, this.bigQueryContextInitializePromise]);
       return true;
     } catch (e) {
       return false;
