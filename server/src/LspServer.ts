@@ -24,8 +24,9 @@ import {
   WillSaveTextDocumentParams,
   _Connection,
 } from 'vscode-languageserver';
-import { BigQueryContext, ContextInfo } from './bigquery/BigQueryContext';
+import { BigQueryContext } from './bigquery/BigQueryContext';
 import { CompletionProvider } from './CompletionProvider';
+import { DbtProfileCreator, DbtProfileResult, DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcServer } from './DbtRpcServer';
 import { DbtTextDocument } from './DbtTextDocument';
@@ -59,10 +60,10 @@ export class LspServer {
   completionProvider: CompletionProvider;
   jinjaDefinitionProvider: JinjaDefinitionProvider;
   yamlParser = new YamlParser();
+  dbtProfileCreator = new DbtProfileCreator(this.yamlParser);
   manifestParser = new ManifestParser();
   featureFinder = new FeatureFinder();
   initStart = performance.now();
-  initDestinationAttempt = 0;
   initDbtRpcAttempt = 0;
 
   bigQueryContext?: BigQueryContext;
@@ -134,28 +135,28 @@ export class LspServer {
       await this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
     }
 
-    const [, contextInfo] = await Promise.all([this.prepareRpcServer(), this.prepareDestination()]);
+    const profileResult = this.dbtProfileCreator.createDbtProfile();
+    const contextInfo = profileResult.isOk()
+      ? { type: profileResult.value.type, method: profileResult.value.method }
+      : { type: profileResult.error.type, method: profileResult.error.method };
 
+    if (profileResult.isOk()) {
+      void this.prepareDestination(profileResult.value);
+    }
+
+    await this.prepareRpcServer();
     const initTime = performance.now() - this.initStart;
-    this.logStartupInfo(contextInfo, initTime, this.initDestinationAttempt, this.initDbtRpcAttempt);
+    this.logStartupInfo(contextInfo, initTime, this.initDbtRpcAttempt);
   }
 
-  async prepareDestination(): Promise<ContextInfo> {
-    this.initDestinationAttempt++;
-
-    const bigQueryContextInfo = await BigQueryContext.createContext(this.yamlParser);
+  async prepareDestination(profileResult: DbtProfileSuccess): Promise<void> {
+    const bigQueryContextInfo = await BigQueryContext.createContext(profileResult);
     if (bigQueryContextInfo.isOk()) {
       this.bigQueryContext = bigQueryContextInfo.value;
       this.onBigQueryContextCreatedEmitter.fire(this.bigQueryContext);
-      return bigQueryContextInfo.value.contextInfo;
+    } else {
+      this.connection.window.showWarningMessage(`Only common dbt features will be available. Dbt profile was not configured. ${bigQueryContextInfo}`);
     }
-
-    return this.showErrorDialog<ContextInfo>(
-      `Only common dbt features will be available. Dbt profile was not configured. ${bigQueryContextInfo.error.error}`,
-      'warning',
-      this.prepareDestination.bind(this),
-      () => Promise.resolve(bigQueryContextInfo.error),
-    );
   }
 
   async prepareRpcServer(): Promise<void> {
@@ -168,11 +169,8 @@ export class LspServer {
 
     if (command === undefined) {
       this.featureFinder = new FeatureFinder();
-      return this.showErrorDialog(
+      return this.showStartDbtRpcError(
         `Failed to find dbt-rpc. You can use 'python3 -m pip install dbt-bigquery dbt-rpc' command to install it. Check in Terminal that dbt-rpc works running 'dbt-rpc --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g. ~/dbt-env/bin/python3).`,
-        'error',
-        this.prepareRpcServer.bind(this),
-        () => Promise.resolve(),
       );
     }
 
@@ -180,26 +178,21 @@ export class LspServer {
     return this.startDbtRpc(command, dbtPort);
   }
 
-  async showErrorDialog<T>(message: string, messageType: 'warning' | 'error', retry: () => Promise<T>, discontinue: () => Promise<T>): Promise<T> {
+  async showStartDbtRpcError(message: string): Promise<void> {
     const actions = { title: 'Retry', id: 'retry' };
-    const errorMessageResult =
-      messageType === 'warning'
-        ? await this.connection.window.showWarningMessage(message, actions)
-        : await this.connection.window.showErrorMessage(message, actions);
+    const errorMessageResult = await this.connection.window.showErrorMessage(message, actions);
     if (errorMessageResult?.id === 'retry') {
-      return retry();
+      await this.prepareRpcServer();
     }
-    return discontinue();
   }
 
-  logStartupInfo(contextInfo: ContextInfo, initTime: number, initDestinationAttempt: number, initDbtRpcAttempt: number): void {
+  logStartupInfo(contextInfo: DbtProfileResult, initTime: number, initDbtRpcAttempt: number): void {
     this.sendTelemetry('log', {
       dbtVersion: getStringVersion(this.featureFinder.version),
       python: this.featureFinder.python ?? 'undefined',
       initTime: initTime.toString(),
       type: contextInfo.type ?? 'unknown type',
       method: contextInfo.method ?? 'unknown method',
-      initDestinationAttempt: initDestinationAttempt.toString(),
       initDbtRpcAttempt: initDbtRpcAttempt.toString(),
     });
   }
@@ -318,7 +311,7 @@ export class LspServer {
 
   async isLanguageServerReady(): Promise<boolean> {
     try {
-      await Promise.all([this.dbtRpcServer.startDeferred.promise]);
+      await this.dbtRpcServer.startDeferred.promise;
       return true;
     } catch (e) {
       return false;

@@ -1,43 +1,24 @@
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
-import { Err, err, Ok, ok, Result } from 'neverthrow';
+import { err, ok, Result } from 'neverthrow';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { DbtProfileCreator } from '../DbtProfileCreator';
+import { DbtProfileSuccess } from '../DbtProfileCreator';
 import { DestinationDefinition } from '../DestinationDefinition';
 import { SchemaTracker } from '../SchemaTracker';
-import { YamlParser } from '../YamlParser';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 import { BigQueryClient } from './BigQueryClient';
 
-export interface ContextInfo {
-  type?: string;
-  method?: string;
-}
-
-export interface ErrorContextInfo extends ContextInfo {
-  error: string;
-}
-
 export class BigQueryContext {
   private constructor(
-    public contextInfo: ContextInfo,
     public schemaTracker: SchemaTracker,
     public destinationDefinition: DestinationDefinition,
     public zetaSqlWrapper: ZetaSqlWrapper,
   ) {}
 
-  public static async createContext(yamlParser: YamlParser): Promise<Result<BigQueryContext, ErrorContextInfo>> {
-    let profileResult = undefined;
-    const dbtProfileCreator = new DbtProfileCreator(yamlParser);
-
+  public static async createContext(profileResult: DbtProfileSuccess): Promise<Result<BigQueryContext, string>> {
     try {
-      profileResult = dbtProfileCreator.createDbtProfile();
-      if (profileResult.isErr()) {
-        return BigQueryContext.createErrorContextInfo(profileResult.error.message, profileResult.error.type, profileResult.error.method);
-      }
-
-      const clientResult = await profileResult.value.dbtProfile.createClient(profileResult.value.targetConfig);
+      const clientResult = await profileResult.dbtProfile.createClient(profileResult.targetConfig);
       if (clientResult.isErr()) {
-        return BigQueryContext.createErrorContextInfo(clientResult.error, profileResult.value.type, profileResult.value.method);
+        return err(clientResult.error);
       }
 
       const bigQueryClient = clientResult.value as BigQueryClient;
@@ -46,43 +27,11 @@ export class BigQueryContext {
       const zetaSqlWrapper = new ZetaSqlWrapper();
       await zetaSqlWrapper.initializeZetaSql();
 
-      return BigQueryContext.createContextInfo(
-        bigQueryClient,
-        destinationDefinition,
-        zetaSqlWrapper,
-        profileResult.value.type,
-        profileResult.value.method,
-      );
+      const schemaTracker = new SchemaTracker(bigQueryClient, zetaSqlWrapper);
+      return ok(new BigQueryContext(schemaTracker, destinationDefinition, zetaSqlWrapper));
     } catch (e) {
-      let type = undefined;
-      let method = undefined;
-
-      if (profileResult) {
-        type = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
-        method = profileResult.isOk() ? profileResult.value.method : profileResult.error.method;
-      }
-
-      return BigQueryContext.createErrorContextInfo('Data Warehouse initialization failed.', type, method);
+      return err('Data Warehouse initialization failed.');
     }
-  }
-
-  private static createErrorContextInfo(error: string, type?: string, method?: string): Err<never, ErrorContextInfo> {
-    return err({
-      error,
-      type,
-      method,
-    });
-  }
-
-  private static createContextInfo(
-    bigQueryClient: BigQueryClient,
-    destinationDefinition: DestinationDefinition,
-    zetaSqlWrapper: ZetaSqlWrapper,
-    type?: string,
-    method?: string,
-  ): Ok<BigQueryContext, never> {
-    const schemaTracker = new SchemaTracker(bigQueryClient, zetaSqlWrapper);
-    return ok(new BigQueryContext({ type, method }, schemaTracker, destinationDefinition, zetaSqlWrapper));
   }
 
   async getAstOrError(compiledDocument: TextDocument): Promise<Result<AnalyzeResponse__Output, string>> {
