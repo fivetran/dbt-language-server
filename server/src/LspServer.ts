@@ -39,6 +39,7 @@ import { JinjaParser } from './JinjaParser';
 import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
+import { deferred } from './utils/Utils';
 import { YamlParser } from './YamlParser';
 
 interface TelemetryEvent {
@@ -65,11 +66,10 @@ export class LspServer {
   featureFinder = new FeatureFinder();
   initStart = performance.now();
   initDbtRpcAttempt = 0;
+  onGlobalDbtErrorFixedEmitter = new Emitter<void>();
 
   bigQueryContext?: BigQueryContext;
-
-  onGlobalDbtErrorFixedEmitter = new Emitter<void>();
-  onBigQueryContextCreatedEmitter = new Emitter<BigQueryContext>();
+  contextInitializedDeferred = deferred<void>();
 
   openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
 
@@ -144,7 +144,7 @@ export class LspServer {
       void this.prepareDestination(profileResult.value);
     }
 
-    await this.prepareRpcServer();
+    await Promise.all([this.prepareRpcServer(), this.contextInitializedDeferred.promise]);
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime, this.initDbtRpcAttempt);
   }
@@ -153,10 +153,10 @@ export class LspServer {
     const bigQueryContextInfo = await BigQueryContext.createContext(profileResult);
     if (bigQueryContextInfo.isOk()) {
       this.bigQueryContext = bigQueryContextInfo.value;
-      this.onBigQueryContextCreatedEmitter.fire(this.bigQueryContext);
     } else {
       this.connection.window.showWarningMessage(`Only common dbt features will be available. Dbt profile was not configured. ${bigQueryContextInfo}`);
     }
+    this.contextInitializedDeferred.resolve();
   }
 
   async prepareRpcServer(): Promise<void> {
@@ -291,7 +291,6 @@ export class LspServer {
         new ModelCompiler(this.dbtRpcClient),
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,
-        this.onBigQueryContextCreatedEmitter,
         this.bigQueryContext,
       );
       this.openedDocuments.set(uri, document);
@@ -312,7 +311,7 @@ export class LspServer {
 
   async isLanguageServerReady(): Promise<boolean> {
     try {
-      await this.dbtRpcServer.startDeferred.promise;
+      await Promise.all([this.dbtRpcServer.startDeferred.promise, this.contextInitializedDeferred.promise]);
       return true;
     } catch (e) {
       return false;

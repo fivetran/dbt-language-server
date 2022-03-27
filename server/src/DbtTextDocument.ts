@@ -46,7 +46,6 @@ export class DbtTextDocument {
   compiledDocument: TextDocument;
   requireCompileOnSave: boolean;
 
-  bigQueryContext?: BigQueryContext;
   ast?: AnalyzeResponse;
   signatureHelpProvider = new SignatureHelpProvider();
   sqlRefConverter = new SqlRefConverter(this.jinjaParser);
@@ -65,8 +64,7 @@ export class DbtTextDocument {
     private modelCompiler: ModelCompiler,
     private jinjaParser: JinjaParser,
     private onGlobalDbtErrorFixedEmitter: Emitter<void>,
-    private onBigQueryContextCreatedEmitter: Emitter<BigQueryContext>,
-    bigQueryContext?: BigQueryContext,
+    private bigQueryContext?: BigQueryContext,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -76,8 +74,6 @@ export class DbtTextDocument {
     this.modelCompiler.onCompilationFinished(this.onCompilationFinished.bind(this));
     this.modelCompiler.onFinishAllCompilationJobs(this.onFinishAllCompilationTasks.bind(this));
     this.onGlobalDbtErrorFixedEmitter.event(this.onDbtErrorFixed.bind(this));
-    this.onBigQueryContextCreatedEmitter.event(this.onBigQueryContextCreated.bind(this));
-    this.bigQueryContext = bigQueryContext;
   }
 
   willSaveTextDocument(reason: TextDocumentSaveReason): void {
@@ -225,11 +221,6 @@ export class DbtTextDocument {
     }
   }
 
-  onBigQueryContextCreated(context: BigQueryContext): void {
-    this.bigQueryContext = context;
-    void this.createDiagnostics();
-  }
-
   async onCompilationFinished(compiledSql: string): Promise<void> {
     if (this.hasDbtError) {
       this.hasDbtError = false;
@@ -237,15 +228,16 @@ export class DbtTextDocument {
     }
 
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
+    const [rawDocDiagnostics, compiledDocDiagnostics] = await this.createDiagnostics();
     this.sendUpdateQueryPreview(compiledSql);
-    await this.createDiagnostics();
+    this.sendDiagnostics(rawDocDiagnostics, compiledDocDiagnostics);
 
     if (!this.modelCompiler.compilationInProgress) {
       this.progressReporter.sendFinish(this.rawDocument.uri);
     }
   }
 
-  async createDiagnostics(): Promise<void> {
+  async createDiagnostics(): Promise<[Diagnostic[], Diagnostic[]]> {
     let rawDocDiagnostics: Diagnostic[] = [];
     let compiledDocDiagnostics: Diagnostic[] = [];
 
@@ -262,7 +254,7 @@ export class DbtTextDocument {
       );
     }
 
-    this.sendDiagnostics(rawDocDiagnostics, compiledDocDiagnostics);
+    return [rawDocDiagnostics, compiledDocDiagnostics];
   }
 
   sendUpdateQueryPreview(previewText: string): void {
