@@ -64,14 +64,11 @@ export class LspServer {
   initStart = performance.now();
   initDestinationAttempt = 0;
   initDbtRpcAttempt = 0;
-  onGlobalDbtErrorFixedEmitter = new Emitter<void>();
 
   bigQueryContext?: BigQueryContext;
 
-  contextFirstInitPromiseResolve?: (value: unknown) => void;
-  contextFirstInitPromise = new Promise(resolve => {
-    this.contextFirstInitPromiseResolve = resolve;
-  });
+  onGlobalDbtErrorFixedEmitter = new Emitter<void>();
+  onBigQueryContextCreatedEmitter = new Emitter<BigQueryContext>();
 
   openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
 
@@ -147,13 +144,10 @@ export class LspServer {
     this.initDestinationAttempt++;
 
     const bigQueryContextInfo = await BigQueryContext.createContext(this.yamlParser);
-    if (this.contextFirstInitPromiseResolve) {
-      this.contextFirstInitPromiseResolve(true);
-    }
-
     if (bigQueryContextInfo.isOk()) {
       this.bigQueryContext = bigQueryContextInfo.value;
-      return this.bigQueryContext.contextInfo;
+      this.onBigQueryContextCreatedEmitter.fire(this.bigQueryContext);
+      return bigQueryContextInfo.value.contextInfo;
     }
 
     return this.showErrorDialog<ContextInfo>(
@@ -304,7 +298,7 @@ export class LspServer {
         new ModelCompiler(this.dbtRpcClient),
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,
-        this.bigQueryContext,
+        this.onBigQueryContextCreatedEmitter,
       );
       this.openedDocuments.set(uri, document);
 
@@ -324,7 +318,7 @@ export class LspServer {
 
   async isLanguageServerReady(): Promise<boolean> {
     try {
-      await Promise.all([this.dbtRpcServer.startDeferred.promise, this.contextFirstInitPromise]);
+      await Promise.all([this.dbtRpcServer.startDeferred.promise]);
       return true;
     } catch (e) {
       return false;

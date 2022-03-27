@@ -1,6 +1,7 @@
 import { assertThat } from 'hamjest';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentSaveReason, _Connection } from 'vscode-languageserver';
+import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { CompletionProvider } from '../CompletionProvider';
 import { DbtRpcServer } from '../DbtRpcServer';
 import { DbtTextDocument } from '../DbtTextDocument';
@@ -20,6 +21,7 @@ describe('DbtTextDocument', () => {
   const onCompilationErrorEmitter = new Emitter<string>();
   const onCompilationFinishedEmitter = new Emitter<string>();
   const onGlobalDbtErrorFixedEmitter = new Emitter<void>();
+  const onBigQueryContextCreatedEmitter = new Emitter<BigQueryContext>();
 
   beforeEach(() => {
     DbtTextDocument.DEBOUNCE_TIMEOUT = 0;
@@ -41,7 +43,7 @@ describe('DbtTextDocument', () => {
       instance(mockModelCompiler),
       instance(mockJinjaParser),
       onGlobalDbtErrorFixedEmitter,
-      undefined,
+      onBigQueryContextCreatedEmitter,
     );
   });
 

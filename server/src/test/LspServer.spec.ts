@@ -24,7 +24,6 @@ describe('LspServer', () => {
   let lspServer: LspServer;
   let spiedLspServer: LspServer;
   let document: DbtTextDocument;
-  let mockBigQueryContext: BigQueryContext;
 
   beforeEach(() => {
     lspServer = new LspServer(mock<_Connection>());
@@ -40,8 +39,6 @@ describe('LspServer', () => {
     mockZetaSqlWrapper = mock(ZetaSqlWrapper);
     when(mockZetaSqlWrapper.isSupported()).thenReturn(true);
 
-    mockBigQueryContext = mock(BigQueryContext);
-
     document = new DbtTextDocument(
       { uri: OPENED_URI, languageId: SQL_LANGUAGE_ID, version: 1, text: TEXT },
       '',
@@ -52,7 +49,7 @@ describe('LspServer', () => {
       instance(mockModelCompiler),
       mock(JinjaParser),
       new Emitter<void>(),
-      mockBigQueryContext,
+      new Emitter<BigQueryContext>(),
     );
     lspServer.openedDocuments.set(OPENED_URI, document);
 
