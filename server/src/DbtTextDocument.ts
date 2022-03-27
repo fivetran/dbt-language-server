@@ -66,6 +66,7 @@ export class DbtTextDocument {
     private jinjaParser: JinjaParser,
     private onGlobalDbtErrorFixedEmitter: Emitter<void>,
     private onBigQueryContextCreatedEmitter: Emitter<BigQueryContext>,
+    bigQueryContext?: BigQueryContext,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -76,6 +77,7 @@ export class DbtTextDocument {
     this.modelCompiler.onFinishAllCompilationJobs(this.onFinishAllCompilationTasks.bind(this));
     this.onGlobalDbtErrorFixedEmitter.event(this.onDbtErrorFixed.bind(this));
     this.onBigQueryContextCreatedEmitter.event(this.onBigQueryContextCreated.bind(this));
+    this.bigQueryContext = bigQueryContext;
   }
 
   willSaveTextDocument(reason: TextDocumentSaveReason): void {

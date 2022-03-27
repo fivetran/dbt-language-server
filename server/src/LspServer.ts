@@ -292,6 +292,7 @@ export class LspServer {
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,
         this.onBigQueryContextCreatedEmitter,
+        this.bigQueryContext,
       );
       this.openedDocuments.set(uri, document);
 
