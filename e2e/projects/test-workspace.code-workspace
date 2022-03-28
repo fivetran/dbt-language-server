@@ -18,6 +18,9 @@
       {
         "path": "postgres"
       },
+      {
+        "path": "project-with-packages"
+      }
     ],
     "settings": {
       "files.associations": {

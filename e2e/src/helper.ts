@@ -125,8 +125,12 @@ export const getDocUri = (p: string): Uri => {
   return Uri.file(getDocPath(p));
 };
 
+export const getPathRelativeToProjects = (p: string): string => {
+  return path.resolve(PROJECTS_PATH, p);
+};
+
 export const getCustomDocUri = (p: string): Uri => {
-  return Uri.file(path.resolve(PROJECTS_PATH, p));
+  return Uri.file(getPathRelativeToProjects(p));
 };
 
 export async function setTestContent(content: string): Promise<void> {
@@ -173,6 +177,10 @@ async function createChangePromise(type: 'preview' | 'document'): Promise<void> 
 
 export function getCursorPosition(): Position {
   return editor.selection.end;
+}
+
+export function installDbtPackages(projectFolder: string): void {
+  spawnSync('dbt', ['deps'], { cwd: getPathRelativeToProjects(projectFolder) });
 }
 
 export function installExtension(extensionId: string): void {
