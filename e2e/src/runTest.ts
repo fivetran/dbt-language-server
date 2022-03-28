@@ -110,11 +110,7 @@ async function preparePostgres(): Promise<void> {
     `create table if not exists ${connectionParams.schema}.orders(` +
     ' id bigserial primary key,' +
     ' user_id bigserial,' +
-    ' order_date date not null,' +
-    ' constraint fk_user' +
-    ' foreign key(user_id)' +
-    ` references ${connectionParams.schema}.users(id)` +
-    ' on delete cascade' +
+    ' order_date date not null' +
     ');';
 
   await client.connect();
