@@ -1,3 +1,4 @@
+import { Result } from 'neverthrow';
 import { performance } from 'perf_hooks';
 import {
   CompletionItem,
@@ -26,7 +27,7 @@ import {
 } from 'vscode-languageserver';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { CompletionProvider } from './CompletionProvider';
-import { DbtProfileCreator, DbtProfileResult, DbtProfileSuccess } from './DbtProfileCreator';
+import { DbtProfileCreator, DbtProfileError, DbtProfileResult, DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcServer } from './DbtRpcServer';
 import { DbtTextDocument } from './DbtTextDocument';
@@ -141,24 +142,21 @@ export class LspServer {
       e => e,
     );
 
-    if (profileResult.isOk()) {
-      void this.prepareDestination(profileResult.value);
-    } else {
-      this.showPrepareDestinationWarning(profileResult.error.message);
-      this.contextInitializedDeferred.resolve();
-    }
-
-    await Promise.all([this.prepareRpcServer(), this.contextInitializedDeferred.promise]);
+    await Promise.all([this.prepareRpcServer(), this.prepareDestination(profileResult)]);
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime, this.initDbtRpcAttempt);
   }
 
-  async prepareDestination(profileResult: DbtProfileSuccess): Promise<void> {
-    const bigQueryContextInfo = await BigQueryContext.createContext(profileResult);
-    if (bigQueryContextInfo.isOk()) {
-      this.bigQueryContext = bigQueryContextInfo.value;
+  async prepareDestination(profileResult: Result<DbtProfileSuccess, DbtProfileError>): Promise<void> {
+    if (profileResult.isOk()) {
+      const bigQueryContextInfo = await BigQueryContext.createContext(profileResult.value);
+      if (bigQueryContextInfo.isOk()) {
+        this.bigQueryContext = bigQueryContextInfo.value;
+      } else {
+        this.showPrepareDestinationWarning(bigQueryContextInfo.error);
+      }
     } else {
-      this.showPrepareDestinationWarning(bigQueryContextInfo.error);
+      this.showPrepareDestinationWarning(profileResult.error.message);
     }
     this.contextInitializedDeferred.resolve();
   }
