@@ -28,6 +28,9 @@ const PROJECTS_PATH = path.resolve(__dirname, '../projects');
 const TEST_FIXTURE_PATH = path.resolve(PROJECTS_PATH, 'test-fixture');
 export const PREVIEW_URI = 'query-preview:Preview?dbt-language-server';
 
+export const MAX_VSCODE_INTEGER = 2147483647;
+export const MAX_RANGE = new Range(0, 0, MAX_VSCODE_INTEGER, MAX_VSCODE_INTEGER);
+
 workspace.onDidChangeTextDocument(onDidChangeTextDocument);
 
 let previewPromiseResolve: voidFunc | undefined;
@@ -215,4 +218,17 @@ export async function triggerCompletion(docUri: Uri, position: Position, trigger
 
 export async function triggerDefinition(docUri: Uri, position: Position): Promise<DefinitionLink[]> {
   return commands.executeCommand<DefinitionLink[]>('vscode.executeDefinitionProvider', docUri, position);
+}
+
+export async function assertDefinitions(docUri: Uri, position: Position, expectedDefinitions: DefinitionLink[]): Promise<void> {
+  const definitions = await triggerDefinition(docUri, position);
+
+  assertThat(definitions.length, expectedDefinitions.length);
+
+  for (let i = 0; i < definitions.length; i++) {
+    assertThat(definitions[i].originSelectionRange, expectedDefinitions[i].originSelectionRange);
+    assertThat(definitions[i].targetUri.path, expectedDefinitions[i].targetUri.path);
+    assertThat(definitions[i].targetRange, expectedDefinitions[i].targetRange);
+    assertThat(definitions[i].targetSelectionRange, expectedDefinitions[i].targetSelectionRange);
+  }
 }

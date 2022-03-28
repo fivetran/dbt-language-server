@@ -97,19 +97,29 @@ async function preparePostgres(): Promise<void> {
     port: connectionParams.port,
   });
 
-  const createUsersTableQuery =
+  const recreateUsersTableQuery =
+    `drop table if exists ${connectionParams.schema}.users;` +
     `create table if not exists ${connectionParams.schema}.users(` +
     ' id bigserial primary key,' +
-    ' name text not null,' +
-    ' division text not null,' +
-    ' role text not null,' +
-    ' email text not null,' +
-    ' phone text not null,' +
-    ' profile_id text not null' +
+    ' full_name text not null,' +
+    ' city text not null,' +
+    ' country text not null' +
+    ');';
+  const recreateOrdersTableQuery =
+    `drop table if exists ${connectionParams.schema}.orders;` +
+    `create table if not exists ${connectionParams.schema}.orders(` +
+    ' id bigserial primary key,' +
+    ' user_id bigserial,' +
+    ' order_date date not null,' +
+    ' constraint fk_user' +
+    ' foreign key(user_id)' +
+    ` references ${connectionParams.schema}.users(id)` +
+    ' on delete cascade' +
     ');';
 
   await client.connect();
-  await client.query(createUsersTableQuery);
+  await client.query(recreateUsersTableQuery);
+  await client.query(recreateOrdersTableQuery);
   await client.end();
 }
 
