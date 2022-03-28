@@ -142,6 +142,9 @@ export class LspServer {
 
     if (profileResult.isOk()) {
       void this.prepareDestination(profileResult.value);
+    } else {
+      this.showPrepareDestinationWarning(profileResult.error.message);
+      this.contextInitializedDeferred.resolve();
     }
 
     await Promise.all([this.prepareRpcServer(), this.contextInitializedDeferred.promise]);
@@ -154,9 +157,13 @@ export class LspServer {
     if (bigQueryContextInfo.isOk()) {
       this.bigQueryContext = bigQueryContextInfo.value;
     } else {
-      this.connection.window.showWarningMessage(`Only common dbt features will be available. Dbt profile was not configured. ${bigQueryContextInfo}`);
+      this.showPrepareDestinationWarning(bigQueryContextInfo.error);
     }
     this.contextInitializedDeferred.resolve();
+  }
+
+  showPrepareDestinationWarning(error: string): void {
+    this.connection.window.showWarningMessage(`Only common dbt features will be available. Dbt profile was not configured. ${error}`);
   }
 
   async prepareRpcServer(): Promise<void> {
