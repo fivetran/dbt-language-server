@@ -205,6 +205,14 @@ export class DbtTextDocument {
 
   getModelPath(): string {
     const index = this.rawDocument.uri.indexOf(this.workspaceFolder);
+    const filePath = this.rawDocument.uri.slice(index + this.workspaceFolder.length + 1);
+    if (filePath.startsWith('dbt_packages') || filePath.startsWith('dbt_modules')) {
+      return filePath
+        .replaceAll('/', '.')
+        .replace(/^(dbt_packages|dbt_modules)./, '')
+        .replace('models.', '')
+        .replace(/.sql$/, '');
+    }
     return this.rawDocument.uri.slice(index + this.workspaceFolder.length + 1);
   }
 
