@@ -1,3 +1,4 @@
+import { Result } from 'neverthrow';
 import { performance } from 'perf_hooks';
 import {
   CompletionItem,
@@ -24,25 +25,23 @@ import {
   WillSaveTextDocumentParams,
   _Connection,
 } from 'vscode-languageserver';
-import { BigQueryClient } from './bigquery/BigQueryClient';
+import { BigQueryContext } from './bigquery/BigQueryContext';
 import { CompletionProvider } from './CompletionProvider';
-import { DbtProfileCreator } from './DbtProfileCreator';
+import { DbtProfileCreator, DbtProfileError, DbtProfileResult, DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcServer } from './DbtRpcServer';
 import { DbtTextDocument } from './DbtTextDocument';
 import { getStringVersion } from './DbtVersion';
 import { Command } from './dbt_commands/Command';
 import { JinjaDefinitionProvider } from './definition/JinjaDefinitionProvider';
-import { DestinationDefinition } from './DestinationDefinition';
 import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
 import { JinjaParser } from './JinjaParser';
 import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
-import { SchemaTracker } from './SchemaTracker';
+import { deferred } from './utils/Utils';
 import { YamlParser } from './YamlParser';
-import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 
 interface TelemetryEvent {
   name: string;
@@ -53,8 +52,6 @@ export class LspServer {
   static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
 
   workspaceFolder?: string;
-  bigQueryClient?: BigQueryClient;
-  destinationDefinition?: DestinationDefinition;
 
   hasConfigurationCapability = false;
   dbtRpcServer = new DbtRpcServer();
@@ -69,8 +66,11 @@ export class LspServer {
   manifestParser = new ManifestParser();
   featureFinder = new FeatureFinder();
   initStart = performance.now();
-  zetaSqlWrapper = new ZetaSqlWrapper();
+  initDbtRpcAttempt = 0;
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
+
+  bigQueryContext?: BigQueryContext;
+  contextInitializedDeferred = deferred<void>();
 
   openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
 
@@ -87,27 +87,13 @@ export class LspServer {
     this.fileChangeListener.onDbtProjectYmlChanged(this.onDbtProjectYmlChanged.bind(this));
   }
 
-  async onInitialize(params: InitializeParams): Promise<InitializeResult<any> | ResponseError<InitializeError>> {
+  onInitialize(params: InitializeParams): InitializeResult<any> | ResponseError<InitializeError> {
     console.log(`Starting server for folder ${process.cwd()}`);
 
     process.on('SIGTERM', () => this.onShutdown());
     process.on('SIGINT', () => this.onShutdown());
 
-    const profileResult = this.dbtProfileCreator.createDbtProfile();
-    if (profileResult.isErr()) {
-      return new ResponseError<InitializeError>(100, profileResult.error, { retry: true });
-    }
-
-    const clientResult = await profileResult.value.dbtProfile.createClient(profileResult.value.targetConfig);
-    if (clientResult.isErr()) {
-      return new ResponseError<InitializeError>(100, clientResult.error, { retry: true });
-    }
-
-    this.bigQueryClient = clientResult.value as BigQueryClient;
-
     this.fileChangeListener.onInit();
-
-    this.initializeDestinationDefinition();
 
     this.initializeNotifications();
 
@@ -149,25 +135,72 @@ export class LspServer {
       // Register for all configuration changes.
       await this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
     }
+
+    const profileResult = this.dbtProfileCreator.createDbtProfile();
+    const contextInfo = profileResult.match<DbtProfileResult>(
+      s => s,
+      e => e,
+    );
+
+    await Promise.all([this.prepareRpcServer(), this.prepareDestination(profileResult)]);
+    const initTime = performance.now() - this.initStart;
+    this.logStartupInfo(contextInfo, initTime, this.initDbtRpcAttempt);
+  }
+
+  async prepareDestination(profileResult: Result<DbtProfileSuccess, DbtProfileError>): Promise<void> {
+    if (profileResult.isOk()) {
+      const bigQueryContextInfo = await BigQueryContext.createContext(profileResult.value);
+      if (bigQueryContextInfo.isOk()) {
+        this.bigQueryContext = bigQueryContextInfo.value;
+      } else {
+        this.showPrepareDestinationWarning(bigQueryContextInfo.error);
+      }
+    } else {
+      this.showPrepareDestinationWarning(profileResult.error.message);
+    }
+    this.contextInitializedDeferred.resolve();
+  }
+
+  showPrepareDestinationWarning(error: string): void {
+    this.connection.window.showWarningMessage(`Only common dbt features will be available. Dbt profile was not configured. ${error}`);
+  }
+
+  async prepareRpcServer(): Promise<void> {
+    this.initDbtRpcAttempt++;
+
     const [command, dbtPort] = await Promise.all([
       this.featureFinder.findDbtRpcCommand(this.connection.sendRequest('custom/getPython')),
       this.featureFinder.findFreePort(),
     ]);
 
     if (command === undefined) {
-      const errorMessageResult = await this.connection.window.showErrorMessage(
+      this.featureFinder = new FeatureFinder();
+      return this.showStartDbtRpcError(
         `Failed to find dbt-rpc. You can use 'python3 -m pip install dbt-bigquery dbt-rpc' command to install it. Check in Terminal that dbt-rpc works running 'dbt-rpc --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g. ~/dbt-env/bin/python3).`,
-        { title: 'Retry', id: 'retry' },
       );
-      if (errorMessageResult?.id === 'retry') {
-        this.featureFinder = new FeatureFinder();
-        await this.onInitialized();
-      }
-      return;
     }
 
     command.addParameter(dbtPort.toString());
-    await Promise.all([this.startDbtRpc(command, dbtPort), this.zetaSqlWrapper.initializeZetaSql()]);
+    return this.startDbtRpc(command, dbtPort);
+  }
+
+  async showStartDbtRpcError(message: string): Promise<void> {
+    const actions = { title: 'Retry', id: 'retry' };
+    const errorMessageResult = await this.connection.window.showErrorMessage(message, actions);
+    if (errorMessageResult?.id === 'retry') {
+      await this.prepareRpcServer();
+    }
+  }
+
+  logStartupInfo(contextInfo: DbtProfileResult, initTime: number, initDbtRpcAttempt: number): void {
+    this.sendTelemetry('log', {
+      dbtVersion: getStringVersion(this.featureFinder.version),
+      python: this.featureFinder.python ?? 'undefined',
+      initTime: initTime.toString(),
+      type: contextInfo.type ?? 'unknown type',
+      method: contextInfo.method ?? 'unknown method',
+      initDbtRpcAttempt: initDbtRpcAttempt.toString(),
+    });
   }
 
   sendTelemetry(name: string, properties?: { [key: string]: string }): void {
@@ -179,12 +212,6 @@ export class LspServer {
     this.dbtRpcClient.setPort(port);
     try {
       await this.dbtRpcServer.startDbtRpc(command, this.dbtRpcClient);
-      const initTime = performance.now() - this.initStart;
-      this.sendTelemetry('log', {
-        dbtVersion: getStringVersion(this.featureFinder.version),
-        python: this.featureFinder.python ?? 'undefined',
-        initTime: initTime.toString(),
-      });
     } catch (e) {
       console.log(e);
     } finally {
@@ -210,12 +237,6 @@ export class LspServer {
     }
   }
 
-  initializeDestinationDefinition(): void {
-    if (this.bigQueryClient) {
-      this.destinationDefinition = new DestinationDefinition(this.bigQueryClient);
-    }
-  }
-
   onWillSaveTextDocument(params: WillSaveTextDocumentParams): void {
     const document = this.openedDocuments.get(params.textDocument.uri);
     if (document) {
@@ -224,7 +245,7 @@ export class LspServer {
   }
 
   async onDidSaveTextDocument(params: DidSaveTextDocumentParams): Promise<void> {
-    if (!(await this.isDbtReady())) {
+    if (!(await this.isLanguageServerReady())) {
       return;
     }
 
@@ -261,8 +282,8 @@ export class LspServer {
       return;
     }
 
-    if (!document && this.bigQueryClient) {
-      if (!(await this.isDbtReady())) {
+    if (!document) {
+      if (!(await this.isLanguageServerReady())) {
         return;
       }
 
@@ -275,9 +296,8 @@ export class LspServer {
         this.jinjaDefinitionProvider,
         new ModelCompiler(this.dbtRpcClient),
         new JinjaParser(),
-        new SchemaTracker(this.bigQueryClient, this.zetaSqlWrapper),
-        this.zetaSqlWrapper,
         this.onGlobalDbtErrorFixedEmitter,
+        this.bigQueryContext,
       );
       this.openedDocuments.set(uri, document);
 
@@ -286,7 +306,7 @@ export class LspServer {
   }
 
   async onDidChangeTextDocument(params: DidChangeTextDocumentParams): Promise<void> {
-    if (!(await this.isDbtReady())) {
+    if (!(await this.isLanguageServerReady())) {
       return;
     }
     const document = this.openedDocuments.get(params.textDocument.uri);
@@ -295,9 +315,9 @@ export class LspServer {
     }
   }
 
-  async isDbtReady(): Promise<boolean> {
+  async isLanguageServerReady(): Promise<boolean> {
     try {
-      await this.dbtRpcServer.startDeferred.promise;
+      await Promise.all([this.dbtRpcServer.startDeferred.promise, this.contextInitializedDeferred.promise]);
       return true;
     } catch (e) {
       return false;
@@ -322,11 +342,11 @@ export class LspServer {
   }
 
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
-    if (!this.destinationDefinition) {
+    if (!this.bigQueryContext) {
       return undefined;
     }
     const document = this.openedDocuments.get(completionParams.textDocument.uri);
-    return document?.onCompletion(completionParams, this.destinationDefinition);
+    return document?.onCompletion(completionParams, this.bigQueryContext.destinationDefinition);
   }
 
   onCompletionResolve(item: CompletionItem): CompletionItem {
@@ -358,7 +378,7 @@ export class LspServer {
   dispose(): void {
     console.log('Dispose start...');
     this.dbtRpcServer.dispose();
-    void this.zetaSqlWrapper.terminateServer();
+    this.bigQueryContext?.dispose();
     this.onGlobalDbtErrorFixedEmitter.dispose();
     console.log('Dispose end.');
   }

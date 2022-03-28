@@ -1,13 +1,16 @@
 import { BigQuery, TableField } from '@google-cloud/bigquery';
 import { downloadAndUnzipVSCode, resolveCliArgsFromVSCodeExecutablePath, runTests, SilentReporter } from '@vscode/test-electron';
 import { spawnSync } from 'child_process';
+import * as fs from 'fs';
 import { homedir } from 'os';
 import * as path from 'path';
+import { Client } from 'pg';
 
 // Expected parameter: path to the folder with the extension package.json
 async function main(): Promise<void> {
   try {
     await prepareBigQuery();
+    await preparePostgres();
 
     const [, , extensionDevelopmentPath] = process.argv;
     console.log(`Running tests for path: ${extensionDevelopmentPath}`);
@@ -35,7 +38,7 @@ async function main(): Promise<void> {
       extensionTestsEnv: { CLI_PATH: cli, EXTENSIONS_INSTALL_PATH: extensionsInstallPath, DBT_LS_DISABLE_TELEMETRY: 'true' },
     });
   } catch (err) {
-    console.error('Failed to run tests');
+    console.error(`Failed to run tests. Error: ${err}`);
     process.exit(1);
   }
 }
@@ -80,6 +83,34 @@ async function ensureTableExists(bigQuery: BigQuery, dsName: string, tableName: 
       schema: columns,
     });
   }
+}
+
+async function preparePostgres(): Promise<void> {
+  const content = fs.readFileSync(`${homedir()}/.dbt/postgres.json`, 'utf8');
+  const connectionParams = JSON.parse(content);
+
+  const client = new Client({
+    user: connectionParams.user,
+    host: connectionParams.host,
+    database: connectionParams.dbname,
+    password: connectionParams.password,
+    port: connectionParams.port,
+  });
+
+  const createUsersTableQuery =
+    `create table if not exists ${connectionParams.schema}.users(` +
+    ' id bigserial primary key,' +
+    ' name text not null,' +
+    ' division text not null,' +
+    ' role text not null,' +
+    ' email text not null,' +
+    ' phone text not null,' +
+    ' profile_id text not null' +
+    ');';
+
+  await client.connect();
+  await client.query(createUsersTableQuery);
+  await client.end();
 }
 
 main().catch(e => console.error(e));

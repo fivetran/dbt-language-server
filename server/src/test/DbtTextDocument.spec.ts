@@ -8,8 +8,6 @@ import { JinjaDefinitionProvider } from '../definition/JinjaDefinitionProvider';
 import { JinjaParser } from '../JinjaParser';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProgressReporter } from '../ProgressReporter';
-import { SchemaTracker } from '../SchemaTracker';
-import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 import { sleep } from './helper';
 
 describe('DbtTextDocument', () => {
@@ -18,8 +16,6 @@ describe('DbtTextDocument', () => {
   let document: DbtTextDocument;
   let mockModelCompiler: ModelCompiler;
   let mockJinjaParser: JinjaParser;
-  let mockSchemaTracker: SchemaTracker;
-  let mockZetaSqlWrapper: ZetaSqlWrapper;
 
   const onCompilationErrorEmitter = new Emitter<string>();
   const onCompilationFinishedEmitter = new Emitter<string>();
@@ -34,10 +30,6 @@ describe('DbtTextDocument', () => {
     when(mockModelCompiler.onFinishAllCompilationJobs).thenReturn(new Emitter<void>().event);
 
     mockJinjaParser = mock(JinjaParser);
-    mockSchemaTracker = mock(SchemaTracker);
-    mockZetaSqlWrapper = mock(ZetaSqlWrapper);
-
-    when(mockZetaSqlWrapper.isSupported()).thenReturn(true);
 
     document = new DbtTextDocument(
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
@@ -48,9 +40,8 @@ describe('DbtTextDocument', () => {
       mock(JinjaDefinitionProvider),
       instance(mockModelCompiler),
       instance(mockJinjaParser),
-      instance(mockSchemaTracker),
-      instance(mockZetaSqlWrapper),
       onGlobalDbtErrorFixedEmitter,
+      undefined,
     );
   });
 
@@ -151,27 +142,6 @@ describe('DbtTextDocument', () => {
 
     // assert
     verify(mockModelCompiler.compile(anything())).once();
-  });
-
-  it('Should not interact with ZetaSQL if it is not supported', async () => {
-    // arrange
-    when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(false);
-    when(mockJinjaParser.findAllJinjaRanges(document.rawDocument)).thenReturn([]);
-    when(mockZetaSqlWrapper.isSupported()).thenReturn(false);
-
-    // act
-    await document.didOpenTextDocument(false);
-    await sleepMoreThanDebounceTime();
-
-    // assert
-    verify(mockZetaSqlWrapper.isSupported()).once();
-
-    verify(mockZetaSqlWrapper.initializeZetaSql()).never();
-    verify(mockZetaSqlWrapper.getClient()).never();
-    verify(mockZetaSqlWrapper.isCatalogRegistered()).never();
-    verify(mockZetaSqlWrapper.registerCatalog(anything())).never();
-    verify(mockZetaSqlWrapper.analyze(anything())).never();
-    verify(mockZetaSqlWrapper.terminateServer()).never();
   });
 
   it('Should set hasDbtError flag on dbt compilation error', () => {
