@@ -136,9 +136,10 @@ export class LspServer {
     }
 
     const profileResult = this.dbtProfileCreator.createDbtProfile();
-    const contextInfo = profileResult.isOk()
-      ? { type: profileResult.value.type, method: profileResult.value.method }
-      : { type: profileResult.error.type, method: profileResult.error.method };
+    const contextInfo = profileResult.match<DbtProfileResult>(
+      s => s,
+      e => e,
+    );
 
     if (profileResult.isOk()) {
       void this.prepareDestination(profileResult.value);
