@@ -1,5 +1,6 @@
-import { assertThat } from 'hamjest';
-import { Position, Range } from 'vscode';
+import assert = require('assert');
+import { assertThat, instanceOf } from 'hamjest';
+import { commands, MarkdownString, Position, Range, SignatureHelp } from 'vscode';
 import { activateAndWait, assertDefinitions, getCustomDocUri, getPreviewText, MAX_RANGE } from './helper';
 
 const activeUsersDocUri = getCustomDocUri('postgres/models/active_users.sql');
@@ -66,5 +67,29 @@ suite('Postgres destination', () => {
         targetSelectionRange: MAX_RANGE,
       },
     ]);
+  });
+
+  test('Should provide signature help for COUNT function', async () => {
+    // arrange
+    await activateAndWait(activeUsersOrdersCountDocUri);
+
+    // act
+    const help = await commands.executeCommand<SignatureHelp>(
+      'vscode.executeSignatureHelpProvider',
+      activeUsersOrdersCountDocUri,
+      new Position(0, 127),
+      '(',
+    );
+
+    // assert
+    assertThat(help.signatures.length, 2);
+
+    assertThat(help.signatures[0].label, 'COUNT(*)  [OVER (...)]\n');
+    assertThat(help.signatures[0].documentation, instanceOf(MarkdownString));
+    assertThat((help.signatures[0].documentation as MarkdownString).value, 'Returns the number of rows in the input.');
+
+    assertThat(help.signatures[1].label, 'COUNT(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n');
+    assert.ok(help.signatures[1].documentation instanceof MarkdownString);
+    assertThat(help.signatures[1].documentation.value, 'Returns the number of rows with `expression` evaluated to any value other\nthan `NULL`.');
   });
 });
