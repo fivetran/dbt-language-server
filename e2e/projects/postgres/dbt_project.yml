@@ -19,7 +19,3 @@ clean-targets:
 models:
   dbt_postgres_test:
     +materialized: table
-
-seeds:
-  dbt_postgres_test:
-    +enabled: true
