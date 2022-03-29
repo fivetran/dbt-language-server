@@ -2,6 +2,7 @@ import { anything, instance, mock, spy, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentIdentifier, _Connection } from 'vscode-languageserver';
 import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { CompletionProvider } from '../CompletionProvider';
+import { DbtRepository } from '../DbtRepository';
 import { DbtTextDocument } from '../DbtTextDocument';
 import { JinjaDefinitionProvider } from '../definition/JinjaDefinitionProvider';
 import { JinjaParser } from '../JinjaParser';
@@ -24,6 +25,7 @@ describe('LspServer', () => {
   let lspServer: LspServer;
   let spiedLspServer: LspServer;
   let document: DbtTextDocument;
+  let dbtRepository: DbtRepository;
   let mockBigQueryContext: BigQueryContext;
 
   beforeEach(() => {
@@ -40,6 +42,7 @@ describe('LspServer', () => {
     mockZetaSqlWrapper = mock(ZetaSqlWrapper);
     when(mockZetaSqlWrapper.isSupported()).thenReturn(true);
 
+    dbtRepository = mock(DbtRepository);
     mockBigQueryContext = mock(BigQueryContext);
 
     document = new DbtTextDocument(
@@ -52,6 +55,7 @@ describe('LspServer', () => {
       instance(mockModelCompiler),
       mock(JinjaParser),
       new Emitter<void>(),
+      dbtRepository,
       mockBigQueryContext,
     );
     lspServer.openedDocuments.set(OPENED_URI, document);

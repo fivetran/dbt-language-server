@@ -28,6 +28,7 @@ import {
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtProfileCreator, DbtProfileError, DbtProfileResult, DbtProfileSuccess } from './DbtProfileCreator';
+import { DbtRepository } from './DbtRepository';
 import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcServer } from './DbtRpcServer';
 import { DbtTextDocument } from './DbtTextDocument';
@@ -64,6 +65,7 @@ export class LspServer {
   yamlParser = new YamlParser();
   dbtProfileCreator = new DbtProfileCreator(this.yamlParser);
   manifestParser = new ManifestParser();
+  dbtRepository = new DbtRepository();
   featureFinder = new FeatureFinder();
   initStart = performance.now();
   initDbtRpcAttempt = 0;
@@ -76,14 +78,9 @@ export class LspServer {
 
   constructor(private connection: _Connection) {
     this.progressReporter = new ProgressReporter(this.connection);
-    this.fileChangeListener = new FileChangeListener(this.yamlParser, this.manifestParser);
-    this.completionProvider = new CompletionProvider(this.fileChangeListener.onModelsChanged);
-    this.jinjaDefinitionProvider = new JinjaDefinitionProvider(
-      this.fileChangeListener.onProjectNameChanged,
-      this.fileChangeListener.onModelsChanged,
-      this.fileChangeListener.onMacrosChanged,
-      this.fileChangeListener.onSourcesChanged,
-    );
+    this.fileChangeListener = new FileChangeListener(this.yamlParser, this.manifestParser, this.dbtRepository);
+    this.completionProvider = new CompletionProvider(this.dbtRepository);
+    this.jinjaDefinitionProvider = new JinjaDefinitionProvider(this.dbtRepository);
     this.fileChangeListener.onDbtProjectYmlChanged(this.onDbtProjectYmlChanged.bind(this));
   }
 
@@ -297,11 +294,12 @@ export class LspServer {
         new ModelCompiler(this.dbtRpcClient),
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,
+        this.dbtRepository,
         this.bigQueryContext,
       );
       this.openedDocuments.set(uri, document);
 
-      await document.didOpenTextDocument(!this.fileChangeListener.manifestExists);
+      await document.didOpenTextDocument(!this.dbtRepository.manifestExists);
     }
   }
 

@@ -1,7 +1,7 @@
-import { Command, CompletionItem, CompletionItemKind, CompletionParams, CompletionTriggerKind, Event } from 'vscode-languageserver';
+import { Command, CompletionItem, CompletionItemKind, CompletionParams, CompletionTriggerKind } from 'vscode-languageserver';
+import { DbtRepository } from './DbtRepository';
 import { DestinationDefinition } from './DestinationDefinition';
 import { HelpProviderWords } from './HelpProviderWords';
-import { ManifestModel } from './manifest/ManifestJson';
 import { ActiveTableInfo, CompletionInfo } from './ZetaSqlAst';
 
 export class CompletionProvider {
@@ -242,16 +242,12 @@ export class CompletionProvider {
 
   static readonly DBT_KEYWORDS = ['ref'];
 
-  dbtModels: ManifestModel[] = [];
-
-  constructor(onModelsChanged: Event<ManifestModel[]>) {
-    onModelsChanged(this.onModelsChanged.bind(this));
-  }
+  constructor(private dbtRepository: DbtRepository) {}
 
   onJinjaCompletion(textBeforeCursor: string): CompletionItem[] {
     if (textBeforeCursor.match(CompletionProvider.ENDS_WITH_REF)) {
       const edsWithQuote = textBeforeCursor.match(CompletionProvider.ENDS_WITH_QUOTE);
-      return this.dbtModels.map<CompletionItem>(m => ({
+      return this.dbtRepository.models.map<CompletionItem>(m => ({
         label: edsWithQuote ? m.name : `'${m.name}'`,
         kind: CompletionItemKind.Value,
         detail: 'Model',
@@ -390,9 +386,5 @@ export class CompletionProvider {
       );
     }
     return result;
-  }
-
-  onModelsChanged(dbtModels: ManifestModel[]): void {
-    this.dbtModels = dbtModels;
   }
 }
