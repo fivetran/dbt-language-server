@@ -32,6 +32,7 @@ import { HoverProvider } from './HoverProvider';
 import { JinjaParser } from './JinjaParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
+import { DbtRepository } from './repositories/DbtRepository';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { SqlRefConverter } from './SqlRefConverter';
 import { debounce, getIdentifierRangeAtPosition, getJinjaContentOffset, positionInRange } from './utils/Utils';
@@ -64,6 +65,7 @@ export class DbtTextDocument {
     private modelCompiler: ModelCompiler,
     private jinjaParser: JinjaParser,
     private onGlobalDbtErrorFixedEmitter: Emitter<void>,
+    private dbtRepository: DbtRepository,
     private bigQueryContext?: BigQueryContext,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -171,7 +173,7 @@ export class DbtTextDocument {
     const workspaceChange = new WorkspaceChange();
     const textChange = workspaceChange.getTextEditChange(this.rawDocument.uri);
 
-    this.sqlRefConverter.refToSql(this.rawDocument, this.completionProvider.dbtModels).forEach(c => {
+    this.sqlRefConverter.refToSql(this.rawDocument, this.dbtRepository.models).forEach(c => {
       textChange.replace(c.range, c.newText);
     });
     await this.connection.workspace.applyEdit(workspaceChange.edit);
@@ -186,7 +188,7 @@ export class DbtTextDocument {
     const textChange = workspaceChange.getTextEditChange(this.rawDocument.uri);
     const resolvedTables = DbtTextDocument.ZETA_SQL_AST.getResolvedTables(this.ast, this.compiledDocument.getText());
 
-    this.sqlRefConverter.sqlToRef(this.compiledDocument, resolvedTables, this.completionProvider.dbtModels).forEach(c => {
+    this.sqlRefConverter.sqlToRef(this.compiledDocument, resolvedTables, this.dbtRepository.models).forEach(c => {
       const range = Range.create(
         this.convertPosition(this.rawDocument.getText(), this.compiledDocument.getText(), c.range.start),
         this.convertPosition(this.rawDocument.getText(), this.compiledDocument.getText(), c.range.end),

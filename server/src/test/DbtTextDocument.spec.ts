@@ -8,6 +8,7 @@ import { JinjaDefinitionProvider } from '../definition/JinjaDefinitionProvider';
 import { JinjaParser } from '../JinjaParser';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProgressReporter } from '../ProgressReporter';
+import { DbtRepository } from '../repositories/DbtRepository';
 import { sleep } from './helper';
 
 describe('DbtTextDocument', () => {
@@ -16,6 +17,7 @@ describe('DbtTextDocument', () => {
   let document: DbtTextDocument;
   let mockModelCompiler: ModelCompiler;
   let mockJinjaParser: JinjaParser;
+  let dbtRepository: DbtRepository;
 
   const onCompilationErrorEmitter = new Emitter<string>();
   const onCompilationFinishedEmitter = new Emitter<string>();
@@ -30,6 +32,7 @@ describe('DbtTextDocument', () => {
     when(mockModelCompiler.onFinishAllCompilationJobs).thenReturn(new Emitter<void>().event);
 
     mockJinjaParser = mock(JinjaParser);
+    dbtRepository = mock(DbtRepository);
 
     document = new DbtTextDocument(
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
@@ -41,6 +44,7 @@ describe('DbtTextDocument', () => {
       instance(mockModelCompiler),
       instance(mockJinjaParser),
       onGlobalDbtErrorFixedEmitter,
+      dbtRepository,
       undefined,
     );
   });
