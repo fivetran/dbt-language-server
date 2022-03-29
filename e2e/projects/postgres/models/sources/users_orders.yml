@@ -1,0 +1,34 @@
+version: 2
+
+sources:
+  - name: users_orders
+    description: This is users/orders dataset
+
+    tables:
+      - name: orders
+        description: All orders
+        columns:
+          - name: id
+            description: Primary key of the orders table
+            tests:
+              - unique
+              - not_null
+          - name: user_id
+            description: Id of user
+          - name: order_date
+            description: Order date
+
+      - name: users
+        description: All users
+        columns:
+          - name: id
+            description: Primary key of the users table
+            tests:
+              - unique
+              - not_null
+          - name: full_name
+            description: Full Name
+          - name: city
+            description: City
+          - name: country
+            description: Country

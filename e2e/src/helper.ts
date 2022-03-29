@@ -28,6 +28,9 @@ const PROJECTS_PATH = path.resolve(__dirname, '../projects');
 const TEST_FIXTURE_PATH = path.resolve(PROJECTS_PATH, 'test-fixture');
 export const PREVIEW_URI = 'query-preview:Preview?dbt-language-server';
 
+export const MAX_VSCODE_INTEGER = 2147483647;
+export const MAX_RANGE = new Range(0, 0, MAX_VSCODE_INTEGER, MAX_VSCODE_INTEGER);
+
 workspace.onDidChangeTextDocument(onDidChangeTextDocument);
 
 let previewPromiseResolve: voidFunc | undefined;

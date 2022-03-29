@@ -1,9 +1,6 @@
-import { assertThat } from 'hamjest';
-import { DefinitionLink, Position, Range, Uri } from 'vscode';
-import { activateAndWait, getCustomDocUri, getDocUri, triggerDefinition } from './helper';
-
-const MAX_VSCODE_INTEGER = 2147483647;
-const MAX_RANGE = new Range(0, 0, MAX_VSCODE_INTEGER, MAX_VSCODE_INTEGER);
+import { Position, Range } from 'vscode';
+import { assertDefinitions } from './asserts';
+import { activateAndWait, getCustomDocUri, getDocUri, MAX_RANGE } from './helper';
 
 const refSqlDocUri = getDocUri('ref_sql.sql');
 const packageRefDocUri = getDocUri('package_ref.sql');
@@ -83,19 +80,6 @@ suite('source definitions', () => {
     ]);
   });
 });
-
-async function assertDefinitions(docUri: Uri, position: Position, expectedDefinitions: DefinitionLink[]): Promise<void> {
-  const definitions = await triggerDefinition(docUri, position);
-
-  assertThat(definitions.length, expectedDefinitions.length);
-
-  for (let i = 0; i < definitions.length; i++) {
-    assertThat(definitions[i].originSelectionRange, expectedDefinitions[i].originSelectionRange);
-    assertThat(definitions[i].targetUri.path, expectedDefinitions[i].targetUri.path);
-    assertThat(definitions[i].targetRange, expectedDefinitions[i].targetRange);
-    assertThat(definitions[i].targetSelectionRange, expectedDefinitions[i].targetSelectionRange);
-  }
-}
 
 function getTestFixtureModels(): string[] {
   return [

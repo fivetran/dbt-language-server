@@ -1,7 +1,7 @@
 import assert = require('assert');
 import { assertThat, hasSize } from 'hamjest';
-import { Diagnostic, DiagnosticRelatedInformation, languages, Location, Range, Uri } from 'vscode';
-import { PREVIEW_URI, sleep } from './helper';
+import { DefinitionLink, Diagnostic, DiagnosticRelatedInformation, languages, Location, Position, Range, Uri } from 'vscode';
+import { PREVIEW_URI, sleep, triggerDefinition } from './helper';
 
 export async function assertDiagnostics(uri: Uri, diagnostics: Diagnostic[]): Promise<void> {
   await sleep(100);
@@ -43,4 +43,17 @@ function assertRelatedInformation(actual: DiagnosticRelatedInformation, expected
 function assertLocation(actual: Location, expected: Location): void {
   assertRange(actual.range, expected.range);
   assertThat(actual.uri.path, expected.uri.path);
+}
+
+export async function assertDefinitions(docUri: Uri, position: Position, expectedDefinitions: DefinitionLink[]): Promise<void> {
+  const definitions = await triggerDefinition(docUri, position);
+
+  assertThat(definitions.length, expectedDefinitions.length);
+
+  for (let i = 0; i < definitions.length; i++) {
+    assertThat(definitions[i].originSelectionRange, expectedDefinitions[i].originSelectionRange);
+    assertThat(definitions[i].targetUri.path, expectedDefinitions[i].targetUri.path);
+    assertThat(definitions[i].targetRange, expectedDefinitions[i].targetRange);
+    assertThat(definitions[i].targetSelectionRange, expectedDefinitions[i].targetSelectionRange);
+  }
 }
