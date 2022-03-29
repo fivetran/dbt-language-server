@@ -1,6 +1,7 @@
 import { assertThat, instanceOf } from 'hamjest';
 import { commands, MarkdownString, Position, Range, SignatureHelp } from 'vscode';
-import { activateAndWait, assertDefinitions, getCustomDocUri, getPreviewText, MAX_RANGE } from './helper';
+import { assertDefinitions } from './asserts';
+import { activateAndWait, getCustomDocUri, getPreviewText, MAX_RANGE } from './helper';
 
 const activeUsersDocUri = getCustomDocUri('postgres/models/active_users.sql');
 const activeUsersOrdersCountDocUri = getCustomDocUri('postgres/models/active_users_orders_count.sql');

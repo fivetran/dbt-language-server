@@ -1,5 +1,6 @@
 import { Position, Range } from 'vscode';
-import { activateAndWait, assertDefinitions, getCustomDocUri, getDocUri, MAX_RANGE } from './helper';
+import { assertDefinitions } from './asserts';
+import { activateAndWait, getCustomDocUri, getDocUri, MAX_RANGE } from './helper';
 
 const refSqlDocUri = getDocUri('ref_sql.sql');
 const packageRefDocUri = getDocUri('package_ref.sql');
