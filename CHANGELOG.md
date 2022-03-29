@@ -1,3 +1,13 @@
+# Version 0.3.0
+
+## What's Changed
+* Support Apple M1 target
+* Support number of features for all [dbt adapters](https://docs.getdbt.com/docs/available-adapters#dbt-labs-supported) (see [Features](https://github.com/fivetran/dbt-language-server#features))
+* Set icon for extension
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.2.0...v0.3.0
+
 # Version 0.2.0
 
 ## What's Changed
