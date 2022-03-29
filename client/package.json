@@ -5,11 +5,11 @@
     "vscode": "^1.52.0"
   },
   "dependencies": {
-    "@vscode/extension-telemetry": "^0.4.9",
+    "@vscode/extension-telemetry": "^0.4.10",
     "vscode-languageclient": "^7.0.0"
   },
   "devDependencies": {
-    "@google-cloud/bigquery": "^5.11.0",
+    "@google-cloud/bigquery": "^5.12.0",
     "@types/vscode": "^1.65.0",
     "@vscode/test-electron": "^2.1.3"
   }
