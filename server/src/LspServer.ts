@@ -28,6 +28,7 @@ import {
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtProfileCreator, DbtProfileError, DbtProfileResult, DbtProfileSuccess } from './DbtProfileCreator';
+import { DbtRepository } from './DbtRepository';
 import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcServer } from './DbtRpcServer';
 import { DbtTextDocument } from './DbtTextDocument';
@@ -40,7 +41,6 @@ import { JinjaParser } from './JinjaParser';
 import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
-import { DbtRepository } from './repositories/DbtRepository';
 import { deferred } from './utils/Utils';
 import { YamlParser } from './YamlParser';
 

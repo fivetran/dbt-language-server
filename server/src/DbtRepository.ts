@@ -1,4 +1,4 @@
-import { ManifestMacro, ManifestModel, ManifestSource } from '../manifest/ManifestJson';
+import { ManifestMacro, ManifestModel, ManifestSource } from './manifest/ManifestJson';
 
 export class DbtRepository {
   manifestExists = false;

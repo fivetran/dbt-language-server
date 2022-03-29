@@ -2,13 +2,13 @@ import { assertThat } from 'hamjest';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentSaveReason, _Connection } from 'vscode-languageserver';
 import { CompletionProvider } from '../CompletionProvider';
+import { DbtRepository } from '../DbtRepository';
 import { DbtRpcServer } from '../DbtRpcServer';
 import { DbtTextDocument } from '../DbtTextDocument';
 import { JinjaDefinitionProvider } from '../definition/JinjaDefinitionProvider';
 import { JinjaParser } from '../JinjaParser';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProgressReporter } from '../ProgressReporter';
-import { DbtRepository } from '../repositories/DbtRepository';
 import { sleep } from './helper';
 
 describe('DbtTextDocument', () => {

@@ -1,6 +1,6 @@
 import { DidChangeWatchedFilesParams, Emitter, Event } from 'vscode-languageserver';
+import { DbtRepository } from './DbtRepository';
 import { ManifestParser } from './manifest/ManifestParser';
-import { DbtRepository } from './repositories/DbtRepository';
 import { YamlParser } from './YamlParser';
 
 export class FileChangeListener {

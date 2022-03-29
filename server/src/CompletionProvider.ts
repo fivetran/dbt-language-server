@@ -1,7 +1,7 @@
 import { Command, CompletionItem, CompletionItemKind, CompletionParams, CompletionTriggerKind } from 'vscode-languageserver';
+import { DbtRepository } from './DbtRepository';
 import { DestinationDefinition } from './DestinationDefinition';
 import { HelpProviderWords } from './HelpProviderWords';
-import { DbtRepository } from './repositories/DbtRepository';
 import { ActiveTableInfo, CompletionInfo } from './ZetaSqlAst';
 
 export class CompletionProvider {

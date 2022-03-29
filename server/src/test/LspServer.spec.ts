@@ -2,13 +2,13 @@ import { anything, instance, mock, spy, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentIdentifier, _Connection } from 'vscode-languageserver';
 import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { CompletionProvider } from '../CompletionProvider';
+import { DbtRepository } from '../DbtRepository';
 import { DbtTextDocument } from '../DbtTextDocument';
 import { JinjaDefinitionProvider } from '../definition/JinjaDefinitionProvider';
 import { JinjaParser } from '../JinjaParser';
 import { LspServer } from '../LspServer';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProgressReporter } from '../ProgressReporter';
-import { DbtRepository } from '../repositories/DbtRepository';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 import { sleep } from './helper';
 

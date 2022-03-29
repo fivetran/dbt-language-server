@@ -23,6 +23,7 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { CompletionProvider } from './CompletionProvider';
+import { DbtRepository } from './DbtRepository';
 import { DbtRpcServer } from './DbtRpcServer';
 import { JinjaDefinitionProvider } from './definition/JinjaDefinitionProvider';
 import { DestinationDefinition } from './DestinationDefinition';
@@ -32,7 +33,6 @@ import { HoverProvider } from './HoverProvider';
 import { JinjaParser } from './JinjaParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
-import { DbtRepository } from './repositories/DbtRepository';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { SqlRefConverter } from './SqlRefConverter';
 import { debounce, getIdentifierRangeAtPosition, getJinjaContentOffset, positionInRange } from './utils/Utils';

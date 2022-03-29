@@ -1,7 +1,7 @@
 import { DefinitionLink, integer, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { DbtRepository } from '../DbtRepository';
 import { ParseNode } from '../JinjaParser';
-import { DbtRepository } from '../repositories/DbtRepository';
 import { MacroDefinitionFinder } from './MacroDefinitionFinder';
 import { RefDefinitionFinder } from './RefDefinitionFinder';
 import { SourceDefinitionFinder } from './SourceDefinitionFinder';
