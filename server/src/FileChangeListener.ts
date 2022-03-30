@@ -13,8 +13,7 @@ export class FileChangeListener {
   }
 
   onInit(): void {
-    this.updateTargetPath();
-    this.updateProjectName();
+    this.updateDbtProjectConfig();
     this.updateManifestNodes();
   }
 
@@ -22,8 +21,7 @@ export class FileChangeListener {
     for (const change of params.changes) {
       if (change.uri.endsWith(YamlParser.DBT_PROJECT_FILE_NAME)) {
         this.onDbtProjectYmlChangedEmitter.fire();
-        this.updateTargetPath();
-        this.updateProjectName();
+        this.updateDbtProjectConfig();
         this.updateManifestNodes();
       } else if (change.uri.endsWith(`${this.resolveTargetPath()}/${YamlParser.DBT_MANIFEST_FILE_NAME}`)) {
         this.updateManifestNodes();
@@ -31,12 +29,10 @@ export class FileChangeListener {
     }
   }
 
-  updateTargetPath(): void {
+  updateDbtProjectConfig(): void {
     this.dbtRepository.dbtTargetPath = this.yamlParser.findTargetPath();
-  }
-
-  updateProjectName(): void {
     this.dbtRepository.projectName = this.yamlParser.findProjectName();
+    this.dbtRepository.modelPaths = this.yamlParser.findModelPaths();
   }
 
   updateManifestNodes(): void {
