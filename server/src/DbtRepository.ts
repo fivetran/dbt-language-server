@@ -13,7 +13,7 @@ export class DbtRepository {
   static readonly DEFAULT_TARGET_PATH = './target';
 
   static readonly DEFAULT_MODEL_PATHS = ['models'];
-  static readonly DEFAULT_PACKAGES_PATHS = ['dbt_packages', 'dbt_module'];
+  static readonly DEFAULT_PACKAGES_PATHS = ['dbt_packages', 'dbt_modules'];
 
   manifestExists = false;
   dbtTargetPath?: string;

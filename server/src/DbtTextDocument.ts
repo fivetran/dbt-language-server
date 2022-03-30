@@ -200,25 +200,31 @@ export class DbtTextDocument {
 
   debouncedCompile = debounce(async () => {
     this.progressReporter.sendStart(this.rawDocument.uri);
-    await this.modelCompiler.compile(this.getModelPath());
+    await this.modelCompiler.compile(this.getModelPathOrFullyQualifiedName());
   }, DbtTextDocument.DEBOUNCE_TIMEOUT);
 
-  getModelPath(): string {
-    const index = this.rawDocument.uri.indexOf(this.workspaceFolder);
-    const filePath = this.rawDocument.uri.slice(index + this.workspaceFolder.length + 1);
-    if (filePath.startsWith('dbt_packages') || filePath.startsWith('dbt_modules')) {
-      return filePath
-        .replaceAll('/', '.')
-        .replace(/^(dbt_packages|dbt_modules)./, '')
-        .replace('models.', '')
-        .replace(/.sql$/, '');
+  getModelPathOrFullyQualifiedName(): string {
+    return DbtTextDocument.getModelPathOrFullyQualifiedName(this.rawDocument.uri, this.workspaceFolder, this.dbtRepository);
+  }
+
+  static getModelPathOrFullyQualifiedName(docUri: string, workspaceFolder: string, dbtRepository: DbtRepository): string {
+    const index = docUri.indexOf(workspaceFolder);
+    const filePath = docUri.slice(index + workspaceFolder.length + 1);
+    if (dbtRepository.packagesInstallPaths.some(p => filePath.startsWith(p))) {
+      const startWithPackagesFolder = new RegExp(`^(${dbtRepository.packagesInstallPaths.join('|')}).`);
+      const modelsFolder = new RegExp(`(${dbtRepository.modelPaths.join('|')}).`);
+      return filePath.replaceAll('/', '.').replace(startWithPackagesFolder, '').replace(modelsFolder, '').replace(/.sql$/, '');
     }
-    return this.rawDocument.uri.slice(index + this.workspaceFolder.length + 1);
+    return docUri.slice(index + workspaceFolder.length + 1);
   }
 
   onCompilationError(dbtCompilationError: string): void {
     this.hasDbtError = true;
-    const diagnostics = this.diagnosticGenerator.getDbtErrorDiagnostics(dbtCompilationError, this.getModelPath(), this.workspaceFolder);
+    const diagnostics = this.diagnosticGenerator.getDbtErrorDiagnostics(
+      dbtCompilationError,
+      this.getModelPathOrFullyQualifiedName(),
+      this.workspaceFolder,
+    );
 
     this.sendUpdateQueryPreview(this.rawDocument.getText());
     this.sendDiagnostics(diagnostics, diagnostics);
