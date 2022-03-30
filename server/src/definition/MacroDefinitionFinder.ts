@@ -11,6 +11,7 @@ import { JinjaDefinitionProvider } from './JinjaDefinitionProvider';
 export class MacroDefinitionFinder {
   static readonly MACRO_PATTERN = /(\w+\.?\w+)\s*\(/;
   static readonly DBT_PACKAGE = 'dbt';
+  static readonly END_MACRO_PATTERN = /{%-?\s*endmacro\s*-?%}/g;
 
   searchMacroDefinitions(
     document: TextDocument,
@@ -59,15 +60,8 @@ export class MacroDefinitionFinder {
   getMacroRange(macro: string, macroFilePath: string): [Range, Range] {
     const macroDefinitionFileContent = fs.readFileSync(macroFilePath, 'utf8');
 
-    const startMacroPattern = new RegExp(`{%\\s*macro\\s*(${macro})\\s*\\(`);
-    const startMacroMatch = startMacroPattern.exec(macroDefinitionFileContent);
-
-    const endMacroPattern = /{%\s*endmacro\s*%}/g;
-    const endMacroMatches = [];
-    let match: RegExpExecArray | null;
-    while ((match = endMacroPattern.exec(macroDefinitionFileContent))) {
-      endMacroMatches.push(match);
-    }
+    const startMacroMatch = this.getStartMacroMatch(macroDefinitionFileContent, macro);
+    const endMacroMatches = this.getEndMacroMatches(macroDefinitionFileContent);
 
     if (startMacroMatch && endMacroMatches.length > 0) {
       const endMacroMatch = endMacroMatches
@@ -85,5 +79,19 @@ export class MacroDefinitionFinder {
     }
 
     return [JinjaDefinitionProvider.MAX_RANGE, JinjaDefinitionProvider.MAX_RANGE];
+  }
+
+  getStartMacroMatch(text: string, macro: string): RegExpExecArray | null {
+    const startMacroPattern = new RegExp(`{%-?\\s*macro\\s*(${macro})\\s*\\(`);
+    return startMacroPattern.exec(text);
+  }
+
+  getEndMacroMatches(text: string): RegExpExecArray[] {
+    const endMacroMatches = [];
+    let match: RegExpExecArray | null;
+    while ((match = MacroDefinitionFinder.END_MACRO_PATTERN.exec(text))) {
+      endMacroMatches.push(match);
+    }
+    return endMacroMatches;
   }
 }
