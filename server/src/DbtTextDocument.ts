@@ -207,6 +207,11 @@ export class DbtTextDocument {
     return DbtTextDocument.getModelPathOrFullyQualifiedName(this.rawDocument.uri, this.workspaceFolder, this.dbtRepository);
   }
 
+  static getFilePathRelatedToWorkspace(docUri: string, workspaceFolder: string): string {
+    const index = docUri.indexOf(workspaceFolder);
+    return docUri.slice(index + workspaceFolder.length + 1);
+  }
+
   static getModelPathOrFullyQualifiedName(docUri: string, workspaceFolder: string, dbtRepository: DbtRepository): string {
     const index = docUri.indexOf(workspaceFolder);
     const filePath = docUri.slice(index + workspaceFolder.length + 1);
@@ -216,6 +221,16 @@ export class DbtTextDocument {
       return filePath.replaceAll('/', '.').replace(startWithPackagesFolder, '').replace(modelsFolder, '').replace(/.sql$/, '');
     }
     return docUri.slice(index + workspaceFolder.length + 1);
+  }
+
+  static findCurrentPackage(docUri: string, workspaceFolder: string, dbtRepository: DbtRepository): string | undefined {
+    const index = docUri.indexOf(workspaceFolder);
+    const filePath = docUri.slice(index + workspaceFolder.length + 1);
+    if (dbtRepository.packagesInstallPaths.some(p => filePath.startsWith(p))) {
+      const withoutPackagesFolder = filePath.replace(new RegExp(`^(${dbtRepository.packagesInstallPaths.join('|')})/`), '');
+      return withoutPackagesFolder.substring(0, withoutPackagesFolder.indexOf('/'));
+    }
+    return dbtRepository.projectName;
   }
 
   onCompilationError(dbtCompilationError: string): void {
@@ -327,7 +342,8 @@ export class DbtTextDocument {
     const jinjas = this.jinjaParser.findAllEffectiveJinjas(this.rawDocument);
     for (const jinja of jinjas) {
       if (positionInRange(definitionParams.position, jinja.range)) {
-        return this.jinjaDefinitionProvider.onJinjaDefinition(this.rawDocument, jinja, definitionParams.position);
+        const currentPackage = DbtTextDocument.findCurrentPackage(this.rawDocument.uri, this.workspaceFolder, this.dbtRepository);
+        return this.jinjaDefinitionProvider.onJinjaDefinition(this.rawDocument, currentPackage, jinja, definitionParams.position);
       }
     }
     return undefined;
