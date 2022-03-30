@@ -1,6 +1,7 @@
 import { Err, err, ok, Result } from 'neverthrow';
 import { DbtProfile } from './DbtProfile';
 import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtProfileType';
+import { DbtRepository } from './DbtRepository';
 import { YamlParser } from './YamlParser';
 
 export interface DbtProfileResult {
@@ -72,7 +73,7 @@ export class DbtProfileCreator {
     try {
       profileName = this.yamlParser.findProfileName();
     } catch (e) {
-      const errorMessage = `Failed to find profile name in ${YamlParser.DBT_PROJECT_FILE_NAME}. Make sure that you opened folder with ${YamlParser.DBT_PROJECT_FILE_NAME} file. ${e}`;
+      const errorMessage = `Failed to find profile name in ${DbtRepository.DBT_PROJECT_FILE_NAME}. Make sure that you opened folder with ${DbtRepository.DBT_PROJECT_FILE_NAME} file. ${e}`;
       console.log(errorMessage);
       return err({ message: errorMessage });
     }
