@@ -213,19 +213,17 @@ export class DbtTextDocument {
   }
 
   static getModelPathOrFullyQualifiedName(docUri: string, workspaceFolder: string, dbtRepository: DbtRepository): string {
-    const index = docUri.indexOf(workspaceFolder);
-    const filePath = docUri.slice(index + workspaceFolder.length + 1);
+    const filePath = this.getFilePathRelatedToWorkspace(docUri, workspaceFolder);
     if (dbtRepository.packagesInstallPaths.some(p => filePath.startsWith(p))) {
       const startWithPackagesFolder = new RegExp(`^(${dbtRepository.packagesInstallPaths.join('|')}).`);
       const modelsFolder = new RegExp(`(${dbtRepository.modelPaths.join('|')}).`);
       return filePath.replaceAll('/', '.').replace(startWithPackagesFolder, '').replace(modelsFolder, '').replace(/.sql$/, '');
     }
-    return docUri.slice(index + workspaceFolder.length + 1);
+    return filePath;
   }
 
   static findCurrentPackage(docUri: string, workspaceFolder: string, dbtRepository: DbtRepository): string | undefined {
-    const index = docUri.indexOf(workspaceFolder);
-    const filePath = docUri.slice(index + workspaceFolder.length + 1);
+    const filePath = DbtTextDocument.getFilePathRelatedToWorkspace(docUri, workspaceFolder);
     if (dbtRepository.packagesInstallPaths.some(p => filePath.startsWith(p))) {
       const withoutPackagesFolder = filePath.replace(new RegExp(`^(${dbtRepository.packagesInstallPaths.join('|')})/`), '');
       return withoutPackagesFolder.substring(0, withoutPackagesFolder.indexOf('/'));

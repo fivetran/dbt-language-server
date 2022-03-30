@@ -208,6 +208,29 @@ describe('DbtTextDocument', () => {
     assertThat(name, 'package.model');
   });
 
+  it('findCurrentPackage should return package from uri', () => {
+    // arrange
+    const dbtRepository = new DbtRepository();
+
+    // act
+    const currentPackage = DbtTextDocument.findCurrentPackage('/workspace/dbt_packages/package/custom_models/model.sql', WORKSPACE, dbtRepository);
+
+    // assert
+    assertThat(currentPackage, 'package');
+  });
+
+  it('findCurrentPackage should return package when packages paths customized', () => {
+    // arrange
+    const dbtRepository = new DbtRepository();
+    dbtRepository.packagesInstallPaths = ['pkgs'];
+
+    // act
+    const currentPackage = DbtTextDocument.findCurrentPackage('/workspace/pkgs/package/custom_models/model.sql', WORKSPACE, dbtRepository);
+
+    // assert
+    assertThat(currentPackage, 'package');
+  });
+
   async function sleepMoreThanDebounceTime(): Promise<void> {
     await sleep(2 * DbtTextDocument.DEBOUNCE_TIMEOUT);
   }
