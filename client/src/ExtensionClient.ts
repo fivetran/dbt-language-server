@@ -21,6 +21,8 @@ import path = require('path');
 export const SUPPORTED_LANG_IDS = ['sql', 'jinja-sql', 'sql-bigquery'];
 
 export class ExtensionClient {
+  static readonly DEFAULT_PACKAGES_PATHS = ['dbt_packages', 'dbt_modules'];
+
   serverAbsolutePath: string;
   outputChannel: OutputChannel;
   previewContentProvider = new SqlPreviewContentProvider();
@@ -206,7 +208,7 @@ export class ExtensionClient {
       try {
         await workspace.fs.stat(currentUri.with({ path: `${currentUri.path}/dbt_project.yml` }));
         const oneLevelUpPath = Uri.joinPath(currentUri, '..').path;
-        if (oneLevelUpPath.endsWith('dbt_packages') || oneLevelUpPath.endsWith('dbt_modules')) {
+        if (ExtensionClient.DEFAULT_PACKAGES_PATHS.some(p => oneLevelUpPath.endsWith(p))) {
           continue;
         }
         return currentUri;
