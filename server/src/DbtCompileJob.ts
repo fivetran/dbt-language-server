@@ -108,7 +108,7 @@ export class DbtCompileJob {
       return compiledNodes[0].node.compiled_sql;
     }
     if (pollResponse.result.state === 'success') {
-      return '';
+      return ' ';
     }
     return undefined;
   }
