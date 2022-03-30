@@ -1,5 +1,4 @@
 import { Command, CompletionItem, CompletionItemKind, CompletionParams, CompletionTriggerKind } from 'vscode-languageserver';
-import { DbtRepository } from './DbtRepository';
 import { DestinationDefinition } from './DestinationDefinition';
 import { HelpProviderWords } from './HelpProviderWords';
 import { ActiveTableInfo, CompletionInfo } from './ZetaSqlAst';
@@ -241,20 +240,6 @@ export class CompletionProvider {
   ];
 
   static readonly DBT_KEYWORDS = ['ref'];
-
-  constructor(private dbtRepository: DbtRepository) {}
-
-  onJinjaCompletion(textBeforeCursor: string): CompletionItem[] {
-    if (textBeforeCursor.match(CompletionProvider.ENDS_WITH_REF)) {
-      const edsWithQuote = textBeforeCursor.match(CompletionProvider.ENDS_WITH_QUOTE);
-      return this.dbtRepository.models.map<CompletionItem>(m => ({
-        label: edsWithQuote ? m.name : `'${m.name}'`,
-        kind: CompletionItemKind.Value,
-        detail: 'Model',
-      }));
-    }
-    return [];
-  }
 
   async onSqlCompletion(
     text: string,

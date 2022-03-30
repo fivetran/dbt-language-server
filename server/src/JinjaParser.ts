@@ -2,6 +2,12 @@ import { Position, Range, TextDocumentContentChangeEvent } from 'vscode-language
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { comparePositions, rangesOverlap } from './utils/Utils';
 
+export enum JinjaType {
+  EXPRESSION,
+  BLOCK,
+  COMMENT,
+}
+
 export interface ParseNode {
   value: string;
   range: Range;
@@ -27,6 +33,19 @@ export class JinjaParser {
 
   static readonly JINJA_OPEN_BLOCKS = ['docs', 'if', 'for', 'macro'];
   static readonly JINJA_CLOSE_BLOCKS = ['enddocs', 'endif', 'endfor', 'endmacro'];
+
+  getJinjaType(expression: string): JinjaType | undefined {
+    if (expression.match(/^{\s*{/) !== null) {
+      return JinjaType.EXPRESSION;
+    }
+    if (expression.match(/^{\s*%/) !== null) {
+      return JinjaType.BLOCK;
+    }
+    if (expression.match(/^{\s*#/) !== null) {
+      return JinjaType.COMMENT;
+    }
+    return undefined;
+  }
 
   /**
    * Finds all jinja statements ranges and ranges of jinja blocks: 'docs', 'if', 'for', 'macro'.

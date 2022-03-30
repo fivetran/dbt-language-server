@@ -22,20 +22,20 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { BigQueryContext } from './bigquery/BigQueryContext';
+import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtRepository } from './DbtRepository';
 import { DbtRpcServer } from './DbtRpcServer';
 import { JinjaDefinitionProvider } from './definition/JinjaDefinitionProvider';
-import { DestinationDefinition } from './DestinationDefinition';
 import { DiagnosticGenerator } from './DiagnosticGenerator';
 import { Diff } from './Diff';
 import { HoverProvider } from './HoverProvider';
-import { JinjaParser } from './JinjaParser';
+import { JinjaParser, ParseNode } from './JinjaParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { SqlRefConverter } from './SqlRefConverter';
-import { debounce, getIdentifierRangeAtPosition, getJinjaContentOffset, positionInRange } from './utils/Utils';
+import { debounce, getIdentifierRangeAtPosition, positionInRange } from './utils/Utils';
 import { ZetaSqlAst } from './ZetaSqlAst';
 
 export class DbtTextDocument {
@@ -48,6 +48,7 @@ export class DbtTextDocument {
   requireCompileOnSave: boolean;
 
   ast?: AnalyzeResponse;
+  jinjas: ParseNode[] = [];
   signatureHelpProvider = new SignatureHelpProvider();
   sqlRefConverter = new SqlRefConverter(this.jinjaParser);
   diagnosticGenerator = new DiagnosticGenerator();
@@ -61,6 +62,7 @@ export class DbtTextDocument {
     private connection: _Connection,
     private progressReporter: ProgressReporter,
     private completionProvider: CompletionProvider,
+    private dbtCompletionProvider: DbtCompletionProvider,
     private jinjaDefinitionProvider: JinjaDefinitionProvider,
     private modelCompiler: ModelCompiler,
     private jinjaParser: JinjaParser,
@@ -115,6 +117,7 @@ export class DbtTextDocument {
       ],
     });
     await this.didSaveTextDocument();
+    this.updateJinjas();
   }
 
   didChangeTextDocument(params: DidChangeTextDocumentParams): void {
@@ -137,6 +140,11 @@ export class DbtTextDocument {
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
       TextDocument.update(this.compiledDocument, compiledContentChanges, params.textDocument.version);
     }
+    this.updateJinjas();
+  }
+
+  updateJinjas(): void {
+    this.jinjas = this.jinjaParser.findAllEffectiveJinjas(this.rawDocument);
   }
 
   convertPosition(first: string, second: string, positionInSecond: Position): Position {
@@ -278,22 +286,23 @@ export class DbtTextDocument {
     return HoverProvider.hoverOnText(text, this.ast);
   }
 
-  async onCompletion(completionParams: CompletionParams, destinationDefinition: DestinationDefinition): Promise<CompletionItem[] | undefined> {
+  async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
+    const jinjaHit = this.jinjas.find(j => positionInRange(completionParams.position, j.range));
+    if (jinjaHit) {
+      const jinjaType = this.jinjaParser.getJinjaType(jinjaHit.value);
+      const jinjaBeforePositionText = this.rawDocument.getText(Range.create(jinjaHit.range.start, completionParams.position));
+      return this.dbtCompletionProvider.provideCompletions(completionParams, jinjaBeforePositionText, jinjaType);
+    }
+
+    if (!this.bigQueryContext) {
+      return undefined;
+    }
+
     const previousPosition = Position.create(
       completionParams.position.line,
       completionParams.position.character > 0 ? completionParams.position.character - 1 : 0,
     );
     const text = this.rawDocument.getText(getIdentifierRangeAtPosition(previousPosition, this.rawDocument.getText()));
-
-    const jinjaContentOffset = getJinjaContentOffset(this.rawDocument, completionParams.position);
-    if (jinjaContentOffset !== -1) {
-      return this.completionProvider.onJinjaCompletion(
-        this.rawDocument.getText(Range.create(this.rawDocument.positionAt(jinjaContentOffset), completionParams.position)),
-      );
-    }
-    if (['(', '"', "'"].includes(completionParams.context?.triggerCharacter ?? '')) {
-      return undefined;
-    }
 
     let completionInfo = undefined;
     if (this.ast) {
@@ -301,7 +310,7 @@ export class DbtTextDocument {
       const offset = this.compiledDocument.offsetAt(Position.create(line, completionParams.position.character));
       completionInfo = DbtTextDocument.ZETA_SQL_AST.getCompletionInfo(this.ast, offset);
     }
-    return this.completionProvider.onSqlCompletion(text, completionParams, destinationDefinition, completionInfo);
+    return this.completionProvider.onSqlCompletion(text, completionParams, this.bigQueryContext.destinationDefinition, completionInfo);
   }
 
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
@@ -310,10 +319,10 @@ export class DbtTextDocument {
   }
 
   onDefinition(definitionParams: DefinitionParams): DefinitionLink[] | undefined {
-    const jinjas = this.jinjaParser.findAllEffectiveJinjas(this.rawDocument);
-    for (const jinja of jinjas) {
+    for (const jinja of this.jinjas) {
       if (positionInRange(definitionParams.position, jinja.range)) {
-        return this.jinjaDefinitionProvider.onJinjaDefinition(this.rawDocument, jinja, definitionParams.position);
+        const jinjaType = this.jinjaParser.getJinjaType(jinja.value);
+        return this.jinjaDefinitionProvider.onJinjaDefinition(this.rawDocument, jinja, definitionParams.position, jinjaType);
       }
     }
     return undefined;

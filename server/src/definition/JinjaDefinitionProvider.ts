@@ -1,7 +1,7 @@
 import { DefinitionLink, integer, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtRepository } from '../DbtRepository';
-import { ParseNode } from '../JinjaParser';
+import { JinjaType, ParseNode } from '../JinjaParser';
 import { MacroDefinitionFinder } from './MacroDefinitionFinder';
 import { RefDefinitionFinder } from './RefDefinitionFinder';
 import { SourceDefinitionFinder } from './SourceDefinitionFinder';
@@ -15,44 +15,30 @@ export class JinjaDefinitionProvider {
 
   constructor(private dbtRepository: DbtRepository) {}
 
-  onJinjaDefinition(document: TextDocument, jinja: ParseNode, position: Position): DefinitionLink[] | undefined {
-    if (this.dbtRepository.projectName && this.isExpression(jinja.value)) {
-      const refDefinitions = this.refDefinitionFinder.searchRefDefinitions(
-        document,
-        position,
-        jinja,
-        this.dbtRepository.projectName,
-        this.dbtRepository.models,
-      );
-      if (refDefinitions) {
-        return refDefinitions;
-      }
+  onJinjaDefinition(document: TextDocument, jinja: ParseNode, position: Position, jinjaType: JinjaType | undefined): DefinitionLink[] | undefined {
+    const refDefinitions =
+      this.dbtRepository.projectName && jinjaType === JinjaType.EXPRESSION
+        ? this.refDefinitionFinder.searchRefDefinitions(document, position, jinja, this.dbtRepository.projectName, this.dbtRepository.models)
+        : undefined;
+    if (refDefinitions) {
+      return refDefinitions;
     }
 
-    if (this.dbtRepository.projectName) {
-      const macroDefinitions = this.macroDefinitionFinder.searchMacroDefinitions(
-        document,
-        position,
-        jinja,
-        this.dbtRepository.projectName,
-        this.dbtRepository.macros,
-      );
-      if (macroDefinitions) {
-        return macroDefinitions;
-      }
+    const macroDefinitions = this.dbtRepository.projectName
+      ? this.macroDefinitionFinder.searchMacroDefinitions(document, position, jinja, this.dbtRepository.projectName, this.dbtRepository.macros)
+      : undefined;
+    if (macroDefinitions) {
+      return macroDefinitions;
     }
 
-    if (this.isExpression(jinja.value)) {
-      const sourceDefinitions = this.sourceDefinitionFinder.searchSourceDefinitions(document, position, jinja, this.dbtRepository.sources);
-      if (sourceDefinitions) {
-        return sourceDefinitions;
-      }
+    const sourceDefinitions =
+      jinjaType === JinjaType.EXPRESSION
+        ? this.sourceDefinitionFinder.searchSourceDefinitions(document, position, jinja, this.dbtRepository.sources)
+        : undefined;
+    if (sourceDefinitions) {
+      return sourceDefinitions;
     }
 
     return undefined;
-  }
-
-  isExpression(expression: string): boolean {
-    return expression.match(/^{\s*{/) !== null;
   }
 }

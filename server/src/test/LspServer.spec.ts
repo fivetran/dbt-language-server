@@ -1,6 +1,7 @@
 import { anything, instance, mock, spy, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentIdentifier, _Connection } from 'vscode-languageserver';
 import { BigQueryContext } from '../bigquery/BigQueryContext';
+import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
 import { CompletionProvider } from '../CompletionProvider';
 import { DbtRepository } from '../DbtRepository';
 import { DbtTextDocument } from '../DbtTextDocument';
@@ -51,6 +52,7 @@ describe('LspServer', () => {
       mock<_Connection>(),
       mock(ProgressReporter),
       mock(CompletionProvider),
+      mock(DbtCompletionProvider),
       mock(JinjaDefinitionProvider),
       instance(mockModelCompiler),
       mock(JinjaParser),

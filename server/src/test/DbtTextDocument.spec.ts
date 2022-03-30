@@ -1,6 +1,7 @@
 import { assertThat } from 'hamjest';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentSaveReason, _Connection } from 'vscode-languageserver';
+import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
 import { CompletionProvider } from '../CompletionProvider';
 import { DbtRepository } from '../DbtRepository';
 import { DbtRpcServer } from '../DbtRpcServer';
@@ -40,6 +41,7 @@ describe('DbtTextDocument', () => {
       mock<_Connection>(),
       mock(ProgressReporter),
       mock(CompletionProvider),
+      mock(DbtCompletionProvider),
       mock(JinjaDefinitionProvider),
       instance(mockModelCompiler),
       instance(mockJinjaParser),

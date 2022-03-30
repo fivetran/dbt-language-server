@@ -26,6 +26,7 @@ import {
   _Connection,
 } from 'vscode-languageserver';
 import { BigQueryContext } from './bigquery/BigQueryContext';
+import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
 import { CompletionProvider } from './CompletionProvider';
 import { DbtProfileCreator, DbtProfileError, DbtProfileResult, DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtRepository } from './DbtRepository';
@@ -61,6 +62,7 @@ export class LspServer {
   progressReporter: ProgressReporter;
   fileChangeListener: FileChangeListener;
   completionProvider: CompletionProvider;
+  dbtCompletionProvider: DbtCompletionProvider;
   jinjaDefinitionProvider: JinjaDefinitionProvider;
   yamlParser = new YamlParser();
   dbtProfileCreator = new DbtProfileCreator(this.yamlParser);
@@ -79,7 +81,8 @@ export class LspServer {
   constructor(private connection: _Connection) {
     this.progressReporter = new ProgressReporter(this.connection);
     this.fileChangeListener = new FileChangeListener(this.yamlParser, this.manifestParser, this.dbtRepository);
-    this.completionProvider = new CompletionProvider(this.dbtRepository);
+    this.completionProvider = new CompletionProvider();
+    this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);
     this.jinjaDefinitionProvider = new JinjaDefinitionProvider(this.dbtRepository);
     this.fileChangeListener.onDbtProjectYmlChanged(this.onDbtProjectYmlChanged.bind(this));
   }
@@ -290,6 +293,7 @@ export class LspServer {
         this.connection,
         this.progressReporter,
         this.completionProvider,
+        this.dbtCompletionProvider,
         this.jinjaDefinitionProvider,
         new ModelCompiler(this.dbtRpcClient),
         new JinjaParser(),
@@ -340,11 +344,8 @@ export class LspServer {
   }
 
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
-    if (!this.bigQueryContext) {
-      return undefined;
-    }
     const document = this.openedDocuments.get(completionParams.textDocument.uri);
-    return document?.onCompletion(completionParams, this.bigQueryContext.destinationDefinition);
+    return document?.onCompletion(completionParams);
   }
 
   onCompletionResolve(item: CompletionItem): CompletionItem {
