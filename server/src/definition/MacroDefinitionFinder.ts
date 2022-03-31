@@ -17,7 +17,7 @@ export class MacroDefinitionFinder {
     document: TextDocument,
     position: Position,
     jinja: ParseNode,
-    projectName: string,
+    packageName: string,
     dbtMacros: ManifestMacro[],
   ): DefinitionLink[] | undefined {
     const expressionLines = jinja.value.split('\n');
@@ -37,7 +37,7 @@ export class MacroDefinitionFinder {
       const [, macro] = macroMatch;
       const macroSearchIds = macro.includes('.')
         ? [`macro.${macro}`]
-        : [`macro.${MacroDefinitionFinder.DBT_PACKAGE}.${macro}`, `macro.${projectName}.${macro}`];
+        : [`macro.${MacroDefinitionFinder.DBT_PACKAGE}.${macro}`, `macro.${packageName}.${macro}`];
       const foundMacro = dbtMacros.find(m => macroSearchIds.includes(m.uniqueId));
       if (foundMacro) {
         const macroFilePath = path.join(foundMacro.rootPath, foundMacro.originalFilePath);
