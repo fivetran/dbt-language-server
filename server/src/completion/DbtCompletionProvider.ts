@@ -15,7 +15,7 @@ export class DbtCompletionProvider {
   sourceCompletionProvider: SourceCompletionProvider;
 
   constructor(private dbtRepository: DbtRepository) {
-    this.macroCompletionProvider = new MacroCompletionProvider();
+    this.macroCompletionProvider = new MacroCompletionProvider(this.dbtRepository);
     this.modelCompletionProvider = new ModelCompletionProvider(this.dbtRepository);
     this.sourceCompletionProvider = new SourceCompletionProvider(this.dbtRepository);
   }
