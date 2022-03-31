@@ -1,7 +1,7 @@
 name: ReleaseToChangelog
 on:
-  release:
-    types: [published, edited]
+  pull_request:
+    types: [opened]
   workflow_dispatch:
 
 jobs:
