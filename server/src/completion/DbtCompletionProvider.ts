@@ -1,12 +1,12 @@
 import { CompletionItem, CompletionParams } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
-import { JinjaType } from '../JinjaParser';
+import { JinjaType, ParseNode } from '../JinjaParser';
 import { MacroCompletionProvider } from './MacroCompletionProvider';
 import { ModelCompletionProvider } from './ModelCompletionProvider';
 import { SourceCompletionProvider } from './SourceCompletionProvider';
 
 export interface DbtNodeCompletionProvider {
-  provideCompletions(completionParams: CompletionParams, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined>;
+  provideCompletions(completionParams: CompletionParams, jinja: ParseNode, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined>;
 }
 
 export class DbtCompletionProvider {
@@ -17,17 +17,18 @@ export class DbtCompletionProvider {
   constructor(private dbtRepository: DbtRepository) {
     this.macroCompletionProvider = new MacroCompletionProvider();
     this.modelCompletionProvider = new ModelCompletionProvider(this.dbtRepository);
-    this.sourceCompletionProvider = new SourceCompletionProvider();
+    this.sourceCompletionProvider = new SourceCompletionProvider(this.dbtRepository);
   }
 
   async provideCompletions(
     completionParams: CompletionParams,
-    jinjaBeforePositionText: string,
+    jinja: ParseNode,
     jinjaType: JinjaType | undefined,
+    jinjaBeforePositionText: string,
   ): Promise<CompletionItem[] | undefined> {
     const modelCompletions =
       jinjaType === JinjaType.EXPRESSION
-        ? await this.modelCompletionProvider.provideCompletions(completionParams, jinjaBeforePositionText)
+        ? await this.modelCompletionProvider.provideCompletions(completionParams, jinja, jinjaBeforePositionText)
         : undefined;
     if (modelCompletions) {
       return modelCompletions;
@@ -35,7 +36,7 @@ export class DbtCompletionProvider {
 
     const sourceCompletions =
       jinjaType === JinjaType.EXPRESSION
-        ? await this.sourceCompletionProvider.provideCompletions(completionParams, jinjaBeforePositionText)
+        ? await this.sourceCompletionProvider.provideCompletions(completionParams, jinja, jinjaBeforePositionText)
         : undefined;
     if (sourceCompletions) {
       return sourceCompletions;
@@ -43,7 +44,7 @@ export class DbtCompletionProvider {
 
     const macroCompletions =
       jinjaType === JinjaType.EXPRESSION || jinjaType === JinjaType.BLOCK
-        ? await this.macroCompletionProvider.provideCompletions(completionParams, jinjaBeforePositionText)
+        ? await this.macroCompletionProvider.provideCompletions(completionParams, jinja, jinjaBeforePositionText)
         : undefined;
     if (macroCompletions) {
       return macroCompletions;

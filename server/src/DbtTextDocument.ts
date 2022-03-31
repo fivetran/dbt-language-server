@@ -291,7 +291,7 @@ export class DbtTextDocument {
     if (jinjaHit) {
       const jinjaType = this.jinjaParser.getJinjaType(jinjaHit.value);
       const jinjaBeforePositionText = this.rawDocument.getText(Range.create(jinjaHit.range.start, completionParams.position));
-      return this.dbtCompletionProvider.provideCompletions(completionParams, jinjaBeforePositionText, jinjaType);
+      return this.dbtCompletionProvider.provideCompletions(completionParams, jinjaHit, jinjaType, jinjaBeforePositionText);
     }
 
     if (!this.bigQueryContext) {

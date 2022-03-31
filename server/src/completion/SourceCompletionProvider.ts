@@ -1,10 +1,41 @@
-import { CompletionItem, CompletionParams } from 'vscode-languageserver';
+import { CompletionItem, CompletionItemKind, CompletionParams } from 'vscode-languageserver';
+import { DbtRepository } from '../DbtRepository';
+import { ParseNode } from '../JinjaParser';
 
 export class SourceCompletionProvider {
-  provideCompletions(_completionParams: CompletionParams, _jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
-    // todo: 1. Provide completions for packages and models.
-    // todo: 2. Provide completions for models only from specified package.
+  static readonly SOURCE_PATTERN = /source\s*\(\s*['|"]$/;
+  static readonly TABLE_PATTERN = /source\s*\(\s*('[^)']*'|"[^)"]*")\s*,\s*('|")$/;
+
+  constructor(private dbtRepository: DbtRepository) {}
+
+  provideCompletions(completionParams: CompletionParams, jinja: ParseNode, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
+    const sourceMatch = SourceCompletionProvider.SOURCE_PATTERN.exec(jinjaBeforePositionText);
+    if (sourceMatch) {
+      const sourceNames = this.dbtRepository.sources
+        .filter(s => (this.dbtRepository.projectName ? s.uniqueId.startsWith(`source.${this.dbtRepository.projectName}.`) : true))
+        .map<string>(s => s.sourceName);
+      return Promise.resolve(Array.from(new Set(sourceNames)).map<CompletionItem>(s => this.getCompletionItem(s, 'Source')));
+    }
+
+    const tableMatch = SourceCompletionProvider.TABLE_PATTERN.exec(jinjaBeforePositionText);
+    if (tableMatch) {
+      const [, sourceName] = tableMatch;
+      const searchPattern = new RegExp(
+        `source\\.${this.dbtRepository.projectName ?? '.*'}\\.${sourceName.length > 0 ? sourceName.slice(1, -1) : '.*'}\\.`,
+      );
+      return Promise.resolve(
+        this.dbtRepository.sources.filter(s => s.uniqueId.match(searchPattern)).map<CompletionItem>(s => this.getCompletionItem(s.name, 'Table')),
+      );
+    }
 
     return Promise.resolve(undefined);
+  }
+
+  private getCompletionItem(name: string, detail: 'Source' | 'Table'): CompletionItem {
+    return {
+      label: name,
+      kind: CompletionItemKind.Value,
+      detail,
+    };
   }
 }
