@@ -13,7 +13,7 @@ jobs:
           ref: main
 
       - name: update changelog
-        run: npx gren changelog --override --token=$TOKEN
+        run: npx github-release-notes changelog --override --token=$TOKEN
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
