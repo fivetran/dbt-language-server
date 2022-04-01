@@ -37,7 +37,7 @@ export class FeatureFinder {
   version?: DbtVersion;
 
   constructor() {
-    this.dbtRpcGlobal = Promise.resolve(undefined); // this.findDbtRpcGlobalVersion();
+    this.dbtRpcGlobal = this.findDbtRpcGlobalVersion();
     this.dbtGlobal = this.findDbtGlobalVersion();
   }
 
@@ -100,9 +100,9 @@ export class FeatureFinder {
     return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS, this.python);
   }
 
-  // private async findDbtRpcGlobalVersion(): Promise<DbtVersion | undefined> {
-  //   return this.findCommandVersion(new DbtRpcCommand([FeatureFinder.VERSION_PARAM]));
-  // }
+  private async findDbtRpcGlobalVersion(): Promise<DbtVersion | undefined> {
+    return this.findCommandVersion(new DbtRpcCommand([FeatureFinder.VERSION_PARAM]));
+  }
 
   private async findDbtGlobalVersion(): Promise<DbtVersion | undefined> {
     return this.findCommandVersion(new DbtCommand([FeatureFinder.VERSION_PARAM]));

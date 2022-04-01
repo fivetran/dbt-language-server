@@ -11,6 +11,7 @@ export class ProcessExecutor {
     stdout: string;
     stderr: string;
   }> {
+    console.log(`executing command ${command}`);
     const promisifiedExec = promisify(exec);
 
     const { env } = process;
