@@ -37,8 +37,8 @@ export class FeatureFinder {
   version?: DbtVersion;
 
   constructor() {
-    this.dbtRpcGlobal = this.findDbtRpcGlobalVersion();
-    this.dbtGlobal = this.findDbtGlobalVersion();
+    this.dbtRpcGlobal = Promise.resolve(undefined); // this.findDbtRpcGlobalVersion();
+    this.dbtGlobal = Promise.resolve(undefined); // this.findDbtGlobalVersion();
   }
 
   /** Tries to find a suitable command to start the server first in the current Python environment and then in the global scope.
@@ -100,13 +100,13 @@ export class FeatureFinder {
     return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS, this.python);
   }
 
-  private async findDbtRpcGlobalVersion(): Promise<DbtVersion | undefined> {
-    return this.findCommandVersion(new DbtRpcCommand([FeatureFinder.VERSION_PARAM]));
-  }
+  // private async findDbtRpcGlobalVersion(): Promise<DbtVersion | undefined> {
+  //   return this.findCommandVersion(new DbtRpcCommand([FeatureFinder.VERSION_PARAM]));
+  // }
 
-  private async findDbtGlobalVersion(): Promise<DbtVersion | undefined> {
-    return this.findCommandVersion(new DbtCommand([FeatureFinder.VERSION_PARAM]));
-  }
+  // private async findDbtGlobalVersion(): Promise<DbtVersion | undefined> {
+  //   return this.findCommandVersion(new DbtCommand([FeatureFinder.VERSION_PARAM]));
+  // }
 
   private async findDbtRpcPythonVersion(): Promise<DbtVersion | undefined> {
     return this.findCommandPythonVersion(new DbtRpcCommand([FeatureFinder.VERSION_PARAM], this.python));
