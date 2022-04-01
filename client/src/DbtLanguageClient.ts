@@ -121,6 +121,8 @@ export class DbtLanguageClient implements Disposable {
   }
 
   dispose(): void {
-    this.disposables.forEach(disposable => disposable.dispose());
+    this.disposables.forEach(disposable => {
+      disposable.dispose();
+    });
   }
 }

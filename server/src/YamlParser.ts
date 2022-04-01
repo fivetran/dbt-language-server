@@ -14,7 +14,7 @@ export class YamlParser {
   findProjectName(): string | undefined {
     try {
       const dbtProject = YamlParser.parseYamlFile(DbtRepository.DBT_PROJECT_FILE_NAME);
-      return dbtProject[DbtRepository.DBT_PROJECT_NAME_FIELD] ?? undefined;
+      return dbtProject[DbtRepository.DBT_PROJECT_NAME_FIELD] ? (dbtProject[DbtRepository.DBT_PROJECT_NAME_FIELD] as string) : undefined;
     } catch (e) {
       return undefined;
     }
@@ -23,7 +23,9 @@ export class YamlParser {
   findModelPaths(): string[] {
     try {
       const dbtProject = YamlParser.parseYamlFile(DbtRepository.DBT_PROJECT_FILE_NAME);
-      return dbtProject[DbtRepository.MODEL_PATHS_FIELD] ?? dbtProject[DbtRepository.SOURCE_PATHS_FIELD] ?? DbtRepository.DEFAULT_MODEL_PATHS;
+      return (dbtProject[DbtRepository.MODEL_PATHS_FIELD] ??
+        dbtProject[DbtRepository.SOURCE_PATHS_FIELD] ??
+        DbtRepository.DEFAULT_MODEL_PATHS) as string[];
     } catch (e) {
       return DbtRepository.DEFAULT_MODEL_PATHS;
     }
@@ -33,7 +35,7 @@ export class YamlParser {
     try {
       const dbtProject = YamlParser.parseYamlFile(DbtRepository.DBT_PROJECT_FILE_NAME);
       return dbtProject[DbtRepository.PACKAGES_INSTALL_PATH_FIELD]
-        ? [dbtProject[DbtRepository.PACKAGES_INSTALL_PATH_FIELD]]
+        ? ([dbtProject[DbtRepository.PACKAGES_INSTALL_PATH_FIELD]] as string[])
         : DbtRepository.DEFAULT_PACKAGES_PATHS;
     } catch (e) {
       return DbtRepository.DEFAULT_PACKAGES_PATHS;
@@ -43,7 +45,7 @@ export class YamlParser {
   findTargetPath(): string {
     try {
       const dbtProject = YamlParser.parseYamlFile(DbtRepository.DBT_PROJECT_FILE_NAME);
-      return dbtProject[DbtRepository.TARGET_PATH_FIELD] ?? DbtRepository.DEFAULT_TARGET_PATH;
+      return (dbtProject[DbtRepository.TARGET_PATH_FIELD] ?? DbtRepository.DEFAULT_TARGET_PATH) as string;
     } catch (e) {
       return DbtRepository.DEFAULT_TARGET_PATH;
     }
@@ -56,7 +58,7 @@ export class YamlParser {
       throw new Error("'profile' field is missing");
     }
     console.log(`Profile name found: ${dbtProject?.profile}`);
-    return dbtProject?.profile;
+    return dbtProject?.profile as string;
   }
 
   static parseYamlFile(filePath: string): any {
