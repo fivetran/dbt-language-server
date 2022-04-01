@@ -72,9 +72,8 @@ export class DbtLanguageClient implements Disposable {
 
           this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),
         );
-
-        console.log('Client switched to state "Running"');
       }
+      console.log(`Client switched to state ${State[e.newState]}`);
     });
 
     this.client.onReady().catch(reason => {
