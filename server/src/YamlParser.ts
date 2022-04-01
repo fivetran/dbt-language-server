@@ -49,8 +49,12 @@ export class YamlParser {
     }
   }
 
+  /** In dbt package's dbt_project.yml profile may be missing */
   findProfileName(): string {
     const dbtProject = YamlParser.parseYamlFile(DbtRepository.DBT_PROJECT_FILE_NAME);
+    if (dbtProject?.profile === undefined) {
+      throw new Error("'profile' field is missing");
+    }
     console.log(`Profile name found: ${dbtProject?.profile}`);
     return dbtProject?.profile;
   }

@@ -73,7 +73,7 @@ export class DbtProfileCreator {
     try {
       profileName = this.yamlParser.findProfileName();
     } catch (e) {
-      const errorMessage = `Failed to find profile name in ${DbtRepository.DBT_PROJECT_FILE_NAME}. Make sure that you opened folder with ${DbtRepository.DBT_PROJECT_FILE_NAME} file. ${e}`;
+      const errorMessage = `Failed to find profile name in ${process.cwd()}/${DbtRepository.DBT_PROJECT_FILE_NAME}. ${e}`;
       console.log(errorMessage);
       return err({ message: errorMessage });
     }
