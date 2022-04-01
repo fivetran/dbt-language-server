@@ -66,7 +66,7 @@ export class LspServer {
   dbtProfileCreator = new DbtProfileCreator(this.yamlParser);
   manifestParser = new ManifestParser();
   dbtRepository = new DbtRepository();
-  featureFinder?: FeatureFinder;
+  featureFinder = new FeatureFinder();
   initStart = performance.now();
   initDbtRpcAttempt = 0;
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
@@ -163,13 +163,11 @@ export class LspServer {
   }
 
   async prepareRpcServer(): Promise<void> {
-    const featureFinder = new FeatureFinder();
-    this.featureFinder = featureFinder;
     this.initDbtRpcAttempt++;
 
     const [command, dbtPort] = await Promise.all([
-      featureFinder.findDbtRpcCommand(this.connection.sendRequest('custom/getPython')),
-      featureFinder.findFreePort(),
+      this.featureFinder.findDbtRpcCommand(this.connection.sendRequest('custom/getPython')),
+      this.featureFinder.findFreePort(),
     ]);
 
     if (command === undefined) {
@@ -193,8 +191,8 @@ export class LspServer {
 
   logStartupInfo(contextInfo: DbtProfileResult, initTime: number, initDbtRpcAttempt: number): void {
     this.sendTelemetry('log', {
-      dbtVersion: getStringVersion(this.featureFinder?.version),
-      python: this.featureFinder?.python ?? 'undefined',
+      dbtVersion: getStringVersion(this.featureFinder.version),
+      python: this.featureFinder.python ?? 'undefined',
       initTime: initTime.toString(),
       type: contextInfo.type ?? 'unknown type',
       method: contextInfo.method ?? 'unknown method',
