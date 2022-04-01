@@ -1,5 +1,16 @@
 import { Disposable, OutputChannel, Uri, window, workspace, WorkspaceFolder } from 'vscode';
-import { LanguageClient, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
+import {
+  CloseAction,
+  ErrorAction,
+  InitializeError,
+  LanguageClient,
+  LanguageClientOptions,
+  Message,
+  ResponseError,
+  State,
+  TransportKind,
+  WorkDoneProgress,
+} from 'vscode-languageclient/node';
 import { SUPPORTED_LANG_IDS } from './ExtensionClient';
 import { ProgressHandler } from './ProgressHandler';
 import { PythonExtension } from './PythonExtension';
@@ -30,13 +41,27 @@ export class DbtLanguageClient implements Disposable {
       debug: { module, transport: TransportKind.ipc, options: debugOptions },
     };
 
-    const clientOptions = {
+    const clientOptions: LanguageClientOptions = {
       documentSelector: SUPPORTED_LANG_IDS.map(langId => ({ scheme: 'file', language: langId, pattern: `${dbtProjectUri.fsPath}/**/*` })),
       synchronize: {
         fileEvents: [workspace.createFileSystemWatcher('**/dbt_project.yml'), workspace.createFileSystemWatcher('**/manifest.json')],
       },
       outputChannel,
       workspaceFolder: { uri: dbtProjectUri, name: dbtProjectUri.path, index: port },
+      initializationFailedHandler: (error: ResponseError<InitializeError> | Error | any) => {
+        console.log(`Initialization error: ${error}`);
+        return true;
+      },
+      errorHandler: {
+        closed(): CloseAction {
+          console.log('The connection to the server got closed');
+          return CloseAction.DoNotRestart;
+        },
+        error(error: Error, _message: Message | undefined, _count: number | undefined): ErrorAction {
+          console.log(`An error has occurred while writing or reading from the connection. ${error}`);
+          return ErrorAction.Shutdown;
+        },
+      },
     };
 
     this.workspaceFolder = workspace.getWorkspaceFolder(dbtProjectUri);
