@@ -30,16 +30,8 @@ export class FeatureFinder {
   private static readonly PROCESS_EXECUTOR = new ProcessExecutor();
   static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
 
-  private dbtRpcGlobal: Promise<DbtVersion | undefined>;
-  private dbtGlobal: Promise<DbtVersion | undefined>;
-
   python?: string;
   version?: DbtVersion;
-
-  constructor() {
-    this.dbtRpcGlobal = this.findDbtRpcGlobalVersion();
-    this.dbtGlobal = this.findDbtGlobalVersion();
-  }
 
   /** Tries to find a suitable command to start the server first in the current Python environment and then in the global scope.
    * Installs dbt-rpc for dbt version > 1.0.0.
@@ -47,7 +39,12 @@ export class FeatureFinder {
    */
   async findDbtRpcCommand(pythonPromise: Promise<string>): Promise<Command | undefined> {
     this.python = await pythonPromise;
-    const settledResults = await Promise.allSettled([this.findDbtRpcPythonVersion(), this.findDbtPythonVersion(), this.dbtRpcGlobal, this.dbtGlobal]);
+    const settledResults = await Promise.allSettled([
+      this.findDbtRpcPythonVersion(),
+      this.findDbtPythonVersion(),
+      this.findDbtRpcGlobalVersion(),
+      this.findDbtGlobalVersion(),
+    ]);
 
     const [dbtRpcPythonVersion, dbtPythonVersion, dbtRpcGlobalVersion, dbtGlobalVersion] = settledResults.map(v => {
       if (v.status === 'rejected') {

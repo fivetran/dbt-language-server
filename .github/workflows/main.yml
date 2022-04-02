@@ -254,6 +254,7 @@ jobs:
         run: |
           which dbt
           dbt --version
+          node -v
 
       # Uncomment lines below if you want to connect to the job via SSH
       # - name: Setup SSH via tmate for debugging
