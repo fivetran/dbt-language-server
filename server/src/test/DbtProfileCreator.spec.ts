@@ -49,9 +49,7 @@ describe('Profiles Validation', () => {
     yamlParser.profilesPath = getConfigPath(OTHERS_CONFIG);
 
     const profileCreator = new DbtProfileCreator(yamlParser);
-    const errorPattern = new RegExp(
-      `^Failed to find profile name in ${DbtRepository.DBT_PROJECT_FILE_NAME}\\. Make sure that you opened folder with ${DbtRepository.DBT_PROJECT_FILE_NAME} file\\..*$`,
-    );
+    const errorPattern = new RegExp(`^Failed to find profile name in .*${DbtRepository.DBT_PROJECT_FILE_NAME}\\...*$`);
 
     // act
     const profile = profileCreator.createDbtProfile();
