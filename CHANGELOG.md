@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 0.3.1 (01/01/1970)
+## What's Changed
+* Fix changelog population
+* Fix restart issue when dbt-rpc command is not found
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.3.0...v0.3.1
+---
+
 ## Version 0.3.0 (29/03/2022)
 ## What's Changed
 * Support Apple M1 target
