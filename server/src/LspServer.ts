@@ -172,6 +172,7 @@ export class LspServer {
 
     if (command === undefined) {
       this.featureFinder = new FeatureFinder();
+      this.progressReporter.sendFinish();
       return this.showStartDbtRpcError(
         `Failed to find dbt-rpc. You can use 'python3 -m pip install dbt-bigquery dbt-rpc' command to install it. Check in Terminal that dbt-rpc works running 'dbt-rpc --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g. ~/dbt-env/bin/python3).`,
       );
