@@ -195,19 +195,6 @@ describe('DbtTextDocument', () => {
     assertThat(name, 'package.model');
   });
 
-  it('Should return fully qualified model name when packages and models paths customized', () => {
-    // arrange
-    const dbtRepository = new DbtRepository();
-    dbtRepository.packagesInstallPaths = ['pkgs'];
-    dbtRepository.modelPaths = ['custom_models'];
-
-    // act
-    const name = DbtTextDocument.getModelPathOrFullyQualifiedName('/workspace/pkgs/package/custom_models/model.sql', WORKSPACE, dbtRepository);
-
-    // assert
-    assertThat(name, 'package.model');
-  });
-
   it('findCurrentPackage should return package from uri', () => {
     // arrange
     const dbtRepository = new DbtRepository();

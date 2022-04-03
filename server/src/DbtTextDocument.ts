@@ -216,8 +216,7 @@ export class DbtTextDocument {
     const filePath = this.getFilePathRelatedToWorkspace(docUri, workspaceFolder);
     if (dbtRepository.packagesInstallPaths.some(p => filePath.startsWith(p))) {
       const startWithPackagesFolder = new RegExp(`^(${dbtRepository.packagesInstallPaths.join('|')}).`);
-      const modelsFolder = new RegExp(`(${dbtRepository.modelPaths.join('|')}).`);
-      return filePath.replaceAll('/', '.').replace(startWithPackagesFolder, '').replace(modelsFolder, '').replace(/.sql$/, '');
+      return filePath.replaceAll('/', '.').replace(startWithPackagesFolder, '').replace('models.', '').replace(/.sql$/, '');
     }
     return filePath;
   }
