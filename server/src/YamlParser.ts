@@ -34,9 +34,9 @@ export class YamlParser {
   findPackagesInstallPaths(): string[] {
     try {
       const dbtProject = YamlParser.parseYamlFile(DbtRepository.DBT_PROJECT_FILE_NAME);
-      return dbtProject[DbtRepository.PACKAGES_INSTALL_PATH_FIELD]
-        ? ([dbtProject[DbtRepository.PACKAGES_INSTALL_PATH_FIELD]] as string[])
-        : DbtRepository.DEFAULT_PACKAGES_PATHS;
+      return (dbtProject[DbtRepository.PACKAGES_INSTALL_PATH_FIELD] ??
+        dbtProject[DbtRepository.MODULE_PATH] ??
+        DbtRepository.DEFAULT_PACKAGES_PATHS) as string[];
     } catch (e) {
       return DbtRepository.DEFAULT_PACKAGES_PATHS;
     }
