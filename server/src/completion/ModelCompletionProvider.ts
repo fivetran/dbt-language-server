@@ -3,18 +3,28 @@ import { DbtRepository } from '../DbtRepository';
 import { DbtNodeCompletionProvider } from './DbtCompletionProvider';
 
 export class ModelCompletionProvider implements DbtNodeCompletionProvider {
-  static readonly MODEL_PATTERN = /ref\s*\(\s*['|"]$/;
+  static readonly MODEL_PATTERN = /ref\s*\(\s*['|"]?$/;
   static readonly PACKAGE_PATTERN = /ref\s*\(\s*('[^)']*'|"[^)"]*")\s*,\s*('|")$/;
+
+  static readonly CURRENT_PACKAGE_SORT_PREFIX = '1';
+  static readonly INSTALLED_PACKAGE_SORT_PREFIX = '2';
 
   constructor(private dbtRepository: DbtRepository) {}
 
   provideCompletions(jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
     const modelMatch = ModelCompletionProvider.MODEL_PATTERN.exec(jinjaBeforePositionText);
     if (modelMatch) {
+      const lastChar = jinjaBeforePositionText.charAt(jinjaBeforePositionText.length - 1);
       return Promise.resolve(
-        this.dbtRepository.models
-          .filter(m => (this.dbtRepository.projectName ? m.uniqueId.startsWith(`model.${this.dbtRepository.projectName}.`) : true))
-          .map<CompletionItem>(m => this.getModelCompletionItem(m.name)),
+        this.dbtRepository.models.map<CompletionItem>(m => {
+          const label = `(${m.packageName}) ${m.name}`;
+          const insertText = this.getModelInsertText(m.packageName, m.name, lastChar);
+          const sortOrder =
+            this.dbtRepository.projectName === m.packageName
+              ? ModelCompletionProvider.CURRENT_PACKAGE_SORT_PREFIX
+              : ModelCompletionProvider.INSTALLED_PACKAGE_SORT_PREFIX;
+          return this.getModelCompletionItem(label, insertText, sortOrder);
+        }),
       );
     }
 
@@ -24,18 +34,27 @@ export class ModelCompletionProvider implements DbtNodeCompletionProvider {
       return Promise.resolve(
         this.dbtRepository.models
           .filter(m => (dbtPackage.length > 0 ? m.uniqueId.startsWith(`model.${dbtPackage.slice(1, -1)}.`) : true))
-          .map<CompletionItem>(m => this.getModelCompletionItem(m.name)),
+          .map<CompletionItem>(m => this.getModelCompletionItem(m.name, m.name)),
       );
     }
 
     return Promise.resolve(undefined);
   }
 
-  private getModelCompletionItem(name: string): CompletionItem {
+  private getModelCompletionItem(label: string, insertText: string, sortText?: string): CompletionItem {
     return {
-      label: name,
+      label,
+      insertText,
+      sortText,
       kind: CompletionItemKind.Value,
       detail: 'Model',
     };
+  }
+
+  private getModelInsertText(packageName: string, name: string, lastChar: string): string {
+    if (this.dbtRepository.projectName === packageName) {
+      return lastChar === "'" ? `${name}` : `'${name}'`;
+    }
+    return lastChar === "'" ? `${packageName}', '${name}` : `'${packageName}', '${name}'`;
   }
 }
