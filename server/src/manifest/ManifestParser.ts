@@ -33,6 +33,7 @@ export class ManifestParser {
           name: n.name,
           database: n.database,
           schema: n.schema,
+          packageName: n.package_name,
         }));
     }
     return [];
@@ -64,6 +65,7 @@ export class ManifestParser {
           name: n.name,
           sourceName: n.source_name,
           columns: Object.values(n.columns as any[]).map(c => c.name),
+          packageName: n.package_name,
         }));
     }
     return [];

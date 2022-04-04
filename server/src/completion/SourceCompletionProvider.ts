@@ -11,28 +11,38 @@ export class SourceCompletionProvider {
   provideCompletions(completionParams: CompletionParams, jinja: ParseNode, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
     const sourceMatch = SourceCompletionProvider.SOURCE_PATTERN.exec(jinjaBeforePositionText);
     if (sourceMatch) {
-      return Promise.resolve(this.dbtRepository.sources.map<CompletionItem>(s => this.getCompletionItem(s.sourceName, 'Source')));
+      return Promise.resolve(this.dbtRepository.sources.map<CompletionItem>(s => this.getSourceCompletionItem(s.packageName, s.sourceName)));
     }
 
     const tableMatch = SourceCompletionProvider.TABLE_PATTERN.exec(jinjaBeforePositionText);
     if (tableMatch) {
       const [, sourceName] = tableMatch;
-      const searchPattern = new RegExp(
-        `source\\.${this.dbtRepository.projectName ?? '.*'}\\.${sourceName.length > 0 ? sourceName.slice(1, -1) : '.*'}\\.`,
-      );
+      const searchPattern = new RegExp(`source\\..*\\.${sourceName.length > 0 ? sourceName.slice(1, -1) : '.*'}\\.`);
       return Promise.resolve(
-        this.dbtRepository.sources.filter(s => s.uniqueId.match(searchPattern)).map<CompletionItem>(s => this.getCompletionItem(s.name, 'Table')),
+        this.dbtRepository.sources
+          .filter(s => s.uniqueId.match(searchPattern))
+          .map<CompletionItem>(s => this.getTableCompletionItem(s.packageName, s.name)),
       );
     }
 
     return Promise.resolve(undefined);
   }
 
-  private getCompletionItem(name: string, detail: 'Source' | 'Table'): CompletionItem {
+  private getSourceCompletionItem(packageName: string, sourceName: string): CompletionItem {
     return {
-      label: name,
+      label: `(${packageName}) ${sourceName}`,
+      insertText: sourceName,
       kind: CompletionItemKind.Value,
-      detail,
+      detail: 'Source',
+    };
+  }
+
+  private getTableCompletionItem(packageName: string, tableName: string): CompletionItem {
+    return {
+      label: `(${packageName}) ${tableName}`,
+      insertText: tableName,
+      kind: CompletionItemKind.Value,
+      detail: 'Table',
     };
   }
 }
