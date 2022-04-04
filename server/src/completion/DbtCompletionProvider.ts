@@ -6,7 +6,7 @@ import { ModelCompletionProvider } from './ModelCompletionProvider';
 import { SourceCompletionProvider } from './SourceCompletionProvider';
 
 export interface DbtNodeCompletionProvider {
-  provideCompletions(completionParams: CompletionParams, jinja: ParseNode, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined>;
+  provideCompletions(jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined>;
 }
 
 export class DbtCompletionProvider {
@@ -27,24 +27,20 @@ export class DbtCompletionProvider {
     jinjaBeforePositionText: string,
   ): Promise<CompletionItem[] | undefined> {
     const modelCompletions =
-      jinjaType === JinjaType.EXPRESSION
-        ? await this.modelCompletionProvider.provideCompletions(completionParams, jinja, jinjaBeforePositionText)
-        : undefined;
+      jinjaType === JinjaType.EXPRESSION ? await this.modelCompletionProvider.provideCompletions(jinjaBeforePositionText) : undefined;
     if (modelCompletions) {
       return modelCompletions;
     }
 
     const sourceCompletions =
-      jinjaType === JinjaType.EXPRESSION
-        ? await this.sourceCompletionProvider.provideCompletions(completionParams, jinja, jinjaBeforePositionText)
-        : undefined;
+      jinjaType === JinjaType.EXPRESSION ? await this.sourceCompletionProvider.provideCompletions(jinjaBeforePositionText) : undefined;
     if (sourceCompletions) {
       return sourceCompletions;
     }
 
     const macroCompletions =
       jinjaType === JinjaType.EXPRESSION || jinjaType === JinjaType.BLOCK
-        ? await this.macroCompletionProvider.provideCompletions(completionParams, jinja, jinjaBeforePositionText)
+        ? await this.macroCompletionProvider.provideCompletions(jinjaBeforePositionText)
         : undefined;
     if (macroCompletions) {
       return macroCompletions;

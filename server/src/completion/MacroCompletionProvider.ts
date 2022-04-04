@@ -1,6 +1,5 @@
-import { CompletionItem, CompletionItemKind, CompletionParams } from 'vscode-languageserver';
+import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
-import { ParseNode } from '../JinjaParser';
 import { DbtNodeCompletionProvider } from './DbtCompletionProvider';
 
 export class MacroCompletionProvider implements DbtNodeCompletionProvider {
@@ -10,7 +9,7 @@ export class MacroCompletionProvider implements DbtNodeCompletionProvider {
 
   constructor(private dbtRepository: DbtRepository) {}
 
-  provideCompletions(completionParams: CompletionParams, jinja: ParseNode, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
+  provideCompletions(jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
     const macroMatch = MacroCompletionProvider.MACRO_PATTERN.exec(jinjaBeforePositionText);
     if (macroMatch) {
       const packageName = macroMatch[0].slice(0, -1);
