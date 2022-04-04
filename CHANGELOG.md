@@ -1,5 +1,14 @@
-# Version 0.3.0
+# Changelog
 
+## Version 0.3.1 (02/03/2022)
+## What's Changed
+* Fix changelog population
+* Fix restart issue when dbt-rpc command is not found
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.3.0...v0.3.1
+---
+
+## Version 0.3.0 (29/03/2022)
 ## What's Changed
 * Support Apple M1 target
 * Support number of features for all [dbt adapters](https://docs.getdbt.com/docs/available-adapters#dbt-labs-supported) (see [Features](https://github.com/fivetran/dbt-language-server#features))
@@ -7,19 +16,19 @@
 
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.2.0...v0.3.0
+---
 
-# Version 0.2.0
-
+## Version 0.2.0 (11/03/2022)
 ## What's Changed
 * Rename extension to **dbt Wizard**
 * Go to model/macros/source definition
-* Run extension for documents with  language id
+* Run extension for documents with `sql-bigquery` language id
 * Improve error display for dbt problems
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.1.0...v0.2.0
+---
 
-# Version 0.1.0
-
+## Version 0.1.0 (03/02/2022)
 ## What's Changed
 * Add oauth token-based authentication method
 * Support Linux

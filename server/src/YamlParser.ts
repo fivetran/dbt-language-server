@@ -1,19 +1,9 @@
 import * as fs from 'fs';
 import * as yaml from 'yaml';
+import { DbtRepository } from './DbtRepository';
 import { YamlParserUtils } from './YamlParserUtils';
 
 export class YamlParser {
-  static readonly DBT_PROJECT_FILE_NAME = 'dbt_project.yml';
-  static readonly DBT_MANIFEST_FILE_NAME = 'manifest.json';
-  static readonly DBT_PROJECT_NAME_FIELD = 'name';
-
-  static readonly SOURCE_PATHS_FIELD = 'source-paths'; // v1.0.0: The config source-paths has been deprecated in favor of model-paths
-  static readonly MODEL_PATHS_FIELD = 'model-paths';
-  static readonly DEFAULT_MODEL_PATHS = ['models'];
-
-  static readonly TARGET_PATH_FIELD = 'target-path';
-  static readonly DEFAULT_TARGET_PATH = './target';
-
   profilesPath: string;
 
   constructor(profilesPath?: string) {
@@ -23,8 +13,8 @@ export class YamlParser {
 
   findProjectName(): string | undefined {
     try {
-      const dbtProject = YamlParser.parseYamlFile(YamlParser.DBT_PROJECT_FILE_NAME);
-      return dbtProject[YamlParser.DBT_PROJECT_NAME_FIELD] ?? undefined;
+      const dbtProject = YamlParser.parseYamlFile(DbtRepository.DBT_PROJECT_FILE_NAME);
+      return dbtProject[DbtRepository.DBT_PROJECT_NAME_FIELD] ? (dbtProject[DbtRepository.DBT_PROJECT_NAME_FIELD] as string) : undefined;
     } catch (e) {
       return undefined;
     }
@@ -32,26 +22,43 @@ export class YamlParser {
 
   findModelPaths(): string[] {
     try {
-      const dbtProject = YamlParser.parseYamlFile(YamlParser.DBT_PROJECT_FILE_NAME);
-      return dbtProject[YamlParser.MODEL_PATHS_FIELD] ?? dbtProject[YamlParser.SOURCE_PATHS_FIELD] ?? YamlParser.DEFAULT_MODEL_PATHS;
+      const dbtProject = YamlParser.parseYamlFile(DbtRepository.DBT_PROJECT_FILE_NAME);
+      return (dbtProject[DbtRepository.MODEL_PATHS_FIELD] ??
+        dbtProject[DbtRepository.SOURCE_PATHS_FIELD] ??
+        DbtRepository.DEFAULT_MODEL_PATHS) as string[];
     } catch (e) {
-      return YamlParser.DEFAULT_MODEL_PATHS;
+      return DbtRepository.DEFAULT_MODEL_PATHS;
+    }
+  }
+
+  findPackagesInstallPaths(): string[] {
+    try {
+      const dbtProject = YamlParser.parseYamlFile(DbtRepository.DBT_PROJECT_FILE_NAME);
+      return (dbtProject[DbtRepository.PACKAGES_INSTALL_PATH_FIELD] ??
+        dbtProject[DbtRepository.MODULE_PATH] ??
+        DbtRepository.DEFAULT_PACKAGES_PATHS) as string[];
+    } catch (e) {
+      return DbtRepository.DEFAULT_PACKAGES_PATHS;
     }
   }
 
   findTargetPath(): string {
     try {
-      const dbtProject = YamlParser.parseYamlFile(YamlParser.DBT_PROJECT_FILE_NAME);
-      return dbtProject[YamlParser.TARGET_PATH_FIELD] ?? YamlParser.DEFAULT_TARGET_PATH;
+      const dbtProject = YamlParser.parseYamlFile(DbtRepository.DBT_PROJECT_FILE_NAME);
+      return (dbtProject[DbtRepository.TARGET_PATH_FIELD] ?? DbtRepository.DEFAULT_TARGET_PATH) as string;
     } catch (e) {
-      return YamlParser.DEFAULT_TARGET_PATH;
+      return DbtRepository.DEFAULT_TARGET_PATH;
     }
   }
 
+  /** In dbt package's dbt_project.yml profile may be missing */
   findProfileName(): string {
-    const dbtProject = YamlParser.parseYamlFile(YamlParser.DBT_PROJECT_FILE_NAME);
+    const dbtProject = YamlParser.parseYamlFile(DbtRepository.DBT_PROJECT_FILE_NAME);
+    if (dbtProject?.profile === undefined) {
+      throw new Error("'profile' field is missing");
+    }
     console.log(`Profile name found: ${dbtProject?.profile}`);
-    return dbtProject?.profile;
+    return dbtProject?.profile as string;
   }
 
   static parseYamlFile(filePath: string): any {

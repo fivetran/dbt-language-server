@@ -21,6 +21,8 @@ import path = require('path');
 export const SUPPORTED_LANG_IDS = ['sql', 'jinja-sql', 'sql-bigquery'];
 
 export class ExtensionClient {
+  static readonly DEFAULT_PACKAGES_PATHS = ['dbt_packages', 'dbt_modules'];
+
   serverAbsolutePath: string;
   outputChannel: OutputChannel;
   previewContentProvider = new SqlPreviewContentProvider();
@@ -187,24 +189,28 @@ export class ExtensionClient {
   }
 
   /** We expect the dbt project folder to be the folder containing the dbt_project.yml file. This folder is used to run dbt-rpc. */
-  async getDbtProjectUri(uri: Uri): Promise<Uri | undefined> {
-    const folder = workspace.getWorkspaceFolder(uri);
+  async getDbtProjectUri(fileUri: Uri): Promise<Uri | undefined> {
+    const folder = workspace.getWorkspaceFolder(fileUri);
     if (!folder) {
       return undefined;
     }
 
-    const projectFolder = [...this.clients.keys()].find(k => uri.toString().startsWith(k));
+    const projectFolder = [...this.clients.keys()].find(k => fileUri.toString().startsWith(k));
     if (projectFolder) {
       return Uri.parse(projectFolder);
     }
 
     const outerWorkspace = this.workspaceHelper.getOuterMostWorkspaceFolder(folder);
 
-    let currentUri = uri;
+    let currentUri = fileUri;
     do {
       currentUri = Uri.joinPath(currentUri, '..');
       try {
         await workspace.fs.stat(currentUri.with({ path: `${currentUri.path}/dbt_project.yml` }));
+        const oneLevelUpPath = Uri.joinPath(currentUri, '..').path;
+        if (ExtensionClient.DEFAULT_PACKAGES_PATHS.some(p => oneLevelUpPath.endsWith(p))) {
+          continue;
+        }
         return currentUri;
       } catch (e) {
         // file does not exist

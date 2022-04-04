@@ -15,7 +15,7 @@ export class RefDefinitionFinder {
     document: TextDocument,
     position: Position,
     jinja: ParseNode,
-    projectName: string,
+    packageName: string,
     dbtModels: ManifestModel[],
   ): DefinitionLink[] | undefined {
     const expressionLines = jinja.value.split('\n');
@@ -55,7 +55,7 @@ export class RefDefinitionFinder {
           document.positionAt(wordAbsoluteOffset + matches[1].index + matches[1].text.length - 1),
         );
       } else {
-        dbtPackage = `'${projectName}'`;
+        dbtPackage = `'${packageName}'`;
         model = matches[0].text;
         packageSelectionRange = undefined;
         modelSelectionRange = Range.create(

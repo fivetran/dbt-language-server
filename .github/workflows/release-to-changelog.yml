@@ -1,7 +1,7 @@
 name: ReleaseToChangelog
 on:
-  release:
-    types: [published, edited]
+  pull_request:
+    types: [opened]
   workflow_dispatch:
 
 jobs:
@@ -12,20 +12,12 @@ jobs:
         with:
           ref: main
 
-      - name: generate markdown changelog
-        id: changelog
-        uses: LSVH/gha-releases-to-changelog@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          title-template: '# %%TITLE%%'
+      - name: update changelog
+        run: npx github-release-notes changelog --override --token=$TOKEN
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: print changelog
-        run: |
-          cat >CHANGELOG.md <<EOF
-          ${{ steps.changelog.outputs.changelog }}
-          EOF
-
-      - name: Create Pull Request
+      - name: create pull request
         uses: peter-evans/create-pull-request@v3
         with:
           commit-message: Update CHANGELOG.md

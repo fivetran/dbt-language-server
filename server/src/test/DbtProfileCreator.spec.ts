@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import { assertThat, matchesPattern } from 'hamjest';
 import { instance, mock, when } from 'ts-mockito';
 import { DbtProfileCreator } from '../DbtProfileCreator';
+import { DbtRepository } from '../DbtRepository';
 import { YamlParser } from '../YamlParser';
 import {
   BIG_QUERY_CONFIG,
@@ -48,9 +49,7 @@ describe('Profiles Validation', () => {
     yamlParser.profilesPath = getConfigPath(OTHERS_CONFIG);
 
     const profileCreator = new DbtProfileCreator(yamlParser);
-    const errorPattern = new RegExp(
-      `^Failed to find profile name in ${YamlParser.DBT_PROJECT_FILE_NAME}\\. Make sure that you opened folder with ${YamlParser.DBT_PROJECT_FILE_NAME} file\\..*$`,
-    );
+    const errorPattern = new RegExp(`^Failed to find profile name in .*${DbtRepository.DBT_PROJECT_FILE_NAME}\\...*$`);
 
     // act
     const profile = profileCreator.createDbtProfile();

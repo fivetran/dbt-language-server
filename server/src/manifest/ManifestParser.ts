@@ -31,9 +31,9 @@ export class ManifestParser {
           rootPath: n.root_path,
           originalFilePath: n.original_file_path,
           name: n.name,
+          packageName: n.package_name,
           database: n.database,
           schema: n.schema,
-          packageName: n.package_name,
         }));
     }
     return [];
@@ -63,9 +63,9 @@ export class ManifestParser {
           rootPath: n.root_path,
           originalFilePath: n.original_file_path,
           name: n.name,
-          sourceName: n.source_name,
-          columns: Object.values(n.columns as any[]).map(c => c.name),
           packageName: n.package_name,
+          sourceName: n.source_name,
+          columns: Object.values(n.columns as any[]).map(c => c.name as string),
         }));
     }
     return [];

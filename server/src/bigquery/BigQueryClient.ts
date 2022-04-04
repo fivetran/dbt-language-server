@@ -1,6 +1,7 @@
 import { BigQuery, DatasetsResponse } from '@google-cloud/bigquery';
 import { err, ok, Result } from 'neverthrow';
 import { DbtDestinationClient } from '../DbtDestinationClient';
+import { SchemaDefinition } from '../TableDefinition';
 
 export class BigQueryClient implements DbtDestinationClient {
   static readonly BQ_TEST_CLIENT_DATASETS_LIMIT = 1;
@@ -29,12 +30,12 @@ export class BigQueryClient implements DbtDestinationClient {
     return this.bigQuery.getDatasets({ maxResults });
   }
 
-  async getTableSchema(dataSet: string, tableName: string): Promise<any> {
+  async getTableSchema(dataSet: string, tableName: string): Promise<SchemaDefinition | undefined> {
     const dataset = this.bigQuery.dataset(dataSet);
     const table = dataset.table(tableName);
     try {
       const metadata = await table.getMetadata();
-      return metadata[0].schema;
+      return metadata[0].schema as SchemaDefinition;
     } catch (e: any) {
       console.log(e.message);
       return undefined;

@@ -208,17 +208,43 @@ export class DbtTextDocument {
 
   debouncedCompile = debounce(async () => {
     this.progressReporter.sendStart(this.rawDocument.uri);
-    await this.modelCompiler.compile(this.getModelPath());
+    await this.modelCompiler.compile(this.getModelPathOrFullyQualifiedName());
   }, DbtTextDocument.DEBOUNCE_TIMEOUT);
 
-  getModelPath(): string {
-    const index = this.rawDocument.uri.indexOf(this.workspaceFolder);
-    return this.rawDocument.uri.slice(index + this.workspaceFolder.length + 1);
+  getModelPathOrFullyQualifiedName(): string {
+    return DbtTextDocument.getModelPathOrFullyQualifiedName(this.rawDocument.uri, this.workspaceFolder, this.dbtRepository);
+  }
+
+  static getFilePathRelatedToWorkspace(docUri: string, workspaceFolder: string): string {
+    const index = docUri.indexOf(workspaceFolder);
+    return docUri.slice(index + workspaceFolder.length + 1);
+  }
+
+  static getModelPathOrFullyQualifiedName(docUri: string, workspaceFolder: string, dbtRepository: DbtRepository): string {
+    const filePath = this.getFilePathRelatedToWorkspace(docUri, workspaceFolder);
+    if (dbtRepository.packagesInstallPaths.some(p => filePath.startsWith(p))) {
+      const startWithPackagesFolder = new RegExp(`^(${dbtRepository.packagesInstallPaths.join('|')}).`);
+      return filePath.replaceAll('/', '.').replace(startWithPackagesFolder, '').replace('models.', '').replace(/.sql$/, '');
+    }
+    return filePath;
+  }
+
+  static findCurrentPackage(docUri: string, workspaceFolder: string, dbtRepository: DbtRepository): string | undefined {
+    const filePath = DbtTextDocument.getFilePathRelatedToWorkspace(docUri, workspaceFolder);
+    if (dbtRepository.packagesInstallPaths.some(p => filePath.startsWith(p))) {
+      const withoutPackagesFolder = filePath.replace(new RegExp(`^(${dbtRepository.packagesInstallPaths.join('|')})/`), '');
+      return withoutPackagesFolder.substring(0, withoutPackagesFolder.indexOf('/'));
+    }
+    return dbtRepository.projectName;
   }
 
   onCompilationError(dbtCompilationError: string): void {
     this.hasDbtError = true;
-    const diagnostics = this.diagnosticGenerator.getDbtErrorDiagnostics(dbtCompilationError, this.getModelPath(), this.workspaceFolder);
+    const diagnostics = this.diagnosticGenerator.getDbtErrorDiagnostics(
+      dbtCompilationError,
+      this.getModelPathOrFullyQualifiedName(),
+      this.workspaceFolder,
+    );
 
     this.sendUpdateQueryPreview(this.rawDocument.getText());
     this.sendDiagnostics(diagnostics, diagnostics);
@@ -322,7 +348,8 @@ export class DbtTextDocument {
     for (const jinja of this.jinjas) {
       if (positionInRange(definitionParams.position, jinja.range)) {
         const jinjaType = this.jinjaParser.getJinjaType(jinja.value);
-        return this.jinjaDefinitionProvider.onJinjaDefinition(this.rawDocument, jinja, definitionParams.position, jinjaType);
+        const currentPackage = DbtTextDocument.findCurrentPackage(this.rawDocument.uri, this.workspaceFolder, this.dbtRepository);
+        return this.jinjaDefinitionProvider.onJinjaDefinition(this.rawDocument, currentPackage, jinja, definitionParams.position, jinjaType);
       }
     }
     return undefined;

@@ -1,4 +1,4 @@
-import { SimpleCatalog } from '@fivetrandevelopers/zetasql';
+import { SimpleCatalog, SimpleColumn } from '@fivetrandevelopers/zetasql';
 import * as assert from 'assert';
 import { assertThat } from 'hamjest';
 import { TableDefinition } from '../TableDefinition';
@@ -15,7 +15,7 @@ describe('ZetaSqlWrapperTest', () => {
   };
 
   function getCatalog(zetaSqlWrapper: ZetaSqlWrapper): SimpleCatalog {
-    return (zetaSqlWrapper as any).catalog;
+    return (zetaSqlWrapper as any).catalog as SimpleCatalog;
   }
 
   async function shouldRegisterOneTable(
@@ -65,7 +65,7 @@ describe('ZetaSqlWrapperTest', () => {
     const columns = tables.get(table)?.columns;
     assert.ok(columns);
     assertThat(columns.length, expectedColumns.length);
-    assertThat(columns.map((c: any) => c.getName()).sort(), expectedColumns.sort());
+    assertThat(columns.map((c: SimpleColumn) => c.getName()).sort(), expectedColumns.sort());
   }
 
   it('register_shouldRegisterProjectDataSetAndTable', async () => {
