@@ -13,11 +13,11 @@ import { sleep } from './helper';
 
 describe('DbtTextDocument', () => {
   const TEXT = 'select 1;';
+  const WORKSPACE = '/workspace';
 
   let document: DbtTextDocument;
   let mockModelCompiler: ModelCompiler;
   let mockJinjaParser: JinjaParser;
-  let dbtRepository: DbtRepository;
 
   const onCompilationErrorEmitter = new Emitter<string>();
   const onCompilationFinishedEmitter = new Emitter<string>();
@@ -32,7 +32,6 @@ describe('DbtTextDocument', () => {
     when(mockModelCompiler.onFinishAllCompilationJobs).thenReturn(new Emitter<void>().event);
 
     mockJinjaParser = mock(JinjaParser);
-    dbtRepository = mock(DbtRepository);
 
     document = new DbtTextDocument(
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
@@ -44,7 +43,7 @@ describe('DbtTextDocument', () => {
       instance(mockModelCompiler),
       instance(mockJinjaParser),
       onGlobalDbtErrorFixedEmitter,
-      dbtRepository,
+      new DbtRepository(),
       undefined,
     );
   });
@@ -172,6 +171,51 @@ describe('DbtTextDocument', () => {
 
     // assert
     assertThat(document.hasDbtError, false);
+  });
+
+  it('Should return path', () => {
+    // arrange
+    const dbtRepository = new DbtRepository();
+
+    // act
+    const name = DbtTextDocument.getModelPathOrFullyQualifiedName('/workspace/models/model.sql', WORKSPACE, dbtRepository);
+
+    // assert
+    assertThat(name, 'models/model.sql');
+  });
+
+  it('Should return fully qualified model name', () => {
+    // arrange
+    const dbtRepository = new DbtRepository();
+
+    // act
+    const name = DbtTextDocument.getModelPathOrFullyQualifiedName('/workspace/dbt_packages/package/models/model.sql', WORKSPACE, dbtRepository);
+
+    // assert
+    assertThat(name, 'package.model');
+  });
+
+  it('findCurrentPackage should return package from uri', () => {
+    // arrange
+    const dbtRepository = new DbtRepository();
+
+    // act
+    const currentPackage = DbtTextDocument.findCurrentPackage('/workspace/dbt_packages/package/custom_models/model.sql', WORKSPACE, dbtRepository);
+
+    // assert
+    assertThat(currentPackage, 'package');
+  });
+
+  it('findCurrentPackage should return package when packages paths customized', () => {
+    // arrange
+    const dbtRepository = new DbtRepository();
+    dbtRepository.packagesInstallPaths = ['pkgs'];
+
+    // act
+    const currentPackage = DbtTextDocument.findCurrentPackage('/workspace/pkgs/package/custom_models/model.sql', WORKSPACE, dbtRepository);
+
+    // assert
+    assertThat(currentPackage, 'package');
   });
 
   async function sleepMoreThanDebounceTime(): Promise<void> {

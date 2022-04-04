@@ -15,28 +15,16 @@ export class JinjaDefinitionProvider {
 
   constructor(private dbtRepository: DbtRepository) {}
 
-  onJinjaDefinition(document: TextDocument, jinja: ParseNode, position: Position): DefinitionLink[] | undefined {
-    if (this.dbtRepository.projectName && this.isExpression(jinja.value)) {
-      const refDefinitions = this.refDefinitionFinder.searchRefDefinitions(
-        document,
-        position,
-        jinja,
-        this.dbtRepository.projectName,
-        this.dbtRepository.models,
-      );
+  onJinjaDefinition(document: TextDocument, packageName: string | undefined, jinja: ParseNode, position: Position): DefinitionLink[] | undefined {
+    if (packageName && this.isExpression(jinja.value)) {
+      const refDefinitions = this.refDefinitionFinder.searchRefDefinitions(document, position, jinja, packageName, this.dbtRepository.models);
       if (refDefinitions) {
         return refDefinitions;
       }
     }
 
-    if (this.dbtRepository.projectName) {
-      const macroDefinitions = this.macroDefinitionFinder.searchMacroDefinitions(
-        document,
-        position,
-        jinja,
-        this.dbtRepository.projectName,
-        this.dbtRepository.macros,
-      );
+    if (packageName) {
+      const macroDefinitions = this.macroDefinitionFinder.searchMacroDefinitions(document, position, jinja, packageName, this.dbtRepository.macros);
       if (macroDefinitions) {
         return macroDefinitions;
       }

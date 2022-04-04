@@ -40,7 +40,7 @@ export class DestinationDefinition {
     return foundTables;
   }
 
-  async getColumns(datasetName: string, tableName: string, projectName?: string): Promise<any[]> {
+  async getColumns(datasetName: string, tableName: string, projectName?: string): Promise<unknown[]> {
     const tables = await this.getTables(datasetName, projectName);
     const table = tables.find(t => t.id === tableName);
     if (!table) {
@@ -55,6 +55,6 @@ export class DestinationDefinition {
         this.columns.set(datasetName, foundColumns);
       }
     }
-    return foundColumns ?? [];
+    return (foundColumns ?? []) as unknown[];
   }
 }
