@@ -11,10 +11,7 @@ export class SourceCompletionProvider {
   provideCompletions(completionParams: CompletionParams, jinja: ParseNode, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
     const sourceMatch = SourceCompletionProvider.SOURCE_PATTERN.exec(jinjaBeforePositionText);
     if (sourceMatch) {
-      const sourceNames = this.dbtRepository.sources
-        .filter(s => (this.dbtRepository.projectName ? s.uniqueId.startsWith(`source.${this.dbtRepository.projectName}.`) : true))
-        .map<string>(s => s.sourceName);
-      return Promise.resolve(Array.from(new Set(sourceNames)).map<CompletionItem>(s => this.getCompletionItem(s, 'Source')));
+      return Promise.resolve(this.dbtRepository.sources.map<CompletionItem>(s => this.getCompletionItem(s.sourceName, 'Source')));
     }
 
     const tableMatch = SourceCompletionProvider.TABLE_PATTERN.exec(jinjaBeforePositionText);
