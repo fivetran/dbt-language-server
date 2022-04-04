@@ -1,6 +1,6 @@
-import { CompletionItem, CompletionParams } from 'vscode-languageserver';
+import { CompletionItem } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
-import { JinjaType, ParseNode } from '../JinjaParser';
+import { JinjaType } from '../JinjaParser';
 import { MacroCompletionProvider } from './MacroCompletionProvider';
 import { ModelCompletionProvider } from './ModelCompletionProvider';
 import { SourceCompletionProvider } from './SourceCompletionProvider';
@@ -20,12 +20,7 @@ export class DbtCompletionProvider {
     this.sourceCompletionProvider = new SourceCompletionProvider(this.dbtRepository);
   }
 
-  async provideCompletions(
-    completionParams: CompletionParams,
-    jinja: ParseNode,
-    jinjaType: JinjaType | undefined,
-    jinjaBeforePositionText: string,
-  ): Promise<CompletionItem[] | undefined> {
+  async provideCompletions(jinjaType: JinjaType | undefined, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
     const modelCompletions =
       jinjaType === JinjaType.EXPRESSION ? await this.modelCompletionProvider.provideCompletions(jinjaBeforePositionText) : undefined;
     if (modelCompletions) {
