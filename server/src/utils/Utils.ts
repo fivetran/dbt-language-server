@@ -1,7 +1,7 @@
 import { Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
-const NON_WORD_PATTERN = /\W/;
+export const NON_WORD_PATTERN = /\W/;
 
 export function rangesOverlap(range1: Range, range2: Range): boolean {
   return (

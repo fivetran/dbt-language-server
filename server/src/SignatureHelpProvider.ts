@@ -12,8 +12,6 @@ export interface SignatureInfo {
 }
 
 export class SignatureHelpProvider {
-  signatureInformations = new Map<string, SignatureInformation[]>();
-
   onSignatureHelp(params: SignatureHelpParams, text: string): SignatureHelp | undefined {
     const index = HelpProviderWords.findIndex(w => w.name === text);
     if (index !== -1) {
