@@ -21,8 +21,8 @@ export class ModelCompletionProvider implements DbtNodeCompletionProvider {
           const insertText = this.getModelInsertText(m.packageName, m.name, lastChar);
           const sortOrder =
             this.dbtRepository.projectName === m.packageName
-              ? ModelCompletionProvider.CURRENT_PACKAGE_SORT_PREFIX
-              : ModelCompletionProvider.INSTALLED_PACKAGE_SORT_PREFIX;
+              ? `${ModelCompletionProvider.CURRENT_PACKAGE_SORT_PREFIX}_${label}`
+              : `${ModelCompletionProvider.INSTALLED_PACKAGE_SORT_PREFIX}_${label}`;
           return this.getModelCompletionItem(label, insertText, sortOrder);
         }),
       );
@@ -32,9 +32,7 @@ export class ModelCompletionProvider implements DbtNodeCompletionProvider {
     if (packageMatch) {
       const [, dbtPackage] = packageMatch;
       return Promise.resolve(
-        this.dbtRepository.models
-          .filter(m => (dbtPackage.length > 0 ? m.uniqueId.startsWith(`model.${dbtPackage.slice(1, -1)}.`) : true))
-          .map<CompletionItem>(m => this.getModelCompletionItem(m.name, m.name)),
+        this.dbtRepository.models.filter(m => m.packageName === dbtPackage).map<CompletionItem>(m => this.getModelCompletionItem(m.name, m.name)),
       );
     }
 
