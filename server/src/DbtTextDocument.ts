@@ -52,6 +52,7 @@ export class DbtTextDocument {
   signatureHelpProvider = new SignatureHelpProvider();
   sqlRefConverter = new SqlRefConverter(this.jinjaParser);
   diagnosticGenerator = new DiagnosticGenerator();
+  hoverProvider = new HoverProvider();
 
   hasDbtError = false;
   firstSave = true;
@@ -302,7 +303,7 @@ export class DbtTextDocument {
   onHover(hoverParams: HoverParams): Hover | null {
     const range = getIdentifierRangeAtPosition(hoverParams.position, this.rawDocument.getText());
     const text = this.rawDocument.getText(range);
-    return HoverProvider.hoverOnText(text, this.ast);
+    return this.hoverProvider.hoverOnText(text, this.ast);
   }
 
   async onCompletion(completionParams: CompletionParams, destinationDefinition: DestinationDefinition): Promise<CompletionItem[] | undefined> {
@@ -333,7 +334,7 @@ export class DbtTextDocument {
 
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
     const text = this.rawDocument.getText(getTextRangeBeforeBracket(this.rawDocument.getText(), params.position));
-    return this.signatureHelpProvider.onSignatureHelp(params, text);
+    return this.signatureHelpProvider.onSignatureHelp(text);
   }
 
   onDefinition(definitionParams: DefinitionParams): DefinitionLink[] | undefined {

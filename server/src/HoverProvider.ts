@@ -1,16 +1,31 @@
 import { SimpleType, TypeKind } from '@fivetrandevelopers/zetasql';
 import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
-import { Hover } from 'vscode-languageserver';
+import { Hover, MarkupKind } from 'vscode-languageserver';
+import { HelpProviderWords } from './HelpProviderWords';
+import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { ZetaSqlAst } from './ZetaSqlAst';
 
 export class HoverProvider {
-  static zetaSqlAst = new ZetaSqlAst();
+  static ZETA_SQL_AST = new ZetaSqlAst();
 
-  static hoverOnText(text: string, ast: AnalyzeResponse | undefined): Hover | null {
+  signatureHelpProvider = new SignatureHelpProvider();
+
+  hoverOnText(text: string, ast: AnalyzeResponse | undefined): Hover | null {
+    const index = HelpProviderWords.findIndex(w => w.name === text);
+    if (index !== -1) {
+      const [firstSignature] = HelpProviderWords[index].signatures;
+      return {
+        contents: {
+          kind: MarkupKind.Markdown,
+          value: [`\`\`\`sql\n${firstSignature.signature}\`\`\``, firstSignature.description].join('\n---\n'),
+        },
+      };
+    }
+
     if (!ast) {
       return null;
     }
-    const hoverInfo = HoverProvider.zetaSqlAst.getHoverInfo(ast, text);
+    const hoverInfo = HoverProvider.ZETA_SQL_AST.getHoverInfo(ast, text);
 
     let hint;
     if (hoverInfo.outputColumn) {
@@ -18,7 +33,7 @@ export class HoverProvider {
       if (outputColumn.column?.tableName === '$query' || outputColumn.column?.name !== outputColumn.name) {
         hint = `Alias: ${outputColumn.name}`;
       } else if (outputColumn.name) {
-        hint = HoverProvider.getColumnHint(outputColumn.column?.tableName, outputColumn.name, outputColumn.column?.type?.typeKind as TypeKind);
+        hint = this.getColumnHint(outputColumn.column?.tableName, outputColumn.name, outputColumn.column?.type?.typeKind as TypeKind);
       }
     } else if (hoverInfo.withQueryName) {
       hint = `Temporary table introduced in a WITH clause: ${hoverInfo.withQueryName}`;
@@ -38,7 +53,7 @@ export class HoverProvider {
       : null;
   }
 
-  static getColumnHint(tableName?: string, columnName?: string, columnTypeKind?: TypeKind): string {
+  getColumnHint(tableName?: string, columnName?: string, columnTypeKind?: TypeKind): string {
     const type = columnTypeKind ? new SimpleType(columnTypeKind).getTypeName() : 'unknown';
     return `Table: ${tableName}\nColumn: ${columnName}\nType: ${type}`;
   }
