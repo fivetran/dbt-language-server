@@ -30,12 +30,12 @@ import { JinjaDefinitionProvider } from './definition/JinjaDefinitionProvider';
 import { DiagnosticGenerator } from './DiagnosticGenerator';
 import { Diff } from './Diff';
 import { HoverProvider } from './HoverProvider';
-import { JinjaParser, ParseNode } from './JinjaParser';
+import { JinjaParser } from './JinjaParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { SqlRefConverter } from './SqlRefConverter';
-import { debounce, getIdentifierRangeAtPosition, positionInRange } from './utils/Utils';
+import { comparePositions, debounce, getIdentifierRangeAtPosition, positionInRange } from './utils/Utils';
 import { ZetaSqlAst } from './ZetaSqlAst';
 
 export class DbtTextDocument {
@@ -48,7 +48,6 @@ export class DbtTextDocument {
   requireCompileOnSave: boolean;
 
   ast?: AnalyzeResponse;
-  jinjas: ParseNode[] = [];
   signatureHelpProvider = new SignatureHelpProvider();
   sqlRefConverter = new SqlRefConverter(this.jinjaParser);
   diagnosticGenerator = new DiagnosticGenerator();
@@ -117,7 +116,6 @@ export class DbtTextDocument {
       ],
     });
     await this.didSaveTextDocument();
-    this.updateJinjas();
   }
 
   didChangeTextDocument(params: DidChangeTextDocumentParams): void {
@@ -140,11 +138,6 @@ export class DbtTextDocument {
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
       TextDocument.update(this.compiledDocument, compiledContentChanges, params.textDocument.version);
     }
-    this.updateJinjas();
-  }
-
-  updateJinjas(): void {
-    this.jinjas = this.jinjaParser.findAllEffectiveJinjas(this.rawDocument);
   }
 
   convertPosition(first: string, second: string, positionInSecond: Position): Position {
@@ -313,11 +306,18 @@ export class DbtTextDocument {
   }
 
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
-    const jinjaHit = this.jinjas.find(j => positionInRange(completionParams.position, j.range));
-    if (jinjaHit) {
-      const jinjaType = this.jinjaParser.getJinjaType(jinjaHit.value);
-      const jinjaBeforePositionText = this.rawDocument.getText(Range.create(jinjaHit.range.start, completionParams.position));
-      return this.dbtCompletionProvider.provideCompletions(jinjaType, jinjaBeforePositionText);
+    const jinjaParts = this.jinjaParser.findAllJinjaParts(this.rawDocument);
+    const closestJinjaPart =
+      jinjaParts.length > 0
+        ? jinjaParts
+            .filter(p => comparePositions(p.range.start, completionParams.position) < 0)
+            .reduce((p1, p2) => (comparePositions(p1.range.start, p2.range.start) > 0 ? p1 : p2))
+        : undefined;
+
+    if (closestJinjaPart) {
+      const jinjaPartType = this.jinjaParser.getJinjaPartType(closestJinjaPart.value);
+      const jinjaBeforePositionText = this.rawDocument.getText(Range.create(closestJinjaPart.range.start, completionParams.position));
+      return this.dbtCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText);
     }
 
     if (!this.bigQueryContext) {
@@ -345,7 +345,8 @@ export class DbtTextDocument {
   }
 
   onDefinition(definitionParams: DefinitionParams): DefinitionLink[] | undefined {
-    for (const jinja of this.jinjas) {
+    const jinjas = this.jinjaParser.findAllEffectiveJinjas(this.rawDocument);
+    for (const jinja of jinjas) {
       if (positionInRange(definitionParams.position, jinja.range)) {
         const jinjaType = this.jinjaParser.getJinjaType(jinja.value);
         const currentPackage = DbtTextDocument.findCurrentPackage(this.rawDocument.uri, this.workspaceFolder, this.dbtRepository);

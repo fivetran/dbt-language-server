@@ -1,6 +1,6 @@
 import { CompletionItem } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
-import { JinjaType } from '../JinjaParser';
+import { JinjaPartType } from '../JinjaParser';
 import { MacroCompletionProvider } from './MacroCompletionProvider';
 import { ModelCompletionProvider } from './ModelCompletionProvider';
 import { SourceCompletionProvider } from './SourceCompletionProvider';
@@ -20,21 +20,21 @@ export class DbtCompletionProvider {
     this.sourceCompletionProvider = new SourceCompletionProvider(this.dbtRepository);
   }
 
-  async provideCompletions(jinjaType: JinjaType | undefined, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
+  async provideCompletions(jinjaType: JinjaPartType | undefined, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
     const modelCompletions =
-      jinjaType === JinjaType.EXPRESSION ? await this.modelCompletionProvider.provideCompletions(jinjaBeforePositionText) : undefined;
+      jinjaType === JinjaPartType.EXPRESSION_START ? await this.modelCompletionProvider.provideCompletions(jinjaBeforePositionText) : undefined;
     if (modelCompletions) {
       return modelCompletions;
     }
 
     const sourceCompletions =
-      jinjaType === JinjaType.EXPRESSION ? await this.sourceCompletionProvider.provideCompletions(jinjaBeforePositionText) : undefined;
+      jinjaType === JinjaPartType.EXPRESSION_START ? await this.sourceCompletionProvider.provideCompletions(jinjaBeforePositionText) : undefined;
     if (sourceCompletions) {
       return sourceCompletions;
     }
 
     const macroCompletions =
-      jinjaType === JinjaType.EXPRESSION || jinjaType === JinjaType.BLOCK
+      jinjaType === JinjaPartType.EXPRESSION_START || jinjaType === JinjaPartType.BLOCK_START
         ? await this.macroCompletionProvider.provideCompletions(jinjaBeforePositionText)
         : undefined;
     if (macroCompletions) {

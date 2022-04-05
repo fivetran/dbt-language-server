@@ -8,6 +8,15 @@ export enum JinjaType {
   COMMENT,
 }
 
+export enum JinjaPartType {
+  EXPRESSION_START,
+  EXPRESSION_END,
+  BLOCK_START,
+  BLOCK_END,
+  COMMENT_START,
+  COMMENT_END,
+}
+
 export interface ParseNode {
   value: string;
   range: Range;
@@ -34,19 +43,44 @@ export class JinjaParser {
   static readonly JINJA_OPEN_BLOCKS = ['docs', 'if', 'for', 'macro'];
   static readonly JINJA_CLOSE_BLOCKS = ['enddocs', 'endif', 'endfor', 'endmacro'];
 
-  getJinjaType(expression: string): JinjaType | undefined {
-    if (expression.match(/^{\s*{/) !== null) {
+  static readonly JINJA_PART_PATTERN = /{\s*{|{\s*%|{\s*#|}\s*}|%\s*}|#\s*}/g;
+
+  getJinjaType(jinja: string): JinjaType | undefined {
+    if (jinja.match(/^{\s*{/) !== null) {
       return JinjaType.EXPRESSION;
     }
-    if (expression.match(/^{\s*%/) !== null) {
+    if (jinja.match(/^{\s*%/) !== null) {
       return JinjaType.BLOCK;
     }
-    if (expression.match(/^{\s*#/) !== null) {
+    if (jinja.match(/^{\s*#/) !== null) {
       return JinjaType.COMMENT;
     }
     return undefined;
   }
 
+  getJinjaPartType(text: string): JinjaPartType | undefined {
+    if (text.match(/{\s*{/) !== null) {
+      return JinjaPartType.EXPRESSION_START;
+    }
+    if (text.match(/{\s*%/) !== null) {
+      return JinjaPartType.BLOCK_START;
+    }
+    if (text.match(/{\s*#/) !== null) {
+      return JinjaPartType.COMMENT_START;
+    }
+
+    if (text.match(/}\s*}/) !== null) {
+      return JinjaPartType.EXPRESSION_END;
+    }
+    if (text.match(/%\s*}/) !== null) {
+      return JinjaPartType.BLOCK_END;
+    }
+    if (text.match(/#\s*}/) !== null) {
+      return JinjaPartType.COMMENT_END;
+    }
+
+    return undefined;
+  }
   /**
    * Finds all jinja statements ranges and ranges of jinja blocks: 'docs', 'if', 'for', 'macro'.
    * @param rawDocument editable text document
@@ -147,6 +181,10 @@ export class JinjaParser {
 
   findAllEffectiveJinjas(rawDocument: TextDocument): ParseNode[] {
     return this.findJinjas(rawDocument, JinjaParser.EFFECTIVE_JINJA_PATTERN);
+  }
+
+  findAllJinjaParts(rawDocument: TextDocument): ParseNode[] {
+    return this.findJinjas(rawDocument, JinjaParser.JINJA_PART_PATTERN);
   }
 
   findJinjas(rawDocument: TextDocument, pattern: RegExp): ParseNode[] {
