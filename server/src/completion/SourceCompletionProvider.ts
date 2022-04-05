@@ -21,7 +21,7 @@ export class SourceCompletionProvider implements DbtNodeCompletionProvider {
           sourceNames = new Set<string>();
           uniqueSources.set(s.packageName, sourceNames);
         }
-        sourceNames.add(s.name);
+        sourceNames.add(s.sourceName);
       });
 
       const completionItems = [];
