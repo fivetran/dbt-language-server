@@ -14,9 +14,7 @@ export class MacroCompletionProvider implements DbtNodeCompletionProvider {
     if (macroMatch) {
       const packageName = macroMatch[0].slice(0, -1);
       return Promise.resolve(
-        this.dbtRepository.macros
-          .filter(m => m.uniqueId.startsWith(`macro.${packageName}.`))
-          .map<CompletionItem>(m => this.getMacroCompletionItem(m.name)),
+        this.dbtRepository.macros.filter(m => m.packageName === packageName).map<CompletionItem>(m => this.getMacroCompletionItem(m.name)),
       );
     }
 
@@ -24,10 +22,7 @@ export class MacroCompletionProvider implements DbtNodeCompletionProvider {
     if (wordMatch) {
       return Promise.resolve(
         this.dbtRepository.macros.map<CompletionItem>(m => {
-          if (
-            m.uniqueId.startsWith(`macro.${MacroCompletionProvider.DBT_PACKAGE}.`) ||
-            (this.dbtRepository.projectName && m.uniqueId.startsWith(`macro.${this.dbtRepository.projectName}.`))
-          ) {
+          if (m.packageName === MacroCompletionProvider.DBT_PACKAGE || m.packageName === this.dbtRepository.projectName) {
             return this.getMacroCompletionItem(m.name);
           }
           return this.getMacroCompletionItem(`(${m.packageName}) ${m.name}`, `${m.packageName}.${m.name}`);
