@@ -5,7 +5,9 @@ import { DbtNodeCompletionProvider } from './DbtCompletionProvider';
 export class MacroCompletionProvider implements DbtNodeCompletionProvider {
   static readonly MACRO_PATTERN = /\w+\.$/;
   static readonly WORD_PATTERN = /\w+$/;
-  static readonly DBT_PACKAGE = 'dbt';
+
+  static readonly CURRENT_PACKAGE_SORT_PREFIX = '1';
+  static readonly INSTALLED_PACKAGE_SORT_PREFIX = '2';
 
   constructor(private dbtRepository: DbtRepository) {}
 
@@ -22,10 +24,13 @@ export class MacroCompletionProvider implements DbtNodeCompletionProvider {
     if (wordMatch) {
       return Promise.resolve(
         this.dbtRepository.macros.map<CompletionItem>(m => {
-          if (m.packageName === MacroCompletionProvider.DBT_PACKAGE || m.packageName === this.dbtRepository.projectName) {
-            return this.getMacroCompletionItem(m.name);
+          if (m.packageName === this.dbtRepository.projectName) {
+            return this.getMacroCompletionItem(m.name, m.name, `${MacroCompletionProvider.CURRENT_PACKAGE_SORT_PREFIX}_${m.name}`);
           }
-          return this.getMacroCompletionItem(`(${m.packageName}) ${m.name}`, `${m.packageName}.${m.name}`);
+
+          const label = `(${m.packageName}) ${m.name}`;
+          const insertText = `${m.packageName}.${m.name}`;
+          return this.getMacroCompletionItem(label, insertText, `${MacroCompletionProvider.INSTALLED_PACKAGE_SORT_PREFIX}_${label}`);
         }),
       );
     }
@@ -33,12 +38,13 @@ export class MacroCompletionProvider implements DbtNodeCompletionProvider {
     return Promise.resolve(undefined);
   }
 
-  private getMacroCompletionItem(label: string, insertText?: string): CompletionItem {
+  private getMacroCompletionItem(label: string, insertText?: string, sortText?: string): CompletionItem {
     return {
       label,
       insertText: insertText ?? label,
       kind: CompletionItemKind.Value,
       detail: 'Macro',
+      sortText,
     };
   }
 }
