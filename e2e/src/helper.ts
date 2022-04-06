@@ -216,6 +216,9 @@ export async function testCompletion(docUri: Uri, position: Position, expectedCo
     const actualItem = actualCompletionList.items[i];
     assertThat(actualItem.label, expectedItem.label);
     assertThat(actualItem.kind, expectedItem.kind);
+    if (expectedItem.insertText) {
+      assertThat(actualItem.insertText, expectedItem.insertText);
+    }
   });
 }
 
@@ -226,4 +229,8 @@ export async function triggerCompletion(docUri: Uri, position: Position, trigger
 
 export async function triggerDefinition(docUri: Uri, position: Position): Promise<DefinitionLink[]> {
   return commands.executeCommand<DefinitionLink[]>('vscode.executeDefinitionProvider', docUri, position);
+}
+
+export function getTextInQuotesIfNeeded(text: string, withQuotes: boolean): string {
+  return withQuotes ? `'${text}'` : text;
 }

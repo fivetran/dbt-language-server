@@ -1,9 +1,9 @@
 import { assertThat, contains, not } from 'hamjest';
 import * as vscode from 'vscode';
-import { CompletionItem } from 'vscode';
-import { activateAndWait, getCustomDocUri, setTestContent, testCompletion, triggerCompletion } from './helper';
+import { CompletionItem, CompletionItemKind } from 'vscode';
+import { activateAndWait, getCustomDocUri, getTextInQuotesIfNeeded, setTestContent, testCompletion, triggerCompletion } from '../helper';
 
-suite('Should do completion inside jinjas expression', () => {
+suite('Should suggest model completions', () => {
   const PROJECT_FILE_NAME = 'completion-jinja/models/completion_jinja.sql';
 
   test('Should suggest models for ref function by pressing "("', async () => {
@@ -43,11 +43,18 @@ suite('Should do completion inside jinjas expression', () => {
     getCompletionList(true).items.forEach(i => assertThat(actualLabels, not(contains(i.label as string))));
   });
 
-  function getCompletionList(withQuotes: boolean): { items: vscode.CompletionItem[] } {
-    return { items: getLabels().map<CompletionItem>(l => ({ label: withQuotes ? `'${l}'` : l, kind: vscode.CompletionItemKind.Value })) };
+  function getCompletionList(withQuotes: boolean): { items: CompletionItem[] } {
+    return {
+      items: getCompletions(withQuotes).map<CompletionItem>(c => ({ label: c[0], insertText: c[1], kind: CompletionItemKind.Value })),
+    };
   }
 
-  function getLabels(): string[] {
-    return ['completion_jinja', 'join_ref', 'test_table1', 'users'];
+  function getCompletions(withQuotes: boolean): [string, string][] {
+    return [
+      ['(my_new_project) completion_jinja', getTextInQuotesIfNeeded('completion_jinja', withQuotes)],
+      ['(my_new_project) join_ref', getTextInQuotesIfNeeded('join_ref', withQuotes)],
+      ['(my_new_project) test_table1', getTextInQuotesIfNeeded('test_table1', withQuotes)],
+      ['(my_new_project) users', getTextInQuotesIfNeeded('users', withQuotes)],
+    ];
   }
 });
