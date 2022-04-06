@@ -77,7 +77,7 @@ suite('Postgres destination', () => {
     const help = await commands.executeCommand<SignatureHelp>(
       'vscode.executeSignatureHelpProvider',
       activeUsersOrdersCountDocUri,
-      new Position(0, 127),
+      new Position(0, 145),
       '(',
     );
 
