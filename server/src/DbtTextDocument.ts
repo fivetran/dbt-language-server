@@ -307,11 +307,10 @@ export class DbtTextDocument {
 
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
     const jinjaParts = this.jinjaParser.findAllJinjaParts(this.rawDocument);
+    const jinjasBeforePosition = jinjaParts.filter(p => comparePositions(p.range.start, completionParams.position) < 0);
     const closestJinjaPart =
-      jinjaParts.length > 0
-        ? jinjaParts
-            .filter(p => comparePositions(p.range.start, completionParams.position) < 0)
-            .reduce((p1, p2) => (comparePositions(p1.range.start, p2.range.start) > 0 ? p1 : p2))
+      jinjasBeforePosition.length > 0
+        ? jinjasBeforePosition.reduce((p1, p2) => (comparePositions(p1.range.start, p2.range.start) > 0 ? p1 : p2))
         : undefined;
 
     if (closestJinjaPart) {
