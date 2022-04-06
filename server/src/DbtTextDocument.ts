@@ -30,7 +30,7 @@ import { JinjaDefinitionProvider } from './definition/JinjaDefinitionProvider';
 import { DiagnosticGenerator } from './DiagnosticGenerator';
 import { Diff } from './Diff';
 import { HoverProvider } from './HoverProvider';
-import { JinjaParser } from './JinjaParser';
+import { JinjaParser, JinjaPartType } from './JinjaParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
@@ -316,8 +316,10 @@ export class DbtTextDocument {
 
     if (closestJinjaPart) {
       const jinjaPartType = this.jinjaParser.getJinjaPartType(closestJinjaPart.value);
-      const jinjaBeforePositionText = this.rawDocument.getText(Range.create(closestJinjaPart.range.start, completionParams.position));
-      return this.dbtCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText);
+      if (jinjaPartType && [JinjaPartType.EXPRESSION_START, JinjaPartType.BLOCK_START].includes(jinjaPartType)) {
+        const jinjaBeforePositionText = this.rawDocument.getText(Range.create(closestJinjaPart.range.start, completionParams.position));
+        return this.dbtCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText);
+      }
     }
 
     if (!this.bigQueryContext) {
