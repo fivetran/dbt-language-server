@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.3.1 (02/03/2022)
+## Version 0.3.1 (02/04/2022)
 ## What's Changed
 * Fix changelog population
 * Fix restart issue when dbt-rpc command is not found
