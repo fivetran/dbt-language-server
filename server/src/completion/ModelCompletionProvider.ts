@@ -32,7 +32,9 @@ export class ModelCompletionProvider implements DbtNodeCompletionProvider {
     if (packageMatch) {
       const [, dbtPackage] = packageMatch;
       const packageModels = this.dbtRepository.packageToModelsMap.get(dbtPackage);
-      return Promise.resolve(packageModels ? packageModels.map<CompletionItem>(m => this.getModelCompletionItem(m.name, m.name)) : undefined);
+      return Promise.resolve(
+        packageModels ? Array.from(packageModels).map<CompletionItem>(m => this.getModelCompletionItem(m.name, m.name)) : undefined,
+      );
     }
 
     return Promise.resolve(undefined);

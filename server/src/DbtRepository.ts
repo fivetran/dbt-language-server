@@ -27,19 +27,19 @@ export class DbtRepository {
   macros: ManifestMacro[] = [];
   sources: ManifestSource[] = [];
 
-  private packageToModels: Map<string, ManifestModel[]> = new Map<string, ManifestModel[]>();
-  private packageToMacros: Map<string, ManifestMacro[]> = new Map<string, ManifestMacro[]>();
-  private packageToSources: Map<string, Map<string, ManifestSource[]>> = new Map<string, Map<string, ManifestSource[]>>();
+  private packageToModels: Map<string, Set<ManifestModel>> = new Map<string, Set<ManifestModel>>();
+  private packageToMacros: Map<string, Set<ManifestMacro>> = new Map<string, Set<ManifestMacro>>();
+  private packageToSources: Map<string, Map<string, Set<ManifestSource>>> = new Map<string, Map<string, Set<ManifestSource>>>();
 
-  get packageToModelsMap(): Map<string, ManifestModel[]> {
+  get packageToModelsMap(): Map<string, Set<ManifestModel>> {
     return this.packageToModels;
   }
 
-  get packageToMacrosMap(): Map<string, ManifestMacro[]> {
+  get packageToMacrosMap(): Map<string, Set<ManifestMacro>> {
     return this.packageToMacros;
   }
 
-  get packageToSourcesMap(): Map<string, Map<string, ManifestSource[]>> {
+  get packageToSourcesMap(): Map<string, Map<string, Set<ManifestSource>>> {
     return this.packageToSources;
   }
 
@@ -53,10 +53,11 @@ export class DbtRepository {
     for (const model of this.models) {
       let packageModels = this.packageToModels.get(model.packageName);
       if (!packageModels) {
-        packageModels = [model];
+        packageModels = new Set();
+        packageModels.add(model);
         this.packageToModels.set(model.packageName, packageModels);
       } else {
-        packageModels.push(model);
+        packageModels.add(model);
       }
     }
   }
@@ -65,10 +66,11 @@ export class DbtRepository {
     for (const macro of this.macros) {
       let packageMacros = this.packageToMacros.get(macro.packageName);
       if (!packageMacros) {
-        packageMacros = [macro];
+        packageMacros = new Set();
+        packageMacros.add(macro);
         this.packageToMacros.set(macro.packageName, packageMacros);
       } else {
-        packageMacros.push(macro);
+        packageMacros.add(macro);
       }
     }
   }
@@ -77,16 +79,17 @@ export class DbtRepository {
     for (const source of this.sources) {
       let packageSources = this.packageToSources.get(source.packageName);
       if (!packageSources) {
-        packageSources = new Map<string, ManifestSource[]>();
+        packageSources = new Map<string, Set<ManifestSource>>();
         this.packageToSources.set(source.packageName, packageSources);
       }
 
       let sourceTables = packageSources.get(source.sourceName);
       if (!sourceTables) {
-        sourceTables = [source];
+        sourceTables = new Set();
+        sourceTables.add(source);
         packageSources.set(source.sourceName, sourceTables);
       } else {
-        sourceTables.push(source);
+        sourceTables.add(source);
       }
     }
   }
