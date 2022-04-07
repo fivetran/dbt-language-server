@@ -12,23 +12,12 @@ export class SourceCompletionProvider implements DbtNodeCompletionProvider {
     const sourceMatch = SourceCompletionProvider.SOURCE_PATTERN.exec(jinjaBeforePositionText);
     if (sourceMatch) {
       const lastChar = jinjaBeforePositionText.charAt(jinjaBeforePositionText.length - 1);
-
-      // todo: move to files change listener
-      const uniqueSources = new Map<string, Set<string>>();
-      this.dbtRepository.sources.forEach(s => {
-        let sourceNames = uniqueSources.get(s.packageName);
-        if (!sourceNames) {
-          sourceNames = new Set<string>();
-          uniqueSources.set(s.packageName, sourceNames);
-        }
-        sourceNames.add(s.sourceName);
-      });
-
       const completionItems = [];
-      for (const completionEntry of uniqueSources.entries()) {
-        for (const name of completionEntry[1]) {
-          const label = `(${completionEntry[0]}) ${name}`;
-          const insertText = this.getSourceInsertText(name, lastChar);
+
+      for (const packageSources of this.dbtRepository.packageToSourcesMap.entries()) {
+        for (const sourceTables of packageSources[1].entries()) {
+          const label = `(${packageSources[0]}) ${sourceTables[0]}`;
+          const insertText = this.getSourceInsertText(sourceTables[0], lastChar);
           completionItems.push(this.getSourceCompletionItem(label, insertText, 'Source'));
         }
       }

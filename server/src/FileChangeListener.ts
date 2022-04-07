@@ -43,6 +43,7 @@ export class FileChangeListener {
       this.dbtRepository.macros = macros;
       this.dbtRepository.sources = sources;
       this.dbtRepository.manifestExists = true;
+      this.dbtRepository.groupManifestNodes();
     } catch (e) {
       this.dbtRepository.manifestExists = false;
       console.log(`Failed to read ${ManifestParser.MANIFEST_FILE_NAME}`, e);

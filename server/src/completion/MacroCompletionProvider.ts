@@ -15,9 +15,8 @@ export class MacroCompletionProvider implements DbtNodeCompletionProvider {
     const macroMatch = MacroCompletionProvider.MACRO_PATTERN.exec(jinjaBeforePositionText);
     if (macroMatch) {
       const packageName = macroMatch[0].slice(0, -1);
-      return Promise.resolve(
-        this.dbtRepository.macros.filter(m => m.packageName === packageName).map<CompletionItem>(m => this.getMacroCompletionItem(m.name)),
-      );
+      const packageMacros = this.dbtRepository.packageToMacrosMap.get(packageName);
+      return Promise.resolve(packageMacros ? packageMacros.map<CompletionItem>(m => this.getMacroCompletionItem(m.name)) : undefined);
     }
 
     const wordMatch = MacroCompletionProvider.WORD_PATTERN.exec(jinjaBeforePositionText);
