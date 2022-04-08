@@ -231,8 +231,6 @@ export function getTextRangeBeforeBracket(text: string, cursorPosition: Position
   if (openBracketIndex === -1) {
     return Range.create(cursorPosition, cursorPosition);
   }
-  const beforeOpenBracket = textBeforeCursor.substring(0, openBracketIndex);
-  const match = beforeOpenBracket.match(/\W/g);
-  const startIndex = match === null ? 0 : beforeOpenBracket.lastIndexOf(match[match.length - 1]) + 1;
-  return Range.create(line, startIndex, line, openBracketIndex);
+
+  return getWordRangeAtPosition(Position.create(0, openBracketIndex), /\w+/, [textBeforeCursor]) ?? Range.create(cursorPosition, cursorPosition);
 }
