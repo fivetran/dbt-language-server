@@ -12,7 +12,7 @@ Also, it provides additional features like [Highlighting errors](#highlighting-e
    - [Highlighting errors](#highlighting-errors)
    - [Signature help](#signature-help)
    - [Completion for SQL](#completion-for-sql)
-   - [Completion for dbt models](#completion-for-dbt-models)
+   - [Completion for dbt](#completion-for-dbt)
    - [dbt compile preview](#dbt-compile-preview)
    - [Information on hover](#information-on-hover)
 - [How to use](#how-to-use)
@@ -37,11 +37,11 @@ Also, it provides additional features like [Highlighting errors](#highlighting-e
 
 ### Go to definition
 
-#### Macros
+##### Macros
 ![Definition Macro](images/DefinitionMacro.png)
-#### Models
+##### Models
 ![Definition Ref](images/DefinitionRef.png)
-#### Sources
+##### Sources
 ![Definition Source](images/DefinitionSource.png)
 
 ### Highlighting errors
@@ -56,9 +56,14 @@ Also, it provides additional features like [Highlighting errors](#highlighting-e
 
 ![Completion for SQL](images/Completion.png)
 
-### Completion for dbt models
+### Completion for dbt
 
-![Completion for dbt models](images/CompletionForModels.png)
+##### Macros
+![Completion for macros](images/CompletionForMacros.png)
+##### Models
+![Completion for models](images/CompletionForModels.png)
+##### Sources
+![Completion for sources](images/CompletionForSources.png)
 
 ### dbt compile preview
 
