@@ -1,5 +1,7 @@
 import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
+import { StringBuilder } from '../utils/StringBuilder';
+import { isQuote } from '../utils/TextUtils';
 import { DbtNodeCompletionProvider } from './DbtCompletionProvider';
 
 export class ModelCompletionProvider implements DbtNodeCompletionProvider {
@@ -30,7 +32,8 @@ export class ModelCompletionProvider implements DbtNodeCompletionProvider {
 
     const packageMatch = ModelCompletionProvider.PACKAGE_PATTERN.exec(jinjaBeforePositionText);
     if (packageMatch) {
-      const [, dbtPackage] = packageMatch;
+      const [, dbtPackageMatch] = packageMatch;
+      const dbtPackage = dbtPackageMatch.slice(1, -1);
       const packageModels = this.dbtRepository.packageToModelsMap.get(dbtPackage);
       return Promise.resolve(
         packageModels ? Array.from(packageModels).map<CompletionItem>(m => this.getModelCompletionItem(m.name, m.name)) : undefined,
@@ -51,9 +54,22 @@ export class ModelCompletionProvider implements DbtNodeCompletionProvider {
   }
 
   private getModelInsertText(packageName: string, name: string, lastChar: string): string {
+    const lastCharIsQuote = isQuote(lastChar);
+
     if (this.dbtRepository.projectName === packageName) {
-      return lastChar === "'" ? `${name}` : `'${name}'`;
+      return new StringBuilder().appendIf(!lastCharIsQuote, "'").append(name).appendIf(!lastCharIsQuote, "'").toString();
     }
-    return lastChar === "'" ? `${packageName}', '${name}` : `'${packageName}', '${name}'`;
+
+    return new StringBuilder()
+      .appendIf(!lastCharIsQuote, "'")
+      .append(packageName)
+      .appendIf(!lastCharIsQuote, "'")
+      .appendIf(lastCharIsQuote, lastChar)
+      .append(', ')
+      .appendIf(!lastCharIsQuote, "'")
+      .appendIf(lastCharIsQuote, lastChar)
+      .append(name)
+      .appendIf(!lastCharIsQuote, "'")
+      .toString();
   }
 }

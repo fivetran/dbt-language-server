@@ -202,3 +202,7 @@ function createWordRegExp(allowInWords = ''): RegExp {
   source += '\\s]+)';
   return new RegExp(source, 'g');
 }
+
+export function isQuote(text: string): boolean {
+  return text === `'` || text === `"`;
+}

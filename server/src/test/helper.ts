@@ -1,7 +1,9 @@
-import { assertThat } from 'hamjest';
+import { assertThat, defined } from 'hamjest';
 import { err } from 'neverthrow';
 import * as path from 'path';
 import { instance, mock, when } from 'ts-mockito';
+import { CompletionItem } from 'vscode-languageserver';
+import { DbtNodeCompletionProvider } from '../completion/DbtCompletionProvider';
 import { DbtProfile } from '../DbtProfile';
 import { DbtProfileCreator } from '../DbtProfileCreator';
 import { YamlParser } from '../YamlParser';
@@ -56,5 +58,23 @@ export function shouldPassValidProfile(config: string, profileName: string): voi
 export function sleep(ms: number): Promise<unknown> {
   return new Promise(resolve => {
     setTimeout(resolve, ms);
+  });
+}
+
+export async function shouldProvideCompletions(
+  completionProvider: DbtNodeCompletionProvider,
+  text: string,
+  expectedCompletions: { label: string; insertText: string }[],
+): Promise<void> {
+  const completions = await completionProvider.provideCompletions(text);
+  assertCompletions(completions, expectedCompletions);
+}
+
+function assertCompletions(actualCompletions: CompletionItem[] | undefined, expectedCompletions: { label: string; insertText: string }[]): void {
+  assertThat(actualCompletions, defined());
+  actualCompletions?.forEach((actualItem, i) => {
+    const expectedCompletion = expectedCompletions[i];
+    assertThat(actualItem.label, expectedCompletion.label);
+    assertThat(actualItem.insertText, expectedCompletion.insertText);
   });
 }

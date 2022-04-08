@@ -1,5 +1,7 @@
 import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
+import { StringBuilder } from '../utils/StringBuilder';
+import { isQuote } from '../utils/TextUtils';
 import { DbtNodeCompletionProvider } from './DbtCompletionProvider';
 
 export class SourceCompletionProvider implements DbtNodeCompletionProvider {
@@ -51,6 +53,7 @@ export class SourceCompletionProvider implements DbtNodeCompletionProvider {
   }
 
   private getSourceInsertText(sourceName: string, lastChar: string): string {
-    return lastChar === "'" ? sourceName : `'${sourceName}'`;
+    const lastCharIsQuote = isQuote(lastChar);
+    return new StringBuilder().appendIf(!lastCharIsQuote, "'").append(sourceName).appendIf(!lastCharIsQuote, "'").toString();
   }
 }
