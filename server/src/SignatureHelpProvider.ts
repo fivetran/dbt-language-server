@@ -17,7 +17,7 @@ export class SignatureHelpProvider {
     if (index !== -1) {
       return {
         signatures: HelpProviderWords[index].signatures.map<SignatureInformation>(s => ({
-          label: `${s.signature}`,
+          label: s.signature,
           documentation: {
             kind: MarkupKind.Markdown,
             value: s.description,
