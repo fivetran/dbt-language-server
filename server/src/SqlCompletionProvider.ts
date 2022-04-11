@@ -3,7 +3,7 @@ import { DestinationDefinition } from './DestinationDefinition';
 import { HelpProviderWords } from './HelpProviderWords';
 import { ActiveTableInfo, CompletionInfo } from './ZetaSqlAst';
 
-export class CompletionProvider {
+export class SqlCompletionProvider {
   static readonly ENDS_WITH_REF = /ref\([^)]*$/;
   static readonly ENDS_WITH_QUOTE = /['|"]$/;
   static readonly BQ_KEYWORDS = [
@@ -341,7 +341,7 @@ export class CompletionProvider {
   }
 
   getKeywords(): CompletionItem[] {
-    return CompletionProvider.BQ_KEYWORDS.map<CompletionItem>(k => ({
+    return SqlCompletionProvider.BQ_KEYWORDS.map<CompletionItem>(k => ({
       label: k,
       kind: CompletionItemKind.Keyword,
       detail: '',

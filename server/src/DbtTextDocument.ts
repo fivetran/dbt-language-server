@@ -23,7 +23,6 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
-import { CompletionProvider } from './CompletionProvider';
 import { DbtRepository } from './DbtRepository';
 import { DbtRpcServer } from './DbtRpcServer';
 import { JinjaDefinitionProvider } from './definition/JinjaDefinitionProvider';
@@ -34,6 +33,7 @@ import { JinjaParser, JinjaPartType } from './JinjaParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
+import { SqlCompletionProvider } from './SqlCompletionProvider';
 import { SqlRefConverter } from './SqlRefConverter';
 import { comparePositions, debounce, getIdentifierRangeAtPosition, positionInRange } from './utils/Utils';
 import { ZetaSqlAst } from './ZetaSqlAst';
@@ -60,7 +60,7 @@ export class DbtTextDocument {
     private workspaceFolder: string,
     private connection: _Connection,
     private progressReporter: ProgressReporter,
-    private completionProvider: CompletionProvider,
+    private sqlCompletionProvider: SqlCompletionProvider,
     private dbtCompletionProvider: DbtCompletionProvider,
     private jinjaDefinitionProvider: JinjaDefinitionProvider,
     private modelCompiler: ModelCompiler,
@@ -337,7 +337,7 @@ export class DbtTextDocument {
       const offset = this.compiledDocument.offsetAt(Position.create(line, completionParams.position.character));
       completionInfo = DbtTextDocument.ZETA_SQL_AST.getCompletionInfo(this.ast, offset);
     }
-    return this.completionProvider.onSqlCompletion(text, completionParams, this.bigQueryContext.destinationDefinition, completionInfo);
+    return this.sqlCompletionProvider.onSqlCompletion(text, completionParams, this.bigQueryContext.destinationDefinition, completionInfo);
   }
 
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
