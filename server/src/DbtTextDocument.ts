@@ -35,6 +35,7 @@ import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { SqlRefConverter } from './SqlRefConverter';
+import { getTextRangeBeforeBracket } from './utils/TextUtils';
 import { debounce, getIdentifierRangeAtPosition, getJinjaContentOffset, positionInRange } from './utils/Utils';
 import { ZetaSqlAst } from './ZetaSqlAst';
 
@@ -51,6 +52,7 @@ export class DbtTextDocument {
   signatureHelpProvider = new SignatureHelpProvider();
   sqlRefConverter = new SqlRefConverter(this.jinjaParser);
   diagnosticGenerator = new DiagnosticGenerator();
+  hoverProvider = new HoverProvider();
 
   hasDbtError = false;
   firstSave = true;
@@ -301,7 +303,7 @@ export class DbtTextDocument {
   onHover(hoverParams: HoverParams): Hover | null {
     const range = getIdentifierRangeAtPosition(hoverParams.position, this.rawDocument.getText());
     const text = this.rawDocument.getText(range);
-    return HoverProvider.hoverOnText(text, this.ast);
+    return this.hoverProvider.hoverOnText(text, this.ast);
   }
 
   async onCompletion(completionParams: CompletionParams, destinationDefinition: DestinationDefinition): Promise<CompletionItem[] | undefined> {
@@ -331,8 +333,8 @@ export class DbtTextDocument {
   }
 
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
-    const text = this.rawDocument.getText(this.getTextRangeBeforeBracket(params.position));
-    return this.signatureHelpProvider.onSignatureHelp(params, text);
+    const text = this.rawDocument.getText(getTextRangeBeforeBracket(this.rawDocument.getText(), params.position));
+    return this.signatureHelpProvider.onSignatureHelp(text);
   }
 
   onDefinition(definitionParams: DefinitionParams): DefinitionLink[] | undefined {
@@ -344,25 +346,5 @@ export class DbtTextDocument {
       }
     }
     return undefined;
-  }
-
-  getTextRangeBeforeBracket(cursorPosition: Position): Range {
-    const lines = this.rawDocument.getText().split('\n');
-    if (lines.length === 0) {
-      return Range.create(cursorPosition, cursorPosition);
-    }
-    const line = Math.min(lines.length - 1, Math.max(0, cursorPosition.line));
-    const lineText = lines[line];
-    const textBeforeCursor = lineText.substr(0, cursorPosition.character);
-    const openBracketIndex = textBeforeCursor.lastIndexOf('(');
-    if (openBracketIndex === -1) {
-      return Range.create(cursorPosition, cursorPosition);
-    }
-    const closeBracketIndex = textBeforeCursor.lastIndexOf(')');
-    if (closeBracketIndex > openBracketIndex) {
-      return Range.create(cursorPosition, cursorPosition);
-    }
-    const spaceIndex = textBeforeCursor.substr(0, openBracketIndex).lastIndexOf(' ');
-    return Range.create(line, spaceIndex + 1, line, openBracketIndex);
   }
 }

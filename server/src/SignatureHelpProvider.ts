@@ -1,4 +1,4 @@
-import { MarkupKind, SignatureHelp, SignatureHelpParams, SignatureInformation } from 'vscode-languageserver';
+import { MarkupKind, SignatureHelp, SignatureInformation } from 'vscode-languageserver';
 import { HelpProviderWords } from './HelpProviderWords';
 
 export interface FunctionInfo {
@@ -12,9 +12,7 @@ export interface SignatureInfo {
 }
 
 export class SignatureHelpProvider {
-  signatureInformations = new Map<string, SignatureInformation[]>();
-
-  onSignatureHelp(params: SignatureHelpParams, text: string): SignatureHelp | undefined {
+  onSignatureHelp(text: string): SignatureHelp | undefined {
     const index = HelpProviderWords.findIndex(w => w.name === text);
     if (index !== -1) {
       return {

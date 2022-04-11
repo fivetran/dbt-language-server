@@ -1,20 +1,21 @@
-import { assertThat, instanceOf } from 'hamjest';
+import { assertThat, hasSize, instanceOf, startsWith } from 'hamjest';
 import * as vscode from 'vscode';
+import { Hover } from 'vscode';
 import { activateAndWait, getCursorPosition, getDocUri, setTestContent, sleep } from './helper';
 
 suite('Functions', () => {
-  const docUri = getDocUri('functions.sql');
+  const DOC_URI = getDocUri('functions.sql');
 
   test('Should show help for max function', async () => {
     // arrange
-    await activateAndWait(docUri);
+    await activateAndWait(DOC_URI);
 
     await setTestContent('select max(');
 
     // act
     const help = await vscode.commands.executeCommand<vscode.SignatureHelp>(
       'vscode.executeSignatureHelpProvider',
-      docUri,
+      DOC_URI,
       new vscode.Position(0, 11),
       '(',
     );
@@ -31,7 +32,7 @@ suite('Functions', () => {
 
   test('Should move cursor into brackets after avg function completion', async () => {
     // arrange
-    await activateAndWait(docUri);
+    await activateAndWait(DOC_URI);
 
     await setTestContent('select avg()');
 
@@ -41,5 +42,20 @@ suite('Functions', () => {
     // assert
     await sleep(300);
     assertThat(getCursorPosition(), new vscode.Position(0, 11));
+  });
+
+  test('Should show signature on hover', async () => {
+    // arrange
+    await activateAndWait(DOC_URI);
+
+    await setTestContent('select coalesce');
+
+    // act
+    const hovers = await vscode.commands.executeCommand<Hover[]>('vscode.executeHoverProvider', DOC_URI, new vscode.Position(0, 8));
+
+    // assert
+    assertThat(hovers, hasSize(1));
+    assertThat(hovers[0].contents, hasSize(1));
+    assertThat((hovers[0].contents[0] as vscode.MarkdownString).value, startsWith(`\`\`\`sql\nCOALESCE(expr[, ...])\n\`\`\``));
   });
 });
