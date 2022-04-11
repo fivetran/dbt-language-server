@@ -16,7 +16,7 @@ export class SourceCompletionProvider implements DbtNodeCompletionProvider {
       const lastChar = jinjaBeforePositionText.charAt(jinjaBeforePositionText.length - 1);
       const completionItems = [];
 
-      for (const packageSources of this.dbtRepository.packageToSourcesMap.entries()) {
+      for (const packageSources of this.dbtRepository.packageToSources.entries()) {
         for (const sourceTables of packageSources[1].entries()) {
           const label = `(${packageSources[0]}) ${sourceTables[0]}`;
           const insertText = this.getSourceInsertText(sourceTables[0], lastChar);

@@ -27,21 +27,9 @@ export class DbtRepository {
   macros: ManifestMacro[] = [];
   sources: ManifestSource[] = [];
 
-  private packageToModels = new Map<string, Set<ManifestModel>>();
-  private packageToMacros = new Map<string, Set<ManifestMacro>>();
-  private packageToSources = new Map<string, Map<string, Set<ManifestSource>>>();
-
-  get packageToModelsMap(): Map<string, Set<ManifestModel>> {
-    return this.packageToModels;
-  }
-
-  get packageToMacrosMap(): Map<string, Set<ManifestMacro>> {
-    return this.packageToMacros;
-  }
-
-  get packageToSourcesMap(): Map<string, Map<string, Set<ManifestSource>>> {
-    return this.packageToSources;
-  }
+  packageToModels = new Map<string, Set<ManifestModel>>();
+  packageToMacros = new Map<string, Set<ManifestMacro>>();
+  packageToSources = new Map<string, Map<string, Set<ManifestSource>>>();
 
   updateDbtNodes(models: ManifestModel[], macros: ManifestMacro[], sources: ManifestSource[]): void {
     this.models = models;
