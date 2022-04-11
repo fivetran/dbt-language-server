@@ -5,8 +5,8 @@ import { activateAndWait, getCustomDocUri, getTextInQuotesIfNeeded } from '../he
 suite('Should suggest sources completions', () => {
   const PROJECT_FILE_NAME = 'postgres/models/active_users.sql';
 
-  const SOURCE_COMPLETIONS: [string, string][] = [['(dbt_postgres_test) users_orders', 'users_orders']];
-  const TABLE_COMPLETIONS: [string, string][] = [
+  const SOURCES_COMPLETIONS: [string, string][] = [['(dbt_postgres_test) users_orders', 'users_orders']];
+  const TABLES_COMPLETIONS: [string, string][] = [
     ['orders', 'orders'],
     ['users', 'users'],
   ];
@@ -14,13 +14,13 @@ suite('Should suggest sources completions', () => {
   test('Should suggest sources', async () => {
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
     await activateAndWait(docUri);
-    await assertCompletions(docUri, new Position(1, 16), getSourcesCompletionList(SOURCE_COMPLETIONS, false));
+    await assertCompletions(docUri, new Position(1, 16), getSourcesCompletionList(SOURCES_COMPLETIONS, false));
   });
 
   test('Should suggest source tables', async () => {
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
     await activateAndWait(docUri);
-    await assertCompletions(docUri, new Position(1, 32), getSourcesCompletionList(TABLE_COMPLETIONS, false));
+    await assertCompletions(docUri, new Position(1, 32), getSourcesCompletionList(TABLES_COMPLETIONS, false));
   });
 
   function getSourcesCompletionList(completions: [string, string][], withQuotes: boolean): CompletionItem[] {

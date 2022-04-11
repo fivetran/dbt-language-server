@@ -7,6 +7,13 @@ import { activateAndWait, getCustomDocUri, getTextInQuotesIfNeeded, setTestConte
 suite('Should suggest model completions', () => {
   const PROJECT_FILE_NAME = 'completion-jinja/models/completion_jinja.sql';
 
+  const MODELS_COMPLETIONS: [string, string][] = [
+    ['(my_new_project) completion_jinja', 'completion_jinja'],
+    ['(my_new_project) join_ref', 'join_ref'],
+    ['(my_new_project) test_table1', 'test_table1'],
+    ['(my_new_project) users', 'users'],
+  ];
+
   test('Should suggest models for ref function by pressing "("', async () => {
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
     await activateAndWait(docUri);
@@ -45,15 +52,10 @@ suite('Should suggest model completions', () => {
   });
 
   function getCompletionList(withQuotes: boolean): CompletionItem[] {
-    return getCompletions(withQuotes).map<CompletionItem>(c => ({ label: c[0], insertText: c[1], kind: CompletionItemKind.Value }));
-  }
-
-  function getCompletions(withQuotes: boolean): [string, string][] {
-    return [
-      ['(my_new_project) completion_jinja', getTextInQuotesIfNeeded('completion_jinja', withQuotes)],
-      ['(my_new_project) join_ref', getTextInQuotesIfNeeded('join_ref', withQuotes)],
-      ['(my_new_project) test_table1', getTextInQuotesIfNeeded('test_table1', withQuotes)],
-      ['(my_new_project) users', getTextInQuotesIfNeeded('users', withQuotes)],
-    ];
+    return MODELS_COMPLETIONS.map<CompletionItem>(c => ({
+      label: c[0],
+      insertText: getTextInQuotesIfNeeded(c[1], withQuotes),
+      kind: CompletionItemKind.Value,
+    }));
   }
 });

@@ -5,6 +5,7 @@ import { activateAndWait, getCustomDocUri, triggerCompletion } from '../helper';
 
 suite('Should suggest macros completions', () => {
   const PROJECT_FILE_NAME = 'postgres/models/active_users_orders_count.sql';
+
   const MACROS_COMPLETIONS: [string, string][] = [
     ['extract_first_name', 'extract_first_name'],
     ['extract_last_name', 'extract_last_name'],
@@ -33,10 +34,6 @@ suite('Should suggest macros completions', () => {
   });
 
   function getMacrosCompletionList(): CompletionItem[] {
-    return getMacrosCompletions().map<CompletionItem>(c => ({ label: c[0], insertText: c[1], kind: CompletionItemKind.Value }));
-  }
-
-  function getMacrosCompletions(): [string, string][] {
-    return MACROS_COMPLETIONS;
+    return MACROS_COMPLETIONS.map<CompletionItem>(c => ({ label: c[0], insertText: c[1], kind: CompletionItemKind.Value }));
   }
 });
