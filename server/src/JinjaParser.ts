@@ -46,36 +46,36 @@ export class JinjaParser {
   static readonly JINJA_PART_PATTERN = /{\s*{|{\s*%|{\s*#|}\s*}|%\s*}|#\s*}/g;
 
   getJinjaType(jinja: string): JinjaType | undefined {
-    if (jinja.match(/^{\s*{/) !== null) {
+    if (/^{\s*{/.test(jinja)) {
       return JinjaType.EXPRESSION;
     }
-    if (jinja.match(/^{\s*%/) !== null) {
+    if (/^{\s*%/.test(jinja)) {
       return JinjaType.BLOCK;
     }
-    if (jinja.match(/^{\s*#/) !== null) {
+    if (/^{\s*#/.test(jinja)) {
       return JinjaType.COMMENT;
     }
     return undefined;
   }
 
   getJinjaPartType(text: string): JinjaPartType | undefined {
-    if (text.match(/{\s*{/) !== null) {
+    if (/{\s*{/.test(text)) {
       return JinjaPartType.EXPRESSION_START;
     }
-    if (text.match(/{\s*%/) !== null) {
+    if (/{\s*%/.test(text)) {
       return JinjaPartType.BLOCK_START;
     }
-    if (text.match(/{\s*#/) !== null) {
+    if (/{\s*#/.test(text)) {
       return JinjaPartType.COMMENT_START;
     }
 
-    if (text.match(/}\s*}/) !== null) {
+    if (/}\s*}/.test(text)) {
       return JinjaPartType.EXPRESSION_END;
     }
-    if (text.match(/%\s*}/) !== null) {
+    if (/%\s*}/.test(text)) {
       return JinjaPartType.BLOCK_END;
     }
-    if (text.match(/#\s*}/) !== null) {
+    if (/#\s*}/.test(text)) {
       return JinjaPartType.COMMENT_END;
     }
 
