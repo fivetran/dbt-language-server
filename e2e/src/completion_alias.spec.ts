@@ -22,17 +22,15 @@ suite('Should suggest completions after ref aliases', () => {
     await assertCompletions(
       docUri,
       position,
-      {
-        items: [
-          { label: 'division', kind: vscode.CompletionItemKind.Value },
-          { label: 'email', kind: vscode.CompletionItemKind.Value },
-          { label: 'id', kind: vscode.CompletionItemKind.Value },
-          { label: 'name', kind: vscode.CompletionItemKind.Value },
-          { label: 'phone', kind: vscode.CompletionItemKind.Value },
-          { label: 'profile_id', kind: vscode.CompletionItemKind.Value },
-          { label: 'role', kind: vscode.CompletionItemKind.Value },
-        ],
-      },
+      [
+        { label: 'division', kind: vscode.CompletionItemKind.Value },
+        { label: 'email', kind: vscode.CompletionItemKind.Value },
+        { label: 'id', kind: vscode.CompletionItemKind.Value },
+        { label: 'name', kind: vscode.CompletionItemKind.Value },
+        { label: 'phone', kind: vscode.CompletionItemKind.Value },
+        { label: 'profile_id', kind: vscode.CompletionItemKind.Value },
+        { label: 'role', kind: vscode.CompletionItemKind.Value },
+      ],
       '.',
     );
   }

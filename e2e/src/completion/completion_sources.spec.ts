@@ -17,10 +17,8 @@ suite('Should suggest sources completions', () => {
     await assertCompletions(docUri, new Position(1, 32), getSourcesCompletionList(getTablesCompletions, false));
   });
 
-  function getSourcesCompletionList(getCompletions: (withQuotes: boolean) => [string, string][], withQuotes: boolean): { items: CompletionItem[] } {
-    return {
-      items: getCompletions(withQuotes).map<CompletionItem>(c => ({ label: c[0], insertText: c[1], kind: CompletionItemKind.Value })),
-    };
+  function getSourcesCompletionList(getCompletions: (withQuotes: boolean) => [string, string][], withQuotes: boolean): CompletionItem[] {
+    return getCompletions(withQuotes).map<CompletionItem>(c => ({ label: c[0], insertText: c[1], kind: CompletionItemKind.Value }));
   }
 
   function getSourcesCompletions(withQuotes: boolean): [string, string][] {

@@ -7,13 +7,11 @@ suite('Should do completion with jinjas in query', () => {
     const docUri = getDocUri('simple_select_dbt.sql');
     await activateAndWait(docUri);
 
-    await assertCompletions(docUri, new vscode.Position(0, 8), {
-      items: [
-        { label: 'date', kind: vscode.CompletionItemKind.Value },
-        { label: 'id', kind: vscode.CompletionItemKind.Value },
-        { label: 'name', kind: vscode.CompletionItemKind.Value },
-        { label: 'time', kind: vscode.CompletionItemKind.Value },
-      ],
-    });
+    await assertCompletions(docUri, new vscode.Position(0, 8), [
+      { label: 'date', kind: vscode.CompletionItemKind.Value },
+      { label: 'id', kind: vscode.CompletionItemKind.Value },
+      { label: 'name', kind: vscode.CompletionItemKind.Value },
+      { label: 'time', kind: vscode.CompletionItemKind.Value },
+    ]);
   });
 });

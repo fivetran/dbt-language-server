@@ -40,14 +40,12 @@ suite('Should suggest model completions', () => {
     // assert
     actualCompletionList.items.forEach(i => i.label instanceof String);
     const actualLabels = actualCompletionList.items.map(i => i.label as string);
-    getCompletionList(false).items.forEach(i => assertThat(actualLabels, not(contains(i.label as string))));
-    getCompletionList(true).items.forEach(i => assertThat(actualLabels, not(contains(i.label as string))));
+    getCompletionList(false).forEach(i => assertThat(actualLabels, not(contains(i.label as string))));
+    getCompletionList(true).forEach(i => assertThat(actualLabels, not(contains(i.label as string))));
   });
 
-  function getCompletionList(withQuotes: boolean): { items: CompletionItem[] } {
-    return {
-      items: getCompletions(withQuotes).map<CompletionItem>(c => ({ label: c[0], insertText: c[1], kind: CompletionItemKind.Value })),
-    };
+  function getCompletionList(withQuotes: boolean): CompletionItem[] {
+    return getCompletions(withQuotes).map<CompletionItem>(c => ({ label: c[0], insertText: c[1], kind: CompletionItemKind.Value }));
   }
 
   function getCompletions(withQuotes: boolean): [string, string][] {

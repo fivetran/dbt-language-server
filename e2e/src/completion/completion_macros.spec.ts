@@ -20,7 +20,7 @@ suite('Should suggest macros completions', () => {
 
     // assert
     const expectedCompletions = getMacrosCompletionList();
-    expectedCompletions.items.forEach(c => {
+    expectedCompletions.forEach(c => {
       const actualCompletion = actualCompletionList.items.find(a => a.label === c.label && a.insertText === c.insertText);
       assertThat(actualCompletion, defined());
     });
@@ -32,10 +32,8 @@ suite('Should suggest macros completions', () => {
     await assertCompletions(docUri, new Position(0, 89), getMacrosCompletionList());
   });
 
-  function getMacrosCompletionList(): { items: CompletionItem[] } {
-    return {
-      items: getMacrosCompletions().map<CompletionItem>(c => ({ label: c[0], insertText: c[1], kind: CompletionItemKind.Value })),
-    };
+  function getMacrosCompletionList(): CompletionItem[] {
+    return getMacrosCompletions().map<CompletionItem>(c => ({ label: c[0], insertText: c[1], kind: CompletionItemKind.Value }));
   }
 
   function getMacrosCompletions(): [string, string][] {

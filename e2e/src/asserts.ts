@@ -1,6 +1,6 @@
 import assert = require('assert');
 import { assertThat, greaterThanOrEqualTo, hasSize } from 'hamjest';
-import { CompletionList, DefinitionLink, Diagnostic, DiagnosticRelatedInformation, languages, Location, Position, Range, Uri } from 'vscode';
+import { CompletionItem, DefinitionLink, Diagnostic, DiagnosticRelatedInformation, languages, Location, Position, Range, Uri } from 'vscode';
 import { PREVIEW_URI, sleep, triggerCompletion, triggerDefinition } from './helper';
 
 export async function assertDiagnostics(uri: Uri, diagnostics: Diagnostic[]): Promise<void> {
@@ -61,13 +61,13 @@ export async function assertDefinitions(docUri: Uri, position: Position, expecte
 export async function assertCompletions(
   docUri: Uri,
   position: Position,
-  expectedCompletionList: CompletionList,
+  expectedCompletionList: CompletionItem[],
   triggerChar?: string,
 ): Promise<void> {
   const actualCompletionList = await triggerCompletion(docUri, position, triggerChar);
 
-  assertThat(actualCompletionList.items.length, greaterThanOrEqualTo(expectedCompletionList.items.length));
-  expectedCompletionList.items.forEach((expectedItem, i) => {
+  assertThat(actualCompletionList.items.length, greaterThanOrEqualTo(expectedCompletionList.length));
+  expectedCompletionList.forEach((expectedItem, i) => {
     const actualItem = actualCompletionList.items[i];
     assertThat(actualItem.label, expectedItem.label);
     assertThat(actualItem.kind, expectedItem.kind);
