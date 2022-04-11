@@ -1,17 +1,20 @@
 import * as path from 'path';
 import { DefinitionLink, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { DbtRepository } from '../DbtRepository';
 import { ParseNode } from '../JinjaParser';
 import { ManifestSource } from '../manifest/ManifestJson';
 import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { getAbsolutePosition, getAbsoluteRange, getRelativePosition, positionInRange } from '../utils/Utils';
-import { DbtDefinitionProvider } from './DbtDefinitionProvider';
+import { DbtDefinitionProvider, DbtNodeDefinitionProvider } from './DbtDefinitionProvider';
 
-export class SourceDefinitionProvider {
+export class SourceDefinitionProvider implements DbtNodeDefinitionProvider {
   static readonly SOURCE_PATTERN = /source\s*\(\s*('[^)']*'|"[^)"]*")\s*,\s*('[^)']*'|"[^)"]*")\s*\)/;
   static readonly SOURCE_PARTS_PATTERN = /'[^']*'|"[^*]*"/g;
 
-  searchSourceDefinitions(document: TextDocument, position: Position, jinja: ParseNode, dbtSources: ManifestSource[]): DefinitionLink[] | undefined {
+  constructor(private dbtRepository: DbtRepository) {}
+
+  provideDefinitions(document: TextDocument, position: Position, jinja: ParseNode): DefinitionLink[] | undefined {
     const expressionLines = jinja.value.split('\n');
     const relativePosition = getRelativePosition(jinja.range, position);
     if (relativePosition === undefined) {
@@ -47,9 +50,9 @@ export class SourceDefinitionProvider {
       );
 
       if (positionInRange(position, sourceSelectionRange)) {
-        return this.getTableDefinitions(source.text.slice(1, -1), table.text.slice(1, -1), dbtSources, sourceSelectionRange);
+        return this.getTableDefinitions(source.text.slice(1, -1), table.text.slice(1, -1), this.dbtRepository.sources, sourceSelectionRange);
       } else if (positionInRange(position, tableSelectionRange)) {
-        return this.getTableDefinitions(source.text.slice(1, -1), table.text.slice(1, -1), dbtSources, tableSelectionRange);
+        return this.getTableDefinitions(source.text.slice(1, -1), table.text.slice(1, -1), this.dbtRepository.sources, tableSelectionRange);
       }
     }
 

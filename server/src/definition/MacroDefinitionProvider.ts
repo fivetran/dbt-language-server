@@ -2,24 +2,20 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { DefinitionLink, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { DbtRepository } from '../DbtRepository';
 import { ParseNode } from '../JinjaParser';
-import { ManifestMacro } from '../manifest/ManifestJson';
 import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { getAbsoluteRange, getPositionByIndex, getRelativePosition } from '../utils/Utils';
-import { DbtDefinitionProvider } from './DbtDefinitionProvider';
+import { DbtDefinitionProvider, DbtNodeDefinitionProvider } from './DbtDefinitionProvider';
 
-export class MacroDefinitionProvider {
+export class MacroDefinitionProvider implements DbtNodeDefinitionProvider {
   static readonly MACRO_PATTERN = /(\w+\.?\w+)\s*\(/;
   static readonly DBT_PACKAGE = 'dbt';
   static readonly END_MACRO_PATTERN = /{%-?\s*endmacro\s*-?%}/g;
 
-  searchMacroDefinitions(
-    document: TextDocument,
-    position: Position,
-    jinja: ParseNode,
-    packageName: string,
-    dbtMacros: ManifestMacro[],
-  ): DefinitionLink[] | undefined {
+  constructor(private dbtRepository: DbtRepository) {}
+
+  provideDefinitions(document: TextDocument, position: Position, jinja: ParseNode, packageName: string): DefinitionLink[] | undefined {
     const expressionLines = jinja.value.split('\n');
     const relativePosition = getRelativePosition(jinja.range, position);
     if (relativePosition === undefined) {
@@ -38,7 +34,7 @@ export class MacroDefinitionProvider {
       const macroSearchIds = macro.includes('.')
         ? [`macro.${macro}`]
         : [`macro.${MacroDefinitionProvider.DBT_PACKAGE}.${macro}`, `macro.${packageName}.${macro}`];
-      const foundMacro = dbtMacros.find(m => macroSearchIds.includes(m.uniqueId));
+      const foundMacro = this.dbtRepository.macros.find(m => macroSearchIds.includes(m.uniqueId));
       if (foundMacro) {
         const macroFilePath = path.join(foundMacro.rootPath, foundMacro.originalFilePath);
         const [definitionRange, selectionRange] = this.getMacroRange(foundMacro.name, macroFilePath);

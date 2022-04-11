@@ -6,41 +6,45 @@ import { MacroDefinitionProvider } from './MacroDefinitionProvider';
 import { ModelDefinitionProvider } from './ModelDefinitionProvider';
 import { SourceDefinitionProvider } from './SourceDefinitionProvider';
 
+export interface DbtNodeDefinitionProvider {
+  provideDefinitions(document: TextDocument, position: Position, jinja: ParseNode, packageName: string): DefinitionLink[] | undefined;
+}
+
 export class DbtDefinitionProvider {
   static readonly MAX_RANGE = Range.create(0, 0, integer.MAX_VALUE, integer.MAX_VALUE);
 
-  modelDefinitionProvider = new ModelDefinitionProvider();
-  macroDefinitionProvider = new MacroDefinitionProvider();
-  sourceDefinitionProvider = new SourceDefinitionProvider();
+  modelDefinitionProvider: ModelDefinitionProvider;
+  macroDefinitionProvider: MacroDefinitionProvider;
+  sourceDefinitionProvider: SourceDefinitionProvider;
 
-  constructor(private dbtRepository: DbtRepository) {}
+  constructor(private dbtRepository: DbtRepository) {
+    this.modelDefinitionProvider = new ModelDefinitionProvider(this.dbtRepository);
+    this.macroDefinitionProvider = new MacroDefinitionProvider(this.dbtRepository);
+    this.sourceDefinitionProvider = new SourceDefinitionProvider(this.dbtRepository);
+  }
 
-  onJinjaDefinition(
+  provideDefinitions(
     document: TextDocument,
     packageName: string | undefined,
     jinja: ParseNode,
     position: Position,
     jinjaType: JinjaType,
   ): DefinitionLink[] | undefined {
-    const refDefinitions =
+    const modelDefinitions =
       packageName && jinjaType === JinjaType.EXPRESSION
-        ? this.modelDefinitionProvider.searchRefDefinitions(document, position, jinja, packageName, this.dbtRepository.models)
+        ? this.modelDefinitionProvider.provideDefinitions(document, position, jinja, packageName)
         : undefined;
-    if (refDefinitions) {
-      return refDefinitions;
+    if (modelDefinitions) {
+      return modelDefinitions;
     }
 
-    const macroDefinitions = packageName
-      ? this.macroDefinitionProvider.searchMacroDefinitions(document, position, jinja, packageName, this.dbtRepository.macros)
-      : undefined;
+    const macroDefinitions = packageName ? this.macroDefinitionProvider.provideDefinitions(document, position, jinja, packageName) : undefined;
     if (macroDefinitions) {
       return macroDefinitions;
     }
 
     const sourceDefinitions =
-      jinjaType === JinjaType.EXPRESSION
-        ? this.sourceDefinitionProvider.searchSourceDefinitions(document, position, jinja, this.dbtRepository.sources)
-        : undefined;
+      jinjaType === JinjaType.EXPRESSION ? this.sourceDefinitionProvider.provideDefinitions(document, position, jinja) : undefined;
     if (sourceDefinitions) {
       return sourceDefinitions;
     }

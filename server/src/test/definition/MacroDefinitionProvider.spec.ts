@@ -1,8 +1,10 @@
 import { assertThat, hasSize, isEmpty, not } from 'hamjest';
+import { DbtRepository } from '../../DbtRepository';
 import { MacroDefinitionProvider } from '../../definition/MacroDefinitionProvider';
 
 describe('MacroDefinitionProvider', () => {
-  const PROVIDER = new MacroDefinitionProvider();
+  const DBT_REPOSITORY = new DbtRepository();
+  const PROVIDER = new MacroDefinitionProvider(DBT_REPOSITORY);
 
   it('getStartMacroMatch should return one match', () => {
     assertThat(PROVIDER.getStartMacroMatch('{% macro m(a, b) %}', 'm'), not(null));
