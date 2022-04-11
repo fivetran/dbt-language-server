@@ -18,7 +18,7 @@ describe('ModelCompletionProvider', () => {
     dbtRepository = new DbtRepository();
 
     dbtRepository.projectName = PROJECT_PACKAGE;
-    dbtRepository.models = [
+    const models = [
       {
         uniqueId: 'model_1_id',
         rootPath: '/models/model_1.sql',
@@ -56,7 +56,7 @@ describe('ModelCompletionProvider', () => {
         schema: 'schema',
       },
     ];
-    dbtRepository.groupManifestNodes();
+    dbtRepository.updateDbtNodes(models, [], []);
 
     modelCompletionProvider = new ModelCompletionProvider(dbtRepository);
   });

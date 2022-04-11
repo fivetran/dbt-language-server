@@ -43,17 +43,25 @@ export class DbtRepository {
     return this.packageToSources;
   }
 
-  groupManifestNodes(): void {
+  updateDbtNodes(models: ManifestModel[], macros: ManifestMacro[], sources: ManifestSource[]): void {
+    this.models = models;
+    this.macros = macros;
+    this.sources = sources;
+
     this.clearManifestNodes();
-    this.groupManifestModelNodes();
-    this.groupManifestMacroNodes();
-    this.groupManifestSourceNodes();
+    this.groupManifestNodes();
   }
 
   private clearManifestNodes(): void {
     this.packageToModels.clear();
     this.packageToMacros.clear();
     this.packageToSources.clear();
+  }
+
+  private groupManifestNodes(): void {
+    this.groupManifestModelNodes();
+    this.groupManifestMacroNodes();
+    this.groupManifestSourceNodes();
   }
 
   private groupManifestModelNodes(): void {

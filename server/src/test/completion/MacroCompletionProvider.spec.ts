@@ -13,7 +13,7 @@ describe('MacroCompletionProvider', () => {
     dbtRepository = new DbtRepository();
 
     dbtRepository.projectName = PROJECT_PACKAGE;
-    dbtRepository.macros = [
+    const macros = [
       {
         uniqueId: 'macro_1_id',
         rootPath: '/macros/macro_1.sql',
@@ -43,7 +43,7 @@ describe('MacroCompletionProvider', () => {
         packageName: INSTALLED_PACKAGE,
       },
     ];
-    dbtRepository.groupManifestNodes();
+    dbtRepository.updateDbtNodes([], macros, []);
 
     macroCompletionProvider = new MacroCompletionProvider(dbtRepository);
   });

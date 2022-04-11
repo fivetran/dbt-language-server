@@ -13,7 +13,7 @@ describe('SourceCompletionProvider', () => {
     dbtRepository = new DbtRepository();
 
     dbtRepository.projectName = PROJECT_PACKAGE;
-    dbtRepository.sources = [
+    const sources = [
       {
         uniqueId: 'source_1_1_id',
         rootPath: '/sources/source_1.sql',
@@ -51,7 +51,7 @@ describe('SourceCompletionProvider', () => {
         columns: [],
       },
     ];
-    dbtRepository.groupManifestNodes();
+    dbtRepository.updateDbtNodes([], [], sources);
 
     sourceCompletionProvider = new SourceCompletionProvider(dbtRepository);
   });

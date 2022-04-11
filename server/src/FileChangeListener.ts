@@ -39,11 +39,8 @@ export class FileChangeListener {
   updateManifestNodes(): void {
     try {
       const { models, macros, sources } = this.manifestParser.parse(this.yamlParser.findTargetPath());
-      this.dbtRepository.models = models;
-      this.dbtRepository.macros = macros;
-      this.dbtRepository.sources = sources;
+      this.dbtRepository.updateDbtNodes(models, macros, sources);
       this.dbtRepository.manifestExists = true;
-      this.dbtRepository.groupManifestNodes();
     } catch (e) {
       this.dbtRepository.manifestExists = false;
       console.log(`Failed to read ${ManifestParser.MANIFEST_FILE_NAME}`, e);
