@@ -27,9 +27,9 @@ export class DbtRepository {
   macros: ManifestMacro[] = [];
   sources: ManifestSource[] = [];
 
-  private packageToModels: Map<string, Set<ManifestModel>> = new Map<string, Set<ManifestModel>>();
-  private packageToMacros: Map<string, Set<ManifestMacro>> = new Map<string, Set<ManifestMacro>>();
-  private packageToSources: Map<string, Map<string, Set<ManifestSource>>> = new Map<string, Map<string, Set<ManifestSource>>>();
+  private packageToModels = new Map<string, Set<ManifestModel>>();
+  private packageToMacros = new Map<string, Set<ManifestMacro>>();
+  private packageToSources = new Map<string, Map<string, Set<ManifestSource>>>();
 
   get packageToModelsMap(): Map<string, Set<ManifestModel>> {
     return this.packageToModels;
