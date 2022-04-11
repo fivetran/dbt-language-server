@@ -41,6 +41,6 @@ export class DbtCompletionProvider {
       return macroCompletions;
     }
 
-    return Promise.resolve(undefined);
+    return undefined;
   }
 }
