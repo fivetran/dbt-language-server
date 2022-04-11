@@ -54,11 +54,9 @@ export class DbtRepository {
       let packageModels = this.packageToModels.get(model.packageName);
       if (!packageModels) {
         packageModels = new Set();
-        packageModels.add(model);
         this.packageToModels.set(model.packageName, packageModels);
-      } else {
-        packageModels.add(model);
       }
+      packageModels.add(model);
     }
   }
 
@@ -67,11 +65,9 @@ export class DbtRepository {
       let packageMacros = this.packageToMacros.get(macro.packageName);
       if (!packageMacros) {
         packageMacros = new Set();
-        packageMacros.add(macro);
         this.packageToMacros.set(macro.packageName, packageMacros);
-      } else {
-        packageMacros.add(macro);
       }
+      packageMacros.add(macro);
     }
   }
 
@@ -86,11 +82,9 @@ export class DbtRepository {
       let sourceTables = packageSources.get(source.sourceName);
       if (!sourceTables) {
         sourceTables = new Set();
-        sourceTables.add(source);
         packageSources.set(source.sourceName, sourceTables);
-      } else {
-        sourceTables.add(source);
       }
+      sourceTables.add(source);
     }
   }
 }
