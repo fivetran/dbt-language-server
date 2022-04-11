@@ -7,7 +7,7 @@ import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { getAbsolutePosition, getAbsoluteRange, getRelativePosition, positionInRange } from '../utils/Utils';
 import { DbtDefinitionProvider } from './DbtDefinitionProvider';
 
-export class SourceDefinitionFinder {
+export class SourceDefinitionProvider {
   static readonly SOURCE_PATTERN = /source\s*\(\s*('[^)']*'|"[^)"]*")\s*,\s*('[^)']*'|"[^)"]*")\s*\)/;
   static readonly SOURCE_PARTS_PATTERN = /'[^']*'|"[^*]*"/g;
 
@@ -17,13 +17,13 @@ export class SourceDefinitionFinder {
     if (relativePosition === undefined) {
       return undefined;
     }
-    const wordRange = getWordRangeAtPosition(relativePosition, SourceDefinitionFinder.SOURCE_PATTERN, expressionLines);
+    const wordRange = getWordRangeAtPosition(relativePosition, SourceDefinitionProvider.SOURCE_PATTERN, expressionLines);
 
     if (wordRange) {
       const word = document.getText(getAbsoluteRange(jinja.range.start, wordRange));
       const matches = [];
       let match: RegExpExecArray | null;
-      while ((match = SourceDefinitionFinder.SOURCE_PARTS_PATTERN.exec(word))) {
+      while ((match = SourceDefinitionProvider.SOURCE_PARTS_PATTERN.exec(word))) {
         matches.push({
           text: match[0],
           index: match.index,

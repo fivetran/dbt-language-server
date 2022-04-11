@@ -7,7 +7,7 @@ import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { getAbsolutePosition, getAbsoluteRange, getRelativePosition, positionInRange } from '../utils/Utils';
 import { DbtDefinitionProvider } from './DbtDefinitionProvider';
 
-export class RefDefinitionFinder {
+export class ModelDefinitionProvider {
   static readonly REF_PATTERN = /ref\s*\(\s*('[^)']*'|"[^)"]*")(\s*,\s*('[^)']*'|"[^)"]*"))?\s*\)/;
   static readonly REF_PARTS_PATTERN = /'[^']*'|"[^*]*"/g;
 
@@ -23,13 +23,13 @@ export class RefDefinitionFinder {
     if (relativePosition === undefined) {
       return undefined;
     }
-    const wordRange = getWordRangeAtPosition(relativePosition, RefDefinitionFinder.REF_PATTERN, expressionLines);
+    const wordRange = getWordRangeAtPosition(relativePosition, ModelDefinitionProvider.REF_PATTERN, expressionLines);
 
     if (wordRange) {
       const word = document.getText(getAbsoluteRange(jinja.range.start, wordRange));
       const matches = [];
       let match: RegExpExecArray | null;
-      while ((match = RefDefinitionFinder.REF_PARTS_PATTERN.exec(word))) {
+      while ((match = ModelDefinitionProvider.REF_PARTS_PATTERN.exec(word))) {
         matches.push({
           text: match[0],
           index: match.index,

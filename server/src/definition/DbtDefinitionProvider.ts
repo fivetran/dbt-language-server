@@ -2,16 +2,16 @@ import { DefinitionLink, integer, Position, Range } from 'vscode-languageserver'
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtRepository } from '../DbtRepository';
 import { JinjaType, ParseNode } from '../JinjaParser';
-import { MacroDefinitionFinder } from './MacroDefinitionFinder';
-import { RefDefinitionFinder } from './RefDefinitionFinder';
-import { SourceDefinitionFinder } from './SourceDefinitionFinder';
+import { MacroDefinitionProvider } from './MacroDefinitionProvider';
+import { ModelDefinitionProvider } from './ModelDefinitionProvider';
+import { SourceDefinitionProvider } from './SourceDefinitionProvider';
 
 export class DbtDefinitionProvider {
   static readonly MAX_RANGE = Range.create(0, 0, integer.MAX_VALUE, integer.MAX_VALUE);
 
-  refDefinitionFinder = new RefDefinitionFinder();
-  macroDefinitionFinder = new MacroDefinitionFinder();
-  sourceDefinitionFinder = new SourceDefinitionFinder();
+  modelDefinitionProvider = new ModelDefinitionProvider();
+  macroDefinitionProvider = new MacroDefinitionProvider();
+  sourceDefinitionProvider = new SourceDefinitionProvider();
 
   constructor(private dbtRepository: DbtRepository) {}
 
@@ -24,14 +24,14 @@ export class DbtDefinitionProvider {
   ): DefinitionLink[] | undefined {
     const refDefinitions =
       packageName && jinjaType === JinjaType.EXPRESSION
-        ? this.refDefinitionFinder.searchRefDefinitions(document, position, jinja, packageName, this.dbtRepository.models)
+        ? this.modelDefinitionProvider.searchRefDefinitions(document, position, jinja, packageName, this.dbtRepository.models)
         : undefined;
     if (refDefinitions) {
       return refDefinitions;
     }
 
     const macroDefinitions = packageName
-      ? this.macroDefinitionFinder.searchMacroDefinitions(document, position, jinja, packageName, this.dbtRepository.macros)
+      ? this.macroDefinitionProvider.searchMacroDefinitions(document, position, jinja, packageName, this.dbtRepository.macros)
       : undefined;
     if (macroDefinitions) {
       return macroDefinitions;
@@ -39,7 +39,7 @@ export class DbtDefinitionProvider {
 
     const sourceDefinitions =
       jinjaType === JinjaType.EXPRESSION
-        ? this.sourceDefinitionFinder.searchSourceDefinitions(document, position, jinja, this.dbtRepository.sources)
+        ? this.sourceDefinitionProvider.searchSourceDefinitions(document, position, jinja, this.dbtRepository.sources)
         : undefined;
     if (sourceDefinitions) {
       return sourceDefinitions;

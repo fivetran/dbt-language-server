@@ -8,7 +8,7 @@ import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { getAbsoluteRange, getPositionByIndex, getRelativePosition } from '../utils/Utils';
 import { DbtDefinitionProvider } from './DbtDefinitionProvider';
 
-export class MacroDefinitionFinder {
+export class MacroDefinitionProvider {
   static readonly MACRO_PATTERN = /(\w+\.?\w+)\s*\(/;
   static readonly DBT_PACKAGE = 'dbt';
   static readonly END_MACRO_PATTERN = /{%-?\s*endmacro\s*-?%}/g;
@@ -25,11 +25,11 @@ export class MacroDefinitionFinder {
     if (relativePosition === undefined) {
       return undefined;
     }
-    const wordRange = getWordRangeAtPosition(relativePosition, MacroDefinitionFinder.MACRO_PATTERN, expressionLines);
+    const wordRange = getWordRangeAtPosition(relativePosition, MacroDefinitionProvider.MACRO_PATTERN, expressionLines);
 
     if (wordRange) {
       const word = document.getText(getAbsoluteRange(jinja.range.start, wordRange));
-      const macroMatch = word.match(MacroDefinitionFinder.MACRO_PATTERN);
+      const macroMatch = word.match(MacroDefinitionProvider.MACRO_PATTERN);
       if (macroMatch === null || macroMatch.length < 1) {
         return undefined;
       }
@@ -37,7 +37,7 @@ export class MacroDefinitionFinder {
       const [, macro] = macroMatch;
       const macroSearchIds = macro.includes('.')
         ? [`macro.${macro}`]
-        : [`macro.${MacroDefinitionFinder.DBT_PACKAGE}.${macro}`, `macro.${packageName}.${macro}`];
+        : [`macro.${MacroDefinitionProvider.DBT_PACKAGE}.${macro}`, `macro.${packageName}.${macro}`];
       const foundMacro = dbtMacros.find(m => macroSearchIds.includes(m.uniqueId));
       if (foundMacro) {
         const macroFilePath = path.join(foundMacro.rootPath, foundMacro.originalFilePath);
@@ -89,7 +89,7 @@ export class MacroDefinitionFinder {
   getEndMacroMatches(text: string): RegExpExecArray[] {
     const endMacroMatches = [];
     let match: RegExpExecArray | null;
-    while ((match = MacroDefinitionFinder.END_MACRO_PATTERN.exec(text))) {
+    while ((match = MacroDefinitionProvider.END_MACRO_PATTERN.exec(text))) {
       endMacroMatches.push(match);
     }
     return endMacroMatches;
