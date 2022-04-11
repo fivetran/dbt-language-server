@@ -4,7 +4,7 @@ import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
 import { DbtRepository } from '../DbtRepository';
 import { DbtTextDocument } from '../DbtTextDocument';
-import { JinjaDefinitionProvider } from '../definition/JinjaDefinitionProvider';
+import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
 import { JinjaParser } from '../JinjaParser';
 import { LspServer } from '../LspServer';
 import { ModelCompiler } from '../ModelCompiler';
@@ -53,7 +53,7 @@ describe('LspServer', () => {
       mock(ProgressReporter),
       mock(SqlCompletionProvider),
       mock(DbtCompletionProvider),
-      mock(JinjaDefinitionProvider),
+      mock(DbtDefinitionProvider),
       instance(mockModelCompiler),
       mock(JinjaParser),
       new Emitter<void>(),

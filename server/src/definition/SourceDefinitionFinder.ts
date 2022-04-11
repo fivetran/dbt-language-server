@@ -5,7 +5,7 @@ import { ParseNode } from '../JinjaParser';
 import { ManifestSource } from '../manifest/ManifestJson';
 import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { getAbsolutePosition, getAbsoluteRange, getRelativePosition, positionInRange } from '../utils/Utils';
-import { JinjaDefinitionProvider } from './JinjaDefinitionProvider';
+import { DbtDefinitionProvider } from './DbtDefinitionProvider';
 
 export class SourceDefinitionFinder {
   static readonly SOURCE_PATTERN = /source\s*\(\s*('[^)']*'|"[^)"]*")\s*,\s*('[^)']*'|"[^)"]*")\s*\)/;
@@ -62,8 +62,8 @@ export class SourceDefinitionFinder {
       return [
         LocationLink.create(
           path.join(foundSource.rootPath, foundSource.originalFilePath),
-          JinjaDefinitionProvider.MAX_RANGE,
-          JinjaDefinitionProvider.MAX_RANGE,
+          DbtDefinitionProvider.MAX_RANGE,
+          DbtDefinitionProvider.MAX_RANGE,
           tableSelectionRange,
         ),
       ];

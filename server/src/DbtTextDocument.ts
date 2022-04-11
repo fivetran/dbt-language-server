@@ -25,7 +25,7 @@ import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
 import { DbtRepository } from './DbtRepository';
 import { DbtRpcServer } from './DbtRpcServer';
-import { JinjaDefinitionProvider } from './definition/JinjaDefinitionProvider';
+import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
 import { DiagnosticGenerator } from './DiagnosticGenerator';
 import { Diff } from './Diff';
 import { HoverProvider } from './HoverProvider';
@@ -62,7 +62,7 @@ export class DbtTextDocument {
     private progressReporter: ProgressReporter,
     private sqlCompletionProvider: SqlCompletionProvider,
     private dbtCompletionProvider: DbtCompletionProvider,
-    private jinjaDefinitionProvider: JinjaDefinitionProvider,
+    private dbtDefinitionProvider: DbtDefinitionProvider,
     private modelCompiler: ModelCompiler,
     private jinjaParser: JinjaParser,
     private onGlobalDbtErrorFixedEmitter: Emitter<void>,
@@ -363,7 +363,7 @@ export class DbtTextDocument {
       if (positionInRange(definitionParams.position, jinja.range)) {
         const jinjaType = this.jinjaParser.getJinjaType(jinja.value);
         const currentPackage = DbtTextDocument.findCurrentPackage(this.rawDocument.uri, this.workspaceFolder, this.dbtRepository);
-        return this.jinjaDefinitionProvider.onJinjaDefinition(this.rawDocument, currentPackage, jinja, definitionParams.position, jinjaType);
+        return this.dbtDefinitionProvider.onJinjaDefinition(this.rawDocument, currentPackage, jinja, definitionParams.position, jinjaType);
       }
     }
     return undefined;

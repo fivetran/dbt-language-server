@@ -34,7 +34,7 @@ import { DbtRpcServer } from './DbtRpcServer';
 import { DbtTextDocument } from './DbtTextDocument';
 import { getStringVersion } from './DbtVersion';
 import { Command } from './dbt_commands/Command';
-import { JinjaDefinitionProvider } from './definition/JinjaDefinitionProvider';
+import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
 import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
 import { JinjaParser } from './JinjaParser';
@@ -63,7 +63,7 @@ export class LspServer {
   fileChangeListener: FileChangeListener;
   completionProvider: SqlCompletionProvider;
   dbtCompletionProvider: DbtCompletionProvider;
-  jinjaDefinitionProvider: JinjaDefinitionProvider;
+  dbtDefinitionProvider: DbtDefinitionProvider;
   yamlParser = new YamlParser();
   dbtProfileCreator = new DbtProfileCreator(this.yamlParser);
   manifestParser = new ManifestParser();
@@ -83,7 +83,7 @@ export class LspServer {
     this.fileChangeListener = new FileChangeListener(this.yamlParser, this.manifestParser, this.dbtRepository);
     this.completionProvider = new SqlCompletionProvider();
     this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);
-    this.jinjaDefinitionProvider = new JinjaDefinitionProvider(this.dbtRepository);
+    this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
     this.fileChangeListener.onDbtProjectYmlChanged(this.onDbtProjectYmlChanged.bind(this));
   }
 
@@ -295,7 +295,7 @@ export class LspServer {
         this.progressReporter,
         this.completionProvider,
         this.dbtCompletionProvider,
-        this.jinjaDefinitionProvider,
+        this.dbtDefinitionProvider,
         new ModelCompiler(this.dbtRpcClient),
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,

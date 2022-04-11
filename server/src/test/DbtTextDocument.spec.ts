@@ -5,7 +5,7 @@ import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
 import { DbtRepository } from '../DbtRepository';
 import { DbtRpcServer } from '../DbtRpcServer';
 import { DbtTextDocument } from '../DbtTextDocument';
-import { JinjaDefinitionProvider } from '../definition/JinjaDefinitionProvider';
+import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
 import { JinjaParser } from '../JinjaParser';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProgressReporter } from '../ProgressReporter';
@@ -41,7 +41,7 @@ describe('DbtTextDocument', () => {
       mock(ProgressReporter),
       mock(SqlCompletionProvider),
       mock(DbtCompletionProvider),
-      mock(JinjaDefinitionProvider),
+      mock(DbtDefinitionProvider),
       instance(mockModelCompiler),
       instance(mockJinjaParser),
       onGlobalDbtErrorFixedEmitter,

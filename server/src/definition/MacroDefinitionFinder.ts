@@ -6,7 +6,7 @@ import { ParseNode } from '../JinjaParser';
 import { ManifestMacro } from '../manifest/ManifestJson';
 import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { getAbsoluteRange, getPositionByIndex, getRelativePosition } from '../utils/Utils';
-import { JinjaDefinitionProvider } from './JinjaDefinitionProvider';
+import { DbtDefinitionProvider } from './DbtDefinitionProvider';
 
 export class MacroDefinitionFinder {
   static readonly MACRO_PATTERN = /(\w+\.?\w+)\s*\(/;
@@ -78,7 +78,7 @@ export class MacroDefinitionFinder {
       return [definitionRange, selectionRange];
     }
 
-    return [JinjaDefinitionProvider.MAX_RANGE, JinjaDefinitionProvider.MAX_RANGE];
+    return [DbtDefinitionProvider.MAX_RANGE, DbtDefinitionProvider.MAX_RANGE];
   }
 
   getStartMacroMatch(text: string, macro: string): RegExpExecArray | null {

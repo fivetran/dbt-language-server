@@ -6,7 +6,7 @@ import { MacroDefinitionFinder } from './MacroDefinitionFinder';
 import { RefDefinitionFinder } from './RefDefinitionFinder';
 import { SourceDefinitionFinder } from './SourceDefinitionFinder';
 
-export class JinjaDefinitionProvider {
+export class DbtDefinitionProvider {
   static readonly MAX_RANGE = Range.create(0, 0, integer.MAX_VALUE, integer.MAX_VALUE);
 
   refDefinitionFinder = new RefDefinitionFinder();
