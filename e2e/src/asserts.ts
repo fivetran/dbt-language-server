@@ -71,8 +71,6 @@ export async function assertCompletions(
     const actualItem = actualCompletionList.items[i];
     assertThat(actualItem.label, expectedItem.label);
     assertThat(actualItem.kind, expectedItem.kind);
-    if (expectedItem.insertText) {
-      assertThat(actualItem.insertText, expectedItem.insertText);
-    }
+    assertThat(actualItem.insertText, expectedItem.insertText ?? expectedItem.label);
   });
 }
