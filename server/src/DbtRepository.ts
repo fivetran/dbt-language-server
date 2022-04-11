@@ -44,9 +44,16 @@ export class DbtRepository {
   }
 
   groupManifestNodes(): void {
+    this.clearManifestNodes();
     this.groupManifestModelNodes();
     this.groupManifestMacroNodes();
     this.groupManifestSourceNodes();
+  }
+
+  private clearManifestNodes(): void {
+    this.packageToModels.clear();
+    this.packageToMacros.clear();
+    this.packageToSources.clear();
   }
 
   private groupManifestModelNodes(): void {
