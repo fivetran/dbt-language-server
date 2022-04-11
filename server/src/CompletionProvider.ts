@@ -239,8 +239,6 @@ export class CompletionProvider {
     'zone',
   ];
 
-  static readonly DBT_KEYWORDS = ['ref'];
-
   async onSqlCompletion(
     text: string,
     completionParams: CompletionParams,
