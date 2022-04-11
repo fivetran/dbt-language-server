@@ -4,8 +4,6 @@ import { HelpProviderWords } from './HelpProviderWords';
 import { ActiveTableInfo, CompletionInfo } from './ZetaSqlAst';
 
 export class SqlCompletionProvider {
-  static readonly ENDS_WITH_REF = /ref\([^)]*$/;
-  static readonly ENDS_WITH_QUOTE = /['|"]$/;
   static readonly BQ_KEYWORDS = [
     'abort',
     'access',
