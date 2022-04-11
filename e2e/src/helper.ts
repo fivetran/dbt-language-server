@@ -1,5 +1,4 @@
 import { spawnSync } from 'child_process';
-import { assertThat, greaterThanOrEqualTo } from 'hamjest';
 import * as path from 'path';
 import {
   commands,
@@ -205,20 +204,6 @@ function runCliCommand(args: string[]): void {
   spawnSync(cliPath, args, {
     encoding: 'utf-8',
     stdio: 'inherit',
-  });
-}
-
-export async function testCompletion(docUri: Uri, position: Position, expectedCompletionList: CompletionList, triggerChar?: string): Promise<void> {
-  const actualCompletionList = await triggerCompletion(docUri, position, triggerChar);
-
-  assertThat(actualCompletionList.items.length, greaterThanOrEqualTo(expectedCompletionList.items.length));
-  expectedCompletionList.items.forEach((expectedItem, i) => {
-    const actualItem = actualCompletionList.items[i];
-    assertThat(actualItem.label, expectedItem.label);
-    assertThat(actualItem.kind, expectedItem.kind);
-    if (expectedItem.insertText) {
-      assertThat(actualItem.insertText, expectedItem.insertText);
-    }
   });
 }
 

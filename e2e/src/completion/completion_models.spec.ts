@@ -1,7 +1,8 @@
 import { assertThat, contains, not } from 'hamjest';
 import * as vscode from 'vscode';
 import { CompletionItem, CompletionItemKind } from 'vscode';
-import { activateAndWait, getCustomDocUri, getTextInQuotesIfNeeded, setTestContent, testCompletion, triggerCompletion } from '../helper';
+import { assertCompletions } from '../asserts';
+import { activateAndWait, getCustomDocUri, getTextInQuotesIfNeeded, setTestContent, triggerCompletion } from '../helper';
 
 suite('Should suggest model completions', () => {
   const PROJECT_FILE_NAME = 'completion-jinja/models/completion_jinja.sql';
@@ -10,21 +11,21 @@ suite('Should suggest model completions', () => {
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
     await activateAndWait(docUri);
     await setTestContent('select * from {{ref(');
-    await testCompletion(docUri, new vscode.Position(0, 20), getCompletionList(true), '(');
+    await assertCompletions(docUri, new vscode.Position(0, 20), getCompletionList(true), '(');
   });
 
   test('Should suggest models for ref function', async () => {
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
     await activateAndWait(docUri);
     await setTestContent('select * from {{ref(');
-    await testCompletion(docUri, new vscode.Position(0, 20), getCompletionList(true));
+    await assertCompletions(docUri, new vscode.Position(0, 20), getCompletionList(true));
   });
 
   test("Should suggest models for ref function by pressing ' ", async () => {
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
     await activateAndWait(docUri);
     await setTestContent(`select * from {{ref('`);
-    await testCompletion(docUri, new vscode.Position(0, 21), getCompletionList(false), "'");
+    await assertCompletions(docUri, new vscode.Position(0, 21), getCompletionList(false), "'");
   });
 
   test('Should not suggest models outside jinja', async () => {

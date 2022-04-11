@@ -1,6 +1,7 @@
 import { assertThat, defined } from 'hamjest';
 import { CompletionItem, CompletionItemKind, Position } from 'vscode';
-import { activateAndWait, getCustomDocUri, testCompletion, triggerCompletion } from '../helper';
+import { assertCompletions } from '../asserts';
+import { activateAndWait, getCustomDocUri, triggerCompletion } from '../helper';
 
 suite('Should suggest macros completions', () => {
   const PROJECT_FILE_NAME = 'postgres/models/active_users_orders_count.sql';
@@ -24,7 +25,7 @@ suite('Should suggest macros completions', () => {
   test('Should suggest macros from package', async () => {
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
     await activateAndWait(docUri);
-    await testCompletion(docUri, new Position(0, 89), getMacrosCompletionList());
+    await assertCompletions(docUri, new Position(0, 89), getMacrosCompletionList());
   });
 
   function getMacrosCompletionList(): { items: CompletionItem[] } {

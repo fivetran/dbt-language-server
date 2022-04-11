@@ -1,5 +1,6 @@
 import { CompletionItem, CompletionItemKind, Position } from 'vscode';
-import { activateAndWait, getCustomDocUri, getTextInQuotesIfNeeded, testCompletion } from '../helper';
+import { assertCompletions } from '../asserts';
+import { activateAndWait, getCustomDocUri, getTextInQuotesIfNeeded } from '../helper';
 
 suite('Should suggest sources completions', () => {
   const PROJECT_FILE_NAME = 'postgres/models/active_users.sql';
@@ -7,13 +8,13 @@ suite('Should suggest sources completions', () => {
   test('Should suggest sources', async () => {
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
     await activateAndWait(docUri);
-    await testCompletion(docUri, new Position(1, 16), getSourcesCompletionList(getSourcesCompletions, false));
+    await assertCompletions(docUri, new Position(1, 16), getSourcesCompletionList(getSourcesCompletions, false));
   });
 
   test('Should suggest source tables', async () => {
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
     await activateAndWait(docUri);
-    await testCompletion(docUri, new Position(1, 32), getSourcesCompletionList(getTablesCompletions, false));
+    await assertCompletions(docUri, new Position(1, 32), getSourcesCompletionList(getTablesCompletions, false));
   });
 
   function getSourcesCompletionList(getCompletions: (withQuotes: boolean) => [string, string][], withQuotes: boolean): { items: CompletionItem[] } {

@@ -1,7 +1,7 @@
 import assert = require('assert');
-import { assertThat, hasSize } from 'hamjest';
-import { DefinitionLink, Diagnostic, DiagnosticRelatedInformation, languages, Location, Position, Range, Uri } from 'vscode';
-import { PREVIEW_URI, sleep, triggerDefinition } from './helper';
+import { assertThat, greaterThanOrEqualTo, hasSize } from 'hamjest';
+import { CompletionList, DefinitionLink, Diagnostic, DiagnosticRelatedInformation, languages, Location, Position, Range, Uri } from 'vscode';
+import { PREVIEW_URI, sleep, triggerCompletion, triggerDefinition } from './helper';
 
 export async function assertDiagnostics(uri: Uri, diagnostics: Diagnostic[]): Promise<void> {
   await sleep(100);
@@ -56,4 +56,23 @@ export async function assertDefinitions(docUri: Uri, position: Position, expecte
     assertThat(definitions[i].targetRange, expectedDefinitions[i].targetRange);
     assertThat(definitions[i].targetSelectionRange, expectedDefinitions[i].targetSelectionRange);
   }
+}
+
+export async function assertCompletions(
+  docUri: Uri,
+  position: Position,
+  expectedCompletionList: CompletionList,
+  triggerChar?: string,
+): Promise<void> {
+  const actualCompletionList = await triggerCompletion(docUri, position, triggerChar);
+
+  assertThat(actualCompletionList.items.length, greaterThanOrEqualTo(expectedCompletionList.items.length));
+  expectedCompletionList.items.forEach((expectedItem, i) => {
+    const actualItem = actualCompletionList.items[i];
+    assertThat(actualItem.label, expectedItem.label);
+    assertThat(actualItem.kind, expectedItem.kind);
+    if (expectedItem.insertText) {
+      assertThat(actualItem.insertText, expectedItem.insertText);
+    }
+  });
 }
