@@ -38,11 +38,11 @@ Also, it provides additional features like [Highlighting errors](#highlighting-e
 
 ### Go to definition
 
-##### Macros
+#### Macros
 ![Definition Macro](images/DefinitionMacro.png)
-##### Models
+#### Models
 ![Definition Ref](images/DefinitionRef.png)
-##### Sources
+#### Sources
 ![Definition Source](images/DefinitionSource.png)
 
 ### Highlighting errors
@@ -59,11 +59,11 @@ Also, it provides additional features like [Highlighting errors](#highlighting-e
 
 ### Completion for dbt
 
-##### Macros
+#### Macros
 ![Completion for macros](images/CompletionForMacros.png)
-##### Models
+#### Models
 ![Completion for models](images/CompletionForModels.png)
-##### Sources
+#### Sources
 ![Completion for sources](images/CompletionForSources.png)
 
 ### dbt compile preview
