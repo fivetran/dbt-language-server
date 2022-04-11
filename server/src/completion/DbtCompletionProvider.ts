@@ -20,7 +20,7 @@ export class DbtCompletionProvider {
     this.sourceCompletionProvider = new SourceCompletionProvider(this.dbtRepository);
   }
 
-  async provideCompletions(jinjaType: JinjaPartType | undefined, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
+  async provideCompletions(jinjaType: JinjaPartType, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
     const modelCompletions =
       jinjaType === JinjaPartType.EXPRESSION_START ? await this.modelCompletionProvider.provideCompletions(jinjaBeforePositionText) : undefined;
     if (modelCompletions) {

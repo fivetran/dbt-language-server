@@ -323,7 +323,7 @@ export class DbtTextDocument {
 
     if (closestJinjaPart) {
       const jinjaPartType = this.jinjaParser.getJinjaPartType(closestJinjaPart.value);
-      if (jinjaPartType !== undefined && [JinjaPartType.EXPRESSION_START, JinjaPartType.BLOCK_START].includes(jinjaPartType)) {
+      if ([JinjaPartType.EXPRESSION_START, JinjaPartType.BLOCK_START].includes(jinjaPartType)) {
         const jinjaBeforePositionText = this.rawDocument.getText(Range.create(closestJinjaPart.range.start, completionParams.position));
         return this.dbtCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText);
       }

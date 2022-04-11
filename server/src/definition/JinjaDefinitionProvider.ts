@@ -20,7 +20,7 @@ export class JinjaDefinitionProvider {
     packageName: string | undefined,
     jinja: ParseNode,
     position: Position,
-    jinjaType: JinjaType | undefined,
+    jinjaType: JinjaType,
   ): DefinitionLink[] | undefined {
     const refDefinitions =
       packageName && jinjaType === JinjaType.EXPRESSION

@@ -3,12 +3,14 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { comparePositions, rangesOverlap } from './utils/Utils';
 
 export enum JinjaType {
+  UNKNOWN,
   EXPRESSION,
   BLOCK,
   COMMENT,
 }
 
 export enum JinjaPartType {
+  UNKNOWN,
   EXPRESSION_START,
   EXPRESSION_END,
   BLOCK_START,
@@ -45,7 +47,7 @@ export class JinjaParser {
 
   static readonly JINJA_PART_PATTERN = /{\s*{|{\s*%|{\s*#|}\s*}|%\s*}|#\s*}/g;
 
-  getJinjaType(jinja: string): JinjaType | undefined {
+  getJinjaType(jinja: string): JinjaType {
     if (/^{\s*{/.test(jinja)) {
       return JinjaType.EXPRESSION;
     }
@@ -55,10 +57,10 @@ export class JinjaParser {
     if (/^{\s*#/.test(jinja)) {
       return JinjaType.COMMENT;
     }
-    return undefined;
+    return JinjaType.UNKNOWN;
   }
 
-  getJinjaPartType(text: string): JinjaPartType | undefined {
+  getJinjaPartType(text: string): JinjaPartType {
     if (/{\s*{/.test(text)) {
       return JinjaPartType.EXPRESSION_START;
     }
@@ -79,7 +81,7 @@ export class JinjaParser {
       return JinjaPartType.COMMENT_END;
     }
 
-    return undefined;
+    return JinjaPartType.UNKNOWN;
   }
   /**
    * Finds all jinja statements ranges and ranges of jinja blocks: 'docs', 'if', 'for', 'macro'.
