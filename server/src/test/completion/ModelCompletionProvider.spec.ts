@@ -1,5 +1,6 @@
 import { ModelCompletionProvider } from '../../completion/ModelCompletionProvider';
 import { DbtRepository } from '../../DbtRepository';
+import { JinjaPartType } from '../../JinjaParser';
 import { shouldNotProvideCompletions, shouldProvideCompletions } from '../helper';
 
 describe('ModelCompletionProvider', () => {
@@ -62,14 +63,14 @@ describe('ModelCompletionProvider', () => {
   });
 
   it('Should provide completions only from specified package', async () => {
-    await shouldProvideCompletions(modelCompletionProvider, `select * from {{ ref('${INSTALLED_PACKAGE}', '`, [
+    await shouldProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ ref('${INSTALLED_PACKAGE}', '`, [
       { label: 'installed_package_model_1', insertText: 'installed_package_model_1' },
       { label: 'installed_package_model_2', insertText: 'installed_package_model_2' },
     ]);
   });
 
   it('Should provide completions from all packages after pressing (', async () => {
-    await shouldProvideCompletions(modelCompletionProvider, `select * from {{ ref(`, [
+    await shouldProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ ref(`, [
       { label: labelModel1, insertText: `'model_1'` },
       { label: labelModel2, insertText: `'model_2'` },
       { label: installedPackageModel1, insertText: `'installed_package', 'installed_package_model_1'` },
@@ -78,7 +79,7 @@ describe('ModelCompletionProvider', () => {
   });
 
   it(`Should provide completions from all packages after pressing '`, async () => {
-    await shouldProvideCompletions(modelCompletionProvider, `select * from {{ ref('`, [
+    await shouldProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ ref('`, [
       { label: labelModel1, insertText: 'model_1' },
       { label: labelModel2, insertText: 'model_2' },
       { label: installedPackageModel1, insertText: `installed_package', 'installed_package_model_1` },
@@ -87,7 +88,7 @@ describe('ModelCompletionProvider', () => {
   });
 
   it(`Should provide completions from all packages after pressing "`, async () => {
-    await shouldProvideCompletions(modelCompletionProvider, `select * from {{ ref("`, [
+    await shouldProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ ref("`, [
       { label: labelModel1, insertText: 'model_1' },
       { label: labelModel2, insertText: 'model_2' },
       { label: installedPackageModel1, insertText: `installed_package", "installed_package_model_1` },
@@ -96,14 +97,14 @@ describe('ModelCompletionProvider', () => {
   });
 
   it(`Shouldn't provide completions for unknown package`, async () => {
-    await shouldNotProvideCompletions(modelCompletionProvider, `select * from {{ ref('unknown_package', '`);
+    await shouldNotProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ ref('unknown_package', '`);
   });
 
   it(`Shouldn't provide completions for empty strings`, async () => {
-    await shouldNotProvideCompletions(modelCompletionProvider, 'select {{ ');
+    await shouldNotProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, 'select {{ ');
   });
 
   it(`Shouldn't provide completions after ref`, async () => {
-    await shouldNotProvideCompletions(modelCompletionProvider, 'select {{ ref');
+    await shouldNotProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, 'select {{ ref');
   });
 });

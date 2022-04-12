@@ -6,6 +6,7 @@ import { CompletionItem } from 'vscode-languageserver';
 import { DbtNodeCompletionProvider } from '../completion/DbtCompletionProvider';
 import { DbtProfile } from '../DbtProfile';
 import { DbtProfileCreator } from '../DbtProfileCreator';
+import { JinjaPartType } from '../JinjaParser';
 import { YamlParser } from '../YamlParser';
 
 const PROFILES_PATH = path.resolve(__dirname, '../../src/test/profiles');
@@ -61,17 +62,22 @@ export function sleep(ms: number): Promise<unknown> {
   });
 }
 
-export async function shouldNotProvideCompletions(completionProvider: DbtNodeCompletionProvider, text: string): Promise<void> {
-  const completions = await completionProvider.provideCompletions(text);
+export async function shouldNotProvideCompletions(
+  completionProvider: DbtNodeCompletionProvider,
+  jinjaPartType: JinjaPartType,
+  text: string,
+): Promise<void> {
+  const completions = await completionProvider.provideCompletions(jinjaPartType, text);
   assertThat(completions, not(defined()));
 }
 
 export async function shouldProvideCompletions(
   completionProvider: DbtNodeCompletionProvider,
+  jinjaPartType: JinjaPartType,
   text: string,
   expectedCompletions: CompletionItem[],
 ): Promise<void> {
-  const completions = await completionProvider.provideCompletions(text);
+  const completions = await completionProvider.provideCompletions(jinjaPartType, text);
   assertCompletions(completions, expectedCompletions);
 }
 

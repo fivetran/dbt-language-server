@@ -1,5 +1,6 @@
 import { MacroCompletionProvider } from '../../completion/MacroCompletionProvider';
 import { DbtRepository } from '../../DbtRepository';
+import { JinjaPartType } from '../../JinjaParser';
 import { shouldNotProvideCompletions, shouldProvideCompletions } from '../helper';
 
 describe('MacroCompletionProvider', () => {
@@ -49,14 +50,14 @@ describe('MacroCompletionProvider', () => {
   });
 
   it('Should provide completions only from specified package', async () => {
-    await shouldProvideCompletions(macroCompletionProvider, `select {{ ${INSTALLED_PACKAGE}.`, [
+    await shouldProvideCompletions(macroCompletionProvider, JinjaPartType.EXPRESSION_START, `select {{ ${INSTALLED_PACKAGE}.`, [
       { label: 'installed_package_macro_1', insertText: 'installed_package_macro_1' },
       { label: 'installed_package_macro_2', insertText: 'installed_package_macro_2' },
     ]);
   });
 
   it('Should provide completions from all packages', async () => {
-    await shouldProvideCompletions(macroCompletionProvider, `select {{ macro`, [
+    await shouldProvideCompletions(macroCompletionProvider, JinjaPartType.EXPRESSION_START, `select {{ macro`, [
       { label: 'macro_1', insertText: 'macro_1' },
       { label: 'macro_2', insertText: 'macro_2' },
       { label: '(installed_package) installed_package_macro_1', insertText: 'installed_package.installed_package_macro_1' },
@@ -65,10 +66,10 @@ describe('MacroCompletionProvider', () => {
   });
 
   it(`Shouldn't provide completions for unknown package`, async () => {
-    await shouldNotProvideCompletions(macroCompletionProvider, 'select {{ unknown_package.');
+    await shouldNotProvideCompletions(macroCompletionProvider, JinjaPartType.EXPRESSION_START, 'select {{ unknown_package.');
   });
 
   it(`Shouldn't provide completions for empty strings`, async () => {
-    await shouldNotProvideCompletions(macroCompletionProvider, 'select {{ ');
+    await shouldNotProvideCompletions(macroCompletionProvider, JinjaPartType.EXPRESSION_START, 'select {{ ');
   });
 });
