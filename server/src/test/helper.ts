@@ -69,13 +69,13 @@ export async function shouldNotProvideCompletions(completionProvider: DbtNodeCom
 export async function shouldProvideCompletions(
   completionProvider: DbtNodeCompletionProvider,
   text: string,
-  expectedCompletions: { label: string; insertText: string }[],
+  expectedCompletions: CompletionItem[],
 ): Promise<void> {
   const completions = await completionProvider.provideCompletions(text);
   assertCompletions(completions, expectedCompletions);
 }
 
-function assertCompletions(actualCompletions: CompletionItem[] | undefined, expectedCompletions: { label: string; insertText: string }[]): void {
+function assertCompletions(actualCompletions: CompletionItem[] | undefined, expectedCompletions: CompletionItem[]): void {
   assertThat(actualCompletions, defined());
   actualCompletions?.forEach((actualItem, i) => {
     const expectedCompletion = expectedCompletions[i];
