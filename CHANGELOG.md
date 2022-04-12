@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.4.0 (01/01/1970)
+## Version 0.4.0 (12/04/2022)
 ## What's Changed
 * Add the ability to compile models inside dbt packages
 * Fix bugs with signature hints
