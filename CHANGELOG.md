@@ -1,5 +1,16 @@
 # Changelog
 
+## Version 0.4.0 (12/04/2022)
+## What's Changed
+* Add the ability to compile models inside dbt packages
+* Fix bugs with signature hints
+* Show functions signature hints on hover
+* Autocompletion for all dbt models, macros and sources
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.3.1...v0.4.0
+---
+
 ## Version 0.3.1 (02/04/2022)
 ## What's Changed
 * Fix changelog population
