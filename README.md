@@ -12,7 +12,7 @@ Also, it provides additional features like [Highlighting errors](#highlighting-e
    - [Highlighting errors](#highlighting-errors)
    - [Signature help](#signature-help)
    - [Completion for SQL](#completion-for-sql)
-   - [Completion for dbt models](#completion-for-dbt-models)
+   - [Completion for dbt](#completion-for-dbt)
    - [dbt compile preview](#dbt-compile-preview)
    - [Information on hover](#information-on-hover)
 - [How to use](#how-to-use)
@@ -31,6 +31,7 @@ Also, it provides additional features like [Highlighting errors](#highlighting-e
 | [Highlighting errors](#highlighting-errors) | [BigQuery](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) |
 | [Signature help](#signature-help) | All |
 | [Completion for SQL](#completion-for-sql) | [BigQuery](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) |
+| [Completion for dbt](#completion-for-dbt) | All |
 | [Completion for dbt models](#completion-for-dbt-models) | [BigQuery](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) |
 | [dbt compile preview](#dbt-compile-preview) | All |
 | [Information on hover](#information-on-hover) | [BigQuery](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) |
@@ -56,9 +57,14 @@ Also, it provides additional features like [Highlighting errors](#highlighting-e
 
 ![Completion for SQL](images/Completion.png)
 
-### Completion for dbt models
+### Completion for dbt
 
-![Completion for dbt models](images/CompletionForModels.png)
+#### Macros
+![Completion for macros](images/CompletionForMacros.png)
+#### Models
+![Completion for models](images/CompletionForModels.png)
+#### Sources
+![Completion for sources](images/CompletionForSources.png)
 
 ### dbt compile preview
 

@@ -22,7 +22,72 @@ export class DbtRepository {
   projectName?: string;
   modelPaths: string[] = DbtRepository.DEFAULT_MODEL_PATHS;
   packagesInstallPaths: string[] = DbtRepository.DEFAULT_PACKAGES_PATHS;
+
   models: ManifestModel[] = [];
   macros: ManifestMacro[] = [];
   sources: ManifestSource[] = [];
+
+  packageToModels = new Map<string, Set<ManifestModel>>();
+  packageToMacros = new Map<string, Set<ManifestMacro>>();
+  packageToSources = new Map<string, Map<string, Set<ManifestSource>>>();
+
+  updateDbtNodes(models: ManifestModel[], macros: ManifestMacro[], sources: ManifestSource[]): void {
+    this.models = models;
+    this.macros = macros;
+    this.sources = sources;
+
+    this.clearManifestNodes();
+    this.groupManifestNodes();
+  }
+
+  private clearManifestNodes(): void {
+    this.packageToModels.clear();
+    this.packageToMacros.clear();
+    this.packageToSources.clear();
+  }
+
+  private groupManifestNodes(): void {
+    this.groupManifestModelNodes();
+    this.groupManifestMacroNodes();
+    this.groupManifestSourceNodes();
+  }
+
+  private groupManifestModelNodes(): void {
+    for (const model of this.models) {
+      let packageModels = this.packageToModels.get(model.packageName);
+      if (!packageModels) {
+        packageModels = new Set();
+        this.packageToModels.set(model.packageName, packageModels);
+      }
+      packageModels.add(model);
+    }
+  }
+
+  private groupManifestMacroNodes(): void {
+    for (const macro of this.macros) {
+      let packageMacros = this.packageToMacros.get(macro.packageName);
+      if (!packageMacros) {
+        packageMacros = new Set();
+        this.packageToMacros.set(macro.packageName, packageMacros);
+      }
+      packageMacros.add(macro);
+    }
+  }
+
+  private groupManifestSourceNodes(): void {
+    for (const source of this.sources) {
+      let packageSources = this.packageToSources.get(source.packageName);
+      if (!packageSources) {
+        packageSources = new Map<string, Set<ManifestSource>>();
+        this.packageToSources.set(source.packageName, packageSources);
+      }
+
+      let sourceTables = packageSources.get(source.sourceName);
+      if (!sourceTables) {
+        sourceTables = new Set();
+        packageSources.set(source.sourceName, sourceTables);
+      }
+      sourceTables.add(source);
+    }
+  }
 }

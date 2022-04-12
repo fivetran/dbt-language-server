@@ -234,3 +234,7 @@ export function getTextRangeBeforeBracket(text: string, cursorPosition: Position
 
   return getWordRangeAtPosition(Position.create(0, openBracketIndex), /\w+/, [textBeforeCursor]) ?? Range.create(cursorPosition, cursorPosition);
 }
+
+export function isQuote(text: string): boolean {
+  return text === `'` || text === `"`;
+}

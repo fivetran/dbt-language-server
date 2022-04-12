@@ -3,6 +3,7 @@ interface ManifestNode {
   rootPath: string;
   originalFilePath: string;
   name: string;
+  packageName: string;
 }
 
 export interface ManifestModel extends ManifestNode {
@@ -10,9 +11,7 @@ export interface ManifestModel extends ManifestNode {
   schema: string;
 }
 
-export interface ManifestMacro extends ManifestNode {
-  packageName: string;
-}
+export type ManifestMacro = ManifestNode;
 
 export interface ManifestSource extends ManifestNode {
   sourceName: string;

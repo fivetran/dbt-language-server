@@ -1,14 +1,15 @@
 import { assertThat } from 'hamjest';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentSaveReason, _Connection } from 'vscode-languageserver';
-import { CompletionProvider } from '../CompletionProvider';
+import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
 import { DbtRepository } from '../DbtRepository';
 import { DbtRpcServer } from '../DbtRpcServer';
 import { DbtTextDocument } from '../DbtTextDocument';
-import { JinjaDefinitionProvider } from '../definition/JinjaDefinitionProvider';
+import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
 import { JinjaParser } from '../JinjaParser';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProgressReporter } from '../ProgressReporter';
+import { SqlCompletionProvider } from '../SqlCompletionProvider';
 import { sleep } from './helper';
 
 describe('DbtTextDocument', () => {
@@ -38,8 +39,9 @@ describe('DbtTextDocument', () => {
       '',
       mock<_Connection>(),
       mock(ProgressReporter),
-      mock(CompletionProvider),
-      mock(JinjaDefinitionProvider),
+      mock(SqlCompletionProvider),
+      mock(DbtCompletionProvider),
+      mock(DbtDefinitionProvider),
       instance(mockModelCompiler),
       instance(mockJinjaParser),
       onGlobalDbtErrorFixedEmitter,

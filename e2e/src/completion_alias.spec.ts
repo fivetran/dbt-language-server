@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import { activateAndWait, getCustomDocUri, testCompletion } from './helper';
+import { assertCompletions } from './asserts';
+import { activateAndWait, getCustomDocUri } from './helper';
 
 suite('Should suggest completions after ref aliases', () => {
   const PROJECT_FILE_NAME = 'completion-jinja/models/join_ref.sql';
@@ -18,20 +19,18 @@ suite('Should suggest completions after ref aliases', () => {
     await activateAndWait(docUri);
 
     // act
-    await testCompletion(
+    await assertCompletions(
       docUri,
       position,
-      {
-        items: [
-          { label: 'division', kind: vscode.CompletionItemKind.Value },
-          { label: 'email', kind: vscode.CompletionItemKind.Value },
-          { label: 'id', kind: vscode.CompletionItemKind.Value },
-          { label: 'name', kind: vscode.CompletionItemKind.Value },
-          { label: 'phone', kind: vscode.CompletionItemKind.Value },
-          { label: 'profile_id', kind: vscode.CompletionItemKind.Value },
-          { label: 'role', kind: vscode.CompletionItemKind.Value },
-        ],
-      },
+      [
+        { label: 'division', kind: vscode.CompletionItemKind.Value },
+        { label: 'email', kind: vscode.CompletionItemKind.Value },
+        { label: 'id', kind: vscode.CompletionItemKind.Value },
+        { label: 'name', kind: vscode.CompletionItemKind.Value },
+        { label: 'phone', kind: vscode.CompletionItemKind.Value },
+        { label: 'profile_id', kind: vscode.CompletionItemKind.Value },
+        { label: 'role', kind: vscode.CompletionItemKind.Value },
+      ],
       '.',
     );
   }

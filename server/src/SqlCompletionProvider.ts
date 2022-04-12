@@ -1,12 +1,9 @@
 import { Command, CompletionItem, CompletionItemKind, CompletionParams, CompletionTriggerKind } from 'vscode-languageserver';
-import { DbtRepository } from './DbtRepository';
 import { DestinationDefinition } from './DestinationDefinition';
 import { HelpProviderWords } from './HelpProviderWords';
 import { ActiveTableInfo, CompletionInfo } from './ZetaSqlAst';
 
-export class CompletionProvider {
-  static readonly ENDS_WITH_REF = /ref\([^)]*$/;
-  static readonly ENDS_WITH_QUOTE = /['|"]$/;
+export class SqlCompletionProvider {
   static readonly BQ_KEYWORDS = [
     'abort',
     'access',
@@ -240,22 +237,6 @@ export class CompletionProvider {
     'zone',
   ];
 
-  static readonly DBT_KEYWORDS = ['ref'];
-
-  constructor(private dbtRepository: DbtRepository) {}
-
-  onJinjaCompletion(textBeforeCursor: string): CompletionItem[] {
-    if (textBeforeCursor.match(CompletionProvider.ENDS_WITH_REF)) {
-      const edsWithQuote = textBeforeCursor.match(CompletionProvider.ENDS_WITH_QUOTE);
-      return this.dbtRepository.models.map<CompletionItem>(m => ({
-        label: edsWithQuote ? m.name : `'${m.name}'`,
-        kind: CompletionItemKind.Value,
-        detail: 'Model',
-      }));
-    }
-    return [];
-  }
-
   async onSqlCompletion(
     text: string,
     completionParams: CompletionParams,
@@ -358,7 +339,7 @@ export class CompletionProvider {
   }
 
   getKeywords(): CompletionItem[] {
-    return CompletionProvider.BQ_KEYWORDS.map<CompletionItem>(k => ({
+    return SqlCompletionProvider.BQ_KEYWORDS.map<CompletionItem>(k => ({
       label: k,
       kind: CompletionItemKind.Keyword,
       detail: '',

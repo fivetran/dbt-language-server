@@ -1,9 +1,12 @@
-import { assertThat } from 'hamjest';
+import { assertThat, defined, not } from 'hamjest';
 import { err } from 'neverthrow';
 import * as path from 'path';
 import { instance, mock, when } from 'ts-mockito';
+import { CompletionItem } from 'vscode-languageserver';
+import { DbtNodeCompletionProvider } from '../completion/DbtCompletionProvider';
 import { DbtProfile } from '../DbtProfile';
 import { DbtProfileCreator } from '../DbtProfileCreator';
+import { JinjaPartType } from '../JinjaParser';
 import { YamlParser } from '../YamlParser';
 
 const PROFILES_PATH = path.resolve(__dirname, '../../src/test/profiles');
@@ -56,5 +59,33 @@ export function shouldPassValidProfile(config: string, profileName: string): voi
 export function sleep(ms: number): Promise<unknown> {
   return new Promise(resolve => {
     setTimeout(resolve, ms);
+  });
+}
+
+export async function shouldNotProvideCompletions(
+  completionProvider: DbtNodeCompletionProvider,
+  jinjaPartType: JinjaPartType,
+  text: string,
+): Promise<void> {
+  const completions = await completionProvider.provideCompletions(jinjaPartType, text);
+  assertThat(completions, not(defined()));
+}
+
+export async function shouldProvideCompletions(
+  completionProvider: DbtNodeCompletionProvider,
+  jinjaPartType: JinjaPartType,
+  text: string,
+  expectedCompletions: CompletionItem[],
+): Promise<void> {
+  const completions = await completionProvider.provideCompletions(jinjaPartType, text);
+  assertCompletions(completions, expectedCompletions);
+}
+
+function assertCompletions(actualCompletions: CompletionItem[] | undefined, expectedCompletions: CompletionItem[]): void {
+  assertThat(actualCompletions, defined());
+  actualCompletions?.forEach((actualItem, i) => {
+    const expectedCompletion = expectedCompletions[i];
+    assertThat(actualItem.label, expectedCompletion.label);
+    assertThat(actualItem.insertText, expectedCompletion.insertText);
   });
 }

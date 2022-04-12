@@ -22,21 +22,21 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { BigQueryContext } from './bigquery/BigQueryContext';
-import { CompletionProvider } from './CompletionProvider';
+import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
 import { DbtRepository } from './DbtRepository';
 import { DbtRpcServer } from './DbtRpcServer';
-import { JinjaDefinitionProvider } from './definition/JinjaDefinitionProvider';
-import { DestinationDefinition } from './DestinationDefinition';
+import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
 import { DiagnosticGenerator } from './DiagnosticGenerator';
 import { Diff } from './Diff';
 import { HoverProvider } from './HoverProvider';
-import { JinjaParser } from './JinjaParser';
+import { JinjaParser, JinjaPartType } from './JinjaParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
+import { SqlCompletionProvider } from './SqlCompletionProvider';
 import { SqlRefConverter } from './SqlRefConverter';
 import { getTextRangeBeforeBracket } from './utils/TextUtils';
-import { debounce, getIdentifierRangeAtPosition, getJinjaContentOffset, positionInRange } from './utils/Utils';
+import { comparePositions, debounce, getIdentifierRangeAtPosition, positionInRange } from './utils/Utils';
 import { ZetaSqlAst } from './ZetaSqlAst';
 
 export class DbtTextDocument {
@@ -62,8 +62,9 @@ export class DbtTextDocument {
     private workspaceFolder: string,
     private connection: _Connection,
     private progressReporter: ProgressReporter,
-    private completionProvider: CompletionProvider,
-    private jinjaDefinitionProvider: JinjaDefinitionProvider,
+    private sqlCompletionProvider: SqlCompletionProvider,
+    private dbtCompletionProvider: DbtCompletionProvider,
+    private dbtDefinitionProvider: DbtDefinitionProvider,
     private modelCompiler: ModelCompiler,
     private jinjaParser: JinjaParser,
     private onGlobalDbtErrorFixedEmitter: Emitter<void>,
@@ -306,22 +307,43 @@ export class DbtTextDocument {
     return this.hoverProvider.hoverOnText(text, this.ast);
   }
 
-  async onCompletion(completionParams: CompletionParams, destinationDefinition: DestinationDefinition): Promise<CompletionItem[] | undefined> {
+  async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
+    const dbtCompletionItems = await this.getDbtCompletionItems(completionParams);
+    if (dbtCompletionItems) {
+      return dbtCompletionItems;
+    }
+    return this.getSqlCompletions(completionParams);
+  }
+
+  async getDbtCompletionItems(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
+    const jinjaParts = this.jinjaParser.findAllJinjaParts(this.rawDocument);
+    const jinjasBeforePosition = jinjaParts.filter(p => comparePositions(p.range.start, completionParams.position) < 0);
+    const closestJinjaPart =
+      jinjasBeforePosition.length > 0
+        ? jinjasBeforePosition.reduce((p1, p2) => (comparePositions(p1.range.start, p2.range.start) > 0 ? p1 : p2))
+        : undefined;
+
+    if (closestJinjaPart) {
+      const jinjaPartType = this.jinjaParser.getJinjaPartType(closestJinjaPart.value);
+      if ([JinjaPartType.EXPRESSION_START, JinjaPartType.BLOCK_START].includes(jinjaPartType)) {
+        const jinjaBeforePositionText = this.rawDocument.getText(Range.create(closestJinjaPart.range.start, completionParams.position));
+        return this.dbtCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText);
+      }
+    }
+
+    return undefined;
+  }
+
+  async getSqlCompletions(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
+    if (!this.bigQueryContext) {
+      return undefined;
+    }
+
     const previousPosition = Position.create(
       completionParams.position.line,
       completionParams.position.character > 0 ? completionParams.position.character - 1 : 0,
     );
     const text = this.rawDocument.getText(getIdentifierRangeAtPosition(previousPosition, this.rawDocument.getText()));
-
-    const jinjaContentOffset = getJinjaContentOffset(this.rawDocument, completionParams.position);
-    if (jinjaContentOffset !== -1) {
-      return this.completionProvider.onJinjaCompletion(
-        this.rawDocument.getText(Range.create(this.rawDocument.positionAt(jinjaContentOffset), completionParams.position)),
-      );
-    }
-    if (['(', '"', "'"].includes(completionParams.context?.triggerCharacter ?? '')) {
-      return undefined;
-    }
 
     let completionInfo = undefined;
     if (this.ast) {
@@ -329,7 +351,7 @@ export class DbtTextDocument {
       const offset = this.compiledDocument.offsetAt(Position.create(line, completionParams.position.character));
       completionInfo = DbtTextDocument.ZETA_SQL_AST.getCompletionInfo(this.ast, offset);
     }
-    return this.completionProvider.onSqlCompletion(text, completionParams, destinationDefinition, completionInfo);
+    return this.sqlCompletionProvider.onSqlCompletion(text, completionParams, this.bigQueryContext.destinationDefinition, completionInfo);
   }
 
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
@@ -341,8 +363,9 @@ export class DbtTextDocument {
     const jinjas = this.jinjaParser.findAllEffectiveJinjas(this.rawDocument);
     for (const jinja of jinjas) {
       if (positionInRange(definitionParams.position, jinja.range)) {
+        const jinjaType = this.jinjaParser.getJinjaType(jinja.value);
         const currentPackage = DbtTextDocument.findCurrentPackage(this.rawDocument.uri, this.workspaceFolder, this.dbtRepository);
-        return this.jinjaDefinitionProvider.onJinjaDefinition(this.rawDocument, currentPackage, jinja, definitionParams.position);
+        return this.dbtDefinitionProvider.provideDefinitions(this.rawDocument, currentPackage, jinja, definitionParams.position, jinjaType);
       }
     }
     return undefined;

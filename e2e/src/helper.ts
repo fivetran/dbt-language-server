@@ -1,5 +1,4 @@
 import { spawnSync } from 'child_process';
-import { assertThat, greaterThanOrEqualTo } from 'hamjest';
 import * as path from 'path';
 import {
   commands,
@@ -208,17 +207,6 @@ function runCliCommand(args: string[]): void {
   });
 }
 
-export async function testCompletion(docUri: Uri, position: Position, expectedCompletionList: CompletionList, triggerChar?: string): Promise<void> {
-  const actualCompletionList = await triggerCompletion(docUri, position, triggerChar);
-
-  assertThat(actualCompletionList.items.length, greaterThanOrEqualTo(expectedCompletionList.items.length));
-  expectedCompletionList.items.forEach((expectedItem, i) => {
-    const actualItem = actualCompletionList.items[i];
-    assertThat(actualItem.label, expectedItem.label);
-    assertThat(actualItem.kind, expectedItem.kind);
-  });
-}
-
 export async function triggerCompletion(docUri: Uri, position: Position, triggerChar?: string): Promise<CompletionList<CompletionItem>> {
   // Simulate triggering completion
   return commands.executeCommand<CompletionList>('vscode.executeCompletionItemProvider', docUri, position, triggerChar);
@@ -226,4 +214,8 @@ export async function triggerCompletion(docUri: Uri, position: Position, trigger
 
 export async function triggerDefinition(docUri: Uri, position: Position): Promise<DefinitionLink[]> {
   return commands.executeCommand<DefinitionLink[]>('vscode.executeDefinitionProvider', docUri, position);
+}
+
+export function getTextInQuotesIfNeeded(text: string, withQuotes: boolean): string {
+  return withQuotes ? `'${text}'` : text;
 }

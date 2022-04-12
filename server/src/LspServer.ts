@@ -26,7 +26,7 @@ import {
   _Connection,
 } from 'vscode-languageserver';
 import { BigQueryContext } from './bigquery/BigQueryContext';
-import { CompletionProvider } from './CompletionProvider';
+import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
 import { DbtProfileCreator, DbtProfileError, DbtProfileResult, DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtRepository } from './DbtRepository';
 import { DbtRpcClient } from './DbtRpcClient';
@@ -34,13 +34,14 @@ import { DbtRpcServer } from './DbtRpcServer';
 import { DbtTextDocument } from './DbtTextDocument';
 import { getStringVersion } from './DbtVersion';
 import { Command } from './dbt_commands/Command';
-import { JinjaDefinitionProvider } from './definition/JinjaDefinitionProvider';
+import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
 import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
 import { JinjaParser } from './JinjaParser';
 import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
+import { SqlCompletionProvider } from './SqlCompletionProvider';
 import { deferred } from './utils/Utils';
 import { YamlParser } from './YamlParser';
 
@@ -60,8 +61,9 @@ export class LspServer {
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
   fileChangeListener: FileChangeListener;
-  completionProvider: CompletionProvider;
-  jinjaDefinitionProvider: JinjaDefinitionProvider;
+  completionProvider: SqlCompletionProvider;
+  dbtCompletionProvider: DbtCompletionProvider;
+  dbtDefinitionProvider: DbtDefinitionProvider;
   yamlParser = new YamlParser();
   dbtProfileCreator = new DbtProfileCreator(this.yamlParser);
   manifestParser = new ManifestParser();
@@ -79,8 +81,9 @@ export class LspServer {
   constructor(private connection: _Connection) {
     this.progressReporter = new ProgressReporter(this.connection);
     this.fileChangeListener = new FileChangeListener(this.yamlParser, this.manifestParser, this.dbtRepository);
-    this.completionProvider = new CompletionProvider(this.dbtRepository);
-    this.jinjaDefinitionProvider = new JinjaDefinitionProvider(this.dbtRepository);
+    this.completionProvider = new SqlCompletionProvider();
+    this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);
+    this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
     this.fileChangeListener.onDbtProjectYmlChanged(this.onDbtProjectYmlChanged.bind(this));
   }
 
@@ -291,7 +294,8 @@ export class LspServer {
         this.connection,
         this.progressReporter,
         this.completionProvider,
-        this.jinjaDefinitionProvider,
+        this.dbtCompletionProvider,
+        this.dbtDefinitionProvider,
         new ModelCompiler(this.dbtRpcClient),
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,
@@ -341,11 +345,8 @@ export class LspServer {
   }
 
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
-    if (!this.bigQueryContext) {
-      return undefined;
-    }
     const document = this.openedDocuments.get(completionParams.textDocument.uri);
-    return document?.onCompletion(completionParams, this.bigQueryContext.destinationDefinition);
+    return document?.onCompletion(completionParams);
   }
 
   onCompletionResolve(item: CompletionItem): CompletionItem {

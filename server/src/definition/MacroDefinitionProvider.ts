@@ -2,34 +2,30 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { DefinitionLink, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { DbtRepository } from '../DbtRepository';
 import { ParseNode } from '../JinjaParser';
-import { ManifestMacro } from '../manifest/ManifestJson';
 import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { getAbsoluteRange, getPositionByIndex, getRelativePosition } from '../utils/Utils';
-import { JinjaDefinitionProvider } from './JinjaDefinitionProvider';
+import { DbtDefinitionProvider, DbtNodeDefinitionProvider } from './DbtDefinitionProvider';
 
-export class MacroDefinitionFinder {
+export class MacroDefinitionProvider implements DbtNodeDefinitionProvider {
   static readonly MACRO_PATTERN = /(\w+\.?\w+)\s*\(/;
   static readonly DBT_PACKAGE = 'dbt';
   static readonly END_MACRO_PATTERN = /{%-?\s*endmacro\s*-?%}/g;
 
-  searchMacroDefinitions(
-    document: TextDocument,
-    position: Position,
-    jinja: ParseNode,
-    packageName: string,
-    dbtMacros: ManifestMacro[],
-  ): DefinitionLink[] | undefined {
+  constructor(private dbtRepository: DbtRepository) {}
+
+  provideDefinitions(document: TextDocument, position: Position, jinja: ParseNode, packageName: string): DefinitionLink[] | undefined {
     const expressionLines = jinja.value.split('\n');
     const relativePosition = getRelativePosition(jinja.range, position);
     if (relativePosition === undefined) {
       return undefined;
     }
-    const wordRange = getWordRangeAtPosition(relativePosition, MacroDefinitionFinder.MACRO_PATTERN, expressionLines);
+    const wordRange = getWordRangeAtPosition(relativePosition, MacroDefinitionProvider.MACRO_PATTERN, expressionLines);
 
     if (wordRange) {
       const word = document.getText(getAbsoluteRange(jinja.range.start, wordRange));
-      const macroMatch = word.match(MacroDefinitionFinder.MACRO_PATTERN);
+      const macroMatch = word.match(MacroDefinitionProvider.MACRO_PATTERN);
       if (macroMatch === null || macroMatch.length < 1) {
         return undefined;
       }
@@ -37,8 +33,8 @@ export class MacroDefinitionFinder {
       const [, macro] = macroMatch;
       const macroSearchIds = macro.includes('.')
         ? [`macro.${macro}`]
-        : [`macro.${MacroDefinitionFinder.DBT_PACKAGE}.${macro}`, `macro.${packageName}.${macro}`];
-      const foundMacro = dbtMacros.find(m => macroSearchIds.includes(m.uniqueId));
+        : [`macro.${MacroDefinitionProvider.DBT_PACKAGE}.${macro}`, `macro.${packageName}.${macro}`];
+      const foundMacro = this.dbtRepository.macros.find(m => macroSearchIds.includes(m.uniqueId));
       if (foundMacro) {
         const macroFilePath = path.join(foundMacro.rootPath, foundMacro.originalFilePath);
         const [definitionRange, selectionRange] = this.getMacroRange(foundMacro.name, macroFilePath);
@@ -78,7 +74,7 @@ export class MacroDefinitionFinder {
       return [definitionRange, selectionRange];
     }
 
-    return [JinjaDefinitionProvider.MAX_RANGE, JinjaDefinitionProvider.MAX_RANGE];
+    return [DbtDefinitionProvider.MAX_RANGE, DbtDefinitionProvider.MAX_RANGE];
   }
 
   getStartMacroMatch(text: string, macro: string): RegExpExecArray | null {
@@ -89,7 +85,7 @@ export class MacroDefinitionFinder {
   getEndMacroMatches(text: string): RegExpExecArray[] {
     const endMacroMatches = [];
     let match: RegExpExecArray | null;
-    while ((match = MacroDefinitionFinder.END_MACRO_PATTERN.exec(text))) {
+    while ((match = MacroDefinitionProvider.END_MACRO_PATTERN.exec(text))) {
       endMacroMatches.push(match);
     }
     return endMacroMatches;

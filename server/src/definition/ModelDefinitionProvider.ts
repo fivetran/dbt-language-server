@@ -1,35 +1,32 @@
 import * as path from 'path';
 import { DefinitionLink, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { DbtRepository } from '../DbtRepository';
 import { ParseNode } from '../JinjaParser';
 import { ManifestModel } from '../manifest/ManifestJson';
 import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { getAbsolutePosition, getAbsoluteRange, getRelativePosition, positionInRange } from '../utils/Utils';
-import { JinjaDefinitionProvider } from './JinjaDefinitionProvider';
+import { DbtDefinitionProvider, DbtNodeDefinitionProvider } from './DbtDefinitionProvider';
 
-export class RefDefinitionFinder {
+export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
   static readonly REF_PATTERN = /ref\s*\(\s*('[^)']*'|"[^)"]*")(\s*,\s*('[^)']*'|"[^)"]*"))?\s*\)/;
   static readonly REF_PARTS_PATTERN = /'[^']*'|"[^*]*"/g;
 
-  searchRefDefinitions(
-    document: TextDocument,
-    position: Position,
-    jinja: ParseNode,
-    packageName: string,
-    dbtModels: ManifestModel[],
-  ): DefinitionLink[] | undefined {
+  constructor(private dbtRepository: DbtRepository) {}
+
+  provideDefinitions(document: TextDocument, position: Position, jinja: ParseNode, packageName: string): DefinitionLink[] | undefined {
     const expressionLines = jinja.value.split('\n');
     const relativePosition = getRelativePosition(jinja.range, position);
     if (relativePosition === undefined) {
       return undefined;
     }
-    const wordRange = getWordRangeAtPosition(relativePosition, RefDefinitionFinder.REF_PATTERN, expressionLines);
+    const wordRange = getWordRangeAtPosition(relativePosition, ModelDefinitionProvider.REF_PATTERN, expressionLines);
 
     if (wordRange) {
       const word = document.getText(getAbsoluteRange(jinja.range.start, wordRange));
       const matches = [];
       let match: RegExpExecArray | null;
-      while ((match = RefDefinitionFinder.REF_PARTS_PATTERN.exec(word))) {
+      while ((match = ModelDefinitionProvider.REF_PARTS_PATTERN.exec(word))) {
         matches.push({
           text: match[0],
           index: match.index,
@@ -65,9 +62,9 @@ export class RefDefinitionFinder {
       }
 
       if (packageSelectionRange && positionInRange(position, packageSelectionRange)) {
-        return this.searchPackageDefinition(dbtPackage, dbtModels, packageSelectionRange);
+        return this.searchPackageDefinition(dbtPackage, this.dbtRepository.models, packageSelectionRange);
       } else if (positionInRange(position, modelSelectionRange)) {
-        return this.searchModelDefinition(dbtPackage, model, dbtModels, modelSelectionRange);
+        return this.searchModelDefinition(dbtPackage, model, this.dbtRepository.models, modelSelectionRange);
       }
     }
 
@@ -81,8 +78,8 @@ export class RefDefinitionFinder {
       .map(m =>
         LocationLink.create(
           path.join(m.rootPath, m.originalFilePath),
-          JinjaDefinitionProvider.MAX_RANGE,
-          JinjaDefinitionProvider.MAX_RANGE,
+          DbtDefinitionProvider.MAX_RANGE,
+          DbtDefinitionProvider.MAX_RANGE,
           packageSelectionRange,
         ),
       );
@@ -95,8 +92,8 @@ export class RefDefinitionFinder {
       return [
         LocationLink.create(
           path.join(foundModel.rootPath, foundModel.originalFilePath),
-          JinjaDefinitionProvider.MAX_RANGE,
-          JinjaDefinitionProvider.MAX_RANGE,
+          DbtDefinitionProvider.MAX_RANGE,
+          DbtDefinitionProvider.MAX_RANGE,
           modelSelectionRange,
         ),
       ];

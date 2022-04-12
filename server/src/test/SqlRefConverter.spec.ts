@@ -29,6 +29,7 @@ describe('SqlRefConverter', () => {
       name: `test_model${n}`,
       database: 'db',
       schema: 'schema',
+      packageName: 'test_package',
     }));
   }
 
@@ -86,6 +87,7 @@ describe('SqlRefConverter', () => {
           name: 'test_model0',
           database: 'db',
           schema: 'schema',
+          packageName: 'test_package',
         },
       ],
     );

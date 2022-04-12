@@ -1,29 +1,32 @@
 import * as path from 'path';
 import { DefinitionLink, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { DbtRepository } from '../DbtRepository';
 import { ParseNode } from '../JinjaParser';
 import { ManifestSource } from '../manifest/ManifestJson';
 import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { getAbsolutePosition, getAbsoluteRange, getRelativePosition, positionInRange } from '../utils/Utils';
-import { JinjaDefinitionProvider } from './JinjaDefinitionProvider';
+import { DbtDefinitionProvider, DbtNodeDefinitionProvider } from './DbtDefinitionProvider';
 
-export class SourceDefinitionFinder {
+export class SourceDefinitionProvider implements DbtNodeDefinitionProvider {
   static readonly SOURCE_PATTERN = /source\s*\(\s*('[^)']*'|"[^)"]*")\s*,\s*('[^)']*'|"[^)"]*")\s*\)/;
   static readonly SOURCE_PARTS_PATTERN = /'[^']*'|"[^*]*"/g;
 
-  searchSourceDefinitions(document: TextDocument, position: Position, jinja: ParseNode, dbtSources: ManifestSource[]): DefinitionLink[] | undefined {
+  constructor(private dbtRepository: DbtRepository) {}
+
+  provideDefinitions(document: TextDocument, position: Position, jinja: ParseNode): DefinitionLink[] | undefined {
     const expressionLines = jinja.value.split('\n');
     const relativePosition = getRelativePosition(jinja.range, position);
     if (relativePosition === undefined) {
       return undefined;
     }
-    const wordRange = getWordRangeAtPosition(relativePosition, SourceDefinitionFinder.SOURCE_PATTERN, expressionLines);
+    const wordRange = getWordRangeAtPosition(relativePosition, SourceDefinitionProvider.SOURCE_PATTERN, expressionLines);
 
     if (wordRange) {
       const word = document.getText(getAbsoluteRange(jinja.range.start, wordRange));
       const matches = [];
       let match: RegExpExecArray | null;
-      while ((match = SourceDefinitionFinder.SOURCE_PARTS_PATTERN.exec(word))) {
+      while ((match = SourceDefinitionProvider.SOURCE_PARTS_PATTERN.exec(word))) {
         matches.push({
           text: match[0],
           index: match.index,
@@ -47,9 +50,9 @@ export class SourceDefinitionFinder {
       );
 
       if (positionInRange(position, sourceSelectionRange)) {
-        return this.getTableDefinitions(source.text.slice(1, -1), table.text.slice(1, -1), dbtSources, sourceSelectionRange);
+        return this.getTableDefinitions(source.text.slice(1, -1), table.text.slice(1, -1), this.dbtRepository.sources, sourceSelectionRange);
       } else if (positionInRange(position, tableSelectionRange)) {
-        return this.getTableDefinitions(source.text.slice(1, -1), table.text.slice(1, -1), dbtSources, tableSelectionRange);
+        return this.getTableDefinitions(source.text.slice(1, -1), table.text.slice(1, -1), this.dbtRepository.sources, tableSelectionRange);
       }
     }
 
@@ -62,8 +65,8 @@ export class SourceDefinitionFinder {
       return [
         LocationLink.create(
           path.join(foundSource.rootPath, foundSource.originalFilePath),
-          JinjaDefinitionProvider.MAX_RANGE,
-          JinjaDefinitionProvider.MAX_RANGE,
+          DbtDefinitionProvider.MAX_RANGE,
+          DbtDefinitionProvider.MAX_RANGE,
           tableSelectionRange,
         ),
       ];

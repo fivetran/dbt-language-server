@@ -2,6 +2,23 @@ import { Position, Range, TextDocumentContentChangeEvent } from 'vscode-language
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { comparePositions, rangesOverlap } from './utils/Utils';
 
+export enum JinjaType {
+  UNKNOWN,
+  EXPRESSION,
+  BLOCK,
+  COMMENT,
+}
+
+export enum JinjaPartType {
+  UNKNOWN,
+  EXPRESSION_START,
+  EXPRESSION_END,
+  BLOCK_START,
+  BLOCK_END,
+  COMMENT_START,
+  COMMENT_END,
+}
+
 export interface ParseNode {
   value: string;
   range: Range;
@@ -28,6 +45,44 @@ export class JinjaParser {
   static readonly JINJA_OPEN_BLOCKS = ['docs', 'if', 'for', 'macro'];
   static readonly JINJA_CLOSE_BLOCKS = ['enddocs', 'endif', 'endfor', 'endmacro'];
 
+  static readonly JINJA_PART_PATTERN = /{\s*{|{\s*%|{\s*#|}\s*}|%\s*}|#\s*}/g;
+
+  getJinjaType(jinja: string): JinjaType {
+    if (/^{\s*{/.test(jinja)) {
+      return JinjaType.EXPRESSION;
+    }
+    if (/^{\s*%/.test(jinja)) {
+      return JinjaType.BLOCK;
+    }
+    if (/^{\s*#/.test(jinja)) {
+      return JinjaType.COMMENT;
+    }
+    return JinjaType.UNKNOWN;
+  }
+
+  getJinjaPartType(text: string): JinjaPartType {
+    if (/{\s*{/.test(text)) {
+      return JinjaPartType.EXPRESSION_START;
+    }
+    if (/{\s*%/.test(text)) {
+      return JinjaPartType.BLOCK_START;
+    }
+    if (/{\s*#/.test(text)) {
+      return JinjaPartType.COMMENT_START;
+    }
+
+    if (/}\s*}/.test(text)) {
+      return JinjaPartType.EXPRESSION_END;
+    }
+    if (/%\s*}/.test(text)) {
+      return JinjaPartType.BLOCK_END;
+    }
+    if (/#\s*}/.test(text)) {
+      return JinjaPartType.COMMENT_END;
+    }
+
+    return JinjaPartType.UNKNOWN;
+  }
   /**
    * Finds all jinja statements ranges and ranges of jinja blocks: 'docs', 'if', 'for', 'macro'.
    * @param rawDocument editable text document
@@ -128,6 +183,10 @@ export class JinjaParser {
 
   findAllEffectiveJinjas(rawDocument: TextDocument): ParseNode[] {
     return this.findJinjas(rawDocument, JinjaParser.EFFECTIVE_JINJA_PATTERN);
+  }
+
+  findAllJinjaParts(rawDocument: TextDocument): ParseNode[] {
+    return this.findJinjas(rawDocument, JinjaParser.JINJA_PART_PATTERN);
   }
 
   findJinjas(rawDocument: TextDocument, pattern: RegExp): ParseNode[] {
