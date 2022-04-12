@@ -1,4 +1,4 @@
-import { assertThat, defined } from 'hamjest';
+import { assertThat, defined, not } from 'hamjest';
 import { err } from 'neverthrow';
 import * as path from 'path';
 import { instance, mock, when } from 'ts-mockito';
@@ -59,6 +59,11 @@ export function sleep(ms: number): Promise<unknown> {
   return new Promise(resolve => {
     setTimeout(resolve, ms);
   });
+}
+
+export async function shouldNotProvideCompletions(completionProvider: DbtNodeCompletionProvider, text: string): Promise<void> {
+  const completions = await completionProvider.provideCompletions(text);
+  assertThat(completions, not(defined()));
 }
 
 export async function shouldProvideCompletions(

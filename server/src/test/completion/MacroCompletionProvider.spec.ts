@@ -1,6 +1,6 @@
 import { MacroCompletionProvider } from '../../completion/MacroCompletionProvider';
 import { DbtRepository } from '../../DbtRepository';
-import { shouldProvideCompletions } from '../helper';
+import { shouldNotProvideCompletions, shouldProvideCompletions } from '../helper';
 
 describe('MacroCompletionProvider', () => {
   const PROJECT_PACKAGE = 'project_package';
@@ -62,5 +62,13 @@ describe('MacroCompletionProvider', () => {
       { label: '(installed_package) installed_package_macro_1', insertText: 'installed_package.installed_package_macro_1' },
       { label: '(installed_package) installed_package_macro_2', insertText: 'installed_package.installed_package_macro_2' },
     ]);
+  });
+
+  it(`Shouldn't provide completions for unknown package`, async () => {
+    await shouldNotProvideCompletions(macroCompletionProvider, 'select {{ unknown_package.');
+  });
+
+  it(`Shouldn't provide completions for empty strings`, async () => {
+    await shouldNotProvideCompletions(macroCompletionProvider, 'select {{ ');
   });
 });

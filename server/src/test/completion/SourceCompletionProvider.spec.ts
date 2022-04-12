@@ -1,6 +1,6 @@
 import { SourceCompletionProvider } from '../../completion/SourceCompletionProvider';
 import { DbtRepository } from '../../DbtRepository';
-import { shouldProvideCompletions } from '../helper';
+import { shouldNotProvideCompletions, shouldProvideCompletions } from '../helper';
 
 describe('SourceCompletionProvider', () => {
   const PROJECT_PACKAGE = 'project_package';
@@ -75,5 +75,17 @@ describe('SourceCompletionProvider', () => {
       { label: 'table_1', insertText: `table_1` },
       { label: 'table_2', insertText: `table_2` },
     ]);
+  });
+
+  it(`Shouldn't provide completions for unknown source`, async () => {
+    await shouldNotProvideCompletions(sourceCompletionProvider, `select * from {{ source('unknown_source', '`);
+  });
+
+  it(`Shouldn't provide completions for empty strings`, async () => {
+    await shouldNotProvideCompletions(sourceCompletionProvider, 'select {{ ');
+  });
+
+  it(`Shouldn't provide completions after source`, async () => {
+    await shouldNotProvideCompletions(sourceCompletionProvider, 'select {{ source');
   });
 });

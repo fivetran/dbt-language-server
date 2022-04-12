@@ -1,6 +1,6 @@
 import { ModelCompletionProvider } from '../../completion/ModelCompletionProvider';
 import { DbtRepository } from '../../DbtRepository';
-import { shouldProvideCompletions } from '../helper';
+import { shouldNotProvideCompletions, shouldProvideCompletions } from '../helper';
 
 describe('ModelCompletionProvider', () => {
   const PROJECT_PACKAGE = 'project_package';
@@ -93,5 +93,17 @@ describe('ModelCompletionProvider', () => {
       { label: installedPackageModel1, insertText: `installed_package", "installed_package_model_1` },
       { label: installedPackageModel2, insertText: `installed_package", "installed_package_model_2` },
     ]);
+  });
+
+  it(`Shouldn't provide completions for unknown package`, async () => {
+    await shouldNotProvideCompletions(modelCompletionProvider, `select * from {{ ref('unknown_package', '`);
+  });
+
+  it(`Shouldn't provide completions for empty strings`, async () => {
+    await shouldNotProvideCompletions(modelCompletionProvider, 'select {{ ');
+  });
+
+  it(`Shouldn't provide completions after ref`, async () => {
+    await shouldNotProvideCompletions(modelCompletionProvider, 'select {{ ref');
   });
 });
