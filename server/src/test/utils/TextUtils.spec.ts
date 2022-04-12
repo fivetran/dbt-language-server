@@ -3,7 +3,7 @@ import { Position, Range } from 'vscode-languageserver';
 import { MacroDefinitionProvider } from '../../definition/MacroDefinitionProvider';
 import { ModelDefinitionProvider } from '../../definition/ModelDefinitionProvider';
 import { SourceDefinitionProvider } from '../../definition/SourceDefinitionProvider';
-import { getWordRangeAtPosition } from '../../utils/TextUtils';
+import { getTextRangeBeforeBracket, getWordRangeAtPosition } from '../../utils/TextUtils';
 
 describe('TextUtils', () => {
   it('getWordRangeAtPosition should find words', () => {
@@ -76,6 +76,36 @@ describe('TextUtils', () => {
       Range.create(0, 4, 0, 39),
     );
   });
+
+  it('getTextRangeBeforeBracket should return cursor position if no range found', function () {
+    getTextRangeBeforeBracket_shouldReturnRange('a()', Position.create(0, 0), Range.create(0, 0, 0, 0));
+    getTextRangeBeforeBracket_shouldReturnRange('a()', Position.create(0, 1), Range.create(0, 1, 0, 1));
+    getTextRangeBeforeBracket_shouldReturnRange('a()', Position.create(0, 3), Range.create(0, 3, 0, 3));
+    getTextRangeBeforeBracket_shouldReturnRange('a(b)', Position.create(0, 4), Range.create(0, 4, 0, 4));
+    getTextRangeBeforeBracket_shouldReturnRange('a)(', Position.create(0, 1), Range.create(0, 1, 0, 1));
+    getTextRangeBeforeBracket_shouldReturnRange('a)(', Position.create(0, 2), Range.create(0, 2, 0, 2));
+  });
+
+  it('getTextRangeBeforeBracket should return range', function () {
+    getTextRangeBeforeBracket_shouldReturnRange('a()', Position.create(0, 2), Range.create(0, 0, 0, 1));
+    getTextRangeBeforeBracket_shouldReturnRange('  a()', Position.create(0, 4), Range.create(0, 2, 0, 3));
+    getTextRangeBeforeBracket_shouldReturnRange('a(b)', Position.create(0, 3), Range.create(0, 0, 0, 1));
+    getTextRangeBeforeBracket_shouldReturnRange('a(b())', Position.create(0, 3), Range.create(0, 0, 0, 1));
+    getTextRangeBeforeBracket_shouldReturnRange('a(b())', Position.create(0, 5), Range.create(0, 0, 0, 1));
+    getTextRangeBeforeBracket_shouldReturnRange('a(  b())', Position.create(0, 5), Range.create(0, 0, 0, 1));
+    getTextRangeBeforeBracket_shouldReturnRange('a(b())', Position.create(0, 4), Range.create(0, 2, 0, 3));
+    getTextRangeBeforeBracket_shouldReturnRange('a(b(c()))', Position.create(0, 6), Range.create(0, 4, 0, 5));
+    getTextRangeBeforeBracket_shouldReturnRange(' coalesce(max())', Position.create(0, 13), Range.create(0, 1, 0, 9));
+    getTextRangeBeforeBracket_shouldReturnRange(' coalesce(max())', Position.create(0, 14), Range.create(0, 10, 0, 13));
+  });
+
+  function getTextRangeBeforeBracket_shouldReturnRange(text: string, position: Position, expectedRange: Range): void {
+    // act
+    const range = getTextRangeBeforeBracket(text, position);
+
+    // assert
+    assertThat(range, expectedRange);
+  }
 
   function assertWordRangeAtPosition(position: Position, regex: RegExp, textLines: string[], wordRange: Range | undefined): void {
     const range = getWordRangeAtPosition(position, regex, textLines);

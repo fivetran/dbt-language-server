@@ -203,6 +203,38 @@ function createWordRegExp(allowInWords = ''): RegExp {
   return new RegExp(source, 'g');
 }
 
+export function getTextRangeBeforeBracket(text: string, cursorPosition: Position): Range {
+  const lines = text.split('\n');
+  if (lines.length === 0) {
+    return Range.create(cursorPosition, cursorPosition);
+  }
+  const line = Math.min(lines.length - 1, Math.max(0, cursorPosition.line));
+  const lineText = lines[line];
+  const textBeforeCursor = lineText.substring(0, cursorPosition.character);
+  let openBracketIndex = -1;
+  let closedBracketCount = 0;
+  let index = textBeforeCursor.length - 1;
+  while (index > 0) {
+    const char = textBeforeCursor.charAt(index);
+    if (char === ')') {
+      closedBracketCount++;
+    } else if (char === '(') {
+      if (closedBracketCount === 0) {
+        openBracketIndex = index;
+        break;
+      } else {
+        closedBracketCount--;
+      }
+    }
+    index--;
+  }
+  if (openBracketIndex === -1) {
+    return Range.create(cursorPosition, cursorPosition);
+  }
+
+  return getWordRangeAtPosition(Position.create(0, openBracketIndex), /\w+/, [textBeforeCursor]) ?? Range.create(cursorPosition, cursorPosition);
+}
+
 export function isQuote(text: string): boolean {
   return text === `'` || text === `"`;
 }
