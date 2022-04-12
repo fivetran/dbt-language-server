@@ -1,17 +1,24 @@
 import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
+import { JinjaPartType } from '../JinjaParser';
 import { DbtNodeCompletionProvider } from './DbtCompletionProvider';
 
 export class MacroCompletionProvider implements DbtNodeCompletionProvider {
   static readonly MACRO_PATTERN = /\w+\.$/;
   static readonly WORD_PATTERN = /\w+$/;
 
+  static readonly ACCEPTABLE_JINJA_PARTS = [JinjaPartType.EXPRESSION_START, JinjaPartType.BLOCK_START];
+
   static readonly CURRENT_PACKAGE_SORT_PREFIX = '1';
   static readonly INSTALLED_PACKAGE_SORT_PREFIX = '2';
 
   constructor(private dbtRepository: DbtRepository) {}
 
-  provideCompletions(jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
+  provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
+    if (!MacroCompletionProvider.ACCEPTABLE_JINJA_PARTS.includes(jinjaPartType)) {
+      return Promise.resolve(undefined);
+    }
+
     const macroMatch = MacroCompletionProvider.MACRO_PATTERN.exec(jinjaBeforePositionText);
     if (macroMatch) {
       const packageName = macroMatch[0].slice(0, -1);

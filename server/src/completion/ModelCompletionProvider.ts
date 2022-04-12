@@ -1,5 +1,6 @@
 import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
+import { JinjaPartType } from '../JinjaParser';
 import { StringBuilder } from '../utils/StringBuilder';
 import { isQuote } from '../utils/TextUtils';
 import { DbtNodeCompletionProvider } from './DbtCompletionProvider';
@@ -8,12 +9,18 @@ export class ModelCompletionProvider implements DbtNodeCompletionProvider {
   static readonly MODEL_PATTERN = /ref\s*\(\s*['|"]?$/;
   static readonly PACKAGE_PATTERN = /ref\s*\(\s*('[^)']*'|"[^)"]*")\s*,\s*('|")$/;
 
+  static readonly ACCEPTABLE_JINJA_PARTS = [JinjaPartType.EXPRESSION_START];
+
   static readonly CURRENT_PACKAGE_SORT_PREFIX = '1';
   static readonly INSTALLED_PACKAGE_SORT_PREFIX = '2';
 
   constructor(private dbtRepository: DbtRepository) {}
 
-  provideCompletions(jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
+  provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
+    if (!ModelCompletionProvider.ACCEPTABLE_JINJA_PARTS.includes(jinjaPartType)) {
+      return Promise.resolve(undefined);
+    }
+
     const modelMatch = ModelCompletionProvider.MODEL_PATTERN.exec(jinjaBeforePositionText);
     if (modelMatch) {
       const lastChar = jinjaBeforePositionText.charAt(jinjaBeforePositionText.length - 1);

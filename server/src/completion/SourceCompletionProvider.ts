@@ -1,5 +1,6 @@
 import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
+import { JinjaPartType } from '../JinjaParser';
 import { StringBuilder } from '../utils/StringBuilder';
 import { isQuote } from '../utils/TextUtils';
 import { DbtNodeCompletionProvider } from './DbtCompletionProvider';
@@ -8,9 +9,15 @@ export class SourceCompletionProvider implements DbtNodeCompletionProvider {
   static readonly SOURCE_PATTERN = /source\s*\(\s*['|"]?$/;
   static readonly TABLE_PATTERN = /source\s*\(\s*('[^)']*'|"[^)"]*")\s*,\s*('|")$/;
 
+  static readonly ACCEPTABLE_JINJA_PARTS = [JinjaPartType.EXPRESSION_START];
+
   constructor(private dbtRepository: DbtRepository) {}
 
-  provideCompletions(jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
+  provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
+    if (!SourceCompletionProvider.ACCEPTABLE_JINJA_PARTS.includes(jinjaPartType)) {
+      return Promise.resolve(undefined);
+    }
+
     const sourceMatch = SourceCompletionProvider.SOURCE_PATTERN.exec(jinjaBeforePositionText);
     if (sourceMatch) {
       const lastChar = jinjaBeforePositionText.charAt(jinjaBeforePositionText.length - 1);

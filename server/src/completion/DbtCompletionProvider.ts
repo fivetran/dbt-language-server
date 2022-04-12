@@ -6,7 +6,7 @@ import { ModelCompletionProvider } from './ModelCompletionProvider';
 import { SourceCompletionProvider } from './SourceCompletionProvider';
 
 export interface DbtNodeCompletionProvider {
-  provideCompletions(jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined>;
+  provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined>;
 }
 
 export class DbtCompletionProvider {
@@ -20,27 +20,11 @@ export class DbtCompletionProvider {
     this.sourceCompletionProvider = new SourceCompletionProvider(this.dbtRepository);
   }
 
-  async provideCompletions(jinjaType: JinjaPartType, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
-    const modelCompletions =
-      jinjaType === JinjaPartType.EXPRESSION_START ? await this.modelCompletionProvider.provideCompletions(jinjaBeforePositionText) : undefined;
-    if (modelCompletions) {
-      return modelCompletions;
-    }
-
-    const sourceCompletions =
-      jinjaType === JinjaPartType.EXPRESSION_START ? await this.sourceCompletionProvider.provideCompletions(jinjaBeforePositionText) : undefined;
-    if (sourceCompletions) {
-      return sourceCompletions;
-    }
-
-    const macroCompletions =
-      jinjaType === JinjaPartType.EXPRESSION_START || jinjaType === JinjaPartType.BLOCK_START
-        ? await this.macroCompletionProvider.provideCompletions(jinjaBeforePositionText)
-        : undefined;
-    if (macroCompletions) {
-      return macroCompletions;
-    }
-
-    return undefined;
+  async provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
+    return (
+      (await this.modelCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText)) ??
+      (await this.sourceCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText)) ??
+      (await this.macroCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText))
+    );
   }
 }
