@@ -16,8 +16,7 @@ suite('Postgres destination', () => {
     );
   });
 
-  // TODO: fix flaky test
-  test.skip('Should provide ref definitions', async () => {
+  test('Should provide ref definitions', async () => {
     await activateAndWait(activeUsersOrdersCountDocUri);
 
     await assertDefinitions(activeUsersOrdersCountDocUri, new Position(1, 40), [

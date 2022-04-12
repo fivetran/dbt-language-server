@@ -36,14 +36,7 @@ export class DbtRepository {
     this.macros = macros;
     this.sources = sources;
 
-    this.clearManifestNodes();
     this.groupManifestNodes();
-  }
-
-  private clearManifestNodes(): void {
-    this.packageToModels.clear();
-    this.packageToMacros.clear();
-    this.packageToSources.clear();
   }
 
   private groupManifestNodes(): void {
@@ -53,33 +46,41 @@ export class DbtRepository {
   }
 
   private groupManifestModelNodes(): void {
+    const newPackageToModels = new Map<string, Set<ManifestModel>>();
+
     for (const model of this.models) {
-      let packageModels = this.packageToModels.get(model.packageName);
+      let packageModels = newPackageToModels.get(model.packageName);
       if (!packageModels) {
         packageModels = new Set();
-        this.packageToModels.set(model.packageName, packageModels);
+        newPackageToModels.set(model.packageName, packageModels);
       }
       packageModels.add(model);
     }
+    this.packageToModels = newPackageToModels;
   }
 
   private groupManifestMacroNodes(): void {
+    const newPackageToMacros = new Map<string, Set<ManifestMacro>>();
+
     for (const macro of this.macros) {
-      let packageMacros = this.packageToMacros.get(macro.packageName);
+      let packageMacros = newPackageToMacros.get(macro.packageName);
       if (!packageMacros) {
         packageMacros = new Set();
-        this.packageToMacros.set(macro.packageName, packageMacros);
+        newPackageToMacros.set(macro.packageName, packageMacros);
       }
       packageMacros.add(macro);
     }
+    this.packageToMacros = newPackageToMacros;
   }
 
   private groupManifestSourceNodes(): void {
+    const newPackageToSources = new Map<string, Map<string, Set<ManifestSource>>>();
+
     for (const source of this.sources) {
-      let packageSources = this.packageToSources.get(source.packageName);
+      let packageSources = newPackageToSources.get(source.packageName);
       if (!packageSources) {
         packageSources = new Map<string, Set<ManifestSource>>();
-        this.packageToSources.set(source.packageName, packageSources);
+        newPackageToSources.set(source.packageName, packageSources);
       }
 
       let sourceTables = packageSources.get(source.sourceName);
@@ -89,5 +90,6 @@ export class DbtRepository {
       }
       sourceTables.add(source);
     }
+    this.packageToSources = newPackageToSources;
   }
 }
