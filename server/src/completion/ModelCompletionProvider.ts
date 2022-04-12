@@ -54,22 +54,20 @@ export class ModelCompletionProvider implements DbtNodeCompletionProvider {
   }
 
   private getModelInsertText(packageName: string, name: string, lastChar: string): string {
-    const lastCharIsQuote = isQuote(lastChar);
+    const isQuoteProvided = isQuote(lastChar);
+    const quoteSymbol = isQuoteProvided ? lastChar : `'`;
 
     if (this.dbtRepository.projectName === packageName) {
-      return new StringBuilder().appendIf(!lastCharIsQuote, "'").append(name).appendIf(!lastCharIsQuote, "'").toString();
+      return new StringBuilder().append(name).wrapIf(!isQuoteProvided, quoteSymbol).toString();
     }
 
     return new StringBuilder()
-      .appendIf(!lastCharIsQuote, "'")
       .append(packageName)
-      .appendIf(!lastCharIsQuote, "'")
-      .appendIf(lastCharIsQuote, lastChar)
+      .append(quoteSymbol)
       .append(', ')
-      .appendIf(!lastCharIsQuote, "'")
-      .appendIf(lastCharIsQuote, lastChar)
+      .append(quoteSymbol)
       .append(name)
-      .appendIf(!lastCharIsQuote, "'")
+      .wrapIf(!isQuoteProvided, quoteSymbol)
       .toString();
   }
 }

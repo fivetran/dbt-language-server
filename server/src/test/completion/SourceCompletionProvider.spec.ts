@@ -78,7 +78,7 @@ describe('SourceCompletionProvider', () => {
   });
 
   it(`Shouldn't provide completions for unknown source`, async () => {
-    await shouldNotProvideCompletions(sourceCompletionProvider, `select * from {{ source('unknown_source', '`);
+    await shouldProvideCompletions(sourceCompletionProvider, `select * from {{ source('unknown_source', '`, []);
   });
 
   it(`Shouldn't provide completions for empty strings`, async () => {

@@ -53,7 +53,8 @@ export class SourceCompletionProvider implements DbtNodeCompletionProvider {
   }
 
   private getSourceInsertText(sourceName: string, lastChar: string): string {
-    const lastCharIsQuote = isQuote(lastChar);
-    return new StringBuilder().appendIf(!lastCharIsQuote, "'").append(sourceName).appendIf(!lastCharIsQuote, "'").toString();
+    const isQuoteProvided = isQuote(lastChar);
+    const quoteSymbol = isQuoteProvided ? lastChar : `'`;
+    return new StringBuilder().append(sourceName).wrapIf(!isQuoteProvided, quoteSymbol).toString();
   }
 }
