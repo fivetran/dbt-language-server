@@ -7,7 +7,7 @@ import { activateAndWait, getCustomDocUri, getTextInQuotesIfNeeded, setTestConte
 suite('Should suggest model completions', () => {
   const PROJECT_FILE_NAME = 'completion-jinja/models/completion_jinja.sql';
 
-  const MODELS_COMPLETIONS: [string, string][] = [
+  const MODELS_COMPLETIONS = [
     ['(my_new_project) completion_jinja', 'completion_jinja'],
     ['(my_new_project) join_ref', 'join_ref'],
     ['(my_new_project) test_table1', 'test_table1'],

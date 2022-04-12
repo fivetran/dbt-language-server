@@ -6,7 +6,7 @@ import { activateAndWait, getCustomDocUri, triggerCompletion } from '../helper';
 suite('Should suggest macros completions', () => {
   const PROJECT_FILE_NAME = 'postgres/models/active_users_orders_count.sql';
 
-  const MACROS_COMPLETIONS: [string, string][] = [
+  const MACROS_COMPLETIONS = [
     ['extract_first_name', 'extract_first_name'],
     ['extract_last_name', 'extract_last_name'],
   ];
