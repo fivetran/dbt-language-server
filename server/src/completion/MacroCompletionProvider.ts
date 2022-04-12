@@ -14,31 +14,29 @@ export class MacroCompletionProvider implements DbtNodeCompletionProvider {
 
   constructor(private dbtRepository: DbtRepository) {}
 
-  provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
+  async provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
     if (!MacroCompletionProvider.ACCEPTABLE_JINJA_PARTS.includes(jinjaPartType)) {
-      return Promise.resolve(undefined);
+      return undefined;
     }
 
     const macroMatch = MacroCompletionProvider.MACRO_PATTERN.exec(jinjaBeforePositionText);
     if (macroMatch) {
       const packageName = macroMatch[0].slice(0, -1);
       const packageMacros = this.dbtRepository.packageToMacros.get(packageName);
-      return Promise.resolve(packageMacros ? Array.from(packageMacros).map<CompletionItem>(m => this.getMacroCompletionItem(m.name)) : undefined);
+      return packageMacros ? Array.from(packageMacros).map<CompletionItem>(m => this.getMacroCompletionItem(m.name)) : undefined;
     }
 
     const wordMatch = MacroCompletionProvider.WORD_PATTERN.exec(jinjaBeforePositionText);
     if (wordMatch) {
-      return Promise.resolve(
-        this.dbtRepository.macros.map<CompletionItem>(m => {
-          if (m.packageName === this.dbtRepository.projectName) {
-            return this.getMacroCompletionItem(m.name, m.name, `${MacroCompletionProvider.CURRENT_PACKAGE_SORT_PREFIX}_${m.name}`);
-          }
+      return this.dbtRepository.macros.map<CompletionItem>(m => {
+        if (m.packageName === this.dbtRepository.projectName) {
+          return this.getMacroCompletionItem(m.name, m.name, `${MacroCompletionProvider.CURRENT_PACKAGE_SORT_PREFIX}_${m.name}`);
+        }
 
-          const label = `(${m.packageName}) ${m.name}`;
-          const insertText = `${m.packageName}.${m.name}`;
-          return this.getMacroCompletionItem(label, insertText, `${MacroCompletionProvider.INSTALLED_PACKAGE_SORT_PREFIX}_${label}`);
-        }),
-      );
+        const label = `(${m.packageName}) ${m.name}`;
+        const insertText = `${m.packageName}.${m.name}`;
+        return this.getMacroCompletionItem(label, insertText, `${MacroCompletionProvider.INSTALLED_PACKAGE_SORT_PREFIX}_${label}`);
+      });
     }
 
     return Promise.resolve(undefined);

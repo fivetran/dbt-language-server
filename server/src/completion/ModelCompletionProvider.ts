@@ -16,25 +16,23 @@ export class ModelCompletionProvider implements DbtNodeCompletionProvider {
 
   constructor(private dbtRepository: DbtRepository) {}
 
-  provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
+  async provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
     if (!ModelCompletionProvider.ACCEPTABLE_JINJA_PARTS.includes(jinjaPartType)) {
-      return Promise.resolve(undefined);
+      return undefined;
     }
 
     const modelMatch = ModelCompletionProvider.MODEL_PATTERN.exec(jinjaBeforePositionText);
     if (modelMatch) {
       const lastChar = jinjaBeforePositionText.charAt(jinjaBeforePositionText.length - 1);
-      return Promise.resolve(
-        this.dbtRepository.models.map<CompletionItem>(m => {
-          const label = `(${m.packageName}) ${m.name}`;
-          const insertText = this.getModelInsertText(m.packageName, m.name, lastChar);
-          const sortOrder =
-            this.dbtRepository.projectName === m.packageName
-              ? `${ModelCompletionProvider.CURRENT_PACKAGE_SORT_PREFIX}_${label}`
-              : `${ModelCompletionProvider.INSTALLED_PACKAGE_SORT_PREFIX}_${label}`;
-          return this.getModelCompletionItem(label, insertText, sortOrder);
-        }),
-      );
+      return this.dbtRepository.models.map<CompletionItem>(m => {
+        const label = `(${m.packageName}) ${m.name}`;
+        const insertText = this.getModelInsertText(m.packageName, m.name, lastChar);
+        const sortOrder =
+          this.dbtRepository.projectName === m.packageName
+            ? `${ModelCompletionProvider.CURRENT_PACKAGE_SORT_PREFIX}_${label}`
+            : `${ModelCompletionProvider.INSTALLED_PACKAGE_SORT_PREFIX}_${label}`;
+        return this.getModelCompletionItem(label, insertText, sortOrder);
+      });
     }
 
     const packageMatch = ModelCompletionProvider.PACKAGE_PATTERN.exec(jinjaBeforePositionText);
@@ -42,9 +40,7 @@ export class ModelCompletionProvider implements DbtNodeCompletionProvider {
       const [, dbtPackageMatch] = packageMatch;
       const dbtPackage = dbtPackageMatch.slice(1, -1);
       const packageModels = this.dbtRepository.packageToModels.get(dbtPackage);
-      return Promise.resolve(
-        packageModels ? Array.from(packageModels).map<CompletionItem>(m => this.getModelCompletionItem(m.name, m.name)) : undefined,
-      );
+      return packageModels ? Array.from(packageModels).map<CompletionItem>(m => this.getModelCompletionItem(m.name, m.name)) : undefined;
     }
 
     return Promise.resolve(undefined);

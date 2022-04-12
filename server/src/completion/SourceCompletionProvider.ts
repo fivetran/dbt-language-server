@@ -13,9 +13,9 @@ export class SourceCompletionProvider implements DbtNodeCompletionProvider {
 
   constructor(private dbtRepository: DbtRepository) {}
 
-  provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
+  async provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
     if (!SourceCompletionProvider.ACCEPTABLE_JINJA_PARTS.includes(jinjaPartType)) {
-      return Promise.resolve(undefined);
+      return undefined;
     }
 
     const sourceMatch = SourceCompletionProvider.SOURCE_PATTERN.exec(jinjaBeforePositionText);
@@ -31,20 +31,18 @@ export class SourceCompletionProvider implements DbtNodeCompletionProvider {
         }
       }
 
-      return Promise.resolve(completionItems);
+      return completionItems;
     }
 
     const tableMatch = SourceCompletionProvider.TABLE_PATTERN.exec(jinjaBeforePositionText);
     if (tableMatch) {
       const sourceName = tableMatch[1].slice(1, -1);
-      return Promise.resolve(
-        this.dbtRepository.sources
-          .filter(s => s.sourceName === sourceName)
-          .map<CompletionItem>(s => {
-            const label = this.dbtRepository.projectName === s.packageName ? s.name : `(${s.packageName}) ${s.name}`;
-            return this.getSourceCompletionItem(label, s.name, 'Table');
-          }),
-      );
+      return this.dbtRepository.sources
+        .filter(s => s.sourceName === sourceName)
+        .map<CompletionItem>(s => {
+          const label = this.dbtRepository.projectName === s.packageName ? s.name : `(${s.packageName}) ${s.name}`;
+          return this.getSourceCompletionItem(label, s.name, 'Table');
+        });
     }
 
     return Promise.resolve(undefined);
