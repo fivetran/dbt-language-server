@@ -88,7 +88,16 @@ export class LspServer {
   }
 
   onInitialize(params: InitializeParams): InitializeResult<any> | ResponseError<InitializeError> {
-    console.log(`Starting server for folder ${process.cwd()}`);
+    const cwd = process.cwd();
+    const id = cwd.substring(process.cwd().lastIndexOf('/') + 1);
+
+    const old = console.log;
+    console.log = (...args): void => {
+      Array.prototype.unshift.call(args, `${id}: `);
+      old.apply(console, args);
+    };
+
+    console.log(`Starting server for folder ${cwd}`);
 
     process.on('SIGTERM', () => this.onShutdown());
     process.on('SIGINT', () => this.onShutdown());
