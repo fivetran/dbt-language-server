@@ -46,6 +46,9 @@ export class DbtRepository {
   }
 
   private groupManifestModelNodes(): void {
+    console.log('groupManifestModelNodes');
+    console.log(JSON.stringify([...(this.packageToModels.get('dbt_postgres_test') ?? new Set())]));
+
     const newPackageToModels = new Map<string, Set<ManifestModel>>();
 
     for (const model of this.models) {
@@ -57,6 +60,8 @@ export class DbtRepository {
       packageModels.add(model);
     }
     this.packageToModels = newPackageToModels;
+    console.log('groupManifestModelNodes end');
+    console.log(JSON.stringify([...(this.packageToModels.get('dbt_postgres_test') ?? new Set())]));
   }
 
   private groupManifestMacroNodes(): void {
