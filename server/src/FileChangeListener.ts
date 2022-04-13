@@ -18,6 +18,7 @@ export class FileChangeListener {
   }
 
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
+    console.log(`onDidChangeWatchedFiles: ${params.changes.length} changes, ${params.changes[0].uri}`);
     for (const change of params.changes) {
       if (change.uri.endsWith(DbtRepository.DBT_PROJECT_FILE_NAME)) {
         this.onDbtProjectYmlChangedEmitter.fire();
@@ -39,6 +40,10 @@ export class FileChangeListener {
   updateManifestNodes(): void {
     try {
       const { models, macros, sources } = this.manifestParser.parse(this.yamlParser.findTargetPath());
+      console.log(
+        `Current state: ${this.dbtRepository.models.length} models, ${this.dbtRepository.macros.length} macros, ${this.dbtRepository.sources.length} sources`,
+      );
+      console.log(`updateManifestNodes: ${models.length} models, ${macros.length} macros, ${sources.length} sources`);
       this.dbtRepository.updateDbtNodes(models, macros, sources);
       this.dbtRepository.manifestExists = true;
     } catch (e) {
