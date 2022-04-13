@@ -360,9 +360,11 @@ export class DbtTextDocument {
   }
 
   onDefinition(definitionParams: DefinitionParams): DefinitionLink[] | undefined {
+    console.log('onDefinition');
     const jinjas = this.jinjaParser.findAllEffectiveJinjas(this.rawDocument);
     for (const jinja of jinjas) {
       if (positionInRange(definitionParams.position, jinja.range)) {
+        console.log('onDefinition positionInRange');
         const jinjaType = this.jinjaParser.getJinjaType(jinja.value);
         const currentPackage = DbtTextDocument.findCurrentPackage(this.rawDocument.uri, this.workspaceFolder, this.dbtRepository);
         return this.dbtDefinitionProvider.provideDefinitions(this.rawDocument, currentPackage, jinja, definitionParams.position, jinjaType);

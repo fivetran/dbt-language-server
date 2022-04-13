@@ -15,6 +15,7 @@ export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
   constructor(private dbtRepository: DbtRepository) {}
 
   provideDefinitions(document: TextDocument, position: Position, jinja: ParseNode, packageName: string): DefinitionLink[] | undefined {
+    console.log('provideDefinitions');
     const expressionLines = jinja.value.split('\n');
     const relativePosition = getRelativePosition(jinja.range, position);
     if (relativePosition === undefined) {
@@ -86,9 +87,13 @@ export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
   }
 
   searchModelDefinition(dbPackage: string, model: string, dbtModels: ManifestModel[], modelSelectionRange: Range): DefinitionLink[] | undefined {
+    console.log('searchModelDefinition');
+    console.log(dbtModels);
     const modelId = `model.${dbPackage.slice(1, -1)}.${model.slice(1, -1)}`;
     const foundModel = dbtModels.find(m => m.uniqueId === modelId);
     if (foundModel) {
+      console.log('foundModel');
+      console.log(foundModel);
       return [
         LocationLink.create(
           path.join(foundModel.rootPath, foundModel.originalFilePath),
