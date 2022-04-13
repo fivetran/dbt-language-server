@@ -335,14 +335,7 @@ export class LspServer {
     console.log(`onDidCloseTextDocumentDelayed ${params.textDocument.uri}`);
     if (this.openTextDocumentRequests.has(params.textDocument.uri)) {
       this.openTextDocumentRequests.delete(params.textDocument.uri);
-    } else {
-      this.onDidCloseTextDocument(params);
     }
-  }
-
-  onDidCloseTextDocument(params: DidCloseTextDocumentParams): void {
-    console.log(`onDidCloseTextDocument ${params.textDocument.uri}`);
-    this.openedDocuments.delete(params.textDocument.uri);
   }
 
   onHover(hoverParams: HoverParams): Hover | null | undefined {
