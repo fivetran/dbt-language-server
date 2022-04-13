@@ -4,8 +4,9 @@ import { Emitter, TextDocumentSaveReason, _Connection } from 'vscode-languageser
 import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
 import { DbtRepository } from '../DbtRepository';
 import { DbtRpcServer } from '../DbtRpcServer';
-import { DbtTextDocument } from '../DbtTextDocument';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
+import { DbtDocumentKind } from '../document/DbtDocumentKind';
+import { DbtTextDocument } from '../document/DbtTextDocument';
 import { JinjaParser } from '../JinjaParser';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProgressReporter } from '../ProgressReporter';
@@ -36,6 +37,7 @@ describe('DbtTextDocument', () => {
 
     document = new DbtTextDocument(
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
+      DbtDocumentKind.MODEL,
       '',
       mock<_Connection>(),
       mock(ProgressReporter),

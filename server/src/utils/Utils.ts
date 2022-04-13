@@ -148,3 +148,8 @@ export function extractDatasetFromFullName(fullName: string, tableName: string):
   }
   throw new Error("Can't extract dataset");
 }
+
+export function getFilePathRelatedToWorkspace(docUri: string, workspaceFolder: string): string {
+  const index = docUri.indexOf(workspaceFolder);
+  return docUri.slice(index + workspaceFolder.length + 1);
+}

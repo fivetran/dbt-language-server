@@ -32,6 +32,7 @@ export class FileChangeListener {
   updateDbtProjectConfig(): void {
     this.dbtRepository.dbtTargetPath = this.yamlParser.findTargetPath();
     this.dbtRepository.projectName = this.yamlParser.findProjectName();
+    this.dbtRepository.macroPaths = this.yamlParser.findMacroPaths();
     this.dbtRepository.modelPaths = this.yamlParser.findModelPaths();
     this.dbtRepository.packagesInstallPaths = this.yamlParser.findPackagesInstallPaths();
   }

@@ -31,10 +31,11 @@ import { DbtProfileCreator, DbtProfileError, DbtProfileResult, DbtProfileSuccess
 import { DbtRepository } from './DbtRepository';
 import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcServer } from './DbtRpcServer';
-import { DbtTextDocument } from './DbtTextDocument';
 import { getStringVersion } from './DbtVersion';
 import { Command } from './dbt_commands/Command';
 import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
+import { DbtDocumentKind } from './document/DbtDocumentKind';
+import { DbtTextDocument } from './document/DbtTextDocument';
 import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
 import { JinjaParser } from './JinjaParser';
@@ -42,8 +43,9 @@ import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
-import { deferred } from './utils/Utils';
+import { deferred, getFilePathRelatedToWorkspace } from './utils/Utils';
 import { YamlParser } from './YamlParser';
+import path = require('path');
 
 interface TelemetryEvent {
   name: string;
@@ -288,8 +290,15 @@ export class LspServer {
         return;
       }
 
+      const dbtDocumentKind = this.getDbtDocumentKind(this.workspaceFolder, uri);
+      if (![DbtDocumentKind.MACRO, DbtDocumentKind.MODEL].includes(dbtDocumentKind)) {
+        console.log('Not supported dbt document kind');
+        return;
+      }
+
       document = new DbtTextDocument(
         params.textDocument,
+        dbtDocumentKind,
         this.workspaceFolder,
         this.connection,
         this.progressReporter,
@@ -306,6 +315,31 @@ export class LspServer {
 
       await document.didOpenTextDocument(!this.dbtRepository.manifestExists);
     }
+  }
+
+  getDbtDocumentKind(workspaceFolder: string, uri: string): DbtDocumentKind {
+    const filePath = getFilePathRelatedToWorkspace(uri, workspaceFolder);
+
+    if (this.dbtRepository.macroPaths.some(p => filePath.startsWith(p + path.sep))) {
+      return DbtDocumentKind.MACRO;
+    }
+    if (this.dbtRepository.modelPaths.some(p => filePath.startsWith(p + path.sep))) {
+      return DbtDocumentKind.MODEL;
+    }
+
+    if (this.dbtRepository.packagesInstallPaths.some(p => filePath.startsWith(p))) {
+      // let currentPath = uri;
+      // do {
+      //   currentPath = path.resolve(currentPath, '..');
+      //   try {
+      //     fs.statSync(path.resolve(currentPath, DbtRepository.DBT_PROJECT_FILE_NAME));
+      //   } catch (e) {
+      //     // file does not exist
+      //   }
+      // } while (path.resolve(currentPath) !== path.resolve(workspaceFolder));
+    }
+
+    return DbtDocumentKind.UNKNOWN;
   }
 
   async onDidChangeTextDocument(params: DidChangeTextDocumentParams): Promise<void> {

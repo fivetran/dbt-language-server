@@ -21,23 +21,24 @@ import {
   _Connection,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { BigQueryContext } from './bigquery/BigQueryContext';
-import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
-import { DbtRepository } from './DbtRepository';
-import { DbtRpcServer } from './DbtRpcServer';
-import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
-import { DiagnosticGenerator } from './DiagnosticGenerator';
-import { Diff } from './Diff';
-import { HoverProvider } from './HoverProvider';
-import { JinjaParser, JinjaPartType } from './JinjaParser';
-import { ModelCompiler } from './ModelCompiler';
-import { ProgressReporter } from './ProgressReporter';
-import { SignatureHelpProvider } from './SignatureHelpProvider';
-import { SqlCompletionProvider } from './SqlCompletionProvider';
-import { SqlRefConverter } from './SqlRefConverter';
-import { getTextRangeBeforeBracket } from './utils/TextUtils';
-import { comparePositions, debounce, getIdentifierRangeAtPosition, positionInRange } from './utils/Utils';
-import { ZetaSqlAst } from './ZetaSqlAst';
+import { BigQueryContext } from '../bigquery/BigQueryContext';
+import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
+import { DbtRepository } from '../DbtRepository';
+import { DbtRpcServer } from '../DbtRpcServer';
+import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
+import { DiagnosticGenerator } from '../DiagnosticGenerator';
+import { Diff } from '../Diff';
+import { HoverProvider } from '../HoverProvider';
+import { JinjaParser, JinjaPartType } from '../JinjaParser';
+import { ModelCompiler } from '../ModelCompiler';
+import { ProgressReporter } from '../ProgressReporter';
+import { SignatureHelpProvider } from '../SignatureHelpProvider';
+import { SqlCompletionProvider } from '../SqlCompletionProvider';
+import { SqlRefConverter } from '../SqlRefConverter';
+import { getTextRangeBeforeBracket } from '../utils/TextUtils';
+import { comparePositions, debounce, getFilePathRelatedToWorkspace, getIdentifierRangeAtPosition, positionInRange } from '../utils/Utils';
+import { ZetaSqlAst } from '../ZetaSqlAst';
+import { DbtDocumentKind } from './DbtDocumentKind';
 
 export class DbtTextDocument {
   static DEBOUNCE_TIMEOUT = 300;
@@ -59,6 +60,7 @@ export class DbtTextDocument {
 
   constructor(
     doc: TextDocumentItem,
+    private dbtDocumentKind: DbtDocumentKind,
     private workspaceFolder: string,
     private connection: _Connection,
     private progressReporter: ProgressReporter,
@@ -87,7 +89,8 @@ export class DbtTextDocument {
       this.firstSave &&
       !this.requireCompileOnSave &&
       reason !== TextDocumentSaveReason.AfterDelay &&
-      this.jinjaParser.hasJinjas(this.rawDocument.getText())
+      this.jinjaParser.hasJinjas(this.rawDocument.getText()) &&
+      this.dbtDocumentKind === DbtDocumentKind.MODEL
     ) {
       this.requireCompileOnSave = true;
     }
@@ -152,6 +155,10 @@ export class DbtTextDocument {
   }
 
   isDbtCompileNeeded(changes: TextDocumentContentChangeEvent[]): boolean {
+    if (this.dbtDocumentKind !== DbtDocumentKind.MODEL) {
+      return false;
+    }
+
     if (this.modelCompiler.compilationInProgress) {
       return true;
     }
@@ -210,13 +217,8 @@ export class DbtTextDocument {
     return DbtTextDocument.getModelPathOrFullyQualifiedName(this.rawDocument.uri, this.workspaceFolder, this.dbtRepository);
   }
 
-  static getFilePathRelatedToWorkspace(docUri: string, workspaceFolder: string): string {
-    const index = docUri.indexOf(workspaceFolder);
-    return docUri.slice(index + workspaceFolder.length + 1);
-  }
-
   static getModelPathOrFullyQualifiedName(docUri: string, workspaceFolder: string, dbtRepository: DbtRepository): string {
-    const filePath = this.getFilePathRelatedToWorkspace(docUri, workspaceFolder);
+    const filePath = getFilePathRelatedToWorkspace(docUri, workspaceFolder);
     if (dbtRepository.packagesInstallPaths.some(p => filePath.startsWith(p))) {
       const startWithPackagesFolder = new RegExp(`^(${dbtRepository.packagesInstallPaths.join('|')}).`);
       return filePath.replaceAll('/', '.').replace(startWithPackagesFolder, '').replace('models.', '').replace(/.sql$/, '');
@@ -225,7 +227,7 @@ export class DbtTextDocument {
   }
 
   static findCurrentPackage(docUri: string, workspaceFolder: string, dbtRepository: DbtRepository): string | undefined {
-    const filePath = DbtTextDocument.getFilePathRelatedToWorkspace(docUri, workspaceFolder);
+    const filePath = getFilePathRelatedToWorkspace(docUri, workspaceFolder);
     if (dbtRepository.packagesInstallPaths.some(p => filePath.startsWith(p))) {
       const withoutPackagesFolder = filePath.replace(new RegExp(`^(${dbtRepository.packagesInstallPaths.join('|')})/`), '');
       return withoutPackagesFolder.substring(0, withoutPackagesFolder.indexOf('/'));
@@ -272,7 +274,7 @@ export class DbtTextDocument {
     let rawDocDiagnostics: Diagnostic[] = [];
     let compiledDocDiagnostics: Diagnostic[] = [];
 
-    if (this.bigQueryContext) {
+    if (this.bigQueryContext && this.dbtDocumentKind === DbtDocumentKind.MODEL) {
       await this.bigQueryContext.ensureCatalogInitialized(this.compiledDocument);
       const astResult = await this.bigQueryContext.getAstOrError(this.compiledDocument);
       if (astResult.isOk()) {
@@ -312,7 +314,12 @@ export class DbtTextDocument {
     if (dbtCompletionItems) {
       return dbtCompletionItems;
     }
-    return this.getSqlCompletions(completionParams);
+
+    if (this.dbtDocumentKind === DbtDocumentKind.MODEL) {
+      return this.getSqlCompletions(completionParams);
+    }
+
+    return undefined;
   }
 
   async getDbtCompletionItems(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {

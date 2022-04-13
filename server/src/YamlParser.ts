@@ -20,6 +20,15 @@ export class YamlParser {
     }
   }
 
+  findMacroPaths(): string[] {
+    try {
+      const dbtProject = YamlParser.parseYamlFile(DbtRepository.DBT_PROJECT_FILE_NAME);
+      return (dbtProject[DbtRepository.MACRO_PATHS_FIELD] ?? DbtRepository.DEFAULT_MACRO_PATHS) as string[];
+    } catch (e) {
+      return DbtRepository.DEFAULT_MACRO_PATHS;
+    }
+  }
+
   findModelPaths(): string[] {
     try {
       const dbtProject = YamlParser.parseYamlFile(DbtRepository.DBT_PROJECT_FILE_NAME);

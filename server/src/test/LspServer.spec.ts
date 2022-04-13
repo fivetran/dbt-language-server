@@ -3,8 +3,9 @@ import { Emitter, TextDocumentIdentifier, _Connection } from 'vscode-languageser
 import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
 import { DbtRepository } from '../DbtRepository';
-import { DbtTextDocument } from '../DbtTextDocument';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
+import { DbtDocumentKind } from '../document/DbtDocumentKind';
+import { DbtTextDocument } from '../document/DbtTextDocument';
 import { JinjaParser } from '../JinjaParser';
 import { LspServer } from '../LspServer';
 import { ModelCompiler } from '../ModelCompiler';
@@ -48,6 +49,7 @@ describe('LspServer', () => {
 
     document = new DbtTextDocument(
       { uri: OPENED_URI, languageId: SQL_LANGUAGE_ID, version: 1, text: TEXT },
+      DbtDocumentKind.MODEL,
       '',
       mock<_Connection>(),
       mock(ProgressReporter),
