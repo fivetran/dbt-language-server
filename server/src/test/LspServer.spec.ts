@@ -84,6 +84,9 @@ describe('LspServer', () => {
   });
 
   it('Should open document if server did not receive close request in debounce period', async () => {
+    // arrange
+    lspServer.isLanguageServerReady = (): Promise<boolean> => Promise.resolve(true);
+
     // act
     const onDidOpenEnded = lspServer.onDidOpenTextDocumentDelayed({
       textDocument: {
@@ -102,6 +105,7 @@ describe('LspServer', () => {
 
   it('Should compile after declined open request', async () => {
     // arrange
+    lspServer.isLanguageServerReady = (): Promise<boolean> => Promise.resolve(true);
     const openDocumentParams = {
       textDocument: {
         uri: LINKED_URI,

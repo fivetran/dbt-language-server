@@ -12,13 +12,13 @@ export class DbtRepository {
   static readonly MODULE_PATH = 'module-path';
 
   static readonly TARGET_PATH_FIELD = 'target-path';
-  static readonly DEFAULT_TARGET_PATH = './target';
+  static readonly DEFAULT_TARGET_PATH = 'target';
 
   static readonly DEFAULT_MODEL_PATHS = ['models'];
   static readonly DEFAULT_PACKAGES_PATHS = ['dbt_packages', 'dbt_modules'];
 
   manifestExists = false;
-  dbtTargetPath?: string;
+  dbtTargetPath = DbtRepository.DEFAULT_TARGET_PATH;
   projectName?: string;
   modelPaths: string[] = DbtRepository.DEFAULT_MODEL_PATHS;
   packagesInstallPaths: string[] = DbtRepository.DEFAULT_PACKAGES_PATHS;
