@@ -1,4 +1,5 @@
-import { SimpleType, TypeKind } from '@fivetrandevelopers/zetasql';
+import { TypeKind } from '@fivetrandevelopers/zetasql';
+import { Type } from '@fivetrandevelopers/zetasql/lib/Type';
 import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { Hover, MarkupKind } from 'vscode-languageserver';
 import { HelpProviderWords } from './HelpProviderWords';
@@ -54,7 +55,7 @@ export class HoverProvider {
   }
 
   getColumnHint(tableName?: string, columnName?: string, columnTypeKind?: TypeKind): string {
-    const type = columnTypeKind ? new SimpleType(columnTypeKind).getTypeName() : 'unknown';
+    const type = columnTypeKind ? Type.TYPE_KIND_NAMES[columnTypeKind] : 'unknown';
     return `Table: ${tableName}\nColumn: ${columnName}\nType: ${type}`;
   }
 }
