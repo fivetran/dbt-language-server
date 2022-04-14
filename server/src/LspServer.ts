@@ -53,8 +53,7 @@ interface TelemetryEvent {
 export class LspServer {
   static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
 
-  workspaceFolder?: string;
-
+  workspaceFolder: string;
   hasConfigurationCapability = false;
   dbtRpcServer = new DbtRpcServer();
   dbtRpcClient = new DbtRpcClient();
@@ -79,16 +78,28 @@ export class LspServer {
   openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
 
   constructor(private connection: _Connection) {
+    this.workspaceFolder = process.cwd();
+    LspServer.prepareLogger(this.workspaceFolder);
     this.progressReporter = new ProgressReporter(this.connection);
-    this.fileChangeListener = new FileChangeListener(this.yamlParser, this.manifestParser, this.dbtRepository);
+    this.fileChangeListener = new FileChangeListener(this.workspaceFolder, this.yamlParser, this.manifestParser, this.dbtRepository);
     this.completionProvider = new SqlCompletionProvider();
     this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);
     this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
     this.fileChangeListener.onDbtProjectYmlChanged(this.onDbtProjectYmlChanged.bind(this));
   }
 
+  static prepareLogger(workspaceFolder: string): void {
+    const id = workspaceFolder.substring(workspaceFolder.lastIndexOf('/') + 1);
+
+    const old = console.log;
+    console.log = (...args): void => {
+      Array.prototype.unshift.call(args, `${id}: `);
+      old.apply(console, args);
+    };
+  }
+
   onInitialize(params: InitializeParams): InitializeResult<any> | ResponseError<InitializeError> {
-    console.log(`Starting server for folder ${process.cwd()}`);
+    console.log(`Starting server for folder ${this.workspaceFolder}`);
 
     process.on('SIGTERM', () => this.onShutdown());
     process.on('SIGINT', () => this.onShutdown());
@@ -101,8 +112,6 @@ export class LspServer {
     // Does the client support the `workspace/configuration` request?
     // If not, we fall back using global settings.
     this.hasConfigurationCapability = Boolean(capabilities.workspace?.configuration);
-
-    this.workspaceFolder = process.cwd();
 
     return {
       capabilities: {
@@ -278,11 +287,6 @@ export class LspServer {
     const { uri } = params.textDocument;
     let document = this.openedDocuments.get(uri);
 
-    if (this.workspaceFolder === undefined) {
-      console.log('Current working directory is not specified');
-      return;
-    }
-
     if (!document) {
       if (!(await this.isLanguageServerReady())) {
         return;
@@ -330,13 +334,7 @@ export class LspServer {
   onDidCloseTextDocumentDelayed(params: DidCloseTextDocumentParams): void {
     if (this.openTextDocumentRequests.has(params.textDocument.uri)) {
       this.openTextDocumentRequests.delete(params.textDocument.uri);
-    } else {
-      this.onDidCloseTextDocument(params);
     }
-  }
-
-  onDidCloseTextDocument(params: DidCloseTextDocumentParams): void {
-    this.openedDocuments.delete(params.textDocument.uri);
   }
 
   onHover(hoverParams: HoverParams): Hover | null | undefined {

@@ -47,9 +47,6 @@ export class FeatureFinder {
     ]);
 
     const [dbtRpcPythonVersion, dbtPythonVersion, dbtRpcGlobalVersion, dbtGlobalVersion] = settledResults.map(v => {
-      if (v.status === 'rejected') {
-        console.log(`Rejection reason during find dbt command: ${v.reason}`);
-      }
       return v.status === 'fulfilled' ? v.value : undefined;
     });
 

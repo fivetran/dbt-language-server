@@ -1,3 +1,4 @@
+import path = require('path');
 import { DidChangeWatchedFilesParams, Emitter, Event } from 'vscode-languageserver';
 import { DbtRepository } from './DbtRepository';
 import { ManifestParser } from './manifest/ManifestParser';
@@ -6,7 +7,12 @@ import { YamlParser } from './YamlParser';
 export class FileChangeListener {
   private onDbtProjectYmlChangedEmitter = new Emitter<void>();
 
-  constructor(private yamlParser: YamlParser, private manifestParser: ManifestParser, private dbtRepository: DbtRepository) {}
+  constructor(
+    private workspaceFolder: string,
+    private yamlParser: YamlParser,
+    private manifestParser: ManifestParser,
+    private dbtRepository: DbtRepository,
+  ) {}
 
   get onDbtProjectYmlChanged(): Event<void> {
     return this.onDbtProjectYmlChangedEmitter.event;
@@ -18,12 +24,14 @@ export class FileChangeListener {
   }
 
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
+    const dbtProjectYmlPath = path.resolve(this.workspaceFolder, DbtRepository.DBT_PROJECT_FILE_NAME);
+    const manifestJsonPath = path.resolve(this.workspaceFolder, this.dbtRepository.dbtTargetPath, DbtRepository.DBT_MANIFEST_FILE_NAME);
     for (const change of params.changes) {
-      if (change.uri.endsWith(DbtRepository.DBT_PROJECT_FILE_NAME)) {
+      if (change.uri.endsWith(dbtProjectYmlPath)) {
         this.onDbtProjectYmlChangedEmitter.fire();
         this.updateDbtProjectConfig();
         this.updateManifestNodes();
-      } else if (change.uri.endsWith(`${this.resolveTargetPath()}/${DbtRepository.DBT_MANIFEST_FILE_NAME}`)) {
+      } else if (change.uri.endsWith(manifestJsonPath)) {
         this.updateManifestNodes();
       }
     }
@@ -45,9 +53,5 @@ export class FileChangeListener {
       this.dbtRepository.manifestExists = false;
       console.log(`Failed to read ${ManifestParser.MANIFEST_FILE_NAME}`, e);
     }
-  }
-
-  resolveTargetPath(): string {
-    return this.dbtRepository.dbtTargetPath ?? DbtRepository.DEFAULT_TARGET_PATH;
   }
 }
