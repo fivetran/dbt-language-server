@@ -1,13 +1,13 @@
 with recursive referrers as (
     select id as user_id, referrer_id
-    from {{ source('new_project', 'users') }}
+    from `singular-vector-135519.dbt_ls_e2e_dataset.users`
+    where referrer_id is not null
 
     union all
 
-    select rf1.user_id as user_id, rf2.referrer_id as referrer_id
-    from referrers rf1
-        inner join referrers rf2 on rf1.referrer_id = rf2.user_id
-    where not exists (select * from referrers where user_id = rf1.user_id and referrer_id = rf2.referrer_id)
+    select u.id as used_id, rf.referrer_id as referrer_id
+    from `singular-vector-135519.dbt_ls_e2e_dataset.users` u
+        inner join referrers rf on u.referrer_id = rf.user_id
 )
 
 select *
