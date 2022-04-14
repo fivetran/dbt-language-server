@@ -4,10 +4,10 @@ with recursive referrers as (
 
     union all
 
-    select rf1.id as user_id, rf2.referrer_id as referrer_id
+    select rf1.user_id as user_id, rf2.referrer_id as referrer_id
     from referrers rf1
-        inner join referrers rf2 on rf1.referrer_id = rf2.id
-    where not exists (select * from referrers where user_id = rf1.id and referrer_id = rf2.referrer_id)
+        inner join referrers rf2 on rf1.referrer_id = rf2.user_id
+    where not exists (select * from referrers where user_id = rf1.user_id and referrer_id = rf2.referrer_id)
 )
 
 select *
