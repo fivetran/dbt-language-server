@@ -10,7 +10,6 @@ import {
 } from '@fivetrandevelopers/zetasql';
 import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
-import { LanguageFeature } from '@fivetrandevelopers/zetasql/lib/types/zetasql/LanguageFeature';
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ExtractTableNamesFromStatementResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ExtractTableNamesFromStatementResponse';
 import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRecordType';
@@ -129,7 +128,6 @@ export class ZetaSqlWrapper {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- builtinFunctionOptions from external lib can be null
     if (!this.catalog.builtinFunctionOptions) {
       const languageOptions = await new LanguageOptions().enableMaximumLanguageFeatures();
-      languageOptions.options.enabledLanguageFeatures?.push(LanguageFeature.FEATURE_V_1_3_WITH_RECURSIVE);
       await this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions(languageOptions));
     }
   }
