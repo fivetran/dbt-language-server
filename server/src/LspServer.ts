@@ -332,7 +332,6 @@ export class LspServer {
   }
 
   onDidCloseTextDocumentDelayed(params: DidCloseTextDocumentParams): void {
-    console.log(`onDidCloseTextDocumentDelayed ${params.textDocument.uri}`);
     if (this.openTextDocumentRequests.has(params.textDocument.uri)) {
       this.openTextDocumentRequests.delete(params.textDocument.uri);
     }
@@ -358,7 +357,6 @@ export class LspServer {
   }
 
   onDefinition(definitionParams: DefinitionParams): DefinitionLink[] | undefined {
-    console.log(`opened docs: ${[...this.openedDocuments.keys()]}`);
     const document = this.openedDocuments.get(definitionParams.textDocument.uri);
     return document?.onDefinition(definitionParams);
   }

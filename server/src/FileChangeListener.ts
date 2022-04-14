@@ -24,7 +24,6 @@ export class FileChangeListener {
   }
 
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
-    console.log(`onDidChangeWatchedFiles: ${params.changes.length} changes, ${params.changes[0].uri}`);
     const dbtProjectYmlPath = path.resolve(this.workspaceFolder, DbtRepository.DBT_PROJECT_FILE_NAME);
     const manifestJsonPath = path.resolve(this.workspaceFolder, this.dbtRepository.dbtTargetPath, DbtRepository.DBT_MANIFEST_FILE_NAME);
     for (const change of params.changes) {
@@ -48,10 +47,6 @@ export class FileChangeListener {
   updateManifestNodes(): void {
     try {
       const { models, macros, sources } = this.manifestParser.parse(this.yamlParser.findTargetPath());
-      console.log(
-        `Current state: ${this.dbtRepository.models.length} models, ${this.dbtRepository.macros.length} macros, ${this.dbtRepository.sources.length} sources`,
-      );
-      console.log(`updateManifestNodes: ${models.length} models, ${macros.length} macros, ${sources.length} sources`);
       this.dbtRepository.updateDbtNodes(models, macros, sources);
       this.dbtRepository.manifestExists = true;
     } catch (e) {
