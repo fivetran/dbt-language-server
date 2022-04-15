@@ -329,7 +329,7 @@ export class LspServer {
     }
 
     if (this.dbtRepository.packagesInstallPaths.some(p => filePath.startsWith(p))) {
-      let currentPath = uri;
+      let currentPath = path.resolve(workspaceFolder, filePath);
       do {
         currentPath = path.resolve(currentPath, '..');
         try {
@@ -338,9 +338,9 @@ export class LspServer {
         } catch (e) {
           // file does not exist
         }
-      } while (path.resolve(currentPath) !== path.resolve(workspaceFolder));
+      } while (currentPath !== workspaceFolder);
 
-      if (path.resolve(currentPath) === path.resolve(workspaceFolder)) {
+      if (currentPath === workspaceFolder) {
         return DbtDocumentKind.UNKNOWN;
       }
 
@@ -352,10 +352,11 @@ export class LspServer {
           dbtProject[DbtRepository.SOURCE_PATHS_FIELD] ??
           DbtRepository.DEFAULT_MODEL_PATHS) as string[];
 
-        if (packageMacroPaths.some(p => filePath.startsWith(p + path.sep))) {
+        const pathRelativeToPackage = getFilePathRelatedToWorkspace(uri, currentPath);
+        if (packageMacroPaths.some(p => pathRelativeToPackage.startsWith(p + path.sep))) {
           return DbtDocumentKind.MACRO;
         }
-        if (packageModelPaths.some(p => filePath.startsWith(p + path.sep))) {
+        if (packageModelPaths.some(p => pathRelativeToPackage.startsWith(p + path.sep))) {
           return DbtDocumentKind.MODEL;
         }
       } catch (e) {
