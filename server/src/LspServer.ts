@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import { Result } from 'neverthrow';
 import { performance } from 'perf_hooks';
 import {
@@ -328,15 +329,38 @@ export class LspServer {
     }
 
     if (this.dbtRepository.packagesInstallPaths.some(p => filePath.startsWith(p))) {
-      // let currentPath = uri;
-      // do {
-      //   currentPath = path.resolve(currentPath, '..');
-      //   try {
-      //     fs.statSync(path.resolve(currentPath, DbtRepository.DBT_PROJECT_FILE_NAME));
-      //   } catch (e) {
-      //     // file does not exist
-      //   }
-      // } while (path.resolve(currentPath) !== path.resolve(workspaceFolder));
+      let currentPath = uri;
+      do {
+        currentPath = path.resolve(currentPath, '..');
+        try {
+          fs.statSync(path.resolve(currentPath, DbtRepository.DBT_PROJECT_FILE_NAME));
+          break;
+        } catch (e) {
+          // file does not exist
+        }
+      } while (path.resolve(currentPath) !== path.resolve(workspaceFolder));
+
+      if (path.resolve(currentPath) === path.resolve(workspaceFolder)) {
+        return DbtDocumentKind.UNKNOWN;
+      }
+
+      try {
+        const dbtProject = YamlParser.parseYamlFile(path.resolve(currentPath, DbtRepository.DBT_PROJECT_FILE_NAME));
+
+        const packageMacroPaths = (dbtProject[DbtRepository.MACRO_PATHS_FIELD] ?? DbtRepository.DEFAULT_MACRO_PATHS) as string[];
+        const packageModelPaths = (dbtProject[DbtRepository.MODEL_PATHS_FIELD] ??
+          dbtProject[DbtRepository.SOURCE_PATHS_FIELD] ??
+          DbtRepository.DEFAULT_MODEL_PATHS) as string[];
+
+        if (packageMacroPaths.some(p => filePath.startsWith(p + path.sep))) {
+          return DbtDocumentKind.MACRO;
+        }
+        if (packageModelPaths.some(p => filePath.startsWith(p + path.sep))) {
+          return DbtDocumentKind.MODEL;
+        }
+      } catch (e) {
+        return DbtDocumentKind.UNKNOWN;
+      }
     }
 
     return DbtDocumentKind.UNKNOWN;
