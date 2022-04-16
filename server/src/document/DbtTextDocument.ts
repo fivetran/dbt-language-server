@@ -239,13 +239,15 @@ export class DbtTextDocument {
 
   onCompilationError(dbtCompilationError: string): void {
     this.hasDbtError = true;
+    TextDocument.update(this.compiledDocument, [{ text: this.rawDocument.getText() }], this.compiledDocument.version);
+
     const diagnostics = this.diagnosticGenerator.getDbtErrorDiagnostics(
       dbtCompilationError,
       this.getModelPathOrFullyQualifiedName(),
       this.workspaceFolder,
     );
 
-    this.sendUpdateQueryPreview(this.rawDocument.getText());
+    this.sendUpdateQueryPreview();
     this.sendDiagnostics(diagnostics, diagnostics);
   }
 
@@ -264,7 +266,7 @@ export class DbtTextDocument {
 
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
     const [rawDocDiagnostics, compiledDocDiagnostics] = await this.createDiagnostics();
-    this.sendUpdateQueryPreview(compiledSql);
+    this.sendUpdateQueryPreview();
     this.sendDiagnostics(rawDocDiagnostics, compiledDocDiagnostics);
 
     if (!this.modelCompiler.compilationInProgress) {
@@ -292,8 +294,8 @@ export class DbtTextDocument {
     return [rawDocDiagnostics, compiledDocDiagnostics];
   }
 
-  sendUpdateQueryPreview(previewText: string): void {
-    this.connection.sendNotification('custom/updateQueryPreview', { uri: this.rawDocument.uri, previewText });
+  sendUpdateQueryPreview(): void {
+    this.connection.sendNotification('custom/updateQueryPreview', { uri: this.rawDocument.uri, previewText: this.compiledDocument.getText() });
   }
 
   sendDiagnostics(rawDocDiagnostics: Diagnostic[], compiledDocDiagnostics: Diagnostic[]): void {
