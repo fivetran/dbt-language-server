@@ -22,6 +22,13 @@ describe('Diff', () => {
     ]);
   });
 
+  it('inner_join', () => {
+    shouldReturnCorrespondingLineNumber('inner_join', [
+      [2, 7],
+      [3, 8],
+    ]);
+  });
+
   it('jinja_at_the_end', () => {
     shouldReturnCorrespondingLineNumber('jinja_at_the_end', [
       [0, 0],

@@ -1,4 +1,4 @@
-import { diffLines } from 'diff';
+import { diffWords } from 'diff';
 import * as fastDiff from 'fast-diff';
 
 export class Diff {
@@ -49,7 +49,7 @@ export class Diff {
   }
 
   static getOldNumber(oldString: string, newString: string, newNumber: number, countFromDiff: (str: string) => number): number {
-    const diffs = diffLines(oldString, newString, { ignoreWhitespace: false, newlineIsToken: true });
+    const diffs = diffWords(oldString, newString, { ignoreWhitespace: false });
     if (diffs.length === 0) {
       return newNumber;
     }
