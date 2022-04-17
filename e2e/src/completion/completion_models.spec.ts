@@ -49,6 +49,8 @@ suite('Should suggest model completions', () => {
     const actualLabels = actualCompletionList.items.map(i => i.label as string);
     getCompletionList(false).forEach(i => assertThat(actualLabels, not(contains(i.label as string))));
     getCompletionList(true).forEach(i => assertThat(actualLabels, not(contains(i.label as string))));
+
+    await setTestContent('-- Some comment'); // Reset file content to avoid errors
   });
 
   function getCompletionList(withQuotes: boolean): CompletionItem[] {
