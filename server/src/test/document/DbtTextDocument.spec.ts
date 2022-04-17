@@ -1,17 +1,17 @@
 import { assertThat } from 'hamjest';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentSaveReason, _Connection } from 'vscode-languageserver';
-import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
-import { DbtRepository } from '../DbtRepository';
-import { DbtRpcServer } from '../DbtRpcServer';
-import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
-import { DbtDocumentKind } from '../document/DbtDocumentKind';
-import { DbtTextDocument } from '../document/DbtTextDocument';
-import { JinjaParser } from '../JinjaParser';
-import { ModelCompiler } from '../ModelCompiler';
-import { ProgressReporter } from '../ProgressReporter';
-import { SqlCompletionProvider } from '../SqlCompletionProvider';
-import { sleep } from './helper';
+import { DbtCompletionProvider } from '../../completion/DbtCompletionProvider';
+import { DbtRepository } from '../../DbtRepository';
+import { DbtRpcServer } from '../../DbtRpcServer';
+import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
+import { DbtDocumentKind } from '../../document/DbtDocumentKind';
+import { DbtTextDocument } from '../../document/DbtTextDocument';
+import { JinjaParser } from '../../JinjaParser';
+import { ModelCompiler } from '../../ModelCompiler';
+import { ProgressReporter } from '../../ProgressReporter';
+import { SqlCompletionProvider } from '../../SqlCompletionProvider';
+import { sleep } from '../helper';
 
 describe('DbtTextDocument', () => {
   const TEXT = 'select 1;';
