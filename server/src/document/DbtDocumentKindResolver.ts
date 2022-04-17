@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import { DbtRepository } from '../DbtRepository';
 import { getFilePathRelatedToWorkspace } from '../utils/Utils';
 import { YamlParser } from '../YamlParser';
