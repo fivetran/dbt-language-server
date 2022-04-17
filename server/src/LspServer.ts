@@ -1,4 +1,3 @@
-import * as fs from 'fs';
 import { Result } from 'neverthrow';
 import { performance } from 'perf_hooks';
 import {
@@ -36,6 +35,7 @@ import { getStringVersion } from './DbtVersion';
 import { Command } from './dbt_commands/Command';
 import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
 import { DbtDocumentKind } from './document/DbtDocumentKind';
+import { DbtDocumentKindResolver } from './document/DbtDocumentKindResolver';
 import { DbtTextDocument } from './document/DbtTextDocument';
 import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
@@ -44,9 +44,8 @@ import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
-import { deferred, getFilePathRelatedToWorkspace } from './utils/Utils';
+import { deferred } from './utils/Utils';
 import { YamlParser } from './YamlParser';
-import path = require('path');
 
 interface TelemetryEvent {
   name: string;
@@ -72,6 +71,7 @@ export class LspServer {
   manifestParser = new ManifestParser();
   dbtRepository = new DbtRepository();
   featureFinder = new FeatureFinder();
+  dbtDocumentKindResolver = new DbtDocumentKindResolver(this.dbtRepository);
   initStart = performance.now();
   initDbtRpcAttempt = 0;
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
@@ -291,7 +291,7 @@ export class LspServer {
         return;
       }
 
-      const dbtDocumentKind = this.getDbtDocumentKind(this.workspaceFolder, uri);
+      const dbtDocumentKind = this.dbtDocumentKindResolver.getDbtDocumentKind(this.workspaceFolder, uri);
       if (![DbtDocumentKind.MACRO, DbtDocumentKind.MODEL].includes(dbtDocumentKind)) {
         console.log('Not supported dbt document kind');
         return;
@@ -316,55 +316,6 @@ export class LspServer {
 
       await document.didOpenTextDocument(!this.dbtRepository.manifestExists);
     }
-  }
-
-  getDbtDocumentKind(workspaceFolder: string, uri: string): DbtDocumentKind {
-    const filePath = getFilePathRelatedToWorkspace(uri, workspaceFolder);
-
-    if (this.dbtRepository.macroPaths.some(p => filePath.startsWith(p + path.sep))) {
-      return DbtDocumentKind.MACRO;
-    }
-    if (this.dbtRepository.modelPaths.some(p => filePath.startsWith(p + path.sep))) {
-      return DbtDocumentKind.MODEL;
-    }
-
-    if (this.dbtRepository.packagesInstallPaths.some(p => filePath.startsWith(p))) {
-      let currentPath = path.resolve(workspaceFolder, filePath);
-      do {
-        currentPath = path.resolve(currentPath, '..');
-        try {
-          fs.statSync(path.resolve(currentPath, DbtRepository.DBT_PROJECT_FILE_NAME));
-          break;
-        } catch (e) {
-          // file does not exist
-        }
-      } while (currentPath !== workspaceFolder);
-
-      if (currentPath === workspaceFolder) {
-        return DbtDocumentKind.UNKNOWN;
-      }
-
-      try {
-        const dbtProject = YamlParser.parseYamlFile(path.resolve(currentPath, DbtRepository.DBT_PROJECT_FILE_NAME));
-
-        const packageMacroPaths = (dbtProject[DbtRepository.MACRO_PATHS_FIELD] ?? DbtRepository.DEFAULT_MACRO_PATHS) as string[];
-        const packageModelPaths = (dbtProject[DbtRepository.MODEL_PATHS_FIELD] ??
-          dbtProject[DbtRepository.SOURCE_PATHS_FIELD] ??
-          DbtRepository.DEFAULT_MODEL_PATHS) as string[];
-
-        const pathRelativeToPackage = getFilePathRelatedToWorkspace(uri, currentPath);
-        if (packageMacroPaths.some(p => pathRelativeToPackage.startsWith(p + path.sep))) {
-          return DbtDocumentKind.MACRO;
-        }
-        if (packageModelPaths.some(p => pathRelativeToPackage.startsWith(p + path.sep))) {
-          return DbtDocumentKind.MODEL;
-        }
-      } catch (e) {
-        return DbtDocumentKind.UNKNOWN;
-      }
-    }
-
-    return DbtDocumentKind.UNKNOWN;
   }
 
   async onDidChangeTextDocument(params: DidChangeTextDocumentParams): Promise<void> {
