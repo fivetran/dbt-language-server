@@ -175,8 +175,10 @@ export class DbtTextDocument {
   }
 
   forceRecompile(): void {
-    this.progressReporter.sendStart(this.rawDocument.uri);
-    this.debouncedCompile();
+    if (this.dbtDocumentKind === DbtDocumentKind.MODEL) {
+      this.progressReporter.sendStart(this.rawDocument.uri);
+      this.debouncedCompile();
+    }
   }
 
   async refToSql(): Promise<void> {
