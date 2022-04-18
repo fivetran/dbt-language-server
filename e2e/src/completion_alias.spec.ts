@@ -29,6 +29,7 @@ suite('Should suggest completions after ref aliases', () => {
         { label: 'name', kind: vscode.CompletionItemKind.Value },
         { label: 'phone', kind: vscode.CompletionItemKind.Value },
         { label: 'profile_id', kind: vscode.CompletionItemKind.Value },
+        { label: 'referrer_id', kind: vscode.CompletionItemKind.Value },
         { label: 'role', kind: vscode.CompletionItemKind.Value },
       ],
       '.',

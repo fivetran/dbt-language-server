@@ -6,8 +6,8 @@ import { CompletionItem } from 'vscode-languageserver';
 import { DbtNodeCompletionProvider } from '../completion/DbtCompletionProvider';
 import { DbtProfile } from '../DbtProfile';
 import { DbtProfileCreator } from '../DbtProfileCreator';
+import { DbtProject } from '../DbtProject';
 import { JinjaPartType } from '../JinjaParser';
-import { YamlParser } from '../YamlParser';
 
 const PROFILES_PATH = path.resolve(__dirname, '../../src/test/profiles');
 
@@ -42,12 +42,12 @@ export function shouldRequireProfileField(profiles: any, profile: DbtProfile, pr
 
 export function shouldPassValidProfile(config: string, profileName: string): void {
   // arrange
-  const mockYamlParser = mock(YamlParser);
-  when(mockYamlParser.findProfileName()).thenReturn(profileName);
-  const yamlParser = instance(mockYamlParser);
-  yamlParser.profilesPath = getConfigPath(config);
+  const mockDbtProject = mock(DbtProject);
+  when(mockDbtProject.findProfileName()).thenReturn(profileName);
+  const dbtProject = instance(mockDbtProject);
+  dbtProject.profilesPath = getConfigPath(config);
 
-  const profileCreator = new DbtProfileCreator(yamlParser);
+  const profileCreator = new DbtProfileCreator(dbtProject);
 
   // act
   const profile = profileCreator.createDbtProfile();
