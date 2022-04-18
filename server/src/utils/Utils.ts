@@ -1,7 +1,6 @@
 import { Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-
-const NON_WORD_PATTERN = /\W/;
+import { getWordRangeAtPosition } from './TextUtils';
 
 export function rangesOverlap(range1: Range, range2: Range): boolean {
   return (
@@ -58,27 +57,7 @@ export function getIdentifierRangeAtPosition(position: Position, text: string): 
   if (lines.length === 0) {
     return Range.create(position, position);
   }
-
-  const line = Math.min(lines.length - 1, Math.max(0, position.line));
-  const lineText = lines[line];
-  const charIndex = Math.max(0, Math.min(lineText.length - 1, Math.max(0, position.character)));
-  const textBeforeChar = lineText.substring(0, charIndex);
-  if ((textBeforeChar.split('`').length - 1) % 2 !== 0) {
-    return Range.create(line, textBeforeChar.lastIndexOf('`'), line, lineText.indexOf('`', charIndex) + 1);
-  }
-  if (lineText[charIndex] === '`') {
-    return Range.create(line, charIndex, line, lineText.indexOf('`', charIndex + 1) + 1);
-  }
-  let startChar = charIndex;
-  while (startChar > 0 && !NON_WORD_PATTERN.test(lineText.charAt(startChar - 1))) {
-    --startChar;
-  }
-  let endChar = charIndex;
-  while (endChar < lineText.length && !NON_WORD_PATTERN.test(lineText.charAt(endChar))) {
-    ++endChar;
-  }
-
-  return startChar === endChar ? Range.create(position, position) : Range.create(line, startChar, line, endChar);
+  return getWordRangeAtPosition(position, /[\w|`]+/, lines) ?? Range.create(position, position);
 }
 
 export function debounce(callback: () => any, delay: number): () => void {
@@ -147,4 +126,9 @@ export function extractDatasetFromFullName(fullName: string, tableName: string):
     return m[1];
   }
   throw new Error("Can't extract dataset");
+}
+
+export function getFilePathRelatedToWorkspace(docUri: string, workspaceFolder: string): string {
+  const index = docUri.indexOf(workspaceFolder);
+  return docUri.slice(index + workspaceFolder.length + 1);
 }

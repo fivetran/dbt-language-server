@@ -1,12 +1,18 @@
+import path = require('path');
 import { DidChangeWatchedFilesParams, Emitter, Event } from 'vscode-languageserver';
+import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
 import { ManifestParser } from './manifest/ManifestParser';
-import { YamlParser } from './YamlParser';
 
 export class FileChangeListener {
   private onDbtProjectYmlChangedEmitter = new Emitter<void>();
 
-  constructor(private yamlParser: YamlParser, private manifestParser: ManifestParser, private dbtRepository: DbtRepository) {}
+  constructor(
+    private workspaceFolder: string,
+    private dbtProject: DbtProject,
+    private manifestParser: ManifestParser,
+    private dbtRepository: DbtRepository,
+  ) {}
 
   get onDbtProjectYmlChanged(): Event<void> {
     return this.onDbtProjectYmlChangedEmitter.event;
@@ -18,36 +24,35 @@ export class FileChangeListener {
   }
 
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
+    const dbtProjectYmlPath = path.resolve(this.workspaceFolder, DbtRepository.DBT_PROJECT_FILE_NAME);
+    const manifestJsonPath = path.resolve(this.workspaceFolder, this.dbtRepository.dbtTargetPath, DbtRepository.DBT_MANIFEST_FILE_NAME);
     for (const change of params.changes) {
-      if (change.uri.endsWith(DbtRepository.DBT_PROJECT_FILE_NAME)) {
+      if (change.uri.endsWith(dbtProjectYmlPath)) {
         this.onDbtProjectYmlChangedEmitter.fire();
         this.updateDbtProjectConfig();
         this.updateManifestNodes();
-      } else if (change.uri.endsWith(`${this.resolveTargetPath()}/${DbtRepository.DBT_MANIFEST_FILE_NAME}`)) {
+      } else if (change.uri.endsWith(manifestJsonPath)) {
         this.updateManifestNodes();
       }
     }
   }
 
   updateDbtProjectConfig(): void {
-    this.dbtRepository.dbtTargetPath = this.yamlParser.findTargetPath();
-    this.dbtRepository.projectName = this.yamlParser.findProjectName();
-    this.dbtRepository.modelPaths = this.yamlParser.findModelPaths();
-    this.dbtRepository.packagesInstallPaths = this.yamlParser.findPackagesInstallPaths();
+    this.dbtRepository.dbtTargetPath = this.dbtProject.findTargetPath();
+    this.dbtRepository.projectName = this.dbtProject.findProjectName();
+    this.dbtRepository.macroPaths = this.dbtProject.findMacroPaths();
+    this.dbtRepository.modelPaths = this.dbtProject.findModelPaths();
+    this.dbtRepository.packagesInstallPaths = this.dbtProject.findPackagesInstallPaths();
   }
 
   updateManifestNodes(): void {
     try {
-      const { models, macros, sources } = this.manifestParser.parse(this.yamlParser.findTargetPath());
+      const { models, macros, sources } = this.manifestParser.parse(this.dbtProject.findTargetPath());
       this.dbtRepository.updateDbtNodes(models, macros, sources);
       this.dbtRepository.manifestExists = true;
     } catch (e) {
       this.dbtRepository.manifestExists = false;
       console.log(`Failed to read ${ManifestParser.MANIFEST_FILE_NAME}`, e);
     }
-  }
-
-  resolveTargetPath(): string {
-    return this.dbtRepository.dbtTargetPath ?? DbtRepository.DEFAULT_TARGET_PATH;
   }
 }

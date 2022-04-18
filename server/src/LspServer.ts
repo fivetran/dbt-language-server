@@ -28,13 +28,16 @@ import {
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
 import { DbtProfileCreator, DbtProfileError, DbtProfileResult, DbtProfileSuccess } from './DbtProfileCreator';
+import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
 import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcServer } from './DbtRpcServer';
-import { DbtTextDocument } from './DbtTextDocument';
 import { getStringVersion } from './DbtVersion';
 import { Command } from './dbt_commands/Command';
 import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
+import { DbtDocumentKind } from './document/DbtDocumentKind';
+import { DbtDocumentKindResolver } from './document/DbtDocumentKindResolver';
+import { DbtTextDocument } from './document/DbtTextDocument';
 import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
 import { JinjaParser } from './JinjaParser';
@@ -43,7 +46,6 @@ import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
 import { deferred } from './utils/Utils';
-import { YamlParser } from './YamlParser';
 
 interface TelemetryEvent {
   name: string;
@@ -53,8 +55,7 @@ interface TelemetryEvent {
 export class LspServer {
   static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
 
-  workspaceFolder?: string;
-
+  workspaceFolder: string;
   hasConfigurationCapability = false;
   dbtRpcServer = new DbtRpcServer();
   dbtRpcClient = new DbtRpcClient();
@@ -64,11 +65,12 @@ export class LspServer {
   completionProvider: SqlCompletionProvider;
   dbtCompletionProvider: DbtCompletionProvider;
   dbtDefinitionProvider: DbtDefinitionProvider;
-  yamlParser = new YamlParser();
-  dbtProfileCreator = new DbtProfileCreator(this.yamlParser);
+  dbtProject = new DbtProject();
+  dbtProfileCreator = new DbtProfileCreator(this.dbtProject);
   manifestParser = new ManifestParser();
   dbtRepository = new DbtRepository();
   featureFinder = new FeatureFinder();
+  dbtDocumentKindResolver = new DbtDocumentKindResolver(this.dbtRepository);
   initStart = performance.now();
   initDbtRpcAttempt = 0;
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
@@ -79,16 +81,28 @@ export class LspServer {
   openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
 
   constructor(private connection: _Connection) {
+    this.workspaceFolder = process.cwd();
+    LspServer.prepareLogger(this.workspaceFolder);
     this.progressReporter = new ProgressReporter(this.connection);
-    this.fileChangeListener = new FileChangeListener(this.yamlParser, this.manifestParser, this.dbtRepository);
+    this.fileChangeListener = new FileChangeListener(this.workspaceFolder, this.dbtProject, this.manifestParser, this.dbtRepository);
     this.completionProvider = new SqlCompletionProvider();
     this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);
     this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
     this.fileChangeListener.onDbtProjectYmlChanged(this.onDbtProjectYmlChanged.bind(this));
   }
 
+  static prepareLogger(workspaceFolder: string): void {
+    const id = workspaceFolder.substring(workspaceFolder.lastIndexOf('/') + 1);
+
+    const old = console.log;
+    console.log = (...args): void => {
+      Array.prototype.unshift.call(args, `${id}: `);
+      old.apply(console, args);
+    };
+  }
+
   onInitialize(params: InitializeParams): InitializeResult<any> | ResponseError<InitializeError> {
-    console.log(`Starting server for folder ${process.cwd()}`);
+    console.log(`Starting server for folder ${this.workspaceFolder}`);
 
     process.on('SIGTERM', () => this.onShutdown());
     process.on('SIGINT', () => this.onShutdown());
@@ -101,8 +115,6 @@ export class LspServer {
     // Does the client support the `workspace/configuration` request?
     // If not, we fall back using global settings.
     this.hasConfigurationCapability = Boolean(capabilities.workspace?.configuration);
-
-    this.workspaceFolder = process.cwd();
 
     return {
       capabilities: {
@@ -278,18 +290,20 @@ export class LspServer {
     const { uri } = params.textDocument;
     let document = this.openedDocuments.get(uri);
 
-    if (this.workspaceFolder === undefined) {
-      console.log('Current working directory is not specified');
-      return;
-    }
-
     if (!document) {
       if (!(await this.isLanguageServerReady())) {
         return;
       }
 
+      const dbtDocumentKind = this.dbtDocumentKindResolver.getDbtDocumentKind(this.workspaceFolder, uri);
+      if (![DbtDocumentKind.MACRO, DbtDocumentKind.MODEL].includes(dbtDocumentKind)) {
+        console.log('Not supported dbt document kind');
+        return;
+      }
+
       document = new DbtTextDocument(
         params.textDocument,
+        dbtDocumentKind,
         this.workspaceFolder,
         this.connection,
         this.progressReporter,
@@ -330,13 +344,7 @@ export class LspServer {
   onDidCloseTextDocumentDelayed(params: DidCloseTextDocumentParams): void {
     if (this.openTextDocumentRequests.has(params.textDocument.uri)) {
       this.openTextDocumentRequests.delete(params.textDocument.uri);
-    } else {
-      this.onDidCloseTextDocument(params);
     }
-  }
-
-  onDidCloseTextDocument(params: DidCloseTextDocumentParams): void {
-    this.openedDocuments.delete(params.textDocument.uri);
   }
 
   onHover(hoverParams: HoverParams): Hover | null | undefined {

@@ -2,8 +2,8 @@ import * as assert from 'assert';
 import { assertThat, matchesPattern } from 'hamjest';
 import { instance, mock, when } from 'ts-mockito';
 import { DbtProfileCreator } from '../DbtProfileCreator';
+import { DbtProject } from '../DbtProject';
 import { DbtRepository } from '../DbtRepository';
-import { YamlParser } from '../YamlParser';
 import {
   BIG_QUERY_CONFIG,
   BQ_MISSING_METHOD,
@@ -43,12 +43,12 @@ describe('Profiles Validation', () => {
 
   it('Should require dbt project config', () => {
     // arrange
-    const mockYamlParser = mock(YamlParser);
-    when(mockYamlParser.findProfileName()).thenThrow(new Error());
-    const yamlParser = instance(mockYamlParser);
-    yamlParser.profilesPath = getConfigPath(OTHERS_CONFIG);
+    const mockDbtProject = mock(DbtProject);
+    when(mockDbtProject.findProfileName()).thenThrow(new Error());
+    const dbtProject = instance(mockDbtProject);
+    dbtProject.profilesPath = getConfigPath(OTHERS_CONFIG);
 
-    const profileCreator = new DbtProfileCreator(yamlParser);
+    const profileCreator = new DbtProfileCreator(dbtProject);
     const errorPattern = new RegExp(`^Failed to find profile name in .*${DbtRepository.DBT_PROJECT_FILE_NAME}\\...*$`);
 
     // act
@@ -61,12 +61,12 @@ describe('Profiles Validation', () => {
 
   function shouldReturnError(config: string, profileName: string, errorPattern: RegExp): void {
     // arrange
-    const mockYamlParser = mock(YamlParser);
-    when(mockYamlParser.findProfileName()).thenReturn(profileName);
-    const yamlParser = instance(mockYamlParser);
-    yamlParser.profilesPath = getConfigPath(config);
+    const mockDbtProject = mock(DbtProject);
+    when(mockDbtProject.findProfileName()).thenReturn(profileName);
+    const dbtProject = instance(mockDbtProject);
+    dbtProject.profilesPath = getConfigPath(config);
 
-    const profileCreator = new DbtProfileCreator(yamlParser);
+    const profileCreator = new DbtProfileCreator(dbtProject);
 
     // act
     const profile = profileCreator.createDbtProfile();

@@ -3,8 +3,9 @@ import { Emitter, TextDocumentIdentifier, _Connection } from 'vscode-languageser
 import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
 import { DbtRepository } from '../DbtRepository';
-import { DbtTextDocument } from '../DbtTextDocument';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
+import { DbtDocumentKind } from '../document/DbtDocumentKind';
+import { DbtTextDocument } from '../document/DbtTextDocument';
 import { JinjaParser } from '../JinjaParser';
 import { LspServer } from '../LspServer';
 import { ModelCompiler } from '../ModelCompiler';
@@ -33,7 +34,6 @@ describe('LspServer', () => {
     lspServer = new LspServer(mock<_Connection>());
     LspServer.OPEN_CLOSE_DEBOUNCE_PERIOD = TEST_DEBOUNCE_PERIOD;
     lspServer.onDidOpenTextDocument = (): Promise<void> => Promise.resolve();
-    lspServer.onDidCloseTextDocument = (): Promise<void> => Promise.resolve();
 
     mockModelCompiler = mock(ModelCompiler);
     when(mockModelCompiler.onCompilationError).thenReturn(new Emitter<string>().event);
@@ -48,6 +48,7 @@ describe('LspServer', () => {
 
     document = new DbtTextDocument(
       { uri: OPENED_URI, languageId: SQL_LANGUAGE_ID, version: 1, text: TEXT },
+      DbtDocumentKind.MODEL,
       '',
       mock<_Connection>(),
       mock(ProgressReporter),
@@ -80,10 +81,12 @@ describe('LspServer', () => {
 
     // assert
     verify(spiedLspServer.onDidOpenTextDocument(anything())).never();
-    verify(spiedLspServer.onDidCloseTextDocument(anything())).never();
   });
 
   it('Should open document if server did not receive close request in debounce period', async () => {
+    // arrange
+    lspServer.isLanguageServerReady = (): Promise<boolean> => Promise.resolve(true);
+
     // act
     const onDidOpenEnded = lspServer.onDidOpenTextDocumentDelayed({
       textDocument: {
@@ -102,6 +105,7 @@ describe('LspServer', () => {
 
   it('Should compile after declined open request', async () => {
     // arrange
+    lspServer.isLanguageServerReady = (): Promise<boolean> => Promise.resolve(true);
     const openDocumentParams = {
       textDocument: {
         uri: LINKED_URI,
@@ -119,6 +123,5 @@ describe('LspServer', () => {
 
     // assert
     verify(spiedLspServer.onDidOpenTextDocument(anything())).once();
-    verify(spiedLspServer.onDidCloseTextDocument(anything())).never();
   });
 });
