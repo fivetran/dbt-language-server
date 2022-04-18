@@ -3,12 +3,12 @@ import { commands, MarkdownString, Position, Range, SignatureHelp } from 'vscode
 import { assertDefinitions } from './asserts';
 import { activateAndWait, getCustomDocUri, getPreviewText, MAX_RANGE } from './helper';
 
-const activeUsersDocUri = getCustomDocUri('postgres/models/active_users.sql');
-const activeUsersOrdersCountDocUri = getCustomDocUri('postgres/models/active_users_orders_count.sql');
+const ACTIVE_USERS_URI = getCustomDocUri('postgres/models/active_users.sql');
+const ORDERS_COUNT_DOC_URI = getCustomDocUri('postgres/models/active_users_orders_count.sql');
 
 suite('Postgres destination', () => {
   test('Should compile postgres documents', async () => {
-    await activateAndWait(activeUsersDocUri);
+    await activateAndWait(ACTIVE_USERS_URI);
 
     assertThat(
       getPreviewText(),
@@ -16,23 +16,22 @@ suite('Postgres destination', () => {
     );
   });
 
-  // TODO: fix flaky test
-  test.skip('Should provide ref definitions', async () => {
-    await activateAndWait(activeUsersOrdersCountDocUri);
+  test('Should provide ref definitions', async () => {
+    await activateAndWait(ORDERS_COUNT_DOC_URI);
 
-    await assertDefinitions(activeUsersOrdersCountDocUri, new Position(1, 40), [
+    await assertDefinitions(ORDERS_COUNT_DOC_URI, new Position(1, 40), [
       {
         originSelectionRange: new Range(1, 34, 1, 46),
-        targetUri: activeUsersDocUri,
+        targetUri: ACTIVE_USERS_URI,
         targetRange: MAX_RANGE,
         targetSelectionRange: MAX_RANGE,
       },
     ]);
 
-    await assertDefinitions(activeUsersOrdersCountDocUri, new Position(1, 20), [
+    await assertDefinitions(ORDERS_COUNT_DOC_URI, new Position(1, 20), [
       {
         originSelectionRange: new Range(1, 13, 1, 30),
-        targetUri: activeUsersDocUri,
+        targetUri: ACTIVE_USERS_URI,
         targetRange: MAX_RANGE,
         targetSelectionRange: MAX_RANGE,
       },
@@ -46,9 +45,9 @@ suite('Postgres destination', () => {
   });
 
   test('Should provide macro definitions', async () => {
-    await activateAndWait(activeUsersOrdersCountDocUri);
+    await activateAndWait(ORDERS_COUNT_DOC_URI);
 
-    await assertDefinitions(activeUsersOrdersCountDocUri, new Position(0, 24), [
+    await assertDefinitions(ORDERS_COUNT_DOC_URI, new Position(0, 24), [
       {
         originSelectionRange: new Range(0, 16, 0, 34),
         targetUri: getCustomDocUri('postgres/macros/name_parts.sql'),
@@ -59,8 +58,8 @@ suite('Postgres destination', () => {
   });
 
   test('Should provide source definitions', async () => {
-    await activateAndWait(activeUsersDocUri);
-    await assertDefinitions(activeUsersDocUri, new Position(1, 34), [
+    await activateAndWait(ACTIVE_USERS_URI);
+    await assertDefinitions(ACTIVE_USERS_URI, new Position(1, 34), [
       {
         originSelectionRange: new Range(1, 32, 1, 37),
         targetUri: getCustomDocUri('postgres/models/sources/users_orders.yml'),
@@ -72,15 +71,10 @@ suite('Postgres destination', () => {
 
   test('Should provide signature help for COUNT function', async () => {
     // arrange
-    await activateAndWait(activeUsersOrdersCountDocUri);
+    await activateAndWait(ORDERS_COUNT_DOC_URI);
 
     // act
-    const help = await commands.executeCommand<SignatureHelp>(
-      'vscode.executeSignatureHelpProvider',
-      activeUsersOrdersCountDocUri,
-      new Position(0, 145),
-      '(',
-    );
+    const help = await commands.executeCommand<SignatureHelp>('vscode.executeSignatureHelpProvider', ORDERS_COUNT_DOC_URI, new Position(0, 145), '(');
 
     // assert
     assertThat(help.signatures.length, 2);

@@ -34,7 +34,6 @@ describe('LspServer', () => {
     lspServer = new LspServer(mock<_Connection>());
     LspServer.OPEN_CLOSE_DEBOUNCE_PERIOD = TEST_DEBOUNCE_PERIOD;
     lspServer.onDidOpenTextDocument = (): Promise<void> => Promise.resolve();
-    lspServer.onDidCloseTextDocument = (): Promise<void> => Promise.resolve();
 
     mockModelCompiler = mock(ModelCompiler);
     when(mockModelCompiler.onCompilationError).thenReturn(new Emitter<string>().event);
@@ -82,10 +81,12 @@ describe('LspServer', () => {
 
     // assert
     verify(spiedLspServer.onDidOpenTextDocument(anything())).never();
-    verify(spiedLspServer.onDidCloseTextDocument(anything())).never();
   });
 
   it('Should open document if server did not receive close request in debounce period', async () => {
+    // arrange
+    lspServer.isLanguageServerReady = (): Promise<boolean> => Promise.resolve(true);
+
     // act
     const onDidOpenEnded = lspServer.onDidOpenTextDocumentDelayed({
       textDocument: {
@@ -104,6 +105,7 @@ describe('LspServer', () => {
 
   it('Should compile after declined open request', async () => {
     // arrange
+    lspServer.isLanguageServerReady = (): Promise<boolean> => Promise.resolve(true);
     const openDocumentParams = {
       textDocument: {
         uri: LINKED_URI,
@@ -121,6 +123,5 @@ describe('LspServer', () => {
 
     // assert
     verify(spiedLspServer.onDidOpenTextDocument(anything())).once();
-    verify(spiedLspServer.onDidCloseTextDocument(anything())).never();
   });
 });
