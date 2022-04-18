@@ -1,5 +1,4 @@
 import { assertThat } from 'hamjest';
-import { ok, Result } from 'neverthrow';
 import { DbtRepository } from '../../DbtRepository';
 import { DbtDocumentKind } from '../../document/DbtDocumentKind';
 import { DbtDocumentKindResolver } from '../../document/DbtDocumentKindResolver';
@@ -54,8 +53,8 @@ describe('DbtDocumentKindResolver', () => {
     const packageMacroDocumentUri = 'dbt_packages/package_name/macros/macro.sql';
     const packageModelDocumentUri = 'dbt_packages/package_name/models/model.sql';
 
-    const packageResolveResult: Result<[string, any], string> = ok([`file://${PROJECT_LOCATION}/dbt_packages/package_name`, {}]);
-    dbtDocumentKindResolver.resolveDbtPackageInfo = (): Result<[string, any], string> => packageResolveResult;
+    const packageResolveResult = `file://${PROJECT_LOCATION}/dbt_packages/package_name`;
+    dbtDocumentKindResolver.resolveDbtPackagePath = (): string | undefined => packageResolveResult;
 
     shouldReturnCorrectDocumentKind(PROJECT_LOCATION, `file://${PROJECT_LOCATION}/${packageMacroDocumentUri}`, DbtDocumentKind.MACRO);
     shouldReturnCorrectDocumentKind(PROJECT_LOCATION, `file://${PROJECT_LOCATION}/${packageModelDocumentUri}`, DbtDocumentKind.MODEL);

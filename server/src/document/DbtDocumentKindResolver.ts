@@ -1,8 +1,7 @@
 import * as fs from 'fs';
-import { err, ok, Result } from 'neverthrow';
+import { DbtProject } from '../DbtProject';
 import { DbtRepository } from '../DbtRepository';
 import { getFilePathRelatedToWorkspace } from '../utils/Utils';
-import { YamlParserUtils } from '../YamlParserUtils';
 import { DbtDocumentKind } from './DbtDocumentKind';
 import path = require('path');
 
@@ -20,19 +19,17 @@ export class DbtDocumentKindResolver {
     }
 
     if (this.dbtRepository.packagesInstallPaths.some(p => filePath.startsWith(p))) {
-      const dbtPackageInfo = this.resolveDbtPackageInfo(workspaceFolder, filePath);
-      if (dbtPackageInfo.isErr()) {
-        console.log(dbtPackageInfo.error);
+      const dbtPackagePath = this.resolveDbtPackagePath(workspaceFolder, filePath);
+      if (!dbtPackagePath) {
+        console.log('Dbt package root folder not found');
         return DbtDocumentKind.UNKNOWN;
       }
-      const [dbtProjectRootPath, dbtProject] = dbtPackageInfo.value;
 
-      const packageMacroPaths = (dbtProject[DbtRepository.MACRO_PATHS_FIELD] ?? DbtRepository.DEFAULT_MACRO_PATHS) as string[];
-      const packageModelPaths = (dbtProject[DbtRepository.MODEL_PATHS_FIELD] ??
-        dbtProject[DbtRepository.SOURCE_PATHS_FIELD] ??
-        DbtRepository.DEFAULT_MODEL_PATHS) as string[];
+      const dbtPackageProject = new DbtProject(dbtPackagePath);
+      const packageMacroPaths = dbtPackageProject.findMacroPaths();
+      const packageModelPaths = dbtPackageProject.findModelPaths();
 
-      const pathRelativeToPackage = getFilePathRelatedToWorkspace(uri, dbtProjectRootPath);
+      const pathRelativeToPackage = getFilePathRelatedToWorkspace(uri, dbtPackagePath);
       if (packageMacroPaths.some(p => pathRelativeToPackage.startsWith(p + path.sep))) {
         return DbtDocumentKind.MACRO;
       }
@@ -44,7 +41,7 @@ export class DbtDocumentKindResolver {
     return DbtDocumentKind.UNKNOWN;
   }
 
-  resolveDbtPackageInfo(workspaceFolder: string, filePath: string): Result<[string, any], string> {
+  resolveDbtPackagePath(workspaceFolder: string, filePath: string): string | undefined {
     let currentPath = path.resolve(workspaceFolder, filePath);
     do {
       currentPath = path.resolve(currentPath, '..');
@@ -57,13 +54,9 @@ export class DbtDocumentKindResolver {
     } while (currentPath !== workspaceFolder);
 
     if (currentPath === workspaceFolder) {
-      return err('Dbt package root folder not found');
+      return undefined;
     }
 
-    try {
-      return ok([currentPath, YamlParserUtils.parseYamlFile(path.resolve(currentPath, DbtRepository.DBT_PROJECT_FILE_NAME))]);
-    } catch (e) {
-      return err('Unable to parse dbt package config');
-    }
+    return currentPath;
   }
 }
