@@ -316,12 +316,7 @@ export class DbtTextDocument {
     if (dbtCompletionItems) {
       return dbtCompletionItems;
     }
-
-    if (this.dbtDocumentKind === DbtDocumentKind.MODEL) {
-      return this.getSqlCompletions(completionParams);
-    }
-
-    return undefined;
+    return this.getSqlCompletions(completionParams);
   }
 
   async getDbtCompletionItems(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
