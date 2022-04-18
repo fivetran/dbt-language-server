@@ -11,13 +11,6 @@ export class DbtDocumentKindResolver {
   getDbtDocumentKind(workspaceFolder: string, uri: string): DbtDocumentKind {
     const filePath = getFilePathRelatedToWorkspace(uri, workspaceFolder);
 
-    if (this.dbtRepository.macroPaths.some(p => filePath.startsWith(p + path.sep))) {
-      return DbtDocumentKind.MACRO;
-    }
-    if (this.dbtRepository.modelPaths.some(p => filePath.startsWith(p + path.sep))) {
-      return DbtDocumentKind.MODEL;
-    }
-
     if (this.dbtRepository.packagesInstallPaths.some(p => filePath.startsWith(p))) {
       const dbtPackagePath = this.resolveDbtPackagePath(workspaceFolder, filePath);
       if (!dbtPackagePath) {
@@ -26,18 +19,21 @@ export class DbtDocumentKindResolver {
       }
 
       const dbtPackageProject = new DbtProject(dbtPackagePath);
-      const packageMacroPaths = dbtPackageProject.findMacroPaths();
-      const packageModelPaths = dbtPackageProject.findModelPaths();
-
       const pathRelativeToPackage = getFilePathRelatedToWorkspace(uri, dbtPackagePath);
-      if (packageMacroPaths.some(p => pathRelativeToPackage.startsWith(p + path.sep))) {
-        return DbtDocumentKind.MACRO;
-      }
-      if (packageModelPaths.some(p => pathRelativeToPackage.startsWith(p + path.sep))) {
-        return DbtDocumentKind.MODEL;
-      }
+
+      return this.resolveDbtDocumentKind(dbtPackageProject.findMacroPaths(), dbtPackageProject.findModelPaths(), pathRelativeToPackage);
     }
 
+    return this.resolveDbtDocumentKind(this.dbtRepository.macroPaths, this.dbtRepository.modelPaths, filePath);
+  }
+
+  resolveDbtDocumentKind(macroPaths: string[], modelPaths: string[], fileRelativePath: string): DbtDocumentKind {
+    if (macroPaths.some(p => fileRelativePath.startsWith(p + path.sep))) {
+      return DbtDocumentKind.MACRO;
+    }
+    if (modelPaths.some(p => fileRelativePath.startsWith(p + path.sep))) {
+      return DbtDocumentKind.MODEL;
+    }
     return DbtDocumentKind.UNKNOWN;
   }
 
