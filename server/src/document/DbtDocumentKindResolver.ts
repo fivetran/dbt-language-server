@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import { err, ok, Result } from 'neverthrow';
 import { DbtRepository } from '../DbtRepository';
 import { getFilePathRelatedToWorkspace } from '../utils/Utils';
-import { YamlParser } from '../YamlParser';
+import { YamlParserUtils } from '../YamlParserUtils';
 import { DbtDocumentKind } from './DbtDocumentKind';
 import path = require('path');
 
@@ -61,7 +61,7 @@ export class DbtDocumentKindResolver {
     }
 
     try {
-      return ok([currentPath, YamlParser.parseYamlFile(path.resolve(currentPath, DbtRepository.DBT_PROJECT_FILE_NAME))]);
+      return ok([currentPath, YamlParserUtils.parseYamlFile(path.resolve(currentPath, DbtRepository.DBT_PROJECT_FILE_NAME))]);
     } catch (e) {
       return err('Unable to parse dbt package config');
     }

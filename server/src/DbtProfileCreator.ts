@@ -3,6 +3,7 @@ import { DbtProfile } from './DbtProfile';
 import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtProfileType';
 import { DbtRepository } from './DbtRepository';
 import { YamlParser } from './YamlParser';
+import { YamlParserUtils } from './YamlParserUtils';
 
 export interface DbtProfileResult {
   type?: string;
@@ -62,7 +63,7 @@ export class DbtProfileCreator {
   createDbtProfile(): Result<DbtProfileSuccess, DbtProfileError> {
     let profiles = undefined;
     try {
-      profiles = YamlParser.parseYamlFile(this.yamlParser.profilesPath);
+      profiles = YamlParserUtils.parseYamlFile(this.yamlParser.profilesPath);
     } catch (e) {
       const errorMessage = `Failed to open and parse file '${this.yamlParser.profilesPath}'. ${e}`;
       console.log(errorMessage);
