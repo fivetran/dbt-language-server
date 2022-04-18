@@ -1,7 +1,7 @@
 import { DbtRepository } from './DbtRepository';
 import { YamlParserUtils } from './YamlParserUtils';
 
-export class YamlParser {
+export class DbtProject {
   profilesPath: string;
 
   constructor(profilesPath?: string) {

@@ -28,6 +28,7 @@ import {
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
 import { DbtProfileCreator, DbtProfileError, DbtProfileResult, DbtProfileSuccess } from './DbtProfileCreator';
+import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
 import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcServer } from './DbtRpcServer';
@@ -45,7 +46,6 @@ import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
 import { deferred } from './utils/Utils';
-import { YamlParser } from './YamlParser';
 
 interface TelemetryEvent {
   name: string;
@@ -66,8 +66,8 @@ export class LspServer {
   completionProvider: SqlCompletionProvider;
   dbtCompletionProvider: DbtCompletionProvider;
   dbtDefinitionProvider: DbtDefinitionProvider;
-  yamlParser = new YamlParser();
-  dbtProfileCreator = new DbtProfileCreator(this.yamlParser);
+  dbtProject = new DbtProject();
+  dbtProfileCreator = new DbtProfileCreator(this.dbtProject);
   manifestParser = new ManifestParser();
   dbtRepository = new DbtRepository();
   featureFinder = new FeatureFinder();
@@ -83,7 +83,7 @@ export class LspServer {
 
   constructor(private connection: _Connection) {
     this.progressReporter = new ProgressReporter(this.connection);
-    this.fileChangeListener = new FileChangeListener(this.yamlParser, this.manifestParser, this.dbtRepository);
+    this.fileChangeListener = new FileChangeListener(this.dbtProject, this.manifestParser, this.dbtRepository);
     this.completionProvider = new SqlCompletionProvider();
     this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);
     this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);

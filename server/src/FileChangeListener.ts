@@ -1,12 +1,12 @@
 import { DidChangeWatchedFilesParams, Emitter, Event } from 'vscode-languageserver';
+import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
 import { ManifestParser } from './manifest/ManifestParser';
-import { YamlParser } from './YamlParser';
 
 export class FileChangeListener {
   private onDbtProjectYmlChangedEmitter = new Emitter<void>();
 
-  constructor(private yamlParser: YamlParser, private manifestParser: ManifestParser, private dbtRepository: DbtRepository) {}
+  constructor(private dbtProject: DbtProject, private manifestParser: ManifestParser, private dbtRepository: DbtRepository) {}
 
   get onDbtProjectYmlChanged(): Event<void> {
     return this.onDbtProjectYmlChangedEmitter.event;
@@ -30,16 +30,16 @@ export class FileChangeListener {
   }
 
   updateDbtProjectConfig(): void {
-    this.dbtRepository.dbtTargetPath = this.yamlParser.findTargetPath();
-    this.dbtRepository.projectName = this.yamlParser.findProjectName();
-    this.dbtRepository.macroPaths = this.yamlParser.findMacroPaths();
-    this.dbtRepository.modelPaths = this.yamlParser.findModelPaths();
-    this.dbtRepository.packagesInstallPaths = this.yamlParser.findPackagesInstallPaths();
+    this.dbtRepository.dbtTargetPath = this.dbtProject.findTargetPath();
+    this.dbtRepository.projectName = this.dbtProject.findProjectName();
+    this.dbtRepository.macroPaths = this.dbtProject.findMacroPaths();
+    this.dbtRepository.modelPaths = this.dbtProject.findModelPaths();
+    this.dbtRepository.packagesInstallPaths = this.dbtProject.findPackagesInstallPaths();
   }
 
   updateManifestNodes(): void {
     try {
-      const { models, macros, sources } = this.manifestParser.parse(this.yamlParser.findTargetPath());
+      const { models, macros, sources } = this.manifestParser.parse(this.dbtProject.findTargetPath());
       this.dbtRepository.updateDbtNodes(models, macros, sources);
       this.dbtRepository.manifestExists = true;
     } catch (e) {
