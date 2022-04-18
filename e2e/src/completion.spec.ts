@@ -29,6 +29,7 @@ suite('Should do completion', () => {
       { label: 'users.name', kind: vscode.CompletionItemKind.Value },
       { label: 'users.phone', kind: vscode.CompletionItemKind.Value },
       { label: 'users.profile_id', kind: vscode.CompletionItemKind.Value },
+      { label: 'users.referrer_id', kind: vscode.CompletionItemKind.Value },
       { label: 'users.role', kind: vscode.CompletionItemKind.Value },
     ]);
   });
@@ -47,6 +48,7 @@ suite('Should do completion', () => {
         { label: 'name', kind: vscode.CompletionItemKind.Value },
         { label: 'phone', kind: vscode.CompletionItemKind.Value },
         { label: 'profile_id', kind: vscode.CompletionItemKind.Value },
+        { label: 'referrer_id', kind: vscode.CompletionItemKind.Value },
         { label: 'role', kind: vscode.CompletionItemKind.Value },
       ],
       '.',
