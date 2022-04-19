@@ -1,6 +1,6 @@
 import { BigQuery, TableField } from '@google-cloud/bigquery';
 import { downloadAndUnzipVSCode, resolveCliArgsFromVSCodeExecutablePath, runTests, SilentReporter } from '@vscode/test-electron';
-import { spawnSync } from 'child_process';
+import { spawnSync, SpawnSyncReturns } from 'child_process';
 import * as fs from 'fs';
 import { homedir } from 'os';
 import * as path from 'path';
@@ -18,13 +18,9 @@ async function main(): Promise<void> {
     const extensionsInstallPath = path.join(defaultCachePath, 'extensions');
 
     const vscodeExecutablePath = await downloadAndUnzipVSCode('stable', undefined, new SilentReporter());
-
     const [cli, ...args] = resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath);
-    const installResult = spawnSync(cli, [...args, '--install-extension=ms-python.python', `--extensions-dir=${extensionsInstallPath}`], {
-      encoding: 'utf-8',
-      stdio: 'inherit',
-    });
 
+    const installResult = installExtension(cli, args, 'ms-python.python', extensionsInstallPath);
     if (installResult.status !== 0) {
       console.error('Failed to install python extension from marketplace. Trying to install from open-vsx ...');
 
@@ -39,15 +35,7 @@ async function main(): Promise<void> {
         process.exit(1);
       }
 
-      const openVsxInstallResult = spawnSync(
-        cli,
-        [...args, `--install-extension=${extensionFilePath}`, `--extensions-dir=${extensionsInstallPath}`],
-        {
-          encoding: 'utf-8',
-          stdio: 'inherit',
-        },
-      );
-
+      const openVsxInstallResult = installExtension(cli, args, extensionFilePath, extensionsInstallPath);
       if (openVsxInstallResult.status !== 0) {
         console.error('Failed to install python extension from open-vsx.');
         process.exit(1);
@@ -142,6 +130,13 @@ async function preparePostgres(): Promise<void> {
   await client.query(recreateUsersTableQuery);
   await client.query(recreateOrdersTableQuery);
   await client.end();
+}
+
+function installExtension(cli: string, args: string[], idOrPath: string, installPath: string): SpawnSyncReturns<string> {
+  return spawnSync(cli, [...args, `--install-extension=${idOrPath}`, `--extensions-dir=${installPath}`], {
+    encoding: 'utf-8',
+    stdio: 'inherit',
+  });
 }
 
 main().catch(e => console.error(e));
