@@ -41,6 +41,8 @@ suite('Should compile jinja expressions', () => {
     assertThat(getPreviewText(), `users\n\n\nselect 1;`);
   });
 
+  // Sometimes 'samuelcolvin.jinjahtml' extension cannot be installed - server responded with 503.
+  // It could take more time than default timeout. That is why timeout was extended for this test.
   test('Should compile files with jinja-sql languageId', async () => {
     // arrange
     installExtension('samuelcolvin.jinjahtml');
@@ -54,5 +56,5 @@ suite('Should compile jinja expressions', () => {
     assertThat(getPreviewText(), 'select * from `singular-vector-135519`.dbt_ls_e2e_dataset.test_table1');
 
     uninstallExtension('samuelcolvin.jinjahtml');
-  });
+  }).timeout(300000);
 });
