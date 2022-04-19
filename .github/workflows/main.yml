@@ -114,9 +114,6 @@ jobs:
         shell: bash
 
     steps:
-      - name: install ovsx
-        run: npm install --global ovsx
-
       - name: set environment variable with file name
         run: echo "FILE_NAME=${{ github.sha }}-${{ matrix.target }}.vsix" >> $GITHUB_ENV
 
