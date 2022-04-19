@@ -1,4 +1,5 @@
-import { spawnSync } from 'child_process';
+import { spawnSync, SpawnSyncReturns } from 'child_process';
+import * as fs from 'fs';
 import * as path from 'path';
 import {
   commands,
@@ -24,6 +25,7 @@ export let editor: TextEditor;
 type voidFunc = () => void;
 
 const PROJECTS_PATH = path.resolve(__dirname, '../projects');
+const DOWNLOADS_PATH = path.resolve(__dirname, '../.downloads');
 const TEST_FIXTURE_PATH = path.resolve(PROJECTS_PATH, 'test-fixture');
 export const PREVIEW_URI = 'query-preview:Preview?dbt-language-server';
 
@@ -183,25 +185,47 @@ export function installDbtPackages(projectFolder: string): void {
 }
 
 export function installExtension(extensionId: string): void {
-  installUninstallExtension('install', extensionId);
+  const installResult = installUninstallExtension('install', extensionId);
+  if (installResult.status !== 0) {
+    console.log(`Failed to install '${extensionId}' extension from marketplace.`);
+
+    ensureDirectoryExists(DOWNLOADS_PATH);
+    const extensionFilePath = path.resolve(DOWNLOADS_PATH, `${extensionId}.vsix`);
+
+    const downloadResult = spawnSync('npx', ['ovsx', 'get', extensionId, '-o', extensionFilePath], {
+      encoding: 'utf-8',
+      stdio: 'inherit',
+    });
+
+    if (downloadResult.status !== 0) {
+      console.error(`Failed to download '${extensionId}' extension from open-vsx.`);
+      process.exit(1);
+    }
+
+    const openVsxInstallResult = installUninstallExtension('install', extensionFilePath);
+    if (openVsxInstallResult.status !== 0) {
+      console.log(`Failed to install '${extensionId}' extension from open-vsx.`);
+      process.exit(1);
+    }
+  }
 }
 
 export function uninstallExtension(extensionId: string): void {
   installUninstallExtension('uninstall', extensionId);
 }
 
-function installUninstallExtension(command: 'install' | 'uninstall', extensionId: string): void {
+function installUninstallExtension(command: 'install' | 'uninstall', extensionId: string): SpawnSyncReturns<string> {
   const extensionsInstallPathParam = `--extensions-dir=${process.env['EXTENSIONS_INSTALL_PATH'] ?? ''}`;
-  runCliCommand([`--${command}-extension=${extensionId}`, extensionsInstallPathParam]);
+  return runCliCommand([`--${command}-extension=${extensionId}`, extensionsInstallPathParam]);
 }
 
-function runCliCommand(args: string[]): void {
+function runCliCommand(args: string[]): SpawnSyncReturns<string> {
   const cliPath = process.env['CLI_PATH'];
   if (!cliPath) {
     throw new Error('CLI_PATH environment variable not found');
   }
 
-  spawnSync(cliPath, args, {
+  return spawnSync(cliPath, args, {
     encoding: 'utf-8',
     stdio: 'inherit',
   });
@@ -218,4 +242,10 @@ export async function triggerDefinition(docUri: Uri, position: Position): Promis
 
 export function getTextInQuotesIfNeeded(text: string, withQuotes: boolean): string {
   return withQuotes ? `'${text}'` : text;
+}
+
+export function ensureDirectoryExists(dir: string): void {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir);
+  }
 }
