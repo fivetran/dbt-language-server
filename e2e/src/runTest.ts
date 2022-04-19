@@ -28,18 +28,16 @@ async function main(): Promise<void> {
     if (installResult.status !== 0) {
       console.error('Failed to install python extension from marketplace. Trying to install from open-vsx ...');
 
-      spawnSync('ovsx', ['get', 'ms-python.python', '-o', extensionsInstallPath], {
+      const extensionFilePath = path.resolve(extensionsInstallPath, 'ms-python.python.vsix');
+      const downloadResult = spawnSync('ovsx', ['get', 'ms-python.python', '-o', extensionFilePath], {
         encoding: 'utf-8',
         stdio: 'inherit',
       });
 
-      const files = fs.readdirSync(extensionsInstallPath);
-      const extensionFileName = files.find(f => f.match(/\.vsix$/));
-      if (!extensionFileName) {
-        console.log('Unable to find downloaded ms-python.python extension.');
+      if (downloadResult.status !== 0) {
+        console.error('Failed to download python extension from open-vsx.');
         process.exit(1);
       }
-      const extensionFilePath = path.resolve(extensionsInstallPath, extensionFileName);
 
       const openVsxInstallResult = spawnSync(
         cli,
