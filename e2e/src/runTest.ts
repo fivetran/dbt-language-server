@@ -24,9 +24,39 @@ async function main(): Promise<void> {
       encoding: 'utf-8',
       stdio: 'inherit',
     });
+
+    // todo: remove after test
+    installResult.status = 1;
+
     if (installResult.status !== 0) {
-      console.error('Failed to install python extension');
-      process.exit(1);
+      console.error('Failed to install python extension from marketplace. Trying to install from open-vsx ...');
+
+      spawnSync('ovsx', ['get', 'ms-python.python', '-o', extensionsInstallPath], {
+        encoding: 'utf-8',
+        stdio: 'inherit',
+      });
+
+      const files = fs.readdirSync(extensionsInstallPath);
+      const extensionFileName = files.find(f => f.match(/\.vsix$/));
+      if (!extensionFileName) {
+        console.log('Unable to find downloaded ms-python.python extension.');
+        process.exit(1);
+      }
+      const extensionFilePath = path.resolve(extensionsInstallPath, extensionFileName);
+
+      const openVsxInstallResult = spawnSync(
+        cli,
+        [...args, `--install-extension=${extensionFilePath}`, `--extensions-dir=${extensionsInstallPath}`],
+        {
+          encoding: 'utf-8',
+          stdio: 'inherit',
+        },
+      );
+
+      if (openVsxInstallResult.status !== 0) {
+        console.error('Failed to install python extension from open-vsx.');
+        process.exit(1);
+      }
     }
 
     const extensionTestsPath = path.resolve(__dirname, './index');
