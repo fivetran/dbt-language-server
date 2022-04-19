@@ -90,6 +90,7 @@ function getTestFixtureModels(): string[] {
     'join_tables',
     'package_ref',
     'ref_sql',
+    'referrers',
     'select_with_alias',
     'simple_select',
     'simple_select_dbt',
