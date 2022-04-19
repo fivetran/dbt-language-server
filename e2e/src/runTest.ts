@@ -25,9 +25,6 @@ async function main(): Promise<void> {
       stdio: 'inherit',
     });
 
-    // todo: remove after test
-    installResult.status = 1;
-
     if (installResult.status !== 0) {
       console.error('Failed to install python extension from marketplace. Trying to install from open-vsx ...');
 
