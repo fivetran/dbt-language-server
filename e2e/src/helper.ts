@@ -205,6 +205,7 @@ export function installExtension(extensionId: string): void {
     const openVsxInstallResult = installUninstallExtension('install', extensionFilePath);
     if (openVsxInstallResult.status !== 0) {
       console.log(`Failed to install '${extensionId}' extension from open-vsx.`);
+      process.exit(1);
     }
   }
 }
