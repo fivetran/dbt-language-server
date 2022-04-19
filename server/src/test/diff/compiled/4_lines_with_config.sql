@@ -1,4 +1,4 @@
-{{ config(schema='dbt_ls_e2e_dataset', materialized='table') }}
+
 
 select id
-from {{ ref('users') }}
+from `singular-vector-135519`.`dbt_ls_e2e_dataset`.`users`
