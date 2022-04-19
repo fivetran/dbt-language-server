@@ -54,5 +54,5 @@ suite('Should compile jinja expressions', () => {
     assertThat(getPreviewText(), 'select * from `singular-vector-135519`.dbt_ls_e2e_dataset.test_table1');
 
     uninstallExtension('samuelcolvin.jinjahtml');
-  });
+  }).timeout(300000);
 });
