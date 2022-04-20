@@ -156,25 +156,25 @@ describe('DbtTextDocument', () => {
     onCompilationErrorEmitter.fire('error');
 
     // assert
-    assertThat(document.hasDbtError, true);
+    assertThat(document.currentDbtError, 'error');
   });
 
   it('Should reset hasDbtError flag on dbt compilation finished', () => {
     // act
-    document.hasDbtError = true;
+    document.currentDbtError = 'error';
     onCompilationFinishedEmitter.fire('select 1;');
 
     // assert
-    assertThat(document.hasDbtError, false);
+    assertThat(document.currentDbtError, undefined);
   });
 
   it('Should reset hasDbtError flag on dbt error fixed', () => {
     // act
-    document.hasDbtError = true;
+    document.currentDbtError = 'error';
     onGlobalDbtErrorFixedEmitter.fire();
 
     // assert
-    assertThat(document.hasDbtError, false);
+    assertThat(document.currentDbtError, undefined);
   });
 
   it('Should return path', () => {

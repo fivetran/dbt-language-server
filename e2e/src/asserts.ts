@@ -26,7 +26,7 @@ export function assertRange(actualRange: Range, expectedRange: Range): void {
 }
 
 function assertDiagnostic(actual: Diagnostic, expected: Diagnostic): void {
-  assertThat(actual.message, actual.message);
+  assertThat(actual.message, expected.message);
   assertRange(actual.range, expected.range);
 
   if (expected.relatedInformation && expected.relatedInformation.length > 0) {

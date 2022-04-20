@@ -55,7 +55,7 @@ export class DbtTextDocument {
   diagnosticGenerator = new DiagnosticGenerator();
   hoverProvider = new HoverProvider();
 
-  hasDbtError = false;
+  currentDbtError?: string;
   firstSave = true;
 
   constructor(
@@ -102,6 +102,8 @@ export class DbtTextDocument {
       this.requireCompileOnSave = false;
       dbtRpcServer?.refreshServer();
       this.debouncedCompile();
+    } else if (this.currentDbtError) {
+      this.onCompilationError(this.currentDbtError);
     } else {
       await this.onCompilationFinished(this.compiledDocument.getText());
     }
@@ -238,7 +240,7 @@ export class DbtTextDocument {
   }
 
   onCompilationError(dbtCompilationError: string): void {
-    this.hasDbtError = true;
+    this.currentDbtError = dbtCompilationError;
     TextDocument.update(this.compiledDocument, [{ text: this.rawDocument.getText() }], this.compiledDocument.version);
 
     const diagnostics = this.diagnosticGenerator.getDbtErrorDiagnostics(
@@ -252,15 +254,15 @@ export class DbtTextDocument {
   }
 
   onDbtErrorFixed(): void {
-    if (this.hasDbtError) {
-      this.hasDbtError = false;
+    if (this.currentDbtError) {
+      this.currentDbtError = undefined;
       this.sendDiagnostics([], []);
     }
   }
 
   async onCompilationFinished(compiledSql: string): Promise<void> {
-    if (this.hasDbtError) {
-      this.hasDbtError = false;
+    if (this.currentDbtError) {
+      this.currentDbtError = undefined;
       this.onGlobalDbtErrorFixedEmitter.fire();
     }
 

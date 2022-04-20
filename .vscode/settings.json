@@ -48,6 +48,7 @@
 		"no-cond-assign",
 		"normalize_and_casefold",
 		"ntile",
+		"ovsx",
 		"Pmfy",
 		"promisified",
 		"protos",
