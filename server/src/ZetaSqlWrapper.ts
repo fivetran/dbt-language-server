@@ -44,13 +44,17 @@ export class ZetaSqlWrapper {
     }
   }
 
-  async extractTableNamesFromStatement(sql: string): Promise<ExtractTableNamesFromStatementResponse__Output> {
+  async extractTableNamesFromStatement(sqlStatement: string): Promise<ExtractTableNamesFromStatementResponse__Output> {
     if (!this.isSupported()) {
       throw new Error('Not supported');
     }
-    return this.getClient().extractTableNamesFromStatement({
-      sqlStatement: sql,
-    });
+
+    const response = await this.getClient().extractTableNamesFromStatement({ sqlStatement });
+    if (!response) {
+      throw new Error('Table names not found');
+    }
+
+    return response;
   }
 
   getClient(): ZetaSQLClient {
@@ -145,7 +149,7 @@ export class ZetaSqlWrapper {
   }
 
   async analyze(rawSql: string): Promise<AnalyzeResponse__Output> {
-    return this.getClient().analyze({
+    const response = await this.getClient().analyze({
       sqlStatement: rawSql,
       registeredCatalogId: this.catalog.registeredId,
 
@@ -153,9 +157,14 @@ export class ZetaSqlWrapper {
         parseLocationRecordType: ParseLocationRecordType.PARSE_LOCATION_RECORD_CODE_SEARCH,
 
         errorMessageMode: ErrorMessageMode.ERROR_MESSAGE_ONE_LINE,
-        languageOptions: this.catalog.builtinFunctionOptions.languageOptions,
+        languageOptions: this.catalog.builtinFunctionOptions?.languageOptions,
       },
     });
+
+    if (!response) {
+      throw new Error('Analyze failed');
+    }
+    return response;
   }
 
   async terminateServer(): Promise<void> {

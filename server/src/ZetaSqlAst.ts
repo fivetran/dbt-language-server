@@ -1,4 +1,5 @@
-import { SimpleType, TypeKind } from '@fivetrandevelopers/zetasql';
+import { TypeKind } from '@fivetrandevelopers/zetasql';
+import { Type } from '@fivetrandevelopers/zetasql/lib/Type';
 import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ParseLocationRangeProto, ParseLocationRangeProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
 import { ResolvedFunctionCallProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedFunctionCallProto';
@@ -205,7 +206,7 @@ export class ZetaSqlAst {
                       alias: tableScanNode.alias || undefined, // for some tables alias is '' in ast
                       columns: tableScanNode.parent.columnList.map<ResolvedColumn>(c => ({
                         name: c.name ?? '',
-                        type: c.type?.typeKind ? new SimpleType(c.type.typeKind as TypeKind).getTypeName() : undefined,
+                        type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind as TypeKind] : undefined,
                       })),
                     });
                   }
