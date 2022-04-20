@@ -33,7 +33,9 @@ export interface SchemaDefinition {
   fields: Array<ColumnDefinition>;
 }
 
-interface ColumnDefinition {
+export interface ColumnDefinition {
   name: string;
   type: string;
+  fields?: ColumnDefinition[];
+  mode?: string;
 }

@@ -26,11 +26,9 @@ suite('Errors', () => {
     await assertDiagnostics(ERRORS_DOC_URI, []);
   });
 
-  test(`Should show no errors for queries with recursive`, async () => {
+  test(`Should show no errors for queries with recursive, nested structs, array of structs`, async () => {
     // arrange
     await activateAndWait(REFERRERS_DOC_URI);
-
-    // act: do nothing
 
     // assert
     await assertDiagnostics(REFERRERS_DOC_URI, []);

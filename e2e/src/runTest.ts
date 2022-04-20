@@ -1,4 +1,4 @@
-import { BigQuery, TableField } from '@google-cloud/bigquery';
+import { BigQuery, Dataset, TableField } from '@google-cloud/bigquery';
 import { downloadAndUnzipVSCode, resolveCliArgsFromVSCodeExecutablePath, runTests, SilentReporter } from '@vscode/test-electron';
 import { spawnSync, SpawnSyncReturns } from 'child_process';
 import * as fs from 'fs';
@@ -67,14 +67,14 @@ async function prepareBigQuery(): Promise<void> {
   const dataset = bigQuery.dataset(dsName);
   await dataset.get({ autoCreate: true });
 
-  await ensureTableExists(bigQuery, dsName, 'test_table1', [
+  await ensureTableExists(dataset, 'test_table1', [
     { name: 'id', type: 'INTEGER' },
     { name: 'time', type: 'TIMESTAMP' },
     { name: 'name', type: 'STRING' },
     { name: 'date', type: 'DATE' },
   ]);
 
-  await ensureTableExists(bigQuery, dsName, 'users', [
+  await ensureTableExists(dataset, 'users', [
     { name: 'id', type: 'INTEGER' },
     { name: 'name', type: 'STRING' },
     { name: 'division', type: 'STRING' },
@@ -85,18 +85,49 @@ async function prepareBigQuery(): Promise<void> {
     { name: 'referrer_id', type: 'INTEGER' },
   ]);
 
-  await ensureTableExists(bigQuery, dsName, 'table_exists', [{ name: 'id', type: 'INTEGER' }]);
+  await ensureTableExists(dataset, 'table_exists', [{ name: 'id', type: 'INTEGER' }]);
+  await ensureTableWithStructExists(dataset);
 }
 
-async function ensureTableExists(bigQuery: BigQuery, dsName: string, tableName: string, columns: TableField[]): Promise<void> {
-  const dataset = bigQuery.dataset(dsName);
-  const table = dataset.table(tableName);
-  const [exists] = await table.exists();
-  if (!exists) {
+async function ensureTableExists(dataset: Dataset, tableName: string, columns: TableField[]): Promise<void> {
+  if (!(await isTableExist(dataset, tableName))) {
     await dataset.createTable(tableName, {
       schema: columns,
     });
   }
+}
+
+async function ensureTableWithStructExists(dataset: Dataset): Promise<void> {
+  const tableName = 'student_details';
+  if (!(await isTableExist(dataset, tableName))) {
+    await dataset.createTable(tableName, {
+      schema: [
+        { name: 'id', type: 'INTEGER' },
+        {
+          name: 'info',
+          type: 'RECORD',
+          mode: 'REPEATED',
+          fields: [
+            { name: 'name', type: 'STRING' },
+            { name: 'age', type: 'INTEGER' },
+            {
+              name: 'subjects',
+              type: 'RECORD',
+              fields: [
+                { name: 'subj1', type: 'STRING' },
+                { name: 'subj2', type: 'STRING' },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  }
+}
+
+async function isTableExist(dataset: Dataset, tableName: string): Promise<boolean> {
+  const table = dataset.table(tableName);
+  return (await table.exists())[0];
 }
 
 async function preparePostgres(): Promise<void> {
