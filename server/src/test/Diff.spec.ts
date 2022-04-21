@@ -15,6 +15,20 @@ describe('Diff', () => {
     ]);
   });
 
+  it('4_lines_with_config', () => {
+    shouldReturnCorrespondingLineNumber('4_lines_with_config', [
+      [2, 2],
+      [3, 3],
+    ]);
+  });
+
+  it('inner_join', () => {
+    shouldReturnCorrespondingLineNumber('inner_join', [
+      [2, 7],
+      [3, 8],
+    ]);
+  });
+
   it('jinja_at_the_end', () => {
     shouldReturnCorrespondingLineNumber('jinja_at_the_end', [
       [0, 0],
@@ -101,21 +115,21 @@ describe('Diff', () => {
     assertThat(actualOldCharacter, expectedOldCharacter);
   }
 
-  function shouldReturnCorrespondingLineNumber(fileName: string, params: number[][]): void {
-    for (const param of params) {
-      shouldReturnCorrespondingLineNumberForOldText(fileName, param[0], param[1]);
+  function shouldReturnCorrespondingLineNumber(fileName: string, compiledRawArray: number[][]): void {
+    for (const compiledRaw of compiledRawArray) {
+      shouldReturnCorrespondingLineNumberForOldText(fileName, compiledRaw[0], compiledRaw[1]);
     }
   }
 
-  function shouldReturnCorrespondingLineNumberForOldText(fileName: string, newLineNumber: number, expectedOldLineNumber: number): void {
+  function shouldReturnCorrespondingLineNumberForOldText(fileName: string, lineNumberInCompiled: number, lineNumberInRaw: number): void {
     // arrange
     const fileContent = getFilesContent(fileName);
 
     // act
-    const number = Diff.getOldLineNumber(fileContent.raw, fileContent.compiled, newLineNumber);
+    const number = Diff.getOldLineNumber(fileContent.raw, fileContent.compiled, lineNumberInCompiled);
 
     // assert
-    assertThat(number, expectedOldLineNumber);
+    assertThat(number, lineNumberInRaw);
   }
 
   function getFilesContent(fileName: string): content {

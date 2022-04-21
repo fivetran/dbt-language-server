@@ -55,7 +55,7 @@ export class DbtTextDocument {
   diagnosticGenerator = new DiagnosticGenerator();
   hoverProvider = new HoverProvider();
 
-  hasDbtError = false;
+  currentDbtError?: string;
   firstSave = true;
 
   constructor(
@@ -102,6 +102,8 @@ export class DbtTextDocument {
       this.requireCompileOnSave = false;
       dbtRpcServer?.refreshServer();
       this.debouncedCompile();
+    } else if (this.currentDbtError) {
+      this.onCompilationError(this.currentDbtError);
     } else {
       await this.onCompilationFinished(this.compiledDocument.getText());
     }
@@ -238,33 +240,35 @@ export class DbtTextDocument {
   }
 
   onCompilationError(dbtCompilationError: string): void {
-    this.hasDbtError = true;
+    this.currentDbtError = dbtCompilationError;
+    TextDocument.update(this.compiledDocument, [{ text: this.rawDocument.getText() }], this.compiledDocument.version);
+
     const diagnostics = this.diagnosticGenerator.getDbtErrorDiagnostics(
       dbtCompilationError,
       this.getModelPathOrFullyQualifiedName(),
       this.workspaceFolder,
     );
 
-    this.sendUpdateQueryPreview(this.rawDocument.getText());
+    this.sendUpdateQueryPreview();
     this.sendDiagnostics(diagnostics, diagnostics);
   }
 
   onDbtErrorFixed(): void {
-    if (this.hasDbtError) {
-      this.hasDbtError = false;
+    if (this.currentDbtError) {
+      this.currentDbtError = undefined;
       this.sendDiagnostics([], []);
     }
   }
 
   async onCompilationFinished(compiledSql: string): Promise<void> {
-    if (this.hasDbtError) {
-      this.hasDbtError = false;
+    if (this.currentDbtError) {
+      this.currentDbtError = undefined;
       this.onGlobalDbtErrorFixedEmitter.fire();
     }
 
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
     const [rawDocDiagnostics, compiledDocDiagnostics] = await this.createDiagnostics();
-    this.sendUpdateQueryPreview(compiledSql);
+    this.sendUpdateQueryPreview();
     this.sendDiagnostics(rawDocDiagnostics, compiledDocDiagnostics);
 
     if (!this.modelCompiler.compilationInProgress) {
@@ -292,8 +296,8 @@ export class DbtTextDocument {
     return [rawDocDiagnostics, compiledDocDiagnostics];
   }
 
-  sendUpdateQueryPreview(previewText: string): void {
-    this.connection.sendNotification('custom/updateQueryPreview', { uri: this.rawDocument.uri, previewText });
+  sendUpdateQueryPreview(): void {
+    this.connection.sendNotification('custom/updateQueryPreview', { uri: this.rawDocument.uri, previewText: this.compiledDocument.getText() });
   }
 
   sendDiagnostics(rawDocDiagnostics: Diagnostic[], compiledDocDiagnostics: Diagnostic[]): void {
