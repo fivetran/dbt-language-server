@@ -1,6 +1,9 @@
+import * as fs from 'fs';
 import { Emitter, Event } from 'vscode-languageserver';
 import { DbtCompileJob } from './DbtCompileJob';
 import { DbtRpcClient } from './DbtRpcClient';
+
+import path = require('path');
 
 export class ModelCompiler {
   private dbtCompileJobQueue: DbtCompileJob[] = [];
@@ -40,7 +43,7 @@ export class ModelCompiler {
     }
     this.startNewJob(modelPath);
 
-    await this.pollResults();
+    await this.pollResults(modelPath);
   }
 
   startNewJob(modelPath: string): void {
@@ -49,7 +52,7 @@ export class ModelCompiler {
     void job.start();
   }
 
-  async pollResults(): Promise<void> {
+  async pollResults(modelPath: string): Promise<void> {
     if (this.pollIsRunning) {
       return;
     }
@@ -71,7 +74,13 @@ export class ModelCompiler {
           if (result.isErr()) {
             this.onCompilationErrorEmitter.fire(result.error);
           } else {
-            this.onCompilationFinishedEmitter.fire(result.value);
+            const value =
+              // For some reason rpc server don't compile intermediate models for packages, for this case we get results from target folder
+              result.value === ' ' && modelPath.includes('intermediate') && !modelPath.includes(path.sep)
+                ? this.fallbackForIntermediateModel(modelPath)
+                : result.value;
+
+            this.onCompilationFinishedEmitter.fire(value);
           }
           break;
         }
@@ -91,5 +100,16 @@ export class ModelCompiler {
     return new Promise(resolve => {
       setTimeout(resolve, ms);
     });
+  }
+
+  fallbackForIntermediateModel(modelPath: string): string {
+    try {
+      const pathParts = modelPath.split('.');
+      pathParts.splice(1, 0, 'models');
+      const resultPath = path.resolve('target', 'compiled', ...pathParts);
+      return fs.readFileSync(`${resultPath}.sql`, 'utf8');
+    } catch (e) {
+      return ' ';
+    }
   }
 }
