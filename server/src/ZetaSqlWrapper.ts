@@ -1,21 +1,25 @@
 import {
+  ArrayType,
   runServer,
   SimpleCatalog,
   SimpleColumn,
   SimpleTable,
   SimpleType,
+  StructType,
   terminateServer,
   TypeFactory,
+  TypeKind,
   ZetaSQLClient,
 } from '@fivetrandevelopers/zetasql';
 import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
+import { Type } from '@fivetrandevelopers/zetasql/lib/Type';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { LanguageFeature } from '@fivetrandevelopers/zetasql/lib/types/zetasql/LanguageFeature';
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ExtractTableNamesFromStatementResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ExtractTableNamesFromStatementResponse';
 import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRecordType';
 import { ZetaSQLBuiltinFunctionOptions } from '@fivetrandevelopers/zetasql/lib/ZetaSQLBuiltinFunctionOptions';
-import { TableDefinition } from './TableDefinition';
+import { ColumnDefinition, TableDefinition } from './TableDefinition';
 import { randomNumber } from './utils/Utils';
 import findFreePortPmfy = require('find-free-port');
 
@@ -108,14 +112,8 @@ export class ZetaSqlWrapper {
       for (const newColumn of t.schema?.fields ?? []) {
         const existingColumn = table.columns.find(c => c.getName() === newColumn.name);
         if (!existingColumn) {
-          const type = newColumn.type.toLowerCase();
-          const typeKind = TypeFactory.SIMPLE_TYPE_KIND_NAMES.get(type);
-          if (typeKind) {
-            const simpleColumn = new SimpleColumn(t.getTableName(), newColumn.name, new SimpleType(typeKind));
-            table.addSimpleColumn(simpleColumn);
-          } else {
-            console.log(`Cannot find SimpleType for ${newColumn.type}`);
-          }
+          const simpleColumn = new SimpleColumn(t.getTableName(), newColumn.name, this.createType(newColumn));
+          table.addSimpleColumn(simpleColumn);
         }
       }
     }
@@ -127,6 +125,23 @@ export class ZetaSqlWrapper {
     } catch (e) {
       console.error(e);
     }
+  }
+
+  createType(newColumn: ColumnDefinition): Type {
+    const bigQueryType = newColumn.type.toLowerCase();
+    const typeKind = TypeFactory.SIMPLE_TYPE_KIND_NAMES.get(bigQueryType);
+    let resultType: Type;
+    if (typeKind) {
+      resultType = new SimpleType(typeKind);
+    } else if (bigQueryType === 'record') {
+      const columns = newColumn.fields?.map(f => ({ name: f.name, type: this.createType(f) }));
+      resultType = new StructType(columns ?? []);
+    } else {
+      console.log(`Cannot find SimpleType for ${newColumn.type}`); // TODO: fix all these issues
+      resultType = new SimpleType(TypeKind.TYPE_STRING);
+    }
+
+    return newColumn.mode === 'REPEATED' ? new ArrayType(resultType) : resultType;
   }
 
   private async registerAllLanguageFeatures(): Promise<void> {

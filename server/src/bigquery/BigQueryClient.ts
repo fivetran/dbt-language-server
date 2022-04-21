@@ -1,4 +1,4 @@
-import { BigQuery, DatasetsResponse } from '@google-cloud/bigquery';
+import { BigQuery, DatasetsResponse, TableMetadata } from '@google-cloud/bigquery';
 import { err, ok, Result } from 'neverthrow';
 import { DbtDestinationClient } from '../DbtDestinationClient';
 import { SchemaDefinition } from '../TableDefinition';
@@ -17,8 +17,8 @@ export class BigQueryClient implements DbtDestinationClient {
   async test(): Promise<Result<void, string>> {
     try {
       await this.getDatasets(BigQueryClient.BQ_TEST_CLIENT_DATASETS_LIMIT);
-    } catch (e: any) {
-      const message = `Test connection failed. Reason: ${e.message}.`;
+    } catch (e) {
+      const message = `Test connection failed. Reason: ${e instanceof Error ? e.message : ''}.`;
       console.log(message);
       return err(message);
     }
@@ -34,10 +34,10 @@ export class BigQueryClient implements DbtDestinationClient {
     const dataset = this.bigQuery.dataset(dataSet);
     const table = dataset.table(tableName);
     try {
-      const metadata = await table.getMetadata();
-      return metadata[0].schema as SchemaDefinition;
-    } catch (e: any) {
-      console.log(e.message);
+      const [metadata]: [TableMetadata, any] = await table.getMetadata();
+      return metadata.schema as SchemaDefinition;
+    } catch (e) {
+      console.log(`error while getting table metadata: ${e instanceof Error ? e.message : ''}`);
       return undefined;
     }
   }

@@ -11,4 +11,6 @@ with recursive referrers as (
 )
 
 select *
-from referrers
+from referrers r
+inner join `singular-vector-135519`.dbt_ls_e2e_dataset.student_details d on d.id = r.user_id
+where info[OFFSET(1)].subjects.subj2 = 'math'
