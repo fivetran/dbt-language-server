@@ -100,6 +100,7 @@ export class ModelCompiler {
   }
 
   fallbackForEphemeralModel(modelPath: string): string {
+    console.log(`Use fallback for ephemeral model ${modelPath}`);
     try {
       let pathParts;
       let resultPath;
