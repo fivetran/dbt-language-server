@@ -10,7 +10,10 @@ with recursive referrers as (
         inner join referrers rf on u.referrer_id = rf.user_id
 )
 
-select *
+select 
+    id,
+    row_number() over (partition by d) as row_n
 from referrers r
 inner join `singular-vector-135519`.dbt_ls_e2e_dataset.student_details d on d.id = r.user_id
 where info[OFFSET(1)].subjects.subj2 = 'math'
+qualify row_n <= 3
