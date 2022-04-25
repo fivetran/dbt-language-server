@@ -59,8 +59,6 @@ export async function activateAndWait(docUri: Uri): Promise<void> {
 }
 
 function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
-  console.log(JSON.stringify(e.contentChanges));
-
   if (e.document.uri.path === 'Preview' && previewPromiseResolve) {
     if (
       // When we switch to a new document, the preview content is set to '' we skip this such events here
