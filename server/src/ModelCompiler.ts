@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import { Emitter, Event } from 'vscode-languageserver';
 import { DbtCompileJob } from './DbtCompileJob';
+import { DbtRepository } from './DbtRepository';
 import { DbtRpcClient } from './DbtRpcClient';
 
 import path = require('path');
@@ -27,7 +28,7 @@ export class ModelCompiler {
     return this.onFinishAllCompilationJobsEmitter.event;
   }
 
-  constructor(private dbtRpcClient: DbtRpcClient) {}
+  constructor(private dbtRpcClient: DbtRpcClient, private dbtRepository: DbtRepository) {}
 
   async compile(modelPath: string): Promise<void> {
     this.compilationInProgress = true;
@@ -74,12 +75,8 @@ export class ModelCompiler {
           if (result.isErr()) {
             this.onCompilationErrorEmitter.fire(result.error);
           } else {
-            const value =
-              // For some reason rpc server don't compile intermediate models for packages, for this case we get results from target folder
-              result.value === ' ' && modelPath.includes('intermediate') && !modelPath.includes(path.sep)
-                ? this.fallbackForIntermediateModel(modelPath)
-                : result.value;
-
+            // For some reason rpc server don't return compilation result for models with materialized='ephemeral'
+            const value = result.value === ' ' ? this.fallbackForEphemeralModel(modelPath) : result.value;
             this.onCompilationFinishedEmitter.fire(value);
           }
           break;
@@ -102,12 +99,23 @@ export class ModelCompiler {
     });
   }
 
-  fallbackForIntermediateModel(modelPath: string): string {
+  fallbackForEphemeralModel(modelPath: string): string {
     try {
-      const pathParts = modelPath.split('.');
-      pathParts.splice(1, 0, 'models');
-      const resultPath = path.resolve('target', 'compiled', ...pathParts);
-      return fs.readFileSync(`${resultPath}.sql`, 'utf8');
+      let pathParts;
+      let resultPath;
+      if (this.dbtRepository.modelPaths.some(m => modelPath.startsWith(m))) {
+        pathParts = modelPath.split(path.sep);
+        if (this.dbtRepository.projectName) {
+          pathParts.splice(0, 0, this.dbtRepository.projectName);
+        }
+        resultPath = path.resolve(this.dbtRepository.dbtTargetPath, 'compiled', ...pathParts);
+      } else {
+        pathParts = modelPath.split('.');
+        pathParts.splice(1, 0, 'models');
+        pathParts[pathParts.length - 1] += '.sql';
+        resultPath = path.resolve('target', 'compiled', ...pathParts);
+      }
+      return fs.readFileSync(`${resultPath}`, 'utf8');
     } catch (e) {
       return ' ';
     }

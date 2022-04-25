@@ -4,9 +4,8 @@ import { YamlParserUtils } from './YamlParserUtils';
 export class DbtProject {
   profilesPath: string;
 
-  constructor(profilesPath?: string) {
-    const path = profilesPath ?? '~/.dbt/profiles.yml';
-    this.profilesPath = YamlParserUtils.replaceTilde(path);
+  constructor(profilesPath: string) {
+    this.profilesPath = YamlParserUtils.replaceTilde(profilesPath);
   }
 
   findProjectName(): string | undefined {
