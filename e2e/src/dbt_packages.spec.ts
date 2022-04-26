@@ -24,18 +24,35 @@ suite('Extension should work inside dbt package', () => {
   installDbtPackages(PROJECT);
 
   test('Should compile model inside package', async () => {
-    // arrange, act
+    // arrange
     const docUri = await findDocUriInPackage(`${MODELS_PATH}/stg_salesforce__user.sql`);
+
+    // act
     await activateAndWait(docUri);
 
     // assert
     assertThat(getPreviewText(), containsString('`transforms_dbt_default`.`stg_salesforce__user_tmp`'));
   });
 
-  test('Should suggest definitions for ref', async () => {
-    const docUri = await findDocUriInPackage(`${MODELS_PATH}/stg_salesforce__user.sql`);
+  test('Should compile model inside package in intermediate folder', async () => {
+    // arrange
+    const docUri = await findDocUriInPackage(`salesforce/models/intermediate/salesforce__opportunity_aggregation_by_owner.sql`);
+
+    // act
     await activateAndWait(docUri);
 
+    // assert
+    assertThat(getPreviewText(), containsString('`transforms_dbt_default`.`salesforce__opportunity_enhanced`'));
+  });
+
+  test('Should suggest definitions for ref', async () => {
+    // arrange
+    const docUri = await findDocUriInPackage(`${MODELS_PATH}/stg_salesforce__user.sql`);
+
+    // act
+    await activateAndWait(docUri);
+
+    // assert
     await assertDefinitions(docUri, new Position(3, 17), [
       {
         originSelectionRange: new Range(3, 17, 3, 41),
@@ -47,9 +64,13 @@ suite('Extension should work inside dbt package', () => {
   });
 
   test('Should suggest definitions for macros', async () => {
+    // arrange
     const docUri = await findDocUriInPackage('fivetran_utils/macros/generate_columns_macro.sql');
+
+    // act
     await activateAndWait(docUri);
 
+    // assert
     await assertDefinitions(docUri, new Position(2, 17), [
       {
         originSelectionRange: new Range(2, 17, 2, 38),

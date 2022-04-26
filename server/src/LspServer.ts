@@ -65,7 +65,7 @@ export class LspServer {
   completionProvider: SqlCompletionProvider;
   dbtCompletionProvider: DbtCompletionProvider;
   dbtDefinitionProvider: DbtDefinitionProvider;
-  dbtProject = new DbtProject();
+  dbtProject = new DbtProject('~/.dbt/profiles.yml');
   dbtProfileCreator = new DbtProfileCreator(this.dbtProject);
   manifestParser = new ManifestParser();
   dbtRepository = new DbtRepository();
@@ -310,7 +310,7 @@ export class LspServer {
         this.completionProvider,
         this.dbtCompletionProvider,
         this.dbtDefinitionProvider,
-        new ModelCompiler(this.dbtRpcClient),
+        new ModelCompiler(this.dbtRpcClient, this.dbtRepository),
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,
         this.dbtRepository,

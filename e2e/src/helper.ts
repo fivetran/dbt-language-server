@@ -26,7 +26,7 @@ type voidFunc = () => void;
 
 const PROJECTS_PATH = path.resolve(__dirname, '../projects');
 const DOWNLOADS_PATH = path.resolve(__dirname, '../.downloads');
-const TEST_FIXTURE_PATH = path.resolve(PROJECTS_PATH, 'test-fixture');
+export const TEST_FIXTURE_PATH = path.resolve(PROJECTS_PATH, 'test-fixture');
 export const PREVIEW_URI = 'query-preview:Preview?dbt-language-server';
 
 export const MAX_VSCODE_INTEGER = 2147483647;
@@ -59,8 +59,6 @@ export async function activateAndWait(docUri: Uri): Promise<void> {
 }
 
 function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
-  console.log(JSON.stringify(e.contentChanges));
-
   if (e.document.uri.path === 'Preview' && previewPromiseResolve) {
     if (
       // When we switch to a new document, the preview content is set to '' we skip this such events here
@@ -129,12 +127,12 @@ export const getDocPath = (p: string): string => {
   return path.resolve(TEST_FIXTURE_PATH, 'models', p);
 };
 
-export const getDocUri = (p: string): Uri => {
-  return Uri.file(getDocPath(p));
+export const getDocUri = (docName: string): Uri => {
+  return Uri.file(getDocPath(docName));
 };
 
-export const getPathRelativeToProjects = (p: string): string => {
-  return path.resolve(PROJECTS_PATH, p);
+export const getPathRelativeToProjects = (project: string): string => {
+  return path.resolve(PROJECTS_PATH, project);
 };
 
 export const getCustomDocUri = (p: string): Uri => {
