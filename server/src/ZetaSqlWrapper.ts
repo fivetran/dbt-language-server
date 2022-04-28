@@ -45,6 +45,7 @@ export class ZetaSqlWrapper {
       runServer(port).catch(err => console.log(err));
       ZetaSQLClient.init(port);
       await this.getClient().testConnection();
+      console.log('tests passed');
 
       this.languageOptions = await new LanguageOptions().enableMaximumLanguageFeatures();
       (await LanguageOptions.getLanguageFeaturesForVersion(LanguageVersion.VERSION_CURRENT)).forEach(f =>

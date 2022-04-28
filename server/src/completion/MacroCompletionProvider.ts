@@ -24,6 +24,8 @@ export class MacroCompletionProvider implements DbtNodeCompletionProvider {
     if (macroMatch) {
       console.log('macroMatch');
       const packageName = macroMatch[0].slice(0, -1);
+      console.log(packageName);
+      console.log(this.dbtRepository.packageToMacros.size);
       const packageMacros = this.dbtRepository.packageToMacros.get(packageName);
       return packageMacros ? [...packageMacros].map<CompletionItem>(m => this.getMacroCompletionItem(m.name)) : undefined;
     }
