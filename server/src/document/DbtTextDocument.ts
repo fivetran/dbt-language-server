@@ -316,6 +316,7 @@ export class DbtTextDocument {
   }
 
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
+    console.log('onCompletion');
     const dbtCompletionItems = await this.getDbtCompletionItems(completionParams);
     if (dbtCompletionItems) {
       return dbtCompletionItems;
@@ -343,6 +344,7 @@ export class DbtTextDocument {
   }
 
   async getSqlCompletions(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
+    console.log('getSqlCompletions');
     if (!this.bigQueryContext) {
       return undefined;
     }
