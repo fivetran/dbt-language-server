@@ -42,7 +42,7 @@ export class MacroCompletionProvider implements DbtNodeCompletionProvider {
         return this.getMacroCompletionItem(label, insertText, `${MacroCompletionProvider.INSTALLED_PACKAGE_SORT_PREFIX}_${label}`);
       });
     }
-    console.log('return undefined ');
+    console.log('return undefined  ');
     return Promise.resolve(undefined);
   }
 
