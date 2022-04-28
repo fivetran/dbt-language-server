@@ -69,7 +69,9 @@ function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
     ) {
       return;
     }
-
+    console.log('---');
+    console.log(JSON.stringify(e.contentChanges));
+    console.log('---');
     previewPromiseResolve();
   } else if (e.document === doc && documentPromiseResolve) {
     documentPromiseResolve();
