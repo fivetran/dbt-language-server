@@ -42,7 +42,7 @@ export class ZetaSqlWrapper {
     if (ZetaSqlWrapper.SUPPORTED_PLATFORMS.includes(process.platform)) {
       const port = await findFreePortPmfy(randomNumber(ZetaSqlWrapper.MIN_PORT, ZetaSqlWrapper.MAX_PORT));
       console.log(`Starting zetasql on port ${port}`);
-      runServer(port).catch(err => console.error(err));
+      runServer(port).catch(err => console.log(err));
       ZetaSQLClient.init(port);
       await this.getClient().testConnection();
 

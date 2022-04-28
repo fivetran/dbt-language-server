@@ -18,6 +18,7 @@ export class BigQueryContext {
     try {
       const clientResult = await profileResult.dbtProfile.createClient(profileResult.targetConfig);
       if (clientResult.isErr()) {
+        console.log(clientResult.error);
         return err(clientResult.error);
       }
 
@@ -30,7 +31,9 @@ export class BigQueryContext {
       const schemaTracker = new SchemaTracker(bigQueryClient, zetaSqlWrapper);
       return ok(new BigQueryContext(schemaTracker, destinationDefinition, zetaSqlWrapper));
     } catch (e) {
-      return err('Data Warehouse initialization failed.');
+      const message = e instanceof Error ? e.message : JSON.stringify(e);
+      console.log(message);
+      return err(`Data Warehouse initialization failed. ${message}`);
     }
   }
 
