@@ -188,7 +188,9 @@ export class LspServer {
   }
 
   showPrepareDestinationWarning(error: string): void {
-    this.connection.window.showWarningMessage(`Only common dbt features will be available. Dbt profile was not configured. ${error}`);
+    const message = `Only common dbt features will be available. Dbt profile was not configured. ${error}`;
+    console.log(message);
+    this.connection.window.showWarningMessage(message);
   }
 
   async prepareRpcServer(): Promise<void> {
@@ -212,6 +214,7 @@ export class LspServer {
   }
 
   async showStartDbtRpcError(message: string): Promise<void> {
+    console.log(message);
     const actions = { title: 'Retry', id: 'retry' };
     const errorMessageResult = await this.connection.window.showErrorMessage(message, actions);
     if (errorMessageResult?.id === 'retry') {
