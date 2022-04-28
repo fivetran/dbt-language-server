@@ -34,6 +34,7 @@ export class ModelCompiler {
     this.compilationInProgress = true;
     const status = await this.dbtRpcClient.getStatus();
     if (status?.error?.data?.message) {
+      console.log('dbt rpc status error');
       this.onCompilationErrorEmitter.fire(status.error.data.message);
       return;
     }
