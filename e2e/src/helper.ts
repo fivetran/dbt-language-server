@@ -54,6 +54,8 @@ export async function activateAndWait(docUri: Uri): Promise<void> {
   const activateFinished = doNotWaitChanges ? Promise.resolve() : createChangePromise('preview');
 
   await ext.activate();
+  console.log('Extension activated');
+
   doc = await workspace.openTextDocument(docUri);
   editor = await window.showTextDocument(doc);
   await showPreview();
@@ -61,6 +63,10 @@ export async function activateAndWait(docUri: Uri): Promise<void> {
 }
 
 function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
+  if (e.document.uri.path.includes('Preview')) {
+    console.log(e.document.uri);
+  }
+
   if (e.document.uri.path === 'Preview' && previewPromiseResolve) {
     if (
       // When we switch to a new document, the preview content is set to '' we skip this such events here
