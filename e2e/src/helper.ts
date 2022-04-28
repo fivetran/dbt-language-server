@@ -47,7 +47,9 @@ export async function activateAndWait(docUri: Uri): Promise<void> {
   const existingEditor = window.visibleTextEditors.find(e => e.document.uri.path === docUri.path);
   const doNotWaitChanges = existingEditor && existingEditor.document.getText() === window.activeTextEditor?.document.getText() && getPreviewEditor();
   if (doNotWaitChanges) {
-    console.log(`doNotWaitChanges. existingEditor: ${existingEditor.document.uri.toString()} activeEditor: ${window.activeTextEditor?.document}`);
+    console.log(
+      `doNotWaitChanges. existingEditor: ${existingEditor.document.uri.toString()} activeEditor: ${window.activeTextEditor?.document.uri.toString()}`,
+    );
   }
   const activateFinished = doNotWaitChanges ? Promise.resolve() : createChangePromise('preview');
 
