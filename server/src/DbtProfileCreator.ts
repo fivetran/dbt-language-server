@@ -65,22 +65,23 @@ export class DbtProfileCreator {
     try {
       profiles = YamlParserUtils.parseYamlFile(this.dbtProject.profilesPath);
     } catch (e) {
-      const errorMessage = `Failed to open and parse file '${this.dbtProject.profilesPath}'. ${e}`;
-      console.log(errorMessage);
-      return err({ message: errorMessage });
+      const message = `Failed to open and parse file '${this.dbtProject.profilesPath}'. ${e}`;
+      console.log(message);
+      return err({ message });
     }
 
     let profileName = undefined;
     try {
       profileName = this.dbtProject.findProfileName();
     } catch (e) {
-      const errorMessage = `Failed to find profile name in ${process.cwd()}/${DbtRepository.DBT_PROJECT_FILE_NAME}. ${e}`;
-      console.log(errorMessage);
-      return err({ message: errorMessage });
+      const message = `Failed to find profile name in ${process.cwd()}/${DbtRepository.DBT_PROJECT_FILE_NAME}. ${e}`;
+      console.log(message);
+      return err({ message });
     }
 
     const validationResult = this.validateProfilesFile(profiles, profileName);
     if (validationResult.isErr()) {
+      console.log(validationResult.error);
       return err(validationResult.error);
     }
 
@@ -90,12 +91,16 @@ export class DbtProfileCreator {
     const { type, method } = targetConfig;
 
     if (![...PROFILE_METHODS.keys()].find(t => t === type)) {
-      return err({ message: `Profile type '${type}' is not supported.`, type, method });
+      const message = `Profile type '${type}' is not supported.`;
+      console.log(message);
+      return err({ message, type, method });
     }
 
     const profileBuilder = BIG_QUERY_PROFILES.get(method);
     if (!profileBuilder) {
-      return err({ message: `Authentication method '${method}' of '${type}' profile is not supported.`, type, method });
+      const authErrorMessage = `Authentication method '${method}' of '${type}' profile is not supported.`;
+      console.log(authErrorMessage);
+      return err({ message: authErrorMessage, type, method });
     }
 
     const dbtProfile = profileBuilder();
@@ -115,9 +120,10 @@ export class DbtProfileCreator {
   }
 
   cantFindSectionError(profileName: string, section: string, docsUrl?: string, type?: string, method?: string): Err<never, DbtProfileError> {
-    const text = `Couldn't find section '${section}' for profile '${profileName}'. Check your '${this.dbtProject.profilesPath}' file. ${
+    const message = `Couldn't find section '${section}' for profile '${profileName}'. Check your '${this.dbtProject.profilesPath}' file. ${
       docsUrl ?? ''
     }`;
-    return err({ message: text, type, method });
+    console.log(message);
+    return err({ message, type, method });
   }
 }
