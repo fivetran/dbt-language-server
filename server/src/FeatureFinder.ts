@@ -26,7 +26,8 @@ export class FeatureFinder {
     `${FeatureFinder.PORT_PARAM}`,
   ];
 
-  private static readonly DBT_VERSION_PATTERN = /installed version: (\d+)\.(\d+)\.(\d+)/;
+  private static readonly DBT_VERSION_PATTERN_LESS_1_1_0 = /installed version: (\d+)\.(\d+)\.(\d+)/;
+  private static readonly DBT_VERSION_PATTERN = /installed: (\d+)\.(\d+)\.(\d+)/;
   private static readonly PROCESS_EXECUTOR = new ProcessExecutor();
   static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
 
@@ -123,7 +124,14 @@ export class FeatureFinder {
   }
 
   private static readVersion(data: string): DbtVersion | undefined {
-    const matchResults = data.match(FeatureFinder.DBT_VERSION_PATTERN);
+    return (
+      FeatureFinder.readVersionByPattern(data, FeatureFinder.DBT_VERSION_PATTERN) ??
+      FeatureFinder.readVersionByPattern(data, FeatureFinder.DBT_VERSION_PATTERN_LESS_1_1_0)
+    );
+  }
+
+  private static readVersionByPattern(data: string, pattern: RegExp): DbtVersion | undefined {
+    const matchResults = data.match(pattern);
     return matchResults?.length === 4
       ? {
           major: Number(matchResults[1]),
