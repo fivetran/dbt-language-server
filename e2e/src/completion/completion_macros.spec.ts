@@ -11,16 +11,20 @@ suite('Should suggest macros completions', () => {
     ['extract_last_name', 'extract_last_name'],
   ];
 
-  test('Should suggest macros', async () => {
+  // TODO: we should rework this test
+  test.skip('Should suggest macros', async () => {
     // arrange
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
     await activateAndWait(docUri);
 
     // act
+
+    // new Position(0, 17) -- ?
     const actualCompletionList = await triggerCompletion(docUri, new Position(0, 15), 'e');
 
     // assert
     const expectedCompletions = getMacrosCompletionList();
+    assertThat(actualCompletionList.items.length, expectedCompletions.length);
     expectedCompletions.forEach(c => {
       const actualCompletion = actualCompletionList.items.find(a => a.label === c.label && a.insertText === c.insertText);
       assertThat(actualCompletion, defined());
