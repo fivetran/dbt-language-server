@@ -21,10 +21,30 @@ export class DbtCompletionProvider {
   }
 
   async provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
-    return (
-      (await this.modelCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText)) ??
-      (await this.sourceCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText)) ??
-      (await this.macroCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText))
-    );
+    console.log('--- provideCompletions start ---');
+    console.log(`jinjaPartType: ${JinjaPartType[jinjaPartType]}`);
+    console.log(`jinjaBeforePositionText: ${jinjaBeforePositionText}`);
+    console.log('--- provideCompletions end ---');
+
+    const modelCompletions = await this.modelCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText);
+    if (modelCompletions) {
+      console.log(`modelCompletions: ${modelCompletions}`);
+      return modelCompletions;
+    }
+
+    const sourceCompletions = await this.sourceCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText);
+    if (sourceCompletions) {
+      console.log(`sourceCompletions: ${sourceCompletions}`);
+      return sourceCompletions;
+    }
+
+    const macroCompletions = await this.macroCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText);
+    if (macroCompletions) {
+      console.log(`macroCompletions: ${macroCompletions}`);
+      return macroCompletions;
+    }
+
+    console.log('dbt completions not found');
+    return undefined;
   }
 }
