@@ -72,7 +72,11 @@ export class DbtLanguageClient implements Disposable {
   initialize(): void {
     this.disposables.push(
       this.client.onTelemetry((e: TelemetryEvent) => {
-        TelemetryClient.sendEvent(e.name, e.properties);
+        if (e.name === 'error') {
+          TelemetryClient.sendError(e.properties);
+        } else {
+          TelemetryClient.sendEvent(e.name, e.properties);
+        }
       }),
     );
 

@@ -1,5 +1,8 @@
+import * as sourceMapSupport from 'source-map-support';
 import { createConnection, ProposedFeatures } from 'vscode-languageserver/node';
 import { LspServer } from './LspServer';
+
+sourceMapSupport.install({ handleUncaughtExceptions: false });
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.

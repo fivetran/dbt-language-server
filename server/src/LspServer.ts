@@ -104,6 +104,7 @@ export class LspServer {
   onInitialize(params: InitializeParams): InitializeResult<any> | ResponseError<InitializeError> {
     console.log(`Starting server for folder ${this.workspaceFolder}`);
 
+    process.on('uncaughtException', this.onUncaughtException.bind(this));
     process.on('SIGTERM', () => this.onShutdown());
     process.on('SIGINT', () => this.onShutdown());
 
@@ -135,6 +136,19 @@ export class LspServer {
         definitionProvider: true,
       },
     };
+  }
+
+  onUncaughtException(error: Error, origin: 'uncaughtException' | 'unhandledRejection'): void {
+    console.log(`${new Date().toUTCString()} ${origin}:`, error.message);
+    console.log(error.stack);
+
+    this.sendTelemetry('error', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack ?? '',
+    });
+
+    process.exit(1);
   }
 
   initializeNotifications(): void {
@@ -217,7 +231,7 @@ export class LspServer {
   }
 
   sendTelemetry(name: string, properties?: { [key: string]: string }): void {
-    console.log(`Telemetry log: ${JSON.stringify(properties)}`);
+    console.log(JSON.stringify(properties));
     this.connection.sendNotification<TelemetryEvent>(TelemetryEventNotification.type, { name, properties });
   }
 
