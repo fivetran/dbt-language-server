@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.4.1 (01/01/1970)
+## Version 0.4.1 (29/04/2022)
 ## What's Changed
 * Fix problems with macros preview
 * Fix wrong diff results in some cases
