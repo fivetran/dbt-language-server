@@ -240,7 +240,7 @@ export class DbtTextDocument {
   }
 
   onCompilationError(dbtCompilationError: string): void {
-    console.log('dbt compilation error');
+    console.log(`dbt compilation error: ${dbtCompilationError}`);
     this.currentDbtError = dbtCompilationError;
     TextDocument.update(this.compiledDocument, [{ text: this.rawDocument.getText() }], this.compiledDocument.version);
 
