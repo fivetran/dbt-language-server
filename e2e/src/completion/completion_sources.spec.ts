@@ -14,20 +14,21 @@ suite('Should suggest sources completions', () => {
   test('Should suggest sources', async () => {
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
     await activateAndWait(docUri);
-    await assertCompletions(docUri, new Position(1, 16), getSourcesCompletionList(SOURCES_COMPLETIONS, false));
+    await assertCompletions(docUri, new Position(1, 16), getSourcesCompletionList(SOURCES_COMPLETIONS, false, 'Source'));
   });
 
   test('Should suggest source tables', async () => {
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
     await activateAndWait(docUri);
-    await assertCompletions(docUri, new Position(1, 32), getSourcesCompletionList(TABLES_COMPLETIONS, false));
+    await assertCompletions(docUri, new Position(1, 32), getSourcesCompletionList(TABLES_COMPLETIONS, false, 'Table'));
   });
 
-  function getSourcesCompletionList(completions: [string, string][], withQuotes: boolean): CompletionItem[] {
+  function getSourcesCompletionList(completions: [string, string][], withQuotes: boolean, detail: 'Source' | 'Table'): CompletionItem[] {
     return completions.map<CompletionItem>(c => ({
       label: c[0],
       insertText: getTextInQuotesIfNeeded(c[1], withQuotes),
       kind: CompletionItemKind.Value,
+      detail,
     }));
   }
 });

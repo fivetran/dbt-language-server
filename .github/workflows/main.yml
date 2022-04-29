@@ -275,7 +275,15 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }}
-          path: ./.vscode-test/user-data/logs/**/*dbt Wizard.log
+          path: |
+            ./.vscode-test/user-data/logs/**/*dbt Wizard.log
+            ./e2e/projects/completion-jinja/logs/*
+            ./e2e/projects/test-fixture/logs/*
+            ./e2e/projects/two-projects/logs/*
+            ./e2e/projects/without-projects/logs/*
+            ./e2e/projects/special-python-settings/logs/*
+            ./e2e/projects/postgres/logs/*
+            ./e2e/projects/project-with-packages/logs/*
 
   publish:
     if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }} # main branch or have any tag started with 'v'

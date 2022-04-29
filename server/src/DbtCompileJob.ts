@@ -7,7 +7,7 @@ export class DbtCompileJob {
   static readonly STOP_ERROR = 'Job was stopped';
   static readonly NETWORK_ERROR = 'Network error';
 
-  static COMPILE_MODEL_MAX_RETRIES = 10;
+  static COMPILE_MODEL_MAX_RETRIES = 6;
   static COMPILE_MODEL_TIMEOUT_MS = 100;
 
   static POLL_MAX_RETRIES = 86;

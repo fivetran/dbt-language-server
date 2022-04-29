@@ -58,6 +58,7 @@ suite('Should suggest model completions', () => {
       label: c[0],
       insertText: getTextInQuotesIfNeeded(c[1], withQuotes),
       kind: CompletionItemKind.Value,
+      detail: 'Model',
     }));
   }
 });

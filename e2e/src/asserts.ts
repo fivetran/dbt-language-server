@@ -73,5 +73,8 @@ export async function assertCompletions(
     assertThat(JSON.stringify(actualCompletionList), actualItem.label, expectedItem.label);
     assertThat(JSON.stringify(actualCompletionList), actualItem.kind, expectedItem.kind);
     assertThat(JSON.stringify(actualCompletionList), actualItem.insertText, expectedItem.insertText ?? expectedItem.label);
+    if (expectedItem.detail) {
+      assertThat(JSON.stringify(actualCompletionList), actualItem.detail, expectedItem.detail);
+    }
   });
 }

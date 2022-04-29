@@ -12,22 +12,19 @@ suite('Should suggest macros completions', () => {
     ['extract_last_name', 'extract_last_name'],
   ];
 
-  // TODO: we should rework this test
-  test.skip('Should suggest macros', async () => {
+  test('Should suggest macros', async () => {
     // arrange
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
     await activateAndWait(docUri);
+    await waitManifestJson(PROJECT);
 
     // act
-
-    // new Position(0, 17) -- ?
-    const actualCompletionList = await triggerCompletion(docUri, new Position(0, 15), 'e');
+    const actualCompletionList = await triggerCompletion(docUri, new Position(0, 17));
 
     // assert
     const expectedCompletions = getMacrosCompletionList();
-    assertThat(actualCompletionList.items.length, expectedCompletions.length);
     expectedCompletions.forEach(c => {
-      const actualCompletion = actualCompletionList.items.find(a => a.label === c.label && a.insertText === c.insertText);
+      const actualCompletion = actualCompletionList.items.find(a => a.label === c.label && a.insertText === c.insertText && a.detail === c.detail);
       assertThat(actualCompletion, defined());
     });
   });
@@ -42,6 +39,6 @@ suite('Should suggest macros completions', () => {
   });
 
   function getMacrosCompletionList(): CompletionItem[] {
-    return MACROS_COMPLETIONS.map<CompletionItem>(c => ({ label: c[0], insertText: c[1], kind: CompletionItemKind.Value }));
+    return MACROS_COMPLETIONS.map<CompletionItem>(c => ({ label: c[0], insertText: c[1], kind: CompletionItemKind.Value, detail: 'Macro' }));
   }
 });
