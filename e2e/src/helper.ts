@@ -193,10 +193,6 @@ export async function replaceText(oldText: string, newText: string): Promise<voi
   return edit(eb => eb.replace(new Range(positionStart, positionEnd), newText));
 }
 
-export async function replaceTextRange(positionStart: Position, positionEnd: Position, text: string): Promise<void> {
-  return edit(eb => eb.replace(new Range(positionStart, positionEnd), text));
-}
-
 async function edit(callback: (editBuilder: TextEditorEdit) => void): Promise<void> {
   return waitPreviewModification(async () => {
     await editor.edit(callback);
