@@ -33,6 +33,7 @@ export class BigQueryContext {
     } catch (e) {
       const message = e instanceof Error ? e.message : JSON.stringify(e);
       console.log(message);
+      console.log(e instanceof Error ? e.stack : '');
       return err(`Data Warehouse initialization failed. ${message}`);
     }
   }
