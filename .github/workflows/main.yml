@@ -150,13 +150,13 @@ jobs:
         with:
           python-version: '3.9.12'
 
-      - name: add custom python venv with dbt@0.20.1
-        run: | # https://github.com/dbt-labs/dbt-core/issues/4745
-          python -m venv ~/dbt_0_20_1_env
-          ${{ matrix.activate-venv }}
-          pip install --force-reinstall MarkupSafe==2.0.1
-          pip install dbt==0.20.1 dbt-bigquery==0.20.1 dbt-postgres==0.20.1
-          dbt --version
+      # - name: add custom python venv with dbt@0.20.1
+      #   run: | # https://github.com/dbt-labs/dbt-core/issues/4745
+      #     python -m venv ~/dbt_0_20_1_env
+      #     ${{ matrix.activate-venv }}
+      #     pip install --force-reinstall MarkupSafe==2.0.1
+      #     pip install dbt==0.20.1 dbt-bigquery==0.20.1 dbt-postgres==0.20.1
+      #     dbt --version
 
       - name: prepare profile config
         run: |
