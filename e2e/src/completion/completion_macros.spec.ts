@@ -1,7 +1,7 @@
 import { assertThat, defined } from 'hamjest';
 import { CompletionItem, CompletionItemKind, Position } from 'vscode';
 import { assertCompletions } from '../asserts';
-import { activateAndWait, getCustomDocUri, insertText, replaceTextRange, triggerCompletion, waitManifestJson } from '../helper';
+import { activateAndWait, getCustomDocUri, triggerCompletion, waitManifestJson } from '../helper';
 
 suite('Should suggest macros completions', () => {
   const PROJECT = 'postgres';
@@ -19,8 +19,7 @@ suite('Should suggest macros completions', () => {
     await waitManifestJson(PROJECT);
 
     // act
-    await insertText(new Position(0, 15), 'e');
-    const actualCompletionList = await triggerCompletion(docUri, new Position(0, 16));
+    const actualCompletionList = await triggerCompletion(docUri, new Position(0, 17));
 
     // assert
     const expectedCompletions = getMacrosCompletionList();
@@ -28,9 +27,6 @@ suite('Should suggest macros completions', () => {
       const actualCompletion = actualCompletionList.items.find(a => a.label === c.label && a.insertText === c.insertText);
       assertThat(actualCompletion, defined());
     });
-
-    // Reset file content to avoid errors
-    await replaceTextRange(new Position(0, 15), new Position(0, 16), '');
   });
 
   test('Should suggest macros from package', async () => {
