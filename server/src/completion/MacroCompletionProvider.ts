@@ -32,8 +32,7 @@ export class MacroCompletionProvider implements DbtNodeCompletionProvider {
 
     const wordMatch = MacroCompletionProvider.WORD_PATTERN.exec(jinjaBeforePositionText);
     if (wordMatch) {
-      console.log('wordMatch');
-      console.log(this.dbtRepository.macros.length);
+      console.log(`wordMatch ${this.dbtRepository.macros.length}`);
       return this.dbtRepository.macros.map<CompletionItem>(m => {
         if (m.packageName === this.dbtRepository.projectName) {
           return this.getMacroCompletionItem(m.name, m.name, `${MacroCompletionProvider.CURRENT_PACKAGE_SORT_PREFIX}_${m.name}`);
