@@ -1,5 +1,6 @@
 import { spawnSync, SpawnSyncReturns } from 'child_process';
 import * as fs from 'fs';
+import { WatchEventType } from 'fs';
 import * as path from 'path';
 import {
   commands,
@@ -133,6 +134,25 @@ export function sleep(ms: number): Promise<unknown> {
   });
 }
 
+export async function waitManifestJson(projectFolderName: string): Promise<void> {
+  const projectPath = getAbsolutePath(projectFolderName);
+  if (fs.existsSync(path.resolve(projectPath, 'target', 'manifest.json'))) {
+    return;
+  }
+
+  let resolve: voidFunc;
+  const result = new Promise<void>(res => {
+    resolve = res;
+  });
+  fs.watch(projectPath, { recursive: true }, (event: WatchEventType, fileName: string) => {
+    console.log(fileName);
+    if (fileName.endsWith('manifest.json')) {
+      resolve();
+    }
+  });
+  await result;
+}
+
 export const getDocPath = (p: string): string => {
   return path.resolve(TEST_FIXTURE_PATH, 'models', p);
 };
@@ -141,12 +161,12 @@ export const getDocUri = (docName: string): Uri => {
   return Uri.file(getDocPath(docName));
 };
 
-export const getPathRelativeToProjects = (project: string): string => {
-  return path.resolve(PROJECTS_PATH, project);
+export const getAbsolutePath = (pathRelativeToProject: string): string => {
+  return path.resolve(PROJECTS_PATH, pathRelativeToProject);
 };
 
 export const getCustomDocUri = (p: string): Uri => {
-  return Uri.file(getPathRelativeToProjects(p));
+  return Uri.file(getAbsolutePath(p));
 };
 
 export async function setTestContent(content: string): Promise<void> {
@@ -196,7 +216,7 @@ export function getCursorPosition(): Position {
 }
 
 export function installDbtPackages(projectFolder: string): void {
-  spawnSync('dbt', ['deps'], { cwd: getPathRelativeToProjects(projectFolder) });
+  spawnSync('dbt', ['deps'], { cwd: getAbsolutePath(projectFolder) });
 }
 
 export function installExtension(extensionId: string): void {
