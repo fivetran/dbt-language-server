@@ -16,23 +16,18 @@ export class MacroCompletionProvider implements DbtNodeCompletionProvider {
 
   async provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
     if (!MacroCompletionProvider.ACCEPTABLE_JINJA_PARTS.includes(jinjaPartType)) {
-      console.log('node acceptable jinja part');
       return undefined;
     }
 
     const macroMatch = MacroCompletionProvider.MACRO_PATTERN.exec(jinjaBeforePositionText);
     if (macroMatch) {
-      console.log('macroMatch ');
       const packageName = macroMatch[0].slice(0, -1);
-      console.log(packageName);
-      console.log(this.dbtRepository.packageToMacros.size);
       const packageMacros = this.dbtRepository.packageToMacros.get(packageName);
       return packageMacros ? [...packageMacros].map<CompletionItem>(m => this.getMacroCompletionItem(m.name)) : undefined;
     }
 
     const wordMatch = MacroCompletionProvider.WORD_PATTERN.exec(jinjaBeforePositionText);
     if (wordMatch) {
-      console.log(`wordMatch ${this.dbtRepository.macros.length}`);
       return this.dbtRepository.macros.map<CompletionItem>(m => {
         if (m.packageName === this.dbtRepository.projectName) {
           return this.getMacroCompletionItem(m.name, m.name, `${MacroCompletionProvider.CURRENT_PACKAGE_SORT_PREFIX}_${m.name}`);
@@ -43,7 +38,6 @@ export class MacroCompletionProvider implements DbtNodeCompletionProvider {
         return this.getMacroCompletionItem(label, insertText, `${MacroCompletionProvider.INSTALLED_PACKAGE_SORT_PREFIX}_${label}`);
       });
     }
-    console.log('return undefined ');
     return Promise.resolve(undefined);
   }
 

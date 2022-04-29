@@ -24,7 +24,7 @@ export async function run(): Promise<void> {
   return new Promise((resolve, reject) => {
     const startTime = performance.now();
 
-    glob('**/completion_macros.spec.js', { cwd: testsRoot }, (e, files) => {
+    glob('**/*.spec.js', { cwd: testsRoot }, (e, files) => {
       if (e) {
         reject(e);
       }
