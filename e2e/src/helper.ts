@@ -1,5 +1,6 @@
 import { spawnSync, SpawnSyncReturns } from 'child_process';
 import * as fs from 'fs';
+import { WatchEventType } from 'fs';
 import * as path from 'path';
 import {
   commands,
@@ -47,11 +48,15 @@ export async function activateAndWait(docUri: Uri): Promise<void> {
   const existingEditor = window.visibleTextEditors.find(e => e.document.uri.path === docUri.path);
   const doNotWaitChanges = existingEditor && existingEditor.document.getText() === window.activeTextEditor?.document.getText() && getPreviewEditor();
   if (doNotWaitChanges) {
-    console.log(`doNotWaitChanges. existingEditor: ${existingEditor.document.uri.toString()} activeEditor: ${window.activeTextEditor?.document}`);
+    console.log(
+      `doNotWaitChanges. existingEditor: ${existingEditor.document.uri.toString()} activeEditor: ${window.activeTextEditor?.document.uri.toString()}`,
+    );
   }
   const activateFinished = doNotWaitChanges ? Promise.resolve() : createChangePromise('preview');
 
   await ext.activate();
+  console.log('Extension activated');
+
   doc = await workspace.openTextDocument(docUri);
   editor = await window.showTextDocument(doc);
   await showPreview();
@@ -59,6 +64,10 @@ export async function activateAndWait(docUri: Uri): Promise<void> {
 }
 
 function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
+  if (e.document.uri.path.includes('Preview')) {
+    console.log(e.document.uri);
+  }
+
   if (e.document.uri.path === 'Preview' && previewPromiseResolve) {
     if (
       // When we switch to a new document, the preview content is set to '' we skip this such events here
@@ -69,7 +78,6 @@ function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
     ) {
       return;
     }
-
     previewPromiseResolve();
   } else if (e.document === doc && documentPromiseResolve) {
     documentPromiseResolve();
@@ -123,6 +131,26 @@ export function sleep(ms: number): Promise<unknown> {
   });
 }
 
+export async function waitManifestJson(projectFolderName: string): Promise<void> {
+  const projectPath = getAbsolutePath(projectFolderName);
+  if (fs.existsSync(path.resolve(projectPath, 'target', 'manifest.json'))) {
+    console.log('manifest.json already exists');
+    return;
+  }
+
+  let resolve: voidFunc;
+  const result = new Promise<void>(res => {
+    resolve = res;
+  });
+  fs.watch(projectPath, { recursive: true }, (event: WatchEventType, fileName: string) => {
+    if (fileName.endsWith('manifest.json')) {
+      console.log('Waiting for manifest.json completed');
+      resolve();
+    }
+  });
+  await result;
+}
+
 export const getDocPath = (p: string): string => {
   return path.resolve(TEST_FIXTURE_PATH, 'models', p);
 };
@@ -131,12 +159,12 @@ export const getDocUri = (docName: string): Uri => {
   return Uri.file(getDocPath(docName));
 };
 
-export const getPathRelativeToProjects = (project: string): string => {
-  return path.resolve(PROJECTS_PATH, project);
+export const getAbsolutePath = (pathRelativeToProject: string): string => {
+  return path.resolve(PROJECTS_PATH, pathRelativeToProject);
 };
 
 export const getCustomDocUri = (p: string): Uri => {
-  return Uri.file(getPathRelativeToProjects(p));
+  return Uri.file(getAbsolutePath(p));
 };
 
 export async function setTestContent(content: string): Promise<void> {
@@ -186,7 +214,7 @@ export function getCursorPosition(): Position {
 }
 
 export function installDbtPackages(projectFolder: string): void {
-  spawnSync('dbt', ['deps'], { cwd: getPathRelativeToProjects(projectFolder) });
+  spawnSync('dbt', ['deps'], { cwd: getAbsolutePath(projectFolder) });
 }
 
 export function installExtension(extensionId: string): void {

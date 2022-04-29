@@ -45,9 +45,13 @@ export async function run(): Promise<void> {
           }
         });
         runner.on('fail', () => {
-          console.log(`Content of document when test failed:\n${doc.getText()}`);
-          console.log(`Preview content:\n${getPreviewText()}`);
-          console.log(`Preview diagnostics:\n${JSON.stringify(languages.getDiagnostics(Uri.parse(PREVIEW_URI)))}`);
+          try {
+            console.log(`Content of document when test failed:\n${doc.getText()}`);
+            console.log(`Preview content:\n${getPreviewText()}`);
+            console.log(`Preview diagnostics:\n${JSON.stringify(languages.getDiagnostics(Uri.parse(PREVIEW_URI)))}`);
+          } catch (err) {
+            // do nothing
+          }
         });
       } catch (err) {
         console.error(err);

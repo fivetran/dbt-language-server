@@ -1,4 +1,4 @@
-import TelemetryReporter from '@vscode/extension-telemetry';
+import TelemetryReporter, { TelemetryEventProperties } from '@vscode/extension-telemetry';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ExtensionContext } from 'vscode';
@@ -6,16 +6,16 @@ import { ExtensionContext } from 'vscode';
 export class TelemetryClient {
   private static client: TelemetryReporter | undefined;
 
-  static sendEvent(eventName: string, properties?: { [key: string]: string }): void {
-    if (TelemetryClient.client) {
-      TelemetryClient.client.sendTelemetryEvent(eventName, properties);
-    }
+  static sendEvent(eventName: string, properties?: TelemetryEventProperties): void {
+    TelemetryClient.client?.sendTelemetryEvent(eventName, properties);
   }
 
-  static sendException(error: Error, properties?: { [key: string]: string }): void {
-    if (TelemetryClient.client) {
-      TelemetryClient.client.sendTelemetryException(error, properties);
-    }
+  static sendException(error: Error, properties?: TelemetryEventProperties): void {
+    TelemetryClient.client?.sendTelemetryException(error, properties);
+  }
+
+  static sendError(properties?: TelemetryEventProperties): void {
+    TelemetryClient.client?.sendTelemetryErrorEvent('error', properties);
   }
 
   static activate(context: ExtensionContext): void {

@@ -148,7 +148,7 @@ jobs:
 
       - uses: actions/setup-python@v2
         with:
-          python-version: '3.7.x'
+          python-version: '3.9.12'
 
       - name: add custom python venv with dbt@0.20.1
         run: | # https://github.com/dbt-labs/dbt-core/issues/4745

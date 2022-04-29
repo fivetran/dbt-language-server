@@ -11,8 +11,10 @@
 !images/Icon.png
 
 !client/out/extension.js
+!client/out/extension.js.map
 
 !server/out/**/*.js
+!server/out/**/*.js.map
 !server/out/zetasql/*
 !server/out/protos/**/*.proto
 !server/node_modules/**/*
