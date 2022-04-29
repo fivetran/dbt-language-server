@@ -1,5 +1,18 @@
 # Changelog
 
+## Version 0.4.1 (29/04/2022)
+## What's Changed
+* Fix problems with macros preview
+* Fix wrong diff results in some cases
+* Support nested structs and array of structs
+* Add support `qualify`, `recursive` and other ZetaSQL features in development
+* Fix preview for models with `materialized='ephemeral'`
+* Add additional logs
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.4.0...v0.4.1
+---
+
 ## Version 0.4.0 (12/04/2022)
 ## What's Changed
 * Add the ability to compile models inside dbt packages
