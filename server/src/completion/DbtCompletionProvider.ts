@@ -24,7 +24,6 @@ export class DbtCompletionProvider {
     console.log('--- provideCompletions start ---');
     console.log(`jinjaPartType: ${JinjaPartType[jinjaPartType]}`);
     console.log(`jinjaBeforePositionText: ${jinjaBeforePositionText}`);
-    console.log('--- provideCompletions end ---');
 
     const modelCompletions = await this.modelCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText);
     if (modelCompletions) {
