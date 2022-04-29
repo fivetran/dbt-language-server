@@ -59,7 +59,6 @@ export class ZetaSqlWrapper {
       runServer(port).catch(err => console.log(err));
       ZetaSQLClient.init(port);
       await this.getClient().testConnection();
-      console.log('ZetaSQL tests passed');
     } else {
       this.supported = false;
     }
