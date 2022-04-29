@@ -38,6 +38,20 @@ export class ZetaSqlWrapper {
     return this.supported;
   }
 
+  private async getLanguageOptions(): Promise<LanguageOptions | undefined> {
+    if (!this.languageOptions) {
+      try {
+        this.languageOptions = await new LanguageOptions().enableMaximumLanguageFeatures();
+        (await LanguageOptions.getLanguageFeaturesForVersion(LanguageVersion.VERSION_CURRENT)).forEach(f =>
+          this.languageOptions?.enableLanguageFeature(f),
+        );
+      } catch (e) {
+        console.log(e instanceof Error ? e.stack : '');
+      }
+    }
+    return this.languageOptions;
+  }
+
   async initializeZetaSql(): Promise<void> {
     if (ZetaSqlWrapper.SUPPORTED_PLATFORMS.includes(process.platform)) {
       const port = await findFreePortPmfy(randomNumber(ZetaSqlWrapper.MIN_PORT, ZetaSqlWrapper.MAX_PORT));
@@ -45,12 +59,7 @@ export class ZetaSqlWrapper {
       runServer(port).catch(err => console.log(err));
       ZetaSQLClient.init(port);
       await this.getClient().testConnection();
-      console.log('tests passed');
-
-      this.languageOptions = await new LanguageOptions().enableMaximumLanguageFeatures();
-      (await LanguageOptions.getLanguageFeaturesForVersion(LanguageVersion.VERSION_CURRENT)).forEach(f =>
-        this.languageOptions?.enableLanguageFeature(f),
-      );
+      console.log('ZetaSQL tests passed');
     } else {
       this.supported = false;
     }
@@ -62,7 +71,7 @@ export class ZetaSqlWrapper {
     }
     const response = await this.getClient().extractTableNamesFromStatement({
       sqlStatement,
-      options: this.languageOptions?.serialize(),
+      options: (await this.getLanguageOptions())?.serialize(),
     });
     if (!response) {
       throw new Error('Table names not found');
@@ -156,10 +165,10 @@ export class ZetaSqlWrapper {
 
   private async registerAllLanguageFeatures(): Promise<void> {
     if (!this.catalog.builtinFunctionOptions) {
-      if (!this.languageOptions) {
-        throw new Error('Language options were not initialized');
+      const languageOptions = await this.getLanguageOptions();
+      if (languageOptions) {
+        await this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions(languageOptions));
       }
-      await this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions(this.languageOptions));
     }
   }
 
