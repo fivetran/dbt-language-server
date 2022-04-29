@@ -55,7 +55,7 @@ interface CompileModelParams extends Params {
 
 interface PollParams extends Params {
   request_token: string;
-  logs: true;
+  logs: false;
 }
 
 interface KillParams extends Params {
