@@ -297,7 +297,7 @@ export class LspServer {
           }
           resolve();
         } catch (e) {
-          reject();
+          reject(e instanceof Error ? e : new Error('Failed to open document'));
         }
       }, LspServer.OPEN_CLOSE_DEBOUNCE_PERIOD);
     });
