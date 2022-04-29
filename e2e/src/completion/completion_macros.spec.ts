@@ -1,7 +1,7 @@
 import { assertThat, defined } from 'hamjest';
 import { CompletionItem, CompletionItemKind, Position } from 'vscode';
 import { assertCompletions } from '../asserts';
-import { activateAndWait, getCustomDocUri, triggerCompletion, waitManifestJson } from '../helper';
+import { activateAndWait, getCustomDocUri, insertText, replaceTextRange, triggerCompletion, waitManifestJson } from '../helper';
 
 suite('Should suggest macros completions', () => {
   const PROJECT = 'postgres';
@@ -12,24 +12,25 @@ suite('Should suggest macros completions', () => {
     ['extract_last_name', 'extract_last_name'],
   ];
 
-  // TODO: we should rework this test
-  test.skip('Should suggest macros', async () => {
+  test('Should suggest macros', async () => {
     // arrange
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
     await activateAndWait(docUri);
+    await waitManifestJson(PROJECT);
 
     // act
-
-    // new Position(0, 17) -- ?
-    const actualCompletionList = await triggerCompletion(docUri, new Position(0, 15), 'e');
+    await insertText(new Position(0, 15), 'e');
+    const actualCompletionList = await triggerCompletion(docUri, new Position(0, 16));
 
     // assert
     const expectedCompletions = getMacrosCompletionList();
-    assertThat(actualCompletionList.items.length, expectedCompletions.length);
     expectedCompletions.forEach(c => {
       const actualCompletion = actualCompletionList.items.find(a => a.label === c.label && a.insertText === c.insertText);
       assertThat(actualCompletion, defined());
     });
+
+    // Reset file content to avoid errors
+    await replaceTextRange(new Position(0, 15), new Position(0, 16), '');
   });
 
   test('Should suggest macros from package', async () => {
