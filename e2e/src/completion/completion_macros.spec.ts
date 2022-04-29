@@ -24,7 +24,7 @@ suite('Should suggest macros completions', () => {
     // assert
     const expectedCompletions = getMacrosCompletionList();
     expectedCompletions.forEach(c => {
-      const actualCompletion = actualCompletionList.items.find(a => a.label === c.label && a.insertText === c.insertText);
+      const actualCompletion = actualCompletionList.items.find(a => a.label === c.label && a.insertText === c.insertText && a.detail === c.detail);
       assertThat(actualCompletion, defined());
     });
   });
@@ -39,6 +39,6 @@ suite('Should suggest macros completions', () => {
   });
 
   function getMacrosCompletionList(): CompletionItem[] {
-    return MACROS_COMPLETIONS.map<CompletionItem>(c => ({ label: c[0], insertText: c[1], kind: CompletionItemKind.Value }));
+    return MACROS_COMPLETIONS.map<CompletionItem>(c => ({ label: c[0], insertText: c[1], kind: CompletionItemKind.Value, detail: 'Macro' }));
   }
 });
