@@ -55,7 +55,7 @@ interface CompileModelParams extends Params {
 
 interface PollParams extends Params {
   request_token: string;
-  logs: boolean;
+  logs: true;
 }
 
 interface KillParams extends Params {
@@ -104,7 +104,7 @@ export class DbtRpcClient {
     const data = this.getDefaultPostData('poll');
     data.params = {
       request_token: requestToken,
-      logs: true,
+      logs: false,
     };
 
     return this.makePostRequest<PollResponse>(data);
