@@ -5,17 +5,17 @@ export interface DeferredResult<T> {
 }
 
 export const deferred = <T>(): DeferredResult<T> => {
-  let resolve!: (value: T | PromiseLike<T>) => void;
-  let reject!: (reason?: any) => void;
+  let resolveFunc!: (value: T | PromiseLike<T>) => void;
+  let rejectFunc!: (reason?: any) => void;
 
-  const promise = new Promise<T>((res, rej) => {
-    resolve = res;
-    reject = rej;
+  const promise = new Promise<T>((resolve, reject) => {
+    resolveFunc = resolve;
+    rejectFunc = reject;
   });
 
   return {
-    resolve,
-    reject,
+    resolve: resolveFunc,
+    reject: rejectFunc,
     promise,
   };
 };

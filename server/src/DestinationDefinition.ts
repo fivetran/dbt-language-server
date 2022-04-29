@@ -15,6 +15,7 @@ export class DestinationDefinition {
       .then(datasetsResponse => {
         const [datasets] = datasetsResponse;
         this.projects.set(this.activeProject, datasets);
+        return this.projects;
       })
       .catch(e => console.log(`Error while fetching datasets: ${JSON.stringify(e)}`));
   }

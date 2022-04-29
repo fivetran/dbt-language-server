@@ -138,14 +138,14 @@ export async function waitManifestJson(projectFolderName: string): Promise<void>
     return;
   }
 
-  let resolve: voidFunc;
-  const result = new Promise<void>(res => {
-    resolve = res;
+  let resolveFunc: voidFunc;
+  const result = new Promise<void>(resolve => {
+    resolveFunc = resolve;
   });
   fs.watch(projectPath, { recursive: true }, (event: WatchEventType, fileName: string) => {
     if (fileName.endsWith('manifest.json')) {
       console.log('Waiting for manifest.json completed');
-      resolve();
+      resolveFunc();
     }
   });
   await result;
