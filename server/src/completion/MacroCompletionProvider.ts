@@ -22,7 +22,7 @@ export class MacroCompletionProvider implements DbtNodeCompletionProvider {
 
     const macroMatch = MacroCompletionProvider.MACRO_PATTERN.exec(jinjaBeforePositionText);
     if (macroMatch) {
-      console.log('macroMatch  ');
+      console.log('macroMatch ');
       const packageName = macroMatch[0].slice(0, -1);
       console.log(packageName);
       console.log(this.dbtRepository.packageToMacros.size);
