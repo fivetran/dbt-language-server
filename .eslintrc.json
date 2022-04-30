@@ -44,6 +44,7 @@
     "prefer-regex-literals": ["error"],
     "spaced-comment": ["error"],
     "no-implicit-coercion": ["error"],
+    "prefer-promise-reject-errors": ["error"],
 
     "@typescript-eslint/no-shadow": ["error"],
     "@typescript-eslint/explicit-function-return-type": ["error"],
