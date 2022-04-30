@@ -24,14 +24,16 @@ export class ProgressHandler {
     if (!this.progressDeferred) {
       this.progressDeferred = deferred<void>();
 
-      void window.withProgress(
-        {
-          location: ProgressLocation.Window,
-          title: 'dbt command execution...',
-          cancellable: false,
-        },
-        () => this.progressDeferred?.promise ?? Promise.resolve(),
-      );
+      window
+        .withProgress(
+          {
+            location: ProgressLocation.Window,
+            title: 'dbt command execution...',
+            cancellable: false,
+          },
+          () => this.progressDeferred?.promise ?? Promise.resolve(),
+        )
+        .then(undefined, e => console.log(e instanceof Error ? e.message : e));
     }
   }
 }

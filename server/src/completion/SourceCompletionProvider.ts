@@ -13,7 +13,7 @@ export class SourceCompletionProvider implements DbtNodeCompletionProvider {
 
   constructor(private dbtRepository: DbtRepository) {}
 
-  async provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
+  provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): CompletionItem[] | undefined {
     if (!SourceCompletionProvider.ACCEPTABLE_JINJA_PARTS.includes(jinjaPartType)) {
       return undefined;
     }
@@ -45,7 +45,7 @@ export class SourceCompletionProvider implements DbtNodeCompletionProvider {
         });
     }
 
-    return Promise.resolve(undefined);
+    return undefined;
   }
 
   private getSourceCompletionItem(label: string, insertText: string, detail: 'Source' | 'Table'): CompletionItem {

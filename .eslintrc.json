@@ -6,7 +6,7 @@
     "sourceType": "module",
     "project": ["./server/tsconfig.json", "./client/tsconfig.json", "./e2e/tsconfig.json", "./markdown_parser/tsconfig.json"]
   },
-  "plugins": ["@typescript-eslint", "sonarjs", "prettier", "promise"],
+  "plugins": ["@typescript-eslint", "sonarjs", "prettier", "promise", "eslint-plugin-unicorn"],
 
   "extends": [
     "eslint:recommended",
@@ -50,10 +50,10 @@
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "@typescript-eslint/return-await": ["error"],
     "@typescript-eslint/no-useless-constructor": ["error"],
-    "@typescript-eslint/consistent-type-assertions": ["error", {"assertionStyle": "as", "objectLiteralTypeAssertions": "never"}],
+    "@typescript-eslint/consistent-type-assertions": ["error", { "assertionStyle": "as", "objectLiteralTypeAssertions": "never" }],
     "@typescript-eslint/no-unnecessary-condition": ["error"],
     "@typescript-eslint/no-unsafe-return": ["error"],
-    "@typescript-eslint/no-floating-promises": ["error"],
+    "@typescript-eslint/no-floating-promises": ["error", { "ignoreVoid": false }],
     "@typescript-eslint/no-misused-promises": ["error", { "checksVoidReturn": false } ],
 
     "@typescript-eslint/no-explicit-any": ["off"],
@@ -62,6 +62,11 @@
     "@typescript-eslint/no-unsafe-member-access": ["off"],
     "@typescript-eslint/no-unsafe-call": ["off"],
     "@typescript-eslint/restrict-template-expressions": ["off"],
+
+    "promise/catch-or-return": ["error", { "allowThen": true }],
+
+    "unicorn/no-useless-promise-resolve-reject": ["error"],
+    "unicorn/no-for-loop": ["error"],
     
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 

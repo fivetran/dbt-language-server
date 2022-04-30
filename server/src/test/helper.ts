@@ -62,22 +62,18 @@ export function sleep(ms: number): Promise<unknown> {
   });
 }
 
-export async function shouldNotProvideCompletions(
-  completionProvider: DbtNodeCompletionProvider,
-  jinjaPartType: JinjaPartType,
-  text: string,
-): Promise<void> {
-  const completions = await completionProvider.provideCompletions(jinjaPartType, text);
+export function shouldNotProvideCompletions(completionProvider: DbtNodeCompletionProvider, jinjaPartType: JinjaPartType, text: string): void {
+  const completions = completionProvider.provideCompletions(jinjaPartType, text);
   assertThat(completions, not(defined()));
 }
 
-export async function shouldProvideCompletions(
+export function shouldProvideCompletions(
   completionProvider: DbtNodeCompletionProvider,
   jinjaPartType: JinjaPartType,
   text: string,
   expectedCompletions: CompletionItem[],
-): Promise<void> {
-  const completions = await completionProvider.provideCompletions(jinjaPartType, text);
+): void {
+  const completions = completionProvider.provideCompletions(jinjaPartType, text);
   assertCompletions(completions, expectedCompletions);
 }
 

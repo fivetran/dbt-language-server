@@ -31,7 +31,7 @@ export class BigQueryContext {
       const schemaTracker = new SchemaTracker(bigQueryClient, zetaSqlWrapper);
       return ok(new BigQueryContext(schemaTracker, destinationDefinition, zetaSqlWrapper));
     } catch (e) {
-      console.log(e instanceof Error ? e.stack : '');
+      console.log(e instanceof Error ? e.stack : e);
       const message = e instanceof Error ? e.message : JSON.stringify(e);
       return err(`Data Warehouse initialization failed. ${message}`);
     }
@@ -61,6 +61,6 @@ export class BigQueryContext {
   }
 
   public dispose(): void {
-    void this.zetaSqlWrapper.terminateServer();
+    this.zetaSqlWrapper.terminateServer().catch(e => console.log(`Failed to terminate zetasql server: ${e instanceof Error ? e.message : e}`));
   }
 }

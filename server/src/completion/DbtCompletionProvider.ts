@@ -6,7 +6,7 @@ import { ModelCompletionProvider } from './ModelCompletionProvider';
 import { SourceCompletionProvider } from './SourceCompletionProvider';
 
 export interface DbtNodeCompletionProvider {
-  provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined>;
+  provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): CompletionItem[] | undefined;
 }
 
 export class DbtCompletionProvider {
@@ -20,11 +20,11 @@ export class DbtCompletionProvider {
     this.sourceCompletionProvider = new SourceCompletionProvider(this.dbtRepository);
   }
 
-  async provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
+  provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): CompletionItem[] | undefined {
     return (
-      (await this.modelCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText)) ??
-      (await this.sourceCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText)) ??
-      (await this.macroCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText))
+      this.modelCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText) ??
+      this.sourceCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText) ??
+      this.macroCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText)
     );
   }
 }

@@ -18,7 +18,7 @@ export class BigQueryClient implements DbtDestinationClient {
     try {
       await this.getDatasets(BigQueryClient.BQ_TEST_CLIENT_DATASETS_LIMIT);
     } catch (e) {
-      const message = `Test connection failed. Reason: ${e instanceof Error ? e.message : ''}.`;
+      const message = `Test connection failed. Reason: ${e instanceof Error ? e.message : e}.`;
       console.log(message);
       return err(message);
     }
@@ -37,7 +37,7 @@ export class BigQueryClient implements DbtDestinationClient {
       const [metadata]: [TableMetadata, any] = await table.getMetadata();
       return metadata.schema as SchemaDefinition;
     } catch (e) {
-      console.log(`error while getting table metadata: ${e instanceof Error ? e.message : ''}`);
+      console.log(`error while getting table metadata: ${e instanceof Error ? e.message : e}`);
       return undefined;
     }
   }

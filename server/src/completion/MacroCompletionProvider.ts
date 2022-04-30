@@ -14,7 +14,7 @@ export class MacroCompletionProvider implements DbtNodeCompletionProvider {
 
   constructor(private dbtRepository: DbtRepository) {}
 
-  async provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
+  provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): CompletionItem[] | undefined {
     if (!MacroCompletionProvider.ACCEPTABLE_JINJA_PARTS.includes(jinjaPartType)) {
       return undefined;
     }
@@ -38,7 +38,7 @@ export class MacroCompletionProvider implements DbtNodeCompletionProvider {
         return this.getMacroCompletionItem(label, insertText, `${MacroCompletionProvider.INSTALLED_PACKAGE_SORT_PREFIX}_${label}`);
       });
     }
-    return Promise.resolve(undefined);
+    return undefined;
   }
 
   private getMacroCompletionItem(label: string, insertText?: string, sortText?: string): CompletionItem {
