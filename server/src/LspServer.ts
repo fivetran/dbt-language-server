@@ -96,7 +96,7 @@ export class LspServer {
 
     const old = console.log;
     console.log = (...args): void => {
-      Array.prototype.unshift.call(args, `${id}: `);
+      Array.prototype.unshift.call(args, `${id} ${new Date().toISOString()}: `);
       old.apply(console, args);
     };
   }
@@ -139,7 +139,6 @@ export class LspServer {
   }
 
   onUncaughtException(error: Error, origin: 'uncaughtException' | 'unhandledRejection'): void {
-    console.log(`${new Date().toUTCString()} ${origin}:`, error.message);
     console.log(error.stack);
 
     this.sendTelemetry('error', {
@@ -148,7 +147,9 @@ export class LspServer {
       stack: error.stack ?? '',
     });
 
-    process.exit(1);
+    if (origin !== 'unhandledRejection') {
+      process.exit(1);
+    }
   }
 
   initializeNotifications(): void {
