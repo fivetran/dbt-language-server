@@ -1,7 +1,7 @@
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 import { err, ok, Result } from 'neverthrow';
 import { DbtDestinationClient } from '../DbtDestinationClient';
-import { DbtProfile } from '../DbtProfile';
+import { DbtProfile, TargetConfig } from '../DbtProfile';
 import { ProcessExecutor } from '../ProcessExecutor';
 import { BigQueryClient } from './BigQueryClient';
 
@@ -21,7 +21,7 @@ export class OAuthProfile implements DbtProfile {
     return OAuthProfile.BQ_OAUTH_DOCS;
   }
 
-  validateProfile(targetConfig: any): Result<void, string> {
+  validateProfile(targetConfig: TargetConfig): Result<void, string> {
     const { project } = targetConfig;
     if (!project) {
       return err('project');

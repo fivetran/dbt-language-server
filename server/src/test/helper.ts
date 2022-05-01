@@ -1,10 +1,11 @@
+import { ok } from 'assert';
 import { assertThat, defined, not } from 'hamjest';
 import { err } from 'neverthrow';
 import * as path from 'path';
 import { instance, mock, when } from 'ts-mockito';
 import { CompletionItem } from 'vscode-languageserver';
 import { DbtNodeCompletionProvider } from '../completion/DbtCompletionProvider';
-import { DbtProfile } from '../DbtProfile';
+import { DbtProfile, ProfileYaml } from '../DbtProfile';
 import { DbtProfileCreator } from '../DbtProfileCreator';
 import { DbtProject } from '../DbtProject';
 import { JinjaPartType } from '../JinjaParser';
@@ -35,8 +36,11 @@ export function getConfigPath(p: string): string {
   return path.resolve(PROFILES_PATH, p);
 }
 
-export function shouldRequireProfileField(profiles: any, profile: DbtProfile, profileName: string, field: string): void {
-  const missingFieldResult = profile.validateProfile(profiles[profileName].outputs.dev);
+export function shouldRequireProfileField(profiles: unknown, profile: DbtProfile, profileName: string, field: string): void {
+  const profileYaml = (profiles as Record<string, unknown>)[profileName] as ProfileYaml;
+  ok(profileYaml.outputs);
+  ok(profileYaml.outputs['dev']);
+  const missingFieldResult = profile.validateProfile(profileYaml.outputs['dev']);
   assertThat(missingFieldResult, err(field));
 }
 

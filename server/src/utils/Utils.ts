@@ -60,7 +60,7 @@ export function getIdentifierRangeAtPosition(position: Position, text: string): 
   return getWordRangeAtPosition(position, /[\w|`]+/, lines) ?? Range.create(position, position);
 }
 
-export function debounce(callback: () => any, delay: number): () => void {
+export function debounce(callback: () => void, delay: number): () => void {
   let timeout: NodeJS.Timeout;
   return (): void => {
     clearTimeout(timeout);
@@ -90,13 +90,13 @@ export function positionInRange(position: Position, range: Range): boolean {
 
 export interface DeferredResult<T> {
   resolve: (value: T | PromiseLike<T>) => void;
-  reject: (reason?: any) => void;
+  reject: (reason?: unknown) => void;
   promise: Promise<T>;
 }
 
 export const deferred = <T>(): DeferredResult<T> => {
   let resolveFunc!: (value: T | PromiseLike<T>) => void;
-  let rejectFunc!: (reason?: any) => void;
+  let rejectFunc!: (reason?: unknown) => void;
 
   const promise = new Promise<T>((resolve, reject) => {
     resolveFunc = resolve;

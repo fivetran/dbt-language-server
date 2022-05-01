@@ -1,5 +1,5 @@
 import { Err, err, ok, Result } from 'neverthrow';
-import { DbtProfile } from './DbtProfile';
+import { DbtProfile, ProfileYaml, TargetConfig } from './DbtProfile';
 import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtProfileType';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
@@ -19,11 +19,16 @@ export interface DbtProfileSuccess extends DbtProfileResult {
   targetConfig: any;
 }
 
+type ProfileYamlValidated = {
+  target: string;
+  outputs: Record<string, Required<TargetConfig>>;
+};
+
 export class DbtProfileCreator {
   constructor(private dbtProject: DbtProject) {}
 
-  validateProfilesFile(profiles: any, profileName: string): Result<void, DbtProfileError> {
-    const profile = profiles[profileName];
+  validateProfilesFile(profiles: unknown, profileName: string): Result<ProfileYamlValidated, DbtProfileError> {
+    const profile = (profiles as Record<string, unknown>)[profileName] as ProfileYaml | undefined;
     if (!profile) {
       return err({ message: `Couldn't find credentials for profile '${profileName}'. Check your '${this.dbtProject.profilesPath}' file.` });
     }
@@ -57,11 +62,11 @@ export class DbtProfileCreator {
       return err({ message: `Unknown authentication method of '${type}' profile. Check your '${this.dbtProject.profilesPath}' file.`, type, method });
     }
 
-    return ok(undefined);
+    return ok(profile as ProfileYamlValidated);
   }
 
   createDbtProfile(): Result<DbtProfileSuccess, DbtProfileError> {
-    let profiles = undefined;
+    let profiles: unknown = undefined;
     try {
       profiles = YamlParserUtils.parseYamlFile(this.dbtProject.profilesPath);
     } catch (e) {
@@ -85,7 +90,7 @@ export class DbtProfileCreator {
       return err(validationResult.error);
     }
 
-    const profile = profiles[profileName];
+    const profile = validationResult.value;
     const { target } = profile;
     const targetConfig = profile.outputs[target];
     const { type, method } = targetConfig;

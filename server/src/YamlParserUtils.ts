@@ -7,7 +7,7 @@ export class YamlParserUtils {
     return path.replace('~', homedir());
   }
 
-  static parseYamlFile(filePath: string): any {
+  static parseYamlFile(filePath: string): unknown {
     const content = fs.readFileSync(filePath, 'utf8');
     return yaml.parse(content, { uniqueKeys: false });
   }
