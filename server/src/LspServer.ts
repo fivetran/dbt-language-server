@@ -101,7 +101,7 @@ export class LspServer {
     };
   }
 
-  onInitialize(params: InitializeParams): InitializeResult<any> | ResponseError<InitializeError> {
+  onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> {
     console.log(`Starting server for folder ${this.workspaceFolder}`);
 
     process.on('uncaughtException', this.onUncaughtException.bind(this));
@@ -255,12 +255,12 @@ export class LspServer {
     }
   }
 
-  async convertTo(params: any): Promise<void> {
+  async convertTo(params: { uri: string; to: 'sql' | 'ref' }): Promise<void> {
     const document = this.openedDocuments.get(params.uri);
     if (document) {
       if (params.to === 'sql') {
         await document.refToSql();
-      } else if (params.to === 'ref') {
+      } else {
         await document.sqlToRef();
       }
     }
