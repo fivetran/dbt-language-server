@@ -138,7 +138,7 @@ export class LspServer {
     };
   }
 
-  onUncaughtException(error: Error, origin: 'uncaughtException' | 'unhandledRejection'): void {
+  onUncaughtException(error: Error, _origin: 'uncaughtException' | 'unhandledRejection'): void {
     console.log(error.stack);
 
     this.sendTelemetry('error', {
@@ -147,9 +147,7 @@ export class LspServer {
       stack: error.stack ?? '',
     });
 
-    if (origin !== 'unhandledRejection') {
-      process.exit(1);
-    }
+    process.exit(1);
   }
 
   initializeNotifications(): void {
