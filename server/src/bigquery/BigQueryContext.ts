@@ -42,9 +42,9 @@ export class BigQueryContext {
       const ast = await this.zetaSqlWrapper.analyze(compiledDocument.getText());
       console.log('AST was successfully received');
       return ok(ast);
-    } catch (e: any) {
+    } catch (e) {
       console.log('There was an error wile parsing SQL query');
-      return err(e.details ?? 'Unknown parser error [at 0:0]');
+      return err((e as Partial<Record<string, string>>)['details'] ?? 'Unknown parser error [at 0:0]');
     }
   }
 

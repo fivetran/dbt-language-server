@@ -7,8 +7,8 @@ export class DbtCommandExecutor {
 
   execute(
     command: Command,
-    onStdoutData?: (data: any) => void,
-    onStderrData?: (data: any) => void,
+    onStdoutData?: (data: string) => void,
+    onStderrData?: (data: string) => void,
   ): PromiseWithChild<{
     stdout: string;
     stderr: string;

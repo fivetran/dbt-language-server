@@ -34,7 +34,7 @@ export class BigQueryClient implements DbtDestinationClient {
     const dataset = this.bigQuery.dataset(dataSet);
     const table = dataset.table(tableName);
     try {
-      const [metadata]: [TableMetadata, any] = await table.getMetadata();
+      const [metadata]: [TableMetadata, unknown] = await table.getMetadata();
       return metadata.schema as SchemaDefinition;
     } catch (e) {
       console.log(`error while getting table metadata: ${e instanceof Error ? e.message : e}`);

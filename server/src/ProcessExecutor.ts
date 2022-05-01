@@ -4,8 +4,8 @@ import { promisify } from 'util';
 export class ProcessExecutor {
   execProcess(
     command: string,
-    onStdoutData?: (data: any) => void,
-    onStderrData?: (data: any) => void,
+    onStdoutData?: (data: string) => void,
+    onStderrData?: (data: string) => void,
     envVars?: NodeJS.ProcessEnv,
   ): PromiseWithChild<{
     stdout: string;

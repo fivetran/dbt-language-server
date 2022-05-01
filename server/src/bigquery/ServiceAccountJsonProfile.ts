@@ -47,7 +47,7 @@ export class ServiceAccountJsonProfile implements DbtProfile {
     return ok(client);
   }
 
-  private validateKeyFileJson(keyFileJson: any): Result<void, string> {
+  private validateKeyFileJson(keyFileJson: { private_key?: string }): Result<void, string> {
     const privateKey = keyFileJson.private_key;
     if (!privateKey) {
       return err('private_key');

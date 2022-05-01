@@ -35,7 +35,9 @@ export interface TargetConfig {
   refresh_token?: string;
   client_id?: string;
   client_secret?: string;
-  keyfile_json?: string;
+  keyfile_json?: {
+    private_key?: string;
+  };
   keyfile?: string;
   scopes?: string[];
 }
