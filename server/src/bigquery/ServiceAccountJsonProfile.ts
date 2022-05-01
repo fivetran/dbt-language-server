@@ -27,7 +27,7 @@ export class ServiceAccountJsonProfile implements DbtProfile {
     return this.validateKeyFileJson(keyFileJson);
   }
 
-  async createClient(profile: any): Promise<Result<DbtDestinationClient, string>> {
+  async createClient(profile: Required<TargetConfig>): Promise<Result<DbtDestinationClient, string>> {
     const { project } = profile;
     const keyFileJson = JSON.stringify(profile.keyfile_json);
 

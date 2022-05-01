@@ -16,7 +16,7 @@ export interface DbtProfileError extends DbtProfileResult {
 
 export interface DbtProfileSuccess extends DbtProfileResult {
   dbtProfile: DbtProfile;
-  targetConfig: any;
+  targetConfig: Required<TargetConfig>;
 }
 
 type ProfileYamlValidated = {

@@ -30,7 +30,7 @@ export class OAuthProfile implements DbtProfile {
     return ok(undefined);
   }
 
-  async createClient(profile: any): Promise<Result<DbtDestinationClient, string>> {
+  async createClient(profile: Required<TargetConfig>): Promise<Result<DbtDestinationClient, string>> {
     const { project } = profile;
     const options: BigQueryOptions = {
       projectId: project,

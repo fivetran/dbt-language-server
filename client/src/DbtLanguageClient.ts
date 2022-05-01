@@ -48,7 +48,7 @@ export class DbtLanguageClient implements Disposable {
       },
       outputChannel,
       workspaceFolder: { uri: dbtProjectUri, name: dbtProjectUri.path, index: port },
-      initializationFailedHandler: (error: ResponseError<InitializeError> | Error | any) => {
+      initializationFailedHandler: (error: ResponseError<InitializeError> | Error | unknown) => {
         console.log(`Initialization error: ${error}`);
         return true;
       },
@@ -112,7 +112,7 @@ export class DbtLanguageClient implements Disposable {
     });
   }
 
-  sendNotification(method: string, params: any): void {
+  sendNotification(method: string, params: unknown): void {
     this.client.sendNotification(method, params);
   }
 

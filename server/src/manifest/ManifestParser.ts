@@ -22,7 +22,7 @@ export class ManifestParser {
     };
   }
 
-  private parseModelDefinitions(nodes: any): ManifestModel[] {
+  private parseModelDefinitions(nodes: unknown): ManifestModel[] {
     if (nodes) {
       return Object.values(nodes as any[])
         .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_MODEL)

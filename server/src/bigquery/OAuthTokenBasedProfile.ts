@@ -57,7 +57,7 @@ export class OAuthTokenBasedProfile implements DbtProfile {
     return ok(undefined);
   }
 
-  async createClient(profile: any): Promise<Result<DbtDestinationClient, string>> {
+  async createClient(profile: Required<TargetConfig>): Promise<Result<DbtDestinationClient, string>> {
     const { project } = profile;
     const { token } = profile;
     const refreshToken = profile.refresh_token;

@@ -19,7 +19,7 @@ export interface DbtProfile {
    * @param profile profile specified in profiles.yml
    * @returns authenticated client or error string otherwise
    */
-  createClient(profile: any): Promise<Result<DbtDestinationClient, string>>;
+  createClient(profile: Required<TargetConfig>): Promise<Result<DbtDestinationClient, string>>;
 }
 
 export interface ProfileYaml {
@@ -37,6 +37,7 @@ export interface TargetConfig {
   client_secret?: string;
   keyfile_json?: string;
   keyfile?: string;
+  scopes?: string[];
 }
 
 export enum DbtProfileType {

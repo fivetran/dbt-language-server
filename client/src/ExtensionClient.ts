@@ -120,7 +120,7 @@ export class ExtensionClient {
     return projectFolder ? this.clients.get(projectFolder.toString()) : undefined;
   }
 
-  registerCommand(command: string, callback: (...args: any[]) => any): void {
+  registerCommand(command: string, callback: (...args: unknown[]) => unknown): void {
     this.context.subscriptions.push(commands.registerCommand(command, callback));
   }
 

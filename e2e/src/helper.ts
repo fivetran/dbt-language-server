@@ -84,13 +84,13 @@ function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
   }
 }
 
-export async function waitDocumentModification(func: () => any): Promise<void> {
+export async function waitDocumentModification(func: () => Promise<void>): Promise<void> {
   const promise = createChangePromise('document');
   await func();
   await promise;
 }
 
-export async function waitPreviewModification(func: () => any): Promise<void> {
+export async function waitPreviewModification(func: () => Promise<void>): Promise<void> {
   const promise = createChangePromise('preview');
   await func();
   await promise;
