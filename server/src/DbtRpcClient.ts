@@ -117,7 +117,7 @@ export class DbtRpcClient {
       timeout: 1,
     };
 
-    await this.makePostRequest<any>(data);
+    await this.makePostRequest<never>(data);
   }
 
   async makePostRequest<T extends Response>(postData: PostData): Promise<T | undefined> {
