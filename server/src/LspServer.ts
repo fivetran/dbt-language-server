@@ -65,8 +65,8 @@ export class LspServer {
   completionProvider: SqlCompletionProvider;
   dbtCompletionProvider: DbtCompletionProvider;
   dbtDefinitionProvider: DbtDefinitionProvider;
-  dbtProject = new DbtProject('~/.dbt/profiles.yml');
-  dbtProfileCreator = new DbtProfileCreator(this.dbtProject);
+  dbtProject = new DbtProject('.');
+  dbtProfileCreator = new DbtProfileCreator(this.dbtProject, '~/.dbt/profiles.yml');
   manifestParser = new ManifestParser();
   dbtRepository = new DbtRepository();
   featureFinder = new FeatureFinder();

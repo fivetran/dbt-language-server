@@ -49,9 +49,8 @@ export function shouldPassValidProfile(config: string, profileName: string): voi
   const mockDbtProject = mock(DbtProject);
   when(mockDbtProject.findProfileName()).thenReturn(profileName);
   const dbtProject = instance(mockDbtProject);
-  dbtProject.profilesPath = getConfigPath(config);
 
-  const profileCreator = new DbtProfileCreator(dbtProject);
+  const profileCreator = new DbtProfileCreator(dbtProject, getConfigPath(config));
 
   // act
   const profile = profileCreator.createDbtProfile();

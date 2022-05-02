@@ -1,15 +1,16 @@
+import path = require('path');
 import { DbtRepository } from './DbtRepository';
 import { YamlParserUtils } from './YamlParserUtils';
 
 export class DbtProject {
-  profilesPath: string;
+  projectPath: string;
 
-  constructor(profilesPath: string) {
-    this.profilesPath = YamlParserUtils.replaceTilde(profilesPath);
+  constructor(projectPath: string) {
+    this.projectPath = YamlParserUtils.replaceTilde(projectPath);
   }
 
   getProject(): Record<string, unknown> {
-    return YamlParserUtils.parseYamlFile(DbtRepository.DBT_PROJECT_FILE_NAME) as Record<string, unknown>;
+    return YamlParserUtils.parseYamlFile(path.resolve(this.projectPath, DbtRepository.DBT_PROJECT_FILE_NAME)) as Record<string, unknown>;
   }
 
   findProjectName(): string | undefined {

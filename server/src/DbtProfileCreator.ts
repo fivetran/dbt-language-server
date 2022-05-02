@@ -25,12 +25,16 @@ type ProfileYamlValidated = {
 };
 
 export class DbtProfileCreator {
-  constructor(private dbtProject: DbtProject) {}
+  private profilesPath: string;
+
+  constructor(private dbtProject: DbtProject, profilesPath: string) {
+    this.profilesPath = YamlParserUtils.replaceTilde(profilesPath);
+  }
 
   validateProfilesFile(profiles: unknown, profileName: string): Result<ProfileYamlValidated, DbtProfileError> {
     const profile = (profiles as Record<string, unknown>)[profileName] as ProfileYaml | undefined;
     if (!profile) {
-      return err({ message: `Couldn't find credentials for profile '${profileName}'. Check your '${this.dbtProject.profilesPath}' file.` });
+      return err({ message: `Couldn't find credentials for profile '${profileName}'. Check your '${this.profilesPath}' file.` });
     }
 
     const { target } = profile;
@@ -56,10 +60,10 @@ export class DbtProfileCreator {
     const { method } = outputsTarget;
     const authMethods = PROFILE_METHODS.get(type);
     if (!authMethods) {
-      return err({ message: `Currently, '${type}' profile is not supported. Check your '${this.dbtProject.profilesPath}' file.`, type, method });
+      return err({ message: `Currently, '${type}' profile is not supported. Check your '${this.profilesPath}' file.`, type, method });
     }
     if (authMethods.length > 0 && (!method || authMethods.indexOf(method) === -1)) {
-      return err({ message: `Unknown authentication method of '${type}' profile. Check your '${this.dbtProject.profilesPath}' file.`, type, method });
+      return err({ message: `Unknown authentication method of '${type}' profile. Check your '${this.profilesPath}' file.`, type, method });
     }
 
     return ok(profile as ProfileYamlValidated);
@@ -68,9 +72,9 @@ export class DbtProfileCreator {
   createDbtProfile(): Result<DbtProfileSuccess, DbtProfileError> {
     let profiles: unknown = undefined;
     try {
-      profiles = YamlParserUtils.parseYamlFile(this.dbtProject.profilesPath);
+      profiles = YamlParserUtils.parseYamlFile(this.profilesPath);
     } catch (e) {
-      const message = `Failed to open and parse file '${this.dbtProject.profilesPath}'. ${e instanceof Error ? e.message : String(e)}`;
+      const message = `Failed to open and parse file '${this.profilesPath}'. ${e instanceof Error ? e.message : String(e)}`;
       console.log(message);
       return err({ message });
     }
@@ -127,9 +131,7 @@ export class DbtProfileCreator {
   }
 
   cantFindSectionError(profileName: string, section: string, docsUrl?: string, type?: string, method?: string): Err<never, DbtProfileError> {
-    const message = `Couldn't find section '${section}' for profile '${profileName}'. Check your '${this.dbtProject.profilesPath}' file. ${
-      docsUrl ?? ''
-    }`;
+    const message = `Couldn't find section '${section}' for profile '${profileName}'. Check your '${this.profilesPath}' file. ${docsUrl ?? ''}`;
     console.log(message);
     return err({ message, type, method });
   }
