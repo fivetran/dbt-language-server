@@ -15,7 +15,7 @@ describe('ZetaSqlWrapperTest', () => {
   };
 
   function getCatalog(zetaSqlWrapper: ZetaSqlWrapper): SimpleCatalog {
-    return (zetaSqlWrapper as any).catalog as SimpleCatalog;
+    return zetaSqlWrapper['catalog'];
   }
 
   async function shouldRegisterOneTable(
@@ -31,7 +31,7 @@ describe('ZetaSqlWrapperTest', () => {
     getCatalog(zetaSqlWrapper).register = async (): Promise<void> => {
       // do nothing
     };
-    (zetaSqlWrapper as any).registerAllLanguageFeatures = async (): Promise<void> => {
+    zetaSqlWrapper['registerAllLanguageFeatures'] = async (): Promise<void> => {
       // do nothing
     };
 
