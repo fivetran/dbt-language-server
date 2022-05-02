@@ -22,16 +22,16 @@ export class ProcessExecutor {
 
     childProcess.stderr?.on('data', chunk => {
       if (onStderrData) {
-        onStderrData(chunk as string);
+        onStderrData(String(chunk));
       }
     });
     childProcess.stdout?.on('data', chunk => {
       if (onStdoutData) {
-        onStdoutData(chunk as string);
+        onStdoutData(String(chunk));
       }
     });
     childProcess.on('exit', code => {
-      console.log(`Child process '${command}' exited with code ${code}`);
+      console.log(`Child process '${command}' exited with code ${String(code)}`);
     });
 
     const kill = (): boolean => childProcess.kill();

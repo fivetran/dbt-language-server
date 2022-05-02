@@ -45,7 +45,7 @@ export class ExtensionClient {
         const client = this.clients.get(folder.uri.toString());
         if (client) {
           this.clients.delete(folder.uri.toString());
-          client.stop().catch(e => console.log(`Error while stopping client: ${e instanceof Error ? e.message : e}`));
+          client.stop().catch(e => console.log(`Error while stopping client: ${e instanceof Error ? e.message : String(e)}`));
         }
       }
     });

@@ -70,7 +70,7 @@ export class DbtProfileCreator {
     try {
       profiles = YamlParserUtils.parseYamlFile(this.dbtProject.profilesPath);
     } catch (e) {
-      const message = `Failed to open and parse file '${this.dbtProject.profilesPath}'. ${e}`;
+      const message = `Failed to open and parse file '${this.dbtProject.profilesPath}'. ${e instanceof Error ? e.message : String(e)}`;
       console.log(message);
       return err({ message });
     }
@@ -79,7 +79,9 @@ export class DbtProfileCreator {
     try {
       profileName = this.dbtProject.findProfileName();
     } catch (e) {
-      const message = `Failed to find profile name in ${process.cwd()}/${DbtRepository.DBT_PROJECT_FILE_NAME}. ${e}`;
+      const message = `Failed to find profile name in ${process.cwd()}/${DbtRepository.DBT_PROJECT_FILE_NAME}. ${
+        e instanceof Error ? e.message : String(e)
+      }`;
       console.log(message);
       return err({ message });
     }

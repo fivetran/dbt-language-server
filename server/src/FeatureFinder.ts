@@ -142,6 +142,6 @@ export class FeatureFinder {
   }
 
   private async installLatestDbtRpc(): Promise<void> {
-    await FeatureFinder.PROCESS_EXECUTOR.execProcess(`${this.python} -m pip install dbt-bigquery dbt-rpc`);
+    await FeatureFinder.PROCESS_EXECUTOR.execProcess(`${String(this.python)} -m pip install dbt-bigquery dbt-rpc`);
   }
 }

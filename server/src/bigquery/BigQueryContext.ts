@@ -61,6 +61,8 @@ export class BigQueryContext {
   }
 
   public dispose(): void {
-    this.zetaSqlWrapper.terminateServer().catch(e => console.log(`Failed to terminate zetasql server: ${e instanceof Error ? e.message : e}`));
+    this.zetaSqlWrapper
+      .terminateServer()
+      .catch(e => console.log(`Failed to terminate zetasql server: ${e instanceof Error ? e.message : String(e)}`));
   }
 }

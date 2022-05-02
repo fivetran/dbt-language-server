@@ -51,7 +51,7 @@ async function main(): Promise<void> {
       extensionTestsEnv: { CLI_PATH: cli, EXTENSIONS_INSTALL_PATH: extensionsInstallPath, DBT_LS_DISABLE_TELEMETRY: 'true' },
     });
   } catch (err) {
-    console.error(`Failed to run tests. Error: ${err}`);
+    console.error(`Failed to run tests. Error: ${err instanceof Error ? err.message : String(err)}`);
     process.exit(1);
   }
 }

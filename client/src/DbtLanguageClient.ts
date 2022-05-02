@@ -49,7 +49,7 @@ export class DbtLanguageClient implements Disposable {
       outputChannel,
       workspaceFolder: { uri: dbtProjectUri, name: dbtProjectUri.path, index: port },
       initializationFailedHandler: (error: ResponseError<InitializeError> | Error | unknown) => {
-        console.log(`Initialization error: ${error}`);
+        console.log(`Initialization error: ${error instanceof Error ? error.message : String(error)}`);
         return true;
       },
       errorHandler: {
@@ -58,7 +58,7 @@ export class DbtLanguageClient implements Disposable {
           return CloseAction.DoNotRestart;
         },
         error(error: Error, _message: Message | undefined, _count: number | undefined): ErrorAction {
-          console.log(`An error has occurred while writing or reading from the connection. ${error}`);
+          console.log(`An error has occurred while writing or reading from the connection. ${error.message}`);
           return ErrorAction.Shutdown;
         },
       },

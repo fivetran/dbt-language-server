@@ -1,5 +1,6 @@
 import { extensions, Uri, WorkspaceFolder } from 'vscode';
 
+// See https://github.com/microsoft/vscode-python/blob/3698950c97982f31bb9dbfc19c4cd8308acda284/src/client/api.ts#L22
 interface IExtensionApi {
   settings: {
     getExecutionDetails(resource?: Resource): {

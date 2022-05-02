@@ -50,7 +50,7 @@ export class DbtRpcServer {
 
       await this.startDeferred.promise;
     } catch (e) {
-      this.startDeferred.reject(e instanceof Error ? e : new Error(`Failed to start dbt-rpc: ${e}`));
+      this.startDeferred.reject(e instanceof Error ? e : new Error(`Failed to start dbt-rpc: ${String(e)}`));
     }
   }
 

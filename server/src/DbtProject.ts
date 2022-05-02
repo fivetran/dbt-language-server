@@ -88,11 +88,11 @@ export class DbtProject {
   /** In dbt package's dbt_project.yml profile may be missing */
   findProfileName(): string {
     const dbtProject = this.getProject();
-    const profileName = dbtProject[DbtRepository.PROFILE_NAME_FIELD];
+    const profileName = dbtProject[DbtRepository.PROFILE_NAME_FIELD] as string | undefined;
     if (profileName === undefined) {
       throw new Error("'profile' field is missing");
     }
     console.log(`Profile name found: ${profileName}`);
-    return profileName as string;
+    return profileName;
   }
 }

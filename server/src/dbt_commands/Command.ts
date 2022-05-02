@@ -21,6 +21,6 @@ export abstract class Command {
 
   private getPython(): string {
     const quotedParameters = this.parameters.map(p => `'${p}'`).toString();
-    return `${this.python} -c "import ${this.pathToPythonMain}; ${this.pathToPythonMain}.main([${quotedParameters}])"`;
+    return `${String(this.python)} -c "import ${this.pathToPythonMain}; ${this.pathToPythonMain}.main([${quotedParameters}])"`;
   }
 }
