@@ -132,7 +132,14 @@ async function isTableExist(dataset: Dataset, tableName: string): Promise<boolea
 
 async function preparePostgres(): Promise<void> {
   const content = fs.readFileSync(`${homedir()}/.dbt/postgres.json`, 'utf8');
-  const connectionParams = JSON.parse(content);
+  const connectionParams = JSON.parse(content) as {
+    user: string;
+    host: string;
+    dbname: string;
+    password: string;
+    port: number;
+    schema: string;
+  };
 
   const client = new Client({
     user: connectionParams.user,

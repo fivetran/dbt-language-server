@@ -50,7 +50,7 @@ export class DestinationDefinition {
 
     let foundColumns = this.columns.get(datasetName);
     if (!foundColumns) {
-      const [metadata]: [TableMetadata, unknown] = await table.getMetadata();
+      const [metadata] = (await table.getMetadata()) as [TableMetadata, unknown];
       foundColumns = metadata.schema?.fields;
       if (foundColumns) {
         this.columns.set(datasetName, foundColumns);

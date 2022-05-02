@@ -92,7 +92,7 @@ async function parseAndSave(): Promise<void> {
   const functionInfos = [];
 
   for (const [file, sections] of filesToParse) {
-    const content = await (await axios.get(file)).data;
+    const content = (await axios.get<string>(file)).data;
     const tokens = md.parse(content, {});
 
     for (const section of sections) {

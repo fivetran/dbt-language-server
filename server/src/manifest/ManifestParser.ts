@@ -15,6 +15,12 @@ interface RawNode {
   columns: { name: string }[];
 }
 
+interface RawManifest {
+  nodes: RawNode[] | undefined;
+  macros: RawNode[] | undefined;
+  sources: RawNode[] | undefined;
+}
+
 export class ManifestParser {
   static readonly MANIFEST_FILE_NAME = 'manifest.json';
   static readonly RESOURCE_TYPE_MODEL = 'model';
@@ -25,7 +31,7 @@ export class ManifestParser {
   parse(targetPath: string): ManifestJson {
     const manifestLocation = path.join(ManifestParser.PROJECT_PATH, targetPath, ManifestParser.MANIFEST_FILE_NAME);
     const content = readFileSync(manifestLocation, 'utf8');
-    const manifest = JSON.parse(content);
+    const manifest = JSON.parse(content) as RawManifest;
     const { nodes, macros, sources } = manifest;
 
     return {

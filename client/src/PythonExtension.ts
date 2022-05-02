@@ -12,9 +12,7 @@ export class PythonExtension {
       await extension.activate();
     }
 
-    const details = extension.exports.settings.getExecutionDetails(workspaceFolder?.uri);
-
-    const [path] = details.execCommand as [string];
+    const [path] = extension.exports.settings.getExecutionDetails(workspaceFolder?.uri).execCommand as [string];
 
     console.log(`Python path used: ${path}`);
     return path;
