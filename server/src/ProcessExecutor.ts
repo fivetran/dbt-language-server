@@ -22,12 +22,12 @@ export class ProcessExecutor {
 
     childProcess.stderr?.on('data', chunk => {
       if (onStderrData) {
-        onStderrData(chunk);
+        onStderrData(chunk as string);
       }
     });
     childProcess.stdout?.on('data', chunk => {
       if (onStdoutData) {
-        onStdoutData(chunk);
+        onStdoutData(chunk as string);
       }
     });
     childProcess.on('exit', code => {

@@ -1,4 +1,4 @@
-import { Disposable, OutputChannel, Uri, window, workspace, WorkspaceFolder } from 'vscode';
+import { Diagnostic, Disposable, OutputChannel, Uri, window, workspace, WorkspaceFolder } from 'vscode';
 import {
   CloseAction,
   ErrorAction,
@@ -84,10 +84,10 @@ export class DbtLanguageClient implements Disposable {
       if (e.newState === State.Running) {
         this.disposables.push(
           this.client.onNotification('custom/updateQueryPreview', ({ uri, previewText }) => {
-            this.previewContentProvider.updateText(uri, previewText);
+            this.previewContentProvider.updateText(uri as string, previewText as string);
           }),
           this.client.onNotification('custom/updateQueryPreviewDiagnostics', ({ uri, diagnostics }) => {
-            this.previewContentProvider.updateDiagnostics(uri, diagnostics);
+            this.previewContentProvider.updateDiagnostics(uri as string, diagnostics as Diagnostic[]);
           }),
 
           this.client.onRequest('custom/getPython', async () => {
@@ -106,7 +106,7 @@ export class DbtLanguageClient implements Disposable {
     });
 
     this.client.onReady().catch(reason => {
-      if (reason && reason.name && reason.message) {
+      if (reason instanceof Error) {
         TelemetryClient.sendException(reason);
       }
     });
