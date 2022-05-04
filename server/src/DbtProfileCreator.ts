@@ -101,17 +101,9 @@ export class DbtProfileCreator {
     const targetConfig = profile.outputs[target];
     const { type, method } = targetConfig;
 
-    if (![...PROFILE_METHODS.keys()].find(t => t === type)) {
-      const message = `Profile type '${type}' is not supported.`;
-      console.log(message);
-      return err({ message, type, method });
-    }
-
     const profileBuilder = BIG_QUERY_PROFILES.get(method);
     if (!profileBuilder) {
-      const authErrorMessage = `Authentication method '${method}' of '${type}' profile is not supported.`;
-      console.log(authErrorMessage);
-      return err({ message: authErrorMessage, type, method });
+      throw new Error(`Unknown authentication method of '${type}' profile`);
     }
 
     const dbtProfile = profileBuilder();

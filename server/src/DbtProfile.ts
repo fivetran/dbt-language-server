@@ -44,5 +44,4 @@ export interface TargetConfig {
 
 export enum DbtProfileType {
   BigQuery = 'bigquery',
-  Postgres = 'postgres',
 }
