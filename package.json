@@ -3,7 +3,7 @@
   "displayName": "dbt Wizard",
   "description": "This extension will help you work with dbt",
   "icon": "images/Icon.png",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "publisher": "Fivetran",
   "license": "MIT",
   "preview": true,
