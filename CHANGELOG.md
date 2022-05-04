@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 0.4.2 (01/01/1970)
+## What's Changed
+* Fix parsing `dbt_project.yml` from package
+* Fix issue with finding package install path
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.4.1...v0.4.2
+---
+
 ## Version 0.4.1 (29/04/2022)
 ## What's Changed
 * Fix problems with macros preview
