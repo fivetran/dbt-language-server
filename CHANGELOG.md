@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.4.2 (01/01/1970)
+## Version 0.4.2 (04/05/2022)
 ## What's Changed
 * Fix parsing `dbt_project.yml` from package
 * Fix issue with finding package install path
