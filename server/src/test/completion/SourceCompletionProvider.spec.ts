@@ -57,36 +57,36 @@ describe('SourceCompletionProvider', () => {
     sourceCompletionProvider = new SourceCompletionProvider(dbtRepository);
   });
 
-  it('Should provide sources by pressing (', async () => {
-    await shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ source(`, [
+  it('Should provide sources by pressing (', () => {
+    shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ source(`, [
       { label: '(project_package) source_1', insertText: `'source_1'` },
       { label: '(installed_package) package_source_1', insertText: `'package_source_1'` },
     ]);
   });
 
-  it(`Should provide sources by pressing '`, async () => {
-    await shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ source('`, [
+  it(`Should provide sources by pressing '`, () => {
+    shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ source('`, [
       { label: '(project_package) source_1', insertText: `source_1` },
       { label: '(installed_package) package_source_1', insertText: `package_source_1` },
     ]);
   });
 
-  it('Should provide source tables', async () => {
-    await shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ source('source_1', '`, [
+  it('Should provide source tables', () => {
+    shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ source('source_1', '`, [
       { label: 'table_1', insertText: `table_1` },
       { label: 'table_2', insertText: `table_2` },
     ]);
   });
 
-  it(`Shouldn't provide completions for unknown source`, async () => {
-    await shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ source('unknown_source', '`, []);
+  it(`Shouldn't provide completions for unknown source`, () => {
+    shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ source('unknown_source', '`, []);
   });
 
-  it(`Shouldn't provide completions for empty strings`, async () => {
-    await shouldNotProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, 'select {{ ');
+  it(`Shouldn't provide completions for empty strings`, () => {
+    shouldNotProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, 'select {{ ');
   });
 
-  it(`Shouldn't provide completions after source`, async () => {
-    await shouldNotProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, 'select {{ source');
+  it(`Shouldn't provide completions after source`, () => {
+    shouldNotProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, 'select {{ source');
   });
 });

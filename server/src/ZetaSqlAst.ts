@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+
 import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { Type } from '@fivetrandevelopers/zetasql/lib/Type';
 import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
@@ -115,27 +117,27 @@ export class ZetaSqlAst {
     if (resolvedStatementNode) {
       this.traversal(
         resolvedStatementNode,
-        (node: any, nodeName?: string) => {
+        (node: unknown, nodeName?: string) => {
           if (nodeName === NODE.resolvedQueryStmtNode) {
-            const queryStmtNode: ResolvedQueryStmtProto = node;
+            const queryStmtNode = node as ResolvedQueryStmtProto;
             result.outputColumn = queryStmtNode.outputColumnList?.find(c => c.name === text);
             if (!result.outputColumn && queryStmtNode.outputColumnList?.find(c => c.column?.tableName === text)) {
               result.tableName = text;
             }
           }
           if (nodeName === NODE.resolvedTableScanNode) {
-            const tableScanNode: ResolvedTableScanProto = node;
+            const tableScanNode = node as ResolvedTableScanProto;
             if (tableScanNode.table?.fullName === text || tableScanNode.table?.name === text) {
               result.tableName = tableScanNode.table.fullName ?? tableScanNode.table.name;
             }
           }
           if (nodeName === NODE.resolvedFunctionCallNode) {
-            const functionCallNode: ResolvedFunctionCallProto = node;
+            const functionCallNode = node as ResolvedFunctionCallProto;
             if (functionCallNode.parent?.function?.name === `ZetaSQL:${text}`) {
               result.function = true;
             }
           }
-          if (!nodeName && 'withQueryName' in node && node.withQueryName === text) {
+          if (!nodeName && (node as { withQueryName?: string }).withQueryName === text) {
             result.withQueryName = text;
           }
         },
@@ -154,7 +156,7 @@ export class ZetaSqlAst {
     if (resolvedStatementNode) {
       this.traversal(
         resolvedStatementNode,
-        (node: any, nodeName?: string) => {
+        (node: unknown, nodeName?: string) => {
           if (nodeName !== NODE.resolvedTableScanNode) {
             const parseLocationRange = this.getParseLocationRange(node);
             if (parseLocationRange) {
@@ -163,7 +165,7 @@ export class ZetaSqlAst {
           }
 
           if (nodeName === NODE.resolvedTableScanNode) {
-            const typedNode: ResolvedTableScanProto = node;
+            const typedNode = node as ResolvedTableScanProto;
             const { resolvedTables } = completionInfo;
             if (typedNode.table && typedNode.table.fullName) {
               const { fullName } = typedNode.table;

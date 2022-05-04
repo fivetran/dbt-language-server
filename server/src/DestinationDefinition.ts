@@ -1,11 +1,11 @@
-import { Dataset, Table } from '@google-cloud/bigquery';
+import { Dataset, Table, TableField, TableMetadata } from '@google-cloud/bigquery';
 import { BigQueryClient } from './bigquery/BigQueryClient';
 
 export class DestinationDefinition {
   activeProject: string;
   projects = new Map<string, Dataset[]>();
   tables = new Map<string, Table[]>();
-  columns = new Map<string, any[]>();
+  columns = new Map<string, TableField[]>();
 
   constructor(bigQueryClient: BigQueryClient) {
     this.activeProject = bigQueryClient.project;
@@ -15,6 +15,7 @@ export class DestinationDefinition {
       .then(datasetsResponse => {
         const [datasets] = datasetsResponse;
         this.projects.set(this.activeProject, datasets);
+        return this.projects;
       })
       .catch(e => console.log(`Error while fetching datasets: ${JSON.stringify(e)}`));
   }
@@ -40,7 +41,7 @@ export class DestinationDefinition {
     return foundTables;
   }
 
-  async getColumns(datasetName: string, tableName: string, projectName?: string): Promise<unknown[]> {
+  async getColumns(datasetName: string, tableName: string, projectName?: string): Promise<TableField[]> {
     const tables = await this.getTables(datasetName, projectName);
     const table = tables.find(t => t.id === tableName);
     if (!table) {
@@ -49,12 +50,12 @@ export class DestinationDefinition {
 
     let foundColumns = this.columns.get(datasetName);
     if (!foundColumns) {
-      const [metadata] = await table.getMetadata();
-      foundColumns = metadata?.schema?.fields;
+      const [metadata] = (await table.getMetadata()) as [TableMetadata, unknown];
+      foundColumns = metadata.schema?.fields;
       if (foundColumns) {
         this.columns.set(datasetName, foundColumns);
       }
     }
-    return (foundColumns ?? []) as unknown[];
+    return foundColumns ?? [];
   }
 }

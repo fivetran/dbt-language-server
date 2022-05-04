@@ -6,14 +6,15 @@
     "sourceType": "module",
     "project": ["./server/tsconfig.json", "./client/tsconfig.json", "./e2e/tsconfig.json", "./markdown_parser/tsconfig.json"]
   },
-  "plugins": ["@typescript-eslint", "sonarjs", "prettier"],
+  "plugins": ["@typescript-eslint", "sonarjs", "prettier", "promise", "eslint-plugin-unicorn"],
 
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "plugin:@typescript-eslint/recommended",
-    "plugin:sonarjs/recommended"
+    "plugin:sonarjs/recommended",
+    "plugin:promise/recommended"
   ],
   "rules": {
     "no-param-reassign":["error"],
@@ -43,23 +44,29 @@
     "prefer-regex-literals": ["error"],
     "spaced-comment": ["error"],
     "no-implicit-coercion": ["error"],
+    "prefer-promise-reject-errors": ["error"],
 
     "@typescript-eslint/no-shadow": ["error"],
     "@typescript-eslint/explicit-function-return-type": ["error"],
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "@typescript-eslint/return-await": ["error"],
     "@typescript-eslint/no-useless-constructor": ["error"],
-    "@typescript-eslint/consistent-type-assertions": ["error", {"assertionStyle": "as", "objectLiteralTypeAssertions": "never"}],
+    "@typescript-eslint/consistent-type-assertions": ["error", { "assertionStyle": "as", "objectLiteralTypeAssertions": "never" }],
     "@typescript-eslint/no-unnecessary-condition": ["error"],
     "@typescript-eslint/no-unsafe-return": ["error"],
-    
+    "@typescript-eslint/no-floating-promises": ["error", { "ignoreVoid": false }],
     "@typescript-eslint/no-misused-promises": ["error", { "checksVoidReturn": false } ],
-    "@typescript-eslint/no-explicit-any": ["off"],
-    "@typescript-eslint/no-unsafe-assignment": ["off"],
-    "@typescript-eslint/no-unsafe-argument": ["off"],
-    "@typescript-eslint/no-unsafe-member-access": ["off"],
-    "@typescript-eslint/no-unsafe-call": ["off"],
-    "@typescript-eslint/restrict-template-expressions": ["off"],
+    "@typescript-eslint/no-explicit-any": ["error"],
+    "@typescript-eslint/no-unsafe-assignment": ["error"],
+    "@typescript-eslint/no-unsafe-argument": ["error"],
+    "@typescript-eslint/no-unsafe-member-access": ["error"],
+    "@typescript-eslint/no-unsafe-call": ["error"],
+    "@typescript-eslint/restrict-template-expressions": ["error"],
+
+    "promise/catch-or-return": ["error", { "allowThen": true }],
+
+    "unicorn/no-useless-promise-resolve-reject": ["error"],
+    "unicorn/no-for-loop": ["error"],
     
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 

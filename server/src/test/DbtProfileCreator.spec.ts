@@ -46,9 +46,8 @@ describe('Profiles Validation', () => {
     const mockDbtProject = mock(DbtProject);
     when(mockDbtProject.findProfileName()).thenThrow(new Error());
     const dbtProject = instance(mockDbtProject);
-    dbtProject.profilesPath = getConfigPath(OTHERS_CONFIG);
 
-    const profileCreator = new DbtProfileCreator(dbtProject);
+    const profileCreator = new DbtProfileCreator(dbtProject, getConfigPath(OTHERS_CONFIG));
     const errorPattern = new RegExp(`^Failed to find profile name in .*${DbtRepository.DBT_PROJECT_FILE_NAME}\\...*$`);
 
     // act
@@ -64,9 +63,8 @@ describe('Profiles Validation', () => {
     const mockDbtProject = mock(DbtProject);
     when(mockDbtProject.findProfileName()).thenReturn(profileName);
     const dbtProject = instance(mockDbtProject);
-    dbtProject.profilesPath = getConfigPath(config);
 
-    const profileCreator = new DbtProfileCreator(dbtProject);
+    const profileCreator = new DbtProfileCreator(dbtProject, getConfigPath(config));
 
     // act
     const profile = profileCreator.createDbtProfile();

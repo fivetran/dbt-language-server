@@ -65,8 +65,8 @@ export class LspServer {
   completionProvider: SqlCompletionProvider;
   dbtCompletionProvider: DbtCompletionProvider;
   dbtDefinitionProvider: DbtDefinitionProvider;
-  dbtProject = new DbtProject('~/.dbt/profiles.yml');
-  dbtProfileCreator = new DbtProfileCreator(this.dbtProject);
+  dbtProject = new DbtProject('.');
+  dbtProfileCreator = new DbtProfileCreator(this.dbtProject, '~/.dbt/profiles.yml');
   manifestParser = new ManifestParser();
   dbtRepository = new DbtRepository();
   featureFinder = new FeatureFinder();
@@ -96,12 +96,12 @@ export class LspServer {
 
     const old = console.log;
     console.log = (...args): void => {
-      Array.prototype.unshift.call(args, `${id}: `);
+      Array.prototype.unshift.call(args, `${id} ${new Date().toISOString()}: `);
       old.apply(console, args);
     };
   }
 
-  onInitialize(params: InitializeParams): InitializeResult<any> | ResponseError<InitializeError> {
+  onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> {
     console.log(`Starting server for folder ${this.workspaceFolder}`);
 
     process.on('uncaughtException', this.onUncaughtException.bind(this));
@@ -138,8 +138,7 @@ export class LspServer {
     };
   }
 
-  onUncaughtException(error: Error, origin: 'uncaughtException' | 'unhandledRejection'): void {
-    console.log(`${new Date().toUTCString()} ${origin}:`, error.message);
+  onUncaughtException(error: Error, _origin: 'uncaughtException' | 'unhandledRejection'): void {
     console.log(error.stack);
 
     this.sendTelemetry('error', {
@@ -256,12 +255,12 @@ export class LspServer {
     }
   }
 
-  async convertTo(params: any): Promise<void> {
+  async convertTo(params: { uri: string; to: 'sql' | 'ref' }): Promise<void> {
     const document = this.openedDocuments.get(params.uri);
     if (document) {
       if (params.to === 'sql') {
         await document.refToSql();
-      } else if (params.to === 'ref') {
+      } else {
         await document.sqlToRef();
       }
     }
@@ -297,7 +296,7 @@ export class LspServer {
           }
           resolve();
         } catch (e) {
-          reject();
+          reject(e instanceof Error ? e : new Error('Failed to open document'));
         }
       }, LspServer.OPEN_CLOSE_DEBOUNCE_PERIOD);
     });

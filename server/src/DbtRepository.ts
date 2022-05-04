@@ -5,6 +5,8 @@ export class DbtRepository {
   static readonly DBT_MANIFEST_FILE_NAME = 'manifest.json';
   static readonly DBT_PROJECT_NAME_FIELD = 'name';
 
+  static readonly PROFILE_NAME_FIELD = 'profile';
+
   static readonly MACRO_PATHS_FIELD = 'macro-paths';
   static readonly SOURCE_PATHS_FIELD = 'source-paths'; // v1.0.0: The config source-paths has been deprecated in favor of model-paths
   static readonly MODEL_PATHS_FIELD = 'model-paths';

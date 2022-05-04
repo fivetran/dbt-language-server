@@ -1,4 +1,4 @@
-import { Disposable, OutputChannel, Uri, window, workspace, WorkspaceFolder } from 'vscode';
+import { Diagnostic, Disposable, OutputChannel, Uri, window, workspace, WorkspaceFolder } from 'vscode';
 import {
   CloseAction,
   ErrorAction,
@@ -48,8 +48,8 @@ export class DbtLanguageClient implements Disposable {
       },
       outputChannel,
       workspaceFolder: { uri: dbtProjectUri, name: dbtProjectUri.path, index: port },
-      initializationFailedHandler: (error: ResponseError<InitializeError> | Error | any) => {
-        console.log(`Initialization error: ${error}`);
+      initializationFailedHandler: (error: ResponseError<InitializeError> | Error | unknown) => {
+        console.log(`Initialization error: ${error instanceof Error ? error.message : String(error)}`);
         return true;
       },
       errorHandler: {
@@ -58,7 +58,7 @@ export class DbtLanguageClient implements Disposable {
           return CloseAction.DoNotRestart;
         },
         error(error: Error, _message: Message | undefined, _count: number | undefined): ErrorAction {
-          console.log(`An error has occurred while writing or reading from the connection. ${error}`);
+          console.log(`An error has occurred while writing or reading from the connection. ${error.message}`);
           return ErrorAction.Shutdown;
         },
       },
@@ -84,10 +84,10 @@ export class DbtLanguageClient implements Disposable {
       if (e.newState === State.Running) {
         this.disposables.push(
           this.client.onNotification('custom/updateQueryPreview', ({ uri, previewText }) => {
-            this.previewContentProvider.updateText(uri, previewText);
+            this.previewContentProvider.updateText(uri as string, previewText as string);
           }),
           this.client.onNotification('custom/updateQueryPreviewDiagnostics', ({ uri, diagnostics }) => {
-            this.previewContentProvider.updateDiagnostics(uri, diagnostics);
+            this.previewContentProvider.updateDiagnostics(uri as string, diagnostics as Diagnostic[]);
           }),
 
           this.client.onRequest('custom/getPython', async () => {
@@ -106,13 +106,13 @@ export class DbtLanguageClient implements Disposable {
     });
 
     this.client.onReady().catch(reason => {
-      if (reason && reason.name && reason.message) {
+      if (reason instanceof Error) {
         TelemetryClient.sendException(reason);
       }
     });
   }
 
-  sendNotification(method: string, params: any): void {
+  sendNotification(method: string, params: unknown): void {
     this.client.sendNotification(method, params);
   }
 

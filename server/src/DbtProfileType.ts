@@ -2,11 +2,7 @@ import { OAuthProfile } from './bigquery/OAuthProfile';
 import { OAuthTokenBasedProfile } from './bigquery/OAuthTokenBasedProfile';
 import { ServiceAccountJsonProfile } from './bigquery/ServiceAccountJsonProfile';
 import { ServiceAccountProfile } from './bigquery/ServiceAccountProfile';
-import { DbtProfile } from './DbtProfile';
-
-enum DbtProfileType {
-  BigQuery = 'bigquery',
-}
+import { DbtProfile, DbtProfileType } from './DbtProfile';
 
 const createOAuthProfile: () => DbtProfile = () => new OAuthProfile();
 const createOAuthTokenBasedProfile: () => DbtProfile = () => new OAuthTokenBasedProfile();

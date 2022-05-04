@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import { anything, instance, mock, spy, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentIdentifier, _Connection } from 'vscode-languageserver';
 import { BigQueryContext } from '../bigquery/BigQueryContext';

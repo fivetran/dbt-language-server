@@ -1,5 +1,5 @@
 import { Err, err, ok, Result } from 'neverthrow';
-import { DbtProfile } from './DbtProfile';
+import { DbtProfile, ProfileYaml, TargetConfig } from './DbtProfile';
 import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtProfileType';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
@@ -16,16 +16,25 @@ export interface DbtProfileError extends DbtProfileResult {
 
 export interface DbtProfileSuccess extends DbtProfileResult {
   dbtProfile: DbtProfile;
-  targetConfig: any;
+  targetConfig: Required<TargetConfig>;
 }
 
-export class DbtProfileCreator {
-  constructor(private dbtProject: DbtProject) {}
+type ProfileYamlValidated = {
+  target: string;
+  outputs: Record<string, Required<TargetConfig>>;
+};
 
-  validateProfilesFile(profiles: any, profileName: string): Result<void, DbtProfileError> {
-    const profile = profiles[profileName];
+export class DbtProfileCreator {
+  private profilesPath: string;
+
+  constructor(private dbtProject: DbtProject, profilesPath: string) {
+    this.profilesPath = YamlParserUtils.replaceTilde(profilesPath);
+  }
+
+  validateProfilesFile(profiles: unknown, profileName: string): Result<ProfileYamlValidated, DbtProfileError> {
+    const profile = (profiles as Record<string, unknown>)[profileName] as ProfileYaml | undefined;
     if (!profile) {
-      return err({ message: `Couldn't find credentials for profile '${profileName}'. Check your '${this.dbtProject.profilesPath}' file.` });
+      return err({ message: `Couldn't find credentials for profile '${profileName}'. Check your '${this.profilesPath}' file.` });
     }
 
     const { target } = profile;
@@ -51,21 +60,21 @@ export class DbtProfileCreator {
     const { method } = outputsTarget;
     const authMethods = PROFILE_METHODS.get(type);
     if (!authMethods) {
-      return err({ message: `Currently, '${type}' profile is not supported. Check your '${this.dbtProject.profilesPath}' file.`, type, method });
+      return err({ message: `Currently, '${type}' profile is not supported. Check your '${this.profilesPath}' file.`, type, method });
     }
     if (authMethods.length > 0 && (!method || authMethods.indexOf(method) === -1)) {
-      return err({ message: `Unknown authentication method of '${type}' profile. Check your '${this.dbtProject.profilesPath}' file.`, type, method });
+      return err({ message: `Unknown authentication method of '${type}' profile. Check your '${this.profilesPath}' file.`, type, method });
     }
 
-    return ok(undefined);
+    return ok(profile as ProfileYamlValidated);
   }
 
   createDbtProfile(): Result<DbtProfileSuccess, DbtProfileError> {
-    let profiles = undefined;
+    let profiles: unknown = undefined;
     try {
-      profiles = YamlParserUtils.parseYamlFile(this.dbtProject.profilesPath);
+      profiles = YamlParserUtils.parseYamlFile(this.profilesPath);
     } catch (e) {
-      const message = `Failed to open and parse file '${this.dbtProject.profilesPath}'. ${e}`;
+      const message = `Failed to open and parse file '${this.profilesPath}'. ${e instanceof Error ? e.message : String(e)}`;
       console.log(message);
       return err({ message });
     }
@@ -74,7 +83,9 @@ export class DbtProfileCreator {
     try {
       profileName = this.dbtProject.findProfileName();
     } catch (e) {
-      const message = `Failed to find profile name in ${process.cwd()}/${DbtRepository.DBT_PROJECT_FILE_NAME}. ${e}`;
+      const message = `Failed to find profile name in ${process.cwd()}/${DbtRepository.DBT_PROJECT_FILE_NAME}. ${
+        e instanceof Error ? e.message : String(e)
+      }`;
       console.log(message);
       return err({ message });
     }
@@ -85,22 +96,14 @@ export class DbtProfileCreator {
       return err(validationResult.error);
     }
 
-    const profile = profiles[profileName];
+    const profile = validationResult.value;
     const { target } = profile;
     const targetConfig = profile.outputs[target];
     const { type, method } = targetConfig;
 
-    if (![...PROFILE_METHODS.keys()].find(t => t === type)) {
-      const message = `Profile type '${type}' is not supported.`;
-      console.log(message);
-      return err({ message, type, method });
-    }
-
     const profileBuilder = BIG_QUERY_PROFILES.get(method);
     if (!profileBuilder) {
-      const authErrorMessage = `Authentication method '${method}' of '${type}' profile is not supported.`;
-      console.log(authErrorMessage);
-      return err({ message: authErrorMessage, type, method });
+      throw new Error(`Unknown authentication method of '${type}' profile`);
     }
 
     const dbtProfile = profileBuilder();
@@ -120,9 +123,7 @@ export class DbtProfileCreator {
   }
 
   cantFindSectionError(profileName: string, section: string, docsUrl?: string, type?: string, method?: string): Err<never, DbtProfileError> {
-    const message = `Couldn't find section '${section}' for profile '${profileName}'. Check your '${this.dbtProject.profilesPath}' file. ${
-      docsUrl ?? ''
-    }`;
+    const message = `Couldn't find section '${section}' for profile '${profileName}'. Check your '${this.profilesPath}' file. ${docsUrl ?? ''}`;
     console.log(message);
     return err({ message, type, method });
   }

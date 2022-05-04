@@ -1,7 +1,7 @@
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 import { err, ok, Result } from 'neverthrow';
 import { DbtDestinationClient } from '../DbtDestinationClient';
-import { DbtProfile } from '../DbtProfile';
+import { DbtProfile, TargetConfig } from '../DbtProfile';
 import { ProcessExecutor } from '../ProcessExecutor';
 import { BigQueryClient } from './BigQueryClient';
 
@@ -21,7 +21,7 @@ export class OAuthProfile implements DbtProfile {
     return OAuthProfile.BQ_OAUTH_DOCS;
   }
 
-  validateProfile(targetConfig: any): Result<void, string> {
+  validateProfile(targetConfig: TargetConfig): Result<void, string> {
     const { project } = targetConfig;
     if (!project) {
       return err('project');
@@ -30,7 +30,7 @@ export class OAuthProfile implements DbtProfile {
     return ok(undefined);
   }
 
-  async createClient(profile: any): Promise<Result<DbtDestinationClient, string>> {
+  async createClient(profile: Required<TargetConfig>): Promise<Result<DbtDestinationClient, string>> {
     const { project } = profile;
     const options: BigQueryOptions = {
       projectId: project,
@@ -97,7 +97,7 @@ export class OAuthProfile implements DbtProfile {
       .then(() => ok(undefined))
       .catch(() => err(OAuthProfile.GCLOUD_AUTHENTICATION_ERROR));
 
-    const timeoutPromise = new Promise<Result<void, string>>((resolve, _) => {
+    const timeoutPromise = new Promise<Result<void, string>>(resolve => {
       setTimeout(() => {
         resolve(err(OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT_ERROR));
       }, OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT);

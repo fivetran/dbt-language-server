@@ -41,7 +41,7 @@ export class ModelCompiler {
 
     if (this.dbtCompileJobQueue.length > 3) {
       const jobToStop = this.dbtCompileJobQueue.shift();
-      void jobToStop?.stop();
+      jobToStop?.stop().catch(e => console.log(`Failed to stop job: ${e instanceof Error ? e.message : String(e)}`));
     }
     this.startNewJob(modelPath);
 
@@ -51,7 +51,7 @@ export class ModelCompiler {
   startNewJob(modelPath: string): void {
     const job = new DbtCompileJob(this.dbtRpcClient, modelPath);
     this.dbtCompileJobQueue.push(job);
-    void job.start();
+    job.start().catch(e => console.log(`Failed to start job: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   async pollResults(modelPath: string): Promise<void> {
@@ -70,7 +70,7 @@ export class ModelCompiler {
         if (result) {
           const jobsToStop = this.dbtCompileJobQueue.splice(0, i + 1);
           for (let j = 0; j < i; j++) {
-            void jobsToStop[j].stop();
+            jobsToStop[j].stop().catch(e => console.log(`Failed to stop job: ${e instanceof Error ? e.message : String(e)}`));
           }
 
           if (result.isErr()) {

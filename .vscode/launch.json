@@ -12,6 +12,7 @@
       "outFiles": ["${workspaceFolder}/client/out/**/*.js"],
       "env": {
         "DBT_LS_DISABLE_TELEMETRY": "true",
+        // "NODE_OPTIONS": "--unhandled-rejections=warn"
         // "NODE_OPTIONS": "--trace-warnings"
         // "NODE_OPTIONS": "--trace-deprecation"
       },

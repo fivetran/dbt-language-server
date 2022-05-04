@@ -1,10 +1,11 @@
+import { ok } from 'assert';
 import { assertThat, defined, not } from 'hamjest';
 import { err } from 'neverthrow';
 import * as path from 'path';
 import { instance, mock, when } from 'ts-mockito';
 import { CompletionItem } from 'vscode-languageserver';
 import { DbtNodeCompletionProvider } from '../completion/DbtCompletionProvider';
-import { DbtProfile } from '../DbtProfile';
+import { DbtProfile, ProfileYaml } from '../DbtProfile';
 import { DbtProfileCreator } from '../DbtProfileCreator';
 import { DbtProject } from '../DbtProject';
 import { JinjaPartType } from '../JinjaParser';
@@ -35,8 +36,11 @@ export function getConfigPath(p: string): string {
   return path.resolve(PROFILES_PATH, p);
 }
 
-export function shouldRequireProfileField(profiles: any, profile: DbtProfile, profileName: string, field: string): void {
-  const missingFieldResult = profile.validateProfile(profiles[profileName].outputs.dev);
+export function shouldRequireProfileField(profiles: unknown, profile: DbtProfile, profileName: string, field: string): void {
+  const profileYaml = (profiles as Record<string, unknown>)[profileName] as ProfileYaml;
+  ok(profileYaml.outputs);
+  ok(profileYaml.outputs['dev']);
+  const missingFieldResult = profile.validateProfile(profileYaml.outputs['dev']);
   assertThat(missingFieldResult, err(field));
 }
 
@@ -45,9 +49,8 @@ export function shouldPassValidProfile(config: string, profileName: string): voi
   const mockDbtProject = mock(DbtProject);
   when(mockDbtProject.findProfileName()).thenReturn(profileName);
   const dbtProject = instance(mockDbtProject);
-  dbtProject.profilesPath = getConfigPath(config);
 
-  const profileCreator = new DbtProfileCreator(dbtProject);
+  const profileCreator = new DbtProfileCreator(dbtProject, getConfigPath(config));
 
   // act
   const profile = profileCreator.createDbtProfile();
@@ -62,22 +65,18 @@ export function sleep(ms: number): Promise<unknown> {
   });
 }
 
-export async function shouldNotProvideCompletions(
-  completionProvider: DbtNodeCompletionProvider,
-  jinjaPartType: JinjaPartType,
-  text: string,
-): Promise<void> {
-  const completions = await completionProvider.provideCompletions(jinjaPartType, text);
+export function shouldNotProvideCompletions(completionProvider: DbtNodeCompletionProvider, jinjaPartType: JinjaPartType, text: string): void {
+  const completions = completionProvider.provideCompletions(jinjaPartType, text);
   assertThat(completions, not(defined()));
 }
 
-export async function shouldProvideCompletions(
+export function shouldProvideCompletions(
   completionProvider: DbtNodeCompletionProvider,
   jinjaPartType: JinjaPartType,
   text: string,
   expectedCompletions: CompletionItem[],
-): Promise<void> {
-  const completions = await completionProvider.provideCompletions(jinjaPartType, text);
+): void {
+  const completions = completionProvider.provideCompletions(jinjaPartType, text);
   assertCompletions(completions, expectedCompletions);
 }
 

@@ -47,11 +47,6 @@ export async function activateAndWait(docUri: Uri): Promise<void> {
 
   const existingEditor = window.visibleTextEditors.find(e => e.document.uri.path === docUri.path);
   const doNotWaitChanges = existingEditor && existingEditor.document.getText() === window.activeTextEditor?.document.getText() && getPreviewEditor();
-  if (doNotWaitChanges) {
-    console.log(
-      `doNotWaitChanges. existingEditor: ${existingEditor.document.uri.toString()} activeEditor: ${window.activeTextEditor?.document.uri.toString()}`,
-    );
-  }
   const activateFinished = doNotWaitChanges ? Promise.resolve() : createChangePromise('preview');
 
   await ext.activate();
@@ -84,13 +79,13 @@ function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
   }
 }
 
-export async function waitDocumentModification(func: () => any): Promise<void> {
+export async function waitDocumentModification(func: () => Promise<void>): Promise<void> {
   const promise = createChangePromise('document');
   await func();
   await promise;
 }
 
-export async function waitPreviewModification(func: () => any): Promise<void> {
+export async function waitPreviewModification(func: () => Promise<void>): Promise<void> {
   const promise = createChangePromise('preview');
   await func();
   await promise;
@@ -138,14 +133,14 @@ export async function waitManifestJson(projectFolderName: string): Promise<void>
     return;
   }
 
-  let resolve: voidFunc;
-  const result = new Promise<void>(res => {
-    resolve = res;
+  let resolveFunc: voidFunc;
+  const result = new Promise<void>(resolve => {
+    resolveFunc = resolve;
   });
   fs.watch(projectPath, { recursive: true }, (event: WatchEventType, fileName: string) => {
     if (fileName.endsWith('manifest.json')) {
       console.log('Waiting for manifest.json completed');
-      resolve();
+      resolveFunc();
     }
   });
   await result;

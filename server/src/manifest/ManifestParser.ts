@@ -2,6 +2,25 @@ import { readFileSync } from 'fs';
 import * as path from 'path';
 import { ManifestJson, ManifestMacro, ManifestModel, ManifestSource } from './ManifestJson';
 
+interface RawNode {
+  resource_type: string;
+  unique_id: string;
+  root_path: string;
+  original_file_path: string;
+  name: string;
+  package_name: string;
+  database: string;
+  schema: string;
+  source_name: string;
+  columns: { name: string }[];
+}
+
+interface RawManifest {
+  nodes: RawNode[] | undefined;
+  macros: RawNode[] | undefined;
+  sources: RawNode[] | undefined;
+}
+
 export class ManifestParser {
   static readonly MANIFEST_FILE_NAME = 'manifest.json';
   static readonly RESOURCE_TYPE_MODEL = 'model';
@@ -12,7 +31,7 @@ export class ManifestParser {
   parse(targetPath: string): ManifestJson {
     const manifestLocation = path.join(ManifestParser.PROJECT_PATH, targetPath, ManifestParser.MANIFEST_FILE_NAME);
     const content = readFileSync(manifestLocation, 'utf8');
-    const manifest = JSON.parse(content);
+    const manifest = JSON.parse(content) as RawManifest;
     const { nodes, macros, sources } = manifest;
 
     return {
@@ -22,9 +41,9 @@ export class ManifestParser {
     };
   }
 
-  private parseModelDefinitions(nodes: any): ManifestModel[] {
-    if (nodes) {
-      return Object.values(nodes as any[])
+  private parseModelDefinitions(rawNodes: RawNode[] | undefined): ManifestModel[] {
+    if (rawNodes) {
+      return Object.values(rawNodes)
         .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_MODEL)
         .map<ManifestModel>(n => ({
           uniqueId: n.unique_id,
@@ -39,9 +58,9 @@ export class ManifestParser {
     return [];
   }
 
-  private parseMacroDefinitions(macros: any): ManifestMacro[] {
-    if (macros) {
-      return Object.values(macros as any[])
+  private parseMacroDefinitions(rawNodes: RawNode[] | undefined): ManifestMacro[] {
+    if (rawNodes) {
+      return Object.values(rawNodes)
         .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_MACRO)
         .map<ManifestMacro>(n => ({
           uniqueId: n.unique_id,
@@ -54,9 +73,9 @@ export class ManifestParser {
     return [];
   }
 
-  private parseSourceDefinitions(sources: any): ManifestSource[] {
-    if (sources) {
-      return Object.values(sources as any[])
+  private parseSourceDefinitions(rawNodes: RawNode[] | undefined): ManifestSource[] {
+    if (rawNodes) {
+      return Object.values(rawNodes)
         .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_SOURCE)
         .map<ManifestSource>(n => ({
           uniqueId: n.unique_id,
@@ -65,7 +84,7 @@ export class ManifestParser {
           name: n.name,
           packageName: n.package_name,
           sourceName: n.source_name,
-          columns: Object.values(n.columns as any[]).map(c => c.name as string),
+          columns: Object.values(n.columns).map(c => c.name),
         }));
     }
     return [];

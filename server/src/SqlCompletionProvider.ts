@@ -282,7 +282,7 @@ export class SqlCompletionProvider {
       return tableInfo[1].columns.map<CompletionItem>(c => ({
         label: c.name,
         kind: CompletionItemKind.Value,
-        detail: `${tableInfo[0]} ${c.type}`,
+        detail: `${tableInfo[0]} ${String(c.type)}`,
         sortText: `1${c.name}`,
       }));
     }
@@ -293,7 +293,7 @@ export class SqlCompletionProvider {
         return e[1].columns.map<CompletionItem>(column => ({
           label: `${tableName}.${column.name}`,
           kind: CompletionItemKind.Value,
-          detail: `${column.type}`,
+          detail: `${String(column.type)}`,
           sortText: `1${tableName}.${column.name}`,
         }));
       });
@@ -307,7 +307,7 @@ export class SqlCompletionProvider {
         return tableInfo.columns.map<CompletionItem>(column => ({
           label: `${column.name}`,
           kind: CompletionItemKind.Value,
-          detail: `${tableName} ${column.type}`,
+          detail: `${tableName} ${String(column.type)}`,
           sortText: `1${column.name}`,
         }));
       }

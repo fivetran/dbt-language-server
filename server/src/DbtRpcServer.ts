@@ -33,9 +33,9 @@ export class DbtRpcServer {
               // The server is started here but there is some problem with project compilation
               console.log(e);
             }
-            console.log('dbt rpc started');
+            console.log('dbt-rpc started');
             if (!this.rpcPid) {
-              this.startDeferred.reject("Couldn't find dbt-rpc process id");
+              this.startDeferred.reject(new Error("Couldn't find dbt-rpc process id"));
             }
             started = true;
             this.startDeferred.resolve();
@@ -44,13 +44,13 @@ export class DbtRpcServer {
       });
 
       promiseWithChild.catch(e => {
-        console.log(`dbt rpc command failed: ${JSON.stringify(e)}`);
-        this.startDeferred.reject(e.stdout);
+        console.log(`dbt-rpc command failed: ${JSON.stringify(e)}`);
+        this.startDeferred.reject(new Error('dbt-rpc command failed'));
       });
 
       await this.startDeferred.promise;
     } catch (e) {
-      this.startDeferred.reject(e);
+      this.startDeferred.reject(e instanceof Error ? e : new Error(`Failed to start dbt-rpc: ${String(e)}`));
     }
   }
 

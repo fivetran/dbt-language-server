@@ -46,7 +46,7 @@ export class ZetaSqlWrapper {
           this.languageOptions?.enableLanguageFeature(f),
         );
       } catch (e) {
-        console.log(e instanceof Error ? e.stack : '');
+        console.log(e instanceof Error ? e.stack : e);
       }
     }
     return this.languageOptions;

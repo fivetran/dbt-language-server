@@ -51,7 +51,7 @@ async function main(): Promise<void> {
       extensionTestsEnv: { CLI_PATH: cli, EXTENSIONS_INSTALL_PATH: extensionsInstallPath, DBT_LS_DISABLE_TELEMETRY: 'true' },
     });
   } catch (err) {
-    console.error(`Failed to run tests. Error: ${err}`);
+    console.error(`Failed to run tests. Error: ${err instanceof Error ? err.message : String(err)}`);
     process.exit(1);
   }
 }
@@ -132,7 +132,14 @@ async function isTableExist(dataset: Dataset, tableName: string): Promise<boolea
 
 async function preparePostgres(): Promise<void> {
   const content = fs.readFileSync(`${homedir()}/.dbt/postgres.json`, 'utf8');
-  const connectionParams = JSON.parse(content);
+  const connectionParams = JSON.parse(content) as {
+    user: string;
+    host: string;
+    dbname: string;
+    password: string;
+    port: number;
+    schema: string;
+  };
 
   const client = new Client({
     user: connectionParams.user,

@@ -16,7 +16,7 @@ export class ModelCompletionProvider implements DbtNodeCompletionProvider {
 
   constructor(private dbtRepository: DbtRepository) {}
 
-  async provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): Promise<CompletionItem[] | undefined> {
+  provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): CompletionItem[] | undefined {
     if (!ModelCompletionProvider.ACCEPTABLE_JINJA_PARTS.includes(jinjaPartType)) {
       return undefined;
     }
@@ -43,7 +43,7 @@ export class ModelCompletionProvider implements DbtNodeCompletionProvider {
       return packageModels ? [...packageModels].map<CompletionItem>(m => this.getModelCompletionItem(m.name, m.name)) : undefined;
     }
 
-    return Promise.resolve(undefined);
+    return undefined;
   }
 
   private getModelCompletionItem(label: string, insertText: string, sortText?: string): CompletionItem {

@@ -31,7 +31,7 @@ export class BigQueryContext {
       const schemaTracker = new SchemaTracker(bigQueryClient, zetaSqlWrapper);
       return ok(new BigQueryContext(schemaTracker, destinationDefinition, zetaSqlWrapper));
     } catch (e) {
-      console.log(e instanceof Error ? e.stack : '');
+      console.log(e instanceof Error ? e.stack : e);
       const message = e instanceof Error ? e.message : JSON.stringify(e);
       return err(`Data Warehouse initialization failed. ${message}`);
     }
@@ -42,9 +42,9 @@ export class BigQueryContext {
       const ast = await this.zetaSqlWrapper.analyze(compiledDocument.getText());
       console.log('AST was successfully received');
       return ok(ast);
-    } catch (e: any) {
+    } catch (e) {
       console.log('There was an error wile parsing SQL query');
-      return err(e.details ?? 'Unknown parser error [at 0:0]');
+      return err((e as Partial<Record<string, string>>)['details'] ?? 'Unknown parser error [at 0:0]');
     }
   }
 
@@ -61,6 +61,8 @@ export class BigQueryContext {
   }
 
   public dispose(): void {
-    void this.zetaSqlWrapper.terminateServer();
+    this.zetaSqlWrapper
+      .terminateServer()
+      .catch(e => console.log(`Failed to terminate zetasql server: ${e instanceof Error ? e.message : String(e)}`));
   }
 }

@@ -240,7 +240,7 @@ export class DbtTextDocument {
   }
 
   onCompilationError(dbtCompilationError: string): void {
-    console.log('dbt compilation error');
+    console.log(`dbt compilation error: ${dbtCompilationError}`);
     this.currentDbtError = dbtCompilationError;
     TextDocument.update(this.compiledDocument, [{ text: this.rawDocument.getText() }], this.compiledDocument.version);
 
@@ -317,14 +317,14 @@ export class DbtTextDocument {
   }
 
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
-    const dbtCompletionItems = await this.getDbtCompletionItems(completionParams);
+    const dbtCompletionItems = this.getDbtCompletionItems(completionParams);
     if (dbtCompletionItems) {
       return dbtCompletionItems;
     }
     return this.getSqlCompletions(completionParams);
   }
 
-  async getDbtCompletionItems(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
+  getDbtCompletionItems(completionParams: CompletionParams): CompletionItem[] | undefined {
     const jinjaParts = this.jinjaParser.findAllJinjaParts(this.rawDocument);
     const jinjasBeforePosition = jinjaParts.filter(p => comparePositions(p.range.start, completionParams.position) < 0);
     const closestJinjaPart =

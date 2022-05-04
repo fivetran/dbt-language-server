@@ -4,8 +4,8 @@ import { promisify } from 'util';
 export class ProcessExecutor {
   execProcess(
     command: string,
-    onStdoutData?: (data: any) => void,
-    onStderrData?: (data: any) => void,
+    onStdoutData?: (data: string) => void,
+    onStderrData?: (data: string) => void,
     envVars?: NodeJS.ProcessEnv,
   ): PromiseWithChild<{
     stdout: string;
@@ -22,16 +22,16 @@ export class ProcessExecutor {
 
     childProcess.stderr?.on('data', chunk => {
       if (onStderrData) {
-        onStderrData(chunk);
+        onStderrData(String(chunk));
       }
     });
     childProcess.stdout?.on('data', chunk => {
       if (onStdoutData) {
-        onStdoutData(chunk);
+        onStdoutData(String(chunk));
       }
     });
     childProcess.on('exit', code => {
-      console.log(`Child process '${command}' exited with code ${code}`);
+      console.log(`Child process '${command}' exited with code ${String(code)}`);
     });
 
     const kill = (): boolean => childProcess.kill();

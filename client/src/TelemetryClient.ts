@@ -25,11 +25,11 @@ export class TelemetryClient {
     }
 
     const extensionPath = path.join(context.extensionPath, 'package.json');
-    const packageJson = JSON.parse(fs.readFileSync(extensionPath, 'utf8'));
+    const { name, version, aiKey } = JSON.parse(fs.readFileSync(extensionPath, 'utf8')) as { name: string; version: string; aiKey: string };
 
     // const packageJson = extensions.getExtension('dbt-language-server').packageJSON;
-    if (packageJson.name && packageJson.version && packageJson.aiKey) {
-      TelemetryClient.client = new TelemetryReporter(packageJson.name, packageJson.version, packageJson.aiKey);
+    if (name && version && aiKey) {
+      TelemetryClient.client = new TelemetryReporter(name, version, aiKey);
       context.subscriptions.push(TelemetryClient.client);
     } else {
       console.log('Telemetry was not activated');

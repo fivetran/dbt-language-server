@@ -45,7 +45,7 @@ export class ExtensionClient {
         const client = this.clients.get(folder.uri.toString());
         if (client) {
           this.clients.delete(folder.uri.toString());
-          void client.stop();
+          client.stop().catch(e => console.log(`Error while stopping client: ${e instanceof Error ? e.message : String(e)}`));
         }
       }
     });
@@ -120,7 +120,7 @@ export class ExtensionClient {
     return projectFolder ? this.clients.get(projectFolder.toString()) : undefined;
   }
 
-  registerCommand(command: string, callback: (...args: any[]) => any): void {
+  registerCommand(command: string, callback: (...args: unknown[]) => unknown): void {
     this.context.subscriptions.push(commands.registerCommand(command, callback));
   }
 
