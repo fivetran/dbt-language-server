@@ -71,7 +71,7 @@ jobs:
       fail-fast: false
       matrix:
         include: # Run tests on latest version and version used in https://github.com/fivetran/analytics/blob/main/dbt_ft_prod/deployment.yml#L1
-          - install-dbt: 'pip install dbt-bigquery==1.0.0 dbt-postgres==1.0.4'
+          - install-dbt: 'pip install dbt-bigquery==1.0.0 dbt-postgres==1.0.4 dbt-rpc'
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_0_20_1_env/bin/activate
