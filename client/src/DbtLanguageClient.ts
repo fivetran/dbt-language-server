@@ -1,7 +1,9 @@
 import { Diagnostic, Disposable, OutputChannel, Uri, window, workspace, WorkspaceFolder } from 'vscode';
 import {
   CloseAction,
+  CloseHandlerResult,
   ErrorAction,
+  ErrorHandlerResult,
   InitializeError,
   LanguageClient,
   LanguageClientOptions,
@@ -53,13 +55,14 @@ export class DbtLanguageClient implements Disposable {
         return true;
       },
       errorHandler: {
-        closed(): CloseAction {
+        closed(): CloseHandlerResult {
           console.log('The connection to the server got closed');
-          return CloseAction.DoNotRestart;
+          return { action: CloseAction.DoNotRestart };
         },
-        error(error: Error, _message: Message | undefined, _count: number | undefined): ErrorAction {
+        error(error: Error, _message: Message | undefined, _count: number | undefined): ErrorHandlerResult {
+          TelemetryClient.sendException(error);
           console.log(`An error has occurred while writing or reading from the connection. ${error.message}`);
-          return ErrorAction.Shutdown;
+          return { action: ErrorAction.Shutdown };
         },
       },
     };
@@ -104,20 +107,16 @@ export class DbtLanguageClient implements Disposable {
       }
       console.log(`Client switched to state ${State[e.newState]}`);
     });
-
-    this.client.onReady().catch(reason => {
-      if (reason instanceof Error) {
-        TelemetryClient.sendException(reason);
-      }
-    });
   }
 
   sendNotification(method: string, params: unknown): void {
-    this.client.sendNotification(method, params);
+    this.client
+      .sendNotification(method, params)
+      .catch(e => console.log(`Error while sending notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   start(): void {
-    this.disposables.push(this.client.start());
+    this.client.start().catch(e => console.log(`Error while starting server: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   stop(): Promise<void> {
