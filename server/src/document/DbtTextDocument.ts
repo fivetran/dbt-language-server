@@ -298,12 +298,18 @@ export class DbtTextDocument {
   }
 
   sendUpdateQueryPreview(): void {
-    this.connection.sendNotification('custom/updateQueryPreview', { uri: this.rawDocument.uri, previewText: this.compiledDocument.getText() });
+    this.connection
+      .sendNotification('custom/updateQueryPreview', { uri: this.rawDocument.uri, previewText: this.compiledDocument.getText() })
+      .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   sendDiagnostics(rawDocDiagnostics: Diagnostic[], compiledDocDiagnostics: Diagnostic[]): void {
-    this.connection.sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: rawDocDiagnostics });
-    this.connection.sendNotification('custom/updateQueryPreviewDiagnostics', { uri: this.rawDocument.uri, diagnostics: compiledDocDiagnostics });
+    this.connection
+      .sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: rawDocDiagnostics })
+      .catch(e => console.log(`Failed to send diagnostics: ${e instanceof Error ? e.message : String(e)}`));
+    this.connection
+      .sendNotification('custom/updateQueryPreviewDiagnostics', { uri: this.rawDocument.uri, diagnostics: compiledDocDiagnostics })
+      .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   onFinishAllCompilationTasks(): void {

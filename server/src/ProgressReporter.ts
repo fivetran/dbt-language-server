@@ -14,10 +14,12 @@ export class ProgressReporter {
     if (uri) {
       ProgressReporter.uris.add(uri);
     }
-    this.connection.sendProgress(WorkDoneProgress.type, ProgressReporter.token, {
-      kind: 'begin',
-      title: 'dbt Wizard',
-    });
+    this.connection
+      .sendProgress(WorkDoneProgress.type, ProgressReporter.token, {
+        kind: 'begin',
+        title: 'dbt Wizard',
+      })
+      .catch(e => console.log(`Failed to send progress: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   sendFinish(uri?: string): void {
@@ -25,7 +27,9 @@ export class ProgressReporter {
       ProgressReporter.uris.delete(uri);
     }
     if (ProgressReporter.uris.size === 0) {
-      this.connection.sendProgress(WorkDoneProgress.type, ProgressReporter.token, { kind: 'end' });
+      this.connection
+        .sendProgress(WorkDoneProgress.type, ProgressReporter.token, { kind: 'end' })
+        .catch(e => console.log(`Failed to send progress: ${e instanceof Error ? e.message : String(e)}`));
     }
   }
 }

@@ -30,6 +30,10 @@ describe('DbtTextDocument', () => {
   beforeEach(() => {
     DbtTextDocument.DEBOUNCE_TIMEOUT = 0;
 
+    const mockConnection = mock<_Connection>();
+    when(mockConnection.sendNotification(anything(), anything())).thenReturn(Promise.resolve());
+    when(mockConnection.sendDiagnostics(anything())).thenReturn(Promise.resolve());
+
     mockModelCompiler = mock(ModelCompiler);
     when(mockModelCompiler.onCompilationError).thenReturn(onCompilationErrorEmitter.event);
     when(mockModelCompiler.onCompilationFinished).thenReturn(onCompilationFinishedEmitter.event);
@@ -41,7 +45,7 @@ describe('DbtTextDocument', () => {
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
       DbtDocumentKind.MODEL,
       '',
-      mock<_Connection>(),
+      instance(mockConnection),
       mock(ProgressReporter),
       mock(SqlCompletionProvider),
       mock(DbtCompletionProvider),
