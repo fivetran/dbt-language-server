@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import {
   commands,
   DiagnosticCollection,
@@ -16,9 +17,16 @@ import { ProgressHandler } from './ProgressHandler';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 import { TelemetryClient } from './TelemetryClient';
 import { WorkspaceHelper } from './WorkspaceHelper';
+
 import path = require('path');
 
 export const SUPPORTED_LANG_IDS = ['sql', 'jinja-sql', 'sql-bigquery'];
+
+export interface PackageJson {
+  name: string;
+  version: string;
+  aiKey: string;
+}
 
 export class ExtensionClient {
   static readonly DEFAULT_PACKAGES_PATHS = ['dbt_packages', 'dbt_modules'];
@@ -29,6 +37,7 @@ export class ExtensionClient {
   progressHandler = new ProgressHandler();
   workspaceHelper = new WorkspaceHelper();
   clients: Map<string, DbtLanguageClient> = new Map();
+  packageJson?: PackageJson;
 
   constructor(private context: ExtensionContext) {
     this.serverAbsolutePath = this.context.asAbsolutePath(path.join('server', 'out', 'server.js'));
@@ -59,8 +68,15 @@ export class ExtensionClient {
 
     this.registerCommands();
 
-    TelemetryClient.activate(this.context);
+    this.parseVersion();
+    TelemetryClient.activate(this.context, this.packageJson);
     TelemetryClient.sendEvent('activate');
+  }
+
+  parseVersion(): void {
+    const extensionPath = path.join(this.context.extensionPath, 'package.json');
+    this.packageJson = JSON.parse(fs.readFileSync(extensionPath, 'utf8')) as PackageJson;
+    this.outputChannel.appendLine(`Extension version: ${this.packageJson.version}`);
   }
 
   registerCommands(): void {
