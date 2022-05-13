@@ -948,7 +948,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'code_points_to_bytes',
     signatures: [
       {
-        signature: 'CODE_POINTS_TO_BYTES(ascii_values)\n',
+        signature: 'CODE_POINTS_TO_BYTES(ascii_code_points)\n',
         description: 'Takes an array of extended ASCII\ncode points\n(`ARRAY` of `INT64`) and returns `BYTES`.',
       },
     ],
@@ -957,9 +957,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'code_points_to_string',
     signatures: [
       {
-        signature: 'CODE_POINTS_TO_STRING(value)\n',
-        description:
-          'Takes an array of Unicode code points\n(`ARRAY` of `INT64`) and\nreturns a `STRING`. If a code point is 0, does not return a character for it\nin the `STRING`.',
+        signature: 'CODE_POINTS_TO_STRING(unicode_code_points)\n',
+        description: 'Takes an array of Unicode code points\n(`ARRAY` of `INT64`) and returns a `STRING`.',
       },
     ],
   },
@@ -1087,7 +1086,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature: 'NORMALIZE_AND_CASEFOLD(value[, normalization_mode])\n',
-        description: 'Takes a string value and returns it as a normalized string with\nnormalization.',
+        description: 'Takes a string value and returns it as a normalized string. If you do not\nprovide a normalization mode, `NFC` is used.',
       },
     ],
   },
@@ -1219,13 +1218,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'substr',
-    signatures: [
-      {
-        signature: 'SUBSTR(value, position[, length])\n',
-        description:
-          'Returns a substring of the supplied `STRING` or `BYTES` value. The\n`position` argument is an integer specifying the starting position of the\nsubstring, with position = 1 indicating the first character or byte. The\n`length` argument is the maximum number of characters for `STRING` arguments,\nor bytes for `BYTES` arguments.',
-      },
-    ],
+    signatures: [{ signature: 'SUBSTR(value, position[, length])\n', description: 'Returns a substring of the supplied `STRING` or `BYTES` value.' }],
   },
   {
     name: 'substring',
@@ -1270,13 +1263,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'trim',
-    signatures: [
-      {
-        signature: 'TRIM(value1[, value2])\n',
-        description:
-          'Removes all leading and trailing characters that match `value2`. If\n`value2` is not specified, all leading and trailing whitespace characters (as\ndefined by the Unicode standard) are removed. If the first argument is of type\n`BYTES`, the second argument is required.',
-      },
-    ],
+    signatures: [{ signature: 'TRIM(value_to_trim[, set_of_characters_to_remove])\n', description: 'Takes a `STRING` or `BYTES` value to trim.' }],
   },
   {
     name: 'unicode',
@@ -1443,16 +1430,26 @@ export const HelpProviderWords: FunctionInfo[] = [
   {
     name: 'array_includes',
     signatures: [
-      { signature: '', description: 'Takes an array and returns `TRUE` if there is an element in the array that is\nequal to the target element.' },
+      { signature: '', description: 'Takes an array and returns `TRUE` if there is an element in the array that is\nequal to the search_value.' },
     ],
   },
   {
     name: 'array_includes_any',
     signatures: [
       {
-        signature: 'ARRAY_INCLUDES_ANY(source_array_expression, target_array_expression)\n',
+        signature: 'ARRAY_INCLUDES_ANY(array_to_search, search_values)\n',
         description:
-          'Takes a source and target array. Returns `TRUE` if any elements in the target\narray are in the source array, otherwise returns `FALSE`.',
+          'Takes an array to search and an array of search values. Returns `TRUE` if any\nsearch values are in the array to search, otherwise returns `FALSE`.',
+      },
+    ],
+  },
+  {
+    name: 'array_includes_all',
+    signatures: [
+      {
+        signature: 'ARRAY_INCLUDES_ALL(array_to_search, search_values)\n',
+        description:
+          'Takes an array to search and an array of search values. Returns `TRUE` if all\nsearch values are in the array to search, otherwise returns `FALSE`.',
       },
     ],
   },
@@ -1481,7 +1478,8 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature:
           'ARRAY_TRANSFORM(array_expression, lambda_expression)\n\nlambda_expression:\n  {\n    element_alias->transform_expression\n    | (element_alias, index_alias)->transform_expression\n  }\n',
-        description: 'Takes an array, transforms the elements, and returns the results in a new array.',
+        description:
+          'Takes an array, transforms the elements, and returns the results in a new array.\nThe output array always has the same length as the input array.',
       },
     ],
   },
@@ -1548,7 +1546,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature: 'CURRENT_DATE([time_zone])\n',
-        description: 'Returns the current date as of the specified or default timezone. Parentheses\nare optional when called with no\narguments.',
+        description: 'Returns the current date as of the specified or default time zone. Parentheses\nare optional when called with no\narguments.',
       },
     ],
   },
@@ -1566,9 +1564,9 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       { signature: 'DATE(year, month, day)', description: 'Constructs a DATE from INT64 values representing\nthe year, month, and day.' },
       {
-        signature: 'DATE(timestamp_expression[, timezone])',
+        signature: 'DATE(timestamp_expression[, time_zone])',
         description:
-          'Extracts the DATE from a TIMESTAMP expression. It supports an\noptional parameter to specify a timezone. If no\ntimezone is specified, the default timezone, which is implementation defined, is used.',
+          'Extracts the DATE from a TIMESTAMP expression. It supports an\noptional parameter to specify a time zone. If no\ntime zone is specified, the default time zone, which is implementation defined, is used.',
       },
       { signature: 'DATE(datetime_expression)', description: 'Extracts the DATE from a DATETIME expression.' },
       { signature: '', description: '' },
@@ -1635,7 +1633,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'current_datetime',
     signatures: [
       {
-        signature: 'CURRENT_DATETIME([timezone])\n',
+        signature: 'CURRENT_DATETIME([time_zone])\n',
         description: 'Returns the current time as a `DATETIME` object. Parentheses are optional when\ncalled with no arguments.',
       },
     ],
@@ -1645,16 +1643,16 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature: 'DATETIME(year, month, day, hour, minute, second)',
-        description: 'Constructs a `DATETIME` object using INT64 values\nrepresenting the year, month, day, hour, minute, and second.',
+        description: 'Constructs a `DATETIME` object using `INT64` values\nrepresenting the year, month, day, hour, minute, and second.',
       },
       {
         signature: 'DATETIME(date_expression[, time_expression])',
-        description: 'Constructs a `DATETIME` object using a DATE object and an optional TIME object.',
+        description: 'Constructs a `DATETIME` object using a DATE object and an optional `TIME`\nobject.',
       },
       {
-        signature: 'DATETIME(timestamp_expression [, timezone])',
+        signature: 'DATETIME(timestamp_expression [, time_zone])',
         description:
-          'Constructs a `DATETIME` object using a TIMESTAMP object. It supports an\noptional parameter to specify a timezone. If no\ntimezone is specified, the default timezone, which is implementation defined, is used.',
+          'Constructs a `DATETIME` object using a `TIMESTAMP` object. It supports an\noptional parameter to\nspecify a time zone.\nIf no time zone is specified, the default time zone, which is implementation defined,\nis used.',
       },
       { signature: '', description: '' },
     ],
@@ -1716,7 +1714,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'current_time',
     signatures: [
       {
-        signature: 'CURRENT_TIME([timezone])\n',
+        signature: 'CURRENT_TIME([time_zone])\n',
         description: 'Returns the current time as a `TIME` object. Parentheses are optional when\ncalled with no arguments.',
       },
     ],
@@ -1729,9 +1727,9 @@ export const HelpProviderWords: FunctionInfo[] = [
         description: 'Constructs a `TIME` object using `INT64`\nvalues representing the hour, minute, and second.',
       },
       {
-        signature: 'TIME(timestamp, [timezone])',
+        signature: 'TIME(timestamp, [time_zone])',
         description:
-          'Constructs a `TIME` object using a `TIMESTAMP` object. It supports an\noptional\nparameter to specify a timezone. If no\ntimezone is specified, the default timezone, which is implementation defined, is used.',
+          'Constructs a `TIME` object using a `TIMESTAMP` object. It supports an\noptional\nparameter to specify a time zone. If no\ntime zone is specified, the default time zone, which is implementation defined, is\nused.',
       },
       { signature: 'TIME(datetime)', description: 'Constructs a `TIME` object using a\n`DATETIME` object.' },
       { signature: '', description: '' },
@@ -1789,7 +1787,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'timestamp',
     signatures: [
       {
-        signature: 'TIMESTAMP(string_expression[, timezone])\nTIMESTAMP(date_expression[, timezone])\nTIMESTAMP(datetime_expression[, timezone])\n',
+        signature:
+          'TIMESTAMP(string_expression[, time_zone])\nTIMESTAMP(date_expression[, time_zone])\nTIMESTAMP(datetime_expression[, time_zone])\n',
         description: '',
       },
     ],
@@ -1826,7 +1825,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'timestamp_trunc',
     signatures: [
       {
-        signature: 'TIMESTAMP_TRUNC(timestamp_expression, date_part[, timezone])\n',
+        signature: 'TIMESTAMP_TRUNC(timestamp_expression, date_part[, time_zone])\n',
         description: 'Truncates a timestamp to the granularity of `date_part`.',
       },
     ],
@@ -1835,7 +1834,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'format_timestamp',
     signatures: [
       {
-        signature: 'FORMAT_TIMESTAMP(format_string, timestamp[, timezone])\n',
+        signature: 'FORMAT_TIMESTAMP(format_string, timestamp[, time_zone])\n',
         description: 'Formats a timestamp according to the specified `format_string`.',
       },
     ],
@@ -1844,7 +1843,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'parse_timestamp',
     signatures: [
       {
-        signature: 'PARSE_TIMESTAMP(format_string, timestamp_string[, timezone])\n',
+        signature: 'PARSE_TIMESTAMP(format_string, timestamp_string[, time_zone])\n',
         description: 'Converts a string representation of a timestamp to a\n`TIMESTAMP` object.',
       },
     ],
@@ -2072,7 +2071,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'case',
     signatures: [
       {
-        signature: 'CASE\n  WHEN condition THEN result\n  [ ... ]\n  [ ELSE else_result ]\nEND\n',
+        signature: 'CASE\n  WHEN condition THEN result\n  [ ... ]\n  [ ELSE else_result ]\n  END\n',
         description:
           'Evaluates the condition of each successive `WHEN` clause and returns the\nfirst result where the condition is true; any remaining `WHEN` clauses\nand `else_result` are not evaluated. If all conditions are false or NULL,\nreturns `else_result` if present; if not present, returns NULL.',
       },

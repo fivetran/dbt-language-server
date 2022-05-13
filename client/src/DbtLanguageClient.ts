@@ -1,16 +1,5 @@
 import { Diagnostic, Disposable, OutputChannel, Uri, window, workspace, WorkspaceFolder } from 'vscode';
-import {
-  CloseAction,
-  ErrorAction,
-  InitializeError,
-  LanguageClient,
-  LanguageClientOptions,
-  Message,
-  ResponseError,
-  State,
-  TransportKind,
-  WorkDoneProgress,
-} from 'vscode-languageclient/node';
+import { LanguageClient, LanguageClientOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { SUPPORTED_LANG_IDS } from './ExtensionClient';
 import { ProgressHandler } from './ProgressHandler';
 import { PythonExtension } from './PythonExtension';
@@ -48,25 +37,30 @@ export class DbtLanguageClient implements Disposable {
       },
       outputChannel,
       workspaceFolder: { uri: dbtProjectUri, name: dbtProjectUri.path, index: port },
-      initializationFailedHandler: (error: ResponseError<InitializeError> | Error | unknown) => {
-        console.log(`Initialization error: ${error instanceof Error ? error.message : String(error)}`);
-        return true;
-      },
-      errorHandler: {
-        closed(): CloseAction {
-          console.log('The connection to the server got closed');
-          return CloseAction.DoNotRestart;
-        },
-        error(error: Error, _message: Message | undefined, _count: number | undefined): ErrorAction {
-          console.log(`An error has occurred while writing or reading from the connection. ${error.message}`);
-          return ErrorAction.Shutdown;
-        },
-      },
     };
 
     this.workspaceFolder = workspace.getWorkspaceFolder(dbtProjectUri);
 
     this.client = new LanguageClient('dbtLanguageServer', 'dbt Wizard', serverOptions, clientOptions);
+    this.disposables.push(
+      this.client.onNotification('custom/updateQueryPreview', ({ uri, previewText }) => {
+        this.previewContentProvider.updateText(uri as string, previewText as string);
+      }),
+      this.client.onNotification('custom/updateQueryPreviewDiagnostics', ({ uri, diagnostics }) => {
+        this.previewContentProvider.updateDiagnostics(uri as string, diagnostics as Diagnostic[]);
+      }),
+
+      this.client.onRequest('custom/getPython', async () => {
+        try {
+          return await new PythonExtension().getPython(this.workspaceFolder);
+        } catch (err) {
+          await window.showErrorMessage(`Error while getting python: ${JSON.stringify(err)}`);
+          return 'python3';
+        }
+      }),
+
+      this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),
+    );
   }
 
   initialize(): void {
@@ -81,43 +75,18 @@ export class DbtLanguageClient implements Disposable {
     );
 
     this.client.onDidChangeState(e => {
-      if (e.newState === State.Running) {
-        this.disposables.push(
-          this.client.onNotification('custom/updateQueryPreview', ({ uri, previewText }) => {
-            this.previewContentProvider.updateText(uri as string, previewText as string);
-          }),
-          this.client.onNotification('custom/updateQueryPreviewDiagnostics', ({ uri, diagnostics }) => {
-            this.previewContentProvider.updateDiagnostics(uri as string, diagnostics as Diagnostic[]);
-          }),
-
-          this.client.onRequest('custom/getPython', async () => {
-            try {
-              return await new PythonExtension().getPython(this.workspaceFolder);
-            } catch (err) {
-              await window.showErrorMessage(`Error while getting python: ${JSON.stringify(err)}`);
-              return 'python3';
-            }
-          }),
-
-          this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),
-        );
-      }
       console.log(`Client switched to state ${State[e.newState]}`);
-    });
-
-    this.client.onReady().catch(reason => {
-      if (reason instanceof Error) {
-        TelemetryClient.sendException(reason);
-      }
     });
   }
 
   sendNotification(method: string, params: unknown): void {
-    this.client.sendNotification(method, params);
+    this.client
+      .sendNotification(method, params)
+      .catch(e => console.log(`Error while sending notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   start(): void {
-    this.disposables.push(this.client.start());
+    this.client.start().catch(e => console.log(`Error while starting server: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   stop(): Promise<void> {

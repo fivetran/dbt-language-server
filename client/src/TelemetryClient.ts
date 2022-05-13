@@ -1,7 +1,6 @@
 import TelemetryReporter, { TelemetryEventProperties } from '@vscode/extension-telemetry';
-import * as fs from 'fs';
-import * as path from 'path';
 import { ExtensionContext } from 'vscode';
+import { PackageJson } from './ExtensionClient';
 
 export class TelemetryClient {
   private static client: TelemetryReporter | undefined;
@@ -18,18 +17,14 @@ export class TelemetryClient {
     TelemetryClient.client?.sendTelemetryErrorEvent('error', properties);
   }
 
-  static activate(context: ExtensionContext): void {
+  static activate(context: ExtensionContext, packageJson?: PackageJson): void {
     if (process.env['DBT_LS_DISABLE_TELEMETRY']) {
       console.log('Telemetry is disabled');
       return;
     }
 
-    const extensionPath = path.join(context.extensionPath, 'package.json');
-    const { name, version, aiKey } = JSON.parse(fs.readFileSync(extensionPath, 'utf8')) as { name: string; version: string; aiKey: string };
-
-    // const packageJson = extensions.getExtension('dbt-language-server').packageJSON;
-    if (name && version && aiKey) {
-      TelemetryClient.client = new TelemetryReporter(name, version, aiKey);
+    if (packageJson) {
+      TelemetryClient.client = new TelemetryReporter(packageJson.name, packageJson.version, packageJson.aiKey);
       context.subscriptions.push(TelemetryClient.client);
     } else {
       console.log('Telemetry was not activated');

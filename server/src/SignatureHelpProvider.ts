@@ -24,7 +24,6 @@ export class SignatureHelpProvider {
           },
         })),
         activeSignature: 0,
-        activeParameter: null,
       };
     }
     return undefined;

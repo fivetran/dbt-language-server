@@ -234,7 +234,9 @@ export class LspServer {
 
   sendTelemetry(name: string, properties?: { [key: string]: string }): void {
     console.log(JSON.stringify(properties));
-    this.connection.sendNotification<TelemetryEvent>(TelemetryEventNotification.type, { name, properties });
+    this.connection
+      .sendNotification<TelemetryEvent>(TelemetryEventNotification.type, { name, properties })
+      .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   async startDbtRpc(command: Command, port: number): Promise<void> {
