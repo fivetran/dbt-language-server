@@ -2,8 +2,8 @@ import { diffWords } from 'diff';
 import * as fastDiff from 'fast-diff';
 
 export class Diff {
-  static getOldLineNumber(oldString: string, newString: string, newLineNumber: number): number {
-    return this.getOldNumber(oldString, newString, newLineNumber, str => Diff.getLinesCount(str));
+  static getOldLineNumber(oldString: string, newString: string, newLineNumber: number, skipRemoved = true): number {
+    return this.getOldNumber(oldString, newString, newLineNumber, str => Diff.getLinesCount(str), skipRemoved);
   }
 
   static getOldCharacter(oldLine: string, newLine: string, newCharacter: number): number {
@@ -48,7 +48,7 @@ export class Diff {
     return oldNumber;
   }
 
-  static getOldNumber(oldString: string, newString: string, newNumber: number, countFromDiff: (str: string) => number): number {
+  static getOldNumber(oldString: string, newString: string, newNumber: number, countFromDiff: (str: string) => number, skipRemoved = true): number {
     const diffs = diffWords(oldString, newString, { ignoreWhitespace: false });
     if (diffs.length === 0) {
       return newNumber;
@@ -78,13 +78,15 @@ export class Diff {
       }
 
       if (currentNumber >= newNumber) {
-        let removedAfter = 0;
-        for (let j = i + 1; j < diffs.length; j++) {
-          if (diffs[j].removed) {
-            removedAfter += countFromDiff(diffs[j].value);
-          } else {
-            oldNumber += removedAfter;
-            break;
+        if (skipRemoved) {
+          let removedAfter = 0;
+          for (let j = i + 1; j < diffs.length; j++) {
+            if (diffs[j].removed) {
+              removedAfter += countFromDiff(diffs[j].value);
+            } else {
+              oldNumber += removedAfter;
+              break;
+            }
           }
         }
         break;
