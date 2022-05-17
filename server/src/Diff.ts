@@ -2,10 +2,6 @@ import { diffWords } from 'diff';
 import * as fastDiff from 'fast-diff';
 
 export class Diff {
-  static getOldLineNumberDeprecated(oldString: string, newString: string, newLineNumber: number): number {
-    return this.getOldNumberDeprecated(oldString, newString, newLineNumber, str => Diff.getLinesCount(str));
-  }
-
   static getOldLineNumber(oldString: string, newString: string, newLineNumber: number): number {
     return this.getOldNumber(oldString, newString, newLineNumber, str => Diff.getLinesCount(str));
   }
