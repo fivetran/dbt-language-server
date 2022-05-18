@@ -121,6 +121,9 @@ async function ensureTableWithStructExists(dataset: Dataset): Promise<void> {
           ],
         },
       ],
+      timePartitioning: {
+        type: 'DAY',
+      },
     });
   }
 }

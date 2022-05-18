@@ -3,6 +3,11 @@ import { err, ok, Result } from 'neverthrow';
 import { DbtDestinationClient } from '../DbtDestinationClient';
 import { SchemaDefinition } from '../TableDefinition';
 
+export interface Metadata {
+  schema: SchemaDefinition;
+  timePartitioning: boolean;
+}
+
 export class BigQueryClient implements DbtDestinationClient {
   static readonly BQ_TEST_CLIENT_DATASETS_LIMIT = 1;
 
@@ -30,12 +35,15 @@ export class BigQueryClient implements DbtDestinationClient {
     return this.bigQuery.getDatasets({ maxResults });
   }
 
-  async getTableSchema(dataSet: string, tableName: string): Promise<SchemaDefinition | undefined> {
+  async getTableMetadata(dataSet: string, tableName: string): Promise<Metadata | undefined> {
     const dataset = this.bigQuery.dataset(dataSet);
     const table = dataset.table(tableName);
     try {
       const [metadata] = (await table.getMetadata()) as [TableMetadata, unknown];
-      return metadata.schema as SchemaDefinition;
+      return {
+        schema: metadata.schema as SchemaDefinition,
+        timePartitioning: metadata.timePartitioning !== undefined,
+      };
     } catch (e) {
       console.log(`error while getting table metadata: ${e instanceof Error ? e.message : String(e)}`);
       return undefined;
