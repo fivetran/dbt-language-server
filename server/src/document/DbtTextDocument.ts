@@ -137,8 +137,8 @@ export class DbtTextDocument {
         return {
           text: c.text,
           range: Range.create(
-            this.convertPosition(this.compiledDocument.getText(), this.rawDocument.getText(), c.range.start),
-            this.convertPosition(this.compiledDocument.getText(), this.rawDocument.getText(), c.range.end),
+            this.convertRawPositionIntoCompiled(this.rawDocument.getText(), this.compiledDocument.getText(), c.range.start),
+            this.convertRawPositionIntoCompiled(this.rawDocument.getText(), this.compiledDocument.getText(), c.range.end),
           ),
         };
       });
@@ -147,7 +147,16 @@ export class DbtTextDocument {
     }
   }
 
-  convertPosition(first: string, second: string, positionInSecond: Position): Position {
+  convertRawPositionIntoCompiled(raw: string, compiled: string, rawPosition: Position): Position {
+    const lineInCompiled = Diff.getNewLineNumber(raw, compiled, rawPosition.line);
+    const charInFirst = Diff.getNewCharacter(raw.split('\n')[rawPosition.line], compiled.split('\n')[lineInCompiled], rawPosition.character);
+    return {
+      line: lineInCompiled,
+      character: charInFirst,
+    };
+  }
+
+  convertCompiledPositionIntoRaw(first: string, second: string, positionInSecond: Position): Position {
     const lineInFirst = Diff.getOldLineNumber(first, second, positionInSecond.line);
     const charInFirst = Diff.getOldCharacter(first.split('\n')[lineInFirst], second.split('\n')[positionInSecond.line], positionInSecond.character);
     return {
@@ -204,8 +213,8 @@ export class DbtTextDocument {
 
     this.sqlRefConverter.sqlToRef(this.compiledDocument, resolvedTables, this.dbtRepository.models).forEach(c => {
       const range = Range.create(
-        this.convertPosition(this.rawDocument.getText(), this.compiledDocument.getText(), c.range.start),
-        this.convertPosition(this.rawDocument.getText(), this.compiledDocument.getText(), c.range.end),
+        this.convertCompiledPositionIntoRaw(this.rawDocument.getText(), this.compiledDocument.getText(), c.range.start),
+        this.convertCompiledPositionIntoRaw(this.rawDocument.getText(), this.compiledDocument.getText(), c.range.end),
       );
       textChange.replace(range, c.newText);
     });
