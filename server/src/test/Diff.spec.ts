@@ -141,7 +141,7 @@ describe('Diff', () => {
     const fileContent = getFilesContent(fileName);
 
     // act
-    const number = Diff.getOldLineNumber(fileContent.compiled, fileContent.raw, lineNumberInRaw, false);
+    const number = Diff.getOldLineNumber(fileContent.compiled, fileContent.raw, lineNumberInRaw);
 
     // assert
     assertThat(number, lineNumberInCompiled);

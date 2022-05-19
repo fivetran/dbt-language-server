@@ -137,8 +137,8 @@ export class DbtTextDocument {
         return {
           text: c.text,
           range: Range.create(
-            this.convertPosition(this.compiledDocument.getText(), this.rawDocument.getText(), c.range.start, false),
-            this.convertPosition(this.compiledDocument.getText(), this.rawDocument.getText(), c.range.end, false),
+            this.convertPosition(this.compiledDocument.getText(), this.rawDocument.getText(), c.range.start),
+            this.convertPosition(this.compiledDocument.getText(), this.rawDocument.getText(), c.range.end),
           ),
         };
       });
@@ -147,8 +147,8 @@ export class DbtTextDocument {
     }
   }
 
-  convertPosition(first: string, second: string, positionInSecond: Position, skipRemoved = true): Position {
-    const lineInFirst = Diff.getOldLineNumber(first, second, positionInSecond.line, skipRemoved);
+  convertPosition(first: string, second: string, positionInSecond: Position): Position {
+    const lineInFirst = Diff.getOldLineNumber(first, second, positionInSecond.line);
     const charInFirst = Diff.getOldCharacter(first.split('\n')[lineInFirst], second.split('\n')[positionInSecond.line], positionInSecond.character);
     return {
       line: lineInFirst,
