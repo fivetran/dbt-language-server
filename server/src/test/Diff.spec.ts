@@ -122,6 +122,7 @@ describe('Diff', () => {
   function shouldReturnCorrespondingLineNumber(fileName: string, compiledRawArray: number[][]): void {
     for (const compiledRaw of compiledRawArray) {
       shouldReturnCorrespondingLineNumberForOldText(fileName, compiledRaw[0], compiledRaw[1]);
+      shouldReturnCorrespondingLineNumberForNewText(fileName, compiledRaw[1], compiledRaw[0]);
     }
   }
 
