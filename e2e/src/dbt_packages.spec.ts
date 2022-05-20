@@ -71,5 +71,5 @@ suite('Extension should work inside dbt package', () => {
         targetSelectionRange: new Range(70, 9, 70, 30),
       },
     ]);
-  }).skip();
+  });
 });
