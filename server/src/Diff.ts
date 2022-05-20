@@ -1,7 +1,34 @@
 import { diffWords } from 'diff';
 import * as fastDiff from 'fast-diff';
+import { Position } from 'vscode-languageserver-textdocument';
 
 export class Diff {
+  static convertPositionStraight(first: string, second: string, positionInFirst: Position): Position | undefined {
+    const lineInSecond = Diff.getNewLineNumber(first, second, positionInFirst.line);
+    if (lineInSecond === undefined) {
+      return undefined;
+    }
+
+    const charInSecond = Diff.getNewCharacter(first.split('\n')[positionInFirst.line], second.split('\n')[lineInSecond], positionInFirst.character);
+    if (charInSecond === undefined) {
+      return undefined;
+    }
+
+    return {
+      line: lineInSecond,
+      character: charInSecond,
+    };
+  }
+
+  static convertPositionBackward(first: string, second: string, positionInSecond: Position): Position {
+    const lineInFirst = Diff.getOldLineNumber(first, second, positionInSecond.line);
+    const charInFirst = Diff.getOldCharacter(first.split('\n')[lineInFirst], second.split('\n')[positionInSecond.line], positionInSecond.character);
+    return {
+      line: lineInFirst,
+      character: charInFirst,
+    };
+  }
+
   static getOldLineNumber(oldString: string, newString: string, newLineNumber: number): number {
     return this.getOldNumber(oldString, newString, newLineNumber, str => Diff.getLinesCount(str));
   }
@@ -10,11 +37,11 @@ export class Diff {
     return this.getOldNumberDeprecated(oldLine, newLine, newCharacter, str => str.length);
   }
 
-  static getNewLineNumber(oldString: string, newString: string, oldNumber: number): number {
+  static getNewLineNumber(oldString: string, newString: string, oldNumber: number): number | undefined {
     return this.getNewNumber(oldString, newString, oldNumber, str => Diff.getLinesCount(str));
   }
 
-  static getNewCharacter(oldLine: string, newLine: string, oldCharacter: number): number {
+  static getNewCharacter(oldLine: string, newLine: string, oldCharacter: number): number | undefined {
     return this.getNewNumber(oldLine, newLine, oldCharacter, str => str.length);
   }
 
@@ -101,7 +128,7 @@ export class Diff {
     return oldNumber;
   }
 
-  static getNewNumber(oldString: string, newString: string, oldNumber: number, countFromDiff: (str: string) => number): number {
+  static getNewNumber(oldString: string, newString: string, oldNumber: number, countFromDiff: (str: string) => number): number | undefined {
     const diffs = diffWords(oldString, newString, { ignoreWhitespace: false });
     if (diffs.length === 0) {
       return oldNumber;
@@ -115,7 +142,13 @@ export class Diff {
       const diffCount = countFromDiff(diff.value);
 
       if (diff.removed) {
-        currentNumber += diffCount;
+        if (currentNumber + diffCount === oldNumber) {
+          break;
+        } else if (currentNumber + diffCount >= oldNumber) {
+          return undefined;
+        } else {
+          currentNumber += diffCount;
+        }
       } else if (diff.added) {
         newNumber += diffCount;
       } else if (currentNumber + diffCount >= oldNumber) {
