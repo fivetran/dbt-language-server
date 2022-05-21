@@ -128,11 +128,12 @@ export class ZetaSqlWrapper {
       }
 
       for (const newColumn of t.schema?.fields ?? []) {
-        const existingColumn = table.columns.find(c => c.getName() === newColumn.name);
-        if (!existingColumn) {
-          const simpleColumn = new SimpleColumn(t.getTableName(), newColumn.name, this.createType(newColumn));
-          table.addSimpleColumn(simpleColumn);
-        }
+        this.addColumn(table, newColumn, tableName);
+      }
+
+      if (t.timePartitioning) {
+        this.addColumn(table, { name: '_PARTITIONTIME', type: 'timestamp' }, tableName);
+        this.addColumn(table, { name: '_PARTITIONDATE', type: 'date' }, tableName);
       }
     }
 
@@ -142,6 +143,14 @@ export class ZetaSqlWrapper {
       await this.catalog.register();
     } catch (e) {
       console.error(e);
+    }
+  }
+
+  addColumn(table: SimpleTable, newColumn: ColumnDefinition, tableName: string): void {
+    const existingColumn = table.columns.find(c => c.getName() === newColumn.name);
+    if (!existingColumn) {
+      const simpleColumn = new SimpleColumn(tableName, newColumn.name, this.createType(newColumn));
+      table.addSimpleColumn(simpleColumn);
     }
   }
 

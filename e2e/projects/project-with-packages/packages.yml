@@ -2,4 +2,4 @@ packages:
   - package: fivetran/salesforce
     version: 0.5.1
   - package: fivetran/fivetran_utils
-    version: 0.3.6
+    version: 0.3.7
