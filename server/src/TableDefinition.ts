@@ -1,8 +1,9 @@
 export class TableDefinition {
   name: string[];
-  rawName: string | undefined;
+  rawName?: string;
   datasetIndex: number;
-  schema: SchemaDefinition | undefined;
+  schema?: SchemaDefinition;
+  timePartitioning = false;
 
   constructor(name: string[]) {
     if (name.length === 1 && name[0].indexOf('.') > 0) {

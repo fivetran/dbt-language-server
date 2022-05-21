@@ -35,11 +35,11 @@ export class SchemaTracker {
     if (newTables.length > 0) {
       for (const table of newTables) {
         if (table.getDatasetName() && table.getTableName()) {
-          // TODO: handle different project names?
-          const schema = await this.bigQueryClient.getTableSchema(table.getDatasetName(), table.getTableName());
-          if (schema) {
+          const metadata = await this.bigQueryClient.getTableMetadata(table.getDatasetName(), table.getTableName());
+          if (metadata) {
             this.tableDefinitions.push(table);
-            table.schema = schema;
+            table.schema = metadata.schema;
+            table.timePartitioning = metadata.timePartitioning;
           }
         }
       }
