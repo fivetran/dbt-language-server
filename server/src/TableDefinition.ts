@@ -14,19 +14,46 @@ export class TableDefinition {
       this.name = name;
     }
 
-    this.datasetIndex = this.name.length === 3 ? 1 : 0;
+    this.datasetIndex = this.name.length >= 3 ? 1 : 0;
   }
 
   getProjectName(): string | undefined {
-    return this.name.length === 3 ? this.name[0] : undefined;
+    if (this.containsInformationSchema()) {
+      if (this.isInformationSchema(this.name[1])) {
+        return undefined;
+      }
+      return this.name[0];
+    }
+    return this.name.length >= 3 ? this.name[0] : undefined;
   }
 
   getDatasetName(): string {
+    if (this.containsInformationSchema()) {
+      if (this.isInformationSchema(this.name[1])) {
+        return this.name[0].toLocaleLowerCase();
+      }
+      return this.name[1].toLocaleLowerCase();
+    }
     return this.name[this.datasetIndex];
   }
 
   getTableName(): string {
     return this.name[this.datasetIndex + 1];
+  }
+
+  getInformationSchemaTableName(): string {
+    if (this.isInformationSchema(this.name[1])) {
+      return this.name[2].toLocaleLowerCase();
+    }
+    return this.name[3].toLocaleLowerCase();
+  }
+
+  containsInformationSchema(): boolean {
+    return [this.name[1], this.name[2]].some(n => this.isInformationSchema(n));
+  }
+
+  isInformationSchema(namePart?: string): boolean {
+    return namePart?.toLocaleLowerCase() === 'information_schema';
   }
 }
 

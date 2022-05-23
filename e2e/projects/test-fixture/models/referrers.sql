@@ -15,6 +15,7 @@ select
     row_number() over (partition by d) as row_n
 from referrers r
 inner join `singular-vector-135519`.dbt_ls_e2e_dataset.student_details d on d.id = r.user_id
+inner join `region-us`.INFORMATION_SCHEMA.JOBS_BY_PROJECT j on j.project_number = r.user_id
 where 
     info[OFFSET(1)].subjects.subj2 = 'math' and
     d._PARTITIONTIME = '2022-01-01'

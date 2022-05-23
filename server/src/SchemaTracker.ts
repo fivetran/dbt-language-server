@@ -35,11 +35,15 @@ export class SchemaTracker {
     if (newTables.length > 0) {
       for (const table of newTables) {
         if (table.getDatasetName() && table.getTableName()) {
-          const metadata = await this.bigQueryClient.getTableMetadata(table.getDatasetName(), table.getTableName());
-          if (metadata) {
+          if (table.containsInformationSchema()) {
             this.tableDefinitions.push(table);
-            table.schema = metadata.schema;
-            table.timePartitioning = metadata.timePartitioning;
+          } else {
+            const metadata = await this.bigQueryClient.getTableMetadata(table.getDatasetName(), table.getTableName());
+            if (metadata) {
+              this.tableDefinitions.push(table);
+              table.schema = metadata.schema;
+              table.timePartitioning = metadata.timePartitioning;
+            }
           }
         }
       }
