@@ -31,7 +31,7 @@ export class ProcessExecutor {
       }
     });
     childProcess.on('exit', code => {
-      console.log(`Child process '${command}' exited with code ${String(code)}`);
+      console.log(`Process '${command}' exited with code ${String(code)}`);
     });
 
     const kill = (): boolean => childProcess.kill();

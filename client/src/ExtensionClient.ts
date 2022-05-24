@@ -76,7 +76,7 @@ export class ExtensionClient {
   parseVersion(): void {
     const extensionPath = path.join(this.context.extensionPath, 'package.json');
     this.packageJson = JSON.parse(fs.readFileSync(extensionPath, 'utf8')) as PackageJson;
-    this.outputChannel.appendLine(`Extension version: ${this.packageJson.version}`);
+    this.outputChannel.appendLine(`dbt Wizard version: ${this.packageJson.version}`);
   }
 
   registerCommands(): void {
