@@ -65,11 +65,15 @@ describe('Diff', () => {
   });
 
   it('one_row', () => {
-    shouldReturnCorrespondingLineNumberForOldText('one_row', 0, 0);
+    shouldReturnCorrespondingLineNumber('one_row', [[0, 0]]);
   });
 
   it('package_ref', () => {
-    shouldReturnCorrespondingLineNumberForNewText('package_ref', 1, 1);
+    shouldReturnCorrespondingLineNumber('package_ref', [
+      [1, 1],
+      [8, 4],
+      [9, 5],
+    ]);
   });
 
   // it('loop', () => {

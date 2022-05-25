@@ -142,16 +142,10 @@ export class Diff {
       const diffCount = countFromDiff(diff.value);
 
       if (diff.removed) {
-        if (currentNumber + diffCount === oldNumber) {
-          break;
-        } else if (currentNumber + diffCount >= oldNumber) {
-          return undefined;
-        } else {
-          currentNumber += diffCount;
-        }
+        currentNumber += diffCount;
       } else if (diff.added) {
         newNumber += diffCount;
-      } else if (currentNumber + diffCount >= oldNumber) {
+      } else if (currentNumber + diffCount > oldNumber) {
         newNumber += oldNumber - currentNumber;
         break;
       } else {
