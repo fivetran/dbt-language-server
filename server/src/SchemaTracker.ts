@@ -35,7 +35,7 @@ export class SchemaTracker {
     if (newTables.length > 0) {
       for (const table of newTables) {
         if (table.getDatasetName() && table.getTableName()) {
-          if (table.containsInformationSchema()) {
+          if (table.containsInformationSchema) {
             this.tableDefinitions.push(table);
           } else {
             const metadata = await this.bigQueryClient.getTableMetadata(table.getDatasetName(), table.getTableName());

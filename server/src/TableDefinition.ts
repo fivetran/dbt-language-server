@@ -4,6 +4,7 @@ export class TableDefinition {
   datasetIndex: number;
   schema?: SchemaDefinition;
   timePartitioning = false;
+  containsInformationSchema = false;
 
   constructor(name: string[]) {
     if (name.length === 1 && name[0].indexOf('.') > 0) {
@@ -12,13 +13,14 @@ export class TableDefinition {
       [this.rawName] = name;
     } else {
       this.name = name;
+      this.containsInformationSchema = [this.name[1], this.name[2]].some(n => this.isInformationSchema(n));
     }
 
     this.datasetIndex = this.name.length >= 3 ? 1 : 0;
   }
 
   getProjectName(): string | undefined {
-    if (this.containsInformationSchema()) {
+    if (this.containsInformationSchema) {
       if (this.isInformationSchema(this.name[1])) {
         return undefined;
       }
@@ -28,7 +30,7 @@ export class TableDefinition {
   }
 
   getDatasetName(): string {
-    if (this.containsInformationSchema()) {
+    if (this.containsInformationSchema) {
       if (this.isInformationSchema(this.name[1])) {
         return this.name[0].toLocaleLowerCase();
       }
@@ -46,10 +48,6 @@ export class TableDefinition {
       return this.name[2].toLocaleLowerCase();
     }
     return this.name[3].toLocaleLowerCase();
-  }
-
-  containsInformationSchema(): boolean {
-    return [this.name[1], this.name[2]].some(n => this.isInformationSchema(n));
   }
 
   isInformationSchema(namePart?: string): boolean {

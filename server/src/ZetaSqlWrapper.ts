@@ -122,7 +122,7 @@ export class ZetaSqlWrapper {
         parent = dataSetCatalog;
       }
 
-      if (t.containsInformationSchema()) {
+      if (t.containsInformationSchema) {
         this.informationSchemaConfigurator.fillInformationSchema(t, parent);
       } else {
         const tableName = t.rawName ?? t.getTableName();
