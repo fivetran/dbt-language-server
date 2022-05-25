@@ -32,6 +32,7 @@ export const PREVIEW_URI = 'query-preview:Preview?dbt-language-server';
 
 export const MAX_VSCODE_INTEGER = 2147483647;
 export const MAX_RANGE = new Range(0, 0, MAX_VSCODE_INTEGER, MAX_VSCODE_INTEGER);
+export const MIN_RANGE = new Range(0, 0, 0, 0);
 
 workspace.onDidChangeTextDocument(onDidChangeTextDocument);
 

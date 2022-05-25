@@ -93,7 +93,7 @@ export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
         LocationLink.create(
           path.join(foundModel.rootPath, foundModel.originalFilePath),
           DbtDefinitionProvider.MAX_RANGE,
-          DbtDefinitionProvider.MAX_RANGE,
+          DbtDefinitionProvider.MIN_RANGE, // Decided to use the same range as other dbt extensions in order VS Code to filter equal values from definitions list (some details here: https://github.com/microsoft/vscode/issues/63895)
           modelSelectionRange,
         ),
       ];
