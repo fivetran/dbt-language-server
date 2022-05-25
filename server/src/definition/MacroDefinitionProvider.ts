@@ -67,10 +67,8 @@ export class MacroDefinitionProvider implements DbtNodeDefinitionProvider {
         getPositionByIndex(macroDefinitionFileContent, startMacroMatch.index),
         getPositionByIndex(macroDefinitionFileContent, endMacroMatch.index + endMacroMatch[0].length),
       );
-      const selectionRange = Range.create(
-        getPositionByIndex(macroDefinitionFileContent, startMacroMatch.index + startMacroMatch[0].indexOf(macro)),
-        getPositionByIndex(macroDefinitionFileContent, startMacroMatch.index + startMacroMatch[0].indexOf(macro) + macro.length),
-      );
+      const keyWordPosition = getPositionByIndex(macroDefinitionFileContent, startMacroMatch.index + startMacroMatch[0].indexOf(macro));
+      const selectionRange = Range.create(keyWordPosition, keyWordPosition);
       return [definitionRange, selectionRange];
     }
 

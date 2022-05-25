@@ -12,6 +12,7 @@ export interface DbtNodeDefinitionProvider {
 
 export class DbtDefinitionProvider {
   static readonly MAX_RANGE = Range.create(0, 0, integer.MAX_VALUE, integer.MAX_VALUE);
+  static readonly MIN_RANGE = Range.create(0, 0, 0, 0);
 
   modelDefinitionProvider: ModelDefinitionProvider;
   macroDefinitionProvider: MacroDefinitionProvider;
