@@ -68,7 +68,7 @@ suite('Extension should work inside dbt package', () => {
         originSelectionRange: new Range(2, 17, 2, 38),
         targetUri: findDocUriInPackage('fivetran_utils/macros/get_columns_for_macro.sql'),
         targetRange: new Range(70, 0, 72, 15),
-        targetSelectionRange: new Range(70, 9, 70, 30),
+        targetSelectionRange: new Range(70, 9, 70, 9),
       },
     ]);
   });
