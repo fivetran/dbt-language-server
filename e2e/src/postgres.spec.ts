@@ -1,7 +1,7 @@
 import { assertThat, instanceOf } from 'hamjest';
 import { commands, MarkdownString, Position, Range, SignatureHelp } from 'vscode';
 import { assertDefinitions } from './asserts';
-import { activateAndWait, getCustomDocUri, getPreviewText, MAX_RANGE } from './helper';
+import { activateAndWait, getCustomDocUri, getPreviewText, MAX_RANGE, MIN_RANGE } from './helper';
 
 const ACTIVE_USERS_URI = getCustomDocUri('postgres/models/active_users.sql');
 const ORDERS_COUNT_DOC_URI = getCustomDocUri('postgres/models/active_users_orders_count.sql');
@@ -24,7 +24,7 @@ suite('Postgres destination', () => {
         originSelectionRange: new Range(1, 34, 1, 46),
         targetUri: ACTIVE_USERS_URI,
         targetRange: MAX_RANGE,
-        targetSelectionRange: MAX_RANGE,
+        targetSelectionRange: MIN_RANGE,
       },
     ]);
 
@@ -52,7 +52,7 @@ suite('Postgres destination', () => {
         originSelectionRange: new Range(0, 16, 0, 34),
         targetUri: getCustomDocUri('postgres/macros/name_parts.sql'),
         targetRange: new Range(0, 0, 2, 14),
-        targetSelectionRange: new Range(0, 9, 0, 27),
+        targetSelectionRange: new Range(0, 9, 0, 9),
       },
     ]);
   });

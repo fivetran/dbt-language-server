@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import { Position, Range } from 'vscode';
 import { assertDefinitions } from './asserts';
-import { activateAndWait, getCustomDocUri, getDocUri, MAX_RANGE, TEST_FIXTURE_PATH } from './helper';
+import { activateAndWait, getCustomDocUri, getDocUri, MAX_RANGE, MIN_RANGE, TEST_FIXTURE_PATH } from './helper';
 import path = require('path');
 
 const REF_SQL_DOC_URI = getDocUri('ref_sql.sql');
@@ -15,7 +15,7 @@ suite('ref definitions', () => {
         originSelectionRange: new Range(1, 19, 1, 31),
         targetUri: getDocUri('table_exists.sql'),
         targetRange: MAX_RANGE,
-        targetSelectionRange: MAX_RANGE,
+        targetSelectionRange: MIN_RANGE,
       },
     ]);
   });
@@ -41,7 +41,7 @@ suite('ref definitions', () => {
         originSelectionRange: new Range(5, 37, 5, 49),
         targetUri: getDocUri('table_exists.sql'),
         targetRange: MAX_RANGE,
-        targetSelectionRange: MAX_RANGE,
+        targetSelectionRange: MIN_RANGE,
       },
     ]);
   });
@@ -55,7 +55,7 @@ suite('macro definitions', () => {
         originSelectionRange: new Range(2, 7, 2, 25),
         targetUri: getCustomDocUri('test-fixture/macros/name_utils.sql'),
         targetRange: new Range(0, 0, 2, 14),
-        targetSelectionRange: new Range(0, 9, 0, 27),
+        targetSelectionRange: new Range(0, 9, 0, 9),
       },
     ]);
     await assertDefinitions(PACKAGE_REF_DOC_URI, new Position(3, 9), [
@@ -63,7 +63,7 @@ suite('macro definitions', () => {
         originSelectionRange: new Range(3, 7, 3, 24),
         targetUri: getCustomDocUri('test-fixture/macros/name_utils.sql'),
         targetRange: new Range(4, 0, 6, 14),
-        targetSelectionRange: new Range(4, 9, 4, 26),
+        targetSelectionRange: new Range(4, 9, 4, 9),
       },
     ]);
   });
