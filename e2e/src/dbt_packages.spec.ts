@@ -1,7 +1,7 @@
 import { assertThat, containsString } from 'hamjest';
 import { Position, Range, Uri } from 'vscode';
 import { assertDefinitions } from './asserts';
-import { activateAndWait, getCustomDocUri, getPreviewText, installDbtPackages, MAX_RANGE } from './helper';
+import { activateAndWait, getCustomDocUri, getPreviewText, installDbtPackages, MAX_RANGE, MIN_RANGE } from './helper';
 
 suite('Extension should work inside dbt package', () => {
   const PROJECT = 'project-with-packages';
@@ -50,7 +50,7 @@ suite('Extension should work inside dbt package', () => {
         originSelectionRange: new Range(3, 17, 3, 41),
         targetUri: findDocUriInPackage(`${MODELS_PATH}/tmp/stg_salesforce__user_tmp.sql`),
         targetRange: MAX_RANGE,
-        targetSelectionRange: MAX_RANGE,
+        targetSelectionRange: MIN_RANGE,
       },
     ]);
   });
