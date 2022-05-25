@@ -130,30 +130,22 @@ export class DbtTextDocument {
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
       this.requireCompileOnSave = true;
     } else {
-      const compiledContentChanges = params.contentChanges.map<TextDocumentContentChangeEvent>(c => {
-        if (!TextDocumentContentChangeEvent.isIncremental(c)) {
+      const compiledContentChanges = params.contentChanges.map<TextDocumentContentChangeEvent>(change => {
+        if (!TextDocumentContentChangeEvent.isIncremental(change)) {
           throw new Error('Incremental updates expected');
         }
         return {
-          text: c.text,
+          text: change.text,
           range: Range.create(
-            this.convertPosition(this.compiledDocument.getText(), this.rawDocument.getText(), c.range.start),
-            this.convertPosition(this.compiledDocument.getText(), this.rawDocument.getText(), c.range.end),
+            Diff.convertPositionStraight(this.rawDocument.getText(), this.compiledDocument.getText(), change.range.start),
+            Diff.convertPositionStraight(this.rawDocument.getText(), this.compiledDocument.getText(), change.range.end),
           ),
         };
       });
+
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
       TextDocument.update(this.compiledDocument, compiledContentChanges, params.textDocument.version);
     }
-  }
-
-  convertPosition(first: string, second: string, positionInSecond: Position): Position {
-    const lineInFirst = Diff.getOldLineNumber(first, second, positionInSecond.line);
-    const charInFirst = Diff.getOldCharacter(first.split('\n')[lineInFirst], second.split('\n')[positionInSecond.line], positionInSecond.character);
-    return {
-      line: lineInFirst,
-      character: charInFirst,
-    };
   }
 
   isDbtCompileNeeded(changes: TextDocumentContentChangeEvent[]): boolean {
@@ -204,8 +196,8 @@ export class DbtTextDocument {
 
     this.sqlRefConverter.sqlToRef(this.compiledDocument, resolvedTables, this.dbtRepository.models).forEach(c => {
       const range = Range.create(
-        this.convertPosition(this.rawDocument.getText(), this.compiledDocument.getText(), c.range.start),
-        this.convertPosition(this.rawDocument.getText(), this.compiledDocument.getText(), c.range.end),
+        Diff.convertPositionBackward(this.rawDocument.getText(), this.compiledDocument.getText(), c.range.start),
+        Diff.convertPositionBackward(this.rawDocument.getText(), this.compiledDocument.getText(), c.range.end),
       );
       textChange.replace(range, c.newText);
     });

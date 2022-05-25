@@ -65,7 +65,15 @@ describe('Diff', () => {
   });
 
   it('one_row', () => {
-    shouldReturnCorrespondingLineNumberForOldText('one_row', 0, 0);
+    shouldReturnCorrespondingLineNumber('one_row', [[0, 0]]);
+  });
+
+  it('package_ref', () => {
+    shouldReturnCorrespondingLineNumber('package_ref', [
+      [1, 1],
+      [8, 4],
+      [9, 5],
+    ]);
   });
 
   // it('loop', () => {
@@ -118,6 +126,7 @@ describe('Diff', () => {
   function shouldReturnCorrespondingLineNumber(fileName: string, compiledRawArray: number[][]): void {
     for (const compiledRaw of compiledRawArray) {
       shouldReturnCorrespondingLineNumberForOldText(fileName, compiledRaw[0], compiledRaw[1]);
+      shouldReturnCorrespondingLineNumberForNewText(fileName, compiledRaw[1], compiledRaw[0]);
     }
   }
 
@@ -130,6 +139,17 @@ describe('Diff', () => {
 
     // assert
     assertThat(number, lineNumberInRaw);
+  }
+
+  function shouldReturnCorrespondingLineNumberForNewText(fileName: string, lineNumberInRaw: number, lineNumberInCompiled: number): void {
+    // arrange
+    const fileContent = getFilesContent(fileName);
+
+    // act
+    const number = Diff.getNewLineNumber(fileContent.raw, fileContent.compiled, lineNumberInRaw);
+
+    // assert
+    assertThat(number, lineNumberInCompiled);
   }
 
   function getFilesContent(fileName: string): content {
