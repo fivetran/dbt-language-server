@@ -51,11 +51,13 @@ export class FeatureFinder {
       return v.status === 'fulfilled' ? v.value : undefined;
     });
 
-    console.log(
-      `dbtRpcGlobalVersion = ${getStringVersion(dbtRpcGlobalVersion)}, dbtGlobalVersion = ${getStringVersion(
-        dbtGlobalVersion,
-      )}, dbtPythonVersion = ${getStringVersion(dbtPythonVersion)}, dbtRpcPythonVersion = ${getStringVersion(dbtRpcPythonVersion)}`,
-    );
+    let versions = '';
+    versions += dbtRpcGlobalVersion ? `dbtRpcGlobalVersion = ${getStringVersion(dbtRpcGlobalVersion)} ` : '';
+    versions += dbtGlobalVersion ? `dbtGlobalVersion = ${getStringVersion(dbtGlobalVersion)} ` : '';
+    versions += dbtPythonVersion ? `dbtPythonVersion = ${getStringVersion(dbtPythonVersion)} ` : '';
+    versions += dbtPythonVersion ? `dbtRpcPythonVersion = ${getStringVersion(dbtRpcPythonVersion)}` : '';
+
+    console.log(versions);
 
     if (dbtRpcPythonVersion) {
       this.version = dbtRpcPythonVersion;

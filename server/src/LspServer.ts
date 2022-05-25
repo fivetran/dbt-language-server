@@ -203,13 +203,17 @@ export class LspServer {
     if (command === undefined) {
       this.featureFinder = new FeatureFinder();
       this.progressReporter.sendFinish();
-      return this.showStartDbtRpcError(
+      await this.showStartDbtRpcError(
         `Failed to find dbt-rpc. You can use 'python3 -m pip install dbt-bigquery dbt-rpc' command to install it. Check in Terminal that dbt-rpc works running 'dbt-rpc --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g. ~/dbt-env/bin/python3).`,
       );
+    } else {
+      command.addParameter(dbtPort.toString());
+      try {
+        await this.startDbtRpc(command, dbtPort);
+      } catch (e) {
+        await this.showStartDbtRpcError(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
+      }
     }
-
-    command.addParameter(dbtPort.toString());
-    return this.startDbtRpc(command, dbtPort);
   }
 
   async showStartDbtRpcError(message: string): Promise<void> {
@@ -243,8 +247,6 @@ export class LspServer {
     this.dbtRpcClient.setPort(port);
     try {
       await this.dbtRpcServer.startDbtRpc(command, this.dbtRpcClient);
-    } catch (e) {
-      console.log(e);
     } finally {
       this.progressReporter.sendFinish();
     }
