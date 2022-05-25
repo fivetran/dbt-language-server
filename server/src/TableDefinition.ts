@@ -1,53 +1,58 @@
 export class TableDefinition {
-  name: string[];
+  namePath: string[];
   rawName?: string;
   datasetIndex: number;
   schema?: SchemaDefinition;
   timePartitioning = false;
   containsInformationSchema = false;
+  projectName?: string;
+  dataSetName?: string;
+  tableName?: string;
 
-  constructor(name: string[]) {
-    if (name.length === 1 && name[0].indexOf('.') > 0) {
+  constructor(namePath: string[]) {
+    if (namePath.length === 1 && namePath[0].indexOf('.') > 0) {
       // for query with: inner join `singular-vector-135519.pg_public.test_table`
-      this.name = name[0].split('.');
-      [this.rawName] = name;
+      this.namePath = namePath[0].split('.');
+      [this.rawName] = namePath;
     } else {
-      this.name = name;
-      this.containsInformationSchema = [this.name[1], this.name[2]].some(n => this.isInformationSchema(n));
+      this.namePath = namePath;
+      this.containsInformationSchema = [this.namePath[1], this.namePath[2]].some(n => this.isInformationSchema(n));
     }
 
-    this.datasetIndex = this.name.length >= 3 ? 1 : 0;
+    this.datasetIndex = this.namePath.length >= 3 ? 1 : 0;
   }
 
   getProjectName(): string | undefined {
-    if (this.containsInformationSchema) {
-      if (this.isInformationSchema(this.name[1])) {
-        return undefined;
+    if (!this.projectName) {
+      if (this.containsInformationSchema) {
+        this.projectName = this.isInformationSchema(this.namePath[1]) ? undefined : this.namePath[0];
+      } else {
+        this.projectName = this.namePath.length >= 3 ? this.namePath[0] : undefined;
       }
-      return this.name[0];
     }
-    return this.name.length >= 3 ? this.name[0] : undefined;
+    return this.projectName;
   }
 
-  getDatasetName(): string {
-    if (this.containsInformationSchema) {
-      if (this.isInformationSchema(this.name[1])) {
-        return this.name[0].toLocaleLowerCase();
+  getDataSetName(): string {
+    if (!this.dataSetName) {
+      if (this.containsInformationSchema) {
+        this.dataSetName = (this.isInformationSchema(this.namePath[1]) ? this.namePath[0] : this.namePath[1]).toLocaleLowerCase();
+      } else {
+        this.dataSetName = this.namePath[this.datasetIndex];
       }
-      return this.name[1].toLocaleLowerCase();
     }
-    return this.name[this.datasetIndex];
+    return this.dataSetName;
   }
 
   getTableName(): string {
-    return this.name[this.datasetIndex + 1];
-  }
-
-  getInformationSchemaTableName(): string {
-    if (this.isInformationSchema(this.name[1])) {
-      return this.name[2].toLocaleLowerCase();
+    if (!this.tableName) {
+      if (this.containsInformationSchema) {
+        this.tableName = (this.isInformationSchema(this.namePath[1]) ? this.namePath[2] : this.namePath[3]).toLocaleLowerCase();
+      } else {
+        this.tableName = this.namePath[this.datasetIndex + 1];
+      }
     }
-    return this.name[3].toLocaleLowerCase();
+    return this.tableName;
   }
 
   isInformationSchema(namePart?: string): boolean {

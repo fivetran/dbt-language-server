@@ -152,7 +152,7 @@ export class InformationSchemaConfigurator {
       informationSchemaCatalog = new SimpleCatalog(InformationSchemaConfigurator.INFORMATION_SCHEMA);
       dataSetCatalog.addSimpleCatalog(informationSchemaCatalog);
     }
-    this.addInformationSchemaTableColumns(tableDefinition.getInformationSchemaTableName(), informationSchemaCatalog);
+    this.addInformationSchemaTableColumns(tableDefinition.getTableName(), informationSchemaCatalog);
   }
 
   addInformationSchemaTableColumns(tableName: string, informationSchemaCatalog: SimpleCatalog): void {

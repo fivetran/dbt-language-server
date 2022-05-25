@@ -29,16 +29,17 @@ export class SchemaTracker {
     }
 
     const newTables = tableDefinitions.filter(
-      newTable => !this.tableDefinitions.find(oldTable => this.arraysAreEqual(oldTable.name, newTable.name) && oldTable.rawName === newTable.rawName),
+      newTable =>
+        !this.tableDefinitions.find(oldTable => this.arraysAreEqual(oldTable.namePath, newTable.namePath) && oldTable.rawName === newTable.rawName),
     );
 
     if (newTables.length > 0) {
       for (const table of newTables) {
-        if (table.getDatasetName() && table.getTableName()) {
+        if (table.getDataSetName() && table.getTableName()) {
           if (table.containsInformationSchema) {
             this.tableDefinitions.push(table);
           } else {
-            const metadata = await this.bigQueryClient.getTableMetadata(table.getDatasetName(), table.getTableName());
+            const metadata = await this.bigQueryClient.getTableMetadata(table.getDataSetName(), table.getTableName());
             if (metadata) {
               this.tableDefinitions.push(table);
               table.schema = metadata.schema;

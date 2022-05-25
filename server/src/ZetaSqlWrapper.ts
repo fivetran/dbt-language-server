@@ -111,9 +111,9 @@ export class ZetaSqlWrapper {
           parent = projectCatalog;
         }
 
-        let dataSetCatalog = parent.catalogs.get(t.getDatasetName());
+        let dataSetCatalog = parent.catalogs.get(t.getDataSetName());
         if (!dataSetCatalog) {
-          dataSetCatalog = new SimpleCatalog(t.getDatasetName());
+          dataSetCatalog = new SimpleCatalog(t.getDataSetName());
           if (parent === this.catalog) {
             await this.unregisterCatalog();
           }
