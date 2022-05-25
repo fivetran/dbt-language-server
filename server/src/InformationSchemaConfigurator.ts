@@ -5,6 +5,7 @@ import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 export class InformationSchemaConfigurator {
   static readonly INFORMATION_SCHEMA = 'information_schema';
 
+  /** https://cloud.google.com/bigquery/docs/information-schema-intro */
   static readonly INFORMATION_SCHEMA_COLUMNS = new Map<string, Map<string, string>>([
     [
       'tables',
