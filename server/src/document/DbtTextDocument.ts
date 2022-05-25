@@ -130,27 +130,18 @@ export class DbtTextDocument {
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
       this.requireCompileOnSave = true;
     } else {
-      const compiledContentChanges: TextDocumentContentChangeEvent[] = [];
-
-      for (const change of params.contentChanges) {
+      const compiledContentChanges = params.contentChanges.map<TextDocumentContentChangeEvent>(change => {
         if (!TextDocumentContentChangeEvent.isIncremental(change)) {
           throw new Error('Incremental updates expected');
         }
-
-        const compiledStart = Diff.convertPositionStraight(this.rawDocument.getText(), this.compiledDocument.getText(), change.range.start);
-        const compiledEnd = Diff.convertPositionStraight(this.rawDocument.getText(), this.compiledDocument.getText(), change.range.end);
-
-        if (compiledStart === undefined || compiledEnd === undefined) {
-          TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
-          this.requireCompileOnSave = true;
-          return;
-        }
-
-        compiledContentChanges.push({
+        return {
           text: change.text,
-          range: Range.create(compiledStart, compiledEnd),
-        });
-      }
+          range: Range.create(
+            Diff.convertPositionStraight(this.rawDocument.getText(), this.compiledDocument.getText(), change.range.start),
+            Diff.convertPositionStraight(this.rawDocument.getText(), this.compiledDocument.getText(), change.range.end),
+          ),
+        };
+      });
 
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
       TextDocument.update(this.compiledDocument, compiledContentChanges, params.textDocument.version);

@@ -3,7 +3,7 @@ import * as fastDiff from 'fast-diff';
 import { Position } from 'vscode-languageserver-textdocument';
 
 export class Diff {
-  static convertPositionStraight(first: string, second: string, positionInFirst: Position): Position | undefined {
+  static convertPositionStraight(first: string, second: string, positionInFirst: Position): Position {
     const lineInSecond = Diff.getNewLineNumber(first, second, positionInFirst.line);
     const charInSecond = Diff.getNewCharacter(first.split('\n')[positionInFirst.line], second.split('\n')[lineInSecond], positionInFirst.character);
     return {
