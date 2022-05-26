@@ -19,11 +19,15 @@ import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/z
 import { ExtractTableNamesFromStatementResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ExtractTableNamesFromStatementResponse';
 import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRecordType';
 import { ZetaSQLBuiltinFunctionOptions } from '@fivetrandevelopers/zetasql/lib/ZetaSQLBuiltinFunctionOptions';
+import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
 import { ColumnDefinition, TableDefinition } from './TableDefinition';
 import { randomNumber } from './utils/Utils';
 import findFreePortPmfy = require('find-free-port');
 
 export class ZetaSqlWrapper {
+  static readonly PARTITION_TIME = '_PARTITIONTIME';
+  static readonly PARTITION_DATE = '_PARTITIONDATE';
+
   private static readonly MIN_PORT = 1024;
   private static readonly MAX_PORT = 65535;
 
@@ -32,6 +36,7 @@ export class ZetaSqlWrapper {
   private readonly catalog = new SimpleCatalog('catalog');
   private supported = true;
 
+  private informationSchemaConfigurator = new InformationSchemaConfigurator();
   private languageOptions: LanguageOptions | undefined;
 
   isSupported(): boolean {
@@ -106,34 +111,41 @@ export class ZetaSqlWrapper {
           parent = projectCatalog;
         }
 
-        let dataSetCatalog = parent.catalogs.get(t.getDatasetName());
-        if (!dataSetCatalog) {
-          dataSetCatalog = new SimpleCatalog(t.getDatasetName());
-          if (parent === this.catalog) {
+        const dataSetName = t.getDataSetName();
+        if (dataSetName) {
+          let dataSetCatalog = parent.catalogs.get(dataSetName);
+          if (!dataSetCatalog) {
+            dataSetCatalog = new SimpleCatalog(dataSetName);
+            if (parent === this.catalog) {
+              await this.unregisterCatalog();
+            }
+            parent.addSimpleCatalog(dataSetCatalog);
+          }
+          parent = dataSetCatalog;
+        }
+      }
+
+      if (t.containsInformationSchema()) {
+        this.informationSchemaConfigurator.fillInformationSchema(t, parent);
+      } else {
+        const tableName = t.rawName ?? t.getTableName();
+        let table = parent.tables.get(tableName);
+        if (!table) {
+          if (t.rawName) {
             await this.unregisterCatalog();
           }
-          parent.addSimpleCatalog(dataSetCatalog);
+          table = new SimpleTable(tableName);
+          parent.addSimpleTable(tableName, table);
         }
-        parent = dataSetCatalog;
-      }
 
-      const tableName = t.rawName ?? t.getTableName();
-      let table = parent.tables.get(tableName);
-      if (!table) {
-        if (t.rawName) {
-          await this.unregisterCatalog();
+        for (const newColumn of t.schema?.fields ?? []) {
+          ZetaSqlWrapper.addColumn(table, newColumn, tableName);
         }
-        table = new SimpleTable(tableName);
-        parent.addSimpleTable(tableName, table);
-      }
 
-      for (const newColumn of t.schema?.fields ?? []) {
-        this.addColumn(table, newColumn, tableName);
-      }
-
-      if (t.timePartitioning) {
-        this.addColumn(table, { name: '_PARTITIONTIME', type: 'timestamp' }, tableName);
-        this.addColumn(table, { name: '_PARTITIONDATE', type: 'date' }, tableName);
+        if (t.timePartitioning) {
+          ZetaSqlWrapper.addColumn(table, { name: ZetaSqlWrapper.PARTITION_TIME, type: 'timestamp' }, tableName);
+          ZetaSqlWrapper.addColumn(table, { name: ZetaSqlWrapper.PARTITION_DATE, type: 'date' }, tableName);
+        }
       }
     }
 
@@ -146,29 +158,29 @@ export class ZetaSqlWrapper {
     }
   }
 
-  addColumn(table: SimpleTable, newColumn: ColumnDefinition, tableName: string): void {
+  static addColumn(table: SimpleTable, newColumn: ColumnDefinition, tableName: string): void {
     const existingColumn = table.columns.find(c => c.getName() === newColumn.name);
     if (!existingColumn) {
-      const simpleColumn = new SimpleColumn(tableName, newColumn.name, this.createType(newColumn));
+      const simpleColumn = new SimpleColumn(tableName, newColumn.name, ZetaSqlWrapper.createType(newColumn));
       table.addSimpleColumn(simpleColumn);
     }
   }
 
-  createType(newColumn: ColumnDefinition): Type {
+  static createType(newColumn: ColumnDefinition): Type {
     const bigQueryType = newColumn.type.toLowerCase();
     const typeKind = TypeFactory.SIMPLE_TYPE_KIND_NAMES.get(bigQueryType);
     let resultType: Type;
     if (typeKind) {
       resultType = new SimpleType(typeKind);
     } else if (bigQueryType === 'record') {
-      const columns = newColumn.fields?.map(f => ({ name: f.name, type: this.createType(f) }));
+      const columns = newColumn.fields?.map(f => ({ name: f.name, type: ZetaSqlWrapper.createType(f) }));
       resultType = new StructType(columns ?? []);
     } else {
       console.log(`Cannot find SimpleType for ${newColumn.type}`); // TODO: fix all these issues
       resultType = new SimpleType(TypeKind.TYPE_STRING);
     }
 
-    return newColumn.mode === 'REPEATED' ? new ArrayType(resultType) : resultType;
+    return newColumn.mode?.toLocaleLowerCase() === 'repeated' ? new ArrayType(resultType) : resultType;
   }
 
   private async registerAllLanguageFeatures(): Promise<void> {

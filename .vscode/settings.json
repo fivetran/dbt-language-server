@@ -15,6 +15,7 @@
 	"cSpell.words": [
 		"bigdecimal",
 		"bignumeric",
+		"bigserial",
 		"countif",
 		"covar_pop",
 		"covar_samp",
@@ -49,6 +50,8 @@
 		"normalize_and_casefold",
 		"ntile",
 		"ovsx",
+		"PARTITIONDATE",
+		"PARTITIONTIME",
 		"Pmfy",
 		"promisified",
 		"protos",
