@@ -20,8 +20,13 @@ export class DbtDocumentKindResolver {
 
       const dbtPackageProject = new DbtProject(dbtPackagePath);
       const pathRelativeToPackage = getFilePathRelatedToWorkspace(uri, dbtPackagePath);
+      const dbtProject = dbtPackageProject.getProject();
 
-      return this.resolveDbtDocumentKind(dbtPackageProject.findMacroPaths(), dbtPackageProject.findModelPaths(), pathRelativeToPackage);
+      return this.resolveDbtDocumentKind(
+        dbtPackageProject.findMacroPaths(dbtProject),
+        dbtPackageProject.findModelPaths(dbtProject),
+        pathRelativeToPackage,
+      );
     }
 
     return this.resolveDbtDocumentKind(this.dbtRepository.macroPaths, this.dbtRepository.modelPaths, filePath);
