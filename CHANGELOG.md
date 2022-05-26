@@ -1,5 +1,18 @@
 # Changelog
 
+## Version 0.5.0 (01/01/1970)
+## What's Changed
+* Upgrade ZetaSQL to Apr 21, 2022 version
+* Add support for `_PARTITIONTIME`, `_PARTITIONDATE` and `INFORMATION_SCHEMA` keywords
+* Fix incorrect text position calculation
+* Show error when `dbt-rpc` fails to start
+* Restart language server in case of error
+* Fix conflict with other extension
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.4.2...v0.5.0
+---
+
 ## Version 0.4.2 (04/05/2022)
 ## What's Changed
 * Fix parsing `dbt_project.yml` from package
