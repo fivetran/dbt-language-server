@@ -9,8 +9,19 @@ import { Client } from 'pg';
 // Expected parameter: path to the folder with the extension package.json
 async function main(): Promise<void> {
   try {
-    await prepareBigQuery();
-    await preparePostgres();
+    try {
+      await prepareBigQuery();
+    } catch (err) {
+      console.error(`Failed to prepare BigQuery. Error: ${err instanceof Error ? err.message : String(err)}`);
+      throw new Error('Failed to prepare BigQuery.');
+    }
+
+    try {
+      await preparePostgres();
+    } catch (err) {
+      console.error(`Failed to prepare Postgres. Error: ${err instanceof Error ? err.message : String(err)}`);
+      throw new Error('Failed to prepare Postgres.');
+    }
 
     const [, , extensionDevelopmentPath] = process.argv;
     console.log(`Running tests for path: ${extensionDevelopmentPath}`);
