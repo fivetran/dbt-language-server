@@ -111,18 +111,21 @@ export class ZetaSqlWrapper {
           parent = projectCatalog;
         }
 
-        let dataSetCatalog = parent.catalogs.get(t.getDataSetName());
-        if (!dataSetCatalog) {
-          dataSetCatalog = new SimpleCatalog(t.getDataSetName());
-          if (parent === this.catalog) {
-            await this.unregisterCatalog();
+        const dataSetName = t.getDataSetName();
+        if (dataSetName) {
+          let dataSetCatalog = parent.catalogs.get(dataSetName);
+          if (!dataSetCatalog) {
+            dataSetCatalog = new SimpleCatalog(dataSetName);
+            if (parent === this.catalog) {
+              await this.unregisterCatalog();
+            }
+            parent.addSimpleCatalog(dataSetCatalog);
           }
-          parent.addSimpleCatalog(dataSetCatalog);
+          parent = dataSetCatalog;
         }
-        parent = dataSetCatalog;
       }
 
-      if (t.containsInformationSchema) {
+      if (t.containsInformationSchema()) {
         this.informationSchemaConfigurator.fillInformationSchema(t, parent);
       } else {
         const tableName = t.rawName ?? t.getTableName();

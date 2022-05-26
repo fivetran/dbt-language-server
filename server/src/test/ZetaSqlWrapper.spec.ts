@@ -5,7 +5,7 @@ import { InformationSchemaConfigurator } from '../InformationSchemaConfigurator'
 import { TableDefinition } from '../TableDefinition';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 
-describe('ZetaSqlWrapperTest', () => {
+describe('ZetaSqlWrapper', () => {
   const PROJECT_ID = 'project_id';
   const DATA_SET = 'data_set';
   const TABLE = 'table';
@@ -83,7 +83,7 @@ describe('ZetaSqlWrapperTest', () => {
 
   async function shouldRegisterInformationSchema(
     tableDefinitions: TableDefinition[],
-    expectedDataSet: string,
+    expectedDataSet: string | undefined,
     expectedTableName: string,
     expectedProjectId?: string,
   ): Promise<void> {
@@ -95,12 +95,15 @@ describe('ZetaSqlWrapperTest', () => {
 
     const datasets = expectedProjectId ? rootCatalog.catalogs.get(expectedProjectId)?.catalogs : rootCatalog.catalogs;
     assertDataSet(datasets, expectedDataSet);
+    let parent = rootCatalog;
+    if (expectedDataSet) {
+      const dataSetCatalog = datasets?.get(expectedDataSet);
+      assert.ok(dataSetCatalog);
+      assertThat(dataSetCatalog.catalogs.size, 1);
+      parent = dataSetCatalog;
+    }
 
-    const dataSetCatalog = datasets?.get(expectedDataSet);
-    assert.ok(dataSetCatalog);
-    assertThat(dataSetCatalog.catalogs.size, 1);
-
-    const informationSchemaCatalog = dataSetCatalog.catalogs.get(InformationSchemaConfigurator.INFORMATION_SCHEMA);
+    const informationSchemaCatalog = parent.catalogs.get(InformationSchemaConfigurator.INFORMATION_SCHEMA);
     assert.ok(informationSchemaCatalog);
     assertThat(informationSchemaCatalog.tables.size, 1);
 
@@ -152,6 +155,13 @@ describe('ZetaSqlWrapperTest', () => {
     for (const tableName of InformationSchemaConfigurator.INFORMATION_SCHEMA_COLUMNS.keys()) {
       const tableDefinition = new TableDefinition([DATA_SET, InformationSchemaConfigurator.INFORMATION_SCHEMA, tableName]);
       await shouldRegisterInformationSchema([tableDefinition], DATA_SET, tableName);
+    }
+  });
+
+  it('register should register information schema without project and data set name', async () => {
+    for (const tableName of InformationSchemaConfigurator.INFORMATION_SCHEMA_COLUMNS.keys()) {
+      const tableDefinition = new TableDefinition([InformationSchemaConfigurator.INFORMATION_SCHEMA, tableName]);
+      await shouldRegisterInformationSchema([tableDefinition], undefined, tableName);
     }
   });
 });

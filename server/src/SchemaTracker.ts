@@ -35,11 +35,14 @@ export class SchemaTracker {
 
     if (newTables.length > 0) {
       for (const table of newTables) {
-        if (table.getDataSetName() && table.getTableName()) {
-          if (table.containsInformationSchema) {
-            this.tableDefinitions.push(table);
-          } else {
-            const metadata = await this.bigQueryClient.getTableMetadata(table.getDataSetName(), table.getTableName());
+        if (table.containsInformationSchema()) {
+          this.tableDefinitions.push(table);
+        } else {
+          const dataSetName = table.getDataSetName();
+          const tableName = table.getTableName();
+
+          if (dataSetName && tableName) {
+            const metadata = await this.bigQueryClient.getTableMetadata(dataSetName, tableName);
             if (metadata) {
               this.tableDefinitions.push(table);
               table.schema = metadata.schema;

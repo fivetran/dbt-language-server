@@ -4,7 +4,7 @@ export class TableDefinition {
   datasetIndex: number;
   schema?: SchemaDefinition;
   timePartitioning = false;
-  containsInformationSchema = false;
+  informationSchemaIndex = -1;
   projectName?: string;
   dataSetName?: string;
   tableName?: string;
@@ -16,16 +16,21 @@ export class TableDefinition {
       [this.rawName] = namePath;
     } else {
       this.namePath = namePath;
-      this.containsInformationSchema = [this.namePath[1], this.namePath[2]].some(n => this.isInformationSchema(n));
+
+      this.informationSchemaIndex = [0, 1, 2].find(i => this.isInformationSchema(this.namePath[i])) ?? -1;
     }
 
     this.datasetIndex = this.namePath.length >= 3 ? 1 : 0;
   }
 
+  containsInformationSchema(): boolean {
+    return this.informationSchemaIndex > -1;
+  }
+
   getProjectName(): string | undefined {
     if (!this.projectName) {
-      if (this.containsInformationSchema) {
-        this.projectName = this.isInformationSchema(this.namePath[1]) ? undefined : this.namePath[0];
+      if (this.containsInformationSchema()) {
+        this.projectName = this.namePath[this.informationSchemaIndex - 2];
       } else {
         this.projectName = this.namePath.length >= 3 ? this.namePath[0] : undefined;
       }
@@ -33,24 +38,20 @@ export class TableDefinition {
     return this.projectName;
   }
 
-  getDataSetName(): string {
+  getDataSetName(): string | undefined {
     if (!this.dataSetName) {
-      if (this.containsInformationSchema) {
-        this.dataSetName = (this.isInformationSchema(this.namePath[1]) ? this.namePath[0] : this.namePath[1]).toLocaleLowerCase();
-      } else {
-        this.dataSetName = this.namePath[this.datasetIndex];
-      }
+      this.dataSetName = this.containsInformationSchema()
+        ? this.namePath[this.informationSchemaIndex - 1]?.toLocaleLowerCase()
+        : this.namePath[this.datasetIndex];
     }
     return this.dataSetName;
   }
 
   getTableName(): string {
     if (!this.tableName) {
-      if (this.containsInformationSchema) {
-        this.tableName = (this.isInformationSchema(this.namePath[1]) ? this.namePath[2] : this.namePath[3]).toLocaleLowerCase();
-      } else {
-        this.tableName = this.namePath[this.datasetIndex + 1];
-      }
+      this.tableName = this.containsInformationSchema()
+        ? this.namePath[this.informationSchemaIndex + 1].toLocaleLowerCase()
+        : this.namePath[this.datasetIndex + 1];
     }
     return this.tableName;
   }

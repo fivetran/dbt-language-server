@@ -6,7 +6,7 @@ describe('TableDefinition', () => {
     assertThat(new TableDefinition(namePart).getProjectName(), expectedName);
   }
 
-  function getDataSetNameShouldReturnDataSetName(namePart: string[], expectedName: string): void {
+  function getDataSetNameShouldReturnDataSetName(namePart: string[], expectedName: string | undefined): void {
     assertThat(new TableDefinition(namePart).getDataSetName(), expectedName);
   }
 
@@ -20,6 +20,7 @@ describe('TableDefinition', () => {
 
     getProjectNameShouldReturnProjectName(['project', 'data_set', 'INFORMATION_SCHEMA', 'COLUMNS'], 'project');
     getProjectNameShouldReturnProjectName(['data_set', 'INFORMATION_SCHEMA', 'COLUMNS'], undefined);
+    getProjectNameShouldReturnProjectName(['INFORMATION_SCHEMA', 'COLUMNS'], undefined);
   });
 
   it('getDataSetName should return data set name', () => {
@@ -28,6 +29,7 @@ describe('TableDefinition', () => {
 
     getDataSetNameShouldReturnDataSetName(['project', 'data_set', 'INFORMATION_SCHEMA', 'COLUMNS'], 'data_set');
     getDataSetNameShouldReturnDataSetName(['data_set', 'INFORMATION_SCHEMA', 'COLUMNS'], 'data_set');
+    getDataSetNameShouldReturnDataSetName(['INFORMATION_SCHEMA', 'COLUMNS'], undefined);
   });
 
   it('getTableName should return table name', () => {
