@@ -71,6 +71,7 @@ async function prepareBigQuery(): Promise<void> {
   const options = {
     keyFilename: `${homedir()}/.dbt/bq-test-project.json`,
     projectId: 'singular-vector-135519',
+    autoRetry: true,
   };
   const bigQuery = new BigQuery(options);
 
