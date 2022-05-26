@@ -13,9 +13,9 @@ export class DbtProject {
     return YamlParserUtils.parseYamlFile(path.resolve(this.projectPath, DbtRepository.DBT_PROJECT_FILE_NAME)) as Record<string, unknown>;
   }
 
-  findProjectName(): string | undefined {
+  findProjectName(providedDbtProject?: Record<string, unknown>): string | undefined {
     try {
-      const dbtProject = this.getProject();
+      const dbtProject = providedDbtProject ?? this.getProject();
       const projectName = dbtProject[DbtRepository.DBT_PROJECT_NAME_FIELD];
       return projectName as string | undefined;
     } catch (e) {
@@ -23,9 +23,9 @@ export class DbtProject {
     }
   }
 
-  findMacroPaths(): string[] {
+  findMacroPaths(providedDbtProject?: Record<string, unknown>): string[] {
     try {
-      const dbtProject = this.getProject();
+      const dbtProject = providedDbtProject ?? this.getProject();
       const macroPaths = dbtProject[DbtRepository.MACRO_PATHS_FIELD];
       if (macroPaths !== undefined) {
         return macroPaths as string[];
@@ -36,9 +36,9 @@ export class DbtProject {
     return DbtRepository.DEFAULT_MACRO_PATHS;
   }
 
-  findModelPaths(): string[] {
+  findModelPaths(providedDbtProject?: Record<string, unknown>): string[] {
     try {
-      const dbtProject = this.getProject();
+      const dbtProject = providedDbtProject ?? this.getProject();
 
       const modelPaths = dbtProject[DbtRepository.MODEL_PATHS_FIELD];
       if (modelPaths !== undefined) {
@@ -55,9 +55,9 @@ export class DbtProject {
     return DbtRepository.DEFAULT_MODEL_PATHS;
   }
 
-  findPackagesInstallPaths(): string[] {
+  findPackagesInstallPaths(providedDbtProject?: Record<string, unknown>): string[] {
     try {
-      const dbtProject = this.getProject();
+      const dbtProject = providedDbtProject ?? this.getProject();
       const packagesInstallPath = dbtProject[DbtRepository.PACKAGES_INSTALL_PATH_FIELD];
       if (packagesInstallPath !== undefined) {
         return [packagesInstallPath as string];
@@ -73,9 +73,9 @@ export class DbtProject {
     return DbtRepository.DEFAULT_PACKAGES_PATHS;
   }
 
-  findTargetPath(): string {
+  findTargetPath(providedDbtProject?: Record<string, unknown>): string {
     try {
-      const dbtProject = this.getProject();
+      const dbtProject = providedDbtProject ?? this.getProject();
       const targetPath = dbtProject[DbtRepository.TARGET_PATH_FIELD];
       if (targetPath !== undefined) {
         return targetPath as string;
@@ -87,8 +87,8 @@ export class DbtProject {
   }
 
   /** In dbt package's dbt_project.yml profile may be missing */
-  findProfileName(): string {
-    const dbtProject = this.getProject();
+  findProfileName(providedDbtProject?: Record<string, unknown>): string {
+    const dbtProject = providedDbtProject ?? this.getProject();
     const profileName = dbtProject[DbtRepository.PROFILE_NAME_FIELD] as string | undefined;
     if (profileName === undefined) {
       throw new Error("'profile' field is missing");
