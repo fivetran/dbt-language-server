@@ -64,4 +64,9 @@ describe('StringBuilder', () => {
     stringBuilder.wrapIf(false, wrapText);
     assertThat(stringBuilder.toString(), is(INITIAL_TEXT));
   });
+
+  it('clear should clear StringBuilder', () => {
+    stringBuilder.clear();
+    assertThat(stringBuilder.toString(), '');
+  });
 });
