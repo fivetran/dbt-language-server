@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.5.0 (01/01/1970)
+## Version 0.5.0 (26/05/2022)
 ## What's Changed
 * Upgrade ZetaSQL to Apr 21, 2022 version
 * Add support for `_PARTITIONTIME`, `_PARTITIONDATE` and `INFORMATION_SCHEMA` keywords
