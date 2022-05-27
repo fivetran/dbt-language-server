@@ -2,12 +2,15 @@ import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { JinjaPartType } from '../JinjaParser';
 import { StringBuilder } from '../utils/StringBuilder';
-import { isQuote } from '../utils/TextUtils';
 import { DbtNodeCompletionProvider } from './DbtCompletionProvider';
 
 export class ModelCompletionProvider implements DbtNodeCompletionProvider {
-  static readonly MODEL_PATTERN = /ref\s*\(\s*['|"]?$/;
-  static readonly PACKAGE_PATTERN = /ref\s*\(\s*('[^)']*'|"[^)"]*")\s*,\s*('|")$/;
+  // Add '\s' before word after quote?
+  // If some word persist then single or double quote should be
+  static readonly MODEL_PATTERN = /ref\s*\(\s*['|"]?\w*$/;
+  static readonly MODEL_SINGLE_QUOTE_PATTERN = /ref\s*\(\s*'/;
+  static readonly MODEL_DOUBLE_QUOTE_PATTERN = /ref\s*\(\s*"/;
+  static readonly PACKAGE_PATTERN = /ref\s*\(\s*('[^)']*'|"[^)"]*")\s*,\s*('|")\w?$/;
 
   static readonly ACCEPTABLE_JINJA_PARTS = [JinjaPartType.EXPRESSION_START];
 
@@ -23,7 +26,12 @@ export class ModelCompletionProvider implements DbtNodeCompletionProvider {
 
     const modelMatch = ModelCompletionProvider.MODEL_PATTERN.exec(jinjaBeforePositionText);
     if (modelMatch) {
-      const lastChar = jinjaBeforePositionText.charAt(jinjaBeforePositionText.length - 1);
+      const lastChar = ModelCompletionProvider.MODEL_SINGLE_QUOTE_PATTERN.test(jinjaBeforePositionText)
+        ? "'"
+        : ModelCompletionProvider.MODEL_DOUBLE_QUOTE_PATTERN.test(jinjaBeforePositionText)
+        ? '"'
+        : undefined;
+
       return this.dbtRepository.models.map<CompletionItem>(m => {
         const label = `(${m.packageName}) ${m.name}`;
         const insertText = this.getModelInsertText(m.packageName, m.name, lastChar);
@@ -56,8 +64,8 @@ export class ModelCompletionProvider implements DbtNodeCompletionProvider {
     };
   }
 
-  private getModelInsertText(packageName: string, name: string, lastChar: string): string {
-    const isQuoteProvided = isQuote(lastChar);
+  private getModelInsertText(packageName: string, name: string, lastChar: string | undefined): string {
+    const isQuoteProvided = lastChar !== undefined;
     const quoteSymbol = isQuoteProvided ? lastChar : `'`;
 
     if (this.dbtRepository.projectName === packageName) {
