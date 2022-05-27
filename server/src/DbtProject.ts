@@ -11,7 +11,7 @@ export class DbtProject {
     this.projectPath = YamlParserUtils.replaceTilde(projectPath);
   }
 
-  setDirty(): void {
+  setParsedProjectOutdated(): void {
     this.isParsedProjectOutdated = true;
   }
 
