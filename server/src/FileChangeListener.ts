@@ -28,6 +28,7 @@ export class FileChangeListener {
     const manifestJsonPath = path.resolve(this.workspaceFolder, this.dbtRepository.dbtTargetPath, DbtRepository.DBT_MANIFEST_FILE_NAME);
     for (const change of params.changes) {
       if (change.uri.endsWith(dbtProjectYmlPath)) {
+        this.dbtProject.setParsedProjectOutdated();
         this.onDbtProjectYmlChangedEmitter.fire();
         this.updateDbtProjectConfig();
         this.updateManifestNodes();
