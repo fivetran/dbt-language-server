@@ -10,7 +10,10 @@ import { Client } from 'pg';
 async function main(): Promise<void> {
   try {
     await prepareBigQuery();
+    console.log('bigquery prepared successfully');
+
     await preparePostgres();
+    console.log('postgres prepared successfully');
 
     const [, , extensionDevelopmentPath] = process.argv;
     console.log(`Running tests for path: ${extensionDevelopmentPath}`);
@@ -60,6 +63,7 @@ async function prepareBigQuery(): Promise<void> {
   const options = {
     keyFilename: `${homedir()}/.dbt/bq-test-project.json`,
     projectId: 'singular-vector-135519',
+    autoRetry: true,
   };
   const bigQuery = new BigQuery(options);
 
