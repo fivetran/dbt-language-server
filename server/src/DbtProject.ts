@@ -4,13 +4,26 @@ import { YamlParserUtils } from './YamlParserUtils';
 
 export class DbtProject {
   projectPath: string;
+  parsedProject?: Record<string, unknown>;
+  isDirty = true;
 
   constructor(projectPath: string) {
     this.projectPath = YamlParserUtils.replaceTilde(projectPath);
   }
 
+  setDirty(): void {
+    this.isDirty = true;
+  }
+
   getProject(): Record<string, unknown> {
-    return YamlParserUtils.parseYamlFile(path.resolve(this.projectPath, DbtRepository.DBT_PROJECT_FILE_NAME)) as Record<string, unknown>;
+    if (this.isDirty || !this.parsedProject) {
+      this.parsedProject = YamlParserUtils.parseYamlFile(path.resolve(this.projectPath, DbtRepository.DBT_PROJECT_FILE_NAME)) as Record<
+        string,
+        unknown
+      >;
+      this.isDirty = false;
+    }
+    return this.parsedProject;
   }
 
   findProjectName(): string | undefined {
