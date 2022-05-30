@@ -5,12 +5,10 @@ import { StringBuilder } from '../utils/StringBuilder';
 import { DbtNodeCompletionProvider } from './DbtCompletionProvider';
 
 export class ModelCompletionProvider implements DbtNodeCompletionProvider {
-  // Add '\s' before word after quote?
-  // If some word persist then single or double quote should be
-  static readonly MODEL_PATTERN = /ref\s*\(\s*['|"]?\w*$/;
+  static readonly MODEL_PATTERN = /ref\s*\(\s*['|"]?\s*\w*$/;
   static readonly MODEL_SINGLE_QUOTE_PATTERN = /ref\s*\(\s*'/;
   static readonly MODEL_DOUBLE_QUOTE_PATTERN = /ref\s*\(\s*"/;
-  static readonly PACKAGE_PATTERN = /ref\s*\(\s*('[^)']*'|"[^)"]*")\s*,\s*('|")\w?$/;
+  static readonly PACKAGE_PATTERN = /ref\s*\(\s*('[^)']*'|"[^)"]*")\s*,\s*('|")\s*\w*$/;
 
   static readonly ACCEPTABLE_JINJA_PARTS = [JinjaPartType.EXPRESSION_START];
 
