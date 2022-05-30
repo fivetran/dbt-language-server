@@ -90,6 +90,7 @@ export class LspServer {
     this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
     this.fileChangeListener.onDbtProjectYmlChanged(this.onDbtProjectYmlChanged.bind(this));
     this.fileChangeListener.onDbtPackagesYmlChanged(this.onDbtPackagesYmlChanged.bind(this));
+    this.fileChangeListener.onDbtPackagesChanged(this.onDbtPackagesChanged.bind(this));
   }
 
   static prepareLogger(workspaceFolder: string): void {
@@ -401,6 +402,10 @@ export class LspServer {
   }
 
   onDbtPackagesYmlChanged(): void {
+    this.dbtRpcServer.refreshServer();
+  }
+
+  onDbtPackagesChanged(): void {
     this.dbtRpcServer.refreshServer();
   }
 
