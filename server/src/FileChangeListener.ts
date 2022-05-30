@@ -6,6 +6,7 @@ import { ManifestParser } from './manifest/ManifestParser';
 
 export class FileChangeListener {
   private onDbtProjectYmlChangedEmitter = new Emitter<void>();
+  private onDbtPackagesYmlChangedEmitter = new Emitter<void>();
 
   constructor(
     private workspaceFolder: string,
@@ -18,6 +19,10 @@ export class FileChangeListener {
     return this.onDbtProjectYmlChangedEmitter.event;
   }
 
+  get onDbtPackagesYmlChanged(): Event<void> {
+    return this.onDbtPackagesYmlChangedEmitter.event;
+  }
+
   onInit(): void {
     this.updateDbtProjectConfig();
     this.updateManifestNodes();
@@ -26,6 +31,8 @@ export class FileChangeListener {
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
     const dbtProjectYmlPath = path.resolve(this.workspaceFolder, DbtRepository.DBT_PROJECT_FILE_NAME);
     const manifestJsonPath = path.resolve(this.workspaceFolder, this.dbtRepository.dbtTargetPath, DbtRepository.DBT_MANIFEST_FILE_NAME);
+    const packagesYmlPath = path.resolve(this.workspaceFolder, DbtRepository.DBT_PACKAGES_FILE_NAME);
+
     for (const change of params.changes) {
       if (change.uri.endsWith(dbtProjectYmlPath)) {
         this.dbtProject.setParsedProjectOutdated();
@@ -34,6 +41,8 @@ export class FileChangeListener {
         this.updateManifestNodes();
       } else if (change.uri.endsWith(manifestJsonPath)) {
         this.updateManifestNodes();
+      } else if (change.uri.endsWith(packagesYmlPath)) {
+        this.onDbtPackagesYmlChangedEmitter.fire();
       }
     }
   }

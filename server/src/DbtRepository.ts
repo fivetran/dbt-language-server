@@ -11,6 +11,7 @@ export class DbtRepository {
   static readonly SOURCE_PATHS_FIELD = 'source-paths'; // v1.0.0: The config source-paths has been deprecated in favor of model-paths
   static readonly MODEL_PATHS_FIELD = 'model-paths';
 
+  static readonly DBT_PACKAGES_FILE_NAME = 'packages.yml';
   static readonly PACKAGES_INSTALL_PATH_FIELD = 'packages-install-path'; // v1.0.0: The default config has changed from modules-path to packages-install-path with a new default value of dbt_packages
   static readonly MODULE_PATH = 'module-path';
 
