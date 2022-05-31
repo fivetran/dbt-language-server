@@ -58,6 +58,9 @@ export class DbtTextDocument {
   currentDbtError?: string;
   firstSave = true;
 
+  rawDocDiagnostics: Diagnostic[] = [];
+  compiledDocDiagnostics: Diagnostic[] = [];
+
   constructor(
     doc: TextDocumentItem,
     private dbtDocumentKind: DbtDocumentKind,
@@ -242,15 +245,20 @@ export class DbtTextDocument {
       this.getModelPathOrFullyQualifiedName(),
       this.workspaceFolder,
     );
+    this.rawDocDiagnostics = diagnostics;
+    this.compiledDocDiagnostics = diagnostics;
 
     this.sendUpdateQueryPreview();
-    this.sendDiagnostics(diagnostics, diagnostics);
+
+    this.sendDiagnostics();
   }
 
   onDbtErrorFixed(): void {
     if (this.currentDbtError) {
       this.currentDbtError = undefined;
-      this.sendDiagnostics([], []);
+      this.rawDocDiagnostics = [];
+      this.compiledDocDiagnostics = [];
+      this.sendDiagnostics();
     }
   }
 
@@ -261,9 +269,9 @@ export class DbtTextDocument {
     }
 
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
-    const [rawDocDiagnostics, compiledDocDiagnostics] = await this.createDiagnostics();
+    [this.rawDocDiagnostics, this.compiledDocDiagnostics] = await this.createDiagnostics();
     this.sendUpdateQueryPreview();
-    this.sendDiagnostics(rawDocDiagnostics, compiledDocDiagnostics);
+    this.sendDiagnostics();
 
     if (!this.modelCompiler.compilationInProgress) {
       this.progressReporter.sendFinish(this.rawDocument.uri);
@@ -296,12 +304,12 @@ export class DbtTextDocument {
       .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
-  sendDiagnostics(rawDocDiagnostics: Diagnostic[], compiledDocDiagnostics: Diagnostic[]): void {
+  sendDiagnostics(): void {
     this.connection
-      .sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: rawDocDiagnostics })
+      .sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: this.rawDocDiagnostics })
       .catch(e => console.log(`Failed to send diagnostics: ${e instanceof Error ? e.message : String(e)}`));
     this.connection
-      .sendNotification('custom/updateQueryPreviewDiagnostics', { uri: this.rawDocument.uri, diagnostics: compiledDocDiagnostics })
+      .sendNotification('custom/updateQueryPreviewDiagnostics', { uri: this.rawDocument.uri, diagnostics: this.compiledDocDiagnostics })
       .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
