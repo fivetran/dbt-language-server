@@ -104,18 +104,6 @@ export class ExtensionClient {
       });
       await commands.executeCommand('editor.action.triggerParameterHints');
     });
-
-    this.registerCommand('dbt.refToSql', () => this.convertTo('sql'));
-    this.registerCommand('dbt.sqlToRef', () => this.convertTo('ref'));
-  }
-
-  async convertTo(to: 'sql' | 'ref'): Promise<void> {
-    const document = this.getCommandDocument();
-    if (!document) {
-      return;
-    }
-
-    (await this.getClient(document.uri))?.sendNotification('custom/convertTo', { uri: document.uri.toString(), to });
   }
 
   getCommandDocument(): TextDocument | undefined {

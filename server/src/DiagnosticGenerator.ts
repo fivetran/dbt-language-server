@@ -18,7 +18,9 @@ export class DiagnosticGenerator {
 
   static readonly DBT_ERROR_HIGHLIGHT_LAST_CHAR = 100;
 
-  constructor(private sqlRefConverter: SqlRefConverter, private dbtRepository: DbtRepository) {}
+  private sqlRefConverter = new SqlRefConverter();
+
+  constructor(private dbtRepository: DbtRepository) {}
 
   getDbtErrorDiagnostics(dbtCompilationError: string, currentModelPath: string, workspaceFolder: string): Diagnostic[] {
     let errorLine = 0;

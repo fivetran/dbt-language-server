@@ -167,7 +167,6 @@ export class LspServer {
 
   initializeNotifications(): void {
     this.connection.onNotification('custom/dbtCompile', this.onDbtCompile.bind(this));
-    this.connection.onNotification('custom/convertTo', this.convertTo.bind(this));
   }
 
   async onInitialized(): Promise<void> {
@@ -271,17 +270,6 @@ export class LspServer {
     const document = this.openedDocuments.get(uri);
     if (document) {
       document.forceRecompile();
-    }
-  }
-
-  async convertTo(params: { uri: string; to: 'sql' | 'ref' }): Promise<void> {
-    const document = this.openedDocuments.get(params.uri);
-    if (document) {
-      if (params.to === 'sql') {
-        await document.refToSql();
-      } else {
-        await document.sqlToRef();
-      }
     }
   }
 

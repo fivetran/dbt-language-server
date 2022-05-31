@@ -3,10 +3,9 @@ import { mock } from 'ts-mockito';
 import { DiagnosticSeverity, Location, Range } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
-import { SqlRefConverter } from '../SqlRefConverter';
 
 describe('DiagnosticGenerator', () => {
-  const DIAGNOSTIC_GENERATOR = new DiagnosticGenerator(mock(SqlRefConverter), mock(DbtRepository));
+  const DIAGNOSTIC_GENERATOR = new DiagnosticGenerator(mock(DbtRepository));
   const MODEL_NAME = 'simple_select_dbt';
   const MODEL_PATH = `models/${MODEL_NAME}.sql`;
   const ERROR_LINE = 2;

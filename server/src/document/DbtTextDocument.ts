@@ -18,7 +18,6 @@ import {
   TextDocumentItem,
   TextDocumentSaveReason,
   VersionedTextDocumentIdentifier,
-  WorkspaceChange,
   _Connection,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -35,7 +34,6 @@ import { ModelCompiler } from '../ModelCompiler';
 import { ProgressReporter } from '../ProgressReporter';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { SqlCompletionProvider } from '../SqlCompletionProvider';
-import { SqlRefConverter } from '../SqlRefConverter';
 import { getTextRangeBeforeBracket } from '../utils/TextUtils';
 import {
   areRangesEqual,
@@ -59,7 +57,6 @@ export class DbtTextDocument {
 
   ast?: AnalyzeResponse;
   signatureHelpProvider = new SignatureHelpProvider();
-  sqlRefConverter = new SqlRefConverter(this.jinjaParser);
   diagnosticGenerator: DiagnosticGenerator;
   hoverProvider = new HoverProvider();
 
@@ -86,7 +83,7 @@ export class DbtTextDocument {
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
-    this.diagnosticGenerator = new DiagnosticGenerator(new SqlRefConverter(this.jinjaParser), this.dbtRepository);
+    this.diagnosticGenerator = new DiagnosticGenerator(this.dbtRepository);
     this.requireCompileOnSave = false;
 
     this.modelCompiler.onCompilationError(this.onCompilationError.bind(this));
@@ -185,35 +182,6 @@ export class DbtTextDocument {
       this.progressReporter.sendStart(this.rawDocument.uri);
       this.debouncedCompile();
     }
-  }
-
-  async refToSql(): Promise<void> {
-    const workspaceChange = new WorkspaceChange();
-    const textChange = workspaceChange.getTextEditChange(this.rawDocument.uri);
-
-    this.sqlRefConverter.refToSql(this.rawDocument, this.dbtRepository.models).forEach(c => {
-      textChange.replace(c.range, c.newText);
-    });
-    await this.connection.workspace.applyEdit(workspaceChange.edit);
-  }
-
-  async sqlToRef(): Promise<void> {
-    if (!this.ast) {
-      return;
-    }
-
-    const workspaceChange = new WorkspaceChange();
-    const textChange = workspaceChange.getTextEditChange(this.rawDocument.uri);
-    const resolvedTables = DbtTextDocument.ZETA_SQL_AST.getResolvedTables(this.ast, this.compiledDocument.getText());
-
-    this.sqlRefConverter.sqlToRef(this.compiledDocument, resolvedTables, this.dbtRepository.models).forEach(c => {
-      const range = Range.create(
-        Diff.convertPositionBackward(this.rawDocument.getText(), this.compiledDocument.getText(), c.range.start),
-        Diff.convertPositionBackward(this.rawDocument.getText(), this.compiledDocument.getText(), c.range.end),
-      );
-      textChange.replace(range, c.newText);
-    });
-    await this.connection.workspace.applyEdit(workspaceChange.edit);
   }
 
   debouncedCompile = debounce(async () => {
