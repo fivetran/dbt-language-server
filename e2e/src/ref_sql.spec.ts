@@ -1,27 +1,33 @@
-import { assertThat, endsWith } from 'hamjest';
-import { commands } from 'vscode';
-import { activateAndWait, compileDocument, getDocUri, getMainEditorText, waitDocumentModification, waitPreviewModification } from './helper';
+import { ok } from 'assert';
+import { assertThat, containsString } from 'hamjest';
+import { CodeAction, commands, Diagnostic, DiagnosticSeverity, Range, workspace } from 'vscode';
+import { assertDiagnostics } from './asserts';
+import { activateAndWait, getDocUri, getMainEditorText, replaceText, waitDocumentModification } from './helper';
 
-suite('ref to sql', () => {
-  async function runCommandAndCheckResult(command: string, endOfQuery: string): Promise<void> {
+suite('SQL to ref', () => {
+  const DOC_URI = getDocUri('ref_sql.sql');
+  const DIAGNOSTIC_MESSAGE = 'Reference to dbt model is not a ref';
+  const REF = `{{ ref('table_exists') }}`;
+
+  test('Should convert SQL to ref', async () => {
+    await activateAndWait(DOC_URI);
+
+    await replaceText(REF, '`singular-vector-135519`.`dbt_ls_e2e_dataset`.`table_exists` ');
+    const diagnostic: Diagnostic = {
+      severity: DiagnosticSeverity.Information,
+      range: new Range(1, 11, 1, 71),
+      message: DIAGNOSTIC_MESSAGE,
+    };
+    await assertDiagnostics(DOC_URI, [diagnostic]);
     await waitDocumentModification(async () => {
-      await commands.executeCommand(command);
+      const [codeAction] = await commands.executeCommand<CodeAction[]>('vscode.executeCodeActionProvider', DOC_URI, new Range(1, 15, 1, 15));
+      ok(codeAction.edit);
+      await workspace.applyEdit(codeAction.edit);
+      ok(codeAction.command?.arguments);
+      await commands.executeCommand(codeAction.command.command, ...(codeAction.command.arguments as unknown[]));
     });
 
-    const text = getMainEditorText();
-    assertThat(text, endsWith(endOfQuery));
-  }
-
-  test('Should convert ref to sql and then to ref', async () => {
-    const docUri = getDocUri('ref_sql.sql');
-    await activateAndWait(docUri);
-
-    await runCommandAndCheckResult('dbt.refToSql', 'inner join `singular-vector-135519`.`dbt_ls_e2e_dataset`.`table_exists` as s on u.id = s.id;');
-
-    await waitPreviewModification(async () => {
-      await compileDocument();
-    });
-
-    await runCommandAndCheckResult('dbt.sqlToRef', `inner join {{ ref('table_exists') }} as s on u.id = s.id;`);
+    await assertDiagnostics(DOC_URI, []);
+    assertThat(getMainEditorText(), containsString(REF));
   });
 });

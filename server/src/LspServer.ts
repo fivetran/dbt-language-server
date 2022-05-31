@@ -4,6 +4,7 @@ import {
   CodeAction,
   CodeActionKind,
   CodeActionParams,
+  Command,
   CompletionItem,
   CompletionParams,
   DefinitionLink,
@@ -15,11 +16,13 @@ import {
   DidOpenTextDocumentParams,
   DidSaveTextDocumentParams,
   Emitter,
+  ExecuteCommandParams,
   Hover,
   HoverParams,
   InitializeError,
   InitializeParams,
   InitializeResult,
+  Range,
   ResponseError,
   SignatureHelp,
   SignatureHelpParams,
@@ -57,6 +60,8 @@ interface TelemetryEvent {
 }
 
 export class LspServer {
+  private static SQL_TO_REF_COMMAND_NAME = 'dbtWizard.sqlToRef';
+
   static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
 
   workspaceFolder: string;
@@ -141,6 +146,9 @@ export class LspServer {
         },
         definitionProvider: true,
         codeActionProvider: true,
+        executeCommandProvider: {
+          commands: [LspServer.SQL_TO_REF_COMMAND_NAME],
+        },
       },
     };
   }
@@ -403,19 +411,32 @@ export class LspServer {
   }
 
   onCodeAction(params: CodeActionParams): CodeAction[] {
+    const title = 'Change to ref';
     return params.context.diagnostics
       .filter(d => d.source === 'dbt Wizard' && (d.data as { replaceText: string } | undefined)?.replaceText)
       .map<CodeAction>(d => ({
-        title: 'Replace with `ref`',
+        title,
         diagnostics: [d],
         edit: {
           changes: {
             [params.textDocument.uri]: [TextEdit.replace(d.range, (d.data as { replaceText: string }).replaceText)],
           },
         },
+        command: Command.create(title, LspServer.SQL_TO_REF_COMMAND_NAME, params.textDocument.uri, d.range),
         kind: CodeActionKind.QuickFix,
       }));
   }
+
+  onExecuteCommand(params: ExecuteCommandParams): void {
+    if (params.command === LspServer.SQL_TO_REF_COMMAND_NAME && params.arguments) {
+      const textDocument = this.openedDocuments.get(params.arguments[0] as string);
+      const range = params.arguments[1] as Range | undefined;
+      if (textDocument && range) {
+        textDocument.fixInformationDiagnostic(range);
+      }
+    }
+  }
+
   onDbtProjectYmlChanged(): void {
     this.dbtRpcServer.refreshServer();
   }

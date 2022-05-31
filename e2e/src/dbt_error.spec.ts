@@ -1,5 +1,5 @@
 import { DiagnosticSeverity, Location, Range } from 'vscode';
-import { assertDiagnostics } from './asserts';
+import { assertAllDiagnostics } from './asserts';
 import { activateAndWait, getDocUri, replaceText } from './helper';
 
 suite('Should show dbt error and link to it', () => {
@@ -22,7 +22,7 @@ suite('Should show dbt error and link to it', () => {
     await activateAndWait(DOC_WITH_ERROR);
     await replaceText(ORIGINAL_LINE, LINE_WITH_ERROR);
 
-    await assertDiagnostics(DOC_WITH_ERROR, [
+    await assertAllDiagnostics(DOC_WITH_ERROR, [
       {
         severity: DiagnosticSeverity.Error,
         range: new Range(ERROR_LINE, 0, ERROR_LINE, DBT_ERROR_HIGHLIGHT_LAST_CHAR),
@@ -34,7 +34,7 @@ suite('Should show dbt error and link to it', () => {
     // 2. Should show error with link on another document
     await activateAndWait(DOC_WITHOUT_ERROR);
 
-    await assertDiagnostics(DOC_WITHOUT_ERROR, [
+    await assertAllDiagnostics(DOC_WITHOUT_ERROR, [
       {
         severity: DiagnosticSeverity.Error,
         range: new Range(0, 0, 0, DBT_ERROR_HIGHLIGHT_LAST_CHAR),
@@ -52,7 +52,7 @@ suite('Should show dbt error and link to it', () => {
     await activateAndWait(DOC_WITH_ERROR);
     await replaceText(LINE_WITH_ERROR, ORIGINAL_LINE);
 
-    await assertDiagnostics(DOC_WITH_ERROR, []);
-    await assertDiagnostics(DOC_WITHOUT_ERROR, []);
+    await assertAllDiagnostics(DOC_WITH_ERROR, []);
+    await assertAllDiagnostics(DOC_WITHOUT_ERROR, []);
   });
 });

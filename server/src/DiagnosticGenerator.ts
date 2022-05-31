@@ -48,7 +48,7 @@ export class DiagnosticGenerator {
     const compiledDocDiagnostics: Diagnostic[] = [];
 
     astResult.match(
-      ast => this.createWarningDiagnostics(ast, rawDocument, compiledDocument, rawDocDiagnostics),
+      ast => this.createInformationDiagnostics(ast, rawDocument, compiledDocument, rawDocDiagnostics),
       error => this.createErrorDiagnostics(error, rawDocument.getText(), compiledDocument.getText(), rawDocDiagnostics, compiledDocDiagnostics),
     );
 
@@ -70,12 +70,12 @@ export class DiagnosticGenerator {
       const characterInCompiledDoc = Number(matchResults[3]) - 1;
       const lineInRawDoc = Diff.getOldLineNumber(rawDocText, compiledDocText, lineInCompiledDoc);
 
-      rawDocDiagnostics.push(this.createDiagnostic(rawDocText, lineInRawDoc, characterInCompiledDoc, errorText));
-      compiledDocDiagnostics.push(this.createDiagnostic(compiledDocText, lineInCompiledDoc, characterInCompiledDoc, errorText));
+      rawDocDiagnostics.push(this.createErrorDiagnostic(rawDocText, lineInRawDoc, characterInCompiledDoc, errorText));
+      compiledDocDiagnostics.push(this.createErrorDiagnostic(compiledDocText, lineInCompiledDoc, characterInCompiledDoc, errorText));
     }
   }
 
-  createWarningDiagnostics(
+  createInformationDiagnostics(
     ast: AnalyzeResponse__Output,
     rawDocument: TextDocument,
     compiledDocument: TextDocument,
@@ -91,15 +91,19 @@ export class DiagnosticGenerator {
       );
 
       if (rawDocument.getText(range) === compiledDocument.getText(change.range)) {
-        rawDocDiagnostics.push({
-          severity: DiagnosticSeverity.Information,
-          range,
-          message: 'Model can be referenced with ref',
-          data: { replaceText: change.newText },
-          source: 'dbt Wizard',
-        });
+        rawDocDiagnostics.push(this.createInformationDiagnostic(range, change.newText));
       }
     }
+  }
+
+  createInformationDiagnostic(range: Range, newText: string): Diagnostic {
+    return {
+      severity: DiagnosticSeverity.Information,
+      range,
+      message: 'Reference to dbt model is not a ref',
+      data: { replaceText: newText },
+      source: 'dbt Wizard',
+    };
   }
 
   private getDbtRelatedInformation(
@@ -123,7 +127,7 @@ export class DiagnosticGenerator {
     return [];
   }
 
-  private createDiagnostic(docText: string, line: number, character: number, message: string): Diagnostic {
+  private createErrorDiagnostic(docText: string, line: number, character: number, message: string): Diagnostic {
     const position = Position.create(line, character);
     const range = this.extendRangeIfSmall(getIdentifierRangeAtPosition(position, docText));
     return {

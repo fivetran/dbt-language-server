@@ -25,6 +25,7 @@ connection.onDidChangeTextDocument(server.onDidChangeTextDocument.bind(server));
 connection.onDidCloseTextDocument(server.onDidCloseTextDocumentDelayed.bind(server));
 
 connection.onCodeAction(server.onCodeAction.bind(server));
+connection.onExecuteCommand(server.onExecuteCommand.bind(server));
 connection.onDidChangeWatchedFiles(server.onDidChangeWatchedFiles.bind(server));
 
 connection.onShutdown(server.onShutdown.bind(server));

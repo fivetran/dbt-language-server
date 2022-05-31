@@ -3,18 +3,18 @@ import { assertThat, greaterThanOrEqualTo, hasSize } from 'hamjest';
 import { CompletionItem, DefinitionLink, Diagnostic, DiagnosticRelatedInformation, languages, Location, Position, Range, Uri } from 'vscode';
 import { PREVIEW_URI, sleep, triggerCompletion, triggerDefinition } from './helper';
 
+export async function assertAllDiagnostics(uri: Uri, diagnostics: Diagnostic[]): Promise<void> {
+  await assertDiagnostics(uri, diagnostics);
+  await assertDiagnostics(Uri.parse(PREVIEW_URI), diagnostics);
+}
+
 export async function assertDiagnostics(uri: Uri, diagnostics: Diagnostic[]): Promise<void> {
   await sleep(100);
 
   const rawDocDiagnostics = languages.getDiagnostics(uri);
-  const previewDiagnostics = languages.getDiagnostics(Uri.parse(PREVIEW_URI));
-
   assertThat(rawDocDiagnostics, hasSize(diagnostics.length));
-  assertThat(previewDiagnostics, hasSize(diagnostics.length));
-
   if (diagnostics.length > 0) {
     assertDiagnostic(rawDocDiagnostics[0], diagnostics[0]);
-    assertDiagnostic(previewDiagnostics[0], diagnostics[0]);
   }
 }
 

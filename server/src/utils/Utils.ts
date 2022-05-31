@@ -29,6 +29,13 @@ export function comparePositions(position1: Position, position2: Position): numb
   return 0;
 }
 
+export function areRangesEqual(range1: Range, range2: Range): boolean {
+  return (
+    (comparePositions(range1.start, range2.start) === 0 && comparePositions(range1.end, range2.end) === 0) ||
+    (comparePositions(range1.end, range2.start) === 0 && comparePositions(range1.start, range2.end) === 0)
+  );
+}
+
 export function getAbsoluteRange(absolutePosition: Position, relativeRange: Range): Range {
   return Range.create(getAbsolutePosition(absolutePosition, relativeRange.start), getAbsolutePosition(absolutePosition, relativeRange.end));
 }

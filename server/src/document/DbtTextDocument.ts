@@ -5,6 +5,7 @@ import {
   DefinitionLink,
   DefinitionParams,
   Diagnostic,
+  DiagnosticSeverity,
   DidChangeTextDocumentParams,
   Emitter,
   Hover,
@@ -36,7 +37,14 @@ import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { SqlCompletionProvider } from '../SqlCompletionProvider';
 import { SqlRefConverter } from '../SqlRefConverter';
 import { getTextRangeBeforeBracket } from '../utils/TextUtils';
-import { comparePositions, debounce, getFilePathRelatedToWorkspace, getIdentifierRangeAtPosition, positionInRange } from '../utils/Utils';
+import {
+  areRangesEqual,
+  comparePositions,
+  debounce,
+  getFilePathRelatedToWorkspace,
+  getIdentifierRangeAtPosition,
+  positionInRange,
+} from '../utils/Utils';
 import { ZetaSqlAst } from '../ZetaSqlAst';
 import { DbtDocumentKind } from './DbtDocumentKind';
 
@@ -302,6 +310,11 @@ export class DbtTextDocument {
     this.connection
       .sendNotification('custom/updateQueryPreview', { uri: this.rawDocument.uri, previewText: this.compiledDocument.getText() })
       .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
+  }
+
+  fixInformationDiagnostic(range: Range): void {
+    this.rawDocDiagnostics = this.rawDocDiagnostics.filter(d => !(areRangesEqual(d.range, range) && d.severity === DiagnosticSeverity.Information));
+    this.sendDiagnostics();
   }
 
   sendDiagnostics(): void {
