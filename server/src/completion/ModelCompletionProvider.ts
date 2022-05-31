@@ -2,12 +2,11 @@ import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { JinjaPartType } from '../JinjaParser';
 import { StringBuilder } from '../utils/StringBuilder';
-import { isQuote } from '../utils/TextUtils';
 import { DbtNodeCompletionProvider } from './DbtCompletionProvider';
 
 export class ModelCompletionProvider implements DbtNodeCompletionProvider {
-  static readonly MODEL_PATTERN = /ref\s*\(\s*['|"]?$/;
-  static readonly PACKAGE_PATTERN = /ref\s*\(\s*('[^)']*'|"[^)"]*")\s*,\s*('|")$/;
+  static readonly MODEL_PATTERN = /ref\s*\(\s*(['|"])?\s*\w*$/;
+  static readonly PACKAGE_PATTERN = /ref\s*\(\s*('[^)']*'|"[^)"]*")\s*,\s*('|")\s*\w*$/;
 
   static readonly ACCEPTABLE_JINJA_PARTS = [JinjaPartType.EXPRESSION_START];
 
@@ -23,10 +22,10 @@ export class ModelCompletionProvider implements DbtNodeCompletionProvider {
 
     const modelMatch = ModelCompletionProvider.MODEL_PATTERN.exec(jinjaBeforePositionText);
     if (modelMatch) {
-      const lastChar = jinjaBeforePositionText.charAt(jinjaBeforePositionText.length - 1);
+      const quoteSymbol = modelMatch.length >= 2 ? modelMatch[1] : undefined;
       return this.dbtRepository.models.map<CompletionItem>(m => {
         const label = `(${m.packageName}) ${m.name}`;
-        const insertText = this.getModelInsertText(m.packageName, m.name, lastChar);
+        const insertText = this.getModelInsertText(m.packageName, m.name, quoteSymbol);
         const sortOrder =
           this.dbtRepository.projectName === m.packageName
             ? `${ModelCompletionProvider.CURRENT_PACKAGE_SORT_PREFIX}_${label}`
@@ -56,9 +55,9 @@ export class ModelCompletionProvider implements DbtNodeCompletionProvider {
     };
   }
 
-  private getModelInsertText(packageName: string, name: string, lastChar: string): string {
-    const isQuoteProvided = isQuote(lastChar);
-    const quoteSymbol = isQuoteProvided ? lastChar : `'`;
+  private getModelInsertText(packageName: string, name: string, quoteSymbolParam: string | undefined): string {
+    const isQuoteProvided = quoteSymbolParam !== undefined;
+    const quoteSymbol = isQuoteProvided ? quoteSymbolParam : `'`;
 
     if (this.dbtRepository.projectName === packageName) {
       return new StringBuilder().append(name).wrapIf(!isQuoteProvided, quoteSymbol).toString();

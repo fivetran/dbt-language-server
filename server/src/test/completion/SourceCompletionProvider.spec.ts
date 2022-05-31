@@ -7,6 +7,9 @@ describe('SourceCompletionProvider', () => {
   const PROJECT_PACKAGE = 'project_package';
   const INSTALLED_PACKAGE = 'installed_package';
 
+  const projectPackageSource1 = '(project_package) source_1';
+  const installedPackageSource1 = '(installed_package) package_source_1';
+
   let dbtRepository: DbtRepository;
   let sourceCompletionProvider: SourceCompletionProvider;
 
@@ -66,8 +69,8 @@ describe('SourceCompletionProvider', () => {
 
   it(`Should provide sources by pressing '`, () => {
     shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ source('`, [
-      { label: '(project_package) source_1', insertText: `source_1` },
-      { label: '(installed_package) package_source_1', insertText: `package_source_1` },
+      { label: projectPackageSource1, insertText: `source_1` },
+      { label: installedPackageSource1, insertText: `package_source_1` },
     ]);
   });
 
@@ -88,5 +91,19 @@ describe('SourceCompletionProvider', () => {
 
   it(`Shouldn't provide completions after source`, () => {
     shouldNotProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, 'select {{ source');
+  });
+
+  it('Should provide completions after typing source name after quote', () => {
+    shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, `select {{ source('source_`, [
+      { label: projectPackageSource1, insertText: `source_1` },
+      { label: installedPackageSource1, insertText: `package_source_1` },
+    ]);
+  });
+
+  it('Should provide completions after typing table name after quote', () => {
+    shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, `select {{ source('package_source_1', 'source_`, [
+      { label: '(installed_package) installed_package_source_table_1', insertText: 'installed_package_source_table_1' },
+      { label: '(installed_package) installed_package_source_table_2', insertText: 'installed_package_source_table_2' },
+    ]);
   });
 });

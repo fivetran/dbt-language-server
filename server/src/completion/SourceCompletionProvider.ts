@@ -2,12 +2,11 @@ import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { JinjaPartType } from '../JinjaParser';
 import { StringBuilder } from '../utils/StringBuilder';
-import { isQuote } from '../utils/TextUtils';
 import { DbtNodeCompletionProvider } from './DbtCompletionProvider';
 
 export class SourceCompletionProvider implements DbtNodeCompletionProvider {
-  static readonly SOURCE_PATTERN = /source\s*\(\s*['|"]?$/;
-  static readonly TABLE_PATTERN = /source\s*\(\s*('[^)']*'|"[^)"]*")\s*,\s*('|")$/;
+  static readonly SOURCE_PATTERN = /source\s*\(\s*(['|"])?\s*\w*$/;
+  static readonly TABLE_PATTERN = /source\s*\(\s*('[^)']*'|"[^)"]*")\s*,\s*('|")\s*\w*$/;
 
   static readonly ACCEPTABLE_JINJA_PARTS = [JinjaPartType.EXPRESSION_START];
 
@@ -20,13 +19,13 @@ export class SourceCompletionProvider implements DbtNodeCompletionProvider {
 
     const sourceMatch = SourceCompletionProvider.SOURCE_PATTERN.exec(jinjaBeforePositionText);
     if (sourceMatch) {
-      const lastChar = jinjaBeforePositionText.charAt(jinjaBeforePositionText.length - 1);
+      const quoteSymbol = sourceMatch.length >= 2 ? sourceMatch[1] : undefined;
       const completionItems = [];
 
       for (const packageSources of this.dbtRepository.packageToSources.entries()) {
         for (const sourceTables of packageSources[1].entries()) {
           const label = `(${packageSources[0]}) ${sourceTables[0]}`;
-          const insertText = this.getSourceInsertText(sourceTables[0], lastChar);
+          const insertText = this.getSourceInsertText(sourceTables[0], quoteSymbol);
           completionItems.push(this.getSourceCompletionItem(label, insertText, 'Source'));
         }
       }
@@ -57,9 +56,9 @@ export class SourceCompletionProvider implements DbtNodeCompletionProvider {
     };
   }
 
-  private getSourceInsertText(sourceName: string, lastChar: string): string {
-    const isQuoteProvided = isQuote(lastChar);
-    const quoteSymbol = isQuoteProvided ? lastChar : `'`;
+  private getSourceInsertText(sourceName: string, quoteSymbolParam: string | undefined): string {
+    const isQuoteProvided = quoteSymbolParam !== undefined;
+    const quoteSymbol = isQuoteProvided ? quoteSymbolParam : `'`;
     return new StringBuilder().append(sourceName).wrapIf(!isQuoteProvided, quoteSymbol).toString();
   }
 }

@@ -107,4 +107,20 @@ describe('ModelCompletionProvider', () => {
   it(`Shouldn't provide completions after ref`, () => {
     shouldNotProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, 'select {{ ref');
   });
+
+  it('Should provide completions after typing model name after quote', () => {
+    shouldProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, `select {{ ref('model_`, [
+      { label: labelModel1, insertText: `model_1` },
+      { label: labelModel2, insertText: `model_2` },
+      { label: installedPackageModel1, insertText: `installed_package', 'installed_package_model_1` },
+      { label: installedPackageModel2, insertText: `installed_package', 'installed_package_model_2` },
+    ]);
+  });
+
+  it('Should provide completions after typing package name after quote', () => {
+    shouldProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, `select {{ ref('installed_package', 'model_`, [
+      { label: 'installed_package_model_1', insertText: 'installed_package_model_1' },
+      { label: 'installed_package_model_2', insertText: 'installed_package_model_2' },
+    ]);
+  });
 });
