@@ -52,7 +52,7 @@ export class DbtTextDocument {
   ast?: AnalyzeResponse;
   signatureHelpProvider = new SignatureHelpProvider();
   sqlRefConverter = new SqlRefConverter(this.jinjaParser);
-  diagnosticGenerator = new DiagnosticGenerator();
+  diagnosticGenerator: DiagnosticGenerator;
   hoverProvider = new HoverProvider();
 
   currentDbtError?: string;
@@ -75,6 +75,7 @@ export class DbtTextDocument {
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
+    this.diagnosticGenerator = new DiagnosticGenerator(new SqlRefConverter(this.jinjaParser), this.dbtRepository);
     this.requireCompileOnSave = false;
 
     this.modelCompiler.onCompilationError(this.onCompilationError.bind(this));
@@ -281,8 +282,8 @@ export class DbtTextDocument {
       }
       [rawDocDiagnostics, compiledDocDiagnostics] = this.diagnosticGenerator.getDiagnosticsFromAst(
         astResult,
-        this.rawDocument.getText(),
-        this.compiledDocument.getText(),
+        this.rawDocument,
+        this.compiledDocument,
       );
     }
 

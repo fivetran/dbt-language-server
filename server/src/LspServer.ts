@@ -1,6 +1,9 @@
 import { Result } from 'neverthrow';
 import { performance } from 'perf_hooks';
 import {
+  CodeAction,
+  CodeActionKind,
+  CodeActionParams,
   CompletionItem,
   CompletionParams,
   DefinitionLink,
@@ -22,6 +25,7 @@ import {
   SignatureHelpParams,
   TelemetryEventNotification,
   TextDocumentSyncKind,
+  TextEdit,
   WillSaveTextDocumentParams,
   _Connection,
 } from 'vscode-languageserver';
@@ -33,7 +37,7 @@ import { DbtRepository } from './DbtRepository';
 import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcServer } from './DbtRpcServer';
 import { getStringVersion } from './DbtVersion';
-import { Command } from './dbt_commands/Command';
+import { Command as DbtCommand } from './dbt_commands/Command';
 import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
 import { DbtDocumentKind } from './document/DbtDocumentKind';
 import { DbtDocumentKindResolver } from './document/DbtDocumentKindResolver';
@@ -136,6 +140,7 @@ export class LspServer {
           triggerCharacters: ['('],
         },
         definitionProvider: true,
+        codeActionProvider: true,
       },
     };
   }
@@ -245,7 +250,7 @@ export class LspServer {
       .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
-  async startDbtRpc(command: Command, port: number): Promise<void> {
+  async startDbtRpc(command: DbtCommand, port: number): Promise<void> {
     this.dbtRpcClient.setPort(port);
     try {
       await this.dbtRpcServer.startDbtRpc(command, this.dbtRpcClient);
@@ -397,6 +402,20 @@ export class LspServer {
     this.fileChangeListener.onDidChangeWatchedFiles(params);
   }
 
+  onCodeAction(params: CodeActionParams): CodeAction[] {
+    return params.context.diagnostics
+      .filter(d => d.source === 'dbt Wizard' && (d.data as { replaceText: string } | undefined)?.replaceText)
+      .map<CodeAction>(d => ({
+        title: 'Replace with `ref`',
+        diagnostics: [d],
+        edit: {
+          changes: {
+            [params.textDocument.uri]: [TextEdit.replace(d.range, (d.data as { replaceText: string }).replaceText)],
+          },
+        },
+        kind: CodeActionKind.QuickFix,
+      }));
+  }
   onDbtProjectYmlChanged(): void {
     this.dbtRpcServer.refreshServer();
   }
