@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { Result } from 'neverthrow';
 import { performance } from 'perf_hooks';
 import {
@@ -60,10 +61,9 @@ interface TelemetryEvent {
 }
 
 export class LspServer {
-  private static SQL_TO_REF_COMMAND_NAME = 'dbtWizard.sqlToRef';
-
   static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
 
+  sqlToRefCommandName = randomUUID();
   workspaceFolder: string;
   hasConfigurationCapability = false;
   dbtRpcServer = new DbtRpcServer();
@@ -147,7 +147,7 @@ export class LspServer {
         definitionProvider: true,
         codeActionProvider: true,
         executeCommandProvider: {
-          commands: [LspServer.SQL_TO_REF_COMMAND_NAME],
+          commands: [this.sqlToRefCommandName],
         },
       },
     };
@@ -422,13 +422,13 @@ export class LspServer {
             [params.textDocument.uri]: [TextEdit.replace(d.range, (d.data as { replaceText: string }).replaceText)],
           },
         },
-        command: Command.create(title, LspServer.SQL_TO_REF_COMMAND_NAME, params.textDocument.uri, d.range),
+        command: Command.create(title, this.sqlToRefCommandName, params.textDocument.uri, d.range),
         kind: CodeActionKind.QuickFix,
       }));
   }
 
   onExecuteCommand(params: ExecuteCommandParams): void {
-    if (params.command === LspServer.SQL_TO_REF_COMMAND_NAME && params.arguments) {
+    if (params.command === this.sqlToRefCommandName && params.arguments) {
       const textDocument = this.openedDocuments.get(params.arguments[0] as string);
       const range = params.arguments[1] as Range | undefined;
       if (textDocument && range) {
