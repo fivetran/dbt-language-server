@@ -3,9 +3,14 @@ import { DidChangeWatchedFilesParams, Emitter, Event } from 'vscode-languageserv
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
 import { ManifestParser } from './manifest/ManifestParser';
+import { debounce } from './utils/Utils';
 
 export class FileChangeListener {
+  private static PACKAGES_UPDATE_DEBOUNCE_TIMEOUT = 1000;
+
   private onDbtProjectYmlChangedEmitter = new Emitter<void>();
+  private onDbtPackagesYmlChangedEmitter = new Emitter<void>();
+  private onDbtPackagesChangedEmitter = new Emitter<void>();
 
   constructor(
     private workspaceFolder: string,
@@ -18,6 +23,14 @@ export class FileChangeListener {
     return this.onDbtProjectYmlChangedEmitter.event;
   }
 
+  get onDbtPackagesYmlChanged(): Event<void> {
+    return this.onDbtPackagesYmlChangedEmitter.event;
+  }
+
+  get onDbtPackagesChanged(): Event<void> {
+    return this.onDbtPackagesChangedEmitter.event;
+  }
+
   onInit(): void {
     this.updateDbtProjectConfig();
     this.updateManifestNodes();
@@ -26,6 +39,9 @@ export class FileChangeListener {
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
     const dbtProjectYmlPath = path.resolve(this.workspaceFolder, DbtRepository.DBT_PROJECT_FILE_NAME);
     const manifestJsonPath = path.resolve(this.workspaceFolder, this.dbtRepository.dbtTargetPath, DbtRepository.DBT_MANIFEST_FILE_NAME);
+    const packagesYmlPath = path.resolve(this.workspaceFolder, DbtRepository.DBT_PACKAGES_FILE_NAME);
+    const packagesPaths = this.dbtRepository.packagesInstallPaths.map(p => path.resolve(this.workspaceFolder, p));
+
     for (const change of params.changes) {
       if (change.uri.endsWith(dbtProjectYmlPath)) {
         this.dbtProject.setParsedProjectOutdated();
@@ -34,6 +50,10 @@ export class FileChangeListener {
         this.updateManifestNodes();
       } else if (change.uri.endsWith(manifestJsonPath)) {
         this.updateManifestNodes();
+      } else if (change.uri.endsWith(packagesYmlPath)) {
+        this.onDbtPackagesYmlChangedEmitter.fire();
+      } else if (packagesPaths.some(p => change.uri.includes(p))) {
+        this.debouncedDbtPackagesChangedEmitter();
       }
     }
   }
@@ -58,4 +78,8 @@ export class FileChangeListener {
       console.log(`Failed to read ${ManifestParser.MANIFEST_FILE_NAME}`, e);
     }
   }
+
+  debouncedDbtPackagesChangedEmitter = debounce(() => {
+    this.onDbtPackagesChangedEmitter.fire();
+  }, FileChangeListener.PACKAGES_UPDATE_DEBOUNCE_TIMEOUT);
 }
