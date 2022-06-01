@@ -2,7 +2,15 @@
 import { assertThat } from 'hamjest';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Position, Range } from 'vscode-languageserver-types';
-import { comparePositions, extractDatasetFromFullName, getIdentifierRangeAtPosition, getJinjaContentOffset, rangesOverlap } from '../../utils/Utils';
+import {
+  comparePositions,
+  debounce,
+  extractDatasetFromFullName,
+  getIdentifierRangeAtPosition,
+  getJinjaContentOffset,
+  rangesOverlap,
+} from '../../utils/Utils';
+import { sleep } from '../helper';
 
 describe('Utils', () => {
   it('comparePositions_shouldComparePositions', () => {
@@ -87,6 +95,28 @@ describe('Utils', () => {
        First`,
       Range.create(1, 7, 1, 12),
     );
+  });
+
+  it(`debounce should use different Timeout's for every call`, async () => {
+    // arrange
+    let firstDebounceCounter = 0;
+    let secondDebounceCounter = 0;
+
+    const firstDebounce = debounce(() => {
+      firstDebounceCounter++;
+    }, 100);
+    const secondDebounce = debounce(() => {
+      secondDebounceCounter++;
+    }, 10);
+
+    // act
+    firstDebounce();
+    secondDebounce();
+    await sleep(100);
+
+    // assert
+    assertThat(firstDebounceCounter, 1);
+    assertThat(secondDebounceCounter, 1);
   });
 
   function getIdentifierRangeAtPositionShouldReturnRange(position: Position, text: string, expectedRange: Range): void {
