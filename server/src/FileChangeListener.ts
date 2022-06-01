@@ -53,7 +53,7 @@ export class FileChangeListener {
       } else if (change.uri.endsWith(packagesYmlPath)) {
         this.onDbtPackagesYmlChangedEmitter.fire();
       } else if (packagesPaths.some(p => change.uri.includes(p))) {
-        this.debouncedRefresh();
+        this.debouncedDbtPackagesChangedEmitter();
       }
     }
   }
@@ -79,7 +79,7 @@ export class FileChangeListener {
     }
   }
 
-  debouncedRefresh = debounce(() => {
+  debouncedDbtPackagesChangedEmitter = debounce(() => {
     this.onDbtPackagesChangedEmitter.fire();
   }, FileChangeListener.PACKAGES_UPDATE_DEBOUNCE_TIMEOUT);
 }
