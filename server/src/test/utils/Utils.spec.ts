@@ -3,6 +3,7 @@ import { assertThat } from 'hamjest';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Position, Range } from 'vscode-languageserver-types';
 import {
+  areRangesEqual,
   comparePositions,
   debounce,
   extractDatasetFromFullName,
@@ -36,6 +37,22 @@ describe('Utils', () => {
     assertThat(rangesOverlap(Range.create(0, 2, 1, 1), Range.create(0, 0, 0, 1)), false);
     assertThat(rangesOverlap(Range.create(1, 0, 1, 1), Range.create(0, 0, 0, 1)), false);
     assertThat(rangesOverlap(Range.create(1, 1, 2, 1), Range.create(2, 2, 3, 3)), false);
+  });
+
+  it('areRangesEqual should compare ranges', () => {
+    assertThat(areRangesEqual(Range.create(0, 0, 0, 0), Range.create(0, 0, 0, 0)), true);
+    assertThat(areRangesEqual(Range.create(1, 0, 0, 0), Range.create(1, 0, 0, 0)), true);
+    assertThat(areRangesEqual(Range.create(1, 0, 2, 0), Range.create(1, 0, 2, 0)), true);
+    assertThat(areRangesEqual(Range.create(0, 0, 2, 0), Range.create(0, 0, 2, 0)), true);
+    assertThat(areRangesEqual(Range.create(0, 0, 0, 2), Range.create(0, 0, 0, 2)), true);
+    assertThat(areRangesEqual(Range.create(0, 0, 0, 2), Range.create(0, 2, 0, 0)), true);
+
+    assertThat(areRangesEqual(Range.create(0, 0, 0, 1), Range.create(0, 0, 0, 0)), false);
+    assertThat(areRangesEqual(Range.create(0, 0, 0, 2), Range.create(0, 0, 0, 1)), false);
+    assertThat(areRangesEqual(Range.create(1, 0, 0, 0), Range.create(0, 0, 0, 0)), false);
+    assertThat(areRangesEqual(Range.create(0, 1, 0, 0), Range.create(0, 0, 0, 0)), false);
+    assertThat(areRangesEqual(Range.create(0, 0, 1, 0), Range.create(0, 0, 0, 0)), false);
+    assertThat(areRangesEqual(Range.create(0, 0, 0, 1), Range.create(0, 0, 0, 0)), false);
   });
 
   describe('getJinjaContentOffset', () => {
@@ -104,15 +121,15 @@ describe('Utils', () => {
 
     const firstDebounce = debounce(() => {
       firstDebounceCounter++;
-    }, 100);
+    }, 20);
     const secondDebounce = debounce(() => {
       secondDebounceCounter++;
-    }, 10);
+    }, 1);
 
     // act
     firstDebounce();
     secondDebounce();
-    await sleep(100);
+    await sleep(20);
 
     // assert
     assertThat(firstDebounceCounter, 1);

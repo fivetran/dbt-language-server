@@ -1,9 +1,11 @@
 import { assertThat } from 'hamjest';
+import { mock } from 'ts-mockito';
 import { DiagnosticSeverity, Location, Range } from 'vscode-languageserver';
+import { DbtRepository } from '../DbtRepository';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
 
 describe('DiagnosticGenerator', () => {
-  const DIAGNOSTIC_GENERATOR = new DiagnosticGenerator();
+  const DIAGNOSTIC_GENERATOR = new DiagnosticGenerator(mock(DbtRepository));
   const MODEL_NAME = 'simple_select_dbt';
   const MODEL_PATH = `models/${MODEL_NAME}.sql`;
   const ERROR_LINE = 2;

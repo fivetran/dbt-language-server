@@ -1,6 +1,6 @@
 import { assertThat } from 'hamjest';
 import { languages } from 'vscode';
-import { assertDiagnostics } from './asserts';
+import { assertAllDiagnostics } from './asserts';
 import { activateAndWait, getCustomDocUri, getMainEditorText, getPreviewText, replaceText, setTestContent } from './helper';
 
 suite('Editing outside jinja without recompilation', () => {
@@ -16,10 +16,10 @@ suite('Editing outside jinja without recompilation', () => {
 
     await replaceText('select u.id', 'select u.i');
     assertThat(getPreviewText(), getMainEditorText());
-    await assertDiagnostics(DOC_URI, dbtDiagnostics);
+    await assertAllDiagnostics(DOC_URI, dbtDiagnostics);
 
     await setTestContent(initialContent);
     assertThat(getPreviewText(), initialPreview);
-    await assertDiagnostics(DOC_URI, []);
+    await assertAllDiagnostics(DOC_URI, []);
   });
 });

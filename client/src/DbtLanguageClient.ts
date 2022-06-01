@@ -32,6 +32,7 @@ export class DbtLanguageClient implements Disposable {
 
     const clientOptions: LanguageClientOptions = {
       documentSelector: SUPPORTED_LANG_IDS.map(langId => ({ scheme: 'file', language: langId, pattern: `${dbtProjectUri.fsPath}/**/*` })),
+      diagnosticCollectionName: 'dbtWizard',
       synchronize: {
         fileEvents: [
           workspace.createFileSystemWatcher('**/dbt_project.yml'),

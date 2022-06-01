@@ -1,6 +1,11 @@
+import { randomUUID } from 'crypto';
 import { Result } from 'neverthrow';
 import { performance } from 'perf_hooks';
 import {
+  CodeAction,
+  CodeActionKind,
+  CodeActionParams,
+  Command,
   CompletionItem,
   CompletionParams,
   DefinitionLink,
@@ -12,16 +17,19 @@ import {
   DidOpenTextDocumentParams,
   DidSaveTextDocumentParams,
   Emitter,
+  ExecuteCommandParams,
   Hover,
   HoverParams,
   InitializeError,
   InitializeParams,
   InitializeResult,
+  Range,
   ResponseError,
   SignatureHelp,
   SignatureHelpParams,
   TelemetryEventNotification,
   TextDocumentSyncKind,
+  TextEdit,
   WillSaveTextDocumentParams,
   _Connection,
 } from 'vscode-languageserver';
@@ -33,7 +41,7 @@ import { DbtRepository } from './DbtRepository';
 import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcServer } from './DbtRpcServer';
 import { getStringVersion } from './DbtVersion';
-import { Command } from './dbt_commands/Command';
+import { Command as DbtCommand } from './dbt_commands/Command';
 import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
 import { DbtDocumentKind } from './document/DbtDocumentKind';
 import { DbtDocumentKindResolver } from './document/DbtDocumentKindResolver';
@@ -55,6 +63,7 @@ interface TelemetryEvent {
 export class LspServer {
   static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
 
+  sqlToRefCommandName = randomUUID();
   workspaceFolder: string;
   hasConfigurationCapability = false;
   dbtRpcServer = new DbtRpcServer();
@@ -136,6 +145,10 @@ export class LspServer {
           triggerCharacters: ['('],
         },
         definitionProvider: true,
+        codeActionProvider: true,
+        executeCommandProvider: {
+          commands: [this.sqlToRefCommandName],
+        },
       },
     };
   }
@@ -154,7 +167,6 @@ export class LspServer {
 
   initializeNotifications(): void {
     this.connection.onNotification('custom/dbtCompile', this.onDbtCompile.bind(this));
-    this.connection.onNotification('custom/convertTo', this.convertTo.bind(this));
   }
 
   async onInitialized(): Promise<void> {
@@ -245,7 +257,7 @@ export class LspServer {
       .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
-  async startDbtRpc(command: Command, port: number): Promise<void> {
+  async startDbtRpc(command: DbtCommand, port: number): Promise<void> {
     this.dbtRpcClient.setPort(port);
     try {
       await this.dbtRpcServer.startDbtRpc(command, this.dbtRpcClient);
@@ -258,17 +270,6 @@ export class LspServer {
     const document = this.openedDocuments.get(uri);
     if (document) {
       document.forceRecompile();
-    }
-  }
-
-  async convertTo(params: { uri: string; to: 'sql' | 'ref' }): Promise<void> {
-    const document = this.openedDocuments.get(params.uri);
-    if (document) {
-      if (params.to === 'sql') {
-        await document.refToSql();
-      } else {
-        await document.sqlToRef();
-      }
     }
   }
 
@@ -395,6 +396,33 @@ export class LspServer {
 
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
     this.fileChangeListener.onDidChangeWatchedFiles(params);
+  }
+
+  onCodeAction(params: CodeActionParams): CodeAction[] {
+    const title = 'Change to ref';
+    return params.context.diagnostics
+      .filter(d => d.source === 'dbt Wizard' && (d.data as { replaceText: string } | undefined)?.replaceText)
+      .map<CodeAction>(d => ({
+        title,
+        diagnostics: [d],
+        edit: {
+          changes: {
+            [params.textDocument.uri]: [TextEdit.replace(d.range, (d.data as { replaceText: string }).replaceText)],
+          },
+        },
+        command: Command.create(title, this.sqlToRefCommandName, params.textDocument.uri, d.range),
+        kind: CodeActionKind.QuickFix,
+      }));
+  }
+
+  onExecuteCommand(params: ExecuteCommandParams): void {
+    if (params.command === this.sqlToRefCommandName && params.arguments) {
+      const textDocument = this.openedDocuments.get(params.arguments[0] as string);
+      const range = params.arguments[1] as Range | undefined;
+      if (textDocument && range) {
+        textDocument.fixInformationDiagnostic(range);
+      }
+    }
   }
 
   onDbtProjectYmlChanged(): void {

@@ -80,10 +80,19 @@ function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
   }
 }
 
+function waitWithTimeout(promise: Promise<void>, ms: number): Promise<void> {
+  const timeoutPromise = new Promise<void>(resolve => {
+    setTimeout(() => {
+      resolve();
+    }, ms);
+  });
+  return Promise.race([promise, timeoutPromise]);
+}
+
 export async function waitDocumentModification(func: () => Promise<void>): Promise<void> {
   const promise = createChangePromise('document');
   await func();
-  await promise;
+  await waitWithTimeout(promise, 1000);
 }
 
 export async function waitPreviewModification(func: () => Promise<void>): Promise<void> {

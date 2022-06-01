@@ -5,6 +5,7 @@ import {
   DefinitionLink,
   DefinitionParams,
   Diagnostic,
+  DiagnosticSeverity,
   DidChangeTextDocumentParams,
   Emitter,
   Hover,
@@ -17,7 +18,6 @@ import {
   TextDocumentItem,
   TextDocumentSaveReason,
   VersionedTextDocumentIdentifier,
-  WorkspaceChange,
   _Connection,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -34,9 +34,15 @@ import { ModelCompiler } from '../ModelCompiler';
 import { ProgressReporter } from '../ProgressReporter';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { SqlCompletionProvider } from '../SqlCompletionProvider';
-import { SqlRefConverter } from '../SqlRefConverter';
 import { getTextRangeBeforeBracket } from '../utils/TextUtils';
-import { comparePositions, debounce, getFilePathRelatedToWorkspace, getIdentifierRangeAtPosition, positionInRange } from '../utils/Utils';
+import {
+  areRangesEqual,
+  comparePositions,
+  debounce,
+  getFilePathRelatedToWorkspace,
+  getIdentifierRangeAtPosition,
+  positionInRange,
+} from '../utils/Utils';
 import { ZetaSqlAst } from '../ZetaSqlAst';
 import { DbtDocumentKind } from './DbtDocumentKind';
 
@@ -51,12 +57,14 @@ export class DbtTextDocument {
 
   ast?: AnalyzeResponse;
   signatureHelpProvider = new SignatureHelpProvider();
-  sqlRefConverter = new SqlRefConverter(this.jinjaParser);
-  diagnosticGenerator = new DiagnosticGenerator();
+  diagnosticGenerator: DiagnosticGenerator;
   hoverProvider = new HoverProvider();
 
   currentDbtError?: string;
   firstSave = true;
+
+  rawDocDiagnostics: Diagnostic[] = [];
+  compiledDocDiagnostics: Diagnostic[] = [];
 
   constructor(
     doc: TextDocumentItem,
@@ -75,6 +83,7 @@ export class DbtTextDocument {
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
+    this.diagnosticGenerator = new DiagnosticGenerator(this.dbtRepository);
     this.requireCompileOnSave = false;
 
     this.modelCompiler.onCompilationError(this.onCompilationError.bind(this));
@@ -175,35 +184,6 @@ export class DbtTextDocument {
     }
   }
 
-  async refToSql(): Promise<void> {
-    const workspaceChange = new WorkspaceChange();
-    const textChange = workspaceChange.getTextEditChange(this.rawDocument.uri);
-
-    this.sqlRefConverter.refToSql(this.rawDocument, this.dbtRepository.models).forEach(c => {
-      textChange.replace(c.range, c.newText);
-    });
-    await this.connection.workspace.applyEdit(workspaceChange.edit);
-  }
-
-  async sqlToRef(): Promise<void> {
-    if (!this.ast) {
-      return;
-    }
-
-    const workspaceChange = new WorkspaceChange();
-    const textChange = workspaceChange.getTextEditChange(this.rawDocument.uri);
-    const resolvedTables = DbtTextDocument.ZETA_SQL_AST.getResolvedTables(this.ast, this.compiledDocument.getText());
-
-    this.sqlRefConverter.sqlToRef(this.compiledDocument, resolvedTables, this.dbtRepository.models).forEach(c => {
-      const range = Range.create(
-        Diff.convertPositionBackward(this.rawDocument.getText(), this.compiledDocument.getText(), c.range.start),
-        Diff.convertPositionBackward(this.rawDocument.getText(), this.compiledDocument.getText(), c.range.end),
-      );
-      textChange.replace(range, c.newText);
-    });
-    await this.connection.workspace.applyEdit(workspaceChange.edit);
-  }
-
   debouncedCompile = debounce(async () => {
     this.progressReporter.sendStart(this.rawDocument.uri);
     await this.modelCompiler.compile(this.getModelPathOrFullyQualifiedName());
@@ -241,15 +221,20 @@ export class DbtTextDocument {
       this.getModelPathOrFullyQualifiedName(),
       this.workspaceFolder,
     );
+    this.rawDocDiagnostics = diagnostics;
+    this.compiledDocDiagnostics = diagnostics;
 
     this.sendUpdateQueryPreview();
-    this.sendDiagnostics(diagnostics, diagnostics);
+
+    this.sendDiagnostics();
   }
 
   onDbtErrorFixed(): void {
     if (this.currentDbtError) {
       this.currentDbtError = undefined;
-      this.sendDiagnostics([], []);
+      this.rawDocDiagnostics = [];
+      this.compiledDocDiagnostics = [];
+      this.sendDiagnostics();
     }
   }
 
@@ -260,9 +245,9 @@ export class DbtTextDocument {
     }
 
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
-    const [rawDocDiagnostics, compiledDocDiagnostics] = await this.createDiagnostics();
+    [this.rawDocDiagnostics, this.compiledDocDiagnostics] = await this.createDiagnostics();
     this.sendUpdateQueryPreview();
-    this.sendDiagnostics(rawDocDiagnostics, compiledDocDiagnostics);
+    this.sendDiagnostics();
 
     if (!this.modelCompiler.compilationInProgress) {
       this.progressReporter.sendFinish(this.rawDocument.uri);
@@ -281,8 +266,8 @@ export class DbtTextDocument {
       }
       [rawDocDiagnostics, compiledDocDiagnostics] = this.diagnosticGenerator.getDiagnosticsFromAst(
         astResult,
-        this.rawDocument.getText(),
-        this.compiledDocument.getText(),
+        this.rawDocument,
+        this.compiledDocument,
       );
     }
 
@@ -295,12 +280,17 @@ export class DbtTextDocument {
       .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
-  sendDiagnostics(rawDocDiagnostics: Diagnostic[], compiledDocDiagnostics: Diagnostic[]): void {
+  fixInformationDiagnostic(range: Range): void {
+    this.rawDocDiagnostics = this.rawDocDiagnostics.filter(d => !(areRangesEqual(d.range, range) && d.severity === DiagnosticSeverity.Information));
+    this.sendDiagnostics();
+  }
+
+  sendDiagnostics(): void {
     this.connection
-      .sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: rawDocDiagnostics })
+      .sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: this.rawDocDiagnostics })
       .catch(e => console.log(`Failed to send diagnostics: ${e instanceof Error ? e.message : String(e)}`));
     this.connection
-      .sendNotification('custom/updateQueryPreviewDiagnostics', { uri: this.rawDocument.uri, diagnostics: compiledDocDiagnostics })
+      .sendNotification('custom/updateQueryPreviewDiagnostics', { uri: this.rawDocument.uri, diagnostics: this.compiledDocDiagnostics })
       .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 

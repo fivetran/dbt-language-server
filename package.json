@@ -57,14 +57,6 @@
       {
         "command": "dbt.compile",
         "title": "dbt compile"
-      },
-      {
-        "command": "dbt.refToSql",
-        "title": "Convert ref to SQL"
-      },
-      {
-        "command": "dbt.sqlToRef",
-        "title": "Convert SQL to ref"
       }
     ],
     "menus": {
@@ -76,14 +68,6 @@
         {
           "command": "editor.showQueryPreview",
           "group": "1_common"
-        },
-        {
-          "command": "dbt.refToSql",
-          "group": "2_ref_sql"
-        },
-        {
-          "command": "dbt.sqlToRef",
-          "group": "2_ref_sql"
         }
       ],
       "editor/context": [

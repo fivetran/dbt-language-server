@@ -1,7 +1,11 @@
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { Result } from 'neverthrow';
 import { Diagnostic, DiagnosticRelatedInformation, DiagnosticSeverity, Location, Position, Range } from 'vscode-languageserver';
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import { DbtRepository } from './DbtRepository';
 import { Diff } from './Diff';
+import { DbtTextDocument } from './document/DbtTextDocument';
+import { SqlRefConverter } from './SqlRefConverter';
 import { getIdentifierRangeAtPosition } from './utils/Utils';
 import path = require('path');
 
@@ -13,6 +17,10 @@ export class DiagnosticGenerator {
   static readonly ERROR_IN_OTHER_FILE = 'Error in other file';
 
   static readonly DBT_ERROR_HIGHLIGHT_LAST_CHAR = 100;
+
+  private sqlRefConverter = new SqlRefConverter();
+
+  constructor(private dbtRepository: DbtRepository) {}
 
   getDbtErrorDiagnostics(dbtCompilationError: string, currentModelPath: string, workspaceFolder: string): Diagnostic[] {
     let errorLine = 0;
@@ -33,24 +41,71 @@ export class DiagnosticGenerator {
     ];
   }
 
-  getDiagnosticsFromAst(astResult: Result<AnalyzeResponse__Output, string>, rawDocText: string, compiledDocText: string): Diagnostic[][] {
+  getDiagnosticsFromAst(
+    astResult: Result<AnalyzeResponse__Output, string>,
+    rawDocument: TextDocument,
+    compiledDocument: TextDocument,
+  ): Diagnostic[][] {
     const rawDocDiagnostics: Diagnostic[] = [];
     const compiledDocDiagnostics: Diagnostic[] = [];
 
-    if (astResult.isErr()) {
-      // Parse string like 'Unrecognized name: paused1; Did you mean paused? [at 9:3]'
-      const matchResults = astResult.error.match(DiagnosticGenerator.SQL_COMPILATION_ERROR_PATTERN);
-      if (matchResults) {
-        const [, errorText] = matchResults;
-        const lineInCompiledDoc = Number(matchResults[2]) - 1;
-        const characterInCompiledDoc = Number(matchResults[3]) - 1;
-        const lineInRawDoc = Diff.getOldLineNumber(rawDocText, compiledDocText, lineInCompiledDoc);
+    astResult.match(
+      ast => this.createInformationDiagnostics(ast, rawDocument, compiledDocument, rawDocDiagnostics),
+      error => this.createErrorDiagnostics(error, rawDocument.getText(), compiledDocument.getText(), rawDocDiagnostics, compiledDocDiagnostics),
+    );
 
-        rawDocDiagnostics.push(this.createDiagnostic(rawDocText, lineInRawDoc, characterInCompiledDoc, errorText));
-        compiledDocDiagnostics.push(this.createDiagnostic(compiledDocText, lineInCompiledDoc, characterInCompiledDoc, errorText));
+    return [rawDocDiagnostics, compiledDocDiagnostics];
+  }
+
+  createErrorDiagnostics(
+    error: string,
+    rawDocText: string,
+    compiledDocText: string,
+    rawDocDiagnostics: Diagnostic[],
+    compiledDocDiagnostics: Diagnostic[],
+  ): void {
+    // Parse string like 'Unrecognized name: paused1; Did you mean paused? [at 9:3]'
+    const matchResults = error.match(DiagnosticGenerator.SQL_COMPILATION_ERROR_PATTERN);
+    if (matchResults) {
+      const [, errorText] = matchResults;
+      const lineInCompiledDoc = Number(matchResults[2]) - 1;
+      const characterInCompiledDoc = Number(matchResults[3]) - 1;
+      const lineInRawDoc = Diff.getOldLineNumber(rawDocText, compiledDocText, lineInCompiledDoc);
+
+      rawDocDiagnostics.push(this.createErrorDiagnostic(rawDocText, lineInRawDoc, characterInCompiledDoc, errorText));
+      compiledDocDiagnostics.push(this.createErrorDiagnostic(compiledDocText, lineInCompiledDoc, characterInCompiledDoc, errorText));
+    }
+  }
+
+  createInformationDiagnostics(
+    ast: AnalyzeResponse__Output,
+    rawDocument: TextDocument,
+    compiledDocument: TextDocument,
+    rawDocDiagnostics: Diagnostic[],
+  ): void {
+    const resolvedTables = DbtTextDocument.ZETA_SQL_AST.getResolvedTables(ast, compiledDocument.getText());
+
+    const changes = this.sqlRefConverter.sqlToRef(compiledDocument, resolvedTables, this.dbtRepository.models);
+    for (const change of changes) {
+      const range = Range.create(
+        Diff.convertPositionBackward(rawDocument.getText(), compiledDocument.getText(), change.range.start),
+        Diff.convertPositionBackward(rawDocument.getText(), compiledDocument.getText(), change.range.end),
+      );
+
+      if (rawDocument.getText(range) === compiledDocument.getText(change.range)) {
+        rawDocDiagnostics.push(this.createInformationDiagnostic(range, change.newText));
       }
     }
-    return [rawDocDiagnostics, compiledDocDiagnostics];
+  }
+
+  createInformationDiagnostic(range: Range, newText: string): Diagnostic {
+    return {
+      severity: DiagnosticSeverity.Information,
+      range,
+      message: 'Reference to dbt model is not a ref',
+      data: { replaceText: newText },
+      source: 'dbt Wizard',
+    };
   }
 
   private getDbtRelatedInformation(
@@ -74,7 +129,7 @@ export class DiagnosticGenerator {
     return [];
   }
 
-  private createDiagnostic(docText: string, line: number, character: number, message: string): Diagnostic {
+  private createErrorDiagnostic(docText: string, line: number, character: number, message: string): Diagnostic {
     const position = Position.create(line, character);
     const range = this.extendRangeIfSmall(getIdentifierRangeAtPosition(position, docText));
     return {
