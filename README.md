@@ -28,12 +28,11 @@ Also, it provides additional features like [Highlighting errors](#highlighting-e
 | Feature | Supported Adapters |
 | --- | --- |
 | [Go to definition](#go-to-definition) | All |
-| [Highlighting errors](#highlighting-errors) | [BigQuery](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) |
 | [Signature help](#signature-help) | All |
-| [Completion for SQL](#completion-for-sql) | [BigQuery](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) |
 | [Completion for dbt](#completion-for-dbt) | All |
-| [Completion for dbt models](#completion-for-dbt-models) | [BigQuery](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) |
 | [dbt compile preview](#dbt-compile-preview) | All |
+| [Highlighting errors](#highlighting-errors) | [BigQuery](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) |
+| [Completion for SQL](#completion-for-sql) | [BigQuery](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) |
 | [Information on hover](#information-on-hover) | [BigQuery](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) |
 
 ### Go to definition
