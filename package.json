@@ -52,7 +52,8 @@
     "commands": [
       {
         "command": "editor.showQueryPreview",
-        "title": "Show query preview"
+        "title": "Show query preview",
+        "icon": "$(book)"
       },
       {
         "command": "dbt.compile",
@@ -60,6 +61,13 @@
       }
     ],
     "menus": {
+      "editor/title": [
+        {
+          "command": "editor.showQueryPreview",
+          "group": "navigation",
+          "when": "editorLangId =~ /^sql$|^jinja-sql$|^sql-bigquery$/ && !editorReadonly"
+        }
+      ],
       "dbt": [
         {
           "command": "dbt.compile",
