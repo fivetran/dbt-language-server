@@ -25,6 +25,7 @@ export class FeatureFinder {
     'serve',
     `${FeatureFinder.PORT_PARAM}`,
   ];
+  private static readonly DBT_ADAPTER_PREFIX = 'dbt-';
 
   private static readonly DBT_VERSION_PATTERN_LESS_1_1_0 = /installed version: (\d+)\.(\d+)\.(\d+)/;
   private static readonly DBT_VERSION_PATTERN = /installed: (\d+)\.(\d+)\.(\d+)/;
@@ -32,14 +33,17 @@ export class FeatureFinder {
   static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
 
   python?: string;
+  dbtProfileType?: string;
   version?: DbtVersion;
 
   /** Tries to find a suitable command to start the server first in the current Python environment and then in the global scope.
    * Installs dbt-rpc for dbt version > 1.0.0.
    * @returns {Command} or `undefined` if nothing is found
    */
-  async findDbtRpcCommand(pythonPromise: Promise<string>): Promise<Command | undefined> {
-    this.python = await pythonPromise;
+  async findDbtRpcCommand(python: string, dbtProfileType?: string): Promise<Command | undefined> {
+    this.python = python;
+    this.dbtProfileType = dbtProfileType;
+
     const settledResults = await Promise.allSettled([
       this.findDbtRpcPythonVersion(),
       this.findDbtPythonVersion(),
@@ -75,6 +79,7 @@ export class FeatureFinder {
       this.version = dbtGlobalVersion;
       return dbtGlobalVersion.major >= 1 ? this.installAndFindCommandForV1() : new DbtCommand(FeatureFinder.LEGACY_DBT_PARAMS);
     }
+
     return undefined;
   }
 
@@ -144,6 +149,10 @@ export class FeatureFinder {
   }
 
   private async installLatestDbtRpc(): Promise<void> {
-    await FeatureFinder.PROCESS_EXECUTOR.execProcess(`${String(this.python)} -m pip install dbt-bigquery dbt-rpc`);
+    let installCommand = `${String(this.python)} -m pip install dbt-rpc`;
+    if (this.dbtProfileType !== undefined) {
+      installCommand += ` ${FeatureFinder.DBT_ADAPTER_PREFIX}${this.dbtProfileType}`;
+    }
+    await FeatureFinder.PROCESS_EXECUTOR.execProcess(installCommand);
   }
 }

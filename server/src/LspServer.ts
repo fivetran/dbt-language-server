@@ -35,6 +35,7 @@ import {
 } from 'vscode-languageserver';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
+import { DbtHelper } from './DbtHelper';
 import { DbtProfileCreator, DbtProfileError, DbtProfileResult, DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
@@ -65,6 +66,7 @@ export class LspServer {
 
   sqlToRefCommandName = randomUUID();
   workspaceFolder: string;
+  python?: string;
   hasConfigurationCapability = false;
   dbtRpcServer = new DbtRpcServer();
   dbtRpcClient = new DbtRpcClient();
@@ -180,8 +182,9 @@ export class LspServer {
       s => s,
       e => e,
     );
+    const dbtProfileType = profileResult.isOk() ? profileResult.value.type : undefined;
 
-    await Promise.all([this.prepareRpcServer(), this.prepareDestination(profileResult)]);
+    await Promise.all([this.prepareRpcServer(dbtProfileType), this.prepareDestination(profileResult)]);
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime, this.initDbtRpcAttempt);
   }
@@ -206,20 +209,29 @@ export class LspServer {
     this.connection.window.showWarningMessage(message);
   }
 
-  async prepareRpcServer(): Promise<void> {
+  async prepareRpcServer(dbtProfileType?: string): Promise<void> {
     this.initDbtRpcAttempt++;
 
+    this.python = await this.connection.sendRequest('custom/getPython');
     const [command, dbtPort] = await Promise.all([
-      this.featureFinder.findDbtRpcCommand(this.connection.sendRequest('custom/getPython')),
+      this.featureFinder.findDbtRpcCommand(this.python, dbtProfileType),
       this.featureFinder.findFreePort(),
     ]);
 
     if (command === undefined) {
       this.featureFinder = new FeatureFinder();
+      //
+      // Do we need to send finish ?
+      //
       this.progressReporter.sendFinish();
-      await this.showStartDbtRpcError(
-        `Failed to find dbt-rpc. You can use 'python3 -m pip install dbt-bigquery dbt-rpc' command to install it. Check in Terminal that dbt-rpc works running 'dbt-rpc --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g. ~/dbt-env/bin/python3).`,
-      );
+
+      if (dbtProfileType && this.python) {
+        await this.suggestToInstallDbt(this.python, dbtProfileType);
+      } else {
+        await this.showStartDbtRpcError(
+          `Failed to find dbt-rpc. You can use 'python3 -m pip install dbt-bigquery dbt-rpc' command to install it. Check in Terminal that dbt-rpc works running 'dbt-rpc --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g. ~/dbt-env/bin/python3).`,
+        );
+      }
     } else {
       command.addParameter(dbtPort.toString());
       try {
@@ -236,6 +248,22 @@ export class LspServer {
     const errorMessageResult = await this.connection.window.showErrorMessage(message, actions);
     if (errorMessageResult?.id === 'retry') {
       await this.prepareRpcServer();
+    }
+  }
+
+  async suggestToInstallDbt(python: string, dbtProfileType: string): Promise<void> {
+    const actions = { title: 'Install', id: 'install' };
+    const errorMessageResult = await this.connection.window.showErrorMessage(
+      'Your dbt installation is not full. Would you like to install dbt and related packages?',
+      actions,
+    );
+
+    if (errorMessageResult?.id === 'install') {
+      console.log('Trying to install dbt, dbt-rpc and adapter');
+      const installResult = await DbtHelper.installDbtPackages(python, dbtProfileType);
+      if (installResult.isOk()) {
+        await this.prepareRpcServer(dbtProfileType);
+      }
     }
   }
 
