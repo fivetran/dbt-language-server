@@ -5,7 +5,7 @@
   "tasks": [
     {
       "type": "npm",
-      "script": "compile",
+      "script": "build",
       "group": "build",
       "presentation": {
         "panel": "dedicated",
