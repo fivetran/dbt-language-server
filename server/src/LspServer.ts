@@ -220,9 +220,6 @@ export class LspServer {
 
     if (command === undefined) {
       this.featureFinder = new FeatureFinder();
-      //
-      // Do we need to send finish ?
-      //
       this.progressReporter.sendFinish();
 
       if (dbtProfileType && this.python) {
@@ -254,7 +251,7 @@ export class LspServer {
   async suggestToInstallDbt(python: string, dbtProfileType: string): Promise<void> {
     const actions = { title: 'Install', id: 'install' };
     const errorMessageResult = await this.connection.window.showErrorMessage(
-      'Your dbt installation is not full. Would you like to install dbt and related packages?',
+      'dbt is not installed. Would you like to install dbt and related packages?',
       actions,
     );
 
