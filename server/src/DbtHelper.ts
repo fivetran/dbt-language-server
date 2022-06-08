@@ -5,7 +5,7 @@ export class DbtHelper {
   private static readonly DBT_CORE = 'dbt-core';
   private static readonly DBT_RPC = 'dbt-rpc';
   private static readonly DBT_ADAPTER_PREFIX = 'dbt-';
-  private static readonly LIST_PARAM = 'list';
+
   private static readonly PROCESS_EXECUTOR = new ProcessExecutor();
 
   static async installDbtPackages(python: string, dbtProfileType: string): Promise<Result<void, string>> {
@@ -22,11 +22,5 @@ export class DbtHelper {
         console.log(errorMessage);
         return err(errorMessage);
       });
-  }
-
-  private static async isDbtAdapterPythonInstalled(python: string, dbtProfileType: string): Promise<boolean> {
-    const dbtAdapter = `${DbtHelper.DBT_ADAPTER_PREFIX}-${dbtProfileType}`;
-    const { stdout } = await DbtHelper.PROCESS_EXECUTOR.execProcess(`${String(python)} -m pip ${DbtHelper.LIST_PARAM} | grep ${dbtAdapter}`);
-    return new RegExp(`${dbtAdapter}\\s+\\d+.\\d+.\\d+`).test(stdout);
   }
 }
