@@ -234,7 +234,7 @@ export class LspServer {
       this.featureFinder.isDbtInPythonEnvironment &&
       this.featureFinder.versionInfo?.installedVersion &&
       this.featureFinder.versionInfo.latestVersion &&
-      compareVersions(this.featureFinder.versionInfo.installedVersion, this.featureFinder.versionInfo.latestVersion) === 1
+      compareVersions(this.featureFinder.versionInfo.installedVersion, this.featureFinder.versionInfo.latestVersion) === -1
     ) {
       await this.suggestToUpdateDbt(this.python, dbtProfileType);
     } else {
