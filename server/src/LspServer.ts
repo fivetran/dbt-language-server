@@ -282,8 +282,8 @@ export class LspServer {
 
     if (errorMessageResult?.id === 'update') {
       console.log(`Trying to update dbt`);
-      const adapterPackageName = DbtHelper.buildAdapterPackageName(dbtProfileType);
-      const installResult = await DbtHelper.installDbtPackages(python, [adapterPackageName]);
+      const packagesToUpdate = [DbtHelper.buildAdapterPackageName(dbtProfileType)];
+      const installResult = await DbtHelper.installDbtPackages(python, packagesToUpdate, true);
       if (installResult.isOk()) {
         await this.prepareRpcServer(dbtProfileType);
       }
