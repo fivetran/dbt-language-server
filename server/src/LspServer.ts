@@ -182,7 +182,7 @@ export class LspServer {
       s => s,
       e => e,
     );
-    const dbtProfileType = profileResult.isOk() ? profileResult.value.type : undefined;
+    const dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
 
     await Promise.all([this.prepareRpcServer(dbtProfileType), this.prepareDestination(profileResult)]);
     const initTime = performance.now() - this.initStart;
