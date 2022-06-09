@@ -41,7 +41,7 @@ import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
 import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcServer } from './DbtRpcServer';
-import { getStringVersion } from './DbtVersion';
+import { compareVersions, getStringVersion } from './DbtVersion';
 import { Command as DbtCommand } from './dbt_commands/Command';
 import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
 import { DbtDocumentKind } from './document/DbtDocumentKind';
@@ -222,13 +222,21 @@ export class LspServer {
       this.featureFinder = new FeatureFinder();
       this.progressReporter.sendFinish();
 
-      if (dbtProfileType && this.python) {
+      if (dbtProfileType) {
         await this.suggestToInstallDbt(this.python, dbtProfileType);
       } else {
         await this.showStartDbtRpcError(
           `Failed to find dbt-rpc. You can use 'python3 -m pip install dbt-bigquery dbt-rpc' command to install it. Check in Terminal that dbt-rpc works running 'dbt-rpc --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g. ~/dbt-env/bin/python3).`,
         );
       }
+    } else if (
+      dbtProfileType &&
+      this.featureFinder.isDbtInPythonEnvironment &&
+      this.featureFinder.versionInfo?.installedVersion &&
+      this.featureFinder.versionInfo.latestVersion &&
+      compareVersions(this.featureFinder.versionInfo.installedVersion, this.featureFinder.versionInfo.latestVersion) === 1
+    ) {
+      await this.suggestToUpdateDbt(this.python, dbtProfileType);
     } else {
       command.addParameter(dbtPort.toString());
       try {
@@ -256,8 +264,26 @@ export class LspServer {
     );
 
     if (errorMessageResult?.id === 'install') {
-      console.log('Trying to install dbt, dbt-rpc and adapter');
-      const installResult = await DbtHelper.installDbtPackages(python, dbtProfileType);
+      console.log(`Trying to install dbt, dbt-rpc and ${dbtProfileType} adapter`);
+      const packagesToInstall = DbtHelper.getFullDbtInstallationPackages(dbtProfileType);
+      const installResult = await DbtHelper.installDbtPackages(python, packagesToInstall);
+      if (installResult.isOk()) {
+        await this.prepareRpcServer(dbtProfileType);
+      }
+    }
+  }
+
+  async suggestToUpdateDbt(python: string, dbtProfileType: string): Promise<void> {
+    const actions = { title: 'Update', id: 'update' };
+    const errorMessageResult = await this.connection.window.showErrorMessage(
+      'dbt installation is not up to date. Would you like to update dbt and related packages?',
+      actions,
+    );
+
+    if (errorMessageResult?.id === 'update') {
+      console.log(`Trying to update dbt`);
+      const adapterPackageName = DbtHelper.buildAdapterPackageName(dbtProfileType);
+      const installResult = await DbtHelper.installDbtPackages(python, [adapterPackageName]);
       if (installResult.isOk()) {
         await this.prepareRpcServer(dbtProfileType);
       }
@@ -266,7 +292,7 @@ export class LspServer {
 
   logStartupInfo(contextInfo: DbtProfileResult, initTime: number, initDbtRpcAttempt: number): void {
     this.sendTelemetry('log', {
-      dbtVersion: getStringVersion(this.featureFinder.version),
+      dbtVersion: getStringVersion(this.featureFinder.versionInfo?.installedVersion),
       python: this.featureFinder.python ?? 'undefined',
       initTime: initTime.toString(),
       type: contextInfo.type ?? 'unknown type',

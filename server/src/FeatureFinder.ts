@@ -1,4 +1,4 @@
-import { DbtVersion, getStringVersion } from './DbtVersion';
+import { DbtVersion, DbtVersionInfo, getStringVersion } from './DbtVersion';
 import { Command } from './dbt_commands/Command';
 import { DbtCommand } from './dbt_commands/DbtCommand';
 import { DbtCommandExecutor } from './dbt_commands/DbtCommandExecutor';
@@ -25,16 +25,21 @@ export class FeatureFinder {
     'serve',
     `${FeatureFinder.PORT_PARAM}`,
   ];
-  private static readonly DBT_ADAPTER_PREFIX = 'dbt-';
 
-  private static readonly DBT_VERSION_PATTERN_LESS_1_1_0 = /installed version: (\d+)\.(\d+)\.(\d+)/;
-  private static readonly DBT_VERSION_PATTERN = /installed: (\d+)\.(\d+)\.(\d+)/;
+  private static readonly DBT_ADAPTER_PREFIX = 'dbt';
+
+  private static readonly DBT_INSTALLED_VERSION_PATTERN_LESS_1_1_0 = /installed version: (\d+)\.(\d+)\.(\d+)/;
+  private static readonly DBT_INSTALLED_VERSION_PATTERN = /installed:\s+(\d+)\.(\d+)\.(\d+)/;
+  private static readonly DBT_LATEST_VERSION_PATTERN_LESS_1_1_0 = /latest version:\s+(\d+)\.(\d+)\.(\d+)/;
+  private static readonly DBT_LATEST_VERSION_PATTERN = /latest:\s+(\d+)\.(\d+)\.(\d+)/;
+
   private static readonly PROCESS_EXECUTOR = new ProcessExecutor();
-  static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
+  private static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
 
   python?: string;
   dbtProfileType?: string;
-  version?: DbtVersion;
+  versionInfo?: DbtVersionInfo;
+  isDbtInPythonEnvironment?: boolean;
 
   /** Tries to find a suitable command to start the server first in the current Python environment and then in the global scope.
    * Installs dbt-rpc for dbt version > 1.0.0.
@@ -56,28 +61,34 @@ export class FeatureFinder {
     });
 
     let versions = '';
-    versions += dbtRpcGlobalVersion ? `dbtRpcGlobalVersion = ${getStringVersion(dbtRpcGlobalVersion)} ` : '';
-    versions += dbtGlobalVersion ? `dbtGlobalVersion = ${getStringVersion(dbtGlobalVersion)} ` : '';
-    versions += dbtPythonVersion ? `dbtPythonVersion = ${getStringVersion(dbtPythonVersion)} ` : '';
-    versions += dbtPythonVersion ? `dbtRpcPythonVersion = ${getStringVersion(dbtRpcPythonVersion)}` : '';
+    versions += dbtRpcGlobalVersion ? `dbtRpcGlobalVersion = ${getStringVersion(dbtRpcGlobalVersion.installedVersion)} ` : '';
+    versions += dbtGlobalVersion ? `dbtGlobalVersion = ${getStringVersion(dbtGlobalVersion.installedVersion)} ` : '';
+    versions += dbtPythonVersion ? `dbtPythonVersion = ${getStringVersion(dbtPythonVersion.installedVersion)} ` : '';
+    versions += dbtRpcPythonVersion ? `dbtRpcPythonVersion = ${getStringVersion(dbtRpcPythonVersion.installedVersion)}` : '';
 
     console.log(versions);
 
-    if (dbtRpcPythonVersion) {
-      this.version = dbtRpcPythonVersion;
+    if (dbtRpcPythonVersion?.installedVersion) {
+      this.versionInfo = dbtRpcPythonVersion;
+      this.isDbtInPythonEnvironment = true;
       return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS, this.python);
     }
-    if (dbtPythonVersion) {
-      this.version = dbtPythonVersion;
-      return dbtPythonVersion.major >= 1 ? this.installAndFindCommandForV1() : new DbtCommand(FeatureFinder.LEGACY_DBT_PARAMS, this.python);
+    if (dbtPythonVersion?.installedVersion) {
+      this.versionInfo = dbtPythonVersion;
+      this.isDbtInPythonEnvironment = true;
+      return dbtPythonVersion.installedVersion.major >= 1
+        ? this.installAndFindCommandForV1()
+        : new DbtCommand(FeatureFinder.LEGACY_DBT_PARAMS, this.python);
     }
-    if (dbtRpcGlobalVersion) {
-      this.version = dbtRpcGlobalVersion;
+    if (dbtRpcGlobalVersion?.installedVersion) {
+      this.versionInfo = dbtRpcGlobalVersion;
+      this.isDbtInPythonEnvironment = false;
       return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS);
     }
-    if (dbtGlobalVersion) {
-      this.version = dbtGlobalVersion;
-      return dbtGlobalVersion.major >= 1 ? this.installAndFindCommandForV1() : new DbtCommand(FeatureFinder.LEGACY_DBT_PARAMS);
+    if (dbtGlobalVersion?.installedVersion) {
+      this.versionInfo = dbtGlobalVersion;
+      this.isDbtInPythonEnvironment = false;
+      return dbtGlobalVersion.installedVersion.major >= 1 ? this.installAndFindCommandForV1() : new DbtCommand(FeatureFinder.LEGACY_DBT_PARAMS);
     }
 
     return undefined;
@@ -102,39 +113,47 @@ export class FeatureFinder {
     return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS, this.python);
   }
 
-  private async findDbtRpcGlobalVersion(): Promise<DbtVersion | undefined> {
+  private async findDbtRpcGlobalVersion(): Promise<DbtVersionInfo> {
     return this.findCommandVersion(new DbtRpcCommand([FeatureFinder.VERSION_PARAM]));
   }
 
-  private async findDbtGlobalVersion(): Promise<DbtVersion | undefined> {
+  private async findDbtGlobalVersion(): Promise<DbtVersionInfo> {
     return this.findCommandVersion(new DbtCommand([FeatureFinder.VERSION_PARAM]));
   }
 
-  private async findDbtRpcPythonVersion(): Promise<DbtVersion | undefined> {
+  private async findDbtRpcPythonVersion(): Promise<DbtVersionInfo | undefined> {
     return this.findCommandPythonVersion(new DbtRpcCommand([FeatureFinder.VERSION_PARAM], this.python));
   }
 
-  private async findDbtPythonVersion(): Promise<DbtVersion | undefined> {
+  private async findDbtPythonVersion(): Promise<DbtVersionInfo | undefined> {
     return this.findCommandPythonVersion(new DbtCommand([FeatureFinder.VERSION_PARAM], this.python));
   }
 
-  private async findCommandPythonVersion(command: Command): Promise<DbtVersion | undefined> {
+  private async findCommandPythonVersion(command: Command): Promise<DbtVersionInfo | undefined> {
     return this.python ? this.findCommandVersion(command) : undefined;
   }
 
-  private async findCommandVersion(command: Command): Promise<DbtVersion | undefined> {
+  private async findCommandVersion(command: Command): Promise<DbtVersionInfo> {
     const { stdout, stderr } = await FeatureFinder.DBT_COMMAND_EXECUTOR.execute(command);
-    const vFromStderr = FeatureFinder.readVersion(stderr);
-    const vFromStdout = FeatureFinder.readVersion(stdout);
 
-    return vFromStderr ?? vFromStdout;
-  }
+    const installedVersionFromStderr =
+      FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_INSTALLED_VERSION_PATTERN) ??
+      FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_INSTALLED_VERSION_PATTERN_LESS_1_1_0);
+    const installedVersionFromStdout =
+      FeatureFinder.readVersionByPattern(stdout, FeatureFinder.DBT_INSTALLED_VERSION_PATTERN) ??
+      FeatureFinder.readVersionByPattern(stdout, FeatureFinder.DBT_INSTALLED_VERSION_PATTERN_LESS_1_1_0);
 
-  private static readVersion(data: string): DbtVersion | undefined {
-    return (
-      FeatureFinder.readVersionByPattern(data, FeatureFinder.DBT_VERSION_PATTERN) ??
-      FeatureFinder.readVersionByPattern(data, FeatureFinder.DBT_VERSION_PATTERN_LESS_1_1_0)
-    );
+    const latestVersionFromStderr =
+      FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_LATEST_VERSION_PATTERN) ??
+      FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_LATEST_VERSION_PATTERN_LESS_1_1_0);
+    const latestVersionFromStdout =
+      FeatureFinder.readVersionByPattern(stdout, FeatureFinder.DBT_LATEST_VERSION_PATTERN) ??
+      FeatureFinder.readVersionByPattern(stdout, FeatureFinder.DBT_LATEST_VERSION_PATTERN_LESS_1_1_0);
+
+    return {
+      installedVersion: installedVersionFromStderr ?? installedVersionFromStdout,
+      latestVersion: latestVersionFromStderr ?? latestVersionFromStdout,
+    };
   }
 
   private static readVersionByPattern(data: string, pattern: RegExp): DbtVersion | undefined {
@@ -151,7 +170,7 @@ export class FeatureFinder {
   private async installLatestDbtRpc(): Promise<void> {
     let installCommand = `${String(this.python)} -m pip install dbt-rpc`;
     if (this.dbtProfileType !== undefined) {
-      installCommand += ` ${FeatureFinder.DBT_ADAPTER_PREFIX}${this.dbtProfileType}`;
+      installCommand += ` ${FeatureFinder.DBT_ADAPTER_PREFIX}-${this.dbtProfileType}`;
     }
     await FeatureFinder.PROCESS_EXECUTOR.execProcess(installCommand);
   }
