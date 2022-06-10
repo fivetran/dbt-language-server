@@ -265,12 +265,7 @@ export class LspServer {
 
     if (errorMessageResult?.id === 'install') {
       console.log(`Trying to install dbt, dbt-rpc and ${dbtProfileType} adapter`);
-      const packagesToInstall =
-        this.featureFinder.versionInfo &&
-        this.featureFinder.versionInfo.installedVersion &&
-        this.featureFinder.versionInfo.installedVersion.major >= 1
-          ? DbtHelper.getFullDbtInstallationPackages(dbtProfileType)
-          : DbtHelper.getFullDbtInstallationPackagesLegacy();
+      const packagesToInstall = DbtHelper.getFullDbtInstallationPackages(dbtProfileType);
       const installResult = await DbtHelper.installDbtPackages(python, packagesToInstall);
       if (installResult.isOk()) {
         await this.prepareRpcServer(dbtProfileType);
