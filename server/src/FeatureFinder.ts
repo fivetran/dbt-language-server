@@ -99,17 +99,12 @@ export class FeatureFinder {
   }
 
   private async installAndFindCommandForV1(): Promise<Command | undefined> {
-    if (this.python === 'python') {
-      this.python = 'python3';
-    }
-
     try {
       await this.installLatestDbtRpc();
     } catch (e) {
       console.log('Error while installing dbt-rpc');
       return undefined;
     }
-
     return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS, this.python);
   }
 
