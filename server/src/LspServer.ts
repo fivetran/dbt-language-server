@@ -214,7 +214,7 @@ export class LspServer {
 
     this.python = await this.connection.sendRequest('custom/getPython');
     if (this.python === '') {
-      this.connection.window.showErrorMessage('Python was not found in your working environment.');
+      this.onPythonWasNotFound();
       return;
     }
     if (this.python === 'python') {
@@ -247,6 +247,13 @@ export class LspServer {
         await this.onRpcServerStartFailed(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
       }
     }
+  }
+
+  onPythonWasNotFound(): void {
+    this.progressReporter.sendFinish();
+    this.connection.window.showErrorMessage(
+      'Python was not found in your working environment. dbt Wizard requires valid python installation. Please visit https://www.python.org/downloads/.',
+    );
   }
 
   async onRpcServerFindFailed(): Promise<void> {
