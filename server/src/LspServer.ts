@@ -304,7 +304,7 @@ export class LspServer {
       compareVersions(this.featureFinder.versionInfo.installedVersion, this.featureFinder.versionInfo.latestVersion) === -1
     ) {
       this.suggestToUpdateDbt(this.python, dbtProfileType)
-        .then(() => this.connection.window.showInformationMessage('dbt successfully updated'))
+        .then(() => this.connection.window.showInformationMessage('dbt successfully updated. Please reload vscode.'))
         .catch(() => this.connection.window.showErrorMessage('dbt update failed.'));
     }
   }
