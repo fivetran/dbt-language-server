@@ -292,6 +292,8 @@ export class LspServer {
         this.connection.window.showInformationMessage(installResult.value);
         await this.prepareRpcServer(dbtProfileType);
       }
+    } else {
+      await this.onRpcServerFindFailed();
     }
   }
 
