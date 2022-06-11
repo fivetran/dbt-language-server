@@ -289,6 +289,7 @@ export class LspServer {
       const packagesToInstall = DbtHelper.getFullDbtInstallationPackages(dbtProfileType);
       const installResult = await DbtHelper.installDbtPackages(python, packagesToInstall);
       if (installResult.isOk()) {
+        this.connection.window.showInformationMessage(installResult.value);
         await this.prepareRpcServer(dbtProfileType);
       }
     }

@@ -22,12 +22,13 @@ export class DbtHelper {
     return ['dbt-core', 'dbt-postgres', 'dbt-redshift', 'dbt-snowflake', 'dbt-bigquery'];
   }
 
-  static async installDbtPackages(python: string, packages: string[], upgrade = false): Promise<Result<void, string>> {
+  static async installDbtPackages(python: string, packages: string[], upgrade = false): Promise<Result<string, string>> {
     const installDbtCommand = `${python} -m pip install ${upgrade ? DbtHelper.UPGRADE_PARAM : ''} ${packages.join(' ')}`;
     return DbtHelper.PROCESS_EXECUTOR.execProcess(installDbtCommand.toString())
       .then(() => {
-        console.log(`dbt packages successfully installed ('${installDbtCommand.toString()}')`);
-        return ok(undefined);
+        const successMessage = `dbt packages successfully installed ('${installDbtCommand.toString()}')`;
+        console.log(successMessage);
+        return ok(successMessage);
       })
       .catch((error: string) => {
         const errorMessage = `dbt packages installation failed ('${installDbtCommand.toString()}'). Reason: ${error}`;
