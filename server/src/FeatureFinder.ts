@@ -33,7 +33,7 @@ export class FeatureFinder {
   private static readonly DBT_LATEST_VERSION_PATTERN_LESS_1_1_0 = /latest version:\s+(\d+)\.(\d+)\.(\d+)/;
   private static readonly DBT_LATEST_VERSION_PATTERN = /latest:\s+(\d+)\.(\d+)\.(\d+)/;
 
-  private static readonly DBT_ADAPTER_VERSION_PATTERN_PREFIX = ':\\s+(\\d+).(\\d+)\\.(d+)';
+  private static readonly DBT_ADAPTER_VERSION_PATTERN_PREFIX = ':\\s+(\\d+).(\\d+).(\\d+)';
 
   private static readonly PROCESS_EXECUTOR = new ProcessExecutor();
   private static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
