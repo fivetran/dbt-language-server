@@ -1,6 +1,7 @@
 export interface DbtVersionInfo {
   installedVersion?: DbtVersion;
   latestVersion?: DbtVersion;
+  installedPlugin?: DbtVersion;
 }
 
 export interface DbtVersion {
