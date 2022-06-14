@@ -78,7 +78,7 @@ export class SourceDefinitionProvider implements DbtNodeDefinitionProvider {
     return undefined;
   }
 
-  private getSourceRange(lines: string[], tableName: string): Range | undefined {
+  getSourceRange(lines: string[], tableName: string): Range | undefined {
     const tablePattern = new RegExp(`-\\s*name:\\s*${tableName}\\s*$`);
     for (let index = 0; index < lines.length; index++) {
       const line = lines[index];
