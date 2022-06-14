@@ -17,6 +17,10 @@ describe('SqlRefConverter', () => {
       database: 'db',
       schema: 'schema',
       packageName: 'test_package',
+      dependsOn: {
+        nodes: [],
+      },
+      refs: [],
     }));
   }
 
@@ -44,6 +48,10 @@ describe('SqlRefConverter', () => {
           database: 'db',
           schema: 'schema',
           packageName: 'test_package',
+          dependsOn: {
+            nodes: [],
+          },
+          refs: [],
         },
       ],
     );

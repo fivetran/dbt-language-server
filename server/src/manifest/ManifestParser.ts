@@ -13,6 +13,10 @@ interface RawNode {
   schema: string;
   source_name: string;
   columns: { name: string }[];
+  depends_on: {
+    nodes: string[];
+  };
+  refs: string[][];
 }
 
 interface RawManifest {
@@ -53,6 +57,8 @@ export class ManifestParser {
           packageName: n.package_name,
           database: n.database,
           schema: n.schema,
+          dependsOn: n.depends_on,
+          refs: n.refs,
         }));
     }
     return [];
