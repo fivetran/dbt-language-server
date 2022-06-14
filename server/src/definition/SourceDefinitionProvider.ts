@@ -82,7 +82,7 @@ export class SourceDefinitionProvider implements DbtNodeDefinitionProvider {
     const tablePattern = new RegExp(`-\\s*name:\\s*${tableName}\\s*$`);
     for (let index = 0; index < lines.length; index++) {
       const line = lines[index];
-      if (tablePattern.test(line)) {
+      if (line.includes(tableName) && tablePattern.test(line)) {
         const tableIndex = line.indexOf(tableName);
         return Range.create(index, tableIndex, index, tableIndex + tableName.length);
       }
