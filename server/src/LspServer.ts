@@ -253,7 +253,7 @@ export class LspServer {
   onPythonWasNotFound(): void {
     this.progressReporter.sendFinish();
     this.connection.window.showErrorMessage(
-      'Python was not found in your working environment. dbt Wizard requires valid python installation. Please visit https://www.python.org/downloads/.',
+      'Python was not found in your working environment. dbt Wizard requires valid python installation. Please visit [https://www.python.org/downloads](https://www.python.org/downloads).',
     );
   }
 
