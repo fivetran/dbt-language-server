@@ -67,6 +67,7 @@ export class LspServer {
   sqlToRefCommandName = randomUUID();
   workspaceFolder: string;
   python?: string;
+  dbtProfileType?: string;
   hasConfigurationCapability = false;
   dbtRpcServer = new DbtRpcServer();
   dbtRpcClient = new DbtRpcClient();
@@ -182,9 +183,9 @@ export class LspServer {
       s => s,
       e => e,
     );
-    const dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
+    this.dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
 
-    await Promise.all([this.prepareRpcServer(dbtProfileType), this.prepareDestination(profileResult)]);
+    await Promise.all([this.prepareRpcServer(this.dbtProfileType), this.prepareDestination(profileResult)]);
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime, this.initDbtRpcAttempt);
   }
@@ -273,7 +274,7 @@ export class LspServer {
     const actions = { title: 'Retry', id: 'retry' };
     const errorMessageResult = await this.connection.window.showErrorMessage(message, actions);
     if (errorMessageResult?.id === 'retry') {
-      await this.prepareRpcServer();
+      await this.prepareRpcServer(this.dbtProfileType);
     }
   }
 
@@ -291,6 +292,8 @@ export class LspServer {
       if (installResult.isOk()) {
         this.connection.window.showInformationMessage(installResult.value);
         await this.prepareRpcServer(dbtProfileType);
+      } else {
+        await this.onRpcServerStartFailed(installResult.error);
       }
     } else {
       await this.onRpcServerFindFailed();
