@@ -1,3 +1,5 @@
+import { ResolvedOutputColumnProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedOutputColumnProto';
+
 export class TableDefinition {
   namePath: string[];
   rawName?: string;
@@ -8,6 +10,7 @@ export class TableDefinition {
   projectName?: string;
   dataSetName?: string;
   tableName?: string;
+  columns?: ResolvedOutputColumnProto__Output[];
 
   constructor(namePath: string[]) {
     if (namePath.length === 1 && namePath[0].indexOf('.') > 0) {

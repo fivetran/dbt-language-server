@@ -191,7 +191,11 @@ export class LspServer {
 
   async prepareDestination(profileResult: Result<DbtProfileSuccess, DbtProfileError>): Promise<void> {
     if (profileResult.isOk() && profileResult.value.dbtProfile) {
-      const bigQueryContextInfo = await BigQueryContext.createContext(profileResult.value.dbtProfile, profileResult.value.targetConfig);
+      const bigQueryContextInfo = await BigQueryContext.createContext(
+        profileResult.value.dbtProfile,
+        profileResult.value.targetConfig,
+        this.dbtRepository,
+      );
       if (bigQueryContextInfo.isOk()) {
         this.bigQueryContext = bigQueryContextInfo.value;
       } else {
@@ -320,6 +324,7 @@ export class LspServer {
     this.dbtRpcClient.setPort(port);
     try {
       await this.dbtRpcServer.startDbtRpc(command, this.dbtRpcClient);
+      await this.dbtRpcClient.compile();
     } finally {
       this.progressReporter.sendFinish();
     }

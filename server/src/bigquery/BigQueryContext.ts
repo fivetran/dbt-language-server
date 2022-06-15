@@ -2,7 +2,9 @@ import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/z
 import { err, ok, Result } from 'neverthrow';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtProfile, TargetConfig } from '../DbtProfile';
+import { DbtRepository } from '../DbtRepository';
 import { DestinationDefinition } from '../DestinationDefinition';
+import { NewZetaSqlWrapper } from '../NewZetaSqlWrapper';
 import { SchemaTracker } from '../SchemaTracker';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 import { BigQueryClient } from './BigQueryClient';
@@ -12,9 +14,14 @@ export class BigQueryContext {
     public schemaTracker: SchemaTracker,
     public destinationDefinition: DestinationDefinition,
     public zetaSqlWrapper: ZetaSqlWrapper,
+    public newZetaSqlWrapper: NewZetaSqlWrapper,
   ) {}
 
-  public static async createContext(dbtProfile: DbtProfile, targetConfig: Required<TargetConfig>): Promise<Result<BigQueryContext, string>> {
+  public static async createContext(
+    dbtProfile: DbtProfile,
+    targetConfig: Required<TargetConfig>,
+    dbtRepository: DbtRepository,
+  ): Promise<Result<BigQueryContext, string>> {
     try {
       const clientResult = await dbtProfile.createClient(targetConfig);
       if (clientResult.isErr()) {
@@ -28,8 +35,10 @@ export class BigQueryContext {
       const zetaSqlWrapper = new ZetaSqlWrapper();
       await zetaSqlWrapper.initializeZetaSql();
 
+      const newZetaSqlWrapper = new NewZetaSqlWrapper(dbtRepository, bigQueryClient);
+
       const schemaTracker = new SchemaTracker(bigQueryClient, zetaSqlWrapper);
-      return ok(new BigQueryContext(schemaTracker, destinationDefinition, zetaSqlWrapper));
+      return ok(new BigQueryContext(schemaTracker, destinationDefinition, zetaSqlWrapper, newZetaSqlWrapper));
     } catch (e) {
       console.log(e instanceof Error ? e.stack : e);
       const message = e instanceof Error ? e.message : JSON.stringify(e);

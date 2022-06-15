@@ -1,4 +1,6 @@
 import { SimpleCatalog, SimpleTable } from '@fivetrandevelopers/zetasql';
+import { SimpleCatalogProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleCatalogProto';
+import { NewZetaSqlWrapper } from './NewZetaSqlWrapper';
 import { TableDefinition } from './TableDefinition';
 import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 
@@ -161,6 +163,34 @@ export class InformationSchemaConfigurator {
       const table = new SimpleTable(tableName);
       informationSchemaCatalog.addSimpleTable(tableName, table);
       tableDefinition.forEach((type, name) => ZetaSqlWrapper.addColumn(table, { name, type }, tableName));
+    }
+  }
+
+  fillInformationSchema2(tableDefinition: TableDefinition, dataSetCatalog: SimpleCatalogProto): void {
+    let informationSchemaCatalog = dataSetCatalog.catalog?.find(c => c.name === InformationSchemaConfigurator.INFORMATION_SCHEMA);
+    if (!informationSchemaCatalog) {
+      informationSchemaCatalog = {
+        name: InformationSchemaConfigurator.INFORMATION_SCHEMA,
+      };
+      if (!dataSetCatalog.catalog) {
+        dataSetCatalog.catalog = [];
+      }
+      dataSetCatalog.catalog.push(informationSchemaCatalog);
+    }
+    this.addInformationSchemaTableColumns2(tableDefinition.getTableName(), informationSchemaCatalog);
+  }
+
+  addInformationSchemaTableColumns2(tableName: string, informationSchemaCatalog: SimpleCatalogProto): void {
+    const tableDefinition = InformationSchemaConfigurator.INFORMATION_SCHEMA_COLUMNS.get(tableName);
+    if (tableDefinition && !informationSchemaCatalog.table?.find(t => t.name === tableName)) {
+      const table = {
+        name: tableName,
+      };
+      if (!informationSchemaCatalog.table) {
+        informationSchemaCatalog.table = [];
+      }
+      informationSchemaCatalog.table.push(table);
+      tableDefinition.forEach((type, name) => NewZetaSqlWrapper.addColumn(table, { name, type }));
     }
   }
 }
