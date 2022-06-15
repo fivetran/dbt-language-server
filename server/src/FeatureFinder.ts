@@ -1,6 +1,6 @@
 import { Result } from 'neverthrow';
 import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
-import { DbtVersion, DbtVersionInfo, getStringVersion } from './DbtVersion';
+import { DbtVersionInfo, getStringVersion, Version } from './DbtVersion';
 import { Command } from './dbt_commands/Command';
 import { DbtCommand } from './dbt_commands/DbtCommand';
 import { DbtCommandExecutor } from './dbt_commands/DbtCommandExecutor';
@@ -151,7 +151,7 @@ export class FeatureFinder {
     };
   }
 
-  private static readVersionByPattern(data: string, pattern: RegExp): DbtVersion | undefined {
+  private static readVersionByPattern(data: string, pattern: RegExp): Version | undefined {
     const matchResults = data.match(pattern);
     return matchResults?.length === 4
       ? {
