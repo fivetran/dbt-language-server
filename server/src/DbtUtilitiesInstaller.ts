@@ -18,12 +18,12 @@ export class DbtUtilitiesInstaller {
     const installDbtCommand = `${python} -m pip install ${upgrade ? DbtUtilitiesInstaller.UPGRADE_PARAM : ''} ${packages.join(' ')}`;
     return DbtUtilitiesInstaller.PROCESS_EXECUTOR.execProcess(installDbtCommand)
       .then(() => {
-        const successMessage = `dbt packages successfully installed ('${installDbtCommand.toString()}')`;
+        const successMessage = `dbt packages successfully installed ('${installDbtCommand}')`;
         console.log(successMessage);
         return ok(successMessage);
       })
       .catch((error: string) => {
-        const errorMessage = `dbt packages installation failed ('${installDbtCommand.toString()}'). Reason: ${error}`;
+        const errorMessage = `dbt packages installation failed ('${installDbtCommand}'). Reason: ${error}`;
         console.log(errorMessage);
         return err(errorMessage);
       });
