@@ -14,14 +14,6 @@ export class DbtHelper {
     return [DbtHelper.DBT_CORE, DbtHelper.DBT_RPC, DbtHelper.buildAdapterPackageName(dbtProfileType)];
   }
 
-  static getFullDbtInstallationPackagesLegacy(): string[] {
-    /** From dbt console error:
-     * For the previous behavior of `pip install dbt`:
-     * pip install dbt-core dbt-postgres dbt-redshift dbt-snowflake dbt-bigquery
-     */
-    return ['dbt-core', 'dbt-postgres', 'dbt-redshift', 'dbt-snowflake', 'dbt-bigquery'];
-  }
-
   static async installDbtPackages(python: string, packages: string[], upgrade = false): Promise<Result<string, string>> {
     const installDbtCommand = `${python} -m pip install ${upgrade ? DbtHelper.UPGRADE_PARAM : ''} ${packages.join(' ')}`;
     return DbtHelper.PROCESS_EXECUTOR.execProcess(installDbtCommand.toString())
