@@ -15,18 +15,17 @@ export class DbtUtilitiesInstaller {
   }
 
   static async installPackages(python: string, packages: string[], upgrade = false): Promise<Result<string, string>> {
-    const installDbtCommand = `${python} -m pip install ${upgrade ? DbtUtilitiesInstaller.UPGRADE_PARAM : ''} ${packages.join(' ')}`;
-    return DbtUtilitiesInstaller.PROCESS_EXECUTOR.execProcess(installDbtCommand)
-      .then(() => {
-        const successMessage = `dbt packages successfully installed ('${installDbtCommand}')`;
-        console.log(successMessage);
-        return ok(successMessage);
-      })
-      .catch((error: string) => {
-        const errorMessage = `dbt packages installation failed ('${installDbtCommand}'). Reason: ${error}`;
-        console.log(errorMessage);
-        return err(errorMessage);
-      });
+    const installCommand = `${python} -m pip install ${upgrade ? DbtUtilitiesInstaller.UPGRADE_PARAM : ''} ${packages.join(' ')}`;
+    try {
+      await DbtUtilitiesInstaller.PROCESS_EXECUTOR.execProcess(installCommand);
+      const successMessage = `Packages successfully installed ('${installCommand}')`;
+      console.log(successMessage);
+      return ok(successMessage);
+    } catch (e) {
+      const errorMessage = `Packages installation failed ('${installCommand}'). Reason: ${e instanceof Error ? e.message : String(e)}`;
+      console.log(errorMessage);
+      return err(errorMessage);
+    }
   }
 
   static buildAdapterPackageName(dbtProfileType: string): string {
