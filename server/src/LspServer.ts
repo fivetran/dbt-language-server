@@ -281,7 +281,7 @@ export class LspServer {
   async suggestToInstallDbt(python: string, dbtProfileType: string): Promise<void> {
     const actions = { title: 'Install', id: 'install' };
     const errorMessageResult = await this.connection.window.showErrorMessage(
-      'dbt is not installed. Would you like to install dbt and related packages?',
+      `dbt is not installed. Would you like to install dbt, dbt-rpc and ${dbtProfileType} adapter?`,
       actions,
     );
 
