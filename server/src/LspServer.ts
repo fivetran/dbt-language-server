@@ -35,12 +35,12 @@ import {
 } from 'vscode-languageserver';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
-import { DbtHelper } from './DbtHelper';
 import { DbtProfileCreator, DbtProfileError, DbtProfileResult, DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
 import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcServer } from './DbtRpcServer';
+import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
 import { compareVersions, getStringVersion } from './DbtVersion';
 import { Command as DbtCommand } from './dbt_commands/Command';
 import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
@@ -286,8 +286,8 @@ export class LspServer {
 
     if (errorMessageResult?.id === 'install') {
       console.log(`Trying to install dbt, dbt-rpc and ${dbtProfileType} adapter`);
-      const packagesToInstall = DbtHelper.getFullDbtInstallationPackages(dbtProfileType);
-      const installResult = await DbtHelper.installDbtPackages(python, packagesToInstall);
+      const packagesToInstall = DbtUtilitiesInstaller.getFullDbtInstallationPackages(dbtProfileType);
+      const installResult = await DbtUtilitiesInstaller.installPackages(python, packagesToInstall);
       if (installResult.isOk()) {
         this.connection.window.showInformationMessage(installResult.value);
         await this.prepareRpcServer(dbtProfileType);
@@ -321,8 +321,8 @@ export class LspServer {
 
     if (informationMessageResult?.id === 'update') {
       console.log(`Trying to update dbt`);
-      const packagesToUpdate = [DbtHelper.buildAdapterPackageName(dbtProfileType)];
-      await DbtHelper.installDbtPackages(python, packagesToUpdate, true);
+      const packagesToUpdate = [DbtUtilitiesInstaller.buildAdapterPackageName(dbtProfileType)];
+      await DbtUtilitiesInstaller.installPackages(python, packagesToUpdate, true);
     }
   }
 
