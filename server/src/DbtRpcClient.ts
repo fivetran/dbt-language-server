@@ -50,7 +50,7 @@ type StatusParams = Params;
 
 interface CompileModelParams extends Params {
   threads?: string;
-  models: string;
+  models?: string;
 }
 
 interface PollParams extends Params {
@@ -93,7 +93,7 @@ export class DbtRpcClient {
     return this.makePostRequest<StatusResponse>(data);
   }
 
-  async compileModel(modelName: string): Promise<CompileResponse | undefined> {
+  async compile(modelName?: string): Promise<CompileResponse | undefined> {
     const data = this.getDefaultPostData('compile');
     data.params = { models: modelName };
 

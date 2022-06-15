@@ -38,7 +38,7 @@ export class DbtCompileJob {
       const startCompileResponse = await retry(
         async bail => {
           // Here dbt-rpc can be in compilation state after HUP signal and return an error
-          const compileResponseAttempt = await this.dbtRpcClient.compileModel(this.modelName);
+          const compileResponseAttempt = await this.dbtRpcClient.compile(this.modelName);
 
           if (this.stopRequired) {
             bail(new Error(DbtCompileJob.STOP_ERROR));
