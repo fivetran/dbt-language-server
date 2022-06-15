@@ -140,8 +140,7 @@ export class FeatureFinder {
       FeatureFinder.readVersionByPattern(stdout, FeatureFinder.DBT_LATEST_VERSION_PATTERN) ??
       FeatureFinder.readVersionByPattern(stdout, FeatureFinder.DBT_LATEST_VERSION_PATTERN_LESS_1_1_0);
 
-    const dbtAdapterPattern = dbtProfileType + FeatureFinder.DBT_ADAPTER_VERSION_PATTERN_PREFIX;
-    const dbtAdapterRegex = new RegExp(dbtAdapterPattern);
+    const dbtAdapterRegex = new RegExp(dbtProfileType + FeatureFinder.DBT_ADAPTER_VERSION_PATTERN_PREFIX);
     const adapterVersionFromStderr = FeatureFinder.readVersionByPattern(stderr, dbtAdapterRegex);
     const adapterVersionFromStdout = FeatureFinder.readVersionByPattern(stdout, dbtAdapterRegex);
 
