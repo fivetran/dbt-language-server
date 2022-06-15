@@ -81,7 +81,7 @@ export class LspServer {
   dbtProfileCreator = new DbtProfileCreator(this.dbtProject, '~/.dbt/profiles.yml');
   manifestParser = new ManifestParser();
   dbtRepository = new DbtRepository();
-  featureFinder = new FeatureFinder();
+  featureFinder?: FeatureFinder;
   dbtDocumentKindResolver = new DbtDocumentKindResolver(this.dbtRepository);
   initStart = performance.now();
   initDbtRpcAttempt = 0;
@@ -222,13 +222,11 @@ export class LspServer {
       this.python = 'python3';
     }
 
-    const [command, dbtPort] = await Promise.all([
-      this.featureFinder.findDbtRpcCommand(this.python, dbtProfileType),
-      this.featureFinder.findFreePort(),
-    ]);
+    this.featureFinder = new FeatureFinder(this.python, this.dbtProfileType);
+
+    const [command, dbtPort] = await Promise.all([this.featureFinder.findDbtRpcCommand(), this.featureFinder.findFreePort()]);
 
     if (command === undefined) {
-      this.featureFinder = new FeatureFinder();
       try {
         if (dbtProfileType) {
           await this.suggestToInstallDbt(this.python, dbtProfileType);
@@ -304,6 +302,7 @@ export class LspServer {
     if (
       this.python &&
       dbtProfileType &&
+      this.featureFinder &&
       this.featureFinder.isDbtInPythonEnvironment &&
       this.featureFinder.versionInfo?.installedVersion &&
       this.featureFinder.versionInfo.latestVersion &&
@@ -331,8 +330,8 @@ export class LspServer {
 
   logStartupInfo(contextInfo: DbtProfileResult, initTime: number, initDbtRpcAttempt: number): void {
     this.sendTelemetry('log', {
-      dbtVersion: getStringVersion(this.featureFinder.versionInfo?.installedVersion),
-      python: this.featureFinder.python ?? 'undefined',
+      dbtVersion: getStringVersion(this.featureFinder && this.featureFinder.versionInfo?.installedVersion),
+      python: this.python ?? 'undefined',
       initTime: initTime.toString(),
       type: contextInfo.type ?? 'unknown type',
       method: contextInfo.method ?? 'unknown method',

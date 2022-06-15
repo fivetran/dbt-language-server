@@ -2,13 +2,13 @@ import { err, ok, Result } from 'neverthrow';
 import { ProcessExecutor } from './ProcessExecutor';
 
 export class DbtUtilitiesInstaller {
-  private static readonly DBT_CORE = 'dbt-core';
-  private static readonly DBT_RPC = 'dbt-rpc';
-  private static readonly DBT_PREFIX = 'dbt';
+  static readonly DBT_CORE = 'dbt-core';
+  static readonly DBT_RPC = 'dbt-rpc';
+  static readonly DBT_PREFIX = 'dbt';
 
-  private static readonly UPGRADE_PARAM = '--upgrade';
+  static readonly UPGRADE_PARAM = '--upgrade';
 
-  private static readonly PROCESS_EXECUTOR = new ProcessExecutor();
+  static readonly PROCESS_EXECUTOR = new ProcessExecutor();
 
   static getFullDbtInstallationPackages(dbtProfileType: string): string[] {
     return [DbtUtilitiesInstaller.DBT_CORE, DbtUtilitiesInstaller.DBT_RPC, DbtUtilitiesInstaller.buildAdapterPackageName(dbtProfileType)];

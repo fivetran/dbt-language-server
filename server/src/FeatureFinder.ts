@@ -1,9 +1,10 @@
+import { Result } from 'neverthrow';
+import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
 import { DbtVersion, DbtVersionInfo, getStringVersion } from './DbtVersion';
 import { Command } from './dbt_commands/Command';
 import { DbtCommand } from './dbt_commands/DbtCommand';
 import { DbtCommandExecutor } from './dbt_commands/DbtCommandExecutor';
 import { DbtRpcCommand } from './dbt_commands/DbtRpcCommand';
-import { ProcessExecutor } from './ProcessExecutor';
 import { randomNumber } from './utils/Utils';
 import findFreePortPmfy = require('find-free-port');
 
@@ -26,8 +27,6 @@ export class FeatureFinder {
     `${FeatureFinder.PORT_PARAM}`,
   ];
 
-  private static readonly DBT_ADAPTER_PREFIX = 'dbt';
-
   private static readonly DBT_INSTALLED_VERSION_PATTERN_LESS_1_1_0 = /installed version: (\d+)\.(\d+)\.(\d+)/;
   private static readonly DBT_INSTALLED_VERSION_PATTERN = /installed:\s+(\d+)\.(\d+)\.(\d+)/;
   private static readonly DBT_LATEST_VERSION_PATTERN_LESS_1_1_0 = /latest version:\s+(\d+)\.(\d+)\.(\d+)/;
@@ -35,22 +34,18 @@ export class FeatureFinder {
 
   private static readonly DBT_ADAPTER_VERSION_PATTERN_PREFIX = ':\\s+(\\d+).(\\d+).(\\d+)';
 
-  private static readonly PROCESS_EXECUTOR = new ProcessExecutor();
   private static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
 
-  python?: string;
-  dbtProfileType?: string;
   versionInfo?: DbtVersionInfo;
   isDbtInPythonEnvironment?: boolean;
+
+  constructor(private python: string, private dbtProfileType?: string) {}
 
   /** Tries to find a suitable command to start the server first in the current Python environment and then in the global scope.
    * Installs dbt-rpc for dbt version > 1.0.0.
    * @returns {Command} or `undefined` if nothing is found
    */
-  async findDbtRpcCommand(python: string, dbtProfileType?: string): Promise<Command | undefined> {
-    this.python = python;
-    this.dbtProfileType = dbtProfileType;
-
+  async findDbtRpcCommand(): Promise<Command | undefined> {
     const settledResults = await Promise.allSettled([
       this.findDbtRpcPythonVersion(),
       this.findDbtPythonVersion(),
@@ -101,13 +96,11 @@ export class FeatureFinder {
   }
 
   private async installAndFindCommandForV1(): Promise<Command | undefined> {
-    try {
-      await this.installLatestDbtRpc();
-    } catch (e) {
-      console.log('Error while installing dbt-rpc');
-      return undefined;
+    const installResult = await this.installLatestDbtRpc();
+    if (installResult.isOk()) {
+      return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS, this.python);
     }
-    return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS, this.python);
+    return undefined;
   }
 
   private async findDbtRpcGlobalVersion(): Promise<DbtVersionInfo | undefined> {
@@ -170,11 +163,11 @@ export class FeatureFinder {
       : undefined;
   }
 
-  private async installLatestDbtRpc(): Promise<void> {
-    let installCommand = `${String(this.python)} -m pip install dbt-rpc`;
-    if (this.dbtProfileType !== undefined) {
-      installCommand += ` ${FeatureFinder.DBT_ADAPTER_PREFIX}-${this.dbtProfileType}`;
+  private async installLatestDbtRpc(): Promise<Result<string, string>> {
+    const packages = [DbtUtilitiesInstaller.DBT_RPC];
+    if (this.dbtProfileType) {
+      packages.push(DbtUtilitiesInstaller.buildAdapterPackageName(this.dbtProfileType));
     }
-    await FeatureFinder.PROCESS_EXECUTOR.execProcess(installCommand);
+    return DbtUtilitiesInstaller.installPackages(this.python, packages);
   }
 }
