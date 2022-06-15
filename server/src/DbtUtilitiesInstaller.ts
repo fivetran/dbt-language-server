@@ -16,7 +16,7 @@ export class DbtUtilitiesInstaller {
 
   static async installPackages(python: string, packages: string[], upgrade = false): Promise<Result<string, string>> {
     const installDbtCommand = `${python} -m pip install ${upgrade ? DbtUtilitiesInstaller.UPGRADE_PARAM : ''} ${packages.join(' ')}`;
-    return DbtUtilitiesInstaller.PROCESS_EXECUTOR.execProcess(installDbtCommand.toString())
+    return DbtUtilitiesInstaller.PROCESS_EXECUTOR.execProcess(installDbtCommand)
       .then(() => {
         const successMessage = `dbt packages successfully installed ('${installDbtCommand.toString()}')`;
         console.log(successMessage);
