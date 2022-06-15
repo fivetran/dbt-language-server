@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import * as path from 'path';
 import { DefinitionLink, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -62,14 +63,29 @@ export class SourceDefinitionProvider implements DbtNodeDefinitionProvider {
   getTableDefinitions(source: string, table: string, dbtSources: ManifestSource[], tableSelectionRange: Range): DefinitionLink[] | undefined {
     const foundSource = dbtSources.find(s => s.sourceName === source && s.name === table);
     if (foundSource) {
+      const sourceDefinitionFileContent = fs.readFileSync(foundSource.originalFilePath, 'utf8');
+      const sourceDefinitionFileLines = sourceDefinitionFileContent.split('\n');
+      const targetRange = this.getSourceRange(sourceDefinitionFileLines, table);
       return [
         LocationLink.create(
           path.join(foundSource.rootPath, foundSource.originalFilePath),
-          DbtDefinitionProvider.MAX_RANGE,
-          DbtDefinitionProvider.MAX_RANGE,
+          targetRange ?? DbtDefinitionProvider.MAX_RANGE,
+          targetRange ?? DbtDefinitionProvider.MAX_RANGE,
           tableSelectionRange,
         ),
       ];
+    }
+    return undefined;
+  }
+
+  getSourceRange(lines: string[], tableName: string): Range | undefined {
+    const tablePattern = new RegExp(`-\\s*name:\\s*${tableName}\\s*$`);
+    for (let index = 0; index < lines.length; index++) {
+      const line = lines[index];
+      if (line.includes(tableName) && tablePattern.test(line)) {
+        const tableIndex = line.indexOf(tableName);
+        return Range.create(index, tableIndex, index, tableIndex + tableName.length);
+      }
     }
     return undefined;
   }

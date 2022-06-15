@@ -63,8 +63,8 @@ suite('Postgres destination', () => {
       {
         originSelectionRange: new Range(1, 32, 1, 37),
         targetUri: getCustomDocUri('postgres/models/sources/users_orders.yml'),
-        targetRange: MAX_RANGE,
-        targetSelectionRange: MAX_RANGE,
+        targetRange: new Range(20, 14, 20, 19),
+        targetSelectionRange: new Range(20, 14, 20, 19),
       },
     ]);
   });

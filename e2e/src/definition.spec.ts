@@ -76,8 +76,8 @@ suite('source definitions', () => {
       {
         originSelectionRange: new Range(4, 31, 4, 36),
         targetUri: getDocUri('sources/new_project.yml'),
-        targetRange: MAX_RANGE,
-        targetSelectionRange: MAX_RANGE,
+        targetRange: new Range(9, 14, 9, 19),
+        targetSelectionRange: new Range(9, 14, 9, 19),
       },
     ]);
   });
