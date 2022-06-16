@@ -139,3 +139,7 @@ export function getFilePathRelatedToWorkspace(docUri: string, workspaceFolder: s
   const index = docUri.indexOf(workspaceFolder);
   return docUri.slice(index + workspaceFolder.length + 1);
 }
+
+export function arraysAreEqual(a1: string[], a2: string[]): boolean {
+  return a1.length === a2.length && a1.every((value, index) => value === a2[index]);
+}

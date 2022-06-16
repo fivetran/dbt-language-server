@@ -5,8 +5,9 @@ import { LanguageVersion } from '@fivetrandevelopers/zetasql/lib/types/zetasql/L
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ExtractTableNamesFromStatementResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ExtractTableNamesFromStatementResponse';
 import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRecordType';
-import { ResolvedOutputColumnProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedOutputColumnProto';
+import { ResolvedOutputColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedOutputColumnProto';
 import { SimpleCatalogProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleCatalogProto';
+import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
 import { SimpleTableProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleTableProto';
 import { StructFieldProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/StructFieldProto';
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
@@ -17,6 +18,7 @@ import { DbtRepository } from './DbtRepository';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
 import { ManifestModel } from './manifest/ManifestJson';
 import { ColumnDefinition, TableDefinition } from './TableDefinition';
+import { arraysAreEqual } from './utils/Utils';
 import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 import path = require('path');
 
@@ -42,27 +44,21 @@ export class NewZetaSqlWrapper {
   }
 
   isTableRegistered(table: TableDefinition): boolean {
-    return this.registeredTables.some(t => this.arraysAreEqual(t.namePath, table.namePath) && t.rawName === table.rawName);
-  }
-
-  isTableRef(model: ManifestModel, name: string): boolean {
-    for (const ref of model.refs) {
-      if (ref.includes(name)) {
-        // TODO
-        return true;
-      }
-    }
-    return false;
+    return this.registeredTables.some(t => arraysAreEqual(t.namePath, table.namePath) && t.rawName === table.rawName);
   }
 
   getTableRef(model: ManifestModel, name: string): string[] | undefined {
-    for (const ref of model.refs) {
-      if (ref.includes(name)) {
-        // TODO
-        return ref;
-      }
+    return model.refs.find(ref => ref.findIndex(r => r === name) === ref.length - 1);
+  }
+
+  static addChildCatalog(parent: SimpleCatalogProto, name: string): SimpleCatalogProto {
+    let child = parent.catalog?.find(c => c.name === name);
+    if (!child) {
+      child = { name };
+      parent.catalog = parent.catalog ?? [];
+      parent.catalog.push(child);
     }
-    return undefined;
+    return child;
   }
 
   registerTable(table: TableDefinition): void {
@@ -73,32 +69,12 @@ export class NewZetaSqlWrapper {
     if (!table.rawName) {
       const projectId = table.getProjectName();
       if (projectId) {
-        let projectCatalog = this.catalog.catalog?.find(c => c.name === projectId);
-        if (!projectCatalog) {
-          projectCatalog = {
-            name: projectId,
-          };
-          if (!this.catalog.catalog) {
-            this.catalog.catalog = [];
-          }
-          this.catalog.catalog.push(projectCatalog);
-        }
-        parent = projectCatalog;
+        parent = NewZetaSqlWrapper.addChildCatalog(this.catalog, projectId);
       }
 
       const dataSetName = table.getDataSetName();
       if (dataSetName) {
-        let dataSetCatalog = parent.catalog?.find(c => c.name === dataSetName);
-        if (!dataSetCatalog) {
-          dataSetCatalog = {
-            name: dataSetName,
-          };
-          if (!parent.catalog) {
-            parent.catalog = [];
-          }
-          parent.catalog.push(dataSetCatalog);
-        }
-        parent = dataSetCatalog;
+        parent = NewZetaSqlWrapper.addChildCatalog(parent, dataSetName);
       }
     }
 
@@ -111,47 +87,30 @@ export class NewZetaSqlWrapper {
         existingTable = {
           name: tableName,
         };
-        if (!parent.table) {
-          parent.table = [];
-        }
+        parent.table = parent.table ?? [];
         parent.table.push(existingTable);
       }
 
-      // TODO
-      if (table.schema) {
-        for (const newColumn of table.schema.fields) {
-          NewZetaSqlWrapper.addColumn(existingTable, newColumn);
-        }
-      } else if (table.columns) {
-        for (const newColumn of table.columns) {
-          NewZetaSqlWrapper.addPreparedColumn(existingTable, newColumn);
-        }
+      for (const newColumn of table.columns ?? []) {
+        NewZetaSqlWrapper.addColumn(existingTable, newColumn);
       }
 
       if (table.timePartitioning) {
-        NewZetaSqlWrapper.addColumn(existingTable, { name: ZetaSqlWrapper.PARTITION_TIME, type: 'timestamp' });
-        NewZetaSqlWrapper.addColumn(existingTable, { name: ZetaSqlWrapper.PARTITION_DATE, type: 'date' });
+        NewZetaSqlWrapper.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_TIME, 'timestamp');
+        NewZetaSqlWrapper.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_DATE, 'date');
       }
     }
   }
 
-  static addColumn(table: SimpleTableProto, newColumn: ColumnDefinition): void {
-    NewZetaSqlWrapper.addColumnWithType(table, newColumn.name, NewZetaSqlWrapper.createType(newColumn));
+  static addPartitioningColumn(existingTable: SimpleTableProto, name: string, type: string): void {
+    NewZetaSqlWrapper.addColumn(existingTable, NewZetaSqlWrapper.createSimpleColumn(name, NewZetaSqlWrapper.createType({ name, type })));
   }
 
-  static addPreparedColumn(table: SimpleTableProto, newColumn: ResolvedOutputColumnProto__Output): void {
-    NewZetaSqlWrapper.addColumnWithType(table, newColumn.name, newColumn.column?.type);
-  }
-
-  static addColumnWithType(table: SimpleTableProto, name: string, type?: TypeProto | null): void {
-    let column = table.column?.find(c => c.name === name);
+  static addColumn(table: SimpleTableProto, newColumn: SimpleColumnProto): void {
+    const column = table.column?.find(c => c.name === newColumn.name);
     if (!column) {
-      column = {
-        name,
-        type,
-      };
       table.column = table.column ?? [];
-      table.column.push(column);
+      table.column.push(newColumn);
     }
   }
 
@@ -217,10 +176,13 @@ export class NewZetaSqlWrapper {
       return err('Model not found');
     }
     const compiledSql = sql ?? this.getCompiledSql(model);
+    if (!compiledSql) {
+      return err('Compiled SQL not found');
+    }
+    await this.registerAllLanguageFeatures(this.catalog);
 
     const tables = await this.findTableNames(compiledSql);
 
-    await this.registerAllLanguageFeatures(this.catalog);
     for (const table of tables) {
       if (!this.isTableRegistered(table)) {
         // check table.getTableName()
@@ -229,9 +191,15 @@ export class NewZetaSqlWrapper {
           const uniqueId = model.dependsOn.nodes.find(n => n.endsWith(ref.join('.')));
           const refModel = this.dbtRepository.models.find(m => m.uniqueId === uniqueId);
           if (refModel) {
-            const analyzeResult = await this.analyzeTable(refModel.originalFilePath);
-            if (analyzeResult.isOk()) {
-              table.columns = analyzeResult.value.resolvedStatement?.resolvedQueryStmtNode?.outputColumnList;
+            if (!(await this.updateTableSchema(table))) {
+              const analyzeResult = await this.analyzeTable(refModel.originalFilePath);
+              if (analyzeResult.isOk()) {
+                table.columns = analyzeResult.value.resolvedStatement?.resolvedQueryStmtNode?.outputColumnList
+                  .filter(c => c.column !== null)
+                  .map(c => {
+                    return NewZetaSqlWrapper.createSimpleColumn(c.name, c.column?.type ?? null);
+                  });
+              }
             }
           } else {
             // TODO
@@ -242,10 +210,10 @@ export class NewZetaSqlWrapper {
         this.registerTable(table);
       }
     }
+    console.log(`Analyze ${originalFilePath}`);
     return this.getAstOrError(compiledSql);
   }
 
-  // TODO rename
   async registerAllLanguageFeatures(catalog: SimpleCatalogProto): Promise<void> {
     if (!catalog.builtinFunctionOptions) {
       const languageOptions = await this.getLanguageOptions();
@@ -257,51 +225,51 @@ export class NewZetaSqlWrapper {
     }
   }
 
-  private async getLanguageOptions(): Promise<LanguageOptions | undefined> {
-    if (!this.languageOptions) {
-      try {
-        this.languageOptions = await new LanguageOptions().enableMaximumLanguageFeatures();
-        (await LanguageOptions.getLanguageFeaturesForVersion(LanguageVersion.VERSION_CURRENT)).forEach(f =>
-          this.languageOptions?.enableLanguageFeature(f),
-        );
-      } catch (e) {
-        console.log(e instanceof Error ? e.stack : e);
-      }
-    }
-    return this.languageOptions;
-  }
-
   async getAstOrError(compiledSql: string): Promise<Result<AnalyzeResponse__Output, string>> {
     try {
       const ast = await this.analyze(compiledSql, this.catalog);
       console.log('AST was successfully received');
       return ok(ast);
     } catch (e) {
-      console.log('There was an error wile parsing SQL query');
+      console.log(`There was an error wile parsing SQL query: ${String((e as Partial<Record<string, string>>)['details'])}`); // TODO delete
       return err((e as Partial<Record<string, string>>)['details'] ?? 'Unknown parser error [at 0:0]');
     }
   }
 
-  getCompiledSql(model: ManifestModel): string {
+  getCompiledSql(model: ManifestModel): string | undefined {
     const compiledPath = path.resolve(this.dbtRepository.dbtTargetPath, 'compiled', model.packageName, model.originalFilePath);
-    return fs.readFileSync(compiledPath, 'utf8'); // TODO try catch?
+    try {
+      return fs.readFileSync(compiledPath, 'utf8');
+    } catch (e) {
+      console.log(`Cannot read ${compiledPath}`);
+      return undefined; // For some reason compiled file not found
+    }
   }
 
-  async updateTableSchema(table: TableDefinition): Promise<void> {
-    if (!table.containsInformationSchema()) {
-      const dataSetName = table.getDataSetName();
-      const tableName = table.getTableName();
-
-      if (dataSetName && tableName) {
-        const metadata = await this.bigQueryClient.getTableMetadata(dataSetName, tableName);
-        if (metadata) {
-          table.schema = metadata.schema;
-          table.timePartitioning = metadata.timePartitioning;
-        } else {
-          console.log(`metadata not found for table ${tableName}`); // TODO delete
-        }
-      }
+  async updateTableSchema(table: TableDefinition): Promise<boolean> {
+    if (table.containsInformationSchema()) {
+      return true;
     }
+
+    const dataSetName = table.getDataSetName();
+    const tableName = table.getTableName();
+
+    if (dataSetName && tableName) {
+      const metadata = await this.bigQueryClient.getTableMetadata(dataSetName, tableName);
+      if (metadata) {
+        table.columns = metadata.schema.fields.map<ResolvedOutputColumnProto>(f =>
+          NewZetaSqlWrapper.createSimpleColumn(f.name, NewZetaSqlWrapper.createType(f)),
+        );
+        table.timePartitioning = metadata.timePartitioning;
+        return true;
+      }
+      console.log(`metadata not found for table ${tableName}`); // TODO delete
+    }
+    return false;
+  }
+
+  static createSimpleColumn(name: string, type: TypeProto | null): SimpleColumnProto {
+    return { name, type };
   }
 
   async findTableNames(sql: string): Promise<TableDefinition[]> {
@@ -329,8 +297,17 @@ export class NewZetaSqlWrapper {
     return response;
   }
 
-  // TODO
-  arraysAreEqual(a1: string[], a2: string[]): boolean {
-    return a1.length === a2.length && a1.every((value, index) => value === a2[index]);
+  private async getLanguageOptions(): Promise<LanguageOptions | undefined> {
+    if (!this.languageOptions) {
+      try {
+        this.languageOptions = await new LanguageOptions().enableMaximumLanguageFeatures();
+        (await LanguageOptions.getLanguageFeaturesForVersion(LanguageVersion.VERSION_CURRENT)).forEach(f =>
+          this.languageOptions?.enableLanguageFeature(f),
+        );
+      } catch (e) {
+        console.log(e instanceof Error ? e.stack : e);
+      }
+    }
+    return this.languageOptions;
   }
 }

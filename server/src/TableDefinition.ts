@@ -1,4 +1,4 @@
-import { ResolvedOutputColumnProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedOutputColumnProto';
+import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
 
 export class TableDefinition {
   namePath: string[];
@@ -10,7 +10,7 @@ export class TableDefinition {
   projectName?: string;
   dataSetName?: string;
   tableName?: string;
-  columns?: ResolvedOutputColumnProto__Output[];
+  columns?: SimpleColumnProto[];
 
   constructor(namePath: string[]) {
     if (namePath.length === 1 && namePath[0].indexOf('.') > 0) {
@@ -65,7 +65,7 @@ export class TableDefinition {
 }
 
 export interface SchemaDefinition {
-  fields: Array<ColumnDefinition>;
+  fields: ColumnDefinition[];
 }
 
 export interface ColumnDefinition {

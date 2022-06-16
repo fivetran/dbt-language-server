@@ -172,9 +172,7 @@ export class InformationSchemaConfigurator {
       informationSchemaCatalog = {
         name: InformationSchemaConfigurator.INFORMATION_SCHEMA,
       };
-      if (!dataSetCatalog.catalog) {
-        dataSetCatalog.catalog = [];
-      }
+      dataSetCatalog.catalog = dataSetCatalog.catalog ?? [];
       dataSetCatalog.catalog.push(informationSchemaCatalog);
     }
     this.addInformationSchemaTableColumns2(tableDefinition.getTableName(), informationSchemaCatalog);
@@ -186,11 +184,11 @@ export class InformationSchemaConfigurator {
       const table = {
         name: tableName,
       };
-      if (!informationSchemaCatalog.table) {
-        informationSchemaCatalog.table = [];
-      }
+      informationSchemaCatalog.table = informationSchemaCatalog.table ?? [];
       informationSchemaCatalog.table.push(table);
-      tableDefinition.forEach((type, name) => NewZetaSqlWrapper.addColumn(table, { name, type }));
+      tableDefinition.forEach((type, name) =>
+        NewZetaSqlWrapper.addColumn(table, NewZetaSqlWrapper.createSimpleColumn(name, NewZetaSqlWrapper.createType({ name, type }))),
+      );
     }
   }
 }
