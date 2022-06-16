@@ -14,7 +14,7 @@ export class DbtUtilitiesInstaller {
     return [DbtUtilitiesInstaller.DBT_CORE, DbtUtilitiesInstaller.DBT_RPC, DbtUtilitiesInstaller.buildAdapterPackageName(dbtProfileType)];
   }
 
-  static async installPackages(python: string, packages: string[], upgrade = false): Promise<Result<string, string>> {
+  static async installPythonPackages(python: string, packages: string[], upgrade = false): Promise<Result<string, string>> {
     const installCommand = `${python} -m pip install ${upgrade ? DbtUtilitiesInstaller.UPGRADE_PARAM : ''} ${packages.join(' ')}`;
     try {
       await DbtUtilitiesInstaller.PROCESS_EXECUTOR.execProcess(installCommand);

@@ -172,6 +172,6 @@ export class FeatureFinder {
     if (this.dbtProfileType) {
       packages.push(DbtUtilitiesInstaller.buildAdapterPackageName(this.dbtProfileType));
     }
-    return DbtUtilitiesInstaller.installPackages(this.python, packages);
+    return DbtUtilitiesInstaller.installPythonPackages(this.python, packages);
   }
 }
