@@ -41,7 +41,7 @@ import { DbtRepository } from './DbtRepository';
 import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcServer } from './DbtRpcServer';
 import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
-import { compareVersions, getStringVersion } from './DbtVersion';
+import { getStringVersion } from './DbtVersion';
 import { Command as DbtCommand } from './dbt_commands/Command';
 import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
 import { DbtDocumentKind } from './document/DbtDocumentKind';
@@ -237,8 +237,6 @@ export class LspServer {
         await this.onRpcServerFindFailed();
       }
     } else {
-      this.checkDbtUpdateNeed(dbtProfileType);
-
       command.addParameter(dbtPort.toString());
       try {
         await this.startDbtRpc(command, dbtPort);
@@ -295,36 +293,6 @@ export class LspServer {
       }
     } else {
       await this.onRpcServerFindFailed();
-    }
-  }
-
-  checkDbtUpdateNeed(dbtProfileType?: string): void {
-    if (
-      this.python &&
-      dbtProfileType &&
-      this.featureFinder &&
-      this.featureFinder.isDbtInPythonEnvironment &&
-      this.featureFinder.versionInfo?.installedVersion &&
-      this.featureFinder.versionInfo.latestVersion &&
-      compareVersions(this.featureFinder.versionInfo.installedVersion, this.featureFinder.versionInfo.latestVersion) === -1
-    ) {
-      this.suggestToUpdateDbt(this.python, dbtProfileType)
-        .then(() => this.connection.window.showInformationMessage('dbt successfully updated. Please reload vscode.'))
-        .catch(() => this.connection.window.showErrorMessage('dbt update failed.'));
-    }
-  }
-
-  async suggestToUpdateDbt(python: string, dbtProfileType: string): Promise<void> {
-    const actions = { title: 'Update', id: 'update' };
-    const informationMessageResult = await this.connection.window.showInformationMessage(
-      'dbt installation is not up to date. Would you like to update dbt and related packages?',
-      actions,
-    );
-
-    if (informationMessageResult?.id === 'update') {
-      console.log(`Trying to update dbt`);
-      const packagesToUpdate = [DbtUtilitiesInstaller.buildAdapterPackageName(dbtProfileType)];
-      await DbtUtilitiesInstaller.installPackages(python, packagesToUpdate, true);
     }
   }
 
