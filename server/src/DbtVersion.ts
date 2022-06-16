@@ -21,10 +21,8 @@ export function compareVersions(v1: Version, v2: Version): number {
   if (v1Hash === v2Hash) {
     return 0;
   }
-  if (v1Hash > v2Hash) {
-    return 1;
-  }
-  return -1;
+
+  return v1Hash > v2Hash ? 1 : -1;
 }
 
 function getVersionHash(version: Version): number {
