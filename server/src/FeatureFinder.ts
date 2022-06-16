@@ -126,33 +126,29 @@ export class FeatureFinder {
   private async findCommandVersion(command: Command): Promise<DbtVersionInfo> {
     const { stdout, stderr } = await FeatureFinder.DBT_COMMAND_EXECUTOR.execute(command);
 
-    const installedVersionFromStderr =
+    const installedVersion =
       FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_INSTALLED_VERSION_PATTERN) ??
-      FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_INSTALLED_VERSION_PATTERN_LESS_1_1_0);
-    const installedVersionFromStdout =
+      FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_INSTALLED_VERSION_PATTERN_LESS_1_1_0) ??
       FeatureFinder.readVersionByPattern(stdout, FeatureFinder.DBT_INSTALLED_VERSION_PATTERN) ??
       FeatureFinder.readVersionByPattern(stdout, FeatureFinder.DBT_INSTALLED_VERSION_PATTERN_LESS_1_1_0);
 
-    const latestVersionFromStderr =
+    const latestVersion =
       FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_LATEST_VERSION_PATTERN) ??
-      FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_LATEST_VERSION_PATTERN_LESS_1_1_0);
-    const latestVersionFromStdout =
+      FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_LATEST_VERSION_PATTERN_LESS_1_1_0) ??
       FeatureFinder.readVersionByPattern(stdout, FeatureFinder.DBT_LATEST_VERSION_PATTERN) ??
       FeatureFinder.readVersionByPattern(stdout, FeatureFinder.DBT_LATEST_VERSION_PATTERN_LESS_1_1_0);
 
-    let adapterVersionFromStderr: Version | undefined = undefined;
-    let adapterVersionFromStdout: Version | undefined = undefined;
+    let installedAdapter: Version | undefined = undefined;
 
     if (this.dbtProfileType) {
       const dbtAdapterRegex = new RegExp(this.dbtProfileType + FeatureFinder.DBT_ADAPTER_VERSION_PATTERN_PREFIX);
-      adapterVersionFromStderr = FeatureFinder.readVersionByPattern(stderr, dbtAdapterRegex);
-      adapterVersionFromStdout = FeatureFinder.readVersionByPattern(stdout, dbtAdapterRegex);
+      installedAdapter = FeatureFinder.readVersionByPattern(stderr, dbtAdapterRegex) ?? FeatureFinder.readVersionByPattern(stdout, dbtAdapterRegex);
     }
 
     return {
-      installedVersion: installedVersionFromStderr ?? installedVersionFromStdout,
-      latestVersion: latestVersionFromStderr ?? latestVersionFromStdout,
-      installedAdapter: adapterVersionFromStderr ?? adapterVersionFromStdout,
+      installedVersion,
+      latestVersion,
+      installedAdapter,
     };
   }
 
