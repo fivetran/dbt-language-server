@@ -65,7 +65,7 @@ export class FeatureFinder {
 
     console.log(versions);
 
-    if (dbtRpcPythonVersion?.installedVersion && dbtRpcPythonVersion.installedPlugin) {
+    if (dbtRpcPythonVersion?.installedVersion && dbtRpcPythonVersion.installedAdapter) {
       this.versionInfo = dbtRpcPythonVersion;
       this.isDbtInPythonEnvironment = true;
       return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS, this.python);
@@ -77,7 +77,7 @@ export class FeatureFinder {
         ? this.installAndFindCommandForV1()
         : new DbtCommand(FeatureFinder.LEGACY_DBT_PARAMS, this.python);
     }
-    if (dbtRpcGlobalVersion?.installedVersion && dbtRpcGlobalVersion.installedPlugin) {
+    if (dbtRpcGlobalVersion?.installedVersion && dbtRpcGlobalVersion.installedAdapter) {
       this.versionInfo = dbtRpcGlobalVersion;
       this.isDbtInPythonEnvironment = false;
       return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS);
@@ -147,7 +147,7 @@ export class FeatureFinder {
     return {
       installedVersion: installedVersionFromStderr ?? installedVersionFromStdout,
       latestVersion: latestVersionFromStderr ?? latestVersionFromStdout,
-      installedPlugin: adapterVersionFromStderr ?? adapterVersionFromStdout,
+      installedAdapter: adapterVersionFromStderr ?? adapterVersionFromStdout,
     };
   }
 
