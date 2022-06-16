@@ -104,11 +104,11 @@ export class FeatureFinder {
   }
 
   private async findDbtRpcGlobalVersion(): Promise<DbtVersionInfo | undefined> {
-    return this.dbtProfileType ? this.findCommandVersion(new DbtRpcCommand([FeatureFinder.VERSION_PARAM]), this.dbtProfileType) : undefined;
+    return this.findCommandVersion(new DbtRpcCommand([FeatureFinder.VERSION_PARAM]));
   }
 
   private async findDbtGlobalVersion(): Promise<DbtVersionInfo | undefined> {
-    return this.dbtProfileType ? this.findCommandVersion(new DbtCommand([FeatureFinder.VERSION_PARAM]), this.dbtProfileType) : undefined;
+    return this.findCommandVersion(new DbtCommand([FeatureFinder.VERSION_PARAM]));
   }
 
   private async findDbtRpcPythonVersion(): Promise<DbtVersionInfo | undefined> {
@@ -120,10 +120,10 @@ export class FeatureFinder {
   }
 
   private async findCommandPythonVersion(command: Command): Promise<DbtVersionInfo | undefined> {
-    return this.python && this.dbtProfileType ? this.findCommandVersion(command, this.dbtProfileType) : undefined;
+    return this.python ? this.findCommandVersion(command) : undefined;
   }
 
-  private async findCommandVersion(command: Command, dbtProfileType: string): Promise<DbtVersionInfo> {
+  private async findCommandVersion(command: Command): Promise<DbtVersionInfo> {
     const { stdout, stderr } = await FeatureFinder.DBT_COMMAND_EXECUTOR.execute(command);
 
     const installedVersionFromStderr =
@@ -140,9 +140,14 @@ export class FeatureFinder {
       FeatureFinder.readVersionByPattern(stdout, FeatureFinder.DBT_LATEST_VERSION_PATTERN) ??
       FeatureFinder.readVersionByPattern(stdout, FeatureFinder.DBT_LATEST_VERSION_PATTERN_LESS_1_1_0);
 
-    const dbtAdapterRegex = new RegExp(dbtProfileType + FeatureFinder.DBT_ADAPTER_VERSION_PATTERN_PREFIX);
-    const adapterVersionFromStderr = FeatureFinder.readVersionByPattern(stderr, dbtAdapterRegex);
-    const adapterVersionFromStdout = FeatureFinder.readVersionByPattern(stdout, dbtAdapterRegex);
+    let adapterVersionFromStderr: Version | undefined = undefined;
+    let adapterVersionFromStdout: Version | undefined = undefined;
+
+    if (this.dbtProfileType) {
+      const dbtAdapterRegex = new RegExp(this.dbtProfileType + FeatureFinder.DBT_ADAPTER_VERSION_PATTERN_PREFIX);
+      adapterVersionFromStderr = FeatureFinder.readVersionByPattern(stderr, dbtAdapterRegex);
+      adapterVersionFromStdout = FeatureFinder.readVersionByPattern(stdout, dbtAdapterRegex);
+    }
 
     return {
       installedVersion: installedVersionFromStderr ?? installedVersionFromStdout,
