@@ -14,6 +14,11 @@ export class DbtUtilitiesInstaller {
     return [DbtUtilitiesInstaller.DBT_CORE, DbtUtilitiesInstaller.DBT_RPC, DbtUtilitiesInstaller.buildAdapterPackageName(dbtProfileType)];
   }
 
+  static async installDbt(python: string, dbtProfileType: string): Promise<Result<string, string>> {
+    const packagesToInstall = DbtUtilitiesInstaller.getFullDbtInstallationPackages(dbtProfileType);
+    return DbtUtilitiesInstaller.installPythonPackages(python, packagesToInstall);
+  }
+
   static async installLatestDbtRpc(python: string, dbtProfileType?: string): Promise<Result<string, string>> {
     const packages = [DbtUtilitiesInstaller.DBT_RPC];
     if (dbtProfileType) {
