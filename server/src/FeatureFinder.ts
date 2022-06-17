@@ -37,7 +37,6 @@ export class FeatureFinder {
   private static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
 
   versionInfo?: DbtVersionInfo;
-  isDbtInPythonEnvironment?: boolean;
 
   constructor(private python: string, private dbtProfileType?: string) {}
 
@@ -67,24 +66,20 @@ export class FeatureFinder {
 
     if (dbtRpcPythonVersion?.installedVersion && dbtRpcPythonVersion.installedAdapter) {
       this.versionInfo = dbtRpcPythonVersion;
-      this.isDbtInPythonEnvironment = true;
       return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS, this.python);
     }
     if (dbtPythonVersion?.installedVersion) {
       this.versionInfo = dbtPythonVersion;
-      this.isDbtInPythonEnvironment = true;
       return dbtPythonVersion.installedVersion.major >= 1
         ? this.installAndFindCommandForV1()
         : new DbtCommand(FeatureFinder.LEGACY_DBT_PARAMS, this.python);
     }
     if (dbtRpcGlobalVersion?.installedVersion && dbtRpcGlobalVersion.installedAdapter) {
       this.versionInfo = dbtRpcGlobalVersion;
-      this.isDbtInPythonEnvironment = false;
       return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS);
     }
     if (dbtGlobalVersion?.installedVersion) {
       this.versionInfo = dbtGlobalVersion;
-      this.isDbtInPythonEnvironment = false;
       return dbtGlobalVersion.installedVersion.major >= 1 ? this.installAndFindCommandForV1() : new DbtCommand(FeatureFinder.LEGACY_DBT_PARAMS);
     }
 
