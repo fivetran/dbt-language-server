@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { assertThat, matchesPattern } from 'hamjest';
+import { assertThat, defined, matchesPattern, not } from 'hamjest';
 import { instance, mock, when } from 'ts-mockito';
 import { DbtProfileCreator } from '../DbtProfileCreator';
 import { DbtProject } from '../DbtProject';
@@ -12,6 +12,7 @@ import {
   getConfigPath,
   OTHERS_CONFIG,
   OTHERS_UNKNOWN_TYPE,
+  UNKNOWN_TYPE,
 } from './helper';
 
 describe('Profiles Validation', () => {
@@ -34,7 +35,21 @@ describe('Profiles Validation', () => {
   });
 
   it('Should handle not supported type', () => {
-    shouldReturnError(OTHERS_CONFIG, OTHERS_UNKNOWN_TYPE, /^Currently, 'unknown' profile is not supported. Check your.*$/);
+    // arrange
+    const mockDbtProject = mock(DbtProject);
+    when(mockDbtProject.findProfileName()).thenReturn(OTHERS_UNKNOWN_TYPE);
+    const dbtProject = instance(mockDbtProject);
+
+    const profileCreator = new DbtProfileCreator(dbtProject, getConfigPath(OTHERS_CONFIG));
+
+    // act
+    const profile = profileCreator.createDbtProfile();
+
+    // assert
+    assert.ok(profile.isOk());
+    assertThat(profile.value.dbtProfile, not(defined()));
+    assertThat(profile.value.type, UNKNOWN_TYPE);
+    assertThat(profile.value.method, not(defined()));
   });
 
   it('Should handle profiles file not found', () => {
