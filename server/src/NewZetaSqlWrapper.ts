@@ -185,13 +185,12 @@ export class NewZetaSqlWrapper {
 
     for (const table of tables) {
       if (!this.isTableRegistered(table)) {
-        // check table.getTableName()
-        const ref = this.getTableRef(model, table.getTableName());
-        if (ref) {
-          const uniqueId = model.dependsOn.nodes.find(n => n.endsWith(ref.join('.')));
-          const refModel = this.dbtRepository.models.find(m => m.uniqueId === uniqueId);
-          if (refModel) {
-            if (!(await this.updateTableSchema(table))) {
+        if (!(await this.updateTableSchema(table))) {
+          const ref = this.getTableRef(model, table.getTableName());
+          if (ref) {
+            const uniqueId = model.dependsOn.nodes.find(n => n.endsWith(ref.join('.')));
+            const refModel = this.dbtRepository.models.find(m => m.uniqueId === uniqueId);
+            if (refModel) {
               const analyzeResult = await this.analyzeTable(refModel.originalFilePath);
               if (analyzeResult.isOk()) {
                 table.columns = analyzeResult.value.resolvedStatement?.resolvedQueryStmtNode?.outputColumnList
@@ -200,17 +199,17 @@ export class NewZetaSqlWrapper {
                     return NewZetaSqlWrapper.createSimpleColumn(c.name, c.column?.type ?? null);
                   });
               }
+            } else {
+              console.log(`Can't find ref model`);
             }
           } else {
-            // TODO
+            console.log(`Can't find ref`);
           }
-        } else {
-          await this.updateTableSchema(table);
         }
         this.registerTable(table);
       }
     }
-    console.log(`Analyze ${originalFilePath}`);
+    console.log(`Analyze ${originalFilePath}`); // TODO: delete
     return this.getAstOrError(compiledSql);
   }
 
