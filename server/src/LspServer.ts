@@ -35,6 +35,7 @@ import {
 } from 'vscode-languageserver';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
+import { DbtProfileType } from './DbtProfile';
 import { DbtProfileCreator, DbtProfileError, DbtProfileResult, DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
@@ -187,21 +188,27 @@ export class LspServer {
   }
 
   async prepareDestination(profileResult: Result<DbtProfileSuccess, DbtProfileError>): Promise<void> {
-    if (profileResult.isOk()) {
-      const bigQueryContextInfo = await BigQueryContext.createContext(profileResult.value);
+    if (profileResult.isOk() && profileResult.value.dbtProfile && profileResult.value.dbtProfile.valueOf() === DbtProfileType.BigQuery) {
+      const bigQueryContextInfo = await BigQueryContext.createContext(profileResult.value.dbtProfile, profileResult.value.targetConfig);
       if (bigQueryContextInfo.isOk()) {
         this.bigQueryContext = bigQueryContextInfo.value;
       } else {
-        this.showPrepareDestinationWarning(bigQueryContextInfo.error);
+        this.showCreateContextWarning(bigQueryContextInfo.error);
       }
-    } else {
+    } else if (profileResult.isErr()) {
       this.showPrepareDestinationWarning(profileResult.error.message);
     }
     this.contextInitializedDeferred.resolve();
   }
 
+  showCreateContextWarning(error: string): void {
+    const message = `Unable to initialize BigQuery. ${error}`;
+    console.log(message);
+    this.connection.window.showWarningMessage(message);
+  }
+
   showPrepareDestinationWarning(error: string): void {
-    const message = `Only common dbt features will be available. Dbt profile was not configured. ${error}`;
+    const message = `Dbt profile was not properly configured. ${error}`;
     console.log(message);
     this.connection.window.showWarningMessage(message);
   }
