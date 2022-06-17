@@ -110,7 +110,7 @@ describe('ZetaSqlWrapper', () => {
     const table = informationSchemaCatalog.tables.get(expectedTableName);
     assert.ok(table);
     assertThat(table.columns.length, greaterThan(0));
-    assertThat(table.columns.length, InformationSchemaConfigurator.INFORMATION_SCHEMA_COLUMNS.get(expectedTableName)?.size);
+    assertThat(table.columns.length, InformationSchemaConfigurator.INFORMATION_SCHEMA_COLUMNS.get(expectedTableName)?.length);
   }
 
   it('register should register project data set and table', async () => {
