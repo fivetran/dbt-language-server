@@ -14,6 +14,14 @@ export class DbtUtilitiesInstaller {
     return [DbtUtilitiesInstaller.DBT_CORE, DbtUtilitiesInstaller.DBT_RPC, DbtUtilitiesInstaller.buildAdapterPackageName(dbtProfileType)];
   }
 
+  static async installLatestDbtRpc(python: string, dbtProfileType?: string): Promise<Result<string, string>> {
+    const packages = [DbtUtilitiesInstaller.DBT_RPC];
+    if (dbtProfileType) {
+      packages.push(DbtUtilitiesInstaller.buildAdapterPackageName(dbtProfileType));
+    }
+    return DbtUtilitiesInstaller.installPythonPackages(python, packages);
+  }
+
   static async installPythonPackages(python: string, packages: string[], upgrade = false): Promise<Result<string, string>> {
     const installCommand = `${python} -m pip install ${upgrade ? DbtUtilitiesInstaller.UPGRADE_PARAM : ''} ${packages.join(' ')}`;
     try {

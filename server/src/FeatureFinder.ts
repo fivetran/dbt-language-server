@@ -1,4 +1,3 @@
-import { Result } from 'neverthrow';
 import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
 import { DbtVersionInfo, getStringVersion, Version } from './DbtVersion';
 import { Command } from './dbt_commands/Command';
@@ -91,7 +90,7 @@ export class FeatureFinder {
   }
 
   private async installAndFindCommandForV1(): Promise<Command | undefined> {
-    const installResult = await this.installLatestDbtRpc();
+    const installResult = await DbtUtilitiesInstaller.installLatestDbtRpc(this.python, this.dbtProfileType);
     if (installResult.isOk()) {
       return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS, this.python);
     }
@@ -156,13 +155,5 @@ export class FeatureFinder {
           patch: Number(matchResults[3]),
         }
       : undefined;
-  }
-
-  private async installLatestDbtRpc(): Promise<Result<string, string>> {
-    const packages = [DbtUtilitiesInstaller.DBT_RPC];
-    if (this.dbtProfileType) {
-      packages.push(DbtUtilitiesInstaller.buildAdapterPackageName(this.dbtProfileType));
-    }
-    return DbtUtilitiesInstaller.installPythonPackages(this.python, packages);
   }
 }
