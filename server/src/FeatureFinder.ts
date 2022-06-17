@@ -120,17 +120,8 @@ export class FeatureFinder {
   private async findCommandVersion(command: Command): Promise<DbtVersionInfo> {
     const { stdout, stderr } = await FeatureFinder.DBT_COMMAND_EXECUTOR.execute(command);
 
-    const installedVersion =
-      FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_INSTALLED_VERSION_PATTERN) ??
-      FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_INSTALLED_VERSION_PATTERN_LESS_1_1_0) ??
-      FeatureFinder.readVersionByPattern(stdout, FeatureFinder.DBT_INSTALLED_VERSION_PATTERN) ??
-      FeatureFinder.readVersionByPattern(stdout, FeatureFinder.DBT_INSTALLED_VERSION_PATTERN_LESS_1_1_0);
-
-    const latestVersion =
-      FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_LATEST_VERSION_PATTERN) ??
-      FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_LATEST_VERSION_PATTERN_LESS_1_1_0) ??
-      FeatureFinder.readVersionByPattern(stdout, FeatureFinder.DBT_LATEST_VERSION_PATTERN) ??
-      FeatureFinder.readVersionByPattern(stdout, FeatureFinder.DBT_LATEST_VERSION_PATTERN_LESS_1_1_0);
+    const installedVersion = FeatureFinder.readInstalledVersion(stderr) ?? FeatureFinder.readInstalledVersion(stdout);
+    const latestVersion = FeatureFinder.readLatestVersion(stderr) ?? FeatureFinder.readLatestVersion(stdout);
 
     let installedAdapter: Version | undefined = undefined;
 
@@ -144,6 +135,20 @@ export class FeatureFinder {
       latestVersion,
       installedAdapter,
     };
+  }
+
+  private static readInstalledVersion(output: string): Version | undefined {
+    return (
+      FeatureFinder.readVersionByPattern(output, FeatureFinder.DBT_INSTALLED_VERSION_PATTERN) ??
+      FeatureFinder.readVersionByPattern(output, FeatureFinder.DBT_INSTALLED_VERSION_PATTERN_LESS_1_1_0)
+    );
+  }
+
+  private static readLatestVersion(output: string): Version | undefined {
+    return (
+      FeatureFinder.readVersionByPattern(output, FeatureFinder.DBT_LATEST_VERSION_PATTERN) ??
+      FeatureFinder.readVersionByPattern(output, FeatureFinder.DBT_LATEST_VERSION_PATTERN_LESS_1_1_0)
+    );
   }
 
   private static readVersionByPattern(data: string, pattern: RegExp): Version | undefined {
