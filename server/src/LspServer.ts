@@ -188,7 +188,12 @@ export class LspServer {
   }
 
   async prepareDestination(profileResult: Result<DbtProfileSuccess, DbtProfileError>): Promise<void> {
-    if (profileResult.isOk() && profileResult.value.dbtProfile && profileResult.value.dbtProfile.valueOf() === DbtProfileType.BigQuery) {
+    if (
+      profileResult.isOk() &&
+      profileResult.value.dbtProfile &&
+      profileResult.value.type &&
+      profileResult.value.type.valueOf() === DbtProfileType.BigQuery
+    ) {
       const bigQueryContextInfo = await BigQueryContext.createContext(profileResult.value.dbtProfile, profileResult.value.targetConfig);
       if (bigQueryContextInfo.isOk()) {
         this.bigQueryContext = bigQueryContextInfo.value;
