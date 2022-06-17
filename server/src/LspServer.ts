@@ -298,7 +298,7 @@ export class LspServer {
 
   logStartupInfo(contextInfo: DbtProfileResult, initTime: number, initDbtRpcAttempt: number): void {
     this.sendTelemetry('log', {
-      dbtVersion: getStringVersion(this.featureFinder && this.featureFinder.versionInfo?.installedVersion),
+      dbtVersion: getStringVersion(this.featureFinder?.versionInfo?.installedVersion),
       python: this.python ?? 'undefined',
       initTime: initTime.toString(),
       type: contextInfo.type ?? 'unknown type',
