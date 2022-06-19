@@ -43,6 +43,7 @@ export class DbtRepository {
     this.sources = sources;
 
     this.groupManifestNodes();
+    this.sortManifestNodes();
   }
 
   private groupManifestNodes(): void {
@@ -97,5 +98,16 @@ export class DbtRepository {
       sourceTables.add(source);
     }
     this.packageToSources = newPackageToSources;
+  }
+
+  private sortManifestNodes(): void {
+    this.macros.sort((macro1: ManifestMacro, macro2: ManifestMacro): number => {
+      if (macro1.packageName === this.projectName) {
+        return 1;
+      } else if (macro2.packageName === this.projectName) {
+        return -1;
+      }
+      return 0;
+    });
   }
 }
