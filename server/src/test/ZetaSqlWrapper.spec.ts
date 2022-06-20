@@ -7,8 +7,8 @@ import { mock } from 'ts-mockito';
 import { BigQueryClient } from '../bigquery/BigQueryClient';
 import { DbtRepository } from '../DbtRepository';
 import { InformationSchemaConfigurator } from '../InformationSchemaConfigurator';
-import { NewZetaSqlWrapper } from '../NewZetaSqlWrapper';
 import { TableDefinition } from '../TableDefinition';
+import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 
 describe('ZetaSqlWrapper', () => {
   const PROJECT_ID = 'project_id';
@@ -22,7 +22,7 @@ describe('ZetaSqlWrapper', () => {
     },
   ];
 
-  let zetaSqlWrapper: NewZetaSqlWrapper;
+  let zetaSqlWrapper: ZetaSqlWrapper;
 
   function shouldRegisterTable(
     tableDefinition: TableDefinition,
@@ -32,7 +32,7 @@ describe('ZetaSqlWrapper', () => {
     expectedProjectId?: string,
   ): void {
     // arrange, act
-    zetaSqlWrapper = new NewZetaSqlWrapper(mock(DbtRepository), mock(BigQueryClient));
+    zetaSqlWrapper = new ZetaSqlWrapper(mock(DbtRepository), mock(BigQueryClient));
     const rootCatalog = registerTable(tableDefinition);
 
     // assert
@@ -77,7 +77,7 @@ describe('ZetaSqlWrapper', () => {
     expectedProjectId?: string,
   ): void {
     // arrange, act
-    zetaSqlWrapper = new NewZetaSqlWrapper(mock(DbtRepository), mock(BigQueryClient));
+    zetaSqlWrapper = new ZetaSqlWrapper(mock(DbtRepository), mock(BigQueryClient));
     const rootCatalog = registerTable(tableDefinition);
 
     // assert
@@ -126,13 +126,7 @@ describe('ZetaSqlWrapper', () => {
     const tableDefinition = new TableDefinition([PROJECT_ID, DATA_SET, TABLE]);
     tableDefinition.columns = ONE_TABLE;
     tableDefinition.timePartitioning = true;
-    shouldRegisterTable(
-      tableDefinition,
-      TABLE,
-      [COLUMN_NAME, NewZetaSqlWrapper.PARTITION_TIME, NewZetaSqlWrapper.PARTITION_DATE],
-      DATA_SET,
-      PROJECT_ID,
-    );
+    shouldRegisterTable(tableDefinition, TABLE, [COLUMN_NAME, ZetaSqlWrapper.PARTITION_TIME, ZetaSqlWrapper.PARTITION_DATE], DATA_SET, PROJECT_ID);
   });
 
   it('register should register information schema', () => {

@@ -21,7 +21,7 @@ import { ColumnDefinition, TableDefinition } from './TableDefinition';
 import { arraysAreEqual, randomNumber } from './utils/Utils';
 import path = require('path');
 
-export class NewZetaSqlWrapper {
+export class ZetaSqlWrapper {
   static readonly PARTITION_TIME = '_PARTITIONTIME';
   static readonly PARTITION_DATE = '_PARTITIONDATE';
 
@@ -43,8 +43,8 @@ export class NewZetaSqlWrapper {
   }
 
   async initializeZetaSql(): Promise<void> {
-    if (NewZetaSqlWrapper.SUPPORTED_PLATFORMS.includes(process.platform)) {
-      const port = await findFreePortPmfy(randomNumber(NewZetaSqlWrapper.MIN_PORT, NewZetaSqlWrapper.MAX_PORT));
+    if (ZetaSqlWrapper.SUPPORTED_PLATFORMS.includes(process.platform)) {
+      const port = await findFreePortPmfy(randomNumber(ZetaSqlWrapper.MIN_PORT, ZetaSqlWrapper.MAX_PORT));
       console.log(`Starting zetasql on port ${port}`);
       runServer(port).catch(e => console.log(e));
       ZetaSQLClient.init(port);
@@ -84,12 +84,12 @@ export class NewZetaSqlWrapper {
     if (!table.rawName) {
       const projectId = table.getProjectName();
       if (projectId) {
-        parent = NewZetaSqlWrapper.addChildCatalog(this.catalog, projectId);
+        parent = ZetaSqlWrapper.addChildCatalog(this.catalog, projectId);
       }
 
       const dataSetName = table.getDataSetName();
       if (dataSetName) {
-        parent = NewZetaSqlWrapper.addChildCatalog(parent, dataSetName);
+        parent = ZetaSqlWrapper.addChildCatalog(parent, dataSetName);
       }
     }
 
@@ -107,18 +107,18 @@ export class NewZetaSqlWrapper {
       }
 
       for (const newColumn of table.columns ?? []) {
-        NewZetaSqlWrapper.addColumn(existingTable, newColumn);
+        ZetaSqlWrapper.addColumn(existingTable, newColumn);
       }
 
       if (table.timePartitioning) {
-        NewZetaSqlWrapper.addPartitioningColumn(existingTable, NewZetaSqlWrapper.PARTITION_TIME, 'timestamp');
-        NewZetaSqlWrapper.addPartitioningColumn(existingTable, NewZetaSqlWrapper.PARTITION_DATE, 'date');
+        ZetaSqlWrapper.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_TIME, 'timestamp');
+        ZetaSqlWrapper.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_DATE, 'date');
       }
     }
   }
 
   static addPartitioningColumn(existingTable: SimpleTableProto, name: string, type: string): void {
-    NewZetaSqlWrapper.addColumn(existingTable, NewZetaSqlWrapper.createSimpleColumn(name, NewZetaSqlWrapper.createType({ name, type })));
+    ZetaSqlWrapper.addColumn(existingTable, ZetaSqlWrapper.createSimpleColumn(name, ZetaSqlWrapper.createType({ name, type })));
   }
 
   static addColumn(table: SimpleTableProto, newColumn: SimpleColumnProto): void {
@@ -210,7 +210,7 @@ export class NewZetaSqlWrapper {
                 table.columns = analyzeResult.value.resolvedStatement?.resolvedQueryStmtNode?.outputColumnList
                   .filter(c => c.column !== null)
                   .map(c => {
-                    return NewZetaSqlWrapper.createSimpleColumn(c.name, c.column?.type ?? null);
+                    return ZetaSqlWrapper.createSimpleColumn(c.name, c.column?.type ?? null);
                   });
               }
             } else {
@@ -271,7 +271,7 @@ export class NewZetaSqlWrapper {
       const metadata = await this.bigQueryClient.getTableMetadata(dataSetName, tableName);
       if (metadata) {
         table.columns = metadata.schema.fields.map<ResolvedOutputColumnProto>(f =>
-          NewZetaSqlWrapper.createSimpleColumn(f.name, NewZetaSqlWrapper.createType(f)),
+          ZetaSqlWrapper.createSimpleColumn(f.name, ZetaSqlWrapper.createType(f)),
         );
         table.timePartitioning = metadata.timePartitioning;
         return true;

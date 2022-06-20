@@ -1,6 +1,6 @@
 import { SimpleCatalogProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleCatalogProto';
-import { NewZetaSqlWrapper } from './NewZetaSqlWrapper';
 import { ColumnDefinition, TableDefinition } from './TableDefinition';
+import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 
 export class InformationSchemaConfigurator {
   static readonly INFORMATION_SCHEMA = 'information_schema';
@@ -219,10 +219,7 @@ export class InformationSchemaConfigurator {
       informationSchemaCatalog.table = informationSchemaCatalog.table ?? [];
       informationSchemaCatalog.table.push(table);
       tableDefinition.forEach(columnDefinition =>
-        NewZetaSqlWrapper.addColumn(
-          table,
-          NewZetaSqlWrapper.createSimpleColumn(columnDefinition.name, NewZetaSqlWrapper.createType(columnDefinition)),
-        ),
+        ZetaSqlWrapper.addColumn(table, ZetaSqlWrapper.createSimpleColumn(columnDefinition.name, ZetaSqlWrapper.createType(columnDefinition))),
       );
     }
   }
