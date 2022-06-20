@@ -17,11 +17,14 @@ async function main(): Promise<void> {
 
     const [, , extensionDevelopmentPath] = process.argv;
     console.log(`Running tests for path: ${extensionDevelopmentPath}`);
+
     const defaultCachePath = path.resolve(extensionDevelopmentPath, '.vscode-test');
     const extensionsInstallPath = path.join(defaultCachePath, 'extensions');
+    console.log('extensionsInstallPath resolved');
 
     const vscodeExecutablePath = await downloadAndUnzipVSCode('stable', undefined, new SilentReporter());
     const [cli, ...args] = resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath);
+    console.log('cli and args resolved');
 
     const installResult = installExtension(cli, args, 'ms-python.python', extensionsInstallPath);
     if (installResult.status !== 0) {
@@ -44,6 +47,7 @@ async function main(): Promise<void> {
         process.exit(1);
       }
     }
+    console.log('python extension successfully installed from marketplace');
 
     const extensionTestsPath = path.resolve(__dirname, './index');
 
