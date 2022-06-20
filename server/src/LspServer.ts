@@ -250,6 +250,9 @@ export class LspServer {
       } catch (e) {
         this.onRpcServerStartFailed(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
       }
+      this.dbtRpcClient.compile().catch(e => {
+        console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
+      });
     }
   }
 
@@ -324,7 +327,6 @@ export class LspServer {
     this.dbtRpcClient.setPort(port);
     try {
       await this.dbtRpcServer.startDbtRpc(command, this.dbtRpcClient);
-      await this.dbtRpcClient.compile();
     } finally {
       this.progressReporter.sendFinish();
     }
