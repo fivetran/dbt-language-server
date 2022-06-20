@@ -1,8 +1,6 @@
-import { SimpleCatalog, SimpleTable } from '@fivetrandevelopers/zetasql';
 import { SimpleCatalogProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleCatalogProto';
 import { NewZetaSqlWrapper } from './NewZetaSqlWrapper';
 import { ColumnDefinition, TableDefinition } from './TableDefinition';
-import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 
 export class InformationSchemaConfigurator {
   static readonly INFORMATION_SCHEMA = 'information_schema';
@@ -200,25 +198,7 @@ export class InformationSchemaConfigurator {
     });
   }
 
-  fillInformationSchema(tableDefinition: TableDefinition, dataSetCatalog: SimpleCatalog): void {
-    let informationSchemaCatalog = dataSetCatalog.catalogs.get(InformationSchemaConfigurator.INFORMATION_SCHEMA);
-    if (!informationSchemaCatalog) {
-      informationSchemaCatalog = new SimpleCatalog(InformationSchemaConfigurator.INFORMATION_SCHEMA);
-      dataSetCatalog.addSimpleCatalog(informationSchemaCatalog);
-    }
-    this.addInformationSchemaTableColumns(tableDefinition.getTableName(), informationSchemaCatalog);
-  }
-
-  addInformationSchemaTableColumns(tableName: string, informationSchemaCatalog: SimpleCatalog): void {
-    const tableDefinition = InformationSchemaConfigurator.INFORMATION_SCHEMA_COLUMNS.get(tableName);
-    if (tableDefinition && !informationSchemaCatalog.tables.has(tableName)) {
-      const table = new SimpleTable(tableName);
-      informationSchemaCatalog.addSimpleTable(tableName, table);
-      tableDefinition.forEach(columnDefinition => ZetaSqlWrapper.addColumn(table, columnDefinition, tableName));
-    }
-  }
-
-  fillInformationSchema2(tableDefinition: TableDefinition, dataSetCatalog: SimpleCatalogProto): void {
+  fillInformationSchema(tableDefinition: TableDefinition, dataSetCatalog: SimpleCatalogProto): void {
     let informationSchemaCatalog = dataSetCatalog.catalog?.find(c => c.name === InformationSchemaConfigurator.INFORMATION_SCHEMA);
     if (!informationSchemaCatalog) {
       informationSchemaCatalog = {
@@ -227,10 +207,10 @@ export class InformationSchemaConfigurator {
       dataSetCatalog.catalog = dataSetCatalog.catalog ?? [];
       dataSetCatalog.catalog.push(informationSchemaCatalog);
     }
-    this.addInformationSchemaTableColumns2(tableDefinition.getTableName(), informationSchemaCatalog);
+    this.addInformationSchemaTableColumns(tableDefinition.getTableName(), informationSchemaCatalog);
   }
 
-  addInformationSchemaTableColumns2(tableName: string, informationSchemaCatalog: SimpleCatalogProto): void {
+  addInformationSchemaTableColumns(tableName: string, informationSchemaCatalog: SimpleCatalogProto): void {
     const tableDefinition = InformationSchemaConfigurator.INFORMATION_SCHEMA_COLUMNS.get(tableName);
     if (tableDefinition && !informationSchemaCatalog.table?.find(t => t.name === tableName)) {
       const table = {

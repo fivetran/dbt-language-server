@@ -1,4 +1,4 @@
-import { TypeFactory, TypeKind, ZetaSQLClient } from '@fivetrandevelopers/zetasql';
+import { runServer, terminateServer, TypeFactory, TypeKind, ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { LanguageVersion } from '@fivetrandevelopers/zetasql/lib/types/zetasql/LanguageVersion';
@@ -18,25 +18,40 @@ import { DbtRepository } from './DbtRepository';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
 import { ManifestModel } from './manifest/ManifestJson';
 import { ColumnDefinition, TableDefinition } from './TableDefinition';
-import { arraysAreEqual } from './utils/Utils';
-import { ZetaSqlWrapper } from './ZetaSqlWrapper';
+import { arraysAreEqual, randomNumber } from './utils/Utils';
 import path = require('path');
 
 export class NewZetaSqlWrapper {
-  private readonly catalog: SimpleCatalogProto = {
-    name: 'catalog',
-  };
+  static readonly PARTITION_TIME = '_PARTITIONTIME';
+  static readonly PARTITION_DATE = '_PARTITIONDATE';
 
+  private static readonly MIN_PORT = 1024;
+  private static readonly MAX_PORT = 65535;
+
+  private static readonly SUPPORTED_PLATFORMS = ['darwin', 'linux'];
+
+  private readonly catalog: SimpleCatalogProto = { name: 'catalog' };
   private supported = true;
   private languageOptions: LanguageOptions | undefined;
-
-  registeredTables: TableDefinition[] = [];
+  private registeredTables: TableDefinition[] = [];
   private informationSchemaConfigurator = new InformationSchemaConfigurator();
 
   constructor(private dbtRepository: DbtRepository, private bigQueryClient: BigQueryClient) {}
 
   getClient(): ZetaSQLClient {
     return ZetaSQLClient.getInstance();
+  }
+
+  async initializeZetaSql(): Promise<void> {
+    if (NewZetaSqlWrapper.SUPPORTED_PLATFORMS.includes(process.platform)) {
+      const port = await findFreePortPmfy(randomNumber(NewZetaSqlWrapper.MIN_PORT, NewZetaSqlWrapper.MAX_PORT));
+      console.log(`Starting zetasql on port ${port}`);
+      runServer(port).catch(e => console.log(e));
+      ZetaSQLClient.init(port);
+      await this.getClient().testConnection();
+    } else {
+      this.supported = false;
+    }
   }
 
   isSupported(): boolean {
@@ -79,7 +94,7 @@ export class NewZetaSqlWrapper {
     }
 
     if (table.containsInformationSchema()) {
-      this.informationSchemaConfigurator.fillInformationSchema2(table, parent);
+      this.informationSchemaConfigurator.fillInformationSchema(table, parent);
     } else {
       const tableName = table.rawName ?? table.getTableName();
       let existingTable = parent.table?.find(t => t.name === tableName);
@@ -96,8 +111,8 @@ export class NewZetaSqlWrapper {
       }
 
       if (table.timePartitioning) {
-        NewZetaSqlWrapper.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_TIME, 'timestamp');
-        NewZetaSqlWrapper.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_DATE, 'date');
+        NewZetaSqlWrapper.addPartitioningColumn(existingTable, NewZetaSqlWrapper.PARTITION_TIME, 'timestamp');
+        NewZetaSqlWrapper.addPartitioningColumn(existingTable, NewZetaSqlWrapper.PARTITION_DATE, 'date');
       }
     }
   }
@@ -114,7 +129,6 @@ export class NewZetaSqlWrapper {
     }
   }
 
-  // TODO refactor
   static createType(newColumn: ColumnDefinition): TypeProto {
     const bigQueryType = newColumn.type.toLowerCase();
     const typeKind = TypeFactory.SIMPLE_TYPE_KIND_NAMES.get(bigQueryType);
@@ -307,5 +321,11 @@ export class NewZetaSqlWrapper {
       }
     }
     return this.languageOptions;
+  }
+
+  async terminateServer(): Promise<void> {
+    if (this.isSupported()) {
+      await terminateServer();
+    }
   }
 }

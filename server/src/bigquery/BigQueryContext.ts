@@ -1,21 +1,13 @@
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { err, ok, Result } from 'neverthrow';
-import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtProfile, TargetConfig } from '../DbtProfile';
 import { DbtRepository } from '../DbtRepository';
 import { DestinationDefinition } from '../DestinationDefinition';
 import { NewZetaSqlWrapper } from '../NewZetaSqlWrapper';
-import { SchemaTracker } from '../SchemaTracker';
-import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 import { BigQueryClient } from './BigQueryClient';
 
 export class BigQueryContext {
-  private constructor(
-    public schemaTracker: SchemaTracker,
-    public destinationDefinition: DestinationDefinition,
-    public zetaSqlWrapper: ZetaSqlWrapper,
-    public newZetaSqlWrapper: NewZetaSqlWrapper,
-  ) {}
+  private constructor(public destinationDefinition: DestinationDefinition, public newZetaSqlWrapper: NewZetaSqlWrapper) {}
 
   public static async createContext(
     dbtProfile: DbtProfile,
@@ -32,13 +24,10 @@ export class BigQueryContext {
       const bigQueryClient = clientResult.value as BigQueryClient;
       const destinationDefinition = new DestinationDefinition(bigQueryClient);
 
-      const zetaSqlWrapper = new ZetaSqlWrapper();
-      await zetaSqlWrapper.initializeZetaSql();
-
       const newZetaSqlWrapper = new NewZetaSqlWrapper(dbtRepository, bigQueryClient);
+      await newZetaSqlWrapper.initializeZetaSql();
 
-      const schemaTracker = new SchemaTracker(bigQueryClient, zetaSqlWrapper);
-      return ok(new BigQueryContext(schemaTracker, destinationDefinition, zetaSqlWrapper, newZetaSqlWrapper));
+      return ok(new BigQueryContext(destinationDefinition, newZetaSqlWrapper));
     } catch (e) {
       console.log(e instanceof Error ? e.stack : e);
       const message = e instanceof Error ? e.message : JSON.stringify(e);
@@ -46,31 +35,12 @@ export class BigQueryContext {
     }
   }
 
-  async getAstOrError(compiledDocument: TextDocument): Promise<Result<AnalyzeResponse__Output, string>> {
-    try {
-      const ast = await this.zetaSqlWrapper.analyze(compiledDocument.getText());
-      console.log('AST was successfully received');
-      return ok(ast);
-    } catch (e) {
-      console.log('There was an error wile parsing SQL query');
-      return err((e as Partial<Record<string, string>>)['details'] ?? 'Unknown parser error [at 0:0]');
-    }
-  }
-
-  async ensureCatalogInitialized(compiledDocument: TextDocument): Promise<void> {
-    await this.schemaTracker.refreshTableNames(compiledDocument.getText());
-    if (this.schemaTracker.hasNewTables || !this.zetaSqlWrapper.isCatalogRegistered()) {
-      await this.registerCatalog();
-    }
-  }
-
-  async registerCatalog(): Promise<void> {
-    await this.zetaSqlWrapper.registerCatalog(this.schemaTracker.tableDefinitions);
-    this.schemaTracker.resetHasNewTables();
+  async analyzeTable(originalFilePath: string, sql?: string): Promise<Result<AnalyzeResponse__Output, string>> {
+    return this.newZetaSqlWrapper.analyzeTable(originalFilePath, sql);
   }
 
   public dispose(): void {
-    this.zetaSqlWrapper
+    this.newZetaSqlWrapper
       .terminateServer()
       .catch(e => console.log(`Failed to terminate zetasql server: ${e instanceof Error ? e.message : String(e)}`));
   }

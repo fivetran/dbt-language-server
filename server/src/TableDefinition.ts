@@ -4,7 +4,6 @@ export class TableDefinition {
   namePath: string[];
   rawName?: string;
   datasetIndex: number;
-  schema?: SchemaDefinition;
   timePartitioning = false;
   informationSchemaIndex = -1;
   projectName?: string;

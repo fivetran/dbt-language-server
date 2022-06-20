@@ -259,15 +259,10 @@ export class DbtTextDocument {
     let compiledDocDiagnostics: Diagnostic[] = [];
 
     if (this.bigQueryContext && this.dbtDocumentKind === DbtDocumentKind.MODEL) {
-      // await this.bigQueryContext.ensureCatalogInitialized(this.compiledDocument);
-      // const astResult = await this.bigQueryContext.getAstOrError(this.compiledDocument);
-      // if (astResult.isOk()) {
-      //   this.ast = astResult.value;
-      // }
       const originalFilePath = this.rawDocument.uri.substring(
         this.rawDocument.uri.lastIndexOf(this.workspaceFolder) + this.workspaceFolder.length + 1,
       );
-      const astResult = await this.bigQueryContext.newZetaSqlWrapper.analyzeTable(originalFilePath, compiledSql);
+      const astResult = await this.bigQueryContext.analyzeTable(originalFilePath, compiledSql);
       if (astResult.isOk()) {
         this.ast = astResult.value;
       }
