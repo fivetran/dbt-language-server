@@ -39,7 +39,7 @@ interface PostData {
   jsonrpc: '2.0';
   method: Method;
   id: string;
-  params?: StatusParams | CompileModelParams | PollParams | KillParams;
+  params?: StatusParams | CompileParams | PollParams | KillParams;
 }
 
 interface Params {
@@ -48,7 +48,7 @@ interface Params {
 
 type StatusParams = Params;
 
-interface CompileModelParams extends Params {
+interface CompileParams extends Params {
   threads?: string;
   models?: string;
 }
