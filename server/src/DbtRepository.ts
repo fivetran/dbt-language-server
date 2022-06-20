@@ -106,12 +106,16 @@ export class DbtRepository {
 
   private sortManifestMacroNodes(): void {
     this.macros.sort((macro1: ManifestMacro, macro2: ManifestMacro): number => {
-      if (macro1.packageName === this.projectName) {
-        return 1;
+      if (macro1.packageName === this.projectName && macro2.packageName === this.projectName) {
+        return macro1.name.localeCompare(macro2.name);
       } else if (macro2.packageName === this.projectName) {
+        return 1;
+      } else if (macro1.packageName === this.projectName) {
         return -1;
       }
-      return 0;
+
+      const packagesCompare = macro2.packageName.localeCompare(macro1.packageName);
+      return packagesCompare === 0 ? macro1.name.localeCompare(macro2.name) : packagesCompare;
     });
   }
 }
