@@ -101,6 +101,10 @@ export class DbtRepository {
   }
 
   private sortManifestNodes(): void {
+    this.sortManifestMacroNodes();
+  }
+
+  private sortManifestMacroNodes(): void {
     this.macros.sort((macro1: ManifestMacro, macro2: ManifestMacro): number => {
       if (macro1.packageName === this.projectName) {
         return 1;
