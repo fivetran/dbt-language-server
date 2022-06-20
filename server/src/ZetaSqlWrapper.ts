@@ -20,6 +20,7 @@ import { ManifestModel } from './manifest/ManifestJson';
 import { ColumnDefinition, TableDefinition } from './TableDefinition';
 import { arraysAreEqual, randomNumber } from './utils/Utils';
 import path = require('path');
+import findFreePortPmfy = require('find-free-port');
 
 export class ZetaSqlWrapper {
   static readonly PARTITION_TIME = '_PARTITIONTIME';
