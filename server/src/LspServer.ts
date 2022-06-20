@@ -185,7 +185,7 @@ export class LspServer {
     );
     this.dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
 
-    await Promise.all([this.prepareRpcServer(this.dbtProfileType), this.prepareDestination(profileResult)]);
+    await Promise.all([this.prepareRpcServer(), this.prepareDestination(profileResult)]);
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime, this.initDbtRpcAttempt);
   }
@@ -210,12 +210,12 @@ export class LspServer {
     this.connection.window.showWarningMessage(message);
   }
 
-  async prepareRpcServer(dbtProfileType?: string): Promise<void> {
+  async prepareRpcServer(): Promise<void> {
     this.initDbtRpcAttempt++;
 
     this.python = await this.connection.sendRequest('custom/getPython');
     if (this.python === '') {
-      this.onPythonWasNotFound();
+      this.onPythonNotFound();
       return;
     }
     if (this.python === 'python') {
@@ -228,50 +228,39 @@ export class LspServer {
 
     if (command === undefined) {
       try {
-        if (dbtProfileType) {
-          await this.suggestToInstallDbt(this.python, dbtProfileType);
+        if (this.dbtProfileType) {
+          await this.suggestToInstallDbt(this.python, this.dbtProfileType);
         } else {
-          await this.onRpcServerFindFailed();
+          this.onRpcServerFindFailed();
         }
       } catch (e) {
-        await this.onRpcServerFindFailed();
+        this.onRpcServerFindFailed();
       }
     } else {
       command.addParameter(dbtPort.toString());
       try {
         await this.startDbtRpc(command, dbtPort);
       } catch (e) {
-        await this.onRpcServerStartFailed(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
+        this.onRpcServerStartFailed(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
       }
     }
   }
 
-  onPythonWasNotFound(): void {
-    this.progressReporter.sendFinish();
-    this.connection.window.showErrorMessage(
+  onPythonNotFound(): void {
+    this.onRpcServerStartFailed(
       'Python was not found in your working environment. dbt Wizard requires valid python installation. Please visit [https://www.python.org/downloads](https://www.python.org/downloads).',
     );
   }
 
-  async onRpcServerFindFailed(): Promise<void> {
-    this.progressReporter.sendFinish();
-    await this.showStartDbtRpcError(
+  onRpcServerFindFailed(): void {
+    this.onRpcServerStartFailed(
       `Failed to find dbt-rpc. You can use 'python3 -m pip install dbt-bigquery dbt-rpc' command to install it. Check in Terminal that dbt-rpc works running 'dbt-rpc --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g. ~/dbt-env/bin/python3).`,
     );
   }
 
-  async onRpcServerStartFailed(message: string): Promise<void> {
+  onRpcServerStartFailed(message: string): void {
     this.progressReporter.sendFinish();
-    await this.showStartDbtRpcError(message);
-  }
-
-  async showStartDbtRpcError(message: string): Promise<void> {
-    console.log(message);
-    const actions = { title: 'Retry', id: 'retry' };
-    const errorMessageResult = await this.connection.window.showErrorMessage(message, actions);
-    if (errorMessageResult?.id === 'retry') {
-      await this.prepareRpcServer(this.dbtProfileType);
-    }
+    this.connection.window.showErrorMessage(message);
   }
 
   async suggestToInstallDbt(python: string, dbtProfileType: string): Promise<void> {
@@ -286,12 +275,12 @@ export class LspServer {
       const installResult = await DbtUtilitiesInstaller.installDbt(python, dbtProfileType);
       if (installResult.isOk()) {
         this.connection.window.showInformationMessage(installResult.value);
-        await this.prepareRpcServer(dbtProfileType);
+        await this.prepareRpcServer();
       } else {
-        await this.onRpcServerStartFailed(installResult.error);
+        this.onRpcServerStartFailed(installResult.error);
       }
     } else {
-      await this.onRpcServerFindFailed();
+      this.onRpcServerFindFailed();
     }
   }
 
