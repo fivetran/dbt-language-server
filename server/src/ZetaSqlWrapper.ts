@@ -224,7 +224,6 @@ export class ZetaSqlWrapper {
         this.registerTable(table);
       }
     }
-    console.log(`Analyze ${originalFilePath}`); // TODO: delete
     return this.getAstOrError(compiledSql);
   }
 
@@ -242,10 +241,8 @@ export class ZetaSqlWrapper {
   async getAstOrError(compiledSql: string): Promise<Result<AnalyzeResponse__Output, string>> {
     try {
       const ast = await this.analyze(compiledSql, this.catalog);
-      console.log('AST was successfully received');
       return ok(ast);
     } catch (e) {
-      console.log(`There was an error wile parsing SQL query: ${String((e as Partial<Record<string, string>>)['details'])}`); // TODO delete
       return err((e as Partial<Record<string, string>>)['details'] ?? 'Unknown parser error [at 0:0]');
     }
   }
