@@ -262,7 +262,6 @@ export class NewZetaSqlWrapper {
         table.timePartitioning = metadata.timePartitioning;
         return true;
       }
-      console.log(`metadata not found for table ${tableName}`); // TODO delete
     }
     return false;
   }
