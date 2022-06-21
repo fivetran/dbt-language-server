@@ -283,7 +283,7 @@ export class LspServer {
       const installResult = await DbtUtilitiesInstaller.installDbt(python, dbtProfileType);
       if (installResult.isOk()) {
         this.connection.window.showInformationMessage(installResult.value);
-        await this.prepareRpcServer();
+        await this.prepareRpcServer(dbtProfileType);
       } else {
         this.onRpcServerStartFailed(installResult.error);
       }
