@@ -55,7 +55,12 @@ async function main(): Promise<void> {
       extensionDevelopmentPath,
       extensionTestsPath,
       launchArgs: [path.resolve(__dirname, '../projects/test-workspace.code-workspace'), `--extensions-dir=${extensionsInstallPath}`],
-      extensionTestsEnv: { CLI_PATH: cli, EXTENSIONS_INSTALL_PATH: extensionsInstallPath, DBT_LS_DISABLE_TELEMETRY: 'true' },
+      extensionTestsEnv: {
+        CLI_PATH: cli,
+        EXTENSIONS_INSTALL_PATH: extensionsInstallPath,
+        DBT_LS_DISABLE_TELEMETRY: 'true',
+        DBT_LS_ENABLE_DEBUG_LOGS: 'true',
+      },
     });
   } catch (err) {
     console.error(`Failed to run tests. Error: ${err instanceof Error ? err.message : String(err)}`);

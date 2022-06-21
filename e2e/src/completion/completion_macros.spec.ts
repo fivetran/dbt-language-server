@@ -20,7 +20,6 @@ suite('Should suggest macros completions', () => {
 
     // act
     const actualCompletionList = await triggerCompletion(docUri, new Position(0, 17));
-    console.log(actualCompletionList);
 
     // assert
     const expectedCompletions = getMacrosCompletionList();
