@@ -213,13 +213,11 @@ export class LspServer {
   async prepareRpcServer(): Promise<void> {
     this.initDbtRpcAttempt++;
 
-    this.python = await this.connection.sendRequest('custom/getPython');
-    if (this.python === '') {
+    try {
+      this.python = await this.findPython();
+    } catch (e) {
       this.onPythonNotFound();
       return;
-    }
-    if (this.python === 'python') {
-      this.python = 'python3';
     }
 
     this.featureFinder = new FeatureFinder(this.python, this.dbtProfileType);
@@ -244,6 +242,17 @@ export class LspServer {
         this.onRpcServerStartFailed(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
       }
     }
+  }
+
+  async findPython(): Promise<string> {
+    let python: string = await this.connection.sendRequest('custom/getPython');
+    if (python === '') {
+      throw new Error('Python not found');
+    }
+    if (python === 'python') {
+      python = 'python3';
+    }
+    return python;
   }
 
   onPythonNotFound(): void {
