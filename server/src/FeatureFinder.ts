@@ -44,20 +44,14 @@ export class FeatureFinder {
    * @returns {Command} or `undefined` if nothing is found
    */
   async findDbtRpcCommand(): Promise<Command | undefined> {
-    const settledResults = await Promise.allSettled([
-      this.findDbtRpcPythonVersion(),
-      this.findDbtPythonVersion(),
-      this.findDbtRpcGlobalVersion(),
-      this.findDbtGlobalVersion(),
-    ]);
+    const settledResults = await Promise.allSettled([this.findDbtRpcPythonVersion(), this.findDbtPythonVersion(), this.findDbtRpcGlobalVersion()]);
 
-    const [dbtRpcPythonVersion, dbtPythonVersion, dbtRpcGlobalVersion, dbtGlobalVersion] = settledResults.map(v => {
+    const [dbtRpcPythonVersion, dbtPythonVersion, dbtRpcGlobalVersion] = settledResults.map(v => {
       return v.status === 'fulfilled' ? v.value : undefined;
     });
 
     let versions = '';
     versions += dbtRpcGlobalVersion ? `dbtRpcGlobalVersion = ${getStringVersion(dbtRpcGlobalVersion.installedVersion)} ` : '';
-    versions += dbtGlobalVersion ? `dbtGlobalVersion = ${getStringVersion(dbtGlobalVersion.installedVersion)} ` : '';
     versions += dbtPythonVersion ? `dbtPythonVersion = ${getStringVersion(dbtPythonVersion.installedVersion)} ` : '';
     versions += dbtRpcPythonVersion ? `dbtRpcPythonVersion = ${getStringVersion(dbtRpcPythonVersion.installedVersion)}` : '';
 
@@ -76,10 +70,6 @@ export class FeatureFinder {
     if (dbtRpcGlobalVersion?.installedVersion && dbtRpcGlobalVersion.installedAdapter) {
       this.versionInfo = dbtRpcGlobalVersion;
       return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS);
-    }
-    if (dbtGlobalVersion?.installedVersion) {
-      this.versionInfo = dbtGlobalVersion;
-      return dbtGlobalVersion.installedVersion.major >= 1 ? this.installAndFindCommandForV1() : new DbtCommand(FeatureFinder.LEGACY_DBT_PARAMS);
     }
 
     return undefined;
