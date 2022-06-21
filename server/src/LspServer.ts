@@ -67,7 +67,6 @@ export class LspServer {
   sqlToRefCommandName = randomUUID();
   workspaceFolder: string;
   python?: string;
-  dbtProfileType?: string;
   hasConfigurationCapability = false;
   dbtRpcServer = new DbtRpcServer();
   dbtRpcClient = new DbtRpcClient();
@@ -183,9 +182,9 @@ export class LspServer {
       s => s,
       e => e,
     );
-    this.dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
+    const dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
 
-    await Promise.all([this.prepareRpcServer(), this.prepareDestination(profileResult)]);
+    await Promise.all([this.prepareRpcServer(dbtProfileType), this.prepareDestination(profileResult)]);
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime, this.initDbtRpcAttempt);
   }
@@ -210,7 +209,7 @@ export class LspServer {
     this.connection.window.showWarningMessage(message);
   }
 
-  async prepareRpcServer(): Promise<void> {
+  async prepareRpcServer(dbtProfileType?: string): Promise<void> {
     this.initDbtRpcAttempt++;
 
     try {
@@ -220,14 +219,14 @@ export class LspServer {
       return;
     }
 
-    this.featureFinder = new FeatureFinder(this.python, this.dbtProfileType);
+    this.featureFinder = new FeatureFinder(this.python, dbtProfileType);
 
     const [command, dbtPort] = await Promise.all([this.featureFinder.findDbtRpcCommand(), this.featureFinder.findFreePort()]);
 
     if (command === undefined) {
       try {
-        if (this.dbtProfileType) {
-          await this.suggestToInstallDbt(this.python, this.dbtProfileType);
+        if (dbtProfileType) {
+          await this.suggestToInstallDbt(this.python, dbtProfileType);
         } else {
           this.onRpcServerFindFailed();
         }
