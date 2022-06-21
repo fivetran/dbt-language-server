@@ -185,46 +185,70 @@ export class ZetaSqlWrapper {
   }
 
   async analyzeTable(originalFilePath: string, sql?: string): Promise<Result<AnalyzeResponse__Output, string>> {
-    const model = this.dbtRepository.models.find(m => m.originalFilePath === originalFilePath);
-    if (!model) {
-      console.log(`Model ${originalFilePath} not found`);
-      return err('Model not found');
-    }
-    const compiledSql = sql ?? this.getCompiledSql(model);
+    await this.registerAllLanguageFeatures(this.catalog);
+    return this.analyzeTableInternal(originalFilePath, sql);
+  }
+
+  private async analyzeTableInternal(originalFilePath: string, sql?: string): Promise<Result<AnalyzeResponse__Output, string>> {
+    const compiledSql = sql ?? this.getCompiledSql(originalFilePath);
     if (!compiledSql) {
       return err('Compiled SQL not found');
     }
-    await this.registerAllLanguageFeatures(this.catalog);
 
     const tables = await this.findTableNames(compiledSql);
 
-    for (const table of tables) {
-      if (!this.isTableRegistered(table)) {
-        if (!(await this.updateTableSchema(table))) {
-          const ref = this.getTableRef(model, table.getTableName());
-          if (ref) {
-            const uniqueId = model.dependsOn.nodes.find(n => n.endsWith(ref.join('.')));
-            const refModel = this.dbtRepository.models.find(m => m.uniqueId === uniqueId);
-            if (refModel) {
-              const analyzeResult = await this.analyzeTable(refModel.originalFilePath);
-              if (analyzeResult.isOk()) {
-                table.columns = analyzeResult.value.resolvedStatement?.resolvedQueryStmtNode?.outputColumnList
-                  .filter(c => c.column !== null)
-                  .map(c => {
-                    return ZetaSqlWrapper.createSimpleColumn(c.name, c.column?.type ?? null);
-                  });
-              }
-            } else {
-              console.log(`Can't find ref model`);
-            }
-          } else {
-            console.log(`Can't find ref`);
-          }
+    const notRegisteredTables = tables.filter(t => !this.isTableRegistered(t));
+    for (const table of notRegisteredTables) {
+      const schemaUpdated = await this.updateTableSchema(table);
+      if (!schemaUpdated) {
+        const model = this.getModel(originalFilePath);
+        if (!model) {
+          return err('Model not found');
         }
-        this.registerTable(table);
+
+        await this.analyzeRef(table, model);
       }
+      this.registerTable(table);
     }
     return this.getAstOrError(compiledSql);
+  }
+
+  async analyzeRef(table: TableDefinition, model: ManifestModel): Promise<void> {
+    const ref = this.getTableRef(model, table.getTableName());
+    if (ref) {
+      const refModel = this.findModelByRefName(model, ref);
+      if (refModel) {
+        const analyzeResult = await this.analyzeTableInternal(refModel.originalFilePath);
+        if (analyzeResult.isOk()) {
+          table.columns = analyzeResult.value.resolvedStatement?.resolvedQueryStmtNode?.outputColumnList
+            .filter(c => c.column !== null)
+            .map(c => {
+              return ZetaSqlWrapper.createSimpleColumn(c.name, c.column?.type ?? null);
+            });
+        }
+      } else {
+        console.log(`Can't find ref model`);
+      }
+    } else {
+      console.log(`Can't find ref`);
+    }
+  }
+
+  findModelByRefName(model: ManifestModel, ref: string[]): ManifestModel | undefined {
+    const uniqueId = model.dependsOn.nodes.find(n => n.endsWith(ref.join('.')));
+    const refModel = this.dbtRepository.models.find(m => m.uniqueId === uniqueId);
+    if (!refModel) {
+      console.log(`Can't find ref model`);
+    }
+    return refModel;
+  }
+
+  getModel(originalFilePath: string): ManifestModel | undefined {
+    const model = this.dbtRepository.models.find(m => m.originalFilePath === originalFilePath);
+    if (!model) {
+      console.log(`Model ${originalFilePath} not found`);
+    }
+    return model;
   }
 
   async registerAllLanguageFeatures(catalog: SimpleCatalogProto): Promise<void> {
@@ -247,13 +271,17 @@ export class ZetaSqlWrapper {
     }
   }
 
-  getCompiledSql(model: ManifestModel): string | undefined {
+  getCompiledSql(originalFilePath: string): string | undefined {
+    const model = this.getModel(originalFilePath);
+    if (!model) {
+      return undefined;
+    }
     const compiledPath = path.resolve(this.dbtRepository.dbtTargetPath, 'compiled', model.packageName, model.originalFilePath);
     try {
       return fs.readFileSync(compiledPath, 'utf8');
     } catch (e) {
       console.log(`Cannot read ${compiledPath}`);
-      return undefined; // For some reason compiled file not found
+      return undefined;
     }
   }
 
