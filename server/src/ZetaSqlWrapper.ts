@@ -18,7 +18,7 @@ import { DbtRepository } from './DbtRepository';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
 import { ManifestModel } from './manifest/ManifestJson';
 import { ColumnDefinition, TableDefinition } from './TableDefinition';
-import { arraysAreEqual, randomNumber } from './utils/Utils';
+import { randomNumber } from './utils/Utils';
 import path = require('path');
 import findFreePortPmfy = require('find-free-port');
 
@@ -60,7 +60,7 @@ export class ZetaSqlWrapper {
   }
 
   isTableRegistered(table: TableDefinition): boolean {
-    return this.registeredTables.some(t => arraysAreEqual(t.namePath, table.namePath) && t.rawName === table.rawName);
+    return this.registeredTables.some(t => t.equals(table));
   }
 
   getTableRef(model: ManifestModel, name: string): string[] | undefined {

@@ -1,4 +1,5 @@
 import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
+import { arraysAreEqual } from './utils/Utils';
 
 export class TableDefinition {
   namePath: string[];
@@ -60,6 +61,10 @@ export class TableDefinition {
 
   isInformationSchema(namePart?: string): boolean {
     return namePart?.toLocaleLowerCase() === 'information_schema';
+  }
+
+  equals(other: TableDefinition): boolean {
+    return arraysAreEqual(this.namePath, other.namePath) && this.rawName === other.rawName;
   }
 }
 
