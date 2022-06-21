@@ -5,16 +5,16 @@ import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
 import { YamlParserUtils } from './YamlParserUtils';
 
-export interface DbtProfileResult {
+export interface DbtProfileInfo {
   type?: string;
   method?: string;
 }
 
-export interface DbtProfileError extends DbtProfileResult {
+export interface DbtProfileError extends DbtProfileInfo {
   message: string;
 }
 
-export interface DbtProfileSuccess extends DbtProfileResult {
+export interface DbtProfileSuccess extends DbtProfileInfo {
   dbtProfile?: DbtProfile;
   targetConfig: Required<TargetConfig>;
 }

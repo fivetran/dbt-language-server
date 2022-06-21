@@ -35,7 +35,7 @@ import {
 } from 'vscode-languageserver';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
-import { DbtProfileCreator, DbtProfileError, DbtProfileResult, DbtProfileSuccess } from './DbtProfileCreator';
+import { DbtProfileCreator, DbtProfileError, DbtProfileInfo, DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
 import { DbtRpcClient } from './DbtRpcClient';
@@ -176,7 +176,7 @@ export class LspServer {
     }
 
     const profileResult = this.dbtProfileCreator.createDbtProfile();
-    const contextInfo = profileResult.match<DbtProfileResult>(
+    const contextInfo = profileResult.match<DbtProfileInfo>(
       s => s,
       e => e,
     );
@@ -245,7 +245,7 @@ export class LspServer {
     }
   }
 
-  logStartupInfo(contextInfo: DbtProfileResult, initTime: number, initDbtRpcAttempt: number): void {
+  logStartupInfo(contextInfo: DbtProfileInfo, initTime: number, initDbtRpcAttempt: number): void {
     this.sendTelemetry('log', {
       dbtVersion: getStringVersion(this.featureFinder.version),
       python: this.featureFinder.python ?? 'undefined',
