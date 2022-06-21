@@ -40,6 +40,7 @@ import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
 import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcServer } from './DbtRpcServer';
+import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
 import { getStringVersion } from './DbtVersion';
 import { Command as DbtCommand } from './dbt_commands/Command';
 import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
@@ -65,6 +66,7 @@ export class LspServer {
 
   sqlToRefCommandName = randomUUID();
   workspaceFolder: string;
+  python?: string;
   hasConfigurationCapability = false;
   dbtRpcServer = new DbtRpcServer();
   dbtRpcClient = new DbtRpcClient();
@@ -78,7 +80,7 @@ export class LspServer {
   dbtProfileCreator = new DbtProfileCreator(this.dbtProject, '~/.dbt/profiles.yml');
   manifestParser = new ManifestParser();
   dbtRepository = new DbtRepository();
-  featureFinder = new FeatureFinder();
+  featureFinder?: FeatureFinder;
   dbtDocumentKindResolver = new DbtDocumentKindResolver(this.dbtRepository);
   initStart = performance.now();
   initDbtRpcAttempt = 0;
@@ -180,8 +182,9 @@ export class LspServer {
       s => s,
       e => e,
     );
+    const dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
 
-    await Promise.all([this.prepareRpcServer(), this.prepareDestination(profileResult)]);
+    await Promise.all([this.prepareRpcServer(dbtProfileType), this.prepareDestination(profileResult)]);
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime, this.initDbtRpcAttempt);
   }
@@ -206,43 +209,93 @@ export class LspServer {
     this.connection.window.showWarningMessage(message);
   }
 
-  async prepareRpcServer(): Promise<void> {
+  async prepareRpcServer(dbtProfileType?: string): Promise<void> {
     this.initDbtRpcAttempt++;
 
-    const [command, dbtPort] = await Promise.all([
-      this.featureFinder.findDbtRpcCommand(this.connection.sendRequest('custom/getPython')),
-      this.featureFinder.findFreePort(),
-    ]);
+    try {
+      this.python = await this.findPython();
+    } catch (e) {
+      this.onPythonNotFound();
+      return;
+    }
+
+    this.featureFinder = new FeatureFinder(this.python, dbtProfileType);
+
+    const [command, dbtPort] = await Promise.all([this.featureFinder.findDbtRpcCommand(), this.featureFinder.findFreePort()]);
 
     if (command === undefined) {
-      this.featureFinder = new FeatureFinder();
-      this.progressReporter.sendFinish();
-      await this.showStartDbtRpcError(
-        `Failed to find dbt-rpc. You can use 'python3 -m pip install dbt-bigquery dbt-rpc' command to install it. Check in Terminal that dbt-rpc works running 'dbt-rpc --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g. ~/dbt-env/bin/python3).`,
-      );
+      try {
+        if (dbtProfileType) {
+          await this.suggestToInstallDbt(this.python, dbtProfileType);
+        } else {
+          this.onRpcServerFindFailed();
+        }
+      } catch (e) {
+        this.onRpcServerFindFailed();
+      }
     } else {
       command.addParameter(dbtPort.toString());
       try {
         await this.startDbtRpc(command, dbtPort);
       } catch (e) {
-        await this.showStartDbtRpcError(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
+        this.onRpcServerStartFailed(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
       }
     }
   }
 
-  async showStartDbtRpcError(message: string): Promise<void> {
-    console.log(message);
-    const actions = { title: 'Retry', id: 'retry' };
-    const errorMessageResult = await this.connection.window.showErrorMessage(message, actions);
-    if (errorMessageResult?.id === 'retry') {
-      await this.prepareRpcServer();
+  async findPython(): Promise<string> {
+    let python: string = await this.connection.sendRequest('custom/getPython');
+    if (python === '') {
+      throw new Error('Python not found');
+    }
+    if (python === 'python') {
+      python = 'python3';
+    }
+    return python;
+  }
+
+  onPythonNotFound(): void {
+    this.onRpcServerStartFailed(
+      'Python was not found in your working environment. dbt Wizard requires valid python installation. Please visit [https://www.python.org/downloads](https://www.python.org/downloads).',
+    );
+  }
+
+  onRpcServerFindFailed(): void {
+    this.onRpcServerStartFailed(
+      `Failed to find dbt-rpc. You can use 'python3 -m pip install dbt-bigquery dbt-rpc' command to install it. Check in Terminal that dbt-rpc works running 'dbt-rpc --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g. ~/dbt-env/bin/python3).`,
+    );
+  }
+
+  onRpcServerStartFailed(message: string): void {
+    this.progressReporter.sendFinish();
+    this.connection.window.showErrorMessage(message);
+  }
+
+  async suggestToInstallDbt(python: string, dbtProfileType: string): Promise<void> {
+    const actions = { title: 'Install', id: 'install' };
+    const errorMessageResult = await this.connection.window.showErrorMessage(
+      `dbt is not installed. Would you like to install dbt, dbt-rpc and ${dbtProfileType} adapter?`,
+      actions,
+    );
+
+    if (errorMessageResult?.id === 'install') {
+      console.log(`Trying to install dbt, dbt-rpc and ${dbtProfileType} adapter`);
+      const installResult = await DbtUtilitiesInstaller.installDbt(python, dbtProfileType);
+      if (installResult.isOk()) {
+        this.connection.window.showInformationMessage(installResult.value);
+        await this.prepareRpcServer(dbtProfileType);
+      } else {
+        this.onRpcServerStartFailed(installResult.error);
+      }
+    } else {
+      this.onRpcServerFindFailed();
     }
   }
 
   logStartupInfo(contextInfo: DbtProfileResult, initTime: number, initDbtRpcAttempt: number): void {
     this.sendTelemetry('log', {
-      dbtVersion: getStringVersion(this.featureFinder.version),
-      python: this.featureFinder.python ?? 'undefined',
+      dbtVersion: getStringVersion(this.featureFinder?.versionInfo?.installedVersion),
+      python: this.python ?? 'undefined',
       initTime: initTime.toString(),
       type: contextInfo.type ?? 'unknown type',
       method: contextInfo.method ?? 'unknown method',
