@@ -91,10 +91,6 @@ export class FeatureFinder {
     return this.findCommandVersion(new DbtRpcCommand([FeatureFinder.VERSION_PARAM]));
   }
 
-  private async findDbtGlobalVersion(): Promise<DbtVersionInfo | undefined> {
-    return this.findCommandVersion(new DbtCommand([FeatureFinder.VERSION_PARAM]));
-  }
-
   private async findDbtRpcPythonVersion(): Promise<DbtVersionInfo | undefined> {
     return this.findCommandPythonVersion(new DbtRpcCommand([FeatureFinder.VERSION_PARAM], this.python));
   }
