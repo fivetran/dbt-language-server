@@ -7,6 +7,7 @@ import { closeAllEditors, doc, getPreviewText, PREVIEW_URI } from './helper';
 
 const TESTS_WITHOUT_ZETASQL = ['multi-project.spec.js' /* 'completion_jinja.spec.js' */]; // TODO: add more tests
 const ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
+const DO_NOT_RUN = ['dbt_ft.spec.ts'];
 
 export async function run(): Promise<void> {
   await closeAllEditors();
@@ -31,7 +32,7 @@ export async function run(): Promise<void> {
 
       // Add files to the test suite
       files
-        .filter(f => ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) || TESTS_WITHOUT_ZETASQL.includes(f))
+        .filter(f => (ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) || TESTS_WITHOUT_ZETASQL.includes(f)) && !DO_NOT_RUN.includes(f))
         .forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
 
       try {

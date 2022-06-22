@@ -75,6 +75,22 @@
         "CLI_PATH": "code"
       },
       "outFiles": ["${workspaceRoot}/client/out/test/**/*.js"]
+    },
+    {
+      "name": "dbt_ft Tests Client",
+      "type": "extensionHost",
+      "request": "launch",
+      "preLaunchTask": "deleteTargetFolders",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceRoot}",
+        "--extensionTestsPath=${workspaceRoot}/e2e/out/dbt_ft",
+        "${workspaceRoot}/../analytics/dbt_ft_prod"
+      ],
+      "env": {
+        "CLI_PATH": "code"
+      },
+      "outFiles": ["${workspaceRoot}/client/out/test/**/*.js"]
     }
   ],
   "compounds": [

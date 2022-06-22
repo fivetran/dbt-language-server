@@ -30,7 +30,7 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: set up node 16.x
         uses: actions/setup-node@v2
@@ -118,7 +118,7 @@ jobs:
         run: echo "FILE_NAME=${{ github.sha }}-${{ matrix.target }}.vsix" >> $GITHUB_ENV
 
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: fix cache issue on windows (use GNU tar instead BSD tar) # https://github.com/actions/toolkit/issues/552
         if: matrix.os == 'windows-latest'
