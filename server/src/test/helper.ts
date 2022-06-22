@@ -31,6 +31,7 @@ export const BQ_MISSING_METHOD = 'bigquery-test_missing_method';
 export const BQ_MISSING_PROJECT = 'bigquery-test_missing_project';
 
 export const OTHERS_UNKNOWN_TYPE = 'unknown-type';
+export const UNKNOWN_TYPE = 'unknown';
 
 export function getConfigPath(p: string): string {
   return path.resolve(PROFILES_PATH, p);

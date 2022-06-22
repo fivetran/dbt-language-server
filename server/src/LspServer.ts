@@ -35,7 +35,7 @@ import {
 } from 'vscode-languageserver';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
-import { DbtProfileCreator, DbtProfileError, DbtProfileResult, DbtProfileSuccess } from './DbtProfileCreator';
+import { DbtProfileCreator, DbtProfileError, DbtProfileInfo, DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
 import { DbtRpcClient } from './DbtRpcClient';
@@ -178,7 +178,7 @@ export class LspServer {
     }
 
     const profileResult = this.dbtProfileCreator.createDbtProfile();
-    const contextInfo = profileResult.match<DbtProfileResult>(
+    const contextInfo = profileResult.match<DbtProfileInfo>(
       s => s,
       e => e,
     );
@@ -190,21 +190,27 @@ export class LspServer {
   }
 
   async prepareDestination(profileResult: Result<DbtProfileSuccess, DbtProfileError>): Promise<void> {
-    if (profileResult.isOk()) {
-      const bigQueryContextInfo = await BigQueryContext.createContext(profileResult.value);
+    if (profileResult.isOk() && profileResult.value.dbtProfile) {
+      const bigQueryContextInfo = await BigQueryContext.createContext(profileResult.value.dbtProfile, profileResult.value.targetConfig);
       if (bigQueryContextInfo.isOk()) {
         this.bigQueryContext = bigQueryContextInfo.value;
       } else {
-        this.showPrepareDestinationWarning(bigQueryContextInfo.error);
+        this.showCreateContextWarning(bigQueryContextInfo.error);
       }
-    } else {
+    } else if (profileResult.isErr()) {
       this.showPrepareDestinationWarning(profileResult.error.message);
     }
     this.contextInitializedDeferred.resolve();
   }
 
+  showCreateContextWarning(error: string): void {
+    const message = `Unable to initialize BigQuery. ${error}`;
+    console.log(message);
+    this.connection.window.showWarningMessage(message);
+  }
+
   showPrepareDestinationWarning(error: string): void {
-    const message = `Only common dbt features will be available. Dbt profile was not configured. ${error}`;
+    const message = `Dbt profile was not properly configured. ${error}`;
     console.log(message);
     this.connection.window.showWarningMessage(message);
   }
@@ -292,7 +298,7 @@ export class LspServer {
     }
   }
 
-  logStartupInfo(contextInfo: DbtProfileResult, initTime: number, initDbtRpcAttempt: number): void {
+  logStartupInfo(contextInfo: DbtProfileInfo, initTime: number, initDbtRpcAttempt: number): void {
     this.sendTelemetry('log', {
       dbtVersion: getStringVersion(this.featureFinder?.versionInfo?.installedVersion),
       python: this.python ?? 'undefined',

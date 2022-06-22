@@ -1,21 +1,21 @@
 import { Err, err, ok, Result } from 'neverthrow';
-import { DbtProfile, ProfileYaml, TargetConfig } from './DbtProfile';
+import { DbtProfile, DbtProfileType, ProfileYaml, TargetConfig } from './DbtProfile';
 import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtProfileType';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
 import { YamlParserUtils } from './YamlParserUtils';
 
-export interface DbtProfileResult {
+export interface DbtProfileInfo {
   type?: string;
   method?: string;
 }
 
-export interface DbtProfileError extends DbtProfileResult {
+export interface DbtProfileError extends DbtProfileInfo {
   message: string;
 }
 
-export interface DbtProfileSuccess extends DbtProfileResult {
-  dbtProfile: DbtProfile;
+export interface DbtProfileSuccess extends DbtProfileInfo {
+  dbtProfile?: DbtProfile;
   targetConfig: Required<TargetConfig>;
 }
 
@@ -59,10 +59,7 @@ export class DbtProfileCreator {
 
     const { method } = outputsTarget;
     const authMethods = PROFILE_METHODS.get(type);
-    if (!authMethods) {
-      return err({ message: `Currently, '${type}' profile is not supported. Check your '${this.profilesPath}' file.`, type, method });
-    }
-    if (authMethods.length > 0 && (!method || authMethods.indexOf(method) === -1)) {
+    if (authMethods && (!method || authMethods.indexOf(method) === -1)) {
       return err({ message: `Unknown authentication method of '${type}' profile. Check your '${this.profilesPath}' file.`, type, method });
     }
 
@@ -101,17 +98,20 @@ export class DbtProfileCreator {
     const targetConfig = profile.outputs[target];
     const { type, method } = targetConfig;
 
-    const profileBuilder = BIG_QUERY_PROFILES.get(method);
-    if (!profileBuilder) {
-      throw new Error(`Unknown authentication method of '${type}' profile`);
-    }
+    let dbtProfile: DbtProfile | undefined = undefined;
 
-    const dbtProfile = profileBuilder();
+    if (type.valueOf() === DbtProfileType.BigQuery) {
+      const profileBuilder = BIG_QUERY_PROFILES.get(method);
+      if (!profileBuilder) {
+        return this.parseProfileError(`Unknown authentication method of '${type}' profile`, type, method);
+      }
+      dbtProfile = profileBuilder();
 
-    const result = dbtProfile.validateProfile(targetConfig);
-    if (result.isErr()) {
-      const docsUrl = dbtProfile.getDocsUrl();
-      return this.cantFindSectionError(profileName, result.error, docsUrl, type, method);
+      const result = dbtProfile.validateProfile(targetConfig);
+      if (result.isErr()) {
+        const docsUrl = dbtProfile.getDocsUrl();
+        return this.cantFindSectionError(profileName, result.error, docsUrl, type, method);
+      }
     }
 
     return ok({
@@ -125,6 +125,10 @@ export class DbtProfileCreator {
   cantFindSectionError(profileName: string, section: string, docsUrl?: string, type?: string, method?: string): Err<never, DbtProfileError> {
     const message = `Couldn't find section '${section}' for profile '${profileName}'. Check your '${this.profilesPath}' file. ${docsUrl ?? ''}`;
     console.log(message);
+    return this.parseProfileError(message, type, method);
+  }
+
+  parseProfileError(message: string, type?: string, method?: string): Err<never, DbtProfileError> {
     return err({ message, type, method });
   }
 }

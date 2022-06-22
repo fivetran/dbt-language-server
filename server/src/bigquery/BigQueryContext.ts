@@ -1,7 +1,7 @@
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { err, ok, Result } from 'neverthrow';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { DbtProfileSuccess } from '../DbtProfileCreator';
+import { DbtProfile, TargetConfig } from '../DbtProfile';
 import { DestinationDefinition } from '../DestinationDefinition';
 import { SchemaTracker } from '../SchemaTracker';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
@@ -14,9 +14,9 @@ export class BigQueryContext {
     public zetaSqlWrapper: ZetaSqlWrapper,
   ) {}
 
-  public static async createContext(profileResult: DbtProfileSuccess): Promise<Result<BigQueryContext, string>> {
+  public static async createContext(dbtProfile: DbtProfile, targetConfig: Required<TargetConfig>): Promise<Result<BigQueryContext, string>> {
     try {
-      const clientResult = await profileResult.dbtProfile.createClient(profileResult.targetConfig);
+      const clientResult = await dbtProfile.createClient(targetConfig);
       if (clientResult.isErr()) {
         console.log(clientResult.error);
         return err(clientResult.error);
