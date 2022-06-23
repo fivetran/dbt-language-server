@@ -14,7 +14,7 @@ suite('dbt_ft', () => {
     console.log(`Count: ${files.length}`);
     files.forEach(f => console.log(f));
 
-    for (let i = 0; i < 1; i++) {
+    for (let i = 0; i < files.length; i++) {
       const file = files[i];
       console.log(`File: ${file}`);
 
