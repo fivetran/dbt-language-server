@@ -98,7 +98,7 @@ jobs:
           echo ${keyFilePath}
 
           private_key=$(echo ${BQ_ANALYTICS_ACCOUNT} | jq '.private_key')
-          read project_id private_key_id client_id client_email auth_uri token_uri auth_provider_x509_cert_url client_x509_cert_url < <(echo $(echo ${BQ_SERVICE_ACCOUNT} | jq -r '.project_id, .private_key_id, .client_id, .client_email, .auth_uri, .token_uri, .auth_provider_x509_cert_url, .client_x509_cert_url'))
+          read project_id private_key_id client_id client_email auth_uri token_uri auth_provider_x509_cert_url client_x509_cert_url < <(echo $(echo ${BQ_ANALYTICS_ACCOUNT} | jq -r '.project_id, .private_key_id, .client_id, .client_email, .auth_uri, .token_uri, .auth_provider_x509_cert_url, .client_x509_cert_url'))
           dataset="transforms"
 
           read pg_host pg_user pg_password pg_port pg_dbname pg_schema < <(echo $(echo ${PG_CONNECTION_PARAMS} | jq -r '.host, .user, .password, .port, .dbname, .schema'))
