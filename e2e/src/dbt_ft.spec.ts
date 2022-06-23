@@ -31,7 +31,7 @@ suite('dbt_ft', () => {
         flag: 'a+',
       });
       if (diagnostics.filter(d => d.severity === DiagnosticSeverity.Error).length > 0) {
-        writeFileSync('diagnostics.txt', `${file}, ${diagnostics.length}\n`, {
+        writeFileSync('diagnostics.txt', `${file}, ${diagnostics.length}\n${JSON.stringify(diagnostics)}`, {
           flag: 'a+',
         });
       }
