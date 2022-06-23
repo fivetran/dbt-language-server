@@ -23,8 +23,6 @@ jobs:
         run: |
           npm install
           npm run build
-          npm run lint
-          npm run test
           
       - name: set environment variable with file name
         run: echo "FILE_NAME=${{ github.sha }}-darwin-x64.vsix" >> $GITHUB_ENV
@@ -134,6 +132,11 @@ jobs:
           which dbt
           dbt --version
           node -v
+
+      - name: build and test
+        run: |
+          cd analytics/dbt_ft_prod
+          dbt deps
 
       - run: unzip ${{ env.FILE_NAME }} -d e2e-tests
       
