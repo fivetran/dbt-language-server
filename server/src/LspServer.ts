@@ -449,6 +449,8 @@ export class LspServer {
     const document = this.openedDocuments.get(completionParams.textDocument.uri);
     if (process.env['DBT_LS_ENABLE_DEBUG_LOGS']) {
       console.log(`onCompletion request, document '${completionParams.textDocument.uri}' ${document === undefined ? 'not found' : 'found'}`);
+      console.log(`dbtRepository.macros length: ${this.dbtRepository.macros.length}`);
+      console.log(`dbtRepository.packageToMacros length: ${this.dbtRepository.packageToMacros.entries.length}`);
     }
     return document?.onCompletion(completionParams);
   }
