@@ -27,16 +27,16 @@ suite('dbt_ft', () => {
       await activateAndWait(uri);
 
       const diagnostics = languages.getDiagnostics(uri);
-      writeFileSync('log.txt', `${file}, ${diagnostics.length}\n`, {
+      writeFileSync('log.txt', `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n`, {
         flag: 'a+',
       });
       if (diagnostics.filter(d => d.severity === DiagnosticSeverity.Error).length > 0) {
-        writeFileSync('diagnostics.txt', `${file}, ${diagnostics.length}\n${JSON.stringify(diagnostics)}`, {
+        writeFileSync('diagnostics.txt', `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n${JSON.stringify(diagnostics)}\n\n`, {
           flag: 'a+',
         });
       }
       if (diagnostics.length > 0) {
-        console.log(`diagnostics: ${JSON.stringify(diagnostics)}`);
+        console.log(`${new Date().toISOString()}: diagnostics: ${JSON.stringify(diagnostics)}`);
       }
     }
   });
