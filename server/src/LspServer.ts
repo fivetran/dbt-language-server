@@ -250,10 +250,14 @@ export class LspServer {
       } catch (e) {
         this.onRpcServerStartFailed(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
       }
-      this.dbtRpcClient.compile().catch(e => {
-        console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
-      });
+      this.doInitialCompile();
     }
+  }
+
+  doInitialCompile(): void {
+    this.dbtRpcClient.compile().catch(e => {
+      console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
+    });
   }
 
   async findPython(): Promise<string> {
