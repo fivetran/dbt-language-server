@@ -222,9 +222,7 @@ export class ZetaSqlWrapper {
         if (analyzeResult.isOk()) {
           table.columns = analyzeResult.value.resolvedStatement?.resolvedQueryStmtNode?.outputColumnList
             .filter(c => c.column !== null)
-            .map(c => {
-              return ZetaSqlWrapper.createSimpleColumn(c.name, c.column?.type ?? null);
-            });
+            .map(c => ZetaSqlWrapper.createSimpleColumn(c.name, c.column?.type ?? null));
         }
       } else {
         console.log(`Can't find ref model`);
