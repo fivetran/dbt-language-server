@@ -149,7 +149,7 @@ export class ZetaSqlWrapper {
         },
       };
     } else {
-      console.log(`Cannot find SimpleType for ${newColumn.type}`); // TODO: fix all these issues
+      console.log(`Cannot find TypeKind for ${newColumn.type}`); // TODO: fix all these issues
       resultType = {
         typeKind: TypeKind.TYPE_STRING,
       };
