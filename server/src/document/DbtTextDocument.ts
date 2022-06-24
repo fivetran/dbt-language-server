@@ -264,6 +264,7 @@ export class DbtTextDocument {
       );
       const astResult = await this.bigQueryContext.analyzeTable(originalFilePath, compiledSql);
       if (astResult.isOk()) {
+        console.log(`AST was successfully received for ${originalFilePath}`);
         this.ast = astResult.value;
       } else {
         console.log(`There was an error while parsing ${originalFilePath}`);
