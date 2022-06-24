@@ -197,8 +197,10 @@ export class ZetaSqlWrapper {
 
     const tables = await this.findTableNames(compiledSql);
 
-    const notRegisteredTables = tables.filter(t => !this.isTableRegistered(t));
-    for (const table of notRegisteredTables) {
+    for (const table of tables) {
+      if (this.isTableRegistered(table)) {
+        continue;
+      }
       const schemaUpdated = await this.updateTableSchema(table);
       if (!schemaUpdated) {
         const model = this.getModel(originalFilePath);
