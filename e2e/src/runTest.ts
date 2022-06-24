@@ -23,6 +23,7 @@ async function main(): Promise<void> {
     console.log('extensionsInstallPath resolved');
 
     const vscodeExecutablePath = await downloadAndUnzipVSCode('stable', undefined, new SilentReporter());
+    console.log(`Extension successfully downloaded and unzipped to ${vscodeExecutablePath}`);
     const [cli, ...args] = resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath);
     console.log('cli and args resolved');
 
@@ -47,7 +48,7 @@ async function main(): Promise<void> {
         process.exit(1);
       }
     }
-    console.log('python extension successfully installed from marketplace');
+    console.log('Python extension successfully installed from marketplace');
 
     const extensionTestsPath = path.resolve(__dirname, './index');
 

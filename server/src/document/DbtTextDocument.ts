@@ -245,7 +245,7 @@ export class DbtTextDocument {
     }
 
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
-    [this.rawDocDiagnostics, this.compiledDocDiagnostics] = await this.createDiagnostics();
+    [this.rawDocDiagnostics, this.compiledDocDiagnostics] = await this.createDiagnostics(compiledSql);
     this.sendUpdateQueryPreview();
     this.sendDiagnostics();
 
@@ -254,13 +254,15 @@ export class DbtTextDocument {
     }
   }
 
-  async createDiagnostics(): Promise<[Diagnostic[], Diagnostic[]]> {
+  async createDiagnostics(compiledSql: string): Promise<[Diagnostic[], Diagnostic[]]> {
     let rawDocDiagnostics: Diagnostic[] = [];
     let compiledDocDiagnostics: Diagnostic[] = [];
 
     if (this.bigQueryContext && this.dbtDocumentKind === DbtDocumentKind.MODEL) {
-      await this.bigQueryContext.ensureCatalogInitialized(this.compiledDocument);
-      const astResult = await this.bigQueryContext.getAstOrError(this.compiledDocument);
+      const originalFilePath = this.rawDocument.uri.substring(
+        this.rawDocument.uri.lastIndexOf(this.workspaceFolder) + this.workspaceFolder.length + 1,
+      );
+      const astResult = await this.bigQueryContext.analyzeTable(originalFilePath, compiledSql);
       if (astResult.isOk()) {
         this.ast = astResult.value;
       }

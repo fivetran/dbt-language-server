@@ -28,6 +28,10 @@ describe('ModelCompletionProvider', () => {
         packageName: PROJECT_PACKAGE,
         database: 'database',
         schema: 'schema',
+        dependsOn: {
+          nodes: [],
+        },
+        refs: [],
       },
       {
         uniqueId: 'model_2_id',
@@ -37,6 +41,10 @@ describe('ModelCompletionProvider', () => {
         packageName: PROJECT_PACKAGE,
         database: 'database',
         schema: 'schema',
+        dependsOn: {
+          nodes: [],
+        },
+        refs: [],
       },
       {
         uniqueId: 'installed_package_model_1_id',
@@ -46,6 +54,10 @@ describe('ModelCompletionProvider', () => {
         packageName: INSTALLED_PACKAGE,
         database: 'database',
         schema: 'schema',
+        dependsOn: {
+          nodes: [],
+        },
+        refs: [],
       },
       {
         uniqueId: 'installed_package_model_2_id',
@@ -55,6 +67,10 @@ describe('ModelCompletionProvider', () => {
         packageName: INSTALLED_PACKAGE,
         database: 'database',
         schema: 'schema',
+        dependsOn: {
+          nodes: [],
+        },
+        refs: [],
       },
     ];
     dbtRepository.updateDbtNodes(models, [], []);

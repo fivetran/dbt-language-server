@@ -1,6 +1,11 @@
-import { SimpleCatalog, SimpleColumn } from '@fivetrandevelopers/zetasql';
+import { TypeKind } from '@fivetrandevelopers/zetasql';
+import { SimpleCatalogProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleCatalogProto';
+import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
 import * as assert from 'assert';
-import { assertThat, greaterThan } from 'hamjest';
+import { assertThat, greaterThan, hasExactlyOneItem, hasProperty, hasSize } from 'hamjest';
+import { mock } from 'ts-mockito';
+import { BigQueryClient } from '../bigquery/BigQueryClient';
+import { DbtRepository } from '../DbtRepository';
 import { InformationSchemaConfigurator } from '../InformationSchemaConfigurator';
 import { TableDefinition } from '../TableDefinition';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
@@ -10,158 +15,137 @@ describe('ZetaSqlWrapper', () => {
   const DATA_SET = 'data_set';
   const TABLE = 'table';
   const COLUMN_NAME = 'column_name';
-  const COLUMN_TYPE = 'string';
-  const ONE_TABLE = {
-    fields: [{ name: COLUMN_NAME, type: COLUMN_TYPE }],
-  };
+  const ONE_TABLE: SimpleColumnProto[] = [
+    {
+      name: COLUMN_NAME,
+      type: { typeKind: TypeKind.TYPE_STRING },
+    },
+  ];
 
-  function getCatalog(zetaSqlWrapper: ZetaSqlWrapper): SimpleCatalog {
-    return zetaSqlWrapper['catalog'];
-  }
+  let zetaSqlWrapper: ZetaSqlWrapper;
 
-  async function shouldRegisterOneTable(
-    tableDefinitions: TableDefinition[],
+  function shouldRegisterTable(
+    tableDefinition: TableDefinition,
     table: string,
     expectedColumns: string[],
     expectedDataSet?: string,
     expectedProjectId?: string,
-  ): Promise<void> {
+  ): void {
     // arrange, act
-    const rootCatalog = await registerCatalog(tableDefinitions);
+    zetaSqlWrapper = new ZetaSqlWrapper(mock(DbtRepository), mock(BigQueryClient));
+    const rootCatalog = registerTable(tableDefinition);
 
     // assert
     assertProject(rootCatalog, expectedProjectId);
 
-    const datasets = expectedProjectId ? rootCatalog.catalogs.get(expectedProjectId)?.catalogs : rootCatalog.catalogs;
+    const datasets = expectedProjectId ? rootCatalog.catalog?.find(c => c.name === expectedProjectId)?.catalog : rootCatalog.catalog;
     assertDataSet(datasets, expectedDataSet);
 
-    const tables = expectedDataSet ? datasets?.get(DATA_SET)?.tables : rootCatalog.tables;
+    const tables = expectedDataSet ? datasets?.find(c => c.name === DATA_SET)?.table : rootCatalog.table;
     assert.ok(tables);
-    assertThat(tables.size, 1);
-    assertThat(tables.get(table)?.name, table);
+    assertThat(tables, hasExactlyOneItem(hasProperty('name', table)));
 
-    const columns = tables.get(table)?.columns;
+    const columns = tables.find(t => t.name === table)?.column;
     assert.ok(columns);
     assertThat(columns.length, expectedColumns.length);
-    assertThat(columns.map((c: SimpleColumn) => c.getName()).sort(), expectedColumns.sort());
+    assertThat(columns.map(c => c.name).sort(), expectedColumns.sort());
   }
 
-  function assertProject(rootCatalog: SimpleCatalog, expectedProjectId?: string): void {
+  function assertProject(rootCatalog: SimpleCatalogProto, expectedProjectId?: string): void {
     if (expectedProjectId) {
-      const projects = rootCatalog.catalogs;
-      assertThat(projects.size, 1);
-      assertThat(projects.get(expectedProjectId)?.name, expectedProjectId);
+      const projects = rootCatalog.catalog;
+      assertThat(projects, hasExactlyOneItem(hasProperty('name', expectedProjectId)));
     }
   }
 
-  function assertDataSet(datasets?: Map<string, SimpleCatalog>, expectedDataSet?: string): void {
+  function assertDataSet(datasets?: SimpleCatalogProto[], expectedDataSet?: string): void {
     if (expectedDataSet) {
       assert.ok(datasets);
-      assertThat(datasets.size, 1);
-      assertThat(datasets.get(expectedDataSet)?.name, expectedDataSet);
+      assertThat(datasets, hasExactlyOneItem(hasProperty('name', expectedDataSet)));
     }
   }
 
-  async function registerCatalog(tableDefinitions: TableDefinition[]): Promise<SimpleCatalog> {
-    const zetaSqlWrapper = new ZetaSqlWrapper();
-
-    getCatalog(zetaSqlWrapper).register = async (): Promise<void> => {
-      // do nothing
-    };
-    zetaSqlWrapper['registerAllLanguageFeatures'] = async (): Promise<void> => {
-      // do nothing
-    };
-
-    try {
-      await zetaSqlWrapper.registerCatalog(tableDefinitions);
-    } catch (e) {
-      console.log(e);
-    }
-
-    return getCatalog(zetaSqlWrapper);
+  function registerTable(tableDefinitions: TableDefinition): SimpleCatalogProto {
+    zetaSqlWrapper.registerTable(tableDefinitions);
+    return zetaSqlWrapper['catalog'];
   }
 
-  async function shouldRegisterInformationSchema(
-    tableDefinitions: TableDefinition[],
+  function shouldRegisterInformationSchema(
+    tableDefinition: TableDefinition,
     expectedDataSet: string | undefined,
     expectedTableName: string,
     expectedProjectId?: string,
-  ): Promise<void> {
+  ): void {
     // arrange, act
-    const rootCatalog = await registerCatalog(tableDefinitions);
+    zetaSqlWrapper = new ZetaSqlWrapper(mock(DbtRepository), mock(BigQueryClient));
+    const rootCatalog = registerTable(tableDefinition);
 
     // assert
     assertProject(rootCatalog, expectedProjectId);
 
-    const datasets = expectedProjectId ? rootCatalog.catalogs.get(expectedProjectId)?.catalogs : rootCatalog.catalogs;
+    const datasets = expectedProjectId ? rootCatalog.catalog?.find(c => c.name === expectedProjectId)?.catalog : rootCatalog.catalog;
     assertDataSet(datasets, expectedDataSet);
     let parent = rootCatalog;
     if (expectedDataSet) {
-      const dataSetCatalog = datasets?.get(expectedDataSet);
+      const dataSetCatalog = datasets?.find(c => c.name === expectedDataSet);
       assert.ok(dataSetCatalog);
-      assertThat(dataSetCatalog.catalogs.size, 1);
+      assertThat(dataSetCatalog.catalog, hasSize(1));
       parent = dataSetCatalog;
     }
 
-    const informationSchemaCatalog = parent.catalogs.get(InformationSchemaConfigurator.INFORMATION_SCHEMA);
+    const informationSchemaCatalog = parent.catalog?.find(c => c.name === InformationSchemaConfigurator.INFORMATION_SCHEMA);
     assert.ok(informationSchemaCatalog);
-    assertThat(informationSchemaCatalog.tables.size, 1);
+    assertThat(informationSchemaCatalog.table, hasSize(1));
 
-    const table = informationSchemaCatalog.tables.get(expectedTableName);
+    const table = informationSchemaCatalog.table?.find(t => t.name === expectedTableName);
     assert.ok(table);
-    assertThat(table.columns.length, greaterThan(0));
-    assertThat(table.columns.length, InformationSchemaConfigurator.INFORMATION_SCHEMA_COLUMNS.get(expectedTableName)?.size);
+    assertThat(table.column?.length, greaterThan(0));
+    assertThat(table.column, hasSize(InformationSchemaConfigurator.INFORMATION_SCHEMA_COLUMNS.get(expectedTableName)?.length));
   }
 
-  it('register should register project data set and table', async () => {
+  it('register should register project data set and table', () => {
     const tableDefinition = new TableDefinition([PROJECT_ID, DATA_SET, TABLE]);
-    tableDefinition.schema = ONE_TABLE;
-    await shouldRegisterOneTable([tableDefinition], TABLE, [COLUMN_NAME], DATA_SET, PROJECT_ID);
+    tableDefinition.columns = ONE_TABLE;
+    shouldRegisterTable(tableDefinition, TABLE, [COLUMN_NAME], DATA_SET, PROJECT_ID);
   });
 
-  it('register should register data set and table', async () => {
+  it('register should register data set and table', () => {
     const tableDefinition = new TableDefinition([DATA_SET, TABLE]);
-    tableDefinition.schema = ONE_TABLE;
-    await shouldRegisterOneTable([tableDefinition], TABLE, [COLUMN_NAME], DATA_SET);
+    tableDefinition.columns = ONE_TABLE;
+    shouldRegisterTable(tableDefinition, TABLE, [COLUMN_NAME], DATA_SET);
   });
 
-  it('register should register only table', async () => {
+  it('register should register only table', () => {
     const tableName = `${PROJECT_ID}.${DATA_SET}.${TABLE}`;
     const tableDefinition = new TableDefinition([tableName]);
-    tableDefinition.schema = ONE_TABLE;
-    await shouldRegisterOneTable([tableDefinition], tableName, [COLUMN_NAME]);
+    tableDefinition.columns = ONE_TABLE;
+    shouldRegisterTable(tableDefinition, tableName, [COLUMN_NAME]);
   });
 
-  it('register should register table with time partitioning', async () => {
+  it('register should register table with time partitioning', () => {
     const tableDefinition = new TableDefinition([PROJECT_ID, DATA_SET, TABLE]);
-    tableDefinition.schema = ONE_TABLE;
+    tableDefinition.columns = ONE_TABLE;
     tableDefinition.timePartitioning = true;
-    await shouldRegisterOneTable(
-      [tableDefinition],
-      TABLE,
-      [COLUMN_NAME, ZetaSqlWrapper.PARTITION_TIME, ZetaSqlWrapper.PARTITION_DATE],
-      DATA_SET,
-      PROJECT_ID,
-    );
+    shouldRegisterTable(tableDefinition, TABLE, [COLUMN_NAME, ZetaSqlWrapper.PARTITION_TIME, ZetaSqlWrapper.PARTITION_DATE], DATA_SET, PROJECT_ID);
   });
 
-  it('register should register information schema', async () => {
+  it('register should register information schema', () => {
     const tableName = 'columns';
     const tableDefinition = new TableDefinition([PROJECT_ID, DATA_SET, InformationSchemaConfigurator.INFORMATION_SCHEMA, tableName]);
-    await shouldRegisterInformationSchema([tableDefinition], DATA_SET, tableName, PROJECT_ID);
+    shouldRegisterInformationSchema(tableDefinition, DATA_SET, tableName, PROJECT_ID);
   });
 
-  it('register should register information schema when only schema specified', async () => {
+  it('register should register information schema when only schema specified', () => {
     for (const tableName of InformationSchemaConfigurator.INFORMATION_SCHEMA_COLUMNS.keys()) {
       const tableDefinition = new TableDefinition([DATA_SET, InformationSchemaConfigurator.INFORMATION_SCHEMA, tableName]);
-      await shouldRegisterInformationSchema([tableDefinition], DATA_SET, tableName);
+      shouldRegisterInformationSchema(tableDefinition, DATA_SET, tableName);
     }
   });
 
-  it('register should register information schema without project and data set name', async () => {
+  it('register should register information schema without project and data set name', () => {
     for (const tableName of InformationSchemaConfigurator.INFORMATION_SCHEMA_COLUMNS.keys()) {
       const tableDefinition = new TableDefinition([InformationSchemaConfigurator.INFORMATION_SCHEMA, tableName]);
-      await shouldRegisterInformationSchema([tableDefinition], undefined, tableName);
+      shouldRegisterInformationSchema(tableDefinition, undefined, tableName);
     }
   });
 });

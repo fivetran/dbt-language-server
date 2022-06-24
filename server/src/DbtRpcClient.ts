@@ -39,7 +39,7 @@ interface PostData {
   jsonrpc: '2.0';
   method: Method;
   id: string;
-  params?: StatusParams | CompileModelParams | PollParams | KillParams;
+  params?: StatusParams | CompileParams | PollParams | KillParams;
 }
 
 interface Params {
@@ -48,9 +48,9 @@ interface Params {
 
 type StatusParams = Params;
 
-interface CompileModelParams extends Params {
+interface CompileParams extends Params {
   threads?: string;
-  models: string;
+  models?: string;
 }
 
 interface PollParams extends Params {
@@ -93,7 +93,7 @@ export class DbtRpcClient {
     return this.makePostRequest<StatusResponse>(data);
   }
 
-  async compileModel(modelName: string): Promise<CompileResponse | undefined> {
+  async compile(modelName?: string): Promise<CompileResponse | undefined> {
     const data = this.getDefaultPostData('compile');
     data.params = { models: modelName };
 

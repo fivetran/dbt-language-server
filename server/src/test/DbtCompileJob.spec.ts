@@ -83,7 +83,7 @@ describe('DbtCompileJob', () => {
     // arrange
     const mockDbtRpcClient = mock(DbtRpcClient);
 
-    when(mockDbtRpcClient.compileModel(MODEL)).thenReturn(compileModelSuccess());
+    when(mockDbtRpcClient.compile(MODEL)).thenReturn(compileModelSuccess());
     when(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).thenReturn(pollOnceCompileResultSuccess());
 
     const compileJob = new DbtCompileJob(instance(mockDbtRpcClient), MODEL);
@@ -93,14 +93,14 @@ describe('DbtCompileJob', () => {
 
     // assert
     assertThat(compileJob.result, ok(COMPILED_SQL));
-    verify(mockDbtRpcClient.compileModel(MODEL)).times(1);
+    verify(mockDbtRpcClient.compile(MODEL)).times(1);
     verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(1);
   });
   it('Should retry in case of compileModel error', async () => {
     // arrange
     const mockDbtRpcClient = mock(DbtRpcClient);
 
-    when(mockDbtRpcClient.compileModel(MODEL)).thenReturn(compileModelError()).thenReturn(compileModelSuccess());
+    when(mockDbtRpcClient.compile(MODEL)).thenReturn(compileModelError()).thenReturn(compileModelSuccess());
     when(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).thenReturn(pollOnceCompileResultSuccess());
 
     const compileJob = new DbtCompileJob(instance(mockDbtRpcClient), MODEL);
@@ -110,7 +110,7 @@ describe('DbtCompileJob', () => {
 
     // assert
     assertThat(compileJob.result, ok(COMPILED_SQL));
-    verify(mockDbtRpcClient.compileModel(MODEL)).times(2);
+    verify(mockDbtRpcClient.compile(MODEL)).times(2);
     verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(1);
   });
 
@@ -118,7 +118,7 @@ describe('DbtCompileJob', () => {
     // arrange
     const mockDbtRpcClient = mock(DbtRpcClient);
 
-    when(mockDbtRpcClient.compileModel(MODEL)).thenReturn(Promise.resolve(undefined)).thenReturn(compileModelSuccess());
+    when(mockDbtRpcClient.compile(MODEL)).thenReturn(Promise.resolve(undefined)).thenReturn(compileModelSuccess());
     when(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).thenReturn(pollOnceCompileResultSuccess());
 
     const compileJob = new DbtCompileJob(instance(mockDbtRpcClient), MODEL);
@@ -128,7 +128,7 @@ describe('DbtCompileJob', () => {
 
     // assert
     assertThat(compileJob.result, ok(COMPILED_SQL));
-    verify(mockDbtRpcClient.compileModel(MODEL)).times(2);
+    verify(mockDbtRpcClient.compile(MODEL)).times(2);
   });
 
   it('Should retry compileModel max times and fail due to network error', async () => {
@@ -136,7 +136,7 @@ describe('DbtCompileJob', () => {
     const mockDbtRpcClient = mock(DbtRpcClient);
     DbtCompileJob.COMPILE_MODEL_MAX_RETRIES = 1;
 
-    when(mockDbtRpcClient.compileModel(MODEL)).thenReturn(Promise.resolve(undefined));
+    when(mockDbtRpcClient.compile(MODEL)).thenReturn(Promise.resolve(undefined));
 
     const compileJob = new DbtCompileJob(instance(mockDbtRpcClient), MODEL);
 
@@ -145,7 +145,7 @@ describe('DbtCompileJob', () => {
 
     // assert
     assertThat(compileJob.result, err(DbtCompileJob.NETWORK_ERROR));
-    verify(mockDbtRpcClient.compileModel(MODEL)).times(DbtCompileJob.COMPILE_MODEL_MAX_RETRIES + 1);
+    verify(mockDbtRpcClient.compile(MODEL)).times(DbtCompileJob.COMPILE_MODEL_MAX_RETRIES + 1);
   });
 
   it('Should retry compileModel max times and fail due to dbt-rpc error', async () => {
@@ -153,7 +153,7 @@ describe('DbtCompileJob', () => {
     const mockDbtRpcClient = mock(DbtRpcClient);
     DbtCompileJob.COMPILE_MODEL_MAX_RETRIES = 1;
 
-    when(mockDbtRpcClient.compileModel(MODEL)).thenReturn(Promise.resolve(undefined)).thenReturn(compileModelError());
+    when(mockDbtRpcClient.compile(MODEL)).thenReturn(Promise.resolve(undefined)).thenReturn(compileModelError());
 
     const compileJob = new DbtCompileJob(instance(mockDbtRpcClient), MODEL);
 
@@ -162,7 +162,7 @@ describe('DbtCompileJob', () => {
 
     // assert
     assertThat(compileJob.result, err(COMPILE_MODEL_ERROR));
-    verify(mockDbtRpcClient.compileModel(MODEL)).times(DbtCompileJob.COMPILE_MODEL_MAX_RETRIES + 1);
+    verify(mockDbtRpcClient.compile(MODEL)).times(DbtCompileJob.COMPILE_MODEL_MAX_RETRIES + 1);
   });
 
   it('Should stop compileModel during retrying', async () => {
@@ -170,7 +170,7 @@ describe('DbtCompileJob', () => {
     const mockDbtRpcClient = mock(DbtRpcClient);
     DbtCompileJob.COMPILE_MODEL_TIMEOUT_MS = 300;
 
-    when(mockDbtRpcClient.compileModel(MODEL)).thenReturn(Promise.resolve(compileModelSuccess())).thenReturn(compileModelSuccess());
+    when(mockDbtRpcClient.compile(MODEL)).thenReturn(Promise.resolve(compileModelSuccess())).thenReturn(compileModelSuccess());
 
     const compileJob = new DbtCompileJob(instance(mockDbtRpcClient), MODEL);
     const startPromise = compileJob.start();
@@ -181,14 +181,14 @@ describe('DbtCompileJob', () => {
 
     // assert
     assertThat(compileJob.result, err(DbtCompileJob.STOP_ERROR));
-    verify(mockDbtRpcClient.compileModel(MODEL)).once();
+    verify(mockDbtRpcClient.compile(MODEL)).once();
   });
 
   it('Should retry in case of pollOnceCompileResult returns "running" state', async () => {
     // arrange
     const mockDbtRpcClient = mock(DbtRpcClient);
 
-    when(mockDbtRpcClient.compileModel(MODEL)).thenReturn(compileModelSuccess());
+    when(mockDbtRpcClient.compile(MODEL)).thenReturn(compileModelSuccess());
     when(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).thenReturn(pollOnceCompileResultRunning()).thenReturn(pollOnceCompileResultSuccess());
 
     const compileJob = new DbtCompileJob(instance(mockDbtRpcClient), MODEL);
@@ -198,7 +198,7 @@ describe('DbtCompileJob', () => {
 
     // assert
     assertThat(compileJob.result, ok(COMPILED_SQL));
-    verify(mockDbtRpcClient.compileModel(MODEL)).times(1);
+    verify(mockDbtRpcClient.compile(MODEL)).times(1);
     verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(2);
   });
 
@@ -206,7 +206,7 @@ describe('DbtCompileJob', () => {
     // arrange
     const mockDbtRpcClient = mock(DbtRpcClient);
 
-    when(mockDbtRpcClient.compileModel(MODEL)).thenReturn(compileModelSuccess());
+    when(mockDbtRpcClient.compile(MODEL)).thenReturn(compileModelSuccess());
     when(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).thenReturn(Promise.resolve(undefined)).thenReturn(pollOnceCompileResultSuccess());
 
     const compileJob = new DbtCompileJob(instance(mockDbtRpcClient), MODEL);
@@ -216,7 +216,7 @@ describe('DbtCompileJob', () => {
 
     // assert
     assertThat(compileJob.result, ok(COMPILED_SQL));
-    verify(mockDbtRpcClient.compileModel(MODEL)).times(1);
+    verify(mockDbtRpcClient.compile(MODEL)).times(1);
     verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(2);
   });
 
@@ -225,7 +225,7 @@ describe('DbtCompileJob', () => {
     const mockDbtRpcClient = mock(DbtRpcClient);
     DbtCompileJob.MAX_RETRIES_FOR_UNKNOWN_ERROR = 2;
 
-    when(mockDbtRpcClient.compileModel(MODEL)).thenReturn(compileModelSuccess());
+    when(mockDbtRpcClient.compile(MODEL)).thenReturn(compileModelSuccess());
     when(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).thenReturn(Promise.resolve(undefined));
 
     const compileJob = new DbtCompileJob(instance(mockDbtRpcClient), MODEL);
@@ -235,7 +235,7 @@ describe('DbtCompileJob', () => {
 
     // assert
     assertThat(compileJob.result, err(DbtCompileJob.NETWORK_ERROR));
-    verify(mockDbtRpcClient.compileModel(MODEL)).times(1);
+    verify(mockDbtRpcClient.compile(MODEL)).times(1);
     verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(DbtCompileJob.MAX_RETRIES_FOR_UNKNOWN_ERROR + 1);
   });
 
@@ -243,7 +243,7 @@ describe('DbtCompileJob', () => {
     // arrange
     const mockDbtRpcClient = mock(DbtRpcClient);
 
-    when(mockDbtRpcClient.compileModel(MODEL)).thenReturn(compileModelSuccess());
+    when(mockDbtRpcClient.compile(MODEL)).thenReturn(compileModelSuccess());
     when(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).thenReturn(pollOnceCompileResultError());
 
     const compileJob = new DbtCompileJob(instance(mockDbtRpcClient), MODEL);
@@ -253,7 +253,7 @@ describe('DbtCompileJob', () => {
 
     // assert
     assertThat(compileJob.result, err(COMPILE_MODEL_ERROR));
-    verify(mockDbtRpcClient.compileModel(MODEL)).times(1);
+    verify(mockDbtRpcClient.compile(MODEL)).times(1);
     verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(1);
   });
 });

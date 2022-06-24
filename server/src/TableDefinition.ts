@@ -1,13 +1,16 @@
+import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
+import { arraysAreEqual } from './utils/Utils';
+
 export class TableDefinition {
   namePath: string[];
   rawName?: string;
   datasetIndex: number;
-  schema?: SchemaDefinition;
   timePartitioning = false;
   informationSchemaIndex = -1;
   projectName?: string;
   dataSetName?: string;
   tableName?: string;
+  columns?: SimpleColumnProto[];
 
   constructor(namePath: string[]) {
     if (namePath.length === 1 && namePath[0].indexOf('.') > 0) {
@@ -59,10 +62,14 @@ export class TableDefinition {
   isInformationSchema(namePart?: string): boolean {
     return namePart?.toLocaleLowerCase() === 'information_schema';
   }
+
+  equals(other: TableDefinition): boolean {
+    return arraysAreEqual(this.namePath, other.namePath) && this.rawName === other.rawName;
+  }
 }
 
 export interface SchemaDefinition {
-  fields: Array<ColumnDefinition>;
+  fields: ColumnDefinition[];
 }
 
 export interface ColumnDefinition {

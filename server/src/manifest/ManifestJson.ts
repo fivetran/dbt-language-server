@@ -9,6 +9,10 @@ interface ManifestNode {
 export interface ManifestModel extends ManifestNode {
   database: string;
   schema: string;
+  dependsOn: {
+    nodes: string[];
+  };
+  refs: string[][];
 }
 
 export type ManifestMacro = ManifestNode;

@@ -191,7 +191,11 @@ export class LspServer {
 
   async prepareDestination(profileResult: Result<DbtProfileSuccess, DbtProfileError>): Promise<void> {
     if (profileResult.isOk() && profileResult.value.dbtProfile) {
-      const bigQueryContextInfo = await BigQueryContext.createContext(profileResult.value.dbtProfile, profileResult.value.targetConfig);
+      const bigQueryContextInfo = await BigQueryContext.createContext(
+        profileResult.value.dbtProfile,
+        profileResult.value.targetConfig,
+        this.dbtRepository,
+      );
       if (bigQueryContextInfo.isOk()) {
         this.bigQueryContext = bigQueryContextInfo.value;
       } else {
@@ -246,7 +250,14 @@ export class LspServer {
       } catch (e) {
         this.onRpcServerStartFailed(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
       }
+      this.doInitialCompile();
     }
+  }
+
+  doInitialCompile(): void {
+    this.dbtRpcClient.compile().catch(e => {
+      console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
+    });
   }
 
   async findPython(): Promise<string> {

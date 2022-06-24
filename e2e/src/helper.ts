@@ -51,7 +51,6 @@ export async function activateAndWait(docUri: Uri): Promise<void> {
   const activateFinished = doNotWaitChanges ? Promise.resolve() : createChangePromise('preview');
 
   await ext.activate();
-  console.log('Extension activated');
 
   doc = await workspace.openTextDocument(docUri);
   editor = await window.showTextDocument(doc);
