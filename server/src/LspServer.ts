@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import { writeFileSync } from 'fs';
 import { Result } from 'neverthrow';
 import { performance } from 'perf_hooks';
 import {
@@ -156,6 +157,9 @@ export class LspServer {
   }
 
   onUncaughtException(error: Error, _origin: 'uncaughtException' | 'unhandledRejection'): void {
+    writeFileSync('uncaughtException.txt', `${new Date().toISOString()}: ${error.name}, ${error.message}\n${error.stack ?? ''}\n\n`, {
+      flag: 'a+',
+    });
     console.log(error.stack);
 
     this.sendTelemetry('error', {
