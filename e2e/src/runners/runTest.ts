@@ -13,7 +13,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  await installVsCodeAndRunTests(path.resolve(__dirname, 'index'), path.resolve(__dirname, '../projects/test-workspace.code-workspace'));
+  await installVsCodeAndRunTests(path.resolve(__dirname, 'index'), path.resolve(__dirname, '../../projects/test-workspace.code-workspace'));
 }
 
 main().catch(e => console.error(e));

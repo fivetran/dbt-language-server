@@ -268,7 +268,7 @@ jobs:
       - name: run e2e tests
         run: |
           ${{ matrix.prepare-for-tests }}
-          node e2e/out/runTest $(pwd)/e2e-tests/extension
+          node e2e/out/runners/runTest $(pwd)/e2e-tests/extension
 
       - name: upload logs
         if: always()
