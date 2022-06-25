@@ -4,13 +4,11 @@ import { DiagnosticSeverity, languages, Uri } from 'vscode';
 import { activateAndWait } from './helper';
 import path = require('path');
 
-export const PROJECT_PATH = path.resolve(__dirname, '../../analytics/dbt_ft_prod');
-
 suite('dbt_ft', () => {
   const EXCLUDE = ['dbt_ft_prod/models/bi_core/accounts.sql', 'dbt_ft_prod/models/bi_core/monthly_employee_metrics.sql'];
 
   test('Should compile all models in analytics repo', async () => {
-    const files = glob.sync(path.resolve(PROJECT_PATH, 'models/**/*.sql'), { nodir: true });
+    const files = glob.sync(path.resolve(getProjectPath(), 'models/**/*.sql'), { nodir: true });
     console.log(`Count: ${files.length}`);
     files.forEach(f => console.log(f));
 
@@ -27,11 +25,11 @@ suite('dbt_ft', () => {
       await activateAndWait(uri);
 
       const diagnostics = languages.getDiagnostics(uri);
-      writeFileSync('log.txt', `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n`, {
+      writeFileSync(getLogPath(), `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n`, {
         flag: 'a+',
       });
       if (diagnostics.filter(d => d.severity === DiagnosticSeverity.Error).length > 0) {
-        writeFileSync('diagnostics.txt', `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n${JSON.stringify(diagnostics)}\n\n`, {
+        writeFileSync(getDiagnosticsPath(), `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n${JSON.stringify(diagnostics)}\n\n`, {
           flag: 'a+',
         });
       }
@@ -40,4 +38,24 @@ suite('dbt_ft', () => {
       }
     }
   });
+
+  function isRunningOnCi(): boolean {
+    return !process.env['LOCAL_RUN'];
+  }
+
+  function getLogPath(): string {
+    return getPath('log.txt');
+  }
+
+  function getDiagnosticsPath(): string {
+    return getPath('diagnostics.txt');
+  }
+
+  function getPath(fileName: string): string {
+    return path.resolve(__dirname, fileName);
+  }
+
+  function getProjectPath(): string {
+    return isRunningOnCi() ? path.resolve(__dirname, '../../analytics/dbt_ft_prod') : path.resolve(__dirname, '../../../analytics/dbt_ft_prod');
+  }
 });
