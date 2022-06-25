@@ -85,7 +85,7 @@
       "runtimeExecutable": "${execPath}",
       "args": [
         "--extensionDevelopmentPath=${workspaceRoot}",
-        "--extensionTestsPath=${workspaceRoot}/e2e/out/runners/dbt_ft",
+        "--extensionTestsPath=${workspaceRoot}/e2e/out/runners/index_dbt_ft",
         "${workspaceRoot}/../analytics/dbt_ft_prod"
       ],
       "env": {

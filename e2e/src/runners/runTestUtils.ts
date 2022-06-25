@@ -7,8 +7,9 @@ import * as path from 'path';
 import { Client } from 'pg';
 
 // Expected parameter: path to the folder with the extension package.json
-export async function installVsCodeAndRunTests(testsPath: string, projectWithModelsPath: string): Promise<void> {
+export async function installVsCodeAndRunTests(indexName: string, projectWithModelsPath: string): Promise<void> {
   try {
+    const testsPath = path.resolve(__dirname, indexName);
     const [, , extensionDevelopmentPath] = process.argv;
     console.log(`Running tests for path: ${extensionDevelopmentPath}`);
     console.log(`Project path: ${projectWithModelsPath}`);
