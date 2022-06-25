@@ -2,7 +2,7 @@ import * as Mocha from 'mocha';
 import * as path from 'path';
 import { performance } from 'perf_hooks';
 import { languages, Uri } from 'vscode';
-import { closeAllEditors, doc, getPreviewText, PREVIEW_URI } from './helper';
+import { closeAllEditors, doc, getPreviewText, PREVIEW_URI } from '../helper';
 
 export async function run(): Promise<void> {
   await closeAllEditors();
@@ -20,7 +20,7 @@ export async function run(): Promise<void> {
   return new Promise((resolve, reject) => {
     const startTime = performance.now();
 
-    mocha.addFile(path.resolve(testsRoot, 'dbt_ft.spec.js'));
+    mocha.addFile(path.resolve(testsRoot, '../dbt_ft.spec.js'));
     try {
       // Run the mocha test
       const runner = mocha.run(failures => {

@@ -3,7 +3,7 @@ import * as Mocha from 'mocha';
 import * as path from 'path';
 import { performance } from 'perf_hooks';
 import { languages, Uri } from 'vscode';
-import { closeAllEditors, doc, getPreviewText, PREVIEW_URI } from './helper';
+import { closeAllEditors, doc, getPreviewText, PREVIEW_URI } from '../helper';
 
 const TESTS_WITHOUT_ZETASQL = ['multi-project.spec.js' /* 'completion_jinja.spec.js' */]; // TODO: add more tests
 const ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
@@ -25,7 +25,7 @@ export async function run(): Promise<void> {
   return new Promise((resolve, reject) => {
     const startTime = performance.now();
 
-    glob('**/*.spec.js', { cwd: testsRoot }, (e, files) => {
+    glob('../**/*.spec.js', { cwd: testsRoot }, (e, files) => {
       if (e) {
         reject(e);
       }
