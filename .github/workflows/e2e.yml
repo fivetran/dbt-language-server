@@ -153,5 +153,3 @@ jobs:
             ./diagnostics.txt
             ./log.txt
             ./analytics/dbt_ft_prod/logs/*
-            ./analytics/dbt_ft_prod/logs/*
-            ./analytics/dbt_ft_prod/uncaughtException.txt
