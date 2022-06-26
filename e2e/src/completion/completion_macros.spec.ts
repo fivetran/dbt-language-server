@@ -1,7 +1,7 @@
 import { assertThat, defined } from 'hamjest';
 import { CompletionItem, CompletionItemKind, Position } from 'vscode';
 import { assertCompletions } from '../asserts';
-import { activateAndWait, getCustomDocUri, triggerCompletion, waitManifestJson } from '../helper';
+import { activateAndWait, getCustomDocUri, sleep, triggerCompletion, waitManifestJson } from '../helper';
 
 suite('Should suggest macros completions', () => {
   const PROJECT = 'postgres';
@@ -16,7 +16,10 @@ suite('Should suggest macros completions', () => {
     // arrange
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
     await activateAndWait(docUri);
+
     await waitManifestJson(PROJECT);
+    // Wait for manifest.json parse
+    await sleep(200);
 
     // act
     const actualCompletionList = await triggerCompletion(docUri, new Position(0, 17));
