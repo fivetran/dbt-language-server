@@ -149,10 +149,19 @@ export class ZetaSqlAst {
 
   getCompletionInfo(ast: AnalyzeResponse, offset: number): CompletionInfo {
     const completionInfo: CompletionInfo = {
-      resolvedTables: new Map(),
+      resolvedTables: new Map<string, string[]>(),
     };
-    const parentNodes: any[] = [];
-    const resolvedStatementNode = ast.resolvedStatement && ast.resolvedStatement.node ? ast.resolvedStatement[ast.resolvedStatement.node] : undefined;
+
+    const parentNodes: {
+      name?: string;
+      parseLocationRange: ParseLocationRangeProto__Output;
+      value: unknown;
+      activeTableLocationRanges?: ParseLocationRangeProto__Output[];
+      activeTables?: Map<string, ActiveTableInfo>;
+    }[] = [];
+
+    const { resolvedStatement } = ast;
+    const resolvedStatementNode = resolvedStatement?.node ? resolvedStatement[resolvedStatement.node] : undefined;
     if (resolvedStatementNode) {
       this.traversal(
         resolvedStatementNode,
@@ -167,41 +176,41 @@ export class ZetaSqlAst {
           if (nodeName === NODE.resolvedTableScanNode) {
             const typedNode = node as ResolvedTableScanProto;
             const { resolvedTables } = completionInfo;
-            if (typedNode.table && typedNode.table.fullName) {
+            if (typedNode.table?.fullName) {
               const { fullName } = typedNode.table;
               if (!resolvedTables.get(fullName)) {
-                resolvedTables.set(fullName, []);
+                const columns: string[] = [];
+                resolvedTables.set(fullName, columns);
                 typedNode.parent?.columnList?.forEach(column => {
                   if (column.name) {
-                    resolvedTables.get(fullName)?.push(column.name);
+                    columns.push(column.name);
                   }
                 });
               }
             }
           }
         },
-        ast.resolvedStatement?.node,
+        resolvedStatement?.node,
         (node: any, nodeName?: string) => {
           if (parentNodes.length > 0 && completionInfo.activeTableLocationRanges === undefined) {
             const parseLocationRange = this.getParseLocationRange(node);
+            if (!parseLocationRange) {
+              return;
+            }
             const parentNode = parentNodes[parentNodes.length - 1];
 
             if (nodeName === NODE.resolvedTableScanNode) {
               if (
-                parseLocationRange &&
-                parentNode.parseLocationRange.start <= parseLocationRange.start &&
-                parseLocationRange.end <= parentNode.parseLocationRange.end &&
-                parentNode.parseLocationRange.start <= offset &&
-                offset <= parentNode.parseLocationRange.end
+                ZetaSqlAst.rangeContainsRange(parentNode.parseLocationRange, parseLocationRange) &&
+                ZetaSqlAst.positionInRange(offset, parentNode.parseLocationRange)
               ) {
-                if (!parentNode.activeTableLocationRanges) {
-                  parentNode.activeTableLocationRanges = [];
-                  parentNode.activeTables = new Map();
-                }
+                parentNode.activeTableLocationRanges = parentNode.activeTableLocationRanges ?? [];
+                parentNode.activeTables = parentNode.activeTables ?? new Map<string, ActiveTableInfo>();
                 parentNode.activeTableLocationRanges.push(parseLocationRange);
-                if (offset < parseLocationRange.start || parseLocationRange.end < offset) {
+
+                if (!ZetaSqlAst.positionInRange(offset, parseLocationRange)) {
                   const tableScanNode: ResolvedTableScanProto = node;
-                  const tables: Map<string, ActiveTableInfo> = parentNode.activeTables;
+                  const tables = parentNode.activeTables;
                   const tableName = tableScanNode.table?.name;
                   if (tableName && !tables.has(tableName) && tableScanNode.parent?.columnList) {
                     tables.set(tableName, {
@@ -214,13 +223,9 @@ export class ZetaSqlAst {
                   }
                 }
               }
-            } else if (
-              parentNode.name === nodeName &&
-              parseLocationRange?.start === parentNode.parseLocationRange.start &&
-              parseLocationRange?.end === parentNode.parseLocationRange.end
-            ) {
+            } else if (parentNode.name === nodeName && ZetaSqlAst.rangesEqual(parseLocationRange, parentNode.parseLocationRange)) {
               const n = parentNodes.pop();
-              if (n.activeTableLocationRanges?.length > 0) {
+              if (n?.activeTableLocationRanges && n.activeTableLocationRanges.length > 0) {
                 completionInfo.activeTableLocationRanges = n.activeTableLocationRanges;
                 completionInfo.activeTables = n.activeTables;
               }
@@ -264,6 +269,18 @@ export class ZetaSqlAst {
       );
     }
     return result;
+  }
+
+  static positionInRange(position: number, range: ParseLocationRangeProto__Output): boolean {
+    return range.start <= position && position <= range.end;
+  }
+
+  static rangeContainsRange(outerRange: ParseLocationRangeProto__Output, innerRange: ParseLocationRangeProto__Output): boolean {
+    return outerRange.start <= innerRange.start && innerRange.end <= outerRange.end;
+  }
+
+  static rangesEqual(range1: ParseLocationRangeProto__Output, range2: ParseLocationRangeProto__Output): boolean {
+    return range1.start === range2.start && range1.end === range2.end;
   }
 
   requireParseLocationRange(parseLocationRange?: ParseLocationRangeProto | null): ParseLocationRangeProto__Output | undefined {
