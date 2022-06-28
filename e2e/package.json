@@ -5,11 +5,11 @@
     "vscode": "^1.52.0"
   },
   "devDependencies": {
-    "@google-cloud/bigquery": "^5.12.0",
+    "@google-cloud/bigquery": "^6.0.0",
     "@types/glob": "^7.2.0",
     "@types/pg": "^8.6.5",
-    "@types/vscode": "^1.67.0",
-    "@vscode/test-electron": "^2.1.4",
+    "@types/vscode": "^1.68.1",
+    "@vscode/test-electron": "^2.1.5",
     "hamjest": "^3.7.3",
     "mocha": "^10.0.0",
     "pg": "^8.7.3"
