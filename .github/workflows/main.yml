@@ -59,7 +59,7 @@ jobs:
         run: npx vsce package -o ${FILE_NAME} --target ${{ matrix.target }} --githubBranch main
 
       - name: create cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ./${{ env.FILE_NAME }}
           key: ${{ env.FILE_NAME }}
@@ -125,7 +125,7 @@ jobs:
         run: echo "C:/Program Files/Git/usr/bin/" >> $GITHUB_PATH
 
       - name: load e2e tests and vsix from cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         id: cache
         with:
           path: ./${{ env.FILE_NAME }}
@@ -297,7 +297,7 @@ jobs:
 
       - name: load darwin-x64 vsix from cache
         id: darwin-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ./${{ env.VSIX_NAME }}
           key: ${{ env.VSIX_NAME }}
@@ -306,7 +306,7 @@ jobs:
 
       - name: load darwin-arm64 vsix from cache
         id: darwin-arm64-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ./${{ env.VSIX_NAME }}
           key: ${{ env.VSIX_NAME }}
@@ -315,7 +315,7 @@ jobs:
 
       - name: load linux-x64 vsix from cache
         id: linux-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ./${{ env.VSIX_NAME }}
           key: ${{ env.VSIX_NAME }}
@@ -324,7 +324,7 @@ jobs:
 
       - name: load win32-x64 vsix from cache
         id: windows-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ./${{ env.VSIX_NAME }}
           key: ${{ env.VSIX_NAME }}
