@@ -72,4 +72,15 @@ suite('Should do completion', () => {
       '.',
     );
   });
+
+  test('Should suggest tables from with clause', async () => {
+    const docUri = getDocUri('multiple_with.sql');
+    await activateAndWait(docUri);
+    await replaceText('from aaa_table', 'from ');
+
+    await assertCompletions(docUri, new vscode.Position(7, 14), [
+      { label: 'aaa_table', kind: vscode.CompletionItemKind.Value, detail: 'Table' },
+      { label: 'bbb_table', kind: vscode.CompletionItemKind.Value, detail: 'Table' },
+    ]);
+  });
 });

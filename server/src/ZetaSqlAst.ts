@@ -8,6 +8,7 @@ import { ResolvedFunctionCallProto } from '@fivetrandevelopers/zetasql/lib/types
 import { ResolvedOutputColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedOutputColumnProto';
 import { ResolvedQueryStmtProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedQueryStmtProto';
 import { ResolvedTableScanProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedTableScanProto';
+import { ResolvedWithScanProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedWithScanProto';
 import { extractDatasetFromFullName } from './utils/Utils';
 
 export class ZetaSqlAst {
@@ -150,6 +151,7 @@ export class ZetaSqlAst {
   getCompletionInfo(ast: AnalyzeResponse, offset: number): CompletionInfo {
     const completionInfo: CompletionInfo = {
       resolvedTables: new Map<string, string[]>(),
+      withNames: new Set<string>(),
     };
 
     const parentNodes: {
@@ -188,6 +190,13 @@ export class ZetaSqlAst {
                 });
               }
             }
+          }
+
+          if (nodeName === NODE.resolvedWithScanNode) {
+            (node as ResolvedWithScanProto).withEntryList
+              ?.map(w => w.withQueryName)
+              .filter((n): n is string => n !== undefined)
+              .forEach(n => completionInfo.withNames.add(n));
           }
         },
         resolvedStatement?.node,
@@ -347,6 +356,7 @@ const NODE = {
   resolvedQueryStmtNode: 'resolvedQueryStmtNode',
   resolvedTableScanNode: 'resolvedTableScanNode',
   resolvedFunctionCallNode: 'resolvedFunctionCallNode',
+  resolvedWithScanNode: 'resolvedWithScanNode',
 };
 
 export interface HoverInfo {
@@ -360,6 +370,7 @@ export interface CompletionInfo {
   resolvedTables: Map<string, string[]>;
   activeTableLocationRanges?: Location[];
   activeTables?: Map<string, ActiveTableInfo>;
+  withNames: Set<string>;
 }
 
 export interface ActiveTableInfo {
