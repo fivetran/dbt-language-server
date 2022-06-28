@@ -12,37 +12,37 @@ updates:
     reviewers:
       - "pgrivachev"
 
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "daily"
-    reviewers:
-      - "pgrivachev"
+#   - package-ecosystem: "npm"
+#     directory: "/"
+#     schedule:
+#       interval: "daily"
+#     reviewers:
+#       - "pgrivachev"
 
-  - package-ecosystem: "npm"
-    directory: "/server"
-    schedule:
-      interval: "daily"
-    reviewers:
-      - "pgrivachev"
+#   - package-ecosystem: "npm"
+#     directory: "/server"
+#     schedule:
+#       interval: "daily"
+#     reviewers:
+#       - "pgrivachev"
       
-  - package-ecosystem: "npm"
-    directory: "/client"
-    schedule:
-      interval: "daily"
-    reviewers:
-      - "pgrivachev"
+#   - package-ecosystem: "npm"
+#     directory: "/client"
+#     schedule:
+#       interval: "daily"
+#     reviewers:
+#       - "pgrivachev"
 
-  - package-ecosystem: "npm"
-    directory: "/e2e"
-    schedule:
-      interval: "daily"
-    reviewers:
-      - "pgrivachev"
+#   - package-ecosystem: "npm"
+#     directory: "/e2e"
+#     schedule:
+#       interval: "daily"
+#     reviewers:
+#       - "pgrivachev"
 
-  - package-ecosystem: "npm"
-    directory: "/markdown_parser"
-    schedule:
-      interval: "daily"
-    reviewers:
-      - "pgrivachev"
+#   - package-ecosystem: "npm"
+#     directory: "/markdown_parser"
+#     schedule:
+#       interval: "daily"
+#     reviewers:
+#       - "pgrivachev"
