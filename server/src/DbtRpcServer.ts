@@ -14,6 +14,7 @@ export class DbtRpcServer {
 
   private dbtRpcClient?: DbtRpcClient;
   private rpcPid?: number;
+  private disposed = false;
 
   async startDbtRpc(command: Command, dbtRpcClient: DbtRpcClient): Promise<void> {
     this.dbtRpcClient = dbtRpcClient;
@@ -64,6 +65,13 @@ export class DbtRpcServer {
       this.startDeferred.reject(new Error(error));
     });
 
+    promiseWithChild.child.on('exit', async code => {
+      if (!this.disposed) {
+        console.log(`dbt-rpc unexpectedly exited with code ${code ?? 'null'} and will be restarted`);
+        await this.startDbtRpc(command, dbtRpcClient);
+      }
+    });
+
     return this.startDeferred.promise;
   }
 
@@ -99,6 +107,7 @@ export class DbtRpcServer {
   }
 
   dispose(): void {
+    this.disposed = true;
     if (this.rpcPid) {
       process.kill(this.rpcPid, 'SIGTERM');
     }
