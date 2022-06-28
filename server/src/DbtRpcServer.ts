@@ -65,8 +65,9 @@ export class DbtRpcServer {
       this.startDeferred.reject(new Error(error));
     });
 
-    promiseWithChild.child.on('exit', async _code => {
+    promiseWithChild.child.on('exit', async code => {
       if (!this.disposed) {
+        console.log(`dbt-rpc unexpectedly exited with code ${code ?? 'null'} and will be restarted`);
         await this.startDbtRpc(command, dbtRpcClient);
       }
     });
