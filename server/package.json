@@ -16,7 +16,7 @@
     "request": "^2.88.2",
     "source-map-support": "^0.5.21",
     "vscode-languageserver": "^8.0.1",
-    "vscode-languageserver-textdocument": "^1.0.4",
+    "vscode-languageserver-textdocument": "^1.0.5",
     "yaml": "^2.0.1"
   },
   "devDependencies": {
