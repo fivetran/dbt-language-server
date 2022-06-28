@@ -5,7 +5,44 @@
 
 version: 2
 updates:
-  - package-ecosystem: "npm" # See documentation for possible values
-    directory: ["/", "/server", "/client", "/e2e", "markdown_parser"] # Location of package manifests
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
       interval: "daily"
+    reviewers:
+      - "pgrivachev"
+
+- package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "pgrivachev"
+
+  - package-ecosystem: "npm"
+    directory: "/server"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "pgrivachev"
+      
+  - package-ecosystem: "npm"
+    directory: "/client"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "pgrivachev"
+
+  - package-ecosystem: "npm"
+    directory: "/e2e"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "pgrivachev"
+
+  - package-ecosystem: "npm"
+    directory: "/markdown_parser"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "pgrivachev"
