@@ -1,6 +1,7 @@
 import { runServer, terminateServer, TypeFactory, TypeKind, ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
+import { FunctionProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/FunctionProto';
 import { LanguageVersion } from '@fivetrandevelopers/zetasql/lib/types/zetasql/LanguageVersion';
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ExtractTableNamesFromStatementResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ExtractTableNamesFromStatementResponse';
@@ -13,14 +14,15 @@ import { StructFieldProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
 import * as fs from 'fs';
 import { err, ok, Result } from 'neverthrow';
-import { BigQueryClient } from './bigquery/BigQueryClient';
+import { BigQueryClient, Udf } from './bigquery/BigQueryClient';
 import { DbtRepository } from './DbtRepository';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
 import { ManifestModel } from './manifest/ManifestJson';
 import { ColumnDefinition, TableDefinition } from './TableDefinition';
-import { randomNumber } from './utils/Utils';
-import path = require('path');
+import { arraysAreEqual, randomNumber } from './utils/Utils';
+import { ZetaSqlParser } from './ZetaSqlParser';
 import findFreePortPmfy = require('find-free-port');
+import path = require('path');
 
 export class ZetaSqlWrapper {
   static readonly PARTITION_TIME = '_PARTITIONTIME';
@@ -35,9 +37,11 @@ export class ZetaSqlWrapper {
   private supported = true;
   private languageOptions: LanguageOptions | undefined;
   private registeredTables: TableDefinition[] = [];
+  private registeredFunctions: string[][] = [];
   private informationSchemaConfigurator = new InformationSchemaConfigurator();
 
   constructor(private dbtRepository: DbtRepository, private bigQueryClient: BigQueryClient) {}
+  zetaSqlParser = new ZetaSqlParser();
 
   getClient(): ZetaSQLClient {
     return ZetaSQLClient.getInstance();
@@ -124,6 +128,65 @@ export class ZetaSqlWrapper {
         ZetaSqlWrapper.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_DATE, 'date');
       }
     }
+  }
+
+  async registerUdfs(compiledSql: string): Promise<void> {
+    const namePaths = await this.getNewCustomFunctions(compiledSql);
+    for (const namePath of namePaths) {
+      const udf = await this.createUdfFromNamePath(namePath);
+      if (udf) {
+        this.registerUdf(udf);
+      }
+    }
+  }
+
+  registerUdf(udf: Udf): void {
+    if (udf.nameParts.length <= 1) {
+      return;
+    }
+    const udfOwner = this.ensureUdfOwnerCatalogExists(udf);
+
+    if (udfOwner.customFunction?.some(c => c.namePath && arraysAreEqual(c.namePath, udf.nameParts))) {
+      return;
+    }
+
+    const func = this.createFunction(udf);
+
+    udfOwner.customFunction = udfOwner.customFunction ?? [];
+    udfOwner.customFunction.push(func);
+    this.registeredFunctions.push(udf.nameParts);
+  }
+
+  ensureUdfOwnerCatalogExists(udf: Udf): SimpleCatalogProto {
+    let udfOwner = this.catalog;
+    if (udf.nameParts.length > 2) {
+      const projectCatalog = ZetaSqlWrapper.addChildCatalog(this.catalog, udf.nameParts[0]);
+      udfOwner = ZetaSqlWrapper.addChildCatalog(projectCatalog, udf.nameParts[1]);
+    } else if (udf.nameParts.length === 2) {
+      udfOwner = ZetaSqlWrapper.addChildCatalog(this.catalog, udf.nameParts[0]);
+    }
+    return udfOwner;
+  }
+
+  createFunction(udf: Udf): FunctionProto {
+    return {
+      namePath: udf.nameParts,
+      signature: [
+        {
+          argument: udf.arguments?.map(a => ({
+            type: a.type,
+            numOccurrences: 1,
+          })),
+          returnType: {
+            type: udf.returnType,
+          },
+        },
+      ],
+    };
+  }
+
+  static udfAlreadyRegistered(udfOwner: SimpleCatalogProto, udf: Udf): boolean {
+    return udfOwner.customFunction?.some(c => c.namePath && arraysAreEqual(c.namePath, udf.nameParts)) ?? false;
   }
 
   static addPartitioningColumn(existingTable: SimpleTableProto, name: string, type: string): void {
@@ -235,7 +298,8 @@ export class ZetaSqlWrapper {
       this.registerTable(table);
     }
 
-    return ast;
+    await this.registerUdfs(compiledSql);
+    return this.getAstOrError(compiledSql);
   }
 
   async analyzeRef(table: TableDefinition, model: ManifestModel): Promise<void> {
@@ -284,6 +348,19 @@ export class ZetaSqlWrapper {
         };
       }
     }
+  }
+
+  async createUdfFromNamePath(namePath: string[]): Promise<Udf | undefined> {
+    if (namePath.length === 2) {
+      return this.bigQueryClient.getUdf(undefined, namePath[0], namePath[1]);
+    } else if (namePath.length === 3) {
+      return this.bigQueryClient.getUdf(namePath[0], namePath[1], namePath[2]);
+    }
+    return undefined;
+  }
+
+  async getNewCustomFunctions(sql: string): Promise<string[][]> {
+    return (await this.zetaSqlParser.getAllFunctions(sql)).filter(f => !this.registeredFunctions.find(rf => arraysAreEqual(f, rf)));
   }
 
   async getAstOrError(compiledSql: string): Promise<Result<AnalyzeResponse__Output, string>> {

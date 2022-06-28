@@ -179,6 +179,10 @@ export async function setTestContent(content: string): Promise<void> {
   editor.selection = new Selection(lastPos, lastPos);
 }
 
+export async function appendText(value: string): Promise<void> {
+  return insertText(editor.document.positionAt(Number.MAX_VALUE), value);
+}
+
 export async function insertText(position: Position, value: string): Promise<void> {
   return edit(eb => eb.insert(position, value));
 }

@@ -68,6 +68,7 @@
 		"unescapes",
 		"unnest",
 		"unpivot",
+		"upsert",
 		"venv",
 		"vsix",
 		"Xvfb",

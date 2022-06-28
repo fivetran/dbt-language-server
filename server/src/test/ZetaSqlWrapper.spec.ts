@@ -3,10 +3,11 @@ import { SimpleCatalogProto } from '@fivetrandevelopers/zetasql/lib/types/zetasq
 import * as assert from 'assert';
 import { assertThat, greaterThan, hasExactlyOneItem, hasProperty, hasSize } from 'hamjest';
 import { mock } from 'ts-mockito';
-import { BigQueryClient } from '../bigquery/BigQueryClient';
+import { BigQueryClient, Udf } from '../bigquery/BigQueryClient';
 import { DbtRepository } from '../DbtRepository';
 import { InformationSchemaConfigurator } from '../InformationSchemaConfigurator';
 import { TableDefinition } from '../TableDefinition';
+import { arraysAreEqual } from '../utils/Utils';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 
 describe('ZetaSqlWrapper', () => {
@@ -26,8 +27,6 @@ describe('ZetaSqlWrapper', () => {
     type: { typeKind: TypeKind.TYPE_STRING },
   };
 
-  let zetaSqlWrapper: ZetaSqlWrapper;
-
   function shouldRegisterTable(
     tableDefinition: TableDefinition,
     table: string,
@@ -36,8 +35,8 @@ describe('ZetaSqlWrapper', () => {
     expectedProjectId?: string,
   ): void {
     // arrange, act
-    zetaSqlWrapper = new ZetaSqlWrapper(mock(DbtRepository), mock(BigQueryClient));
-    const rootCatalog = registerTable(tableDefinition);
+    const zetaSqlWrapper = new ZetaSqlWrapper(mock(DbtRepository), mock(BigQueryClient));
+    const rootCatalog = registerTable(zetaSqlWrapper, tableDefinition);
 
     // assert
     assertProject(rootCatalog, expectedProjectId);
@@ -69,11 +68,15 @@ describe('ZetaSqlWrapper', () => {
     }
   }
 
-  function registerTable(tableDefinitions: TableDefinition): SimpleCatalogProto {
+  function registerTable(zetaSqlWrapper: ZetaSqlWrapper, tableDefinitions: TableDefinition): SimpleCatalogProto {
     zetaSqlWrapper.registerTable(tableDefinitions);
     return zetaSqlWrapper['catalog'];
   }
 
+  function registerUdf(zetaSqlWrapper: ZetaSqlWrapper, udf: Udf): SimpleCatalogProto {
+    zetaSqlWrapper.registerUdf(udf);
+    return zetaSqlWrapper['catalog'];
+  }
   function shouldRegisterInformationSchema(
     tableDefinition: TableDefinition,
     expectedDataSet: string | undefined,
@@ -81,8 +84,8 @@ describe('ZetaSqlWrapper', () => {
     expectedProjectId?: string,
   ): void {
     // arrange, act
-    zetaSqlWrapper = new ZetaSqlWrapper(mock(DbtRepository), mock(BigQueryClient));
-    const rootCatalog = registerTable(tableDefinition);
+    const zetaSqlWrapper = new ZetaSqlWrapper(mock(DbtRepository), mock(BigQueryClient));
+    const rootCatalog = registerTable(zetaSqlWrapper, tableDefinition);
 
     // assert
     assertProject(rootCatalog, expectedProjectId);
@@ -107,26 +110,26 @@ describe('ZetaSqlWrapper', () => {
     assertThat(table.column, hasSize(InformationSchemaConfigurator.INFORMATION_SCHEMA_COLUMNS.get(expectedTableName)?.length));
   }
 
-  it('register should register project data set and table', () => {
+  it('registerTable should register project data set and table', () => {
     const tableDefinition = new TableDefinition([PROJECT_ID, DATA_SET, TABLE]);
     tableDefinition.columns = [ONE_COLUMN];
     shouldRegisterTable(tableDefinition, TABLE, [ONE_COLUMN_NAME], DATA_SET, PROJECT_ID);
   });
 
-  it('register should register data set and table', () => {
+  it('registerTable should register data set and table', () => {
     const tableDefinition = new TableDefinition([DATA_SET, TABLE]);
     tableDefinition.columns = [ONE_COLUMN];
     shouldRegisterTable(tableDefinition, TABLE, [ONE_COLUMN_NAME], DATA_SET);
   });
 
-  it('register should register only table', () => {
+  it('registerTable should register only table', () => {
     const tableName = `${PROJECT_ID}.${DATA_SET}.${TABLE}`;
     const tableDefinition = new TableDefinition([tableName]);
     tableDefinition.columns = [ONE_COLUMN];
     shouldRegisterTable(tableDefinition, tableName, [ONE_COLUMN_NAME]);
   });
 
-  it('register should register table with time partitioning', () => {
+  it('registerTable should register table with time partitioning', () => {
     const tableDefinition = new TableDefinition([PROJECT_ID, DATA_SET, TABLE]);
     tableDefinition.columns = [ONE_COLUMN];
     tableDefinition.timePartitioning = true;
@@ -139,20 +142,20 @@ describe('ZetaSqlWrapper', () => {
     );
   });
 
-  it('register should register information schema', () => {
+  it('registerTable should register information schema', () => {
     const tableName = 'columns';
     const tableDefinition = new TableDefinition([PROJECT_ID, DATA_SET, InformationSchemaConfigurator.INFORMATION_SCHEMA, tableName]);
     shouldRegisterInformationSchema(tableDefinition, DATA_SET, tableName, PROJECT_ID);
   });
 
-  it('register should register information schema when only schema specified', () => {
+  it('registerTable should register information schema when only schema specified', () => {
     for (const tableName of InformationSchemaConfigurator.INFORMATION_SCHEMA_COLUMNS.keys()) {
       const tableDefinition = new TableDefinition([DATA_SET, InformationSchemaConfigurator.INFORMATION_SCHEMA, tableName]);
       shouldRegisterInformationSchema(tableDefinition, DATA_SET, tableName);
     }
   });
 
-  it('register should register information schema without project and data set name', () => {
+  it('registerTable should register information schema without project and data set name', () => {
     for (const tableName of InformationSchemaConfigurator.INFORMATION_SCHEMA_COLUMNS.keys()) {
       const tableDefinition = new TableDefinition([InformationSchemaConfigurator.INFORMATION_SCHEMA, tableName]);
       shouldRegisterInformationSchema(tableDefinition, undefined, tableName);
@@ -161,9 +164,10 @@ describe('ZetaSqlWrapper', () => {
 
   it('register should register added column', () => {
     // arrange
+    const zetaSqlWrapper = new ZetaSqlWrapper(mock(DbtRepository), mock(BigQueryClient));
     const tableDefinition = new TableDefinition([PROJECT_ID, DATA_SET, TABLE]);
     tableDefinition.columns = [ONE_COLUMN];
-    registerTable(tableDefinition);
+    registerTable(zetaSqlWrapper, tableDefinition);
 
     // act, assert
     tableDefinition.columns.push(TWO_COLUMN);
@@ -172,12 +176,38 @@ describe('ZetaSqlWrapper', () => {
 
   it('register should unregister deleted column', () => {
     // arrange
+    const zetaSqlWrapper = new ZetaSqlWrapper(mock(DbtRepository), mock(BigQueryClient));
     const tableDefinition = new TableDefinition([PROJECT_ID, DATA_SET, TABLE]);
     tableDefinition.columns = [ONE_COLUMN, TWO_COLUMN];
-    registerTable(tableDefinition);
+    registerTable(zetaSqlWrapper, tableDefinition);
 
     // act, assert
     tableDefinition.columns.pop();
     shouldRegisterTable(tableDefinition, TABLE, [ONE_COLUMN_NAME], DATA_SET, PROJECT_ID);
+  });
+
+  it('registerUdf should register UDF', () => {
+    const zetaSqlWrapper = new ZetaSqlWrapper(mock(DbtRepository), mock(BigQueryClient));
+    const udf: Udf = {
+      nameParts: ['udfs', 'func'],
+      arguments: [
+        {
+          name: 'arg',
+          type: {
+            typeKind: TypeKind.TYPE_INT64,
+          },
+        },
+      ],
+      returnType: {
+        typeKind: TypeKind.TYPE_INT64,
+      },
+    };
+
+    const rootCatalog = registerUdf(zetaSqlWrapper, udf);
+
+    const udfsCatalog = rootCatalog.catalog?.find(c => c.name === 'udfs');
+    assert.ok(udfsCatalog);
+    const func = udfsCatalog.customFunction?.find(c => c.namePath && arraysAreEqual(c.namePath, ['udfs', 'func']));
+    assert.ok(func);
   });
 });
