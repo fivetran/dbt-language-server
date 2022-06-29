@@ -109,6 +109,12 @@ export class ZetaSqlWrapper {
         parent.table.push(existingTable);
       }
 
+      for (const oldColumn of existingTable.column ?? []) {
+        if (table.columns?.find(c => c.name === oldColumn.name) === undefined) {
+          ZetaSqlWrapper.deleteColumn(existingTable, oldColumn);
+        }
+      }
+
       for (const newColumn of table.columns ?? []) {
         ZetaSqlWrapper.addColumn(existingTable, newColumn);
       }
@@ -122,6 +128,13 @@ export class ZetaSqlWrapper {
 
   static addPartitioningColumn(existingTable: SimpleTableProto, name: string, type: string): void {
     ZetaSqlWrapper.addColumn(existingTable, ZetaSqlWrapper.createSimpleColumn(name, ZetaSqlWrapper.createType({ name, type })));
+  }
+
+  static deleteColumn(table: SimpleTableProto, column: SimpleColumnProto): void {
+    const columnIndex = table.column?.findIndex(c => c.name === column.name);
+    if (columnIndex !== undefined) {
+      table.column = table.column?.slice(columnIndex, columnIndex + 1);
+    }
   }
 
   static addColumn(table: SimpleTableProto, newColumn: SimpleColumnProto): void {
