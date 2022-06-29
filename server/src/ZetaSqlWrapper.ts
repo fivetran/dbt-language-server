@@ -118,6 +118,50 @@ export class ZetaSqlWrapper {
     }
   }
 
+  updateTable(table: TableDefinition): void {
+    if (table.containsInformationSchema()) {
+      console.log('Update of information schema tables is not available');
+      return;
+    }
+
+    let parent = this.catalog;
+
+    if (!table.rawName) {
+      const projectId = table.getProjectName();
+      if (projectId) {
+        const projectCatalog = parent.catalog?.find(c => c.name === projectId);
+        if (projectCatalog) {
+          parent = projectCatalog;
+        }
+      }
+
+      const dataSetName = table.getDataSetName();
+      if (dataSetName) {
+        const dataSetCatalog = parent.catalog?.find(c => c.name === dataSetName);
+        if (dataSetCatalog) {
+          parent = dataSetCatalog;
+        }
+      }
+    }
+
+    const tableName = table.rawName ?? table.getTableName();
+    const existingTable = parent.table?.find(t => t.name === tableName);
+    if (!existingTable) {
+      console.log('Table not found');
+      return;
+    }
+
+    const newColumns = (table.columns ?? []).filter(t => existingTable.column?.find(e => e.name === t.name) === undefined);
+    for (const newColumn of newColumns) {
+      ZetaSqlWrapper.addColumn(existingTable, newColumn);
+    }
+
+    // if (table.timePartitioning) {
+    //   ZetaSqlWrapper.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_TIME, 'timestamp');
+    //   ZetaSqlWrapper.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_DATE, 'date');
+    // }
+  }
+
   static addPartitioningColumn(existingTable: SimpleTableProto, name: string, type: string): void {
     ZetaSqlWrapper.addColumn(existingTable, ZetaSqlWrapper.createSimpleColumn(name, ZetaSqlWrapper.createType({ name, type })));
   }
@@ -195,6 +239,7 @@ export class ZetaSqlWrapper {
       return err('Compiled SQL not found');
     }
 
+    const model = this.getModel(originalFilePath);
     const tables = await this.findTableNames(compiledSql);
 
     for (const table of tables) {
@@ -203,7 +248,6 @@ export class ZetaSqlWrapper {
       }
       const schemaUpdated = await this.updateTableSchema(table);
       if (!schemaUpdated) {
-        const model = this.getModel(originalFilePath);
         if (!model) {
           return err('Model not found');
         }
@@ -212,7 +256,21 @@ export class ZetaSqlWrapper {
       }
       this.registerTable(table);
     }
-    return this.getAstOrError(compiledSql);
+
+    const ast = await this.getAstOrError(compiledSql);
+    if (ast.isOk() && model) {
+      const table = new TableDefinition([model.database, model.schema, model.name]);
+      table.columns = ast.value.resolvedStatement?.resolvedQueryStmtNode?.outputColumnList
+        .filter(c => c.column !== null)
+        .map(c => ZetaSqlWrapper.createSimpleColumn(c.name, c.column?.type ?? null));
+      if (this.isTableRegistered(table)) {
+        this.registerTable(table);
+      } else {
+        this.updateTable(table);
+      }
+    }
+
+    return ast;
   }
 
   async analyzeRef(table: TableDefinition, model: ManifestModel): Promise<void> {
