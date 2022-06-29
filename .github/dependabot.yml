@@ -12,12 +12,12 @@ updates:
     reviewers:
       - "pgrivachev"
 
-#   - package-ecosystem: "npm"
-#     directory: "/"
-#     schedule:
-#       interval: "daily"
-#     reviewers:
-#       - "pgrivachev"
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "pgrivachev"
 
 #   - package-ecosystem: "npm"
 #     directory: "/server"
