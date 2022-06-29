@@ -78,7 +78,9 @@ export class ZetaSqlWrapper {
   }
 
   registerTable(table: TableDefinition): void {
-    this.registeredTables.push(table);
+    if (!this.isTableRegistered(table)) {
+      this.registeredTables.push(table);
+    }
 
     let parent = this.catalog;
 
@@ -116,50 +118,6 @@ export class ZetaSqlWrapper {
         ZetaSqlWrapper.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_DATE, 'date');
       }
     }
-  }
-
-  updateTable(table: TableDefinition): void {
-    if (table.containsInformationSchema()) {
-      console.log('Update of information schema tables is not available');
-      return;
-    }
-
-    let parent = this.catalog;
-
-    if (!table.rawName) {
-      const projectId = table.getProjectName();
-      if (projectId) {
-        const projectCatalog = parent.catalog?.find(c => c.name === projectId);
-        if (projectCatalog) {
-          parent = projectCatalog;
-        }
-      }
-
-      const dataSetName = table.getDataSetName();
-      if (dataSetName) {
-        const dataSetCatalog = parent.catalog?.find(c => c.name === dataSetName);
-        if (dataSetCatalog) {
-          parent = dataSetCatalog;
-        }
-      }
-    }
-
-    const tableName = table.rawName ?? table.getTableName();
-    const existingTable = parent.table?.find(t => t.name === tableName);
-    if (!existingTable) {
-      console.log('Table not found');
-      return;
-    }
-
-    const newColumns = (table.columns ?? []).filter(t => existingTable.column?.find(e => e.name === t.name) === undefined);
-    for (const newColumn of newColumns) {
-      ZetaSqlWrapper.addColumn(existingTable, newColumn);
-    }
-
-    // if (table.timePartitioning) {
-    //   ZetaSqlWrapper.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_TIME, 'timestamp');
-    //   ZetaSqlWrapper.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_DATE, 'date');
-    // }
   }
 
   static addPartitioningColumn(existingTable: SimpleTableProto, name: string, type: string): void {
@@ -263,11 +221,7 @@ export class ZetaSqlWrapper {
       table.columns = ast.value.resolvedStatement?.resolvedQueryStmtNode?.outputColumnList
         .filter(c => c.column !== null)
         .map(c => ZetaSqlWrapper.createSimpleColumn(c.name, c.column?.type ?? null));
-      if (this.isTableRegistered(table)) {
-        this.registerTable(table);
-      } else {
-        this.updateTable(table);
-      }
+      this.registerTable(table);
     }
 
     return ast;
