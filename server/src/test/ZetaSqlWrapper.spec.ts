@@ -15,12 +15,17 @@ describe('ZetaSqlWrapper', () => {
   const DATA_SET = 'data_set';
   const TABLE = 'table';
   const COLUMN_NAME = 'column_name';
+  const ADDED_COLUMN_NAME = 'added_column_name';
   const ONE_TABLE: SimpleColumnProto[] = [
     {
       name: COLUMN_NAME,
       type: { typeKind: TypeKind.TYPE_STRING },
     },
   ];
+  const ADDED_COLUMN = {
+    name: ADDED_COLUMN_NAME,
+    type: { typeKind: TypeKind.TYPE_STRING },
+  };
 
   let zetaSqlWrapper: ZetaSqlWrapper;
 
@@ -147,5 +152,19 @@ describe('ZetaSqlWrapper', () => {
       const tableDefinition = new TableDefinition([InformationSchemaConfigurator.INFORMATION_SCHEMA, tableName]);
       shouldRegisterInformationSchema(tableDefinition, undefined, tableName);
     }
+  });
+
+  it('register should update columns', () => {
+    const tableDefinition = new TableDefinition([PROJECT_ID, DATA_SET, TABLE]);
+    tableDefinition.columns = ONE_TABLE;
+    shouldRegisterTable(tableDefinition, TABLE, [COLUMN_NAME], DATA_SET, PROJECT_ID);
+
+    // should add register added column
+    tableDefinition.columns.push(ADDED_COLUMN);
+    shouldRegisterTable(tableDefinition, TABLE, [COLUMN_NAME, ADDED_COLUMN_NAME], DATA_SET, PROJECT_ID);
+
+    // should add unregister deleted column
+    tableDefinition.columns.pop();
+    shouldRegisterTable(tableDefinition, TABLE, [COLUMN_NAME], DATA_SET, PROJECT_ID);
   });
 });
