@@ -133,7 +133,7 @@ export class ZetaSqlWrapper {
   static deleteColumn(table: SimpleTableProto, column: SimpleColumnProto): void {
     const columnIndex = table.column?.findIndex(c => c.name === column.name);
     if (columnIndex !== undefined) {
-      table.column = table.column?.slice(columnIndex, columnIndex + 1);
+      table.column?.splice(columnIndex, 1);
     }
   }
 
