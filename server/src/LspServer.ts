@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import * as fs from 'fs';
 import { Result } from 'neverthrow';
 import { performance } from 'perf_hooks';
 import {
@@ -55,6 +56,7 @@ import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
 import { deferred } from './utils/Utils';
+import path = require('path');
 
 interface TelemetryEvent {
   name: string;
@@ -257,7 +259,22 @@ export class LspServer {
   doInitialCompile(): void {
     this.dbtRpcClient
       .compile()
-      .then(() => console.log('Initial compilation finished'))
+      .then(() => {
+        console.log('Initial compilation finished');
+
+        const dir = path.resolve(
+          '/Users/runner/work/dbt-language-server/dbt-language-server/e2e/projects/test-fixture/target/compiled/my_new_project/models/',
+        );
+        const files = fs.readdirSync(dir);
+
+        console.log(`List of files -------`);
+
+        for (const file of files) {
+          console.log(file);
+        }
+        console.log(`-------`);
+        return files;
+      })
       .catch(e => {
         console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
       });

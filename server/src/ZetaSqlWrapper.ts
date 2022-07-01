@@ -282,7 +282,7 @@ export class ZetaSqlWrapper {
     } catch (e) {
       console.log(`Cannot read ${compiledPath}`);
 
-      const dir = path.resolve(this.dbtRepository.dbtTargetPath, 'compiled', model.packageName);
+      const dir = path.resolve(this.dbtRepository.dbtTargetPath, 'compiled', model.packageName, 'models');
       const files = fs.readdirSync(dir);
 
       console.log(`List of files -------`);
