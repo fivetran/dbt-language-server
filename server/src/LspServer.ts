@@ -255,9 +255,12 @@ export class LspServer {
   }
 
   doInitialCompile(): void {
-    this.dbtRpcClient.compile().catch(e => {
-      console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
-    });
+    this.dbtRpcClient
+      .compile()
+      .then(() => console.log('Initial compilation finished'))
+      .catch(e => {
+        console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
+      });
   }
 
   async findPython(): Promise<string> {
