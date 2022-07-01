@@ -51,7 +51,7 @@ import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
 import { JinjaParser } from './JinjaParser';
 import { ManifestParser } from './manifest/ManifestParser';
-import { ModelCompiler } from './ModelCompiler';
+import { Mode, ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
 import { deferred } from './utils/Utils';
@@ -403,7 +403,7 @@ export class LspServer {
         this.completionProvider,
         this.dbtCompletionProvider,
         this.dbtDefinitionProvider,
-        new ModelCompiler(this.dbtRpcClient, this.dbtRepository),
+        new ModelCompiler(this.dbtRpcClient, this.dbtRepository, Mode.DBT_RPC),
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,
         this.dbtRepository,

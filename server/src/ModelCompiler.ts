@@ -3,8 +3,14 @@ import { Emitter, Event } from 'vscode-languageserver';
 import { DbtCompileJob } from './DbtCompileJob';
 import { DbtRepository } from './DbtRepository';
 import { DbtRpcClient } from './DbtRpcClient';
+import { DbtRpcCompileJob } from './DbtRpcCompileJob';
 
 import path = require('path');
+
+export enum Mode {
+  DBT_RPC,
+  CLI,
+}
 
 export class ModelCompiler {
   private dbtCompileJobQueue: DbtCompileJob[] = [];
@@ -28,7 +34,7 @@ export class ModelCompiler {
     return this.onFinishAllCompilationJobsEmitter.event;
   }
 
-  constructor(private dbtRpcClient: DbtRpcClient, private dbtRepository: DbtRepository) {}
+  constructor(private dbtRpcClient: DbtRpcClient, private dbtRepository: DbtRepository, private mode: Mode) {}
 
   async compile(modelPath: string): Promise<void> {
     this.compilationInProgress = true;
@@ -41,7 +47,7 @@ export class ModelCompiler {
 
     if (this.dbtCompileJobQueue.length > 3) {
       const jobToStop = this.dbtCompileJobQueue.shift();
-      jobToStop?.stop().catch(e => console.log(`Failed to stop job: ${e instanceof Error ? e.message : String(e)}`));
+      jobToStop?.forceStop().catch(e => console.log(`Failed to stop job: ${e instanceof Error ? e.message : String(e)}`));
     }
     this.startNewJob(modelPath);
 
@@ -49,9 +55,13 @@ export class ModelCompiler {
   }
 
   startNewJob(modelPath: string): void {
-    const job = new DbtCompileJob(this.dbtRpcClient, modelPath);
+    const job = this.createCompileJob(modelPath);
     this.dbtCompileJobQueue.push(job);
     job.start().catch(e => console.log(`Failed to start job: ${e instanceof Error ? e.message : String(e)}`));
+  }
+
+  createCompileJob(modelPath: string): DbtCompileJob {
+    return this.mode === Mode.DBT_RPC ? new DbtRpcCompileJob(this.dbtRpcClient, modelPath) : new DbtRpcCompileJob(this.dbtRpcClient, '');
   }
 
   async pollResults(modelPath: string): Promise<void> {
@@ -64,13 +74,12 @@ export class ModelCompiler {
       const { length } = this.dbtCompileJobQueue;
 
       for (let i = length - 1; i >= 0; i--) {
-        const job = this.dbtCompileJobQueue[i];
-        const { result } = job;
+        const result = this.dbtCompileJobQueue[i].getResult();
 
         if (result) {
           const jobsToStop = this.dbtCompileJobQueue.splice(0, i + 1);
           for (let j = 0; j < i; j++) {
-            jobsToStop[j].stop().catch(e => console.log(`Failed to stop job: ${e instanceof Error ? e.message : String(e)}`));
+            jobsToStop[j].forceStop().catch(e => console.log(`Failed to stop job: ${e instanceof Error ? e.message : String(e)}`));
           }
 
           if (result.isErr()) {
