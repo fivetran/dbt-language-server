@@ -281,6 +281,16 @@ export class ZetaSqlWrapper {
       return fs.readFileSync(compiledPath, 'utf8');
     } catch (e) {
       console.log(`Cannot read ${compiledPath}`);
+
+      const dir = path.resolve(this.dbtRepository.dbtTargetPath, 'compiled', model.packageName);
+      const files = fs.readdirSync(dir);
+
+      console.log(`List of files -------`);
+
+      for (const file of files) {
+        console.log(file);
+      }
+      console.log(`-------`);
       return undefined;
     }
   }
