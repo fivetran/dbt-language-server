@@ -259,21 +259,35 @@ export class LspServer {
   doInitialCompile(): void {
     this.dbtRpcClient
       .compile()
-      .then(() => {
-        console.log('Initial compilation finished');
+      .then(async r => {
+        console.log('Initial compilation started');
+        if (r?.error) {
+          console.log(r.error);
+        } else if (r?.result) {
+          for (let i = 0; i < 100; i++) {
+            const pollAttempt = await this.dbtRpcClient.pollOnceCompileResult(r.result.request_token);
+            if (pollAttempt?.error) {
+              console.log('Initial compilation error!');
+              console.log(pollAttempt.error);
+            }
+            if (pollAttempt?.result.state !== 'running') {
+              const dir = path.resolve(
+                '/Users/runner/work/dbt-language-server/dbt-language-server/e2e/projects/test-fixture/target/compiled/my_new_project/models/',
+              );
+              const files = fs.readdirSync(dir);
 
-        const dir = path.resolve(
-          '/Users/runner/work/dbt-language-server/dbt-language-server/e2e/projects/test-fixture/target/compiled/my_new_project/models/',
-        );
-        const files = fs.readdirSync(dir);
+              console.log(`List of files -------`);
 
-        console.log(`List of files -------`);
-
-        for (const file of files) {
-          console.log(file);
+              for (const file of files) {
+                console.log(file);
+              }
+              console.log(`-------`);
+              return files;
+            }
+            console.log('Initial compilation still running');
+          }
         }
-        console.log(`-------`);
-        return files;
+        return undefined;
       })
       .catch(e => {
         console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
