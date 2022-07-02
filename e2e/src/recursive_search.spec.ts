@@ -1,6 +1,6 @@
-import { Diagnostic, DiagnosticSeverity, Position, Range } from 'vscode';
+import { Diagnostic, DiagnosticSeverity, Range } from 'vscode';
 import { assertDiagnostics } from './asserts';
-import { activateAndWait, getDocUri, insertText, replaceText } from './helper';
+import { activateAndWait, getDocUri, replaceText } from './helper';
 
 suite('Recursive search', () => {
   const RECURSIVE_SEARCH_DOC_URI = getDocUri('recursive_search.sql');
@@ -14,7 +14,7 @@ suite('Recursive search', () => {
 
   test('Should register created columns', async () => {
     await activateAndWait(TABLE_DOES_NOT_EXIST_DOC_URI);
-    await insertText(new Position(6, 14), ', 2 as amount');
+    await replaceText('1 as id', '1 as id, 2 as amount');
 
     await activateAndWait(RECURSIVE_SEARCH_DOC_URI);
     await replaceText('*', 's.amount');
