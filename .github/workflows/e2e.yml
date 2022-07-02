@@ -1,0 +1,151 @@
+
+name: e2e
+
+on:
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: macos-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: set up node 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+
+      - name: build and test
+        run: |
+          npm install
+          npm run build
+          
+      - name: set environment variable with file name
+        run: echo "FILE_NAME=${{ github.sha }}-darwin-x64.vsix" >> $GITHUB_ENV
+
+      - name: delete libraries for other platforms
+        run: |
+          cd server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql/
+          find . ! -name 'libremote_server.dylib' -type f -exec rm -f {} +
+
+      - name: set variable for prepare_node_modules.sh script
+        run: echo darwin-x64 > target_os
+
+      - name: package to vsix file
+        run: npx vsce package -o ${FILE_NAME} --target darwin-x64 --githubBranch main
+
+      - name: create cache
+        uses: actions/cache@v3
+        with:
+          path: ./${{ env.FILE_NAME }}
+          key: ${{ env.FILE_NAME }}
+
+  run-e2e-tests:
+    needs: package
+    runs-on: macos-latest
+    steps:
+      - name: set environment variable with file name
+        run: echo "FILE_NAME=${{ github.sha }}-darwin-x64.vsix" >> $GITHUB_ENV
+
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: checkout repository with models
+        uses: actions/checkout@v3
+        with:
+          repository: fivetran/analytics
+          path: analytics
+          token: ${{ secrets.ANALYTICS_REPO_ACCESS_TOKEN }}
+
+      - name: load vsix from cache
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: ./${{ env.FILE_NAME }}
+          key: ${{ env.FILE_NAME }}
+
+      - name: fail if cache not hit
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: exit 1
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+
+      - name: build tests
+        run: | # ignore postinstall script and install dependencies for e2e
+          npm install --ignore-scripts
+          cd e2e
+          npm install
+          npx tsc --sourceMap false --project tsconfig.json
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9.12'
+
+      - name: prepare profile config
+        run: |
+          mkdir -p ~/.dbt/
+          echo "$BQ_ANALYTICS_ACCOUNT" > ~/.dbt/analytics.json
+
+          user=$(whoami)
+          homedir=$(eval echo "~${user}")
+          keyFilePath=${homedir}/.dbt/analytics.json
+          echo ${keyFilePath}
+
+          private_key=$(echo ${BQ_ANALYTICS_ACCOUNT} | jq '.private_key')
+          read project_id private_key_id client_id client_email auth_uri token_uri auth_provider_x509_cert_url client_x509_cert_url < <(echo $(echo ${BQ_ANALYTICS_ACCOUNT} | jq -r '.project_id, .private_key_id, .client_id, .client_email, .auth_uri, .token_uri, .auth_provider_x509_cert_url, .client_x509_cert_url'))
+          dataset="transforms"
+
+          cat <<EOT > ~/.dbt/profiles.yml
+          fivetran:
+            outputs:
+              prod:
+                type: bigquery
+                method: service-account
+                project: ${project_id}
+                keyfile: ${keyFilePath}
+                dataset: ${dataset}
+                threads: 4
+            target: prod
+          EOT
+        env:
+          BQ_ANALYTICS_ACCOUNT: ${{ secrets.BQ_ANALYTICS_ACCOUNT }}
+
+      - name: show prepared files
+        run: |
+          cd ~/.dbt/
+          pwd
+          ls -la
+
+      - name: install dbt
+        run: pip install dbt-bigquery==1.0.0 dbt-postgres==1.0.4 dbt-rpc
+
+      - name: show dbt info
+        run: |
+          which dbt
+          dbt --version
+          node -v
+
+      - name: build and test
+        run: |
+          cd analytics/dbt_ft_prod
+          dbt deps
+
+      - run: unzip ${{ env.FILE_NAME }} -d e2e-tests
+      
+      - name: run e2e tests
+        run: node e2e/out/runners/runFtTest $(pwd)/e2e-tests/extension
+
+      - name: upload logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: all_logs
+          path: |
+            ./.vscode-test/user-data/logs/**/*dbt Wizard.log
+            ./e2e/out/diagnostics.txt
+            ./e2e/out/log.txt
+            ./analytics/dbt_ft_prod/logs/*

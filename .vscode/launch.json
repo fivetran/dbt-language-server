@@ -68,11 +68,29 @@
       "args": [
         // "--extensionDevelopmentPath=${workspaceRoot}/e2e-tests/extension",
         "--extensionDevelopmentPath=${workspaceRoot}",
-        "--extensionTestsPath=${workspaceRoot}/e2e/out/index",
+        "--extensionTestsPath=${workspaceRoot}/e2e/out/runners/index",
         "${workspaceRoot}/e2e/projects/test-workspace.code-workspace"
       ],
       "env": {
-        "CLI_PATH": "code"
+        "CLI_PATH": "code",
+        "LOCAL_RUN": "true"
+      },
+      "outFiles": ["${workspaceRoot}/client/out/test/**/*.js"]
+    },
+    {
+      "name": "dbt_ft Tests Client",
+      "type": "extensionHost",
+      "request": "launch",
+      "preLaunchTask": "deleteTargetFolders",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceRoot}",
+        "--extensionTestsPath=${workspaceRoot}/e2e/out/runners/index_dbt_ft",
+        "${workspaceRoot}/../analytics/dbt_ft_prod"
+      ],
+      "env": {
+        "CLI_PATH": "code",
+        "LOCAL_RUN": "true"
       },
       "outFiles": ["${workspaceRoot}/client/out/test/**/*.js"]
     }

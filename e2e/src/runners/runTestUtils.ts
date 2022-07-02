@@ -7,16 +7,12 @@ import * as path from 'path';
 import { Client } from 'pg';
 
 // Expected parameter: path to the folder with the extension package.json
-async function main(): Promise<void> {
+export async function installVsCodeAndRunTests(indexName: string, projectWithModelsPath: string): Promise<void> {
   try {
-    await prepareBigQuery();
-    console.log('bigquery prepared successfully');
-
-    await preparePostgres();
-    console.log('postgres prepared successfully');
-
+    const testsPath = path.resolve(__dirname, indexName);
     const [, , extensionDevelopmentPath] = process.argv;
     console.log(`Running tests for path: ${extensionDevelopmentPath}`);
+    console.log(`Project path: ${projectWithModelsPath}`);
 
     const defaultCachePath = path.resolve(extensionDevelopmentPath, '.vscode-test');
     const extensionsInstallPath = path.join(defaultCachePath, 'extensions');
@@ -50,12 +46,10 @@ async function main(): Promise<void> {
     }
     console.log('Python extension successfully installed from marketplace');
 
-    const extensionTestsPath = path.resolve(__dirname, './index');
-
     await runTests({
       extensionDevelopmentPath,
-      extensionTestsPath,
-      launchArgs: [path.resolve(__dirname, '../projects/test-workspace.code-workspace'), `--extensions-dir=${extensionsInstallPath}`],
+      extensionTestsPath: testsPath,
+      launchArgs: [projectWithModelsPath, `--extensions-dir=${extensionsInstallPath}`],
       extensionTestsEnv: {
         CLI_PATH: cli,
         EXTENSIONS_INSTALL_PATH: extensionsInstallPath,
@@ -69,7 +63,7 @@ async function main(): Promise<void> {
   }
 }
 
-async function prepareBigQuery(): Promise<void> {
+export async function prepareBigQuery(): Promise<void> {
   const options = {
     keyFilename: `${homedir()}/.dbt/bq-test-project.json`,
     projectId: 'singular-vector-135519',
@@ -147,7 +141,7 @@ async function isTableExist(dataset: Dataset, tableName: string): Promise<boolea
   return (await table.exists())[0];
 }
 
-async function preparePostgres(): Promise<void> {
+export async function preparePostgres(): Promise<void> {
   const content = fs.readFileSync(`${homedir()}/.dbt/postgres.json`, 'utf8');
   const connectionParams = JSON.parse(content) as {
     user: string;
@@ -194,5 +188,3 @@ function installExtension(cli: string, args: string[], idOrPath: string, install
     stdio: 'inherit',
   });
 }
-
-main().catch(e => console.error(e));

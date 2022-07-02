@@ -22,6 +22,7 @@
 		"cume_dist",
 		"datetime",
 		"dbname",
+		"deps",
 		"dylib",
 		"enddocs",
 		"endmacro",
