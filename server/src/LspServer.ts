@@ -269,8 +269,11 @@ export class LspServer {
             if (pollAttempt?.error) {
               console.log('Initial compilation error!');
               console.log(pollAttempt.error);
+              return undefined;
             }
             if (pollAttempt?.result.state !== 'running') {
+              console.log('Initial compilation finished');
+
               const dir = path.resolve(
                 '/Users/runner/work/dbt-language-server/dbt-language-server/e2e/projects/test-fixture/target/compiled/my_new_project/models/',
               );
