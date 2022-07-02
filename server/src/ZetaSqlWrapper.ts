@@ -110,7 +110,7 @@ export class ZetaSqlWrapper {
       }
 
       for (const oldColumn of existingTable.column ?? []) {
-        if (table.columns?.find(c => c.name === oldColumn.name) === undefined) {
+        if (!table.columns?.some(c => c.name === oldColumn.name)) {
           ZetaSqlWrapper.deleteColumn(existingTable, oldColumn);
         }
       }
