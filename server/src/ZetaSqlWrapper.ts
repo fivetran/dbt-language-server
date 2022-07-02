@@ -22,7 +22,6 @@ import { ColumnDefinition, TableDefinition } from './TableDefinition';
 import { arraysAreEqual, randomNumber } from './utils/Utils';
 import { ZetaSqlParser } from './ZetaSqlParser';
 import findFreePortPmfy = require('find-free-port');
-import path = require('path');
 
 export class ZetaSqlWrapper {
   static readonly PARTITION_TIME = '_PARTITIONTIME';
@@ -378,7 +377,7 @@ export class ZetaSqlWrapper {
     if (!model) {
       return undefined;
     }
-    const compiledPath = path.resolve(this.dbtRepository.dbtTargetPath, 'compiled', model.packageName, model.originalFilePath);
+    const compiledPath = this.dbtRepository.getModelCompiledPath(model);
     try {
       return fs.readFileSync(compiledPath, 'utf8');
     } catch (e) {
