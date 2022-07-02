@@ -20,7 +20,7 @@ export class DbtRpcCompileJob implements DbtCompileJob {
 
   result?: Result<string, string>;
 
-  constructor(private dbtRpcClient: DbtRpcClient, private modelName: string) {}
+  constructor(private dbtRpcClient: DbtRpcClient, private modelPath: string) {}
 
   async start(): Promise<void> {
     const pollTokenResult = await this.getPollToken();
@@ -43,7 +43,7 @@ export class DbtRpcCompileJob implements DbtCompileJob {
       const startCompileResponse = await retry(
         async bail => {
           // Here dbt-rpc can be in compilation state after HUP signal and return an error
-          const compileResponseAttempt = await this.dbtRpcClient.compile(this.modelName);
+          const compileResponseAttempt = await this.dbtRpcClient.compile(this.modelPath);
 
           if (this.stopRequired) {
             bail(new Error(DbtRpcCompileJob.STOP_ERROR));
