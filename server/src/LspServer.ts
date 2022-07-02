@@ -285,6 +285,9 @@ export class LspServer {
               return files;
             }
             console.log('Initial compilation still running');
+            await new Promise(resolve => {
+              setTimeout(resolve, 700);
+            });
           }
         }
         return undefined;
