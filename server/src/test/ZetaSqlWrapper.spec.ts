@@ -159,11 +159,11 @@ describe('ZetaSqlWrapper', () => {
     tableDefinition.columns = ONE_TABLE;
     shouldRegisterTable(tableDefinition, TABLE, [COLUMN_NAME], DATA_SET, PROJECT_ID);
 
-    // should add register added column
+    // should register added column
     tableDefinition.columns.push(ADDED_COLUMN);
     shouldRegisterTable(tableDefinition, TABLE, [COLUMN_NAME, ADDED_COLUMN_NAME], DATA_SET, PROJECT_ID);
 
-    // should add unregister deleted column
+    // should unregister deleted column
     tableDefinition.columns.pop();
     shouldRegisterTable(tableDefinition, TABLE, [COLUMN_NAME], DATA_SET, PROJECT_ID);
   });
