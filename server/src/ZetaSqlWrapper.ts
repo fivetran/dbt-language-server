@@ -218,14 +218,14 @@ export class ZetaSqlWrapper {
         continue;
       }
       const schemaUpdated = await this.updateTableSchema(table);
-      if (!schemaUpdated) {
+      if (schemaUpdated) {
+        this.registerTable(table);
+      } else {
         if (!model) {
           return err('Model not found');
         }
-
         await this.analyzeRef(table, model);
       }
-      this.registerTable(table);
     }
 
     const ast = await this.getAstOrError(compiledSql);
