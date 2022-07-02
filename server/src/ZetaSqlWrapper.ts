@@ -231,9 +231,7 @@ export class ZetaSqlWrapper {
     const ast = await this.getAstOrError(compiledSql);
     if (ast.isOk() && model) {
       const table = new TableDefinition([model.database, model.schema, model.name]);
-      table.columns = ast.value.resolvedStatement?.resolvedQueryStmtNode?.outputColumnList
-        .filter(c => c.column !== null)
-        .map(c => ZetaSqlWrapper.createSimpleColumn(c.name, c.column?.type ?? null));
+      this.fillTableWithAnalyzeResponse(table, ast.value);
       this.registerTable(table);
     }
 
@@ -247,9 +245,7 @@ export class ZetaSqlWrapper {
       if (refModel) {
         const analyzeResult = await this.analyzeTableInternal(refModel.originalFilePath);
         if (analyzeResult.isOk()) {
-          table.columns = analyzeResult.value.resolvedStatement?.resolvedQueryStmtNode?.outputColumnList
-            .filter(c => c.column !== null)
-            .map(c => ZetaSqlWrapper.createSimpleColumn(c.name, c.column?.type ?? null));
+          this.fillTableWithAnalyzeResponse(table, analyzeResult.value);
         }
       } else {
         console.log(`Can't find ref model`);
@@ -257,6 +253,12 @@ export class ZetaSqlWrapper {
     } else {
       console.log(`Can't find ref`);
     }
+  }
+
+  fillTableWithAnalyzeResponse(table: TableDefinition, analyzeOutput: AnalyzeResponse__Output): void {
+    table.columns = analyzeOutput.resolvedStatement?.resolvedQueryStmtNode?.outputColumnList
+      .filter(c => c.column !== null)
+      .map(c => ZetaSqlWrapper.createSimpleColumn(c.name, c.column?.type ?? null));
   }
 
   findModelByRefName(model: ManifestModel, ref: string[]): ManifestModel | undefined {
