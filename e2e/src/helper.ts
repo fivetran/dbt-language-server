@@ -139,6 +139,8 @@ export async function waitManifestJson(projectFolderName: string): Promise<void>
   const projectPath = getAbsolutePath(projectFolderName);
   if (fs.existsSync(path.resolve(projectPath, 'target', 'manifest.json'))) {
     console.log('manifest.json already exists');
+    console.log('Wait for manifest.json parse');
+    await sleep(200);
     return;
   }
 
@@ -146,9 +148,11 @@ export async function waitManifestJson(projectFolderName: string): Promise<void>
   const result = new Promise<void>(resolve => {
     resolveFunc = resolve;
   });
-  fs.watch(projectPath, { recursive: true }, (event: WatchEventType, fileName: string) => {
+  fs.watch(projectPath, { recursive: true }, async (event: WatchEventType, fileName: string) => {
     if (fileName.endsWith('manifest.json')) {
       console.log('Waiting for manifest.json completed');
+      console.log('Wait for manifest.json parse');
+      await sleep(200);
       resolveFunc();
     }
   });
