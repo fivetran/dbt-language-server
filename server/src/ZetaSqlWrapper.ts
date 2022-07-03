@@ -243,10 +243,7 @@ export class ZetaSqlWrapper {
     if (ref) {
       const refModel = this.findModelByRefName(model, ref);
       if (refModel) {
-        const analyzeResult = await this.analyzeTableInternal(refModel.originalFilePath);
-        if (analyzeResult.isOk()) {
-          this.fillTableWithAnalyzeResponse(table, analyzeResult.value);
-        }
+        await this.analyzeTableInternal(refModel.originalFilePath);
       } else {
         console.log(`Can't find ref model`);
       }
