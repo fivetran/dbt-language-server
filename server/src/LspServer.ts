@@ -244,6 +244,7 @@ export class LspServer {
         this.onRpcServerFindFailed();
       }
     } else {
+      this.python = command.python;
       command.addParameter(dbtPort.toString());
       try {
         await this.startDbtRpc(command, dbtPort);
@@ -403,7 +404,7 @@ export class LspServer {
         this.completionProvider,
         this.dbtCompletionProvider,
         this.dbtDefinitionProvider,
-        new ModelCompiler(this.dbtRpcClient, this.dbtRepository, Mode.DBT_RPC),
+        new ModelCompiler(this.dbtRpcClient, this.dbtRepository, Mode.DBT_RPC, this.python),
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,
         this.dbtRepository,
