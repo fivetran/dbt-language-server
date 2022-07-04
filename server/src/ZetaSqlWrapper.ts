@@ -142,6 +142,7 @@ export class ZetaSqlWrapper {
 
   registerUdf(udf: Udf): void {
     if (udf.nameParts.length <= 1) {
+      console.log('Udf with wrong name path found');
       return;
     }
     const udfOwner = this.ensureUdfOwnerCatalogExists(udf);
