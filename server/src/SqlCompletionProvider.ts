@@ -252,6 +252,9 @@ export class SqlCompletionProvider {
         result.push(...this.getColumnsForActiveTables(completionInfo.activeTables));
       }
     } else if (completionParams.context?.triggerKind !== CompletionTriggerKind.TriggerCharacter) {
+      if (completionInfo) {
+        result.push(...this.getWithNames(completionInfo.withNames));
+      }
       result.push(...this.getDatasets(destinationDefinition));
     }
 
@@ -274,6 +277,15 @@ export class SqlCompletionProvider {
       item.command = Command.create('additional', 'editor.afterFunctionCompletion');
     }
     return item;
+  }
+
+  getWithNames(withNames: Set<string>): CompletionItem[] {
+    return [...withNames].map<CompletionItem>(w => ({
+      label: w,
+      kind: CompletionItemKind.Value,
+      detail: 'Table',
+      sortText: `1${w}`,
+    }));
   }
 
   getColumnsForActiveTables(tables: Map<string, ActiveTableInfo>): CompletionItem[] {

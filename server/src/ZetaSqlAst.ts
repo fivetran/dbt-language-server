@@ -8,7 +8,9 @@ import { ResolvedFunctionCallProto } from '@fivetrandevelopers/zetasql/lib/types
 import { ResolvedOutputColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedOutputColumnProto';
 import { ResolvedQueryStmtProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedQueryStmtProto';
 import { ResolvedTableScanProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedTableScanProto';
+import { ResolvedWithScanProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedWithScanProto';
 import { extractDatasetFromFullName } from './utils/Utils';
+import { positionInRange, rangeContainsRange, rangesEqual } from './utils/ZetaSqlUtils';
 
 export class ZetaSqlAst {
   propertyNames = [
@@ -149,10 +151,20 @@ export class ZetaSqlAst {
 
   getCompletionInfo(ast: AnalyzeResponse, offset: number): CompletionInfo {
     const completionInfo: CompletionInfo = {
-      resolvedTables: new Map(),
+      resolvedTables: new Map<string, string[]>(),
+      withNames: new Set<string>(),
     };
-    const parentNodes: any[] = [];
-    const resolvedStatementNode = ast.resolvedStatement && ast.resolvedStatement.node ? ast.resolvedStatement[ast.resolvedStatement.node] : undefined;
+
+    const parentNodes: {
+      name?: string;
+      parseLocationRange: ParseLocationRangeProto__Output;
+      value: unknown;
+      activeTableLocationRanges?: ParseLocationRangeProto__Output[];
+      activeTables?: Map<string, ActiveTableInfo>;
+    }[] = [];
+
+    const { resolvedStatement } = ast;
+    const resolvedStatementNode = resolvedStatement?.node ? resolvedStatement[resolvedStatement.node] : undefined;
     if (resolvedStatementNode) {
       this.traversal(
         resolvedStatementNode,
@@ -167,41 +179,45 @@ export class ZetaSqlAst {
           if (nodeName === NODE.resolvedTableScanNode) {
             const typedNode = node as ResolvedTableScanProto;
             const { resolvedTables } = completionInfo;
-            if (typedNode.table && typedNode.table.fullName) {
+            if (typedNode.table?.fullName) {
               const { fullName } = typedNode.table;
               if (!resolvedTables.get(fullName)) {
-                resolvedTables.set(fullName, []);
+                const columns: string[] = [];
+                resolvedTables.set(fullName, columns);
                 typedNode.parent?.columnList?.forEach(column => {
                   if (column.name) {
-                    resolvedTables.get(fullName)?.push(column.name);
+                    columns.push(column.name);
                   }
                 });
               }
             }
           }
+
+          if (nodeName === NODE.resolvedWithScanNode) {
+            (node as ResolvedWithScanProto).withEntryList
+              ?.map(w => w.withQueryName)
+              .filter((n): n is string => n !== undefined)
+              .forEach(n => completionInfo.withNames.add(n));
+          }
         },
-        ast.resolvedStatement?.node,
+        resolvedStatement?.node,
         (node: any, nodeName?: string) => {
           if (parentNodes.length > 0 && completionInfo.activeTableLocationRanges === undefined) {
             const parseLocationRange = this.getParseLocationRange(node);
+            if (!parseLocationRange) {
+              return;
+            }
             const parentNode = parentNodes[parentNodes.length - 1];
 
             if (nodeName === NODE.resolvedTableScanNode) {
-              if (
-                parseLocationRange &&
-                parentNode.parseLocationRange.start <= parseLocationRange.start &&
-                parseLocationRange.end <= parentNode.parseLocationRange.end &&
-                parentNode.parseLocationRange.start <= offset &&
-                offset <= parentNode.parseLocationRange.end
-              ) {
-                if (!parentNode.activeTableLocationRanges) {
-                  parentNode.activeTableLocationRanges = [];
-                  parentNode.activeTables = new Map();
-                }
+              if (rangeContainsRange(parentNode.parseLocationRange, parseLocationRange) && positionInRange(offset, parentNode.parseLocationRange)) {
+                parentNode.activeTableLocationRanges = parentNode.activeTableLocationRanges ?? [];
+                parentNode.activeTables = parentNode.activeTables ?? new Map<string, ActiveTableInfo>();
                 parentNode.activeTableLocationRanges.push(parseLocationRange);
-                if (offset < parseLocationRange.start || parseLocationRange.end < offset) {
+
+                if (!positionInRange(offset, parseLocationRange)) {
                   const tableScanNode: ResolvedTableScanProto = node;
-                  const tables: Map<string, ActiveTableInfo> = parentNode.activeTables;
+                  const tables = parentNode.activeTables;
                   const tableName = tableScanNode.table?.name;
                   if (tableName && !tables.has(tableName) && tableScanNode.parent?.columnList) {
                     tables.set(tableName, {
@@ -214,13 +230,9 @@ export class ZetaSqlAst {
                   }
                 }
               }
-            } else if (
-              parentNode.name === nodeName &&
-              parseLocationRange?.start === parentNode.parseLocationRange.start &&
-              parseLocationRange?.end === parentNode.parseLocationRange.end
-            ) {
+            } else if (parentNode.name === nodeName && rangesEqual(parseLocationRange, parentNode.parseLocationRange)) {
               const n = parentNodes.pop();
-              if (n.activeTableLocationRanges?.length > 0) {
+              if (n?.activeTableLocationRanges && n.activeTableLocationRanges.length > 0) {
                 completionInfo.activeTableLocationRanges = n.activeTableLocationRanges;
                 completionInfo.activeTables = n.activeTables;
               }
@@ -330,6 +342,7 @@ const NODE = {
   resolvedQueryStmtNode: 'resolvedQueryStmtNode',
   resolvedTableScanNode: 'resolvedTableScanNode',
   resolvedFunctionCallNode: 'resolvedFunctionCallNode',
+  resolvedWithScanNode: 'resolvedWithScanNode',
 };
 
 export interface HoverInfo {
@@ -343,6 +356,7 @@ export interface CompletionInfo {
   resolvedTables: Map<string, string[]>;
   activeTableLocationRanges?: Location[];
   activeTables?: Map<string, ActiveTableInfo>;
+  withNames: Set<string>;
 }
 
 export interface ActiveTableInfo {

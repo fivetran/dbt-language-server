@@ -59,6 +59,17 @@ describe('ZetaSqlAst', () => {
     shouldReturnLocationOfTableNameInQuery('multipleWith', 1656, 1584, 1656);
   });
 
+  it('getCompletionInfo should return all with clause', () => {
+    // arrange
+    const ast = getAst('multipleWith');
+
+    // act
+    const result = new ZetaSqlAst().getCompletionInfo(ast, 0);
+
+    // assert
+    assertThat(result.withNames, new Set(['live_analytics_query', 'static_engineering_table', 'joined']));
+  });
+
   describe('resolvedSetOperationScanNode.json', () => {
     function shouldReturnTablesForResolvedSetOperationScanNode(cursorOffset: number): void {
       shouldReturnLocationsOfTableNameInQuery('resolvedSetOperationScanNode', cursorOffset, [
