@@ -71,12 +71,12 @@ The extension works on MacOS, Linux, and Windows (for Windows, see the additiona
 Prior to using the extension, you need to perform the following steps in the VS Code Terminal:
 
 1. [Install your dbt Core adapter and dbt-rpc](https://docs.getdbt.com/dbt-cli/install/overview).
-  - `python3 -m pip install dbt-bigquery dbt-rpc`
+    - `python3 -m pip install dbt-bigquery dbt-rpc`
 1. Test that dbt-rpc works
-  - `dbt-rpc --version`
+    - `dbt-rpc --version`
 1. Create your [dbt profile](https://docs.getdbt.com/dbt-cli/configure-your-profile) and add your credentials.
-  - touch ~/.dbt/profiles.yml
-  - See dbt Labs’ [BigQuery profile](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) documentation for more guidance on how to populate this file.
+    - touch ~/.dbt/profiles.yml
+    - See dbt Labs’ [BigQuery profile](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) documentation for more guidance on how to populate this file.
 1. Open your dbt project in a new VS Code window.
 1. Check that the extension is operating by right-clicking in any .sql model file, and selecting `dbt Wizard > Show query preview`.
 
