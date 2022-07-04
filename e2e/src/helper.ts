@@ -180,7 +180,7 @@ export async function setTestContent(content: string): Promise<void> {
 }
 
 export async function appendText(value: string): Promise<void> {
-  return insertText(editor.document.positionAt(Number.MAX_VALUE), value);
+  return insertText(editor.document.positionAt(editor.document.getText().length), value);
 }
 
 export async function insertText(position: Position, value: string): Promise<void> {
