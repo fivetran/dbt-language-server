@@ -3,7 +3,7 @@ import { assertThat } from 'hamjest';
 import { positionInRange, rangeContainsRange, rangesEqual } from '../../utils/ZetaSqlUtils';
 
 describe('ZetaSqlUtils.spec', () => {
-  it('positionInRange should return if range contains specified position', () => {
+  it('positionInRange should return whether the range contains specified position', () => {
     assertThat(positionInRange(5, createRange(5, 8)), true);
     assertThat(positionInRange(7, createRange(5, 8)), true);
     assertThat(positionInRange(8, createRange(5, 8)), true);
@@ -12,7 +12,7 @@ describe('ZetaSqlUtils.spec', () => {
     assertThat(positionInRange(9, createRange(5, 8)), false);
   });
 
-  it('rangeContainsRange should return if range contains another range', () => {
+  it('rangeContainsRange should return whether the range contains another range', () => {
     assertThat(rangeContainsRange(createRange(5, 8), createRange(5, 6)), true);
     assertThat(rangeContainsRange(createRange(5, 8), createRange(6, 7)), true);
     assertThat(rangeContainsRange(createRange(5, 8), createRange(7, 8)), true);
@@ -27,7 +27,7 @@ describe('ZetaSqlUtils.spec', () => {
     assertThat(rangeContainsRange(createRange(5, 8), createRange(4, 9)), false);
   });
 
-  it('rangesEqual should return if ranges are equal', () => {
+  it('rangesEqual should return whether the ranges are equal', () => {
     assertThat(rangesEqual(createRange(5, 8), createRange(5, 8)), true);
 
     assertThat(rangesEqual(createRange(5, 8), createRange(4, 8)), false);
