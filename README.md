@@ -75,7 +75,7 @@ Prior to using the extension, you need to perform the following steps in the VS 
 1. Test that dbt-rpc works
     - `dbt-rpc --version`
 1. Create your [dbt profile](https://docs.getdbt.com/dbt-cli/configure-your-profile) and add your credentials.
-    - touch ~/.dbt/profiles.yml
+    - `touch ~/.dbt/profiles.yml`
     - See dbt Labs’ [BigQuery profile](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) documentation for more guidance on how to populate this file.
 1. Open your dbt project in a new VS Code window.
 1. Check that the extension is operating by right-clicking in any .sql model file, and selecting `dbt Wizard > Show query preview`.
