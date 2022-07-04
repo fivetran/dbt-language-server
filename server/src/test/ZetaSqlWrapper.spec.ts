@@ -187,9 +187,11 @@ describe('ZetaSqlWrapper', () => {
   });
 
   it('registerUdf should register UDF', () => {
+    // arrange
     const zetaSqlWrapper = new ZetaSqlWrapper(mock(DbtRepository), mock(BigQueryClient));
+    const namePath = ['udfs', 'func'];
     const udf: Udf = {
-      nameParts: ['udfs', 'func'],
+      nameParts: namePath,
       arguments: [
         {
           name: 'arg',
@@ -203,11 +205,24 @@ describe('ZetaSqlWrapper', () => {
       },
     };
 
+    // act
     const rootCatalog = registerUdf(zetaSqlWrapper, udf);
 
+    // assert
     const udfsCatalog = rootCatalog.catalog?.find(c => c.name === 'udfs');
     assert.ok(udfsCatalog);
-    const func = udfsCatalog.customFunction?.find(c => c.namePath && arraysAreEqual(c.namePath, ['udfs', 'func']));
+    const func = udfsCatalog.customFunction?.find(c => c.namePath && arraysAreEqual(c.namePath, namePath));
     assert.ok(func);
+
+    assertThat(func.namePath, namePath);
+
+    assert.ok(func.signature);
+    assertThat(func.signature, hasSize(1));
+
+    assert.ok(func.signature[0].argument);
+    assertThat(func.signature[0].argument, hasSize(1));
+
+    assertThat(func.signature[0].argument[0].type, { typeKind: TypeKind.TYPE_INT64 });
+    assertThat(func.signature[0].returnType?.type, { typeKind: TypeKind.TYPE_INT64 });
   });
 });
