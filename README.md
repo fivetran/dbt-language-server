@@ -8,11 +8,11 @@ Note: Turning on [Auto Save](https://code.visualstudio.com/docs/editor/codebasic
 
 - [Features](#features)
   - [Query preview](#query-preview)
-  - [SQL to ref conversion](#sql-to-ref)
+  - [SQL to ref conversion](#sql-to-ref-conversion)
   - [Error highlighting (BQ only)](#error-highlighting)
-  - [Auto-completion of columns, tables, and refs (BQ only)](#auto-completion)
-  - [Function signature help (BQ only)](#signature-help)
-  - [Go to Definition](#dbt-compile-preview)
+  - [Auto-completion of columns, tables, and refs (BQ only)](#auto-completion-of-columns-tables-and-refs)
+  - [Function signature help (BQ only)](#function-signature-help)
+  - [Go to Definition](#go-to-definition)
 - [How to get set up](#how-to-get-set-up)
 - [Issues](#issues)
 
