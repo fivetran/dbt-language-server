@@ -1,6 +1,5 @@
 import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { SimpleCatalogProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleCatalogProto';
-import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
 import * as assert from 'assert';
 import { assertThat, greaterThan, hasExactlyOneItem, hasProperty, hasSize } from 'hamjest';
 import { mock } from 'ts-mockito';
@@ -14,13 +13,18 @@ describe('ZetaSqlWrapper', () => {
   const PROJECT_ID = 'project_id';
   const DATA_SET = 'data_set';
   const TABLE = 'table';
-  const COLUMN_NAME = 'column_name';
-  const ONE_TABLE: SimpleColumnProto[] = [
-    {
-      name: COLUMN_NAME,
-      type: { typeKind: TypeKind.TYPE_STRING },
-    },
-  ];
+
+  const ONE_COLUMN_NAME = 'one_column_name';
+  const TWO_COLUMN_NAME = 'two_column_name';
+
+  const ONE_COLUMN = {
+    name: ONE_COLUMN_NAME,
+    type: { typeKind: TypeKind.TYPE_STRING },
+  };
+  const TWO_COLUMN = {
+    name: TWO_COLUMN_NAME,
+    type: { typeKind: TypeKind.TYPE_STRING },
+  };
 
   let zetaSqlWrapper: ZetaSqlWrapper;
 
@@ -105,28 +109,34 @@ describe('ZetaSqlWrapper', () => {
 
   it('register should register project data set and table', () => {
     const tableDefinition = new TableDefinition([PROJECT_ID, DATA_SET, TABLE]);
-    tableDefinition.columns = ONE_TABLE;
-    shouldRegisterTable(tableDefinition, TABLE, [COLUMN_NAME], DATA_SET, PROJECT_ID);
+    tableDefinition.columns = [ONE_COLUMN];
+    shouldRegisterTable(tableDefinition, TABLE, [ONE_COLUMN_NAME], DATA_SET, PROJECT_ID);
   });
 
   it('register should register data set and table', () => {
     const tableDefinition = new TableDefinition([DATA_SET, TABLE]);
-    tableDefinition.columns = ONE_TABLE;
-    shouldRegisterTable(tableDefinition, TABLE, [COLUMN_NAME], DATA_SET);
+    tableDefinition.columns = [ONE_COLUMN];
+    shouldRegisterTable(tableDefinition, TABLE, [ONE_COLUMN_NAME], DATA_SET);
   });
 
   it('register should register only table', () => {
     const tableName = `${PROJECT_ID}.${DATA_SET}.${TABLE}`;
     const tableDefinition = new TableDefinition([tableName]);
-    tableDefinition.columns = ONE_TABLE;
-    shouldRegisterTable(tableDefinition, tableName, [COLUMN_NAME]);
+    tableDefinition.columns = [ONE_COLUMN];
+    shouldRegisterTable(tableDefinition, tableName, [ONE_COLUMN_NAME]);
   });
 
   it('register should register table with time partitioning', () => {
     const tableDefinition = new TableDefinition([PROJECT_ID, DATA_SET, TABLE]);
-    tableDefinition.columns = ONE_TABLE;
+    tableDefinition.columns = [ONE_COLUMN];
     tableDefinition.timePartitioning = true;
-    shouldRegisterTable(tableDefinition, TABLE, [COLUMN_NAME, ZetaSqlWrapper.PARTITION_TIME, ZetaSqlWrapper.PARTITION_DATE], DATA_SET, PROJECT_ID);
+    shouldRegisterTable(
+      tableDefinition,
+      TABLE,
+      [ONE_COLUMN_NAME, ZetaSqlWrapper.PARTITION_TIME, ZetaSqlWrapper.PARTITION_DATE],
+      DATA_SET,
+      PROJECT_ID,
+    );
   });
 
   it('register should register information schema', () => {
@@ -147,5 +157,27 @@ describe('ZetaSqlWrapper', () => {
       const tableDefinition = new TableDefinition([InformationSchemaConfigurator.INFORMATION_SCHEMA, tableName]);
       shouldRegisterInformationSchema(tableDefinition, undefined, tableName);
     }
+  });
+
+  it('register should register added column', () => {
+    // arrange
+    const tableDefinition = new TableDefinition([PROJECT_ID, DATA_SET, TABLE]);
+    tableDefinition.columns = [ONE_COLUMN];
+    registerTable(tableDefinition);
+
+    // act, assert
+    tableDefinition.columns.push(TWO_COLUMN);
+    shouldRegisterTable(tableDefinition, TABLE, [ONE_COLUMN_NAME, TWO_COLUMN_NAME], DATA_SET, PROJECT_ID);
+  });
+
+  it('register should unregister deleted column', () => {
+    // arrange
+    const tableDefinition = new TableDefinition([PROJECT_ID, DATA_SET, TABLE]);
+    tableDefinition.columns = [ONE_COLUMN, TWO_COLUMN];
+    registerTable(tableDefinition);
+
+    // act, assert
+    tableDefinition.columns.pop();
+    shouldRegisterTable(tableDefinition, TABLE, [ONE_COLUMN_NAME], DATA_SET, PROJECT_ID);
   });
 });
