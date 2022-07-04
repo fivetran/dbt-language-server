@@ -147,10 +147,6 @@ export class ZetaSqlWrapper {
     }
     const udfOwner = this.ensureUdfOwnerCatalogExists(udf);
 
-    if (udfOwner.customFunction?.some(c => c.namePath && arraysAreEqual(c.namePath, udf.nameParts))) {
-      return;
-    }
-
     const func = this.createFunction(udf);
 
     udfOwner.customFunction = udfOwner.customFunction ?? [];
