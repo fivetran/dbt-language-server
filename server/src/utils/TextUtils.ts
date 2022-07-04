@@ -232,7 +232,11 @@ export function getTextRangeBeforeBracket(text: string, cursorPosition: Position
     return Range.create(cursorPosition, cursorPosition);
   }
 
-  return getWordRangeAtPosition(Position.create(0, openBracketIndex), /\w+/, [textBeforeCursor]) ?? Range.create(cursorPosition, cursorPosition);
+  const range =
+    getWordRangeAtPosition(Position.create(0, openBracketIndex), /\w+/, [textBeforeCursor]) ?? Range.create(cursorPosition, cursorPosition);
+  range.start.line = line;
+  range.end.line = line;
+  return range;
 }
 
 export function isQuote(text: string): boolean {

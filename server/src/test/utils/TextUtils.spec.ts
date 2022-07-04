@@ -96,7 +96,12 @@ describe('TextUtils', () => {
     getTextRangeBeforeBracket_shouldReturnRange('a(b())', Position.create(0, 4), Range.create(0, 2, 0, 3));
     getTextRangeBeforeBracket_shouldReturnRange('a(b(c()))', Position.create(0, 6), Range.create(0, 4, 0, 5));
     getTextRangeBeforeBracket_shouldReturnRange(' coalesce(max())', Position.create(0, 13), Range.create(0, 1, 0, 9));
-    getTextRangeBeforeBracket_shouldReturnRange(' coalesce(max())', Position.create(0, 14), Range.create(0, 10, 0, 13));
+    getTextRangeBeforeBracket_shouldReturnRange(' coalesce(min())', Position.create(0, 14), Range.create(0, 10, 0, 13));
+  });
+
+  it('getTextRangeBeforeBracket should return range for multiline text', function () {
+    getTextRangeBeforeBracket_shouldReturnRange('\n\na()', Position.create(2, 2), Range.create(2, 0, 2, 1));
+    getTextRangeBeforeBracket_shouldReturnRange('\n\n coalesce(max())', Position.create(2, 13), Range.create(2, 1, 2, 9));
   });
 
   function getTextRangeBeforeBracket_shouldReturnRange(text: string, position: Position, expectedRange: Range): void {
