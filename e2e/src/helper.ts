@@ -1,6 +1,6 @@
 import { spawnSync, SpawnSyncReturns } from 'child_process';
 import * as fs from 'fs';
-import { WatchEventType } from 'fs';
+import { WatchEventType, writeFileSync } from 'fs';
 import * as path from 'path';
 import {
   commands,
@@ -19,7 +19,6 @@ import {
   Uri,
   window,
   workspace,
-  WorkspaceEdit,
 } from 'vscode';
 
 export let doc: TextDocument;
@@ -295,11 +294,8 @@ export async function createAndOpenTempModel(workspaceName: string): Promise<Uri
   }
   const newUri = Uri.parse(`${thisWorkspace}/models/temp_model.sql`);
 
-  const we = new WorkspaceEdit();
-
   console.log(`Creating new file: ${newUri.toString()}`);
-  we.createFile(newUri, { ignoreIfExists: false, overwrite: true });
-  await workspace.applyEdit(we);
+  writeFileSync(newUri.fsPath, '-- Empty');
   await activateAndWait(newUri);
   return newUri;
 }
