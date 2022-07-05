@@ -16,7 +16,7 @@ suite('Recursive search', () => {
 
   test('Should register created columns', async () => {
     await activateAndWait(TABLE_DOES_NOT_EXIST_DOC_URI);
-    await replaceText('1 as id', '1 as id, 2 as amount');
+    await replaceText('1 as id', '1 as id, 2 as amount, dbt_ls_e2e_dataset.my_custom_sum(1, 2) as udf_result');
 
     await activateAndWait(RECURSIVE_SEARCH_DOC_URI);
     await replaceText('*', 's.amount');

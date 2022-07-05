@@ -288,6 +288,8 @@ export class ZetaSqlWrapper {
       }
     }
 
+    await this.registerUdfs(compiledSql);
+
     const ast = await this.getAstOrError(compiledSql);
     if (ast.isOk() && model) {
       const table = new TableDefinition([model.database, model.schema, model.name]);
@@ -295,8 +297,7 @@ export class ZetaSqlWrapper {
       this.registerTable(table);
     }
 
-    await this.registerUdfs(compiledSql);
-    return this.getAstOrError(compiledSql);
+    return ast;
   }
 
   async analyzeRef(table: TableDefinition, model: ManifestModel): Promise<void> {
