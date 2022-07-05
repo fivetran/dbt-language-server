@@ -14,7 +14,7 @@ export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
 
   constructor(private dbtRepository: DbtRepository) {}
 
-  provideDefinitions(document: TextDocument, position: Position, jinja: ParseNode, packageName: string): DefinitionLink[] | undefined {
+  provideDefinitions(document: TextDocument, position: Position, jinja: ParseNode): DefinitionLink[] | undefined {
     const expressionLines = jinja.value.split('\n');
     const relativePosition = getRelativePosition(jinja.range, position);
     if (relativePosition === undefined) {
@@ -35,14 +35,15 @@ export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
 
       const isPackageSpecified = matches.length === 2;
       const wordAbsoluteOffset = document.offsetAt(getAbsolutePosition(jinja.range.start, wordRange.start));
-      let dbtPackage;
+      let dbtPackage = undefined;
       let model;
       let packageSelectionRange;
       let modelSelectionRange;
 
       if (isPackageSpecified) {
-        dbtPackage = matches[0].text;
-        model = matches[1].text;
+        dbtPackage = matches[0].text.slice(1, -1);
+        model = matches[1].text.slice(1, -1);
+
         packageSelectionRange = Range.create(
           document.positionAt(wordAbsoluteOffset + matches[0].index + 1),
           document.positionAt(wordAbsoluteOffset + matches[0].index + matches[0].text.length - 1),
@@ -51,9 +52,12 @@ export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
           document.positionAt(wordAbsoluteOffset + matches[1].index + 1),
           document.positionAt(wordAbsoluteOffset + matches[1].index + matches[1].text.length - 1),
         );
+
+        if (positionInRange(position, packageSelectionRange)) {
+          return this.searchPackageDefinition(dbtPackage, this.dbtRepository.models, packageSelectionRange);
+        }
       } else {
-        dbtPackage = `'${packageName}'`;
-        model = matches[0].text;
+        model = matches[0].text.slice(1, -1);
         packageSelectionRange = undefined;
         modelSelectionRange = Range.create(
           document.positionAt(wordAbsoluteOffset + matches[0].index + 1),
@@ -61,10 +65,8 @@ export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
         );
       }
 
-      if (packageSelectionRange && positionInRange(position, packageSelectionRange)) {
-        return this.searchPackageDefinition(dbtPackage, this.dbtRepository.models, packageSelectionRange);
-      } else if (positionInRange(position, modelSelectionRange)) {
-        return this.searchModelDefinition(dbtPackage, model, this.dbtRepository.models, modelSelectionRange);
+      if (positionInRange(position, modelSelectionRange)) {
+        return this.searchModelDefinition(model, this.dbtRepository.models, modelSelectionRange, dbtPackage);
       }
     }
 
@@ -85,9 +87,8 @@ export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
       );
   }
 
-  searchModelDefinition(dbPackage: string, model: string, dbtModels: ManifestModel[], modelSelectionRange: Range): DefinitionLink[] | undefined {
-    const modelId = `model.${dbPackage.slice(1, -1)}.${model.slice(1, -1)}`;
-    const foundModel = dbtModels.find(m => m.uniqueId === modelId);
+  searchModelDefinition(model: string, dbtModels: ManifestModel[], modelSelectionRange: Range, dbPackage?: string): DefinitionLink[] | undefined {
+    const foundModel = dbtModels.find(m => m.name === model && (dbPackage === undefined || m.packageName === dbPackage));
     if (foundModel) {
       return [
         LocationLink.create(
