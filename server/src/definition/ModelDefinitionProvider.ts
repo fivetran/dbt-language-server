@@ -74,7 +74,7 @@ export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
   }
 
   searchPackageDefinition(dbtPackage: string, dbtModels: ManifestModel[], packageSelectionRange: Range): DefinitionLink[] | undefined {
-    const modelIdPattern = `model.${dbtPackage.slice(1, -1)}.`;
+    const modelIdPattern = `model.${dbtPackage}.`;
     return dbtModels
       .filter(m => m.uniqueId.startsWith(modelIdPattern))
       .map(m =>
