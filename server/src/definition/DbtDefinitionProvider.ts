@@ -32,9 +32,7 @@ export class DbtDefinitionProvider {
     jinjaType: JinjaType,
   ): DefinitionLink[] | undefined {
     const modelDefinitions =
-      packageName && jinjaType === JinjaType.EXPRESSION
-        ? this.modelDefinitionProvider.provideDefinitions(document, position, jinja, packageName)
-        : undefined;
+      packageName && jinjaType === JinjaType.EXPRESSION ? this.modelDefinitionProvider.provideDefinitions(document, position, jinja) : undefined;
     if (modelDefinitions) {
       return modelDefinitions;
     }
