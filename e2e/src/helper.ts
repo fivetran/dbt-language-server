@@ -138,8 +138,7 @@ export function sleep(ms: number): Promise<unknown> {
 export async function waitManifestJson(projectFolderName: string): Promise<void> {
   const projectPath = getAbsolutePath(projectFolderName);
   if (fs.existsSync(path.resolve(projectPath, 'target', 'manifest.json'))) {
-    console.log('manifest.json already exists');
-    console.log('Wait for manifest.json parse');
+    console.log('manifest.json already exists. Wait when it parsed');
     await sleep(200);
     return;
   }
