@@ -4,7 +4,7 @@ Working with [dbt Core](https://www.getdbt.com/) in Visual Studio Code using the
 
 Note: Turning on [Auto Save](https://code.visualstudio.com/docs/editor/codebasics#_save-auto-save) is strongly recommended. This feature enables near real-time query preview, auto-completion, and error highlighting with dbt Wizard.
 
-### Table of Contents
+## Table of Contents
 
 - [Features](#features)
   - [Query preview](#query-preview)
@@ -64,7 +64,7 @@ You can jump to the definition with `Cmd+Click` or open the definition to the si
 
 ![Function signature help](images/go-to-definition.gif)
 
-### How to get set up
+## How to get set up
 
 The extension works on MacOS, Linux, and Windows (for Windows, see the additional steps in the [Windows Support](docs/WindowsSupport.md) article). It supports the default locations for `profiles.yml` and `dbt_project.yml` files.
 
@@ -80,6 +80,6 @@ Prior to using the extension, you need to perform the following steps in the VS 
 1. Open your dbt project in a new VS Code window.
 1. Check that the extension is operating by right-clicking in any .sql model file, and selecting `dbt Wizard > Show query preview`.
 
-### Issues
+## Issues
 
 If you have found any bug, have an idea or suggestion on how to improve extension, please file an issue and provide the details here: [Issues](https://github.com/fivetran/dbt-language-server/issues)
