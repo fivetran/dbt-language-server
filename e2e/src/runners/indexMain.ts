@@ -46,9 +46,9 @@ export async function indexMain(timeout: string, globPattern: string, doNotRun: 
         });
         runner.on('fail', () => {
           try {
-            console.log(`Content of document when test failed:\n${doc.getText()}`);
-            console.log(`Preview content:\n${getPreviewText()}`);
-            console.log(`Preview diagnostics:\n${JSON.stringify(languages.getDiagnostics(Uri.parse(PREVIEW_URI)))}`);
+            console.log(`Content of document when test failed:\n|${doc.getText()}|\n`);
+            console.log(`Preview content:\n|${getPreviewText()}|\n`);
+            console.log(`Preview diagnostics:\n|${JSON.stringify(languages.getDiagnostics(Uri.parse(PREVIEW_URI)))}|\n`);
           } catch (err) {
             // do nothing
           }
