@@ -40,8 +40,7 @@ export class ZetaSqlWrapper {
   private registeredFunctions: string[][] = [];
   private informationSchemaConfigurator = new InformationSchemaConfigurator();
 
-  constructor(private dbtRepository: DbtRepository, private bigQueryClient: BigQueryClient) {}
-  zetaSqlParser = new ZetaSqlParser();
+  constructor(private dbtRepository: DbtRepository, private bigQueryClient: BigQueryClient, private zetaSqlParser: ZetaSqlParser) {}
 
   getClient(): ZetaSQLClient {
     return ZetaSQLClient.getInstance();
