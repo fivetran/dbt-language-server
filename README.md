@@ -25,7 +25,7 @@ Note: error highlighting, auto-completion, and function signature help are only 
 There are two ways to display a compiled query preview.
 
 1. Click the Preview icon in the top right corner of your tab
-1. Right click > dbt Wizard > Show preview
+1. `Right click > dbt Wizard > Show preview`
 
 Both methods open the compiled query in a new tab.
 
