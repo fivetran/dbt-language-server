@@ -70,10 +70,7 @@ export class DbtCliCompileJob extends DbtCompileJob {
   }
 
   getResult(): Result<string, string> | undefined {
-    if (this.process?.exitCode === null) {
-      return undefined;
-    }
-    return this.result;
+    return this.process?.exitCode === null ? undefined : this.result;
   }
 
   getCompiledSql(filePath: string): string | undefined {
