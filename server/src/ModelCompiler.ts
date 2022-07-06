@@ -4,6 +4,7 @@ import { DbtCliCompileJob } from './DbtCliCompileJob';
 import { DbtCompileJob } from './DbtCompileJob';
 import { DbtRepository } from './DbtRepository';
 import { DbtRpcClient } from './DbtRpcClient';
+import { DbtRpcCompileJob } from './DbtRpcCompileJob';
 
 import path = require('path');
 
@@ -34,7 +35,9 @@ export class ModelCompiler {
     return this.onFinishAllCompilationJobsEmitter.event;
   }
 
-  constructor(private dbtRpcClient: DbtRpcClient, private dbtRepository: DbtRepository, private mode: Mode, private python?: string) {}
+  constructor(private dbtRpcClient: DbtRpcClient, private dbtRepository: DbtRepository, private mode: Mode, private python?: string) {
+    console.log(`Creating ModelCompiler in ${this.mode === Mode.CLI ? 'CLI' : 'DBT_RPC'} mode`);
+  }
 
   async compile(modelPath: string): Promise<void> {
     this.compilationInProgress = true;
@@ -61,9 +64,9 @@ export class ModelCompiler {
   }
 
   createCompileJob(modelPath: string): DbtCompileJob {
-    console.log(this.mode);
-    return new DbtCliCompileJob(modelPath, this.dbtRepository, this.python);
-    // return this.mode === Mode.DBT_RPC ? new DbtRpcCompileJob(this.dbtRpcClient, modelPath) : new DbtRpcCompileJob(this.dbtRpcClient, '');
+    return this.mode === Mode.DBT_RPC
+      ? new DbtRpcCompileJob(this.dbtRpcClient, modelPath)
+      : new DbtCliCompileJob(modelPath, this.dbtRepository, this.python);
   }
 
   async pollResults(modelPath: string): Promise<void> {

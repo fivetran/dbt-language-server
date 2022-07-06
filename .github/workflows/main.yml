@@ -90,6 +90,16 @@ jobs:
               export DISPLAY=:99
             activate-venv: source ~/dbt_0_20_1_env/bin/activate
 
+          - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
+            os: ubuntu-latest
+            target: linux-x64
+            prepare-for-tests: |
+              Xvfb -ac :99 -screen 0 1280x1024x16 &
+              export DISPLAY=:99
+            activate-venv: source ~/dbt_0_20_1_env/bin/activate
+            use-dbt-cli: true
+
+
           # TODO: enable this tests after implementing CLI support
           # - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
           #   os: windows-latest
@@ -270,6 +280,8 @@ jobs:
         run: |
           ${{ matrix.prepare-for-tests }}
           node e2e/out/runners/runTest $(pwd)/e2e-tests/extension
+        env:
+          USE_DBT_CLI: ${{ matrix.use-dbt-cli }}
 
       - name: upload logs
         if: always()

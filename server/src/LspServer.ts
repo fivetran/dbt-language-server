@@ -404,7 +404,7 @@ export class LspServer {
         this.completionProvider,
         this.dbtCompletionProvider,
         this.dbtDefinitionProvider,
-        new ModelCompiler(this.dbtRpcClient, this.dbtRepository, Mode.DBT_RPC, this.python),
+        new ModelCompiler(this.dbtRpcClient, this.dbtRepository, process.env['USE_DBT_CLI'] === 'true' ? Mode.CLI : Mode.DBT_RPC, this.python),
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,
         this.dbtRepository,
