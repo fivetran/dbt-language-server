@@ -62,7 +62,7 @@ export class DbtRpcCompileJob extends DbtCompileJob {
 
       return ok(startCompileResponse.result.request_token);
     } catch (e) {
-      return err(e instanceof Error ? e.message : JSON.stringify(e));
+      return err(e instanceof Error ? this.extractDbtError(e.message) : JSON.stringify(e));
     }
   }
 
