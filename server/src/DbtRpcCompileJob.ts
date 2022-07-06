@@ -3,7 +3,7 @@ import { DbtCompileJob } from './DbtCompileJob';
 import { CompileResponse, DbtRpcClient, PollResponse } from './DbtRpcClient';
 import retry = require('async-retry');
 
-export class DbtRpcCompileJob implements DbtCompileJob {
+export class DbtRpcCompileJob extends DbtCompileJob {
   static readonly UNKNOWN_ERROR = 'Unknown dbt-rpc error';
   static readonly STOP_ERROR = 'Job was stopped';
   static readonly NETWORK_ERROR = 'Network error';
@@ -20,7 +20,9 @@ export class DbtRpcCompileJob implements DbtCompileJob {
 
   result?: Result<string, string>;
 
-  constructor(private dbtRpcClient: DbtRpcClient, private modelPath: string) {}
+  constructor(private dbtRpcClient: DbtRpcClient, private modelPath: string) {
+    super();
+  }
 
   async start(): Promise<void> {
     const pollTokenResult = await this.getPollToken();
@@ -97,7 +99,7 @@ export class DbtRpcCompileJob implements DbtCompileJob {
       );
 
       if (pollResponse.error) {
-        return err(pollResponse.error.data?.message ?? 'Compilation error');
+        return err(pollResponse.error.data?.message ? this.extractDbtError(pollResponse.error.data.message) : 'Compilation error');
       }
 
       const compiledSql = this.getCompiledSql(pollResponse);

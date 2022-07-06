@@ -8,12 +8,13 @@ import { ManifestModel } from './manifest/ManifestJson';
 import retry = require('async-retry');
 import path = require('path');
 
-export class DbtCliCompileJob implements DbtCompileJob {
+export class DbtCliCompileJob extends DbtCompileJob {
   private dbtCli: DbtCli;
   private process?: ChildProcess;
   result?: Result<string, string>;
 
   constructor(private modelPath: string, private dbtRepository: DbtRepository, python?: string) {
+    super();
     this.dbtCli = new DbtCli(python);
   }
 
@@ -24,12 +25,7 @@ export class DbtCliCompileJob implements DbtCompileJob {
       await promise;
     } catch (e: unknown) {
       const error = e as ExecException & { stdout?: string; stderr?: string };
-      if (error.stdout) {
-        const index = error.stdout.indexOf('Compilation Error');
-        this.result = err((index !== -1 ? error.stdout.substring(index) : error.stdout).trim());
-      } else {
-        this.result = err(error.message);
-      }
+      this.result = err(error.stdout ? this.extractDbtError(error.stdout) : error.message);
       return;
     }
 
