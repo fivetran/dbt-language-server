@@ -1,6 +1,7 @@
 import { ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { ASTFunctionCallProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTFunctionCallProto';
 import { promisify } from 'util';
+import { arraysAreEqual } from './utils/Utils';
 
 interface Node {
   node: 'astFunctionCallNode';
@@ -23,7 +24,7 @@ export class ZetaSqlParser {
     if (parseResult) {
       this.traverse<ASTFunctionCallProto>('astFunctionCallNode', parseResult.parsedStatement, (node: ASTFunctionCallProto) => {
         const nameParts = node.function?.names?.map(n => n.idString).filter((n): n is string => n !== undefined);
-        if (nameParts && nameParts.length > 1) {
+        if (nameParts && nameParts.length > 1 && !functions.some(f => arraysAreEqual(f, nameParts))) {
           functions.push(nameParts);
         }
       });
