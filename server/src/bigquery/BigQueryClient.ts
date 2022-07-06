@@ -116,9 +116,6 @@ export class BigQueryClient implements DbtDestinationClient {
   }
 
   static toTypeKind(bigQueryTypeKind?: BigQueryTypeKind): TypeKind {
-    if (!bigQueryTypeKind) {
-      return TypeKind.TYPE_UNKNOWN;
-    }
     switch (bigQueryTypeKind) {
       case 'TYPE_KIND_UNSPECIFIED':
         return TypeKind.TYPE_UNKNOWN;
