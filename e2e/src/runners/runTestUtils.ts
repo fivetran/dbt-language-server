@@ -95,6 +95,7 @@ export async function prepareBigQuery(): Promise<void> {
 
   await ensureTableExists(dataset, 'table_exists', [{ name: 'id', type: 'INTEGER' }]);
   await ensureTableWithStructExists(dataset);
+  await ensureUdfExists(dataset);
 }
 
 async function ensureTableExists(dataset: Dataset, tableName: string, columns: TableField[]): Promise<void> {
@@ -131,6 +132,34 @@ async function ensureTableWithStructExists(dataset: Dataset): Promise<void> {
       ],
       timePartitioning: {
         type: 'DAY',
+      },
+    });
+  }
+}
+
+async function ensureUdfExists(dataset: Dataset): Promise<void> {
+  const routine = dataset.routine('my_custom_sum');
+
+  if (!(await routine.exists())[0]) {
+    await routine.create({
+      arguments: [
+        {
+          name: 'x',
+          dataType: {
+            typeKind: 'INT64',
+          },
+        },
+        {
+          name: 'y',
+          dataType: {
+            typeKind: 'INT64',
+          },
+        },
+      ],
+      definitionBody: 'x * y',
+      routineType: 'SCALAR_FUNCTION',
+      returnType: {
+        typeKind: 'INT64',
       },
     });
   }
