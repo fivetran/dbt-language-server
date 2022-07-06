@@ -9,7 +9,7 @@ describe('DiagnosticGenerator', () => {
   const MODEL_NAME = 'simple_select_dbt';
   const MODEL_PATH = `models/${MODEL_NAME}.sql`;
   const ERROR_LINE = 2;
-  const DBT_ERROR = `RPC server failed to compile project, call the "status" method for compile status: Compilation Error in model ${MODEL_NAME} (${MODEL_PATH})\n  unexpected '}'\n    line ${ERROR_LINE}\n      select * from {{ var('project_name') }.dbt_ls_e2e_dataset.test_table1`;
+  const DBT_ERROR = `Compilation Error in model ${MODEL_NAME} (${MODEL_PATH})\n  unexpected '}'\n    line ${ERROR_LINE}\n      select * from {{ var('project_name') }.dbt_ls_e2e_dataset.test_table1`;
   const WORKSPACE_FOLDER = '/Users/user/project';
 
   function shouldReturnDiagnosticWithoutLinks(error: string, errorLine: number): void {
