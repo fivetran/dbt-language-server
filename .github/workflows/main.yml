@@ -117,7 +117,7 @@ jobs:
           #     cd ~/dbt_0_20_1_env/Scripts
           #     . activate
 
-    name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }}
+    name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.use-dbt-cli }}
 
     runs-on: ${{ matrix.os }}
     defaults:
@@ -287,7 +287,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }}
+          name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.use-dbt-cli }}
           path: |
             ./.vscode-test/user-data/logs/**/*dbt Wizard.log
             ./e2e/projects/completion-jinja/logs/*
