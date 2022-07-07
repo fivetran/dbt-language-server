@@ -10,7 +10,7 @@ Note: Turning on [Auto Save](https://code.visualstudio.com/docs/editor/codebasic
   - [Query preview](#query-preview)
   - [SQL to ref conversion](#sql-to-ref-conversion)
   - [Error highlighting (BQ only)](#error-highlighting)
-  - [Auto-completion of columns, tables, and refs (BQ only)](#auto-completion-of-columns-tables-and-refs)
+  - [Auto-completion of columns, tables, and refs](#auto-completion-of-columns-tables-and-refs)
   - [Function signature help (BQ only)](#function-signature-help)
   - [Go to Definition](#go-to-definition)
 - [How to get set up](#how-to-get-set-up)
@@ -18,7 +18,7 @@ Note: Turning on [Auto Save](https://code.visualstudio.com/docs/editor/codebasic
 
 ## Features
 
-Note: error highlighting, auto-completion, and function signature help are only available for BigQuery.
+Note: error highlighting, auto-completion of columns, tables, and function signature help are only available for BigQuery.
 
 ### Query preview
 
