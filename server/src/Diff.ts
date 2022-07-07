@@ -5,7 +5,10 @@ import { Position } from 'vscode-languageserver-textdocument';
 export class Diff {
   static convertPositionStraight(first: string, second: string, positionInFirst: Position): Position {
     const lineInSecond = Diff.getNewLineNumber(first, second, positionInFirst.line);
-    const charInSecond = Diff.getNewCharacter(first.split('\n')[positionInFirst.line], second.split('\n')[lineInSecond], positionInFirst.character);
+    const firstLines = first.split('\n');
+    const secondLines = second.split('\n');
+
+    const charInSecond = Diff.getNewCharacter(firstLines[positionInFirst.line], secondLines[lineInSecond], positionInFirst.character);
     return {
       line: lineInSecond,
       character: charInSecond,
@@ -14,7 +17,10 @@ export class Diff {
 
   static convertPositionBackward(first: string, second: string, positionInSecond: Position): Position {
     const lineInFirst = Diff.getOldLineNumber(first, second, positionInSecond.line);
-    const charInFirst = Diff.getOldCharacter(first.split('\n')[lineInFirst], second.split('\n')[positionInSecond.line], positionInSecond.character);
+    const firstLines = first.split('\n');
+    const secondLines = second.split('\n');
+
+    const charInFirst = Diff.getOldCharacter(firstLines[lineInFirst], secondLines[positionInSecond.line], positionInSecond.character);
     return {
       line: lineInFirst,
       character: charInFirst,

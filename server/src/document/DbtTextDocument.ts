@@ -143,11 +143,15 @@ export class DbtTextDocument {
         if (!TextDocumentContentChangeEvent.isIncremental(change)) {
           throw new Error('Incremental updates expected');
         }
+
+        const rawText = this.rawDocument.getText();
+        const compiledText = this.compiledDocument.getText();
+
         return {
           text: change.text,
           range: Range.create(
-            Diff.convertPositionStraight(this.rawDocument.getText(), this.compiledDocument.getText(), change.range.start),
-            Diff.convertPositionStraight(this.rawDocument.getText(), this.compiledDocument.getText(), change.range.end),
+            Diff.convertPositionStraight(rawText, compiledText, change.range.start),
+            Diff.convertPositionStraight(rawText, compiledText, change.range.end),
           ),
         };
       });
