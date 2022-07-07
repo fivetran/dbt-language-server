@@ -265,7 +265,7 @@ export class ZetaSqlWrapper {
 
   private async analyzeTableInternal(originalFilePath: string, sql?: string): Promise<Result<AnalyzeResponse__Output, string>> {
     const compiledSql = sql ?? this.getCompiledSql(originalFilePath);
-    if (!compiledSql) {
+    if (compiledSql === undefined) {
       return err('Compiled SQL not found');
     }
 

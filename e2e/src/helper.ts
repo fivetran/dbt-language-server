@@ -1,6 +1,6 @@
 import { spawnSync, SpawnSyncReturns } from 'child_process';
 import * as fs from 'fs';
-import { WatchEventType } from 'fs';
+import { WatchEventType, writeFileSync } from 'fs';
 import * as path from 'path';
 import {
   commands,
@@ -11,6 +11,7 @@ import {
   Position,
   Range,
   Selection,
+  SignatureHelp,
   TextDocument,
   TextDocumentChangeEvent,
   TextEditor,
@@ -277,6 +278,32 @@ export async function triggerCompletion(docUri: Uri, position: Position, trigger
 
 export async function triggerDefinition(docUri: Uri, position: Position): Promise<DefinitionLink[]> {
   return commands.executeCommand<DefinitionLink[]>('vscode.executeDefinitionProvider', docUri, position);
+}
+
+export async function executeSignatureHelpProvider(docUri: Uri, position: Position, triggerChar?: string): Promise<SignatureHelp> {
+  return commands.executeCommand<SignatureHelp>('vscode.executeSignatureHelpProvider', docUri, position, triggerChar);
+}
+
+export async function moveCursorLeft(): Promise<unknown> {
+  return commands.executeCommand('cursorMove', {
+    to: 'left',
+    by: 'wrappedLine',
+    select: false,
+    value: 1,
+  });
+}
+
+export async function createAndOpenTempModel(workspaceName: string): Promise<Uri> {
+  const thisWorkspace = workspace.workspaceFolders?.find(w => w.name === workspaceName)?.uri.toString();
+  if (thisWorkspace === undefined) {
+    throw new Error('Workspace not found');
+  }
+  const newUri = Uri.parse(`${thisWorkspace}/models/temp_model.sql`);
+
+  console.log(`Creating new file: ${newUri.toString()}`);
+  writeFileSync(newUri.fsPath, '-- Empty');
+  await activateAndWait(newUri);
+  return newUri;
 }
 
 export function getTextInQuotesIfNeeded(text: string, withQuotes: boolean): string {

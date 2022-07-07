@@ -28,7 +28,7 @@ export async function installVsCodeAndRunTests(indexName: string, projectWithMod
       console.error('Failed to install python extension from marketplace. Trying to install from open-vsx ...');
 
       const extensionFilePath = path.resolve(extensionsInstallPath, 'ms-python.python.vsix');
-      const downloadResult = spawnSync('npx', ['ovsx', 'get', 'ms-python.python', '-o', extensionFilePath], {
+      const downloadResult = spawnSync('npx', ['ovsx', 'get', '-t', 'latest', '-o', extensionFilePath, 'ms-python.python'], {
         encoding: 'utf-8',
         stdio: 'inherit',
       });
