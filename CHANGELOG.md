@@ -1,5 +1,24 @@
 # Changelog
 
+## Version 0.6.0 (07/07/2022)
+## What's Changed
+* dbt models autocompletion improvements
+* Refresh dbt-rpc server after packages installation
+* Use diagnostics to highlight the ability to convert sql to ref
+* Add query preview button on top panel
+* Improve sources definitions suggestions
+* Prompt to install dbt if it is not installed
+* Do not show warning for non BigQuery profiles
+* Support working with multiple dbt profiles
+* Fix issue with adding/deleting columns in models during development
+* Support table suggestion from `with` clause
+* Support persistent UDFs
+* Fix issue with not showing signatures in some cases
+* Improve Readme.md
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.5.0...v0.6.0
+---
+
 ## Version 0.5.0 (26/05/2022)
 ## What's Changed
 * Upgrade ZetaSQL to Apr 21, 2022 version
