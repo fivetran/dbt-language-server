@@ -4,7 +4,6 @@ import { DbtCompileJob } from './DbtCompileJob';
 import { DbtRepository } from './DbtRepository';
 import { CompileResponse, DbtRpcClient, PollResponse } from './DbtRpcClient';
 import retry = require('async-retry');
-import path = require('path');
 
 export class DbtRpcCompileJob extends DbtCompileJob {
   static readonly UNKNOWN_ERROR = 'Unknown dbt-rpc error';
@@ -105,14 +104,14 @@ export class DbtRpcCompileJob extends DbtCompileJob {
         return err(pollResponse.error.data?.message ? this.extractDbtError(pollResponse.error.data.message) : 'Compilation error');
       }
 
-      const compiledSql = this.getCompiledSql(pollResponse);
+      const compiledSql = await this.getCompiledSql(pollResponse);
       return compiledSql === undefined ? err("Couldn't find compiled sql") : ok(compiledSql);
     } catch (e) {
       return err(e instanceof Error ? e.message : JSON.stringify(e));
     }
   }
 
-  getCompiledSql(pollResponse: PollResponse): string | undefined {
+  async getCompiledSql(pollResponse: PollResponse): Promise<string | undefined> {
     const compiledNodes = pollResponse.result.results;
     if (compiledNodes && compiledNodes.length > 0) {
       return compiledNodes[0].node.compiled_sql;
@@ -135,23 +134,10 @@ export class DbtRpcCompileJob extends DbtCompileJob {
     }
   }
 
-  private fallbackForEphemeralModel(): string {
+  private async fallbackForEphemeralModel(): Promise<string> {
     console.log(`Use fallback for ephemeral model ${this.modelPath}`);
     try {
-      let pathParts;
-      let resultPath;
-      if (this.dbtRepository.modelPaths.some(m => this.modelPath.startsWith(m))) {
-        pathParts = this.modelPath.split(path.sep);
-        if (this.dbtRepository.projectName) {
-          pathParts.splice(0, 0, this.dbtRepository.projectName);
-        }
-        resultPath = path.resolve(this.dbtRepository.dbtTargetPath, 'compiled', ...pathParts);
-      } else {
-        pathParts = this.modelPath.split('.');
-        pathParts.splice(1, 0, 'models');
-        pathParts[pathParts.length - 1] += '.sql';
-        resultPath = path.resolve('target', 'compiled', ...pathParts);
-      }
+      const resultPath = await this.findCompiledFilePath();
       return fs.readFileSync(`${resultPath}`, 'utf8');
     } catch (e) {
       return ' ';

@@ -1,6 +1,7 @@
 import { assertThat } from 'hamjest';
 import { err, ok } from 'neverthrow';
 import { instance, mock, verify, when } from 'ts-mockito';
+import { DbtRepository } from '../DbtRepository';
 import { CompileResponse, DbtRpcClient, PollResponse } from '../DbtRpcClient';
 import { DbtRpcCompileJob } from '../DbtRpcCompileJob';
 
@@ -70,6 +71,10 @@ describe('DbtCompileJob', () => {
     });
   }
 
+  function createDbtRpcCompileJob(mockDbtRpcClient: DbtRpcClient): DbtRpcCompileJob {
+    return new DbtRpcCompileJob(MODEL, mock(DbtRepository), instance(mockDbtRpcClient));
+  }
+
   beforeEach(() => {
     DbtRpcCompileJob.COMPILE_MODEL_MAX_RETRIES = 10;
     DbtRpcCompileJob.COMPILE_MODEL_TIMEOUT_MS = 0;
@@ -86,7 +91,7 @@ describe('DbtCompileJob', () => {
     when(mockDbtRpcClient.compile(MODEL)).thenReturn(compileModelSuccess());
     when(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).thenReturn(pollOnceCompileResultSuccess());
 
-    const compileJob = new DbtRpcCompileJob(instance(mockDbtRpcClient), MODEL);
+    const compileJob = createDbtRpcCompileJob(mockDbtRpcClient);
 
     // act
     await compileJob.start();
@@ -103,7 +108,7 @@ describe('DbtCompileJob', () => {
     when(mockDbtRpcClient.compile(MODEL)).thenReturn(compileModelError()).thenReturn(compileModelSuccess());
     when(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).thenReturn(pollOnceCompileResultSuccess());
 
-    const compileJob = new DbtRpcCompileJob(instance(mockDbtRpcClient), MODEL);
+    const compileJob = createDbtRpcCompileJob(mockDbtRpcClient);
 
     // act
     await compileJob.start();
@@ -121,7 +126,7 @@ describe('DbtCompileJob', () => {
     when(mockDbtRpcClient.compile(MODEL)).thenReturn(Promise.resolve(undefined)).thenReturn(compileModelSuccess());
     when(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).thenReturn(pollOnceCompileResultSuccess());
 
-    const compileJob = new DbtRpcCompileJob(instance(mockDbtRpcClient), MODEL);
+    const compileJob = createDbtRpcCompileJob(mockDbtRpcClient);
 
     // act
     await compileJob.start();
@@ -138,7 +143,7 @@ describe('DbtCompileJob', () => {
 
     when(mockDbtRpcClient.compile(MODEL)).thenReturn(Promise.resolve(undefined));
 
-    const compileJob = new DbtRpcCompileJob(instance(mockDbtRpcClient), MODEL);
+    const compileJob = createDbtRpcCompileJob(mockDbtRpcClient);
 
     // act
     await compileJob.start();
@@ -155,7 +160,7 @@ describe('DbtCompileJob', () => {
 
     when(mockDbtRpcClient.compile(MODEL)).thenReturn(Promise.resolve(undefined)).thenReturn(compileModelError());
 
-    const compileJob = new DbtRpcCompileJob(instance(mockDbtRpcClient), MODEL);
+    const compileJob = createDbtRpcCompileJob(mockDbtRpcClient);
 
     // act
     await compileJob.start();
@@ -172,7 +177,7 @@ describe('DbtCompileJob', () => {
 
     when(mockDbtRpcClient.compile(MODEL)).thenReturn(Promise.resolve(compileModelSuccess())).thenReturn(compileModelSuccess());
 
-    const compileJob = new DbtRpcCompileJob(instance(mockDbtRpcClient), MODEL);
+    const compileJob = createDbtRpcCompileJob(mockDbtRpcClient);
     const startPromise = compileJob.start();
 
     // act
@@ -191,7 +196,7 @@ describe('DbtCompileJob', () => {
     when(mockDbtRpcClient.compile(MODEL)).thenReturn(compileModelSuccess());
     when(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).thenReturn(pollOnceCompileResultRunning()).thenReturn(pollOnceCompileResultSuccess());
 
-    const compileJob = new DbtRpcCompileJob(instance(mockDbtRpcClient), MODEL);
+    const compileJob = createDbtRpcCompileJob(mockDbtRpcClient);
 
     // act
     await compileJob.start();
@@ -209,7 +214,7 @@ describe('DbtCompileJob', () => {
     when(mockDbtRpcClient.compile(MODEL)).thenReturn(compileModelSuccess());
     when(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).thenReturn(Promise.resolve(undefined)).thenReturn(pollOnceCompileResultSuccess());
 
-    const compileJob = new DbtRpcCompileJob(instance(mockDbtRpcClient), MODEL);
+    const compileJob = createDbtRpcCompileJob(mockDbtRpcClient);
 
     // act
     await compileJob.start();
@@ -228,7 +233,7 @@ describe('DbtCompileJob', () => {
     when(mockDbtRpcClient.compile(MODEL)).thenReturn(compileModelSuccess());
     when(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).thenReturn(Promise.resolve(undefined));
 
-    const compileJob = new DbtRpcCompileJob(instance(mockDbtRpcClient), MODEL);
+    const compileJob = createDbtRpcCompileJob(mockDbtRpcClient);
 
     // act
     await compileJob.start();
@@ -246,7 +251,7 @@ describe('DbtCompileJob', () => {
     when(mockDbtRpcClient.compile(MODEL)).thenReturn(compileModelSuccess());
     when(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).thenReturn(pollOnceCompileResultError());
 
-    const compileJob = new DbtRpcCompileJob(instance(mockDbtRpcClient), MODEL);
+    const compileJob = createDbtRpcCompileJob(mockDbtRpcClient);
 
     // act
     await compileJob.start();

@@ -4,9 +4,6 @@ import { err, ok, Result } from 'neverthrow';
 import { DbtCli } from './DbtCli';
 import { DbtCompileJob } from './DbtCompileJob';
 import { DbtRepository } from './DbtRepository';
-import { ManifestModel } from './manifest/ManifestJson';
-import retry = require('async-retry');
-import path = require('path');
 
 export class DbtCliCompileJob extends DbtCompileJob {
   private dbtCli: DbtCli;
@@ -30,37 +27,13 @@ export class DbtCliCompileJob extends DbtCompileJob {
     }
 
     try {
-      let compiledPath;
-      if (!this.modelPath.endsWith('.sql')) {
-        const pathParts = this.modelPath.split('.');
-        pathParts.splice(1, 0, 'models');
-        pathParts[pathParts.length - 1] += '.sql';
-        compiledPath = path.resolve(this.dbtRepository.dbtTargetPath, 'compiled', ...pathParts);
-      } else {
-        const model = await this.findModelWithRetries();
-        compiledPath = this.dbtRepository.getModelCompiledPath(model);
-      }
-
+      const compiledPath = await this.findCompiledFilePath();
       const sql = this.getCompiledSql(compiledPath);
+
       this.result = sql ? ok(sql) : err('Compiled file not found');
     } catch (e) {
       this.result = err('Model not found in manifest.json');
     }
-  }
-
-  async findModelWithRetries(): Promise<ManifestModel> {
-    return retry(
-      () => {
-        const model = this.dbtRepository.models.find(m => m.originalFilePath === this.modelPath);
-        if (model === undefined) {
-          console.log('Model not found in manifest.json, retrying...');
-          throw new Error('Model not found in manifest.json');
-        }
-
-        return model;
-      },
-      { factor: 1, retries: 3, minTimeout: 100 },
-    );
   }
 
   forceStop(): Promise<void> {
