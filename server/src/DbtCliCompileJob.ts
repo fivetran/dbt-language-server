@@ -18,11 +18,16 @@ export class DbtCliCompileJob extends DbtCompileJob {
   async start(): Promise<void> {
     const promise = this.dbtCli.compile(this.modelPath);
     this.process = promise.child;
+
     try {
-      await promise;
+      await DbtCliCompileJob.withTimeout(promise, 10000);
     } catch (e: unknown) {
-      const error = e as ExecException & { stdout?: string; stderr?: string };
-      this.result = err(error.stdout ? this.extractDbtError(error.stdout) : error.message);
+      if (e instanceof Object && 'stdout' in e) {
+        const error = e as ExecException & { stdout?: string; stderr?: string };
+        this.result = err(error.stdout ? this.extractDbtError(error.stdout) : error.message);
+      } else {
+        this.result = err(e instanceof Error ? e.message : String(e));
+      }
       return;
     }
 
@@ -45,12 +50,21 @@ export class DbtCliCompileJob extends DbtCompileJob {
     return this.process?.exitCode === null ? undefined : this.result;
   }
 
-  getCompiledSql(filePath: string): string | undefined {
+  protected getCompiledSql(filePath: string): string | undefined {
     try {
       return fs.readFileSync(filePath, 'utf8');
     } catch (e) {
       console.log(`Cannot get compiled sql for ${filePath}`);
       return undefined;
     }
+  }
+
+  private static async withTimeout(promise: Promise<unknown>, ms: number): Promise<void> {
+    const timeoutPromise = new Promise<void>((_resolve, reject) => {
+      setTimeout(() => {
+        reject(new Error('dbt compile timeout exceeded'));
+      }, ms);
+    });
+    await Promise.race([promise, timeoutPromise]);
   }
 }
