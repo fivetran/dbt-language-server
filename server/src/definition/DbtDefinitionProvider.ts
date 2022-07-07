@@ -31,8 +31,11 @@ export class DbtDefinitionProvider {
     position: Position,
     jinjaType: JinjaType,
   ): DefinitionLink[] | undefined {
-    const modelDefinitions =
-      packageName && jinjaType === JinjaType.EXPRESSION ? this.modelDefinitionProvider.provideDefinitions(document, position, jinja) : undefined;
+    if (jinjaType === JinjaType.UNKNOWN) {
+      return undefined;
+    }
+
+    const modelDefinitions = packageName ? this.modelDefinitionProvider.provideDefinitions(document, position, jinja) : undefined;
     if (modelDefinitions) {
       return modelDefinitions;
     }
@@ -42,8 +45,7 @@ export class DbtDefinitionProvider {
       return macroDefinitions;
     }
 
-    const sourceDefinitions =
-      jinjaType === JinjaType.EXPRESSION ? this.sourceDefinitionProvider.provideDefinitions(document, position, jinja) : undefined;
+    const sourceDefinitions = this.sourceDefinitionProvider.provideDefinitions(document, position, jinja);
     if (sourceDefinitions) {
       return sourceDefinitions;
     }
