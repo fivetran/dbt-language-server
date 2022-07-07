@@ -1,202 +1,85 @@
 # dbt Wizard
 
-This extension will help you work with [dbt](https://www.getdbt.com/).
-Also, it provides additional features like [Highlighting errors](#highlighting-errors), [Completion for SQL](#completion-for-sql), etc., for BigQuery data warehouses. 
+Working with [dbt Core](https://www.getdbt.com/) in Visual Studio Code using the Fivetran dbt Wizard extension accelerates your first-time environment setup with dbt Core, and optimizes your continual development of transformation pipelines. This extension is designed primarily for BigQuery destinations, but support for other warehouses is in development.
 
-**Note:** Turning on [Auto Save](https://code.visualstudio.com/docs/editor/codebasics#_save-auto-save) is strongly recommended. With this option turned on, VS Code will save your changes after a configured delay or when the focus leaves the editor. This feature is required for preview, completion, and error highlighting.
+Note: Turning on [Auto Save](https://code.visualstudio.com/docs/editor/codebasics#_save-auto-save) is strongly recommended. This feature enables near real-time query preview, auto-completion, and error highlighting with dbt Wizard.
 
-### Table of Contents
+## Table of Contents
 
 - [Features](#features)
-   - [Go to definition](#go-to-definition)
-   - [Highlighting errors](#highlighting-errors)
-   - [Signature help](#signature-help)
-   - [Completion for SQL](#completion-for-sql)
-   - [Completion for dbt](#completion-for-dbt)
-   - [dbt compile preview](#dbt-compile-preview)
-   - [Information on hover](#information-on-hover)
-- [How to use](#how-to-use)
-- [Profiles](#profiles)
-   - [BigQuery Profile](#bigquery-profile)
-      - [oauth via gcloud](#oauth-via-gcloud)
-      - [oauth token-based](#oauth-token-based)
-      - [service account file](#service-account-file)
-      - [service account json](#service-account-json)
+  - [Query preview](#query-preview)
+  - [SQL to ref conversion](#sql-to-ref-conversion)
+  - [Error highlighting (BQ only)](#error-highlighting)
+  - [Auto-completion of columns, tables, and refs (BQ only)](#auto-completion-of-columns-tables-and-refs)
+  - [Function signature help (BQ only)](#function-signature-help)
+  - [Go to Definition](#go-to-definition)
+- [How to get set up](#how-to-get-set-up)
+- [Issues](#issues)
 
 ## Features
 
-| Feature | Supported Adapters |
-| --- | --- |
-| [Go to definition](#go-to-definition) | All |
-| [Signature help](#signature-help) | All |
-| [Completion for dbt](#completion-for-dbt) | All |
-| [dbt compile preview](#dbt-compile-preview) | All |
-| [Highlighting errors](#highlighting-errors) | [BigQuery](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) |
-| [Completion for SQL](#completion-for-sql) | [BigQuery](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) |
-| [Information on hover](#information-on-hover) | [BigQuery](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) |
+Note: error highlighting, auto-completion, and function signature help are only available for BigQuery.
 
-### Go to definition
+### Query preview
 
-#### Macros
-![Definition Macro](images/DefinitionMacro.png)
-#### Models
-![Definition Ref](images/DefinitionRef.png)
-#### Sources
-![Definition Source](images/DefinitionSource.png)
+There are two ways to display a compiled query preview.
 
-### Highlighting errors
+1. Click the Preview icon in the top right corner of your tab
+1. `Right click > dbt Wizard > Show preview`
 
-![Highlighting errors](images/HighlightingErrors.png)
+Both methods open the compiled query in a new tab.
 
-### Signature help
+![Query preview](images/query-preview.gif)
 
-![Signature help](images/SignatureHelp.png)
+### SQL to ref conversion
 
-### Completion for SQL
+If a hardcoded table name can be converted to a dbt ref, the extension can convert that SQL for you automatically, by clicking on the lightbulb icon to the left of the line.
 
-![Completion for SQL](images/Completion.png)
+![SQL to ref conversion](images/sql-to-ref-conversion.gif)
 
-### Completion for dbt
+### Error highlighting
 
-#### Macros
-![Completion for macros](images/CompletionForMacros.png)
-#### Models
-![Completion for models](images/CompletionForModels.png)
-#### Sources
-![Completion for sources](images/CompletionForSources.png)
+Hover over misspelled column and table names to see suggested fixes. SQL syntax errors are also highlighted for your review.
 
-### dbt compile preview
+![Error highlighting](images/error-highlighting.gif)
 
-![dbt compile preview](images/dbtCompilePreview.png)
+### Auto-completion of columns, tables, and refs
 
-### Information on hover
+#### Macros, models and sources
 
-![Information on hover](images/InformationOnHover.png)
+![Auto-completion of columns, tables, and refs](images/ref-auto-completion.gif)
 
-## How to use
+### Function signature help
+
+Hover over SQL functions to see their definitions and required parameters.
+
+![Function signature help](images/function-signature-help.gif)
+
+### Go to Definition
+
+#### Macros, models and sources
+
+If you press `Cmd` and hover over a macro, model, or source name, a preview of the declaration will appear.
+You can jump to the definition with `Cmd+Click` or open the definition to the side with `Cmd+Alt+Click`.
+
+![Function signature help](images/go-to-definition.gif)
+
+## How to get set up
 
 The extension works on MacOS, Linux, and Windows (for Windows, see the additional steps in the [Windows Support](docs/WindowsSupport.md) article). It supports the default locations for `profiles.yml` and `dbt_project.yml` files.
 
-Prior to using the extension, you need to perform the following steps (**note**: replace *dbt-bigquery* with your adapter, such as *dbt-postgres*):
-1. [Install bigquery-dbt and dbt-rpc](https://docs.getdbt.com/dbt-cli/installation) (e.g., `python3 -m pip install dbt-bigquery dbt-rpc`).
-1. In Terminal, test that dbt-rpc works by running the `dbt-rpc --version` command or [specifying the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g., `~/dbt-env/bin/python3`).
-1. Create a file named `profiles.yml` in the `~/.dbt/` folder and [add a profile](https://docs.getdbt.com/dbt-cli/configure-your-profile).
-1. Open the dbt project in the new VS Code window.
-1. Now you can open your model and see the dbt compile preview by right-clicking the code and choosing **Show query preview** from the context menu.
+Prior to using the extension, you need to perform the following steps in the VS Code Terminal:
 
-## Profiles
-
-You can use this extension with any data warehouse which is supported by dbt. See [Available adapters](https://docs.getdbt.com/docs/available-adapters).
-
-### BigQuery Profile
-
-A BigQuery profile can be set up using one of the following authentication methods:
-- [oauth via gcloud](#oauth-via-gcloud)
-- [oauth token-based](#oauth-token-based)
-- [service account file](#service-account-file)
-- [service account json](#service-account-json)
-
-#### OAuth via gcloud
-
-An example of `/Users/user/.dbt/profiles.yml` using the [OAuth via gcloud](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#oauth-via-gcloud) authorization type:
-
-```YAML
-my-bigquery-db:
-  target: prod
-  outputs:
-    prod:
-      type: bigquery
-      method: oauth
-      project: google-test-project-id-400
-      dataset: dbt_default
-      threads: 4
-```
-
-#### Oauth Token-Based
-
-An example of `/Users/user/.dbt/profiles.yml` using the [Oauth Token-Based](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#oauth-token-based) authorization type:
-
-##### Refresh token
-
-```YAML
-my-bigquery-db:
-  target: prod
-  outputs:
-    prod:
-      type: bigquery
-      method: oauth-secrets
-      project: google-test-project-id-400
-      dataset: dbt_default
-      threads: 4
-      refresh_token: [refresh token]
-      client_id: [client id]
-      client_secret: [client secret]
-      token_uri: https://oauth2.googleapis.com/token
-```
-
-##### Temporary token
-
-```YAML
-my-bigquery-db:
-  target: prod
-  outputs:
-    prod:
-      type: bigquery
-      method: oauth-secrets
-      project: google-test-project-id-400
-      dataset: dbt_default
-      threads: 4
-      token: [temporary access token]
-```
-
-#### Service Account File
-
-An example of `/Users/user/.dbt/profiles.yml` using the [Service Account File](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-file) authorization type:
-
-```YAML
-my-bigquery-db:
-  target: prod
-  outputs:
-    prod:
-      type: bigquery
-      method: service-account
-      project: google-test-project-id-400
-      keyfile: /Users/user/.dbt/google-test-project-id-400.json
-      dataset: dbt_default
-      threads: 4
-```
-
-#### Service Account JSON
-
-An example of `/Users/user/.dbt/profiles.yml` using the [Service Account JSON](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-json) authorization type:
-
-```YAML
-my-bigquery-db:
-  target: prod
-  outputs:
-    prod:
-      type: bigquery
-      method: service-account-json
-      project: google-test-project-id-400
-      dataset: dbt_default
-      threads: 4
-
-      # These fields come from the service account json keyfile
-      keyfile_json:
-        type: service_account
-        project_id: google-test-project-id-400
-        private_key_id: ...
-        private_key: |
-          -----BEGIN PRIVATE KEY-----
-          ...
-          -----END PRIVATE KEY-----
-        client_email: test-bigquery@google-test-project-id-400.iam.gserviceaccount.com
-        client_id: ...
-        auth_uri: https://accounts.google.com/o/oauth2/auth
-        token_uri: https://oauth2.googleapis.com/token
-        auth_provider_x509_cert_url: https://www.googleapis.com/oauth2/v1/certs
-        client_x509_cert_url: https://www.googleapis.com/robot/v1/metadata/x509/test-bigquery%40google-test-project-id-400.iam.gserviceaccount.com
-```
+1. [Install your dbt Core adapter and dbt-rpc](https://docs.getdbt.com/dbt-cli/install/overview).
+    - `python3 -m pip install dbt-bigquery dbt-rpc`
+1. Test that dbt-rpc works
+    - `dbt-rpc --version`
+1. Create your [dbt profile](https://docs.getdbt.com/dbt-cli/configure-your-profile) and add your credentials.
+    - `touch ~/.dbt/profiles.yml`
+    - See dbt Labs’ [BigQuery profile](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) documentation for more guidance on how to populate this file.
+1. Open your dbt project in a new VS Code window.
+1. Check that the extension is operating by right-clicking in any .sql model file, and selecting `dbt Wizard > Show query preview`.
 
 ## Issues
+
 If you have found any bug, have an idea or suggestion on how to improve extension, please file an issue and provide the details here: [Issues](https://github.com/fivetran/dbt-language-server/issues)
