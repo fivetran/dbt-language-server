@@ -3,6 +3,15 @@ name: e2e
 
 on:
   workflow_dispatch:
+    inputs:
+      USE_DBT_CLI:
+        description: 'Use dbt CLI for compiling models'
+        required: true
+        default: 'false' 
+        type: choice
+        options:
+        - false
+        - true
 
 jobs:
   package:
@@ -138,6 +147,8 @@ jobs:
       
       - name: run e2e tests
         run: node e2e/out/runners/runFtTest $(pwd)/e2e-tests/extension
+        env:
+          USE_DBT_CLI: ${{ inputs.USE_DBT_CLI }}
 
       - name: upload logs
         if: always()
