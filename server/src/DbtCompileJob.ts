@@ -1,6 +1,9 @@
 import { Result } from 'neverthrow';
+import { DbtRepository } from './DbtRepository';
 
 export abstract class DbtCompileJob {
+  constructor(protected modelPath: string, protected dbtRepository: DbtRepository) {}
+
   abstract start(): Promise<void>;
 
   abstract forceStop(): Promise<void>;

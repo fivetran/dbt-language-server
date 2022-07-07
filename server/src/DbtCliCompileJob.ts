@@ -13,8 +13,8 @@ export class DbtCliCompileJob extends DbtCompileJob {
   private process?: ChildProcess;
   result?: Result<string, string>;
 
-  constructor(private modelPath: string, private dbtRepository: DbtRepository, python?: string) {
-    super();
+  constructor(modelPath: string, dbtRepository: DbtRepository, python?: string) {
+    super(modelPath, dbtRepository);
     this.dbtCli = new DbtCli(python);
   }
 
@@ -31,7 +31,6 @@ export class DbtCliCompileJob extends DbtCompileJob {
 
     try {
       let compiledPath;
-      // TODO: find more reliable way
       if (!this.modelPath.endsWith('.sql')) {
         const pathParts = this.modelPath.split('.');
         pathParts.splice(1, 0, 'models');

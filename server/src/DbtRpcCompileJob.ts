@@ -1,7 +1,10 @@
+import * as fs from 'fs';
 import { err, ok, Result } from 'neverthrow';
 import { DbtCompileJob } from './DbtCompileJob';
+import { DbtRepository } from './DbtRepository';
 import { CompileResponse, DbtRpcClient, PollResponse } from './DbtRpcClient';
 import retry = require('async-retry');
+import path = require('path');
 
 export class DbtRpcCompileJob extends DbtCompileJob {
   static readonly UNKNOWN_ERROR = 'Unknown dbt-rpc error';
@@ -20,8 +23,8 @@ export class DbtRpcCompileJob extends DbtCompileJob {
 
   result?: Result<string, string>;
 
-  constructor(private dbtRpcClient: DbtRpcClient, private modelPath: string) {
-    super();
+  constructor(modelPath: string, dbtRepository: DbtRepository, private dbtRpcClient: DbtRpcClient) {
+    super(modelPath, dbtRepository);
   }
 
   async start(): Promise<void> {
@@ -115,7 +118,8 @@ export class DbtRpcCompileJob extends DbtCompileJob {
       return compiledNodes[0].node.compiled_sql;
     }
     if (pollResponse.result.state === 'success') {
-      return ' ';
+      // For some reason rpc server don't return compilation result for models with materialized='ephemeral'
+      return this.fallbackForEphemeralModel();
     }
     return undefined;
   }
@@ -128,6 +132,29 @@ export class DbtRpcCompileJob extends DbtCompileJob {
   private async kill(): Promise<void> {
     if (this.pollRequestToken) {
       await this.dbtRpcClient.kill(this.pollRequestToken);
+    }
+  }
+
+  private fallbackForEphemeralModel(): string {
+    console.log(`Use fallback for ephemeral model ${this.modelPath}`);
+    try {
+      let pathParts;
+      let resultPath;
+      if (this.dbtRepository.modelPaths.some(m => this.modelPath.startsWith(m))) {
+        pathParts = this.modelPath.split(path.sep);
+        if (this.dbtRepository.projectName) {
+          pathParts.splice(0, 0, this.dbtRepository.projectName);
+        }
+        resultPath = path.resolve(this.dbtRepository.dbtTargetPath, 'compiled', ...pathParts);
+      } else {
+        pathParts = this.modelPath.split('.');
+        pathParts.splice(1, 0, 'models');
+        pathParts[pathParts.length - 1] += '.sql';
+        resultPath = path.resolve('target', 'compiled', ...pathParts);
+      }
+      return fs.readFileSync(`${resultPath}`, 'utf8');
+    } catch (e) {
+      return ' ';
     }
   }
 }

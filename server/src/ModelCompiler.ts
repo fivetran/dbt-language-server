@@ -1,12 +1,9 @@
-import * as fs from 'fs';
 import { Emitter, Event } from 'vscode-languageserver';
 import { DbtCliCompileJob } from './DbtCliCompileJob';
 import { DbtCompileJob } from './DbtCompileJob';
 import { DbtRepository } from './DbtRepository';
 import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcCompileJob } from './DbtRpcCompileJob';
-
-import path = require('path');
 
 export enum Mode {
   DBT_RPC,
@@ -54,7 +51,7 @@ export class ModelCompiler {
     }
     this.startNewJob(modelPath);
 
-    await this.pollResults(modelPath);
+    await this.pollResults();
   }
 
   startNewJob(modelPath: string): void {
@@ -65,11 +62,11 @@ export class ModelCompiler {
 
   createCompileJob(modelPath: string): DbtCompileJob {
     return this.mode === Mode.DBT_RPC
-      ? new DbtRpcCompileJob(this.dbtRpcClient, modelPath)
+      ? new DbtRpcCompileJob(modelPath, this.dbtRepository, this.dbtRpcClient)
       : new DbtCliCompileJob(modelPath, this.dbtRepository, this.python);
   }
 
-  async pollResults(modelPath: string): Promise<void> {
+  async pollResults(): Promise<void> {
     if (this.pollIsRunning) {
       return;
     }
@@ -90,9 +87,7 @@ export class ModelCompiler {
           if (result.isErr()) {
             this.onCompilationErrorEmitter.fire(result.error);
           } else {
-            // For some reason rpc server don't return compilation result for models with materialized='ephemeral'
-            const value = result.value === ' ' ? this.fallbackForEphemeralModel(modelPath) : result.value;
-            this.onCompilationFinishedEmitter.fire(value);
+            this.onCompilationFinishedEmitter.fire(result.value);
           }
           break;
         }
@@ -112,28 +107,5 @@ export class ModelCompiler {
     return new Promise(resolve => {
       setTimeout(resolve, ms);
     });
-  }
-
-  fallbackForEphemeralModel(modelPath: string): string {
-    console.log(`Use fallback for ephemeral model ${modelPath}`);
-    try {
-      let pathParts;
-      let resultPath;
-      if (this.dbtRepository.modelPaths.some(m => modelPath.startsWith(m))) {
-        pathParts = modelPath.split(path.sep);
-        if (this.dbtRepository.projectName) {
-          pathParts.splice(0, 0, this.dbtRepository.projectName);
-        }
-        resultPath = path.resolve(this.dbtRepository.dbtTargetPath, 'compiled', ...pathParts);
-      } else {
-        pathParts = modelPath.split('.');
-        pathParts.splice(1, 0, 'models');
-        pathParts[pathParts.length - 1] += '.sql';
-        resultPath = path.resolve('target', 'compiled', ...pathParts);
-      }
-      return fs.readFileSync(`${resultPath}`, 'utf8');
-    } catch (e) {
-      return ' ';
-    }
   }
 }
