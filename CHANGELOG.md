@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.6.0 (01/01/1970)
+## Version 0.6.0 (07/07/2022)
 ## What's Changed
 * dbt models autocompletion improvements
 * Refresh dbt-rpc server after packages installation
