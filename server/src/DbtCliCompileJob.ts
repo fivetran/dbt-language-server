@@ -31,13 +31,17 @@ export class DbtCliCompileJob extends DbtCompileJob {
       return;
     }
 
+    await this.findResultFromFile();
+  }
+
+  private async findResultFromFile(): Promise<void> {
     try {
       const compiledPath = await this.findCompiledFilePath();
       const sql = this.getCompiledSql(compiledPath);
 
       this.result = sql ? ok(sql) : err('Compiled file not found');
     } catch (e) {
-      this.result = err('Model not found in manifest.json');
+      this.result = err(e instanceof Error ? e.message : String(e));
     }
   }
 
