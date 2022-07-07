@@ -87,9 +87,12 @@ export class DiagnosticGenerator {
 
     const changes = this.sqlRefConverter.sqlToRef(compiledDocument, resolvedTables, this.dbtRepository.models);
     for (const change of changes) {
+      const rawText = rawDocument.getText();
+      const compiledText = compiledDocument.getText();
+
       const range = Range.create(
-        Diff.convertPositionBackward(rawDocument.getText(), compiledDocument.getText(), change.range.start),
-        Diff.convertPositionBackward(rawDocument.getText(), compiledDocument.getText(), change.range.end),
+        Diff.convertPositionBackward(rawText, compiledText, change.range.start),
+        Diff.convertPositionBackward(rawText, compiledText, change.range.end),
       );
 
       if (rawDocument.getText(range) === compiledDocument.getText(change.range)) {
