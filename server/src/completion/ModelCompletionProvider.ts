@@ -2,6 +2,7 @@ import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { JinjaPartType } from '../JinjaParser';
 import { StringBuilder } from '../utils/StringBuilder';
+import { truncateAtBothSides } from '../utils/Utils';
 import { DbtNodeCompletionProvider } from './DbtCompletionProvider';
 
 export class ModelCompletionProvider implements DbtNodeCompletionProvider {
@@ -37,7 +38,7 @@ export class ModelCompletionProvider implements DbtNodeCompletionProvider {
     const packageMatch = ModelCompletionProvider.PACKAGE_PATTERN.exec(jinjaBeforePositionText);
     if (packageMatch) {
       const [, dbtPackageMatch] = packageMatch;
-      const dbtPackage = dbtPackageMatch.slice(1, -1);
+      const dbtPackage = truncateAtBothSides(dbtPackageMatch);
       const packageModels = this.dbtRepository.packageToModels.get(dbtPackage);
       return packageModels ? [...packageModels].map<CompletionItem>(m => this.getModelCompletionItem(m.name, m.name)) : undefined;
     }

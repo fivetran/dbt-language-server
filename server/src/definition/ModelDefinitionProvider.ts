@@ -5,7 +5,7 @@ import { DbtRepository } from '../DbtRepository';
 import { ParseNode } from '../JinjaParser';
 import { ManifestModel } from '../manifest/ManifestJson';
 import { getWordRangeAtPosition } from '../utils/TextUtils';
-import { getAbsolutePosition, getAbsoluteRange, getRelativePosition, positionInRange } from '../utils/Utils';
+import { getAbsolutePosition, getAbsoluteRange, getRelativePosition, positionInRange, truncateAtBothSides } from '../utils/Utils';
 import { DbtDefinitionProvider, DbtNodeDefinitionProvider } from './DbtDefinitionProvider';
 
 export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
@@ -41,8 +41,8 @@ export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
       let modelSelectionRange;
 
       if (isPackageSpecified) {
-        dbtPackage = matches[0].text.slice(1, -1);
-        model = matches[1].text.slice(1, -1);
+        dbtPackage = truncateAtBothSides(matches[0].text);
+        model = truncateAtBothSides(matches[1].text);
 
         packageSelectionRange = Range.create(
           document.positionAt(wordAbsoluteOffset + matches[0].index + 1),
@@ -57,7 +57,7 @@ export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
           return this.searchPackageDefinition(dbtPackage, this.dbtRepository.models, packageSelectionRange);
         }
       } else {
-        model = matches[0].text.slice(1, -1);
+        model = truncateAtBothSides(matches[0].text);
         packageSelectionRange = undefined;
         modelSelectionRange = Range.create(
           document.positionAt(wordAbsoluteOffset + matches[0].index + 1),

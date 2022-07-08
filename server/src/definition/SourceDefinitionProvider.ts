@@ -6,7 +6,7 @@ import { DbtRepository } from '../DbtRepository';
 import { ParseNode } from '../JinjaParser';
 import { ManifestSource } from '../manifest/ManifestJson';
 import { getWordRangeAtPosition } from '../utils/TextUtils';
-import { getAbsolutePosition, getAbsoluteRange, getRelativePosition, positionInRange } from '../utils/Utils';
+import { getAbsolutePosition, getAbsoluteRange, getRelativePosition, positionInRange, truncateAtBothSides } from '../utils/Utils';
 import { DbtDefinitionProvider, DbtNodeDefinitionProvider } from './DbtDefinitionProvider';
 
 export class SourceDefinitionProvider implements DbtNodeDefinitionProvider {
@@ -51,9 +51,19 @@ export class SourceDefinitionProvider implements DbtNodeDefinitionProvider {
       );
 
       if (positionInRange(position, sourceSelectionRange)) {
-        return this.getTableDefinitions(source.text.slice(1, -1), table.text.slice(1, -1), this.dbtRepository.sources, sourceSelectionRange);
+        return this.getTableDefinitions(
+          truncateAtBothSides(source.text),
+          truncateAtBothSides(table.text),
+          this.dbtRepository.sources,
+          sourceSelectionRange,
+        );
       } else if (positionInRange(position, tableSelectionRange)) {
-        return this.getTableDefinitions(source.text.slice(1, -1), table.text.slice(1, -1), this.dbtRepository.sources, tableSelectionRange);
+        return this.getTableDefinitions(
+          truncateAtBothSides(source.text),
+          truncateAtBothSides(table.text),
+          this.dbtRepository.sources,
+          tableSelectionRange,
+        );
       }
     }
 
