@@ -44,14 +44,8 @@ export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
         dbtPackage = truncateAtBothSides(matches[0].text);
         model = truncateAtBothSides(matches[1].text);
 
-        packageSelectionRange = Range.create(
-          document.positionAt(wordAbsoluteOffset + matches[0].index + 1),
-          document.positionAt(wordAbsoluteOffset + matches[0].index + matches[0].text.length - 1),
-        );
-        modelSelectionRange = Range.create(
-          document.positionAt(wordAbsoluteOffset + matches[1].index + 1),
-          document.positionAt(wordAbsoluteOffset + matches[1].index + matches[1].text.length - 1),
-        );
+        packageSelectionRange = this.getAbsoluteTextRange(document, wordAbsoluteOffset, matches[0]);
+        modelSelectionRange = this.getAbsoluteTextRange(document, wordAbsoluteOffset, matches[1]);
 
         if (positionInRange(position, packageSelectionRange)) {
           return this.searchPackageDefinition(dbtPackage, this.dbtRepository.models, packageSelectionRange);
@@ -59,10 +53,7 @@ export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
       } else {
         model = truncateAtBothSides(matches[0].text);
         packageSelectionRange = undefined;
-        modelSelectionRange = Range.create(
-          document.positionAt(wordAbsoluteOffset + matches[0].index + 1),
-          document.positionAt(wordAbsoluteOffset + matches[0].index + matches[0].text.length - 1),
-        );
+        modelSelectionRange = this.getAbsoluteTextRange(document, wordAbsoluteOffset, matches[0]);
       }
 
       if (positionInRange(position, modelSelectionRange)) {
@@ -100,5 +91,12 @@ export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
       ];
     }
     return undefined;
+  }
+
+  getAbsoluteTextRange(document: TextDocument, textBlockOffset: number, textBlock: { text: string; index: number }): Range {
+    return Range.create(
+      document.positionAt(textBlockOffset + textBlock.index + 1),
+      document.positionAt(textBlockOffset + textBlock.index + textBlock.text.length - 1),
+    );
   }
 }
