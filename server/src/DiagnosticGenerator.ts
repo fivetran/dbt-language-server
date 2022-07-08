@@ -3,9 +3,9 @@ import { Result } from 'neverthrow';
 import { Diagnostic, DiagnosticRelatedInformation, DiagnosticSeverity, Location, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtRepository } from './DbtRepository';
-import { Diff } from './Diff';
 import { DbtTextDocument } from './document/DbtTextDocument';
 import { SqlRefConverter } from './SqlRefConverter';
+import { DiffUtils } from './utils/DiffUtils';
 import { getIdentifierRangeAtPosition } from './utils/Utils';
 import path = require('path');
 
@@ -70,7 +70,7 @@ export class DiagnosticGenerator {
       const [, errorText] = matchResults;
       const lineInCompiledDoc = Number(matchResults[2]) - 1;
       const characterInCompiledDoc = Number(matchResults[3]) - 1;
-      const lineInRawDoc = Diff.getOldLineNumber(rawDocText, compiledDocText, lineInCompiledDoc);
+      const lineInRawDoc = DiffUtils.getOldLineNumber(rawDocText, compiledDocText, lineInCompiledDoc);
 
       rawDocDiagnostics.push(this.createErrorDiagnostic(rawDocText, lineInRawDoc, characterInCompiledDoc, errorText));
       compiledDocDiagnostics.push(this.createErrorDiagnostic(compiledDocText, lineInCompiledDoc, characterInCompiledDoc, errorText));
@@ -91,8 +91,8 @@ export class DiagnosticGenerator {
       const compiledText = compiledDocument.getText();
 
       const range = Range.create(
-        Diff.convertPositionBackward(rawText, compiledText, change.range.start),
-        Diff.convertPositionBackward(rawText, compiledText, change.range.end),
+        DiffUtils.convertPositionBackward(rawText, compiledText, change.range.start),
+        DiffUtils.convertPositionBackward(rawText, compiledText, change.range.end),
       );
 
       if (rawDocument.getText(range) === compiledDocument.getText(change.range)) {

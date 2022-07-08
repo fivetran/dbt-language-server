@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import { assertThat } from 'hamjest';
-import { Diff } from '../Diff';
+import { DiffUtils } from '../utils/DiffUtils';
 
 describe('Diff', () => {
   type content = { raw: string; compiled: string };
@@ -117,7 +117,7 @@ describe('Diff', () => {
 
   function shouldReturnCorrespondingCharacterForOldText(oldLine: string, newLine: string, newCharacter: number, expectedOldCharacter: number): void {
     // act
-    const actualOldCharacter = Diff.getOldCharacter(oldLine, newLine, newCharacter);
+    const actualOldCharacter = DiffUtils.getOldCharacter(oldLine, newLine, newCharacter);
 
     // assert
     assertThat(actualOldCharacter, expectedOldCharacter);
@@ -135,7 +135,7 @@ describe('Diff', () => {
     const fileContent = getFilesContent(fileName);
 
     // act
-    const number = Diff.getOldLineNumber(fileContent.raw, fileContent.compiled, lineNumberInCompiled);
+    const number = DiffUtils.getOldLineNumber(fileContent.raw, fileContent.compiled, lineNumberInCompiled);
 
     // assert
     assertThat(number, lineNumberInRaw);
@@ -146,7 +146,7 @@ describe('Diff', () => {
     const fileContent = getFilesContent(fileName);
 
     // act
-    const number = Diff.getNewLineNumber(fileContent.raw, fileContent.compiled, lineNumberInRaw);
+    const number = DiffUtils.getNewLineNumber(fileContent.raw, fileContent.compiled, lineNumberInRaw);
 
     // assert
     assertThat(number, lineNumberInCompiled);

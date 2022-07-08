@@ -27,13 +27,13 @@ import { DbtRepository } from '../DbtRepository';
 import { DbtRpcServer } from '../DbtRpcServer';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
-import { Diff } from '../Diff';
 import { HoverProvider } from '../HoverProvider';
 import { JinjaParser, JinjaPartType } from '../JinjaParser';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProgressReporter } from '../ProgressReporter';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { SqlCompletionProvider } from '../SqlCompletionProvider';
+import { DiffUtils } from '../utils/DiffUtils';
 import { getTextRangeBeforeBracket } from '../utils/TextUtils';
 import {
   areRangesEqual,
@@ -150,8 +150,8 @@ export class DbtTextDocument {
         return {
           text: change.text,
           range: Range.create(
-            Diff.convertPositionStraight(rawText, compiledText, change.range.start),
-            Diff.convertPositionStraight(rawText, compiledText, change.range.end),
+            DiffUtils.convertPositionStraight(rawText, compiledText, change.range.start),
+            DiffUtils.convertPositionStraight(rawText, compiledText, change.range.end),
           ),
         };
       });
@@ -358,7 +358,7 @@ export class DbtTextDocument {
 
     let completionInfo = undefined;
     if (this.ast) {
-      const line = Diff.getOldLineNumber(this.compiledDocument.getText(), this.rawDocument.getText(), completionParams.position.line);
+      const line = DiffUtils.getOldLineNumber(this.compiledDocument.getText(), this.rawDocument.getText(), completionParams.position.line);
       const offset = this.compiledDocument.offsetAt(Position.create(line, completionParams.position.character));
       completionInfo = DbtTextDocument.ZETA_SQL_AST.getCompletionInfo(this.ast, offset);
     }

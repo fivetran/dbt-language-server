@@ -2,13 +2,13 @@ import { diffWords } from 'diff';
 import * as fastDiff from 'fast-diff';
 import { Position } from 'vscode-languageserver-textdocument';
 
-export class Diff {
+export class DiffUtils {
   static convertPositionStraight(first: string, second: string, positionInFirst: Position): Position {
-    const lineInSecond = Diff.getNewLineNumber(first, second, positionInFirst.line);
+    const lineInSecond = DiffUtils.getNewLineNumber(first, second, positionInFirst.line);
     const firstLines = first.split('\n');
     const secondLines = second.split('\n');
 
-    const charInSecond = Diff.getNewCharacter(firstLines[positionInFirst.line], secondLines[lineInSecond], positionInFirst.character);
+    const charInSecond = DiffUtils.getNewCharacter(firstLines[positionInFirst.line], secondLines[lineInSecond], positionInFirst.character);
     return {
       line: lineInSecond,
       character: charInSecond,
@@ -16,11 +16,11 @@ export class Diff {
   }
 
   static convertPositionBackward(first: string, second: string, positionInSecond: Position): Position {
-    const lineInFirst = Diff.getOldLineNumber(first, second, positionInSecond.line);
+    const lineInFirst = DiffUtils.getOldLineNumber(first, second, positionInSecond.line);
     const firstLines = first.split('\n');
     const secondLines = second.split('\n');
 
-    const charInFirst = Diff.getOldCharacter(firstLines[lineInFirst], secondLines[positionInSecond.line], positionInSecond.character);
+    const charInFirst = DiffUtils.getOldCharacter(firstLines[lineInFirst], secondLines[positionInSecond.line], positionInSecond.character);
     return {
       line: lineInFirst,
       character: charInFirst,
@@ -28,7 +28,7 @@ export class Diff {
   }
 
   static getOldLineNumber(oldString: string, newString: string, newLineNumber: number): number {
-    return this.getOldNumber(oldString, newString, newLineNumber, str => Diff.getLinesCount(str));
+    return this.getOldNumber(oldString, newString, newLineNumber, str => DiffUtils.getLinesCount(str));
   }
 
   static getOldCharacter(oldLine: string, newLine: string, newCharacter: number): number {
@@ -36,7 +36,7 @@ export class Diff {
   }
 
   static getNewLineNumber(oldString: string, newString: string, oldNumber: number): number {
-    return this.getNewNumber(oldString, newString, oldNumber, str => Diff.getLinesCount(str));
+    return this.getNewNumber(oldString, newString, oldNumber, str => DiffUtils.getLinesCount(str));
   }
 
   static getNewCharacter(oldLine: string, newLine: string, oldCharacter: number): number {
