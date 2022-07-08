@@ -99,7 +99,6 @@ jobs:
             activate-venv: source ~/dbt_0_20_1_env/bin/activate
             use-dbt-cli: true
 
-
           # TODO: enable this tests after implementing CLI support
           - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
             os: windows-latest
@@ -116,6 +115,7 @@ jobs:
             activate-venv: |
               cd ~/dbt_0_20_1_env/Scripts
               . activate
+            use-dbt-cli: true
 
     name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.use-dbt-cli }}
 
