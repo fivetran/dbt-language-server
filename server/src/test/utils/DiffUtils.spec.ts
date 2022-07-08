@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import { assertThat } from 'hamjest';
-import { DiffUtils } from '../utils/DiffUtils';
+import { DiffUtils } from '../../utils/DiffUtils';
 
-describe('Diff', () => {
+describe('DiffUtils', () => {
   type content = { raw: string; compiled: string };
   const FILES = new Map<string, content>();
 
@@ -155,7 +155,7 @@ describe('Diff', () => {
   function getFilesContent(fileName: string): content {
     let fileContent = FILES.get(fileName);
     if (!fileContent) {
-      const filesRootPath = `${__dirname}/../../src/test/diff/`;
+      const filesRootPath = `${__dirname}/../../../src/test/diff/`;
       const raw = fs.readFileSync(`${filesRootPath}raw/${fileName}.sql`, 'utf8');
       const compiled = fs.readFileSync(`${filesRootPath}compiled/${fileName}.sql`, 'utf8');
       fileContent = { raw, compiled };

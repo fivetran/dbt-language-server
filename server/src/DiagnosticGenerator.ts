@@ -4,6 +4,7 @@ import { Diagnostic, DiagnosticRelatedInformation, DiagnosticSeverity, Location,
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtRepository } from './DbtRepository';
 import { DbtTextDocument } from './document/DbtTextDocument';
+import { PositionConverter } from './PositionConverter';
 import { SqlRefConverter } from './SqlRefConverter';
 import { DiffUtils } from './utils/DiffUtils';
 import { getIdentifierRangeAtPosition } from './utils/Utils';
@@ -83,17 +84,15 @@ export class DiagnosticGenerator {
     compiledDocument: TextDocument,
     rawDocDiagnostics: Diagnostic[],
   ): void {
-    const resolvedTables = DbtTextDocument.ZETA_SQL_AST.getResolvedTables(ast, compiledDocument.getText());
+    const rawText = rawDocument.getText();
+    const compiledText = compiledDocument.getText();
 
+    const resolvedTables = DbtTextDocument.ZETA_SQL_AST.getResolvedTables(ast, compiledText);
     const changes = this.sqlRefConverter.sqlToRef(compiledDocument, resolvedTables, this.dbtRepository.models);
-    for (const change of changes) {
-      const rawText = rawDocument.getText();
-      const compiledText = compiledDocument.getText();
 
-      const range = Range.create(
-        DiffUtils.convertPositionBackward(rawText, compiledText, change.range.start),
-        DiffUtils.convertPositionBackward(rawText, compiledText, change.range.end),
-      );
+    const converter = new PositionConverter(rawText, compiledText);
+    for (const change of changes) {
+      const range = Range.create(converter.convertPositionBackward(change.range.start), converter.convertPositionBackward(change.range.end));
 
       if (rawDocument.getText(range) === compiledDocument.getText(change.range)) {
         rawDocDiagnostics.push(this.createInformationDiagnostic(range, change.newText));

@@ -30,10 +30,12 @@ import { DiagnosticGenerator } from '../DiagnosticGenerator';
 import { HoverProvider } from '../HoverProvider';
 import { JinjaParser, JinjaPartType } from '../JinjaParser';
 import { ModelCompiler } from '../ModelCompiler';
+import { PositionConverter } from '../PositionConverter';
 import { ProgressReporter } from '../ProgressReporter';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { SqlCompletionProvider } from '../SqlCompletionProvider';
 import { DiffUtils } from '../utils/DiffUtils';
+
 import { getTextRangeBeforeBracket } from '../utils/TextUtils';
 import {
   areRangesEqual,
@@ -143,16 +145,11 @@ export class DbtTextDocument {
         if (!TextDocumentContentChangeEvent.isIncremental(change)) {
           throw new Error('Incremental updates expected');
         }
-
-        const rawText = this.rawDocument.getText();
-        const compiledText = this.compiledDocument.getText();
+        const converter = new PositionConverter(this.rawDocument.getText(), this.compiledDocument.getText());
 
         return {
           text: change.text,
-          range: Range.create(
-            DiffUtils.convertPositionStraight(rawText, compiledText, change.range.start),
-            DiffUtils.convertPositionStraight(rawText, compiledText, change.range.end),
-          ),
+          range: Range.create(converter.convertPositionStraight(change.range.start), converter.convertPositionStraight(change.range.end)),
         };
       });
 

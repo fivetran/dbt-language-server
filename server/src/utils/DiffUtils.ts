@@ -1,34 +1,10 @@
-import { diffWords } from 'diff';
+import { Change, diffWords } from 'diff';
 import * as fastDiff from 'fast-diff';
-import { Position } from 'vscode-languageserver-textdocument';
 
 export class DiffUtils {
-  static convertPositionStraight(first: string, second: string, positionInFirst: Position): Position {
-    const lineInSecond = DiffUtils.getNewLineNumber(first, second, positionInFirst.line);
-    const firstLines = first.split('\n');
-    const secondLines = second.split('\n');
-
-    const charInSecond = DiffUtils.getNewCharacter(firstLines[positionInFirst.line], secondLines[lineInSecond], positionInFirst.character);
-    return {
-      line: lineInSecond,
-      character: charInSecond,
-    };
-  }
-
-  static convertPositionBackward(first: string, second: string, positionInSecond: Position): Position {
-    const lineInFirst = DiffUtils.getOldLineNumber(first, second, positionInSecond.line);
-    const firstLines = first.split('\n');
-    const secondLines = second.split('\n');
-
-    const charInFirst = DiffUtils.getOldCharacter(firstLines[lineInFirst], secondLines[positionInSecond.line], positionInSecond.character);
-    return {
-      line: lineInFirst,
-      character: charInFirst,
-    };
-  }
-
   static getOldLineNumber(oldString: string, newString: string, newLineNumber: number): number {
-    return this.getOldNumber(oldString, newString, newLineNumber, str => DiffUtils.getLinesCount(str));
+    const diffs = diffWords(oldString, newString, { ignoreWhitespace: false });
+    return this.getOldNumber(newLineNumber, str => DiffUtils.getLinesCount(str), diffs);
   }
 
   static getOldCharacter(oldLine: string, newLine: string, newCharacter: number): number {
@@ -36,15 +12,20 @@ export class DiffUtils {
   }
 
   static getNewLineNumber(oldString: string, newString: string, oldNumber: number): number {
-    return this.getNewNumber(oldString, newString, oldNumber, str => DiffUtils.getLinesCount(str));
+    return this.getNew(oldString, newString, oldNumber, str => DiffUtils.getLinesCount(str));
   }
 
   static getNewCharacter(oldLine: string, newLine: string, oldCharacter: number): number {
-    return this.getNewNumber(oldLine, newLine, oldCharacter, str => str.length);
+    return this.getNew(oldLine, newLine, oldCharacter, str => str.length);
+  }
+
+  private static getNew(oldString: string, newString: string, oldNumber: number, countFromDiff: (str: string) => number): number {
+    const diffs = diffWords(oldString, newString, { ignoreWhitespace: false });
+    return this.getNewNumber(oldNumber, countFromDiff, diffs);
   }
 
   // TODO: try to get rid of this function
-  static getOldNumberDeprecated(oldString: string, newString: string, newNumber: number, countFromDiff: (str: string) => number): number {
+  private static getOldNumberDeprecated(oldString: string, newString: string, newNumber: number, countFromDiff: (str: string) => number): number {
     const diffs = fastDiff(oldString, newString, 0);
     if (diffs.length === 0) {
       return newNumber;
@@ -81,8 +62,7 @@ export class DiffUtils {
     return oldNumber;
   }
 
-  static getOldNumber(oldString: string, newString: string, newNumber: number, countFromDiff: (str: string) => number): number {
-    const diffs = diffWords(oldString, newString, { ignoreWhitespace: false });
+  static getOldNumber(newNumber: number, countFromDiff: (str: string) => number, diffs: Change[]): number {
     if (diffs.length === 0) {
       return newNumber;
     }
@@ -126,8 +106,7 @@ export class DiffUtils {
     return oldNumber;
   }
 
-  static getNewNumber(oldString: string, newString: string, oldNumber: number, countFromDiff: (str: string) => number): number {
-    const diffs = diffWords(oldString, newString, { ignoreWhitespace: false });
+  static getNewNumber(oldNumber: number, countFromDiff: (str: string) => number, diffs: Change[]): number {
     if (diffs.length === 0) {
       return oldNumber;
     }
