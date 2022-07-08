@@ -32,9 +32,7 @@ export class ModelCompiler {
     return this.onFinishAllCompilationJobsEmitter.event;
   }
 
-  constructor(private dbtRpcClient: DbtRpcClient, private dbtRepository: DbtRepository, private mode: Mode, private python?: string) {
-    console.log(`Creating ModelCompiler in ${this.mode === Mode.CLI ? 'CLI' : 'DBT_RPC'} mode`);
-  }
+  constructor(private dbtRpcClient: DbtRpcClient, private dbtRepository: DbtRepository, private mode: Mode, private python?: string) {}
 
   async compile(modelPath: string): Promise<void> {
     this.compilationInProgress = true;
