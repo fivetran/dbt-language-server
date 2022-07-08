@@ -34,6 +34,10 @@ export async function indexMain(timeout: string, globPattern: string, doNotRun: 
         .filter(f => (ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) || TESTS_WITHOUT_ZETASQL.includes(f)) && !doNotRun.includes(f))
         .forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
 
+      console.log(`Current folder: ${__dirname}`);
+      console.log(`List of tests (${mocha.files.length}):`);
+      console.log(JSON.stringify(mocha.files));
+
       try {
         // Run the mocha test
         const runner = mocha.run(failures => {
