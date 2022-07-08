@@ -2,8 +2,12 @@ import { Change, diffWords } from 'diff';
 import * as fastDiff from 'fast-diff';
 
 export class DiffUtils {
+  static getDiffWords(oldString: string, newString: string): Change[] {
+    return diffWords(oldString, newString, { ignoreWhitespace: false });
+  }
+
   static getOldLineNumber(oldString: string, newString: string, newLineNumber: number): number {
-    const diffs = diffWords(oldString, newString, { ignoreWhitespace: false });
+    const diffs = DiffUtils.getDiffWords(oldString, newString);
     return this.getOldNumber(newLineNumber, str => DiffUtils.getLinesCount(str), diffs);
   }
 
@@ -20,7 +24,7 @@ export class DiffUtils {
   }
 
   private static getNew(oldString: string, newString: string, oldNumber: number, countFromDiff: (str: string) => number): number {
-    const diffs = diffWords(oldString, newString, { ignoreWhitespace: false });
+    const diffs = DiffUtils.getDiffWords(oldString, newString);
     return this.getNewNumber(oldNumber, countFromDiff, diffs);
   }
 

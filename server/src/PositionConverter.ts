@@ -1,4 +1,4 @@
-import { Change, diffWords } from 'diff';
+import { Change } from 'diff';
 import { Position } from 'vscode-languageserver';
 import { DiffUtils } from './utils/DiffUtils';
 
@@ -12,7 +12,7 @@ export class PositionConverter {
 
   private getDiffs(): Change[] {
     if (this.diffs === undefined) {
-      this.diffs = diffWords(this.first, this.second, { ignoreWhitespace: false });
+      this.diffs = DiffUtils.getDiffWords(this.first, this.second);
     }
     return this.diffs;
   }
