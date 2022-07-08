@@ -20,7 +20,7 @@ export class DbtCliCompileJob extends DbtCompileJob {
     this.process = promise.child;
 
     try {
-      await DbtCliCompileJob.withTimeout(promise, 10000);
+      await DbtCliCompileJob.withTimeout(promise, 15000);
     } catch (e: unknown) {
       if (e instanceof Object && 'stdout' in e) {
         const error = e as ExecException & { stdout?: string; stderr?: string };
