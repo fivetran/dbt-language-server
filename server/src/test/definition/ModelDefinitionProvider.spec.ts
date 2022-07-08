@@ -1,4 +1,3 @@
-import * as fs from 'fs';
 import { assertThat } from 'hamjest';
 import { Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -15,11 +14,17 @@ describe('ModelDefinitionProvider', () => {
   const PROJECT_NAME = 'project';
   const PROJECT_MODEL = 'project_model';
 
-  const PACKAGE_MODEL_ROOT_PATH = `dbt_packages/${PACKAGE_NAME}/models/${PACKAGE_NAME}.sql`;
+  const PACKAGE_MODEL_ROOT_PATH = `dbt_packages/${PACKAGE_NAME}/models/${PACKAGE_MODEL}.sql`;
   const PROJECT_MODEL_ROOT_PATH = `models/${PROJECT_MODEL}.sql`;
 
   const DBT_REPOSITORY = new DbtRepository();
   const PROVIDER = new ModelDefinitionProvider(DBT_REPOSITORY);
+
+  const MODEL_FILE_CONTENT =
+    'select *\n' +
+    "from {{ ref('package', 'package_model') }} pm1\n" +
+    "  inner join {{ ref('package_model') }} pm2 on pm1.parent_id = pm2.id\n" +
+    "  inner join {{ ref('project_model') }} prm on pm1.id = prm.id";
 
   let modelDocument: TextDocument;
 
@@ -49,14 +54,13 @@ describe('ModelDefinitionProvider', () => {
       },
     ];
 
-    const modelFileContent = fs.readFileSync(`${__dirname}/../../../src/test/sql_files/${FILE_NAME}`, 'utf8');
-    modelDocument = TextDocument.create('/path/to/model', 'sql', 0, modelFileContent);
+    modelDocument = TextDocument.create(`${PATH_TO_PROJECT}/models/${FILE_NAME}`, 'sql', 0, MODEL_FILE_CONTENT);
   });
 
   it('provideDefinitions should return definition for model from package (if package is specified)', () => {
     assertThat(
       PROVIDER.provideDefinitions(modelDocument, Position.create(1, 31), {
-        value: modelDocument.getText(Range.create(1, 5, 1, 42)),
+        value: "{{ ref('package', 'package_model') }}",
         range: Range.create(1, 5, 1, 42),
       }),
       [
@@ -73,7 +77,7 @@ describe('ModelDefinitionProvider', () => {
   it('provideDefinitions should return definition for model from package (if package is not specified)', () => {
     assertThat(
       PROVIDER.provideDefinitions(modelDocument, Position.create(2, 28), {
-        value: modelDocument.getText(Range.create(2, 13, 2, 39)),
+        value: "{{ ref('package_model') }}",
         range: Range.create(2, 13, 2, 39),
       }),
       [
@@ -90,7 +94,7 @@ describe('ModelDefinitionProvider', () => {
   it('provideDefinitions should return package definitions', () => {
     assertThat(
       PROVIDER.provideDefinitions(modelDocument, Position.create(1, 16), {
-        value: modelDocument.getText(Range.create(1, 5, 1, 42)),
+        value: "{{ ref('package', 'package_model') }}",
         range: Range.create(1, 5, 1, 42),
       }),
       [
@@ -107,7 +111,7 @@ describe('ModelDefinitionProvider', () => {
   it('provideDefinitions should return project model definition', () => {
     assertThat(
       PROVIDER.provideDefinitions(modelDocument, Position.create(3, 28), {
-        value: modelDocument.getText(Range.create(3, 13, 3, 39)),
+        value: "{{ ref('project_model') }}",
         range: Range.create(3, 13, 3, 39),
       }),
       [
