@@ -270,14 +270,18 @@ export class ZetaSqlWrapper {
     }
 
     const model = this.getModel(originalFilePath);
-    const tables = await this.findTableNames(compiledSql);
+    let tables = await this.findTableNames(compiledSql);
+
+    const settledResult = await Promise.allSettled(tables.map(t => this.fillTableSchemaFromBq(t)));
+    tables = settledResult.filter((v): v is PromiseFulfilledResult<TableDefinition> => v.status === 'fulfilled').map(v => v.value);
 
     for (const table of tables) {
       if (this.isTableRegistered(table)) {
         continue;
       }
-      const schemaUpdated = await this.updateTableSchema(table);
-      if (schemaUpdated) {
+
+      const schemaIsFilled = table.schemaIsFilled();
+      if (schemaIsFilled) {
         this.registerTable(table);
       } else {
         if (!model) {
@@ -383,9 +387,9 @@ export class ZetaSqlWrapper {
     }
   }
 
-  async updateTableSchema(table: TableDefinition): Promise<boolean> {
+  async fillTableSchemaFromBq(table: TableDefinition): Promise<TableDefinition> {
     if (table.containsInformationSchema()) {
-      return true;
+      return table;
     }
 
     const dataSetName = table.getDataSetName();
@@ -398,10 +402,9 @@ export class ZetaSqlWrapper {
           ZetaSqlWrapper.createSimpleColumn(f.name, ZetaSqlWrapper.createType(f)),
         );
         table.timePartitioning = metadata.timePartitioning;
-        return true;
       }
     }
-    return false;
+    return table;
   }
 
   static createSimpleColumn(name: string, type: TypeProto | null): SimpleColumnProto {
