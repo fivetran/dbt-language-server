@@ -88,6 +88,7 @@ export class LspServer {
 
   bigQueryContext?: BigQueryContext;
   contextInitializedDeferred = deferred<void>();
+  dbtMode = process.env['USE_DBT_CLI'] === 'true' ? Mode.CLI : Mode.DBT_RPC;
 
   openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
 
@@ -116,7 +117,7 @@ export class LspServer {
 
   onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> {
     console.log(`Starting server for folder ${this.workspaceFolder}`);
-    console.log(`ModelCompiler will work in ${process.env['USE_DBT_CLI'] === 'true' ? 'CLI' : 'DBT_RPC'} mode`);
+    console.log(`ModelCompiler works in ${Mode[this.dbtMode]} mode`);
 
     process.on('uncaughtException', this.onUncaughtException.bind(this));
     process.on('SIGTERM', () => this.onShutdown());
@@ -405,7 +406,7 @@ export class LspServer {
         this.completionProvider,
         this.dbtCompletionProvider,
         this.dbtDefinitionProvider,
-        new ModelCompiler(this.dbtRpcClient, this.dbtRepository, process.env['USE_DBT_CLI'] === 'true' ? Mode.CLI : Mode.DBT_RPC, this.python),
+        new ModelCompiler(this.dbtRpcClient, this.dbtRepository, this.dbtMode, this.python),
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,
         this.dbtRepository,
