@@ -31,7 +31,9 @@ export async function indexMain(timeout: string, globPattern: string, doNotRun: 
 
       // Add files to the test suite
       files
-        .filter(f => (ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) || TESTS_WITHOUT_ZETASQL.includes(f)) && !doNotRun.includes(f))
+        .filter(
+          f => (ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) || TESTS_WITHOUT_ZETASQL.find(t => f.endsWith(t))) && !doNotRun.includes(f),
+        )
         .forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
 
       console.log(`Current folder: ${__dirname}`);
