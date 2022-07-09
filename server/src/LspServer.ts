@@ -68,7 +68,7 @@ export class LspServer {
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
   fileChangeListener: FileChangeListener;
-  completionProvider: SqlCompletionProvider;
+  sqlCompletionProvider: SqlCompletionProvider;
   dbtCompletionProvider: DbtCompletionProvider;
   dbtDefinitionProvider: DbtDefinitionProvider;
   dbtProfileCreator: DbtProfileCreator;
@@ -94,7 +94,7 @@ export class LspServer {
     this.featureFinder = new FeatureFinder(this.connection);
     this.dbtProfileCreator = new DbtProfileCreator(dbtProject, '~/.dbt/profiles.yml');
     this.fileChangeListener = new FileChangeListener(this.workspaceFolder, dbtProject, this.manifestParser, this.dbtRepository);
-    this.completionProvider = new SqlCompletionProvider();
+    this.sqlCompletionProvider = new SqlCompletionProvider();
     this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);
     this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
     this.dbtRpc = new DbtRpc(this.featureFinder, this.connection, this.progressReporter, this.fileChangeListener);
@@ -309,7 +309,7 @@ export class LspServer {
         this.workspaceFolder,
         this.connection,
         this.progressReporter,
-        this.completionProvider,
+        this.sqlCompletionProvider,
         this.dbtCompletionProvider,
         this.dbtDefinitionProvider,
         new ModelCompiler(this.dbtRpc.dbtRpcClient, this.dbtRepository, this.dbtMode, this.featureFinder.python),
@@ -365,7 +365,7 @@ export class LspServer {
   }
 
   onCompletionResolve(item: CompletionItem): CompletionItem {
-    return this.completionProvider.onCompletionResolve(item);
+    return this.sqlCompletionProvider.onCompletionResolve(item);
   }
 
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
