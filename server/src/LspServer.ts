@@ -224,10 +224,8 @@ export class LspServer {
   async prepareRpcServer(dbtProfileType?: string): Promise<void> {
     this.initDbtRpcAttempt++;
 
-    try {
-      this.python = await this.findPython();
-    } catch (e) {
-      this.onPythonNotFound();
+    this.python = await this.findPython();
+    if (this.python === undefined) {
       return;
     }
 
@@ -263,15 +261,20 @@ export class LspServer {
     });
   }
 
-  async findPython(): Promise<string> {
-    let python: string = await this.connection.sendRequest('custom/getPython');
-    if (python === '') {
-      throw new Error('Python not found');
+  async findPython(): Promise<string | undefined> {
+    try {
+      let python: string = await this.connection.sendRequest('custom/getPython');
+      if (python === '') {
+        throw new Error('Python not found');
+      }
+      if (python === 'python') {
+        python = 'python3';
+      }
+      return python;
+    } catch (e) {
+      this.onPythonNotFound();
+      return undefined;
     }
-    if (python === 'python') {
-      python = 'python3';
-    }
-    return python;
   }
 
   onPythonNotFound(): void {
