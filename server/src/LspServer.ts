@@ -186,7 +186,12 @@ export class LspServer {
     );
     const dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
 
-    await Promise.all([this.prepareRpcServer(dbtProfileType), this.prepareDestination(profileResult)]);
+    this.python = await this.findPython();
+    if (this.python === undefined) {
+      return;
+    }
+
+    await Promise.all([this.prepareRpcServer(this.python, dbtProfileType), this.prepareDestination(profileResult)]);
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime, this.initDbtRpcAttempt);
   }
@@ -221,22 +226,17 @@ export class LspServer {
     this.connection.window.showWarningMessage(message);
   }
 
-  async prepareRpcServer(dbtProfileType?: string): Promise<void> {
+  async prepareRpcServer(python: string, dbtProfileType?: string): Promise<void> {
     this.initDbtRpcAttempt++;
 
-    this.python = await this.findPython();
-    if (this.python === undefined) {
-      return;
-    }
-
-    this.featureFinder = new FeatureFinder(this.python, dbtProfileType);
+    this.featureFinder = new FeatureFinder(python, dbtProfileType);
 
     const [command, dbtPort] = await Promise.all([this.featureFinder.findDbtRpcCommand(), this.featureFinder.findFreePort()]);
 
     if (command === undefined) {
       try {
         if (dbtProfileType) {
-          await this.suggestToInstallDbt(this.python, dbtProfileType);
+          await this.suggestToInstallDbt(python, dbtProfileType);
         } else {
           this.onRpcServerFindFailed();
         }
