@@ -71,14 +71,12 @@ export class LspServer {
   completionProvider: SqlCompletionProvider;
   dbtCompletionProvider: DbtCompletionProvider;
   dbtDefinitionProvider: DbtDefinitionProvider;
-  dbtProject = new DbtProject('.');
-  dbtProfileCreator = new DbtProfileCreator(this.dbtProject, '~/.dbt/profiles.yml');
+  dbtProfileCreator: DbtProfileCreator;
   manifestParser = new ManifestParser();
   dbtRepository = new DbtRepository();
   featureFinder: FeatureFinder;
   dbtDocumentKindResolver = new DbtDocumentKindResolver(this.dbtRepository);
   initStart = performance.now();
-  initDbtRpcAttempt = 0;
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
 
   bigQueryContext?: BigQueryContext;
@@ -90,9 +88,12 @@ export class LspServer {
   constructor(private connection: _Connection) {
     this.workspaceFolder = process.cwd();
     LspServer.prepareLogger(this.workspaceFolder);
+    const dbtProject = new DbtProject('.');
+
     this.progressReporter = new ProgressReporter(this.connection);
     this.featureFinder = new FeatureFinder(this.connection);
-    this.fileChangeListener = new FileChangeListener(this.workspaceFolder, this.dbtProject, this.manifestParser, this.dbtRepository);
+    this.dbtProfileCreator = new DbtProfileCreator(dbtProject, '~/.dbt/profiles.yml');
+    this.fileChangeListener = new FileChangeListener(this.workspaceFolder, dbtProject, this.manifestParser, this.dbtRepository);
     this.completionProvider = new SqlCompletionProvider();
     this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);
     this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
@@ -187,7 +188,7 @@ export class LspServer {
 
     await Promise.all([this.dbtRpc.prepareRpcServer(dbtProfileType), this.prepareDestination(profileResult)]);
     const initTime = performance.now() - this.initStart;
-    this.logStartupInfo(contextInfo, initTime, this.initDbtRpcAttempt);
+    this.logStartupInfo(contextInfo, initTime);
   }
 
   async prepareDestination(profileResult: Result<DbtProfileSuccess, DbtProfileError>): Promise<void> {
@@ -221,24 +222,19 @@ export class LspServer {
   }
 
   onPythonNotFound(): void {
-    this.finishWithError(
+    this.progressReporter.sendFinish();
+    this.connection.window.showErrorMessage(
       'Python was not found in your working environment. dbt Wizard requires valid python installation. Please visit [https://www.python.org/downloads](https://www.python.org/downloads).',
     );
   }
 
-  finishWithError(message: string): void {
-    this.progressReporter.sendFinish();
-    this.connection.window.showErrorMessage(message);
-  }
-
-  logStartupInfo(contextInfo: DbtProfileInfo, initTime: number, initDbtRpcAttempt: number): void {
+  logStartupInfo(contextInfo: DbtProfileInfo, initTime: number): void {
     this.sendTelemetry('log', {
       dbtVersion: getStringVersion(this.featureFinder.versionInfo?.installedVersion),
       python: this.featureFinder.python ?? 'undefined',
       initTime: initTime.toString(),
       type: contextInfo.type ?? 'unknown type',
       method: contextInfo.method ?? 'unknown method',
-      initDbtRpcAttempt: initDbtRpcAttempt.toString(),
     });
   }
 

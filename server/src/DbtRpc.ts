@@ -11,8 +11,6 @@ export class DbtRpc {
   dbtRpcServer = new DbtRpcServer();
   dbtRpcClient = new DbtRpcClient();
 
-  initDbtRpcAttempt = 0;
-
   constructor(
     private featureFinder: FeatureFinder,
     private connection: _Connection,
@@ -29,8 +27,6 @@ export class DbtRpc {
   }
 
   async prepareRpcServer(dbtProfileType?: string): Promise<void> {
-    this.initDbtRpcAttempt++;
-
     const [command, dbtPort] = await Promise.all([this.featureFinder.findDbtRpcCommand(dbtProfileType), this.featureFinder.findFreePort()]);
 
     if (command === undefined) {
