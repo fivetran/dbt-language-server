@@ -1,3 +1,4 @@
+import { _Connection } from 'vscode-languageserver';
 import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
 import { DbtVersionInfo, getStringVersion, Version } from './DbtVersion';
 import { Command } from './dbt_commands/Command';
@@ -35,16 +36,35 @@ export class FeatureFinder {
 
   private static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
 
+  python?: string;
   versionInfo?: DbtVersionInfo;
 
-  constructor(private python: string, private dbtProfileType?: string) {}
+  constructor(private connection: _Connection) {}
+
+  async ensurePythonFound(): Promise<string | undefined> {
+    await this.findPython();
+    return this.python;
+  }
+
+  private async findPython(): Promise<void> {
+    try {
+      const python = await this.connection.sendRequest<string>('custom/getPython');
+      this.python = python === '' ? undefined : python;
+    } catch (e) {
+      this.python = undefined;
+    }
+  }
 
   /** Tries to find a suitable command to start the server first in the current Python environment and then in the global scope.
    * Installs dbt-rpc for dbt version > 1.0.0.
    * @returns {Command} or `undefined` if nothing is found
    */
-  async findDbtRpcCommand(): Promise<Command | undefined> {
-    const settledResults = await Promise.allSettled([this.findDbtRpcPythonVersion(), this.findDbtPythonVersion(), this.findDbtRpcGlobalVersion()]);
+  async findDbtRpcCommand(dbtProfileType: string | undefined): Promise<Command | undefined> {
+    const settledResults = await Promise.allSettled([
+      this.findDbtRpcPythonVersion(dbtProfileType),
+      this.findDbtPythonVersion(dbtProfileType),
+      this.findDbtRpcGlobalVersion(dbtProfileType),
+    ]);
 
     const [dbtRpcPythonVersion, dbtPythonVersion, dbtRpcGlobalVersion] = settledResults.map(v => {
       return v.status === 'fulfilled' ? v.value : undefined;
@@ -64,7 +84,7 @@ export class FeatureFinder {
     if (dbtPythonVersion?.installedVersion) {
       this.versionInfo = dbtPythonVersion;
       return dbtPythonVersion.installedVersion.major >= 1
-        ? this.installAndFindCommandForV1()
+        ? this.installAndFindCommandForV1(dbtProfileType)
         : new DbtCommand(FeatureFinder.LEGACY_DBT_PARAMS, this.python);
     }
     if (dbtRpcGlobalVersion?.installedVersion && dbtRpcGlobalVersion.installedAdapter) {
@@ -79,31 +99,33 @@ export class FeatureFinder {
     return findFreePortPmfy(randomNumber(1024, 65535));
   }
 
-  private async installAndFindCommandForV1(): Promise<Command | undefined> {
-    const installResult = await DbtUtilitiesInstaller.installLatestDbtRpc(this.python, this.dbtProfileType);
-    if (installResult.isOk()) {
-      return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS, this.python);
+  private async installAndFindCommandForV1(dbtProfileType: string | undefined): Promise<Command | undefined> {
+    if (this.python) {
+      const installResult = await DbtUtilitiesInstaller.installLatestDbtRpc(this.python, dbtProfileType);
+      if (installResult.isOk()) {
+        return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS, this.python);
+      }
     }
     return undefined;
   }
 
-  private async findDbtRpcGlobalVersion(): Promise<DbtVersionInfo | undefined> {
-    return this.findCommandVersion(new DbtRpcCommand([FeatureFinder.VERSION_PARAM]));
+  private async findDbtRpcGlobalVersion(dbtProfileType: string | undefined): Promise<DbtVersionInfo | undefined> {
+    return this.findCommandVersion(new DbtRpcCommand([FeatureFinder.VERSION_PARAM]), dbtProfileType);
   }
 
-  private async findDbtRpcPythonVersion(): Promise<DbtVersionInfo | undefined> {
-    return this.findCommandPythonVersion(new DbtRpcCommand([FeatureFinder.VERSION_PARAM], this.python));
+  private async findDbtRpcPythonVersion(dbtProfileType: string | undefined): Promise<DbtVersionInfo | undefined> {
+    return this.findCommandPythonVersion(new DbtRpcCommand([FeatureFinder.VERSION_PARAM], this.python), dbtProfileType);
   }
 
-  private async findDbtPythonVersion(): Promise<DbtVersionInfo | undefined> {
-    return this.findCommandPythonVersion(new DbtCommand([FeatureFinder.VERSION_PARAM], this.python));
+  private async findDbtPythonVersion(dbtProfileType: string | undefined): Promise<DbtVersionInfo | undefined> {
+    return this.findCommandPythonVersion(new DbtCommand([FeatureFinder.VERSION_PARAM], this.python), dbtProfileType);
   }
 
-  private async findCommandPythonVersion(command: Command): Promise<DbtVersionInfo | undefined> {
-    return this.python ? this.findCommandVersion(command) : undefined;
+  private async findCommandPythonVersion(command: Command, dbtProfileType: string | undefined): Promise<DbtVersionInfo | undefined> {
+    return command.python ? this.findCommandVersion(command, dbtProfileType) : undefined;
   }
 
-  private async findCommandVersion(command: Command): Promise<DbtVersionInfo> {
+  private async findCommandVersion(command: Command, dbtProfileType: string | undefined): Promise<DbtVersionInfo> {
     const { stdout, stderr } = await FeatureFinder.DBT_COMMAND_EXECUTOR.execute(command);
 
     const installedVersion = FeatureFinder.readInstalledVersion(stderr) ?? FeatureFinder.readInstalledVersion(stdout);
@@ -111,8 +133,8 @@ export class FeatureFinder {
 
     let installedAdapter: Version | undefined = undefined;
 
-    if (this.dbtProfileType) {
-      const dbtAdapterRegex = new RegExp(this.dbtProfileType + FeatureFinder.DBT_ADAPTER_VERSION_PATTERN_PREFIX);
+    if (dbtProfileType) {
+      const dbtAdapterRegex = new RegExp(dbtProfileType + FeatureFinder.DBT_ADAPTER_VERSION_PATTERN_PREFIX);
       installedAdapter = FeatureFinder.readVersionByPattern(stderr, dbtAdapterRegex) ?? FeatureFinder.readVersionByPattern(stdout, dbtAdapterRegex);
     }
 

@@ -66,7 +66,6 @@ export class LspServer {
 
   sqlToRefCommandName = randomUUID();
   workspaceFolder: string;
-  python?: string;
   hasConfigurationCapability = false;
   dbtRpcServer = new DbtRpcServer();
   dbtRpcClient = new DbtRpcClient();
@@ -80,7 +79,7 @@ export class LspServer {
   dbtProfileCreator = new DbtProfileCreator(this.dbtProject, '~/.dbt/profiles.yml');
   manifestParser = new ManifestParser();
   dbtRepository = new DbtRepository();
-  featureFinder?: FeatureFinder;
+  featureFinder: FeatureFinder;
   dbtDocumentKindResolver = new DbtDocumentKindResolver(this.dbtRepository);
   initStart = performance.now();
   initDbtRpcAttempt = 0;
@@ -96,6 +95,7 @@ export class LspServer {
     this.workspaceFolder = process.cwd();
     LspServer.prepareLogger(this.workspaceFolder);
     this.progressReporter = new ProgressReporter(this.connection);
+    this.featureFinder = new FeatureFinder(this.connection);
     this.fileChangeListener = new FileChangeListener(this.workspaceFolder, this.dbtProject, this.manifestParser, this.dbtRepository);
     this.completionProvider = new SqlCompletionProvider();
     this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);
@@ -179,6 +179,11 @@ export class LspServer {
       await this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
     }
 
+    if ((await this.featureFinder.ensurePythonFound()) === undefined) {
+      this.onPythonNotFound();
+      return;
+    }
+
     const profileResult = this.dbtProfileCreator.createDbtProfile();
     const contextInfo = profileResult.match<DbtProfileInfo>(
       s => s,
@@ -186,12 +191,7 @@ export class LspServer {
     );
     const dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
 
-    this.python = await this.findPython();
-    if (this.python === undefined) {
-      return;
-    }
-
-    await Promise.all([this.prepareRpcServer(this.python, dbtProfileType), this.prepareDestination(profileResult)]);
+    await Promise.all([this.prepareRpcServer(dbtProfileType), this.prepareDestination(profileResult)]);
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime, this.initDbtRpcAttempt);
   }
@@ -226,17 +226,17 @@ export class LspServer {
     this.connection.window.showWarningMessage(message);
   }
 
-  async prepareRpcServer(python: string, dbtProfileType?: string): Promise<void> {
+  async prepareRpcServer(dbtProfileType?: string): Promise<void> {
     this.initDbtRpcAttempt++;
 
-    this.featureFinder = new FeatureFinder(python, dbtProfileType);
-
-    const [command, dbtPort] = await Promise.all([this.featureFinder.findDbtRpcCommand(), this.featureFinder.findFreePort()]);
+    const [command, dbtPort] = await Promise.all([this.featureFinder.findDbtRpcCommand(dbtProfileType), this.featureFinder.findFreePort()]);
 
     if (command === undefined) {
       try {
         if (dbtProfileType) {
-          await this.suggestToInstallDbt(python, dbtProfileType);
+          if (this.featureFinder.python) {
+            await this.suggestToInstallDbt(this.featureFinder.python, dbtProfileType);
+          }
         } else {
           this.onRpcServerFindFailed();
         }
@@ -244,7 +244,7 @@ export class LspServer {
         this.onRpcServerFindFailed();
       }
     } else {
-      this.python = command.python;
+      this.featureFinder.python = command.python;
       command.addParameter(dbtPort.toString());
       try {
         await this.startDbtRpc(command, dbtPort);
@@ -259,22 +259,6 @@ export class LspServer {
     this.dbtRpcClient.compile().catch(e => {
       console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
     });
-  }
-
-  async findPython(): Promise<string | undefined> {
-    try {
-      let python: string = await this.connection.sendRequest('custom/getPython');
-      if (python === '') {
-        throw new Error('Python not found');
-      }
-      if (python === 'python') {
-        python = 'python3';
-      }
-      return python;
-    } catch (e) {
-      this.onPythonNotFound();
-      return undefined;
-    }
   }
 
   onPythonNotFound(): void {
@@ -317,8 +301,8 @@ export class LspServer {
 
   logStartupInfo(contextInfo: DbtProfileInfo, initTime: number, initDbtRpcAttempt: number): void {
     this.sendTelemetry('log', {
-      dbtVersion: getStringVersion(this.featureFinder?.versionInfo?.installedVersion),
-      python: this.python ?? 'undefined',
+      dbtVersion: getStringVersion(this.featureFinder.versionInfo?.installedVersion),
+      python: this.featureFinder.python ?? 'undefined',
       initTime: initTime.toString(),
       type: contextInfo.type ?? 'unknown type',
       method: contextInfo.method ?? 'unknown method',
@@ -409,7 +393,7 @@ export class LspServer {
         this.completionProvider,
         this.dbtCompletionProvider,
         this.dbtDefinitionProvider,
-        new ModelCompiler(this.dbtRpcClient, this.dbtRepository, this.dbtMode, this.python),
+        new ModelCompiler(this.dbtRpcClient, this.dbtRepository, this.dbtMode, this.featureFinder.python),
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,
         this.dbtRepository,
