@@ -38,11 +38,8 @@ import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
 import { DbtProfileCreator, DbtProfileError, DbtProfileInfo, DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
-import { DbtRpcClient } from './DbtRpcClient';
-import { DbtRpcServer } from './DbtRpcServer';
-import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
+import { DbtRpc } from './DbtRpc';
 import { getStringVersion } from './DbtVersion';
-import { Command as DbtCommand } from './dbt_commands/Command';
 import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
 import { DbtDocumentKind } from './document/DbtDocumentKind';
 import { DbtDocumentKindResolver } from './document/DbtDocumentKindResolver';
@@ -67,8 +64,7 @@ export class LspServer {
   sqlToRefCommandName = randomUUID();
   workspaceFolder: string;
   hasConfigurationCapability = false;
-  dbtRpcServer = new DbtRpcServer();
-  dbtRpcClient = new DbtRpcClient();
+  dbtRpc: DbtRpc;
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
   fileChangeListener: FileChangeListener;
@@ -100,9 +96,7 @@ export class LspServer {
     this.completionProvider = new SqlCompletionProvider();
     this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);
     this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
-    this.fileChangeListener.onDbtProjectYmlChanged(this.onDbtProjectYmlChanged.bind(this));
-    this.fileChangeListener.onDbtPackagesYmlChanged(this.onDbtPackagesYmlChanged.bind(this));
-    this.fileChangeListener.onDbtPackagesChanged(this.onDbtPackagesChanged.bind(this));
+    this.dbtRpc = new DbtRpc(this.featureFinder, this.connection, this.progressReporter, this.fileChangeListener);
   }
 
   static prepareLogger(workspaceFolder: string): void {
@@ -191,7 +185,7 @@ export class LspServer {
     );
     const dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
 
-    await Promise.all([this.prepareRpcServer(dbtProfileType), this.prepareDestination(profileResult)]);
+    await Promise.all([this.dbtRpc.prepareRpcServer(dbtProfileType), this.prepareDestination(profileResult)]);
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime, this.initDbtRpcAttempt);
   }
@@ -226,77 +220,15 @@ export class LspServer {
     this.connection.window.showWarningMessage(message);
   }
 
-  async prepareRpcServer(dbtProfileType?: string): Promise<void> {
-    this.initDbtRpcAttempt++;
-
-    const [command, dbtPort] = await Promise.all([this.featureFinder.findDbtRpcCommand(dbtProfileType), this.featureFinder.findFreePort()]);
-
-    if (command === undefined) {
-      try {
-        if (dbtProfileType) {
-          if (this.featureFinder.python) {
-            await this.suggestToInstallDbt(this.featureFinder.python, dbtProfileType);
-          }
-        } else {
-          this.onRpcServerFindFailed();
-        }
-      } catch (e) {
-        this.onRpcServerFindFailed();
-      }
-    } else {
-      this.featureFinder.python = command.python;
-      command.addParameter(dbtPort.toString());
-      try {
-        await this.startDbtRpc(command, dbtPort);
-      } catch (e) {
-        this.onRpcServerStartFailed(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
-      }
-      this.doInitialCompile();
-    }
-  }
-
-  doInitialCompile(): void {
-    this.dbtRpcClient.compile().catch(e => {
-      console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
-    });
-  }
-
   onPythonNotFound(): void {
-    this.onRpcServerStartFailed(
+    this.finishWithError(
       'Python was not found in your working environment. dbt Wizard requires valid python installation. Please visit [https://www.python.org/downloads](https://www.python.org/downloads).',
     );
   }
 
-  onRpcServerFindFailed(): void {
-    this.onRpcServerStartFailed(
-      `Failed to find dbt-rpc. You can use 'python3 -m pip install dbt-bigquery dbt-rpc' command to install it. Check in Terminal that dbt-rpc works running 'dbt-rpc --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g. ~/dbt-env/bin/python3).`,
-    );
-  }
-
-  onRpcServerStartFailed(message: string): void {
+  finishWithError(message: string): void {
     this.progressReporter.sendFinish();
     this.connection.window.showErrorMessage(message);
-  }
-
-  async suggestToInstallDbt(python: string, dbtProfileType: string): Promise<void> {
-    const actions = { title: 'Install', id: 'install' };
-    const errorMessageResult = await this.connection.window.showErrorMessage(
-      `dbt is not installed. Would you like to install dbt, dbt-rpc and ${dbtProfileType} adapter?`,
-      actions,
-    );
-
-    if (errorMessageResult?.id === 'install') {
-      console.log(`Trying to install dbt, dbt-rpc and ${dbtProfileType} adapter`);
-      const installResult = await DbtUtilitiesInstaller.installDbt(python, dbtProfileType);
-      if (installResult.isOk()) {
-        this.connection.window.showInformationMessage(installResult.value);
-        await this.prepareRpcServer(dbtProfileType);
-      } else {
-        this.onRpcServerStartFailed(installResult.error);
-      }
-    } else {
-      this.onRpcServerFindFailed();
-    }
   }
 
   logStartupInfo(contextInfo: DbtProfileInfo, initTime: number, initDbtRpcAttempt: number): void {
@@ -315,15 +247,6 @@ export class LspServer {
     this.connection
       .sendNotification<TelemetryEvent>(TelemetryEventNotification.type, { name, properties })
       .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
-  }
-
-  async startDbtRpc(command: DbtCommand, port: number): Promise<void> {
-    this.dbtRpcClient.setPort(port);
-    try {
-      await this.dbtRpcServer.startDbtRpc(command, this.dbtRpcClient);
-    } finally {
-      this.progressReporter.sendFinish();
-    }
   }
 
   onDbtCompile(uri: string): void {
@@ -347,7 +270,7 @@ export class LspServer {
 
     const document = this.openedDocuments.get(params.textDocument.uri);
     if (document) {
-      await document.didSaveTextDocument(() => this.dbtRpcServer.refreshServer());
+      await document.didSaveTextDocument(() => this.dbtRpc.refreshServer());
     }
   }
 
@@ -393,7 +316,7 @@ export class LspServer {
         this.completionProvider,
         this.dbtCompletionProvider,
         this.dbtDefinitionProvider,
-        new ModelCompiler(this.dbtRpcClient, this.dbtRepository, this.dbtMode, this.featureFinder.python),
+        new ModelCompiler(this.dbtRpc.dbtRpcClient, this.dbtRepository, this.dbtMode, this.featureFinder.python),
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,
         this.dbtRepository,
@@ -417,7 +340,7 @@ export class LspServer {
 
   async isLanguageServerReady(): Promise<boolean> {
     try {
-      await Promise.all([this.dbtRpcServer.startDeferred.promise, this.contextInitializedDeferred.promise]);
+      await Promise.all([this.dbtRpc.isRpcReady(), this.contextInitializedDeferred.promise]);
       return true;
     } catch (e) {
       return false;
@@ -490,25 +413,13 @@ export class LspServer {
     }
   }
 
-  onDbtProjectYmlChanged(): void {
-    this.dbtRpcServer.refreshServer();
-  }
-
-  onDbtPackagesYmlChanged(): void {
-    this.dbtRpcServer.refreshServer();
-  }
-
-  onDbtPackagesChanged(): void {
-    this.dbtRpcServer.refreshServer();
-  }
-
   onShutdown(): void {
     this.dispose();
   }
 
   dispose(): void {
     console.log('Dispose start...');
-    this.dbtRpcServer.dispose();
+    this.dbtRpc.dispose();
     this.bigQueryContext?.dispose();
     this.onGlobalDbtErrorFixedEmitter.dispose();
     console.log('Dispose end.');
