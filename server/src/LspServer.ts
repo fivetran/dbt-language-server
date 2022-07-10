@@ -64,6 +64,7 @@ interface CustomInitParams {
 
 export class LspServer {
   static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
+  private static readonly ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
 
   sqlToRefCommandName = randomUUID();
   workspaceFolder: string;
@@ -190,7 +191,7 @@ export class LspServer {
   }
 
   async prepareDestination(profileResult: Result<DbtProfileSuccess, DbtProfileError>): Promise<void> {
-    if (profileResult.isOk() && profileResult.value.dbtProfile) {
+    if (LspServer.ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) && profileResult.isOk() && profileResult.value.dbtProfile) {
       const bigQueryContextInfo = await BigQueryContext.createContext(
         profileResult.value.dbtProfile,
         profileResult.value.targetConfig,
