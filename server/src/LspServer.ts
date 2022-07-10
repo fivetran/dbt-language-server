@@ -58,6 +58,10 @@ interface TelemetryEvent {
   properties?: { [key: string]: string };
 }
 
+interface CustomInitParams {
+  python?: string;
+}
+
 export class LspServer {
   static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
 
@@ -74,7 +78,7 @@ export class LspServer {
   dbtProfileCreator: DbtProfileCreator;
   manifestParser = new ManifestParser();
   dbtRepository = new DbtRepository();
-  featureFinder: FeatureFinder;
+  featureFinder = new FeatureFinder();
   dbtDocumentKindResolver = new DbtDocumentKindResolver(this.dbtRepository);
   initStart = performance.now();
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
@@ -91,7 +95,6 @@ export class LspServer {
     const dbtMode = process.env['USE_DBT_CLI'] === 'true' ? Mode.CLI : Mode.DBT_RPC;
 
     this.progressReporter = new ProgressReporter(this.connection);
-    this.featureFinder = new FeatureFinder(this.connection);
     this.dbtProfileCreator = new DbtProfileCreator(dbtProject, '~/.dbt/profiles.yml');
     this.fileChangeListener = new FileChangeListener(this.workspaceFolder, dbtProject, this.manifestParser, this.dbtRepository);
     this.sqlCompletionProvider = new SqlCompletionProvider();
@@ -120,6 +123,7 @@ export class LspServer {
     this.fileChangeListener.onInit();
 
     this.initializeNotifications();
+    this.featureFinder.python = (params.initializationOptions as CustomInitParams).python;
 
     const { capabilities } = params;
     // Does the client support the `workspace/configuration` request?
@@ -173,11 +177,6 @@ export class LspServer {
       await this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
     }
 
-    if ((await this.featureFinder.ensurePythonFound()) === undefined) {
-      this.onPythonNotFound();
-      return;
-    }
-
     const profileResult = this.dbtProfileCreator.createDbtProfile();
     const contextInfo = profileResult.match<DbtProfileInfo>(
       s => s,
@@ -218,13 +217,6 @@ export class LspServer {
     const message = `Dbt profile was not properly configured. ${error}`;
     console.log(message);
     this.connection.window.showWarningMessage(message);
-  }
-
-  onPythonNotFound(): void {
-    this.progressReporter.sendFinish();
-    this.connection.window.showErrorMessage(
-      'Python was not found in your working environment. dbt Wizard requires valid python installation. Please visit [https://www.python.org/downloads](https://www.python.org/downloads).',
-    );
   }
 
   logStartupInfo(contextInfo: DbtProfileInfo, initTime: number): void {

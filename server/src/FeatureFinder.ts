@@ -1,4 +1,3 @@
-import { _Connection } from 'vscode-languageserver';
 import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
 import { DbtVersionInfo, getStringVersion, Version } from './DbtVersion';
 import { Command } from './dbt_commands/Command';
@@ -38,22 +37,6 @@ export class FeatureFinder {
 
   python?: string;
   versionInfo?: DbtVersionInfo;
-
-  constructor(private connection: _Connection) {}
-
-  async ensurePythonFound(): Promise<string | undefined> {
-    await this.findPython();
-    return this.python;
-  }
-
-  private async findPython(): Promise<void> {
-    try {
-      const python = await this.connection.sendRequest<string>('custom/getPython');
-      this.python = python === '' ? undefined : python;
-    } catch (e) {
-      this.python = undefined;
-    }
-  }
 
   /** Tries to find a suitable command to start the server first in the current Python environment and then in the global scope.
    * Installs dbt-rpc for dbt version > 1.0.0.

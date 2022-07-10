@@ -1,4 +1,4 @@
-import { Diagnostic, Disposable, OutputChannel, Uri, window, workspace, WorkspaceFolder } from 'vscode';
+import { Diagnostic, Disposable, OutputChannel, Uri, workspace, WorkspaceFolder } from 'vscode';
 import { LanguageClient, LanguageClientOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { SUPPORTED_LANG_IDS } from './ExtensionClient';
 import { ProgressHandler } from './ProgressHandler';
@@ -55,20 +55,11 @@ export class DbtLanguageClient implements Disposable {
         this.previewContentProvider.updateDiagnostics(uri as string, diagnostics as Diagnostic[]);
       }),
 
-      this.client.onRequest('custom/getPython', async () => {
-        try {
-          return await new PythonExtension().getPython(this.workspaceFolder);
-        } catch (err) {
-          await window.showErrorMessage(`Error while getting python: ${JSON.stringify(err)}`);
-          return 'python3';
-        }
-      }),
-
       this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),
     );
   }
 
-  initialize(): void {
+  async initialize(): Promise<void> {
     this.disposables.push(
       this.client.onTelemetry((e: TelemetryEvent) => {
         if (e.name === 'error') {
@@ -82,6 +73,10 @@ export class DbtLanguageClient implements Disposable {
     this.client.onDidChangeState(e => {
       console.log(`Client switched to state ${State[e.newState]}`);
     });
+
+    this.client.clientOptions.initializationOptions = {
+      python: await new PythonExtension().getPython(this.client.clientOptions.workspaceFolder),
+    };
   }
 
   sendNotification(method: string, params: unknown): void {
