@@ -68,7 +68,7 @@ export class LspServer {
   sqlToRefCommandName = randomUUID();
   workspaceFolder: string;
   hasConfigurationCapability = false;
-  dbt: Dbt;
+  dbt?: Dbt;
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
   fileChangeListener: FileChangeListener;
@@ -92,7 +92,6 @@ export class LspServer {
     this.workspaceFolder = process.cwd();
     LspServer.prepareLogger(this.workspaceFolder);
     const dbtProject = new DbtProject('.');
-    const dbtMode = process.env['USE_DBT_CLI'] === 'true' ? Mode.CLI : Mode.DBT_RPC;
 
     this.progressReporter = new ProgressReporter(this.connection);
     this.dbtProfileCreator = new DbtProfileCreator(dbtProject, '~/.dbt/profiles.yml');
@@ -100,7 +99,6 @@ export class LspServer {
     this.sqlCompletionProvider = new SqlCompletionProvider();
     this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);
     this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
-    this.dbt = new Dbt(dbtMode, this.featureFinder, this.connection, this.progressReporter, this.fileChangeListener);
   }
 
   static prepareLogger(workspaceFolder: string): void {
@@ -114,7 +112,8 @@ export class LspServer {
   }
 
   onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> {
-    console.log(`Starting server for folder ${this.workspaceFolder}. ModelCompiler mode: ${Mode[this.dbt.mode]}.`);
+    const dbtMode = process.env['USE_DBT_CLI'] === 'true' ? Mode.CLI : Mode.DBT_RPC;
+    console.log(`Starting server for folder ${this.workspaceFolder}. ModelCompiler mode: ${Mode[dbtMode]}.`);
 
     process.on('uncaughtException', this.onUncaughtException.bind(this));
     process.on('SIGTERM', () => this.onShutdown());
@@ -124,6 +123,7 @@ export class LspServer {
 
     this.initializeNotifications();
     this.featureFinder.python = (params.initializationOptions as CustomInitParams).python;
+    this.dbt = new Dbt(dbtMode, this.featureFinder, this.connection, this.progressReporter, this.fileChangeListener);
 
     const { capabilities } = params;
     // Does the client support the `workspace/configuration` request?
@@ -184,7 +184,7 @@ export class LspServer {
     );
     const dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
 
-    await Promise.all([this.dbt.prepare(dbtProfileType), this.prepareDestination(profileResult)]);
+    await Promise.all([this.dbt?.prepare(dbtProfileType), this.prepareDestination(profileResult)]);
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime);
   }
@@ -257,7 +257,7 @@ export class LspServer {
 
     const document = this.openedDocuments.get(params.textDocument.uri);
     if (document) {
-      await document.didSaveTextDocument(() => this.dbt.refreshServer());
+      await document.didSaveTextDocument(() => this.dbt?.refreshServer());
     }
   }
 
@@ -284,7 +284,7 @@ export class LspServer {
     let document = this.openedDocuments.get(uri);
 
     if (!document) {
-      if (!(await this.isLanguageServerReady())) {
+      if (!(await this.isLanguageServerReady()) || !this.dbt) {
         return;
       }
 
@@ -327,7 +327,7 @@ export class LspServer {
 
   async isLanguageServerReady(): Promise<boolean> {
     try {
-      await Promise.all([this.dbt.isReady(), this.contextInitializedDeferred.promise]);
+      await Promise.all([this.dbt?.isReady(), this.contextInitializedDeferred.promise]);
       return true;
     } catch (e) {
       return false;
@@ -401,7 +401,7 @@ export class LspServer {
 
   dispose(): void {
     console.log('Dispose start...');
-    this.dbt.dispose();
+    this.dbt?.dispose();
     this.bigQueryContext?.dispose();
     this.onGlobalDbtErrorFixedEmitter.dispose();
     console.log('Dispose end.');

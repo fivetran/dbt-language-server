@@ -27,6 +27,8 @@ export class Dbt {
   ) {
     if (this.mode === Mode.DBT_RPC) {
       this.dbtRpc = new DbtRpc(this.featureFinder, this.connection, this.progressReporter, this.fileChangeListener);
+    } else {
+      this.dbtCli = new DbtCli(this.featureFinder.python);
     }
   }
 
@@ -44,9 +46,7 @@ export class Dbt {
     if (this.dbtRpc) {
       this.dbtRpc.doInitialCompile();
     } else {
-      // We initialize dbtCli here because we can find python only in Initialized event
-      this.dbtCli = new DbtCli(this.featureFinder.python);
-      this.dbtCli.compile().catch(e => {
+      this.dbtCli?.compile().catch(e => {
         console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
       });
     }
