@@ -25,7 +25,7 @@ export class ModelCompiler {
     return this.onFinishAllCompilationJobsEmitter.event;
   }
 
-  constructor(private dbt: Dbt, private dbtRepository: DbtRepository, private python?: string) {}
+  constructor(private dbt: Dbt, private dbtRepository: DbtRepository) {}
 
   async compile(modelPath: string): Promise<void> {
     this.compilationInProgress = true;
@@ -52,7 +52,7 @@ export class ModelCompiler {
   }
 
   createCompileJob(modelPath: string): DbtCompileJob {
-    return this.dbt.createCompileJob(modelPath, this.dbtRepository, this.python);
+    return this.dbt.createCompileJob(modelPath, this.dbtRepository);
   }
 
   async pollResults(): Promise<void> {

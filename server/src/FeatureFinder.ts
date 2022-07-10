@@ -95,6 +95,28 @@ export class FeatureFinder {
     return undefined;
   }
 
+  async findGlobalDbtCommand(dbtProfileType: string | undefined): Promise<boolean> {
+    const settledResults = await Promise.allSettled([this.findDbtPythonVersion(dbtProfileType), this.findDbtGlobalVersion(dbtProfileType)]);
+
+    const [dbtPythonVersion, dbtGlobalVersion] = settledResults.map(v => {
+      return v.status === 'fulfilled' ? v.value : undefined;
+    });
+
+    let versions = '';
+    versions += dbtPythonVersion ? `dbtPythonVersion = ${getStringVersion(dbtPythonVersion.installedVersion)} ` : '';
+    versions += dbtGlobalVersion ? `dbtGlobalVersion = ${getStringVersion(dbtGlobalVersion.installedVersion)}` : '';
+
+    console.log(versions);
+
+    if (dbtPythonVersion?.installedVersion) {
+      this.versionInfo = dbtPythonVersion;
+    } else if (dbtGlobalVersion?.installedVersion) {
+      this.versionInfo = dbtGlobalVersion;
+    }
+
+    return dbtPythonVersion === undefined && dbtGlobalVersion !== undefined;
+  }
+
   findFreePort(): Promise<number> {
     return findFreePortPmfy(randomNumber(1024, 65535));
   }
@@ -119,6 +141,10 @@ export class FeatureFinder {
 
   private async findDbtPythonVersion(dbtProfileType: string | undefined): Promise<DbtVersionInfo | undefined> {
     return this.findCommandPythonVersion(new DbtCommand([FeatureFinder.VERSION_PARAM], this.python), dbtProfileType);
+  }
+
+  private async findDbtGlobalVersion(dbtProfileType: string | undefined): Promise<DbtVersionInfo | undefined> {
+    return this.findCommandVersion(new DbtCommand([FeatureFinder.VERSION_PARAM]), dbtProfileType);
   }
 
   private async findCommandPythonVersion(command: Command, dbtProfileType: string | undefined): Promise<DbtVersionInfo | undefined> {

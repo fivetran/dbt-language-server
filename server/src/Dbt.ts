@@ -1,4 +1,5 @@
 import { _Connection } from 'vscode-languageserver';
+import { DbtCli } from './DbtCli';
 import { DbtCliCompileJob } from './DbtCliCompileJob';
 import { DbtCompileJob } from './DbtCompileJob';
 import { DbtRepository } from './DbtRepository';
@@ -15,6 +16,7 @@ export enum Mode {
 
 export class Dbt {
   dbtRpc?: DbtRpc;
+  dbtCli?: DbtCli;
 
   constructor(
     public readonly mode: Mode,
@@ -25,6 +27,8 @@ export class Dbt {
   ) {
     if (this.mode === Mode.DBT_RPC) {
       this.dbtRpc = new DbtRpc(this.featureFinder, this.connection, this.progressReporter, this.fileChangeListener);
+    } else {
+      this.dbtCli = new DbtCli(this.featureFinder.python);
     }
   }
 
@@ -38,10 +42,26 @@ export class Dbt {
     }
   }
 
+  doInitialCompile(): void {
+    if (this.dbtRpc) {
+      this.dbtRpc.doInitialCompile();
+    } else {
+      this.dbtCli?.compile().catch(e => {
+        console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
+      });
+    }
+  }
+
   async prepare(dbtProfileType?: string): Promise<void> {
     if (this.dbtRpc) {
-      await this.dbtRpc.prepareRpcServer(dbtProfileType);
+      if (await this.dbtRpc.prepareRpcServer(dbtProfileType)) {
+        this.doInitialCompile();
+      }
+      return;
+    } else if (await this.featureFinder.findGlobalDbtCommand(dbtProfileType)) {
+      this.featureFinder.python = undefined;
     }
+    this.doInitialCompile();
   }
 
   async getStatus(): Promise<string | undefined> {

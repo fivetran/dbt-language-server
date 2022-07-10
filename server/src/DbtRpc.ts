@@ -32,31 +32,30 @@ export class DbtRpc {
     this.dbtRpcServer.refreshServer();
   }
 
-  async prepareRpcServer(dbtProfileType?: string): Promise<void> {
+  async prepareRpcServer(dbtProfileType?: string): Promise<boolean> {
     const [command, dbtPort] = await Promise.all([this.featureFinder.findDbtRpcCommand(dbtProfileType), this.featureFinder.findFreePort()]);
 
     if (command === undefined) {
       try {
-        if (dbtProfileType) {
-          if (this.featureFinder.python) {
-            await this.suggestToInstallDbt(this.featureFinder.python, dbtProfileType);
-          }
+        if (dbtProfileType && this.featureFinder.python) {
+          await this.suggestToInstallDbt(this.featureFinder.python, dbtProfileType);
         } else {
           this.onRpcServerFindFailed();
         }
       } catch (e) {
         this.onRpcServerFindFailed();
       }
-    } else {
-      this.featureFinder.python = command.python;
-      command.addParameter(dbtPort.toString());
-      try {
-        await this.startDbtRpc(command, dbtPort);
-      } catch (e) {
-        this.finishWithError(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
-      }
-      this.doInitialCompile();
+      return false;
     }
+
+    this.featureFinder.python = command.python;
+    command.addParameter(dbtPort.toString());
+    try {
+      await this.startDbtRpc(command, dbtPort);
+    } catch (e) {
+      this.finishWithError(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
+    }
+    return true;
   }
 
   doInitialCompile(): void {

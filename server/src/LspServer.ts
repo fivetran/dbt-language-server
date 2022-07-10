@@ -311,7 +311,7 @@ export class LspServer {
         this.sqlCompletionProvider,
         this.dbtCompletionProvider,
         this.dbtDefinitionProvider,
-        new ModelCompiler(this.dbt, this.dbtRepository, this.featureFinder.python),
+        new ModelCompiler(this.dbt, this.dbtRepository),
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,
         this.dbtRepository,
