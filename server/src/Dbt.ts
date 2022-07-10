@@ -27,8 +27,6 @@ export class Dbt {
   ) {
     if (this.mode === Mode.DBT_RPC) {
       this.dbtRpc = new DbtRpc(this.featureFinder, this.connection, this.progressReporter, this.fileChangeListener);
-    } else {
-      this.dbtCli = new DbtCli(this.featureFinder.python);
     }
   }
 
@@ -46,7 +44,9 @@ export class Dbt {
     if (this.dbtRpc) {
       this.dbtRpc.doInitialCompile();
     } else {
-      this.dbtCli?.compile().catch(e => {
+      // We initialize dbtCli here because we can find python only in Initialized event
+      this.dbtCli = new DbtCli(this.featureFinder.python);
+      this.dbtCli.compile().catch(e => {
         console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
       });
     }
@@ -68,10 +68,13 @@ export class Dbt {
     return this.dbtRpc?.getStatus();
   }
 
-  createCompileJob(modelPath: string, dbtRepository: DbtRepository, python?: string): DbtCompileJob {
-    return this.dbtRpc
-      ? new DbtRpcCompileJob(modelPath, dbtRepository, this.dbtRpc.dbtRpcClient)
-      : new DbtCliCompileJob(modelPath, dbtRepository, python);
+  createCompileJob(modelPath: string, dbtRepository: DbtRepository): DbtCompileJob {
+    if (this.dbtRpc) {
+      return new DbtRpcCompileJob(modelPath, dbtRepository, this.dbtRpc.dbtRpcClient);
+    } else if (this.dbtCli) {
+      return new DbtCliCompileJob(modelPath, dbtRepository, this.dbtCli);
+    }
+    throw new Error('Either dbt-rpc or dbt CLI must exist.');
   }
 
   dispose(): void {

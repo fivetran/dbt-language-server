@@ -5,7 +5,7 @@ import { DbtCommandExecutor } from './dbt_commands/DbtCommandExecutor';
 export class DbtCli {
   static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
 
-  constructor(private python?: string) {}
+  constructor(private python: string | undefined) {}
 
   compile(modelName?: string): PromiseWithChild<{
     stdout: string;

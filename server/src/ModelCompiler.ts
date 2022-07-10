@@ -46,13 +46,9 @@ export class ModelCompiler {
   }
 
   startNewJob(modelPath: string): void {
-    const job = this.createCompileJob(modelPath);
+    const job = this.dbt.createCompileJob(modelPath, this.dbtRepository);
     this.dbtCompileJobQueue.push(job);
     job.start().catch(e => console.log(`Failed to start job: ${e instanceof Error ? e.message : String(e)}`));
-  }
-
-  createCompileJob(modelPath: string): DbtCompileJob {
-    return this.dbt.createCompileJob(modelPath, this.dbtRepository);
   }
 
   async pollResults(): Promise<void> {

@@ -6,13 +6,11 @@ import { DbtCompileJob } from './DbtCompileJob';
 import { DbtRepository } from './DbtRepository';
 
 export class DbtCliCompileJob extends DbtCompileJob {
-  private dbtCli: DbtCli;
   private process?: ChildProcess;
   result?: Result<string, string>;
 
-  constructor(modelPath: string, dbtRepository: DbtRepository, python?: string) {
+  constructor(modelPath: string, dbtRepository: DbtRepository, private dbtCli: DbtCli) {
     super(modelPath, dbtRepository);
-    this.dbtCli = new DbtCli(python);
   }
 
   async start(): Promise<void> {
