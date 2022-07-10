@@ -335,7 +335,7 @@ export class LspServer {
 
   async isLanguageServerReady(): Promise<boolean> {
     try {
-      await Promise.all([this.dbt.isRpcReady(), this.contextInitializedDeferred.promise]);
+      await Promise.all([this.dbt.isReady(), this.contextInitializedDeferred.promise]);
       return true;
     } catch (e) {
       return false;

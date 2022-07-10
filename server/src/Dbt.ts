@@ -32,7 +32,7 @@ export class Dbt {
     this.dbtRpc?.refreshServer();
   }
 
-  async isRpcReady(): Promise<void> {
+  async isReady(): Promise<void> {
     if (this.dbtRpc) {
       await this.dbtRpc.isRpcReady();
     }
