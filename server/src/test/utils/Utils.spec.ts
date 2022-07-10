@@ -7,6 +7,7 @@ import {
   comparePositions,
   debounce,
   extractDatasetFromFullName,
+  getFilePathRelatedToWorkspace,
   getIdentifierRangeAtPosition,
   getJinjaContentOffset,
   rangesOverlap,
@@ -134,6 +135,16 @@ describe('Utils', () => {
     // assert
     assertThat(firstDebounceCounter, 1);
     assertThat(secondDebounceCounter, 1);
+  });
+
+  it('getFilePathRelatedToWorkspace should return path on linux', () => {
+    assertThat(
+      getFilePathRelatedToWorkspace(
+        'file:///Users/user/Fivetran/dbt-language-server/e2e/projects/test-fixture/models/simple_select_dbt.sql',
+        '/Users/user/Fivetran/dbt-language-server/e2e/projects/test-fixture',
+      ),
+      'models/simple_select_dbt.sql',
+    );
   });
 
   function getIdentifierRangeAtPositionShouldReturnRange(position: Position, text: string, expectedRange: Range): void {

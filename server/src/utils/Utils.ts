@@ -1,5 +1,6 @@
 import { Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { URI } from 'vscode-uri';
 import { getWordRangeAtPosition } from './TextUtils';
 
 export function rangesOverlap(range1: Range, range2: Range): boolean {
@@ -136,8 +137,13 @@ export function extractDatasetFromFullName(fullName: string, tableName: string):
 }
 
 export function getFilePathRelatedToWorkspace(docUri: string, workspaceFolder: string): string {
-  const index = docUri.indexOf(workspaceFolder);
-  return docUri.slice(index + workspaceFolder.length + 1);
+  const docPath = URI.parse(docUri).fsPath;
+
+  if (docPath.startsWith(workspaceFolder)) {
+    return docPath.slice(workspaceFolder.length + 1);
+  }
+
+  throw new Error("Can't find path related to workspace");
 }
 
 export function arraysAreEqual(a1: string[], a2: string[]): boolean {

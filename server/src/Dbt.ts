@@ -43,13 +43,10 @@ export class Dbt {
   }
 
   doInitialCompile(): void {
-    if (this.dbtRpc) {
-      this.dbtRpc.doInitialCompile();
-    } else {
-      this.dbtCli?.compile().catch(e => {
-        console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
-      });
-    }
+    this.dbtRpc?.doInitialCompile();
+    this.dbtCli?.compile().catch(e => {
+      console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
+    });
   }
 
   async prepare(dbtProfileType?: string): Promise<void> {
