@@ -1,14 +1,7 @@
 import { Emitter, Event } from 'vscode-languageserver';
-import { DbtCliCompileJob } from './DbtCliCompileJob';
+import { Dbt } from './Dbt';
 import { DbtCompileJob } from './DbtCompileJob';
 import { DbtRepository } from './DbtRepository';
-import { DbtRpcClient } from './DbtRpcClient';
-import { DbtRpcCompileJob } from './DbtRpcCompileJob';
-
-export enum Mode {
-  DBT_RPC,
-  CLI,
-}
 
 export class ModelCompiler {
   private dbtCompileJobQueue: DbtCompileJob[] = [];
@@ -32,14 +25,14 @@ export class ModelCompiler {
     return this.onFinishAllCompilationJobsEmitter.event;
   }
 
-  constructor(private dbtRpcClient: DbtRpcClient, private dbtRepository: DbtRepository, private mode: Mode, private python?: string) {}
+  constructor(private dbt: Dbt, private dbtRepository: DbtRepository, private python?: string) {}
 
   async compile(modelPath: string): Promise<void> {
     this.compilationInProgress = true;
-    const status = await this.dbtRpcClient.getStatus();
-    if (status?.error?.data?.message) {
-      console.log('dbt rpc status error');
-      this.onCompilationErrorEmitter.fire(status.error.data.message);
+    const status = await this.dbt.getStatus();
+    if (status) {
+      console.log('dbt-rpc status error');
+      this.onCompilationErrorEmitter.fire(status);
       return;
     }
 
@@ -59,9 +52,7 @@ export class ModelCompiler {
   }
 
   createCompileJob(modelPath: string): DbtCompileJob {
-    return this.mode === Mode.DBT_RPC
-      ? new DbtRpcCompileJob(modelPath, this.dbtRepository, this.dbtRpcClient)
-      : new DbtCliCompileJob(modelPath, this.dbtRepository, this.python);
+    return this.dbt.createCompileJob(modelPath, this.dbtRepository, this.python);
   }
 
   async pollResults(): Promise<void> {

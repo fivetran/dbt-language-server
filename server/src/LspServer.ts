@@ -35,10 +35,10 @@ import {
 } from 'vscode-languageserver';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
+import { Dbt, Mode } from './Dbt';
 import { DbtProfileCreator, DbtProfileError, DbtProfileInfo, DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
-import { DbtRpc } from './DbtRpc';
 import { getStringVersion } from './DbtVersion';
 import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
 import { DbtDocumentKind } from './document/DbtDocumentKind';
@@ -48,7 +48,7 @@ import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
 import { JinjaParser } from './JinjaParser';
 import { ManifestParser } from './manifest/ManifestParser';
-import { Mode, ModelCompiler } from './ModelCompiler';
+import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
 import { deferred } from './utils/Utils';
@@ -64,7 +64,7 @@ export class LspServer {
   sqlToRefCommandName = randomUUID();
   workspaceFolder: string;
   hasConfigurationCapability = false;
-  dbtRpc: DbtRpc;
+  dbt: Dbt;
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
   fileChangeListener: FileChangeListener;
@@ -81,7 +81,6 @@ export class LspServer {
 
   bigQueryContext?: BigQueryContext;
   contextInitializedDeferred = deferred<void>();
-  dbtMode = process.env['USE_DBT_CLI'] === 'true' ? Mode.CLI : Mode.DBT_RPC;
 
   openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
 
@@ -89,6 +88,7 @@ export class LspServer {
     this.workspaceFolder = process.cwd();
     LspServer.prepareLogger(this.workspaceFolder);
     const dbtProject = new DbtProject('.');
+    const dbtMode = process.env['USE_DBT_CLI'] === 'true' ? Mode.CLI : Mode.DBT_RPC;
 
     this.progressReporter = new ProgressReporter(this.connection);
     this.featureFinder = new FeatureFinder(this.connection);
@@ -97,7 +97,7 @@ export class LspServer {
     this.sqlCompletionProvider = new SqlCompletionProvider();
     this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);
     this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
-    this.dbtRpc = new DbtRpc(this.featureFinder, this.connection, this.progressReporter, this.fileChangeListener);
+    this.dbt = new Dbt(dbtMode, this.featureFinder, this.connection, this.progressReporter, this.fileChangeListener);
   }
 
   static prepareLogger(workspaceFolder: string): void {
@@ -111,8 +111,7 @@ export class LspServer {
   }
 
   onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> {
-    console.log(`Starting server for folder ${this.workspaceFolder}`);
-    console.log(`ModelCompiler works in ${Mode[this.dbtMode]} mode`);
+    console.log(`Starting server for folder ${this.workspaceFolder}. ModelCompiler mode: ${Mode[this.dbt.mode]}.`);
 
     process.on('uncaughtException', this.onUncaughtException.bind(this));
     process.on('SIGTERM', () => this.onShutdown());
@@ -186,7 +185,7 @@ export class LspServer {
     );
     const dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
 
-    await Promise.all([this.dbtRpc.prepareRpcServer(dbtProfileType), this.prepareDestination(profileResult)]);
+    await Promise.all([this.dbt.prepare(dbtProfileType), this.prepareDestination(profileResult)]);
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime);
   }
@@ -266,7 +265,7 @@ export class LspServer {
 
     const document = this.openedDocuments.get(params.textDocument.uri);
     if (document) {
-      await document.didSaveTextDocument(() => this.dbtRpc.refreshServer());
+      await document.didSaveTextDocument(() => this.dbt.refreshServer());
     }
   }
 
@@ -312,7 +311,7 @@ export class LspServer {
         this.sqlCompletionProvider,
         this.dbtCompletionProvider,
         this.dbtDefinitionProvider,
-        new ModelCompiler(this.dbtRpc.dbtRpcClient, this.dbtRepository, this.dbtMode, this.featureFinder.python),
+        new ModelCompiler(this.dbt, this.dbtRepository, this.featureFinder.python),
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,
         this.dbtRepository,
@@ -336,7 +335,7 @@ export class LspServer {
 
   async isLanguageServerReady(): Promise<boolean> {
     try {
-      await Promise.all([this.dbtRpc.isRpcReady(), this.contextInitializedDeferred.promise]);
+      await Promise.all([this.dbt.isRpcReady(), this.contextInitializedDeferred.promise]);
       return true;
     } catch (e) {
       return false;
@@ -415,7 +414,7 @@ export class LspServer {
 
   dispose(): void {
     console.log('Dispose start...');
-    this.dbtRpc.dispose();
+    this.dbt.dispose();
     this.bigQueryContext?.dispose();
     this.onGlobalDbtErrorFixedEmitter.dispose();
     console.log('Dispose end.');

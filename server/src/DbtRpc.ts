@@ -22,6 +22,12 @@ export class DbtRpc {
     this.fileChangeListener.onDbtPackagesChanged(() => this.refreshServer());
   }
 
+  /** @returns undefined when ready and string error otherwise */
+  async getStatus(): Promise<string | undefined> {
+    const status = await this.dbtRpcClient.getStatus();
+    return status?.error?.data?.message;
+  }
+
   refreshServer(): void {
     this.dbtRpcServer.refreshServer();
   }
