@@ -36,7 +36,6 @@ export async function indexMain(timeout: string, globPattern: string, doNotRun: 
         )
         .forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
 
-      console.log(`Current folder: ${__dirname}`);
       console.log(`List of tests (${mocha.files.length}):`);
       console.log(JSON.stringify(mocha.files));
 

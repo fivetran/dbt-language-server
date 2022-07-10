@@ -323,11 +323,7 @@ export class DbtTextDocument {
       const jinjaPartType = this.jinjaParser.getJinjaPartType(closestJinjaPart.value);
       if ([JinjaPartType.EXPRESSION_START, JinjaPartType.BLOCK_START].includes(jinjaPartType)) {
         const jinjaBeforePositionText = this.rawDocument.getText(Range.create(closestJinjaPart.range.start, completionParams.position));
-        const completions = this.dbtCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText);
-        if (process.env['DBT_LS_ENABLE_DEBUG_LOGS']) {
-          console.log(completions?.map(c => `${c.label}|${c.insertText ?? 'n/a'}|${c.detail ?? 'n/a'}`).join(';'));
-        }
-        return completions;
+        return this.dbtCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText);
       }
     }
 
