@@ -24,23 +24,17 @@ export class DbtDefinitionProvider {
     this.sourceDefinitionProvider = new SourceDefinitionProvider(this.dbtRepository);
   }
 
-  provideDefinitions(
-    document: TextDocument,
-    packageName: string | undefined,
-    jinja: ParseNode,
-    position: Position,
-    jinjaType: JinjaType,
-  ): DefinitionLink[] | undefined {
+  provideDefinitions(document: TextDocument, jinja: ParseNode, position: Position, jinjaType: JinjaType): DefinitionLink[] | undefined {
     if (jinjaType === JinjaType.UNKNOWN) {
       return undefined;
     }
 
-    const modelDefinitions = packageName ? this.modelDefinitionProvider.provideDefinitions(document, position, jinja) : undefined;
+    const modelDefinitions = this.modelDefinitionProvider.provideDefinitions(document, position, jinja);
     if (modelDefinitions) {
       return modelDefinitions;
     }
 
-    const macroDefinitions = packageName ? this.macroDefinitionProvider.provideDefinitions(document, position, jinja, packageName) : undefined;
+    const macroDefinitions = this.macroDefinitionProvider.provideDefinitions(document, position, jinja);
     if (macroDefinitions) {
       return macroDefinitions;
     }

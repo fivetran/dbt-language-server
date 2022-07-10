@@ -4,18 +4,18 @@ import { DefinitionLink, LocationLink, Position, Range } from 'vscode-languagese
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtRepository } from '../DbtRepository';
 import { ParseNode } from '../JinjaParser';
+import { ManifestMacro } from '../manifest/ManifestJson';
 import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { getAbsoluteRange, getPositionByIndex, getRelativePosition } from '../utils/Utils';
 import { DbtDefinitionProvider, DbtNodeDefinitionProvider } from './DbtDefinitionProvider';
 
 export class MacroDefinitionProvider implements DbtNodeDefinitionProvider {
   static readonly MACRO_PATTERN = /(\w+\.?\w+)\s*\(/;
-  static readonly DBT_PACKAGE = 'dbt';
   static readonly END_MACRO_PATTERN = /{%-?\s*endmacro\s*-?%}/g;
 
   constructor(private dbtRepository: DbtRepository) {}
 
-  provideDefinitions(document: TextDocument, position: Position, jinja: ParseNode, packageName: string): DefinitionLink[] | undefined {
+  provideDefinitions(document: TextDocument, position: Position, jinja: ParseNode): DefinitionLink[] | undefined {
     const expressionLines = jinja.value.split('\n');
     const relativePosition = getRelativePosition(jinja.range, position);
     if (relativePosition === undefined) {
@@ -31,17 +31,22 @@ export class MacroDefinitionProvider implements DbtNodeDefinitionProvider {
       }
 
       const [, macro] = macroMatch;
-      const macroSearchIds = macro.includes('.')
-        ? [`macro.${macro}`]
-        : [`macro.${MacroDefinitionProvider.DBT_PACKAGE}.${macro}`, `macro.${packageName}.${macro}`];
-      const foundMacro = this.dbtRepository.macros.find(m => macroSearchIds.includes(m.uniqueId));
-      if (foundMacro) {
-        const macroFilePath = path.join(foundMacro.rootPath, foundMacro.originalFilePath);
-        const [definitionRange, selectionRange] = this.getMacroRange(foundMacro.name, macroFilePath);
 
+      const pointIndex = macro.indexOf('.');
+      const packageName = pointIndex !== -1 ? macro.substring(0, pointIndex) : undefined;
+      const macroName = pointIndex !== -1 ? macro.substring(pointIndex + 1) : macro;
+
+      const foundMacros =
+        pointIndex !== -1
+          ? this.dbtRepository.macros.filter(m => m.name === macroName && (packageName === undefined || m.packageName === packageName))
+          : this.dbtRepository.macros.filter(m => m.name === macroName);
+
+      return foundMacros.map((m: ManifestMacro) => {
+        const macroFilePath = path.join(m.rootPath, m.originalFilePath);
+        const [definitionRange, selectionRange] = this.getMacroRange(m.name, macroFilePath);
         wordRange.end.character -= 1;
-        return [LocationLink.create(macroFilePath, definitionRange, selectionRange, getAbsoluteRange(jinja.range.start, wordRange))];
-      }
+        return LocationLink.create(macroFilePath, definitionRange, selectionRange, getAbsoluteRange(jinja.range.start, wordRange));
+      });
     }
 
     return undefined;

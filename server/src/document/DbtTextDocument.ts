@@ -375,8 +375,7 @@ export class DbtTextDocument {
     for (const jinja of jinjas) {
       if (positionInRange(definitionParams.position, jinja.range)) {
         const jinjaType = this.jinjaParser.getJinjaType(jinja.value);
-        const currentPackage = DbtTextDocument.findCurrentPackage(this.rawDocument.uri, this.workspaceFolder, this.dbtRepository);
-        return this.dbtDefinitionProvider.provideDefinitions(this.rawDocument, currentPackage, jinja, definitionParams.position, jinjaType);
+        return this.dbtDefinitionProvider.provideDefinitions(this.rawDocument, jinja, definitionParams.position, jinjaType);
       }
     }
     return undefined;
