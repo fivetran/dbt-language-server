@@ -38,7 +38,7 @@ export class MacroDefinitionProvider implements DbtNodeDefinitionProvider {
       const macroName = packageIsSpecified ? macro.substring(pointIndex + 1) : macro;
 
       return this.dbtRepository.macros
-        .filter(m => m.name === macroName && (!packageIsSpecified || packageName === undefined || m.packageName === packageName))
+        .filter(m => m.name === macroName && (!packageIsSpecified || m.packageName === packageName))
         .map((m: ManifestMacro) => {
           const macroFilePath = path.join(m.rootPath, m.originalFilePath);
           const [definitionRange, selectionRange] = this.getMacroRange(m.name, macroFilePath);
