@@ -143,3 +143,7 @@ export function getFilePathRelatedToWorkspace(docUri: string, workspaceFolder: s
 export function arraysAreEqual(a1: string[], a2: string[]): boolean {
   return a1.length === a2.length && a1.every((value, index) => value === a2[index]);
 }
+
+export function truncateAtBothSides(text: string): string {
+  return text.slice(1, -1);
+}

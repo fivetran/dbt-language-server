@@ -2,6 +2,7 @@ import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { JinjaPartType } from '../JinjaParser';
 import { StringBuilder } from '../utils/StringBuilder';
+import { truncateAtBothSides } from '../utils/Utils';
 import { DbtNodeCompletionProvider } from './DbtCompletionProvider';
 
 export class SourceCompletionProvider implements DbtNodeCompletionProvider {
@@ -35,7 +36,7 @@ export class SourceCompletionProvider implements DbtNodeCompletionProvider {
 
     const tableMatch = SourceCompletionProvider.TABLE_PATTERN.exec(jinjaBeforePositionText);
     if (tableMatch) {
-      const sourceName = tableMatch[1].slice(1, -1);
+      const sourceName = truncateAtBothSides(tableMatch[1]);
       return this.dbtRepository.sources
         .filter(s => s.sourceName === sourceName)
         .map<CompletionItem>(s => {

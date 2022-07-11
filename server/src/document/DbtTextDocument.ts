@@ -206,15 +206,6 @@ export class DbtTextDocument {
     return filePath;
   }
 
-  static findCurrentPackage(docUri: string, workspaceFolder: string, dbtRepository: DbtRepository): string | undefined {
-    const filePath = getFilePathRelatedToWorkspace(docUri, workspaceFolder);
-    if (dbtRepository.packagesInstallPaths.some(p => filePath.startsWith(p))) {
-      const withoutPackagesFolder = filePath.replace(new RegExp(`^(${dbtRepository.packagesInstallPaths.join('|')})/`), '');
-      return withoutPackagesFolder.substring(0, withoutPackagesFolder.indexOf('/'));
-    }
-    return dbtRepository.projectName;
-  }
-
   onCompilationError(dbtCompilationError: string): void {
     console.log(`dbt compilation error: ${dbtCompilationError}`);
     this.currentDbtError = dbtCompilationError;
@@ -375,8 +366,7 @@ export class DbtTextDocument {
     for (const jinja of jinjas) {
       if (positionInRange(definitionParams.position, jinja.range)) {
         const jinjaType = this.jinjaParser.getJinjaType(jinja.value);
-        const currentPackage = DbtTextDocument.findCurrentPackage(this.rawDocument.uri, this.workspaceFolder, this.dbtRepository);
-        return this.dbtDefinitionProvider.provideDefinitions(this.rawDocument, currentPackage, jinja, definitionParams.position, jinjaType);
+        return this.dbtDefinitionProvider.provideDefinitions(this.rawDocument, jinja, definitionParams.position, jinjaType);
       }
     }
     return undefined;
