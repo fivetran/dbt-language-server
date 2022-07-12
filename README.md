@@ -72,6 +72,7 @@ Prior to using the extension, you need to perform the following steps in the VS 
 
 1. [Install your dbt Core adapter and dbt-rpc](https://docs.getdbt.com/dbt-cli/install/overview).
     - `python3 -m pip install dbt-bigquery dbt-rpc`
+    > Note: `dbt-rpc` is compatible with Python versions less than 3.10
 1. Test that dbt-rpc works
     - `dbt-rpc --version`
 1. Create your [dbt profile](https://docs.getdbt.com/dbt-cli/configure-your-profile) and add your credentials.
