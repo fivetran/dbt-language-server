@@ -3,9 +3,10 @@ import { Result } from 'neverthrow';
 import { Diagnostic, DiagnosticRelatedInformation, DiagnosticSeverity, Location, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtRepository } from './DbtRepository';
-import { Diff } from './Diff';
 import { DbtTextDocument } from './document/DbtTextDocument';
+import { PositionConverter } from './PositionConverter';
 import { SqlRefConverter } from './SqlRefConverter';
+import { DiffUtils } from './utils/DiffUtils';
 import { getIdentifierRangeAtPosition } from './utils/Utils';
 import path = require('path');
 
@@ -70,7 +71,7 @@ export class DiagnosticGenerator {
       const [, errorText] = matchResults;
       const lineInCompiledDoc = Number(matchResults[2]) - 1;
       const characterInCompiledDoc = Number(matchResults[3]) - 1;
-      const lineInRawDoc = Diff.getOldLineNumber(rawDocText, compiledDocText, lineInCompiledDoc);
+      const lineInRawDoc = DiffUtils.getOldLineNumber(rawDocText, compiledDocText, lineInCompiledDoc);
 
       rawDocDiagnostics.push(this.createErrorDiagnostic(rawDocText, lineInRawDoc, characterInCompiledDoc, errorText));
       compiledDocDiagnostics.push(this.createErrorDiagnostic(compiledDocText, lineInCompiledDoc, characterInCompiledDoc, errorText));
@@ -83,17 +84,15 @@ export class DiagnosticGenerator {
     compiledDocument: TextDocument,
     rawDocDiagnostics: Diagnostic[],
   ): void {
-    const resolvedTables = DbtTextDocument.ZETA_SQL_AST.getResolvedTables(ast, compiledDocument.getText());
+    const rawText = rawDocument.getText();
+    const compiledText = compiledDocument.getText();
 
+    const resolvedTables = DbtTextDocument.ZETA_SQL_AST.getResolvedTables(ast, compiledText);
     const changes = this.sqlRefConverter.sqlToRef(compiledDocument, resolvedTables, this.dbtRepository.models);
-    for (const change of changes) {
-      const rawText = rawDocument.getText();
-      const compiledText = compiledDocument.getText();
 
-      const range = Range.create(
-        Diff.convertPositionBackward(rawText, compiledText, change.range.start),
-        Diff.convertPositionBackward(rawText, compiledText, change.range.end),
-      );
+    const converter = new PositionConverter(rawText, compiledText);
+    for (const change of changes) {
+      const range = Range.create(converter.convertPositionBackward(change.range.start), converter.convertPositionBackward(change.range.end));
 
       if (rawDocument.getText(range) === compiledDocument.getText(change.range)) {
         rawDocDiagnostics.push(this.createInformationDiagnostic(range, change.newText));

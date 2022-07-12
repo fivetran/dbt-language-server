@@ -26,6 +26,10 @@ export class TableDefinition {
     this.datasetIndex = this.namePath.length >= 3 ? 1 : 0;
   }
 
+  schemaIsFilled(): boolean {
+    return this.containsInformationSchema() || this.columns !== undefined;
+  }
+
   containsInformationSchema(): boolean {
     return this.informationSchemaIndex > -1;
   }

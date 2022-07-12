@@ -27,13 +27,15 @@ import { DbtRepository } from '../DbtRepository';
 import { DbtRpcServer } from '../DbtRpcServer';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
-import { Diff } from '../Diff';
 import { HoverProvider } from '../HoverProvider';
 import { JinjaParser, JinjaPartType } from '../JinjaParser';
 import { ModelCompiler } from '../ModelCompiler';
+import { PositionConverter } from '../PositionConverter';
 import { ProgressReporter } from '../ProgressReporter';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { SqlCompletionProvider } from '../SqlCompletionProvider';
+import { DiffUtils } from '../utils/DiffUtils';
+
 import { getTextRangeBeforeBracket } from '../utils/TextUtils';
 import {
   areRangesEqual,
@@ -143,16 +145,11 @@ export class DbtTextDocument {
         if (!TextDocumentContentChangeEvent.isIncremental(change)) {
           throw new Error('Incremental updates expected');
         }
-
-        const rawText = this.rawDocument.getText();
-        const compiledText = this.compiledDocument.getText();
+        const converter = new PositionConverter(this.rawDocument.getText(), this.compiledDocument.getText());
 
         return {
           text: change.text,
-          range: Range.create(
-            Diff.convertPositionStraight(rawText, compiledText, change.range.start),
-            Diff.convertPositionStraight(rawText, compiledText, change.range.end),
-          ),
+          range: Range.create(converter.convertPositionStraight(change.range.start), converter.convertPositionStraight(change.range.end)),
         };
       });
 
@@ -349,7 +346,7 @@ export class DbtTextDocument {
 
     let completionInfo = undefined;
     if (this.ast) {
-      const line = Diff.getOldLineNumber(this.compiledDocument.getText(), this.rawDocument.getText(), completionParams.position.line);
+      const line = DiffUtils.getOldLineNumber(this.compiledDocument.getText(), this.rawDocument.getText(), completionParams.position.line);
       const offset = this.compiledDocument.offsetAt(Position.create(line, completionParams.position.character));
       completionInfo = DbtTextDocument.ZETA_SQL_AST.getCompletionInfo(this.ast, offset);
     }

@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import { assertThat } from 'hamjest';
-import { Diff } from '../Diff';
+import { DiffUtils } from '../../utils/DiffUtils';
 
-describe('Diff', () => {
+describe('DiffUtils', () => {
   type content = { raw: string; compiled: string };
   const FILES = new Map<string, content>();
 
@@ -117,7 +117,7 @@ describe('Diff', () => {
 
   function shouldReturnCorrespondingCharacterForOldText(oldLine: string, newLine: string, newCharacter: number, expectedOldCharacter: number): void {
     // act
-    const actualOldCharacter = Diff.getOldCharacter(oldLine, newLine, newCharacter);
+    const actualOldCharacter = DiffUtils.getOldCharacter(oldLine, newLine, newCharacter);
 
     // assert
     assertThat(actualOldCharacter, expectedOldCharacter);
@@ -135,7 +135,7 @@ describe('Diff', () => {
     const fileContent = getFilesContent(fileName);
 
     // act
-    const number = Diff.getOldLineNumber(fileContent.raw, fileContent.compiled, lineNumberInCompiled);
+    const number = DiffUtils.getOldLineNumber(fileContent.raw, fileContent.compiled, lineNumberInCompiled);
 
     // assert
     assertThat(number, lineNumberInRaw);
@@ -146,7 +146,7 @@ describe('Diff', () => {
     const fileContent = getFilesContent(fileName);
 
     // act
-    const number = Diff.getNewLineNumber(fileContent.raw, fileContent.compiled, lineNumberInRaw);
+    const number = DiffUtils.getNewLineNumber(fileContent.raw, fileContent.compiled, lineNumberInRaw);
 
     // assert
     assertThat(number, lineNumberInCompiled);
@@ -155,7 +155,7 @@ describe('Diff', () => {
   function getFilesContent(fileName: string): content {
     let fileContent = FILES.get(fileName);
     if (!fileContent) {
-      const filesRootPath = `${__dirname}/../../src/test/diff/`;
+      const filesRootPath = `${__dirname}/../../../src/test/diff/`;
       const raw = fs.readFileSync(`${filesRootPath}raw/${fileName}.sql`, 'utf8');
       const compiled = fs.readFileSync(`${filesRootPath}compiled/${fileName}.sql`, 'utf8');
       fileContent = { raw, compiled };
