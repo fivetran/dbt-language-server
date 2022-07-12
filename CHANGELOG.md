@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 0.6.1 (12/07/2022)
+## What's Changed
+* Fix an issue when go to definition didn't work for models from packages if package is not specified
+* Go to definition now works in all jinja blocks
+* Improve performance for models with a lot of tables
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.6.0...v0.6.1
+---
+
 ## Version 0.6.0 (07/07/2022)
 ## What's Changed
 * dbt models autocompletion improvements
