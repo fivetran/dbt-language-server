@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.6.1 (01/01/1970)
+## Version 0.6.1 (12/07/2022)
 ## What's Changed
 * Fix an issue when go to definition didn't work for models from packages if package is not specified
 * Go to definition now works in all jinja blocks
