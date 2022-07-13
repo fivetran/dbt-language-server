@@ -12,11 +12,10 @@ interface IExtensionApi {
 type Resource = Uri | undefined;
 
 export class PythonExtension {
-  async getPython(workspaceFolder?: WorkspaceFolder): Promise<string> {
+  async getPython(workspaceFolder?: WorkspaceFolder): Promise<string | undefined> {
     const extension = extensions.getExtension('ms-python.python');
     if (!extension) {
-      console.log('ms-python.python not found');
-      return '';
+      return this.pythonNotFound();
     }
 
     if (!extension.isActive) {
@@ -25,13 +24,20 @@ export class PythonExtension {
 
     const details = (extension.exports as IExtensionApi).settings.getExecutionDetails(workspaceFolder?.uri);
     if (!details.execCommand) {
-      console.log('ms-python.python not found');
-      return '';
+      return this.pythonNotFound();
     }
 
     const [path] = details.execCommand;
 
+    if (path === '') {
+      return this.pythonNotFound();
+    }
     console.log(`Python path used: ${path}`);
     return path;
+  }
+
+  pythonNotFound(): undefined {
+    console.log('ms-python.python not found');
+    return undefined;
   }
 }
