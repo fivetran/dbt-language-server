@@ -60,6 +60,7 @@ export class DbtRpc implements Dbt {
       } catch (e) {
         this.finishWithError(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
       }
+      this.doInitialCompile();
     }
   }
 
