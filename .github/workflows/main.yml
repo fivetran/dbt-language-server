@@ -75,7 +75,7 @@ jobs:
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_0_20_1_env/bin/activate
-          
+
           - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
             os: macos-latest
             target: darwin-x64
@@ -89,32 +89,33 @@ jobs:
               export DISPLAY=:99
             activate-venv: source ~/dbt_0_20_1_env/bin/activate
 
-          - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
-            os: ubuntu-latest
-            target: linux-x64
-            prepare-for-tests: |
-              Xvfb -ac :99 -screen 0 1280x1024x16 &
-              export DISPLAY=:99
-            activate-venv: source ~/dbt_0_20_1_env/bin/activate
-            use-dbt-cli: true
+          # TODO: enable this for testing CLI on Ubuntu
+          # - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
+          #   os: ubuntu-latest
+          #   target: linux-x64
+          #   prepare-for-tests: |
+          #     Xvfb -ac :99 -screen 0 1280x1024x16 &
+          #     export DISPLAY=:99
+          #   activate-venv: source ~/dbt_0_20_1_env/bin/activate
+          #   use-dbt-cli: true
 
-          # TODO: enable this tests after implementing CLI support
-          - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
-            os: windows-latest
-            target: win32-x64
-            add-colon-to-key-file-path: |
-              homedir=c:/${homedir#*c/}
-              python=${homedir}/dbt_0_20_1_env/Scripts/python
-              cat <<EOT > ${GITHUB_WORKSPACE}/e2e/projects/special-python-settings/.vscode/settings.json
-              {
-                "python.defaultInterpreterPath": "${python}",
-                "python.pythonPath": "${python}",
-              }
-              EOT
-            activate-venv: |
-              cd ~/dbt_0_20_1_env/Scripts
-              . activate
-            use-dbt-cli: true
+          # TODO: enable this tests after implementing Windows support
+          # - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
+          #   os: windows-latest
+          #   target: win32-x64
+          #   add-colon-to-key-file-path: |
+          #     homedir=c:/${homedir#*c/}
+          #     python=${homedir}/dbt_0_20_1_env/Scripts/python
+          #     cat <<EOT > ${GITHUB_WORKSPACE}/e2e/projects/special-python-settings/.vscode/settings.json
+          #     {
+          #       "python.defaultInterpreterPath": "${python}",
+          #       "python.pythonPath": "${python}",
+          #     }
+          #     EOT
+          #   activate-venv: |
+          #     cd ~/dbt_0_20_1_env/Scripts
+          #     . activate
+          #   use-dbt-cli: true
 
     name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.use-dbt-cli }}
 
@@ -256,7 +257,7 @@ jobs:
           cd ~/.dbt/
           pwd
           ls -la
-      
+
       - name: install dbt
         run: ${{ matrix.install-dbt }}
 
@@ -274,7 +275,7 @@ jobs:
       #     TELEGRAM_CHAT_ID: ${{ secrets.CHAT_ID }}
 
       - run: unzip ${{ env.FILE_NAME }} -d e2e-tests
-      
+
       - name: run e2e tests
         run: |
           ${{ matrix.prepare-for-tests }}
