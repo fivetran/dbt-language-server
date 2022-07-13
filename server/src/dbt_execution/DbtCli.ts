@@ -1,11 +1,11 @@
 import { PromiseWithChild } from 'child_process';
+import { DbtRepository } from '../DbtRepository';
+import { FeatureFinder } from '../FeatureFinder';
+import { DbtCommand } from './commands/DbtCommand';
+import { DbtCommandExecutor } from './commands/DbtCommandExecutor';
 import { Dbt } from './Dbt';
 import { DbtCliCompileJob } from './DbtCliCompileJob';
 import { DbtCompileJob } from './DbtCompileJob';
-import { DbtRepository } from './DbtRepository';
-import { DbtCommand } from './dbt_commands/DbtCommand';
-import { DbtCommandExecutor } from './dbt_commands/DbtCommandExecutor';
-import { FeatureFinder } from './FeatureFinder';
 
 export class DbtCli implements Dbt {
   static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();

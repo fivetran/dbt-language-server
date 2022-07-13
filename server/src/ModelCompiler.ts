@@ -1,7 +1,7 @@
 import { Emitter, Event } from 'vscode-languageserver';
-import { Dbt } from './Dbt';
-import { DbtCompileJob } from './DbtCompileJob';
 import { DbtRepository } from './DbtRepository';
+import { Dbt } from './dbt_execution/Dbt';
+import { DbtCompileJob } from './dbt_execution/DbtCompileJob';
 
 export class ModelCompiler {
   private dbtCompileJobQueue: DbtCompileJob[] = [];

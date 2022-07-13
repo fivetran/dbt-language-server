@@ -1,15 +1,15 @@
 import { _Connection } from 'vscode-languageserver';
-import { DbtRepository } from './DbtRepository';
+import { DbtRepository } from '../DbtRepository';
+import { DbtUtilitiesInstaller } from '../DbtUtilitiesInstaller';
+import { FeatureFinder } from '../FeatureFinder';
+import { FileChangeListener } from '../FileChangeListener';
+import { ProgressReporter } from '../ProgressReporter';
+import { DbtCommand } from './commands/DbtCommand';
+import { Dbt } from './Dbt';
+import { DbtCompileJob } from './DbtCompileJob';
+import { DbtRpcClient } from './DbtRpcClient';
+import { DbtRpcCompileJob } from './DbtRpcCompileJob';
 import { DbtRpcServer } from './DbtRpcServer';
-import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
-import { DbtCommand } from './dbt_execution/commands/DbtCommand';
-import { Dbt } from './dbt_execution/Dbt';
-import { DbtCompileJob } from './dbt_execution/DbtCompileJob';
-import { DbtRpcClient } from './dbt_execution/DbtRpcClient';
-import { DbtRpcCompileJob } from './dbt_execution/DbtRpcCompileJob';
-import { FeatureFinder } from './FeatureFinder';
-import { FileChangeListener } from './FileChangeListener';
-import { ProgressReporter } from './ProgressReporter';
 
 export class DbtRpc implements Dbt {
   dbtRpcServer = new DbtRpcServer();

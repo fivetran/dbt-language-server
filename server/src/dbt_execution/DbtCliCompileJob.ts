@@ -1,9 +1,9 @@
 import { ChildProcess, ExecException } from 'child_process';
 import * as fs from 'fs';
 import { err, ok, Result } from 'neverthrow';
+import { DbtRepository } from '../DbtRepository';
 import { DbtCli } from './DbtCli';
 import { DbtCompileJob } from './DbtCompileJob';
-import { DbtRepository } from './DbtRepository';
 
 export class DbtCliCompileJob extends DbtCompileJob {
   private process?: ChildProcess;

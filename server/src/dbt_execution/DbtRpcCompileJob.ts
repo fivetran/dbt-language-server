@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import { err, ok, Result } from 'neverthrow';
+import { DbtRepository } from '../DbtRepository';
 import { DbtCompileJob } from './DbtCompileJob';
-import { DbtRepository } from './DbtRepository';
 import { CompileResponse, DbtRpcClient, PollResponse } from './DbtRpcClient';
 import retry = require('async-retry');
 

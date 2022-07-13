@@ -1,9 +1,9 @@
 import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
 import { DbtVersionInfo, getStringVersion, Version } from './DbtVersion';
-import { Command } from './dbt_commands/Command';
-import { DbtCommand } from './dbt_commands/DbtCommand';
-import { DbtCommandExecutor } from './dbt_commands/DbtCommandExecutor';
-import { DbtRpcCommand } from './dbt_commands/DbtRpcCommand';
+import { Command } from './dbt_execution/commands/Command';
+import { DbtCommand } from './dbt_execution/commands/DbtCommand';
+import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
+import { DbtRpcCommand } from './dbt_execution/commands/DbtRpcCommand';
 import { randomNumber } from './utils/Utils';
 import findFreePortPmfy = require('find-free-port');
 

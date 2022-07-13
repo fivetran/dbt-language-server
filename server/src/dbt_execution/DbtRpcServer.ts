@@ -1,8 +1,8 @@
 import { ExecException } from 'child_process';
-import { Command } from './dbt_execution/commands/Command';
-import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
-import { DbtRpcClient } from './dbt_execution/DbtRpcClient';
-import { deferred } from './utils/Utils';
+import { deferred } from '../utils/Utils';
+import { Command } from './commands/Command';
+import { DbtCommandExecutor } from './commands/DbtCommandExecutor';
+import { DbtRpcClient } from './DbtRpcClient';
 
 export class DbtRpcServer {
   static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();

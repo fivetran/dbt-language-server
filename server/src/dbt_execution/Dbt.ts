@@ -1,5 +1,5 @@
+import { DbtRepository } from '../DbtRepository';
 import { DbtCompileJob } from './DbtCompileJob';
-import { DbtRepository } from './DbtRepository';
 
 export enum DbtMode {
   DBT_RPC,

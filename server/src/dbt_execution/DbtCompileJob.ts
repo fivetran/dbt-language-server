@@ -1,6 +1,6 @@
 import { Result } from 'neverthrow';
-import { DbtRepository } from './DbtRepository';
-import { ManifestModel } from './manifest/ManifestJson';
+import { DbtRepository } from '../DbtRepository';
+import { ManifestModel } from '../manifest/ManifestJson';
 import path = require('path');
 import retry = require('async-retry');
 

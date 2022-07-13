@@ -1,9 +1,9 @@
 import { assertThat } from 'hamjest';
 import { err, ok } from 'neverthrow';
 import { instance, mock, verify, when } from 'ts-mockito';
-import { DbtRepository } from '../DbtRepository';
-import { CompileResponse, DbtRpcClient, PollResponse } from '../DbtRpcClient';
-import { DbtRpcCompileJob } from '../DbtRpcCompileJob';
+import { DbtRepository } from '../../DbtRepository';
+import { CompileResponse, DbtRpcClient, PollResponse } from '../../dbt_execution/DbtRpcClient';
+import { DbtRpcCompileJob } from '../../dbt_execution/DbtRpcCompileJob';
 
 describe('DbtCompileJob', () => {
   const MODEL = 'test_model';

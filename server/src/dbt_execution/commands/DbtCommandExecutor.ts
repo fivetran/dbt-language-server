@@ -1,5 +1,5 @@
 import { PromiseWithChild } from 'child_process';
-import { ProcessExecutor } from '../ProcessExecutor';
+import { ProcessExecutor } from '../../ProcessExecutor';
 import { Command } from './Command';
 
 export class DbtCommandExecutor {

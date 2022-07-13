@@ -35,13 +35,13 @@ import {
 } from 'vscode-languageserver';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
-import { Dbt, DbtMode } from './Dbt';
-import { DbtCli } from './DbtCli';
 import { DbtProfileCreator, DbtProfileError, DbtProfileInfo, DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
-import { DbtRpc } from './DbtRpc';
 import { getStringVersion } from './DbtVersion';
+import { Dbt, DbtMode } from './dbt_execution/Dbt';
+import { DbtCli } from './dbt_execution/DbtCli';
+import { DbtRpc } from './dbt_execution/DbtRpc';
 import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
 import { DbtDocumentKind } from './document/DbtDocumentKind';
 import { DbtDocumentKindResolver } from './document/DbtDocumentKindResolver';
