@@ -11,7 +11,7 @@
       "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
       "outFiles": ["${workspaceFolder}/client/out/**/*.js"],
       "env": {
-        "DBT_LS_DISABLE_TELEMETRY": "true",
+        "DBT_LS_DISABLE_TELEMETRY": "true"
         // "DBT_LS_ENABLE_DEBUG_LOGS": "true"
         // "NODE_OPTIONS": "--unhandled-rejections=warn"
         // "NODE_OPTIONS": "--trace-warnings"
@@ -46,7 +46,12 @@
       "request": "launch",
       "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
       "stopOnEntry": false,
-      "args": ["-r", "ts-node/register", "${workspaceRoot}/server/src/test/**/*.spec.ts", "--no-timeouts"],
+      "args": [
+        "-r",
+        "ts-node/register",
+        "${workspaceRoot}/server/src/test/**/*.spec.ts",
+        "--no-timeouts"
+      ],
       "console": "integratedTerminal",
       "cwd": "${workspaceRoot}/server",
       "skipFiles": ["<node_internals>/**"]

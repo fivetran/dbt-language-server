@@ -30,7 +30,18 @@
     {
       "label": "deleteTargetFolders",
       "command": "find",
-      "args": ["${workspaceRoot}/e2e/projects/", "-type", "d", "-name", "target", "-exec", "rm", "-rf", "{}", "+"],
+      "args": [
+        "${workspaceRoot}/e2e/projects/",
+        "-type",
+        "d",
+        "-name",
+        "target",
+        "-exec",
+        "rm",
+        "-rf",
+        "{}",
+        "+"
+      ],
       "type": "shell"
     }
   ]
