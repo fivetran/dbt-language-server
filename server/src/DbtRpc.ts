@@ -1,5 +1,9 @@
 import { _Connection } from 'vscode-languageserver';
+import { Dbt } from './Dbt';
+import { DbtCompileJob } from './DbtCompileJob';
+import { DbtRepository } from './DbtRepository';
 import { DbtRpcClient } from './DbtRpcClient';
+import { DbtRpcCompileJob } from './DbtRpcCompileJob';
 import { DbtRpcServer } from './DbtRpcServer';
 import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
 import { DbtCommand } from './dbt_commands/DbtCommand';
@@ -7,7 +11,7 @@ import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
 import { ProgressReporter } from './ProgressReporter';
 
-export class DbtRpc {
+export class DbtRpc implements Dbt {
   dbtRpcServer = new DbtRpcServer();
   dbtRpcClient = new DbtRpcClient();
 
@@ -17,22 +21,25 @@ export class DbtRpc {
     private progressReporter: ProgressReporter,
     private fileChangeListener: FileChangeListener,
   ) {
-    this.fileChangeListener.onDbtProjectYmlChanged(() => this.refreshServer());
-    this.fileChangeListener.onDbtPackagesYmlChanged(() => this.refreshServer());
-    this.fileChangeListener.onDbtPackagesChanged(() => this.refreshServer());
+    this.fileChangeListener.onDbtProjectYmlChanged(() => this.refresh());
+    this.fileChangeListener.onDbtPackagesYmlChanged(() => this.refresh());
+    this.fileChangeListener.onDbtPackagesChanged(() => this.refresh());
   }
 
-  /** @returns undefined when ready and string error otherwise */
+  createCompileJob(modelPath: string, dbtRepository: DbtRepository): DbtCompileJob {
+    return new DbtRpcCompileJob(modelPath, dbtRepository, this.dbtRpcClient);
+  }
+
   async getStatus(): Promise<string | undefined> {
     const status = await this.dbtRpcClient.getStatus();
     return status?.error?.data?.message;
   }
 
-  refreshServer(): void {
-    this.dbtRpcServer.refreshServer();
+  refresh(): void {
+    this.dbtRpcServer.refresh();
   }
 
-  async prepareRpcServer(dbtProfileType?: string): Promise<boolean> {
+  async prepare(dbtProfileType?: string): Promise<void> {
     const [command, dbtPort] = await Promise.all([this.featureFinder.findDbtRpcCommand(dbtProfileType), this.featureFinder.findFreePort()]);
 
     if (command === undefined) {
@@ -45,17 +52,15 @@ export class DbtRpc {
       } catch (e) {
         this.onRpcServerFindFailed();
       }
-      return false;
+    } else {
+      this.featureFinder.python = command.python;
+      command.addParameter(dbtPort.toString());
+      try {
+        await this.startDbtRpc(command, dbtPort);
+      } catch (e) {
+        this.finishWithError(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
+      }
     }
-
-    this.featureFinder.python = command.python;
-    command.addParameter(dbtPort.toString());
-    try {
-      await this.startDbtRpc(command, dbtPort);
-    } catch (e) {
-      this.finishWithError(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
-    }
-    return true;
   }
 
   doInitialCompile(): void {
@@ -64,7 +69,7 @@ export class DbtRpc {
     });
   }
 
-  async isRpcReady(): Promise<void> {
+  async isReady(): Promise<void> {
     return this.dbtRpcServer.startDeferred.promise;
   }
 
@@ -86,7 +91,7 @@ export class DbtRpc {
       const installResult = await DbtUtilitiesInstaller.installDbt(python, dbtProfileType);
       if (installResult.isOk()) {
         this.connection.window.showInformationMessage(installResult.value);
-        await this.prepareRpcServer(dbtProfileType);
+        await this.prepare(dbtProfileType);
       } else {
         this.finishWithError(installResult.error);
       }

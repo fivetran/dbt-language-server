@@ -35,10 +35,12 @@ import {
 } from 'vscode-languageserver';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
-import { Dbt, Mode } from './Dbt';
+import { Dbt, DbtMode } from './Dbt';
+import { DbtCli } from './DbtCli';
 import { DbtProfileCreator, DbtProfileError, DbtProfileInfo, DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
+import { DbtRpc } from './DbtRpc';
 import { getStringVersion } from './DbtVersion';
 import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
 import { DbtDocumentKind } from './document/DbtDocumentKind';
@@ -69,6 +71,7 @@ export class LspServer {
   sqlToRefCommandName = randomUUID();
   workspaceFolder: string;
   hasConfigurationCapability = false;
+  featureFinder?: FeatureFinder;
   dbt?: Dbt;
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
@@ -79,7 +82,6 @@ export class LspServer {
   dbtProfileCreator: DbtProfileCreator;
   manifestParser = new ManifestParser();
   dbtRepository = new DbtRepository();
-  featureFinder = new FeatureFinder();
   dbtDocumentKindResolver = new DbtDocumentKindResolver(this.dbtRepository);
   initStart = performance.now();
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
@@ -113,8 +115,8 @@ export class LspServer {
   }
 
   onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> {
-    const dbtMode = process.env['USE_DBT_CLI'] === 'true' ? Mode.CLI : Mode.DBT_RPC;
-    console.log(`Starting server for folder ${this.workspaceFolder}. ModelCompiler mode: ${Mode[dbtMode]}.`);
+    const dbtMode = process.env['USE_DBT_CLI'] === 'true' ? DbtMode.CLI : DbtMode.DBT_RPC;
+    console.log(`Starting server for folder ${this.workspaceFolder}. ModelCompiler mode: ${DbtMode[dbtMode]}.`);
 
     process.on('uncaughtException', this.onUncaughtException.bind(this));
     process.on('SIGTERM', () => this.onShutdown());
@@ -123,8 +125,9 @@ export class LspServer {
     this.fileChangeListener.onInit();
 
     this.initializeNotifications();
-    this.featureFinder.python = (params.initializationOptions as CustomInitParams).python;
-    this.dbt = new Dbt(dbtMode, this.featureFinder, this.connection, this.progressReporter, this.fileChangeListener);
+
+    this.featureFinder = new FeatureFinder((params.initializationOptions as CustomInitParams).python);
+    this.dbt = this.createDbt(dbtMode, this.featureFinder);
 
     const { capabilities } = params;
     // Does the client support the `workspace/configuration` request?
@@ -154,6 +157,12 @@ export class LspServer {
         },
       },
     };
+  }
+
+  createDbt(dbtMode: DbtMode, featureFinder: FeatureFinder): Dbt {
+    return dbtMode === DbtMode.DBT_RPC
+      ? new DbtRpc(featureFinder, this.connection, this.progressReporter, this.fileChangeListener)
+      : new DbtCli(featureFinder);
   }
 
   onUncaughtException(error: Error, _origin: 'uncaughtException' | 'unhandledRejection'): void {
@@ -222,8 +231,8 @@ export class LspServer {
 
   logStartupInfo(contextInfo: DbtProfileInfo, initTime: number): void {
     this.sendTelemetry('log', {
-      dbtVersion: getStringVersion(this.featureFinder.versionInfo?.installedVersion),
-      python: this.featureFinder.python ?? 'undefined',
+      dbtVersion: getStringVersion(this.featureFinder?.versionInfo?.installedVersion),
+      python: this.featureFinder?.python ?? 'undefined',
       initTime: initTime.toString(),
       type: contextInfo.type ?? 'unknown type',
       method: contextInfo.method ?? 'unknown method',
@@ -258,7 +267,7 @@ export class LspServer {
 
     const document = this.openedDocuments.get(params.textDocument.uri);
     if (document) {
-      await document.didSaveTextDocument(() => this.dbt?.refreshServer());
+      await document.didSaveTextDocument(() => this.dbt?.refresh());
     }
   }
 

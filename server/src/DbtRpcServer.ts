@@ -100,7 +100,7 @@ export class DbtRpcServer {
     });
   }
 
-  refreshServer(): void {
+  refresh(): void {
     if (this.rpcPid) {
       process.kill(this.rpcPid, 'SIGHUP');
     }

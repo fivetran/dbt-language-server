@@ -35,8 +35,9 @@ export class FeatureFinder {
 
   private static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
 
-  python?: string;
   versionInfo?: DbtVersionInfo;
+
+  constructor(public python: string | undefined) {}
 
   /** Tries to find a suitable command to start the server first in the current Python environment and then in the global scope.
    * Installs dbt-rpc for dbt version > 1.0.0.
