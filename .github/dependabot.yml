@@ -9,6 +9,8 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+      time: "06:00" #UTC
+
     reviewers:
       - "pgrivachev"
 
@@ -16,6 +18,7 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+      time: "06:00" #UTC
     reviewers:
       - "pgrivachev"
 
@@ -23,6 +26,7 @@ updates:
     directory: "/server"
     schedule:
       interval: "daily"
+      time: "06:00" #UTC
     reviewers:
       - "pgrivachev"
       
@@ -30,6 +34,7 @@ updates:
     directory: "/client"
     schedule:
       interval: "daily"
+      time: "06:00" #UTC
     reviewers:
       - "pgrivachev"
 
@@ -37,6 +42,7 @@ updates:
     directory: "/e2e"
     schedule:
       interval: "daily"
+      time: "06:00" #UTC
     reviewers:
       - "pgrivachev"
 
@@ -44,5 +50,6 @@ updates:
     directory: "/markdown_parser"
     schedule:
       interval: "daily"
+      time: "06:00" #UTC
     reviewers:
       - "pgrivachev"
