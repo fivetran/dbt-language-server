@@ -10,7 +10,6 @@ updates:
     schedule:
       interval: "daily"
       time: "06:00" #UTC
-
     reviewers:
       - "pgrivachev"
 
