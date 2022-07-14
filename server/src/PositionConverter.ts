@@ -48,6 +48,18 @@ export class PositionConverter {
     const secondLines = this.getSecondLines();
 
     const lineInSecond = DiffUtils.getNewNumber(positionInFirst.line, str => DiffUtils.getLinesCount(str), this.getDiffs());
+
+    if (positionInFirst.line >= firstLines.length || positionInFirst.line < 0) {
+      throw new Error(
+        `Invalid sate for 1st lines: ${firstLines.length}, ${this.first.length}, ${positionInFirst.line} ${secondLines.length}, ${this.second.length}, ${positionInFirst.character}`,
+      );
+    }
+    if (lineInSecond >= secondLines.length || lineInSecond < 0) {
+      throw new Error(
+        `Invalid sate for 2nd lines: ${firstLines.length}, ${this.first.length}, ${positionInFirst.line} ${secondLines.length}, ${this.second.length}, ${positionInFirst.character}`,
+      );
+    }
+
     const charInSecond = DiffUtils.getNewCharacter(firstLines[positionInFirst.line], secondLines[lineInSecond], positionInFirst.character);
     return {
       line: lineInSecond,
