@@ -20,8 +20,8 @@ export class DbtCli implements Dbt {
     if (modelName) {
       parameters.push(...['-m', modelName]);
     }
-    const compileCommand = new DbtCommand(parameters, this.featureFinder.python);
-    return DbtCli.DBT_COMMAND_EXECUTOR.execute(compileCommand);
+    const compileCliCommand = new DbtCommand(parameters, this.featureFinder.python);
+    return DbtCli.DBT_COMMAND_EXECUTOR.execute(compileCliCommand);
   }
 
   async prepare(dbtProfileType?: string | undefined): Promise<void> {
