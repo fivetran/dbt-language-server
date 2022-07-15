@@ -2,6 +2,7 @@ import { ChildProcess, ExecException } from 'child_process';
 import * as fs from 'fs';
 import { err, ok, Result } from 'neverthrow';
 import { DbtRepository } from '../DbtRepository';
+import { runWithTimeout } from '../utils/Utils';
 import { DbtCli } from './DbtCli';
 import { DbtCompileJob } from './DbtCompileJob';
 
@@ -18,7 +19,7 @@ export class DbtCliCompileJob extends DbtCompileJob {
     this.process = promise.child;
 
     try {
-      await DbtCliCompileJob.withTimeout(promise, 15000);
+      await runWithTimeout(promise, 15000, 'dbt compile timeout exceeded');
     } catch (e: unknown) {
       if (e instanceof Object && 'stdout' in e) {
         const error = e as ExecException & { stdout?: string; stderr?: string };
@@ -59,14 +60,5 @@ export class DbtCliCompileJob extends DbtCompileJob {
       console.log(`Cannot get compiled sql for ${filePath}`);
       return undefined;
     }
-  }
-
-  private static async withTimeout(promise: Promise<unknown>, ms: number): Promise<void> {
-    const timeoutPromise = new Promise<void>((_resolve, reject) => {
-      setTimeout(() => {
-        reject(new Error('dbt compile timeout exceeded'));
-      }, ms);
-    });
-    await Promise.race([promise, timeoutPromise]);
   }
 }

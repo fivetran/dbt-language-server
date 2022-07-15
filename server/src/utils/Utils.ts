@@ -153,3 +153,12 @@ export function arraysAreEqual(a1: string[], a2: string[]): boolean {
 export function truncateAtBothSides(text: string): string {
   return text.slice(1, -1);
 }
+
+export async function runWithTimeout(promise: Promise<unknown>, ms: number, error: string): Promise<void> {
+  const timeoutPromise = new Promise<void>((_resolve, reject) => {
+    setTimeout(() => {
+      reject(new Error(error));
+    }, ms);
+  });
+  await Promise.race([promise, timeoutPromise]);
+}
