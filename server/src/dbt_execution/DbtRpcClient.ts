@@ -93,9 +93,9 @@ export class DbtRpcClient {
     return this.makePostRequest<StatusResponse>(data);
   }
 
-  async compile(modelName?: string): Promise<CompileResponse | undefined> {
+  async compile(modelPath?: string): Promise<CompileResponse | undefined> {
     const data = this.getDefaultPostData('compile');
-    data.params = { models: modelName };
+    data.params = { models: modelPath };
 
     return this.makePostRequest<CompileResponse>(data);
   }

@@ -24,7 +24,6 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
 import { DbtRepository } from '../DbtRepository';
-import { DbtRpcServer } from '../DbtRpcServer';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
 import { HoverProvider } from '../HoverProvider';
@@ -108,10 +107,12 @@ export class DbtTextDocument {
     this.firstSave = false;
   }
 
-  async didSaveTextDocument(dbtRpcServer?: DbtRpcServer): Promise<void> {
+  async didSaveTextDocument(refreshServer?: () => void): Promise<void> {
     if (this.requireCompileOnSave) {
       this.requireCompileOnSave = false;
-      dbtRpcServer?.refreshServer();
+      if (refreshServer) {
+        refreshServer();
+      }
       this.debouncedCompile();
     } else if (this.currentDbtError) {
       this.onCompilationError(this.currentDbtError);
@@ -322,11 +323,7 @@ export class DbtTextDocument {
       const jinjaPartType = this.jinjaParser.getJinjaPartType(closestJinjaPart.value);
       if ([JinjaPartType.EXPRESSION_START, JinjaPartType.BLOCK_START].includes(jinjaPartType)) {
         const jinjaBeforePositionText = this.rawDocument.getText(Range.create(closestJinjaPart.range.start, completionParams.position));
-        const completions = this.dbtCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText);
-        if (process.env['DBT_LS_ENABLE_DEBUG_LOGS']) {
-          console.log(completions?.map(c => `${c.label}|${c.insertText ?? 'n/a'}|${c.detail ?? 'n/a'}`).join(';'));
-        }
-        return completions;
+        return this.dbtCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText);
       }
     }
 

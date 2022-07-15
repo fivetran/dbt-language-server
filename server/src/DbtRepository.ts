@@ -1,3 +1,4 @@
+import path = require('path');
 import { ManifestMacro, ManifestModel, ManifestSource } from './manifest/ManifestJson';
 
 export class DbtRepository {
@@ -43,6 +44,10 @@ export class DbtRepository {
     this.sources = sources;
 
     this.groupManifestNodes();
+  }
+
+  getModelCompiledPath(model: ManifestModel): string {
+    return path.resolve(this.dbtTargetPath, 'compiled', model.packageName, model.originalFilePath);
   }
 
   private groupManifestNodes(): void {

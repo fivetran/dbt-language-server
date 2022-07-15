@@ -4,11 +4,7 @@ export class ProgressReporter {
   static uris = new Set<string>();
   static token = 'Progress';
 
-  connection: _Connection;
-
-  constructor(connection: _Connection) {
-    this.connection = connection;
-  }
+  constructor(private connection: _Connection) {}
 
   sendStart(uri?: string): void {
     if (uri) {

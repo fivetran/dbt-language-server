@@ -183,7 +183,7 @@ export class ExtensionClient {
         this.progressHandler,
       );
       this.context.subscriptions.push(client);
-      client.initialize();
+      await client.initialize();
 
       void this.progressHandler.begin();
 

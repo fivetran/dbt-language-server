@@ -3,7 +3,7 @@ export abstract class Command {
     private name: string,
     private parameters: string[],
     private pathToPythonMain: string,
-    private python?: string,
+    public python?: string,
     public env?: NodeJS.ProcessEnv,
   ) {}
 

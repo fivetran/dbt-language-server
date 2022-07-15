@@ -22,7 +22,6 @@ import { ColumnDefinition, TableDefinition } from './TableDefinition';
 import { arraysAreEqual, randomNumber } from './utils/Utils';
 import { ZetaSqlParser } from './ZetaSqlParser';
 import findFreePortPmfy = require('find-free-port');
-import path = require('path');
 
 export class ZetaSqlWrapper {
   static readonly PARTITION_TIME = '_PARTITIONTIME';
@@ -31,10 +30,7 @@ export class ZetaSqlWrapper {
   private static readonly MIN_PORT = 1024;
   private static readonly MAX_PORT = 65535;
 
-  private static readonly SUPPORTED_PLATFORMS = ['darwin', 'linux'];
-
   private readonly catalog: SimpleCatalogProto = { name: 'catalog' };
-  private supported = true;
   private languageOptions: LanguageOptions | undefined;
   private registeredTables: TableDefinition[] = [];
   private registeredFunctions: string[][] = [];
@@ -47,19 +43,11 @@ export class ZetaSqlWrapper {
   }
 
   async initializeZetaSql(): Promise<void> {
-    if (ZetaSqlWrapper.SUPPORTED_PLATFORMS.includes(process.platform)) {
-      const port = await findFreePortPmfy(randomNumber(ZetaSqlWrapper.MIN_PORT, ZetaSqlWrapper.MAX_PORT));
-      console.log(`Starting zetasql on port ${port}`);
-      runServer(port).catch(e => console.log(e));
-      ZetaSQLClient.init(port);
-      await this.getClient().testConnection();
-    } else {
-      this.supported = false;
-    }
-  }
-
-  isSupported(): boolean {
-    return this.supported;
+    const port = await findFreePortPmfy(randomNumber(ZetaSqlWrapper.MIN_PORT, ZetaSqlWrapper.MAX_PORT));
+    console.log(`Starting zetasql on port ${port}`);
+    runServer(port).catch(e => console.log(e));
+    ZetaSQLClient.init(port);
+    await this.getClient().testConnection();
   }
 
   isTableRegistered(table: TableDefinition): boolean {
@@ -378,7 +366,7 @@ export class ZetaSqlWrapper {
     if (!model) {
       return undefined;
     }
-    const compiledPath = path.resolve(this.dbtRepository.dbtTargetPath, 'compiled', model.packageName, model.originalFilePath);
+    const compiledPath = this.dbtRepository.getModelCompiledPath(model);
     try {
       return fs.readFileSync(compiledPath, 'utf8');
     } catch (e) {
@@ -422,9 +410,6 @@ export class ZetaSqlWrapper {
   }
 
   async extractTableNamesFromStatement(sqlStatement: string): Promise<ExtractTableNamesFromStatementResponse__Output> {
-    if (!this.isSupported()) {
-      throw new Error('Not supported');
-    }
     const response = await this.getClient().extractTableNamesFromStatement({
       sqlStatement,
       options: (await this.getLanguageOptions())?.serialize(),
@@ -451,8 +436,6 @@ export class ZetaSqlWrapper {
   }
 
   async terminateServer(): Promise<void> {
-    if (this.isSupported()) {
-      await terminateServer();
-    }
+    await terminateServer();
   }
 }

@@ -9,7 +9,7 @@ suite('Should show dbt error and link to it', () => {
   const ORIGINAL_LINE = "from {{ source('new_project', 'users') }} u";
   const LINE_WITH_ERROR = "from {{ source('new_project', 'users') } u";
 
-  const ERROR_IN_CURRENT_FILE = `RPC server failed to compile project, call the "status" method for compile status: Compilation Error in model package_ref (models/package_ref.sql)\n  unexpected '}'\n    line 5\n      from {{ source('new_project', 'users') } u`;
+  const ERROR_IN_CURRENT_FILE = `Compilation Error in model package_ref (models/package_ref.sql)\n  unexpected '}'\n    line 5\n      from {{ source('new_project', 'users') } u`;
   const ERROR_IN_OTHER_FILE = 'Error in other file';
   const MESSAGE_AFTER_LINK = `Compilation Error in model package_ref (models/package_ref.sql)\n  unexpected '}'`;
 

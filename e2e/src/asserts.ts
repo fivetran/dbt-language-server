@@ -66,7 +66,6 @@ export async function assertCompletions(
 ): Promise<void> {
   const actualCompletionList = await triggerCompletion(docUri, position, triggerChar);
 
-  console.log(`actualCompletionList.items.length = ${actualCompletionList.items.length}`);
   assertThat(actualCompletionList.items.length, greaterThanOrEqualTo(expectedCompletionList.length));
   expectedCompletionList.forEach((expectedItem, i) => {
     const actualItem = actualCompletionList.items[i];

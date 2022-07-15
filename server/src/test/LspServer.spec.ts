@@ -13,7 +13,6 @@ import { LspServer } from '../LspServer';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProgressReporter } from '../ProgressReporter';
 import { SqlCompletionProvider } from '../SqlCompletionProvider';
-import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 import { sleep } from './helper';
 
 describe('LspServer', () => {
@@ -25,7 +24,6 @@ describe('LspServer', () => {
   const MORE_THAN_DEBOUNCE = TEST_DEBOUNCE_PERIOD + 1;
 
   let mockModelCompiler: ModelCompiler;
-  let mockZetaSqlWrapper: ZetaSqlWrapper;
   let lspServer: LspServer;
   let spiedLspServer: LspServer;
   let document: DbtTextDocument;
@@ -41,9 +39,6 @@ describe('LspServer', () => {
     when(mockModelCompiler.onCompilationError).thenReturn(new Emitter<string>().event);
     when(mockModelCompiler.onCompilationFinished).thenReturn(new Emitter<string>().event);
     when(mockModelCompiler.onFinishAllCompilationJobs).thenReturn(new Emitter<void>().event);
-
-    mockZetaSqlWrapper = mock(ZetaSqlWrapper);
-    when(mockZetaSqlWrapper.isSupported()).thenReturn(true);
 
     dbtRepository = mock(DbtRepository);
     mockBigQueryContext = mock(BigQueryContext);

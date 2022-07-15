@@ -2,9 +2,9 @@
   "include": ["src"],
   "exclude": ["node_modules"],
   "references": [
-    { "path": "./client" }, 
-    { "path": "./server" }, 
-    { "path": "./markdown_parser" },  
+    { "path": "./client" },
+    { "path": "./server" },
+    { "path": "./markdown_parser" },
     { "path": "./e2e" }
   ]
 }

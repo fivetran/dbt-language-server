@@ -107,7 +107,7 @@
     "build": "tsc -b",
     "build:size": "npm run build && npm run vscode:prepublish",
     "watch": "tsc -b -w",
-    "format": "prettier --write \"client/src/**/*.ts\" \"server/src/**/*.ts\" \"markdown_parser/src/**/*.ts\" \"e2e/src/**/*.ts\"",
+    "format": "prettier --write client/src/**/*.ts server/src/**/*.ts markdown_parser/src/**/*.ts e2e/src/**/*.ts package.json .eslintrc.json ./.vscode/*.json",
     "postinstall": "cd client && npm install && cd ../server && npm install && cd ../markdown_parser && npm install && cd ../e2e && npm install && cd ..",
     "lint": "eslint . --ext .ts",
     "lint-fix": "eslint . --ext .ts --fix",

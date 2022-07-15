@@ -1,10 +1,7 @@
-import * as fs from 'fs';
 import { Emitter, Event } from 'vscode-languageserver';
-import { DbtCompileJob } from './DbtCompileJob';
 import { DbtRepository } from './DbtRepository';
-import { DbtRpcClient } from './DbtRpcClient';
-
-import path = require('path');
+import { Dbt } from './dbt_execution/Dbt';
+import { DbtCompileJob } from './dbt_execution/DbtCompileJob';
 
 export class ModelCompiler {
   private dbtCompileJobQueue: DbtCompileJob[] = [];
@@ -28,33 +25,33 @@ export class ModelCompiler {
     return this.onFinishAllCompilationJobsEmitter.event;
   }
 
-  constructor(private dbtRpcClient: DbtRpcClient, private dbtRepository: DbtRepository) {}
+  constructor(private dbt: Dbt, private dbtRepository: DbtRepository) {}
 
   async compile(modelPath: string): Promise<void> {
     this.compilationInProgress = true;
-    const status = await this.dbtRpcClient.getStatus();
-    if (status?.error?.data?.message) {
-      console.log('dbt rpc status error');
-      this.onCompilationErrorEmitter.fire(status.error.data.message);
+    const status = await this.dbt.getStatus();
+    if (status) {
+      console.log('Status error occurred when compiling model.');
+      this.onCompilationErrorEmitter.fire(status);
       return;
     }
 
     if (this.dbtCompileJobQueue.length > 3) {
       const jobToStop = this.dbtCompileJobQueue.shift();
-      jobToStop?.stop().catch(e => console.log(`Failed to stop job: ${e instanceof Error ? e.message : String(e)}`));
+      jobToStop?.forceStop().catch(e => console.log(`Failed to stop job: ${e instanceof Error ? e.message : String(e)}`));
     }
     this.startNewJob(modelPath);
 
-    await this.pollResults(modelPath);
+    await this.pollResults();
   }
 
   startNewJob(modelPath: string): void {
-    const job = new DbtCompileJob(this.dbtRpcClient, modelPath);
+    const job = this.dbt.createCompileJob(modelPath, this.dbtRepository);
     this.dbtCompileJobQueue.push(job);
     job.start().catch(e => console.log(`Failed to start job: ${e instanceof Error ? e.message : String(e)}`));
   }
 
-  async pollResults(modelPath: string): Promise<void> {
+  async pollResults(): Promise<void> {
     if (this.pollIsRunning) {
       return;
     }
@@ -64,21 +61,18 @@ export class ModelCompiler {
       const { length } = this.dbtCompileJobQueue;
 
       for (let i = length - 1; i >= 0; i--) {
-        const job = this.dbtCompileJobQueue[i];
-        const { result } = job;
+        const result = this.dbtCompileJobQueue[i].getResult();
 
         if (result) {
           const jobsToStop = this.dbtCompileJobQueue.splice(0, i + 1);
           for (let j = 0; j < i; j++) {
-            jobsToStop[j].stop().catch(e => console.log(`Failed to stop job: ${e instanceof Error ? e.message : String(e)}`));
+            jobsToStop[j].forceStop().catch(e => console.log(`Failed to stop job: ${e instanceof Error ? e.message : String(e)}`));
           }
 
           if (result.isErr()) {
             this.onCompilationErrorEmitter.fire(result.error);
           } else {
-            // For some reason rpc server don't return compilation result for models with materialized='ephemeral'
-            const value = result.value === ' ' ? this.fallbackForEphemeralModel(modelPath) : result.value;
-            this.onCompilationFinishedEmitter.fire(value);
+            this.onCompilationFinishedEmitter.fire(result.value);
           }
           break;
         }
@@ -98,28 +92,5 @@ export class ModelCompiler {
     return new Promise(resolve => {
       setTimeout(resolve, ms);
     });
-  }
-
-  fallbackForEphemeralModel(modelPath: string): string {
-    console.log(`Use fallback for ephemeral model ${modelPath}`);
-    try {
-      let pathParts;
-      let resultPath;
-      if (this.dbtRepository.modelPaths.some(m => modelPath.startsWith(m))) {
-        pathParts = modelPath.split(path.sep);
-        if (this.dbtRepository.projectName) {
-          pathParts.splice(0, 0, this.dbtRepository.projectName);
-        }
-        resultPath = path.resolve(this.dbtRepository.dbtTargetPath, 'compiled', ...pathParts);
-      } else {
-        pathParts = modelPath.split('.');
-        pathParts.splice(1, 0, 'models');
-        pathParts[pathParts.length - 1] += '.sql';
-        resultPath = path.resolve('target', 'compiled', ...pathParts);
-      }
-      return fs.readFileSync(`${resultPath}`, 'utf8');
-    } catch (e) {
-      return ' ';
-    }
   }
 }

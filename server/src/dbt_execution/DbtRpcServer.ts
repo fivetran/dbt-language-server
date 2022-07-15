@@ -1,8 +1,8 @@
 import { ExecException } from 'child_process';
+import { deferred } from '../utils/Utils';
+import { Command } from './commands/Command';
+import { DbtCommandExecutor } from './commands/DbtCommandExecutor';
 import { DbtRpcClient } from './DbtRpcClient';
-import { Command } from './dbt_commands/Command';
-import { DbtCommandExecutor } from './dbt_commands/DbtCommandExecutor';
-import { deferred } from './utils/Utils';
 
 export class DbtRpcServer {
   static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
@@ -100,7 +100,7 @@ export class DbtRpcServer {
     });
   }
 
-  refreshServer(): void {
+  refresh(): void {
     if (this.rpcPid) {
       process.kill(this.rpcPid, 'SIGHUP');
     }

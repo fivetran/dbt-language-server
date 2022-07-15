@@ -53,7 +53,7 @@ describe('DbtDocumentKindResolver', () => {
     const packageMacroDocumentUri = 'dbt_packages/package_name/macros/macro.sql';
     const packageModelDocumentUri = 'dbt_packages/package_name/models/model.sql';
 
-    const packageResolveResult = `file://${PROJECT_LOCATION}/dbt_packages/package_name`;
+    const packageResolveResult = `${PROJECT_LOCATION}/dbt_packages/package_name`;
     dbtDocumentKindResolver.resolveDbtPackagePath = (): string | undefined => packageResolveResult;
 
     shouldReturnCorrectDocumentKind(PROJECT_LOCATION, `file://${PROJECT_LOCATION}/${packageMacroDocumentUri}`, DbtDocumentKind.MACRO);

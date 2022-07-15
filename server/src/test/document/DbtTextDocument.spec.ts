@@ -5,7 +5,6 @@ import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentSaveReason, _Connection } from 'vscode-languageserver';
 import { DbtCompletionProvider } from '../../completion/DbtCompletionProvider';
 import { DbtRepository } from '../../DbtRepository';
-import { DbtRpcServer } from '../../DbtRpcServer';
 import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
 import { DbtDocumentKind } from '../../document/DbtDocumentKind';
 import { DbtTextDocument } from '../../document/DbtTextDocument';
@@ -85,6 +84,7 @@ describe('DbtTextDocument', () => {
 
   it('Should compile for first save in Not Auto save mode', async () => {
     // arrange
+    let count = 0;
     when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(true);
 
     // act
@@ -92,17 +92,17 @@ describe('DbtTextDocument', () => {
     await sleepMoreThanDebounceTime();
 
     document.willSaveTextDocument(TextDocumentSaveReason.Manual);
-    const mockRpcServer = mock(DbtRpcServer);
-    await document.didSaveTextDocument(instance(mockRpcServer));
+    await document.didSaveTextDocument(() => count++);
     await sleepMoreThanDebounceTime();
 
     // assert
-    verify(mockRpcServer.refreshServer()).once();
+    assertThat(count, 1);
     verify(mockModelCompiler.compile(anything())).twice();
   });
 
   it('Should not compile for first save in Auto save mode', async () => {
     // arrange
+    let count = 0;
     when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(true);
 
     // act
@@ -110,12 +110,11 @@ describe('DbtTextDocument', () => {
     await sleepMoreThanDebounceTime();
 
     document.willSaveTextDocument(TextDocumentSaveReason.AfterDelay);
-    const mockRpcServer = mock(DbtRpcServer);
-    await document.didSaveTextDocument(instance(mockRpcServer));
+    await document.didSaveTextDocument(() => count++);
     await sleepMoreThanDebounceTime();
 
     // assert
-    verify(mockRpcServer.refreshServer()).never();
+    assertThat(count, 0);
     verify(mockModelCompiler.compile(anything())).once();
   });
 

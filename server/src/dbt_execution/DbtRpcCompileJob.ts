@@ -1,8 +1,11 @@
+import * as fs from 'fs';
 import { err, ok, Result } from 'neverthrow';
+import { DbtRepository } from '../DbtRepository';
+import { DbtCompileJob } from './DbtCompileJob';
 import { CompileResponse, DbtRpcClient, PollResponse } from './DbtRpcClient';
 import retry = require('async-retry');
 
-export class DbtCompileJob {
+export class DbtRpcCompileJob extends DbtCompileJob {
   static readonly UNKNOWN_ERROR = 'Unknown dbt-rpc error';
   static readonly STOP_ERROR = 'Job was stopped';
   static readonly NETWORK_ERROR = 'Network error';
@@ -19,7 +22,9 @@ export class DbtCompileJob {
 
   result?: Result<string, string>;
 
-  constructor(private dbtRpcClient: DbtRpcClient, private modelName: string) {}
+  constructor(modelPath: string, dbtRepository: DbtRepository, private dbtRpcClient: DbtRpcClient) {
+    super(modelPath, dbtRepository);
+  }
 
   async start(): Promise<void> {
     const pollTokenResult = await this.getPollToken();
@@ -33,29 +38,33 @@ export class DbtCompileJob {
     this.result = await this.getPollResponse(pollTokenResult.value);
   }
 
+  getResult(): Result<string, string> | undefined {
+    return this.result;
+  }
+
   async getPollToken(): Promise<Result<string, string>> {
     try {
       const startCompileResponse = await retry(
         async bail => {
           // Here dbt-rpc can be in compilation state after HUP signal and return an error
-          const compileResponseAttempt = await this.dbtRpcClient.compile(this.modelName);
+          const compileResponseAttempt = await this.dbtRpcClient.compile(this.modelPath);
 
           if (this.stopRequired) {
-            bail(new Error(DbtCompileJob.STOP_ERROR));
+            bail(new Error(DbtRpcCompileJob.STOP_ERROR));
             return {} as unknown as CompileResponse; // We should explicitly return from here to avoid unnecessary retries: https://github.com/vercel/async-retry/issues/69
           }
 
           if (!compileResponseAttempt || compileResponseAttempt.error) {
-            throw new Error(compileResponseAttempt?.error?.data?.message ?? DbtCompileJob.NETWORK_ERROR);
+            throw new Error(compileResponseAttempt?.error?.data?.message ?? DbtRpcCompileJob.NETWORK_ERROR);
           }
           return compileResponseAttempt;
         },
-        { factor: 1, retries: DbtCompileJob.COMPILE_MODEL_MAX_RETRIES, minTimeout: DbtCompileJob.COMPILE_MODEL_TIMEOUT_MS },
+        { factor: 1, retries: DbtRpcCompileJob.COMPILE_MODEL_MAX_RETRIES, minTimeout: DbtRpcCompileJob.COMPILE_MODEL_TIMEOUT_MS },
       );
 
       return ok(startCompileResponse.result.request_token);
     } catch (e) {
-      return err(e instanceof Error ? e.message : JSON.stringify(e));
+      return err(e instanceof Error ? this.extractDbtError(e.message) : JSON.stringify(e));
     }
   }
 
@@ -67,18 +76,18 @@ export class DbtCompileJob {
           const pollAttempt = await this.dbtRpcClient.pollOnceCompileResult(pollRequestToken);
 
           if (this.stopRequired) {
-            bail(new Error(DbtCompileJob.STOP_ERROR));
+            bail(new Error(DbtRpcCompileJob.STOP_ERROR));
             return {} as unknown as PollResponse; // We should explicitly return from here to avoid unnecessary retries: https://github.com/vercel/async-retry/issues/69
           }
 
           const connectionError = !pollAttempt;
           if (connectionError) {
             connectionRetries++;
-            if (connectionRetries > DbtCompileJob.MAX_RETRIES_FOR_UNKNOWN_ERROR) {
-              bail(new Error(DbtCompileJob.NETWORK_ERROR));
+            if (connectionRetries > DbtRpcCompileJob.MAX_RETRIES_FOR_UNKNOWN_ERROR) {
+              bail(new Error(DbtRpcCompileJob.NETWORK_ERROR));
               return {} as unknown as PollResponse; // We should explicitly return from here to avoid unnecessary retries: https://github.com/vercel/async-retry/issues/69
             }
-            throw new Error(DbtCompileJob.NETWORK_ERROR);
+            throw new Error(DbtRpcCompileJob.NETWORK_ERROR);
           }
 
           const stillRunning = !pollAttempt.error && pollAttempt.result.state === 'running';
@@ -88,32 +97,33 @@ export class DbtCompileJob {
 
           return pollAttempt;
         },
-        { factor: 1, retries: DbtCompileJob.POLL_MAX_RETRIES, minTimeout: DbtCompileJob.POLL_TIMEOUT_MS },
+        { factor: 1, retries: DbtRpcCompileJob.POLL_MAX_RETRIES, minTimeout: DbtRpcCompileJob.POLL_TIMEOUT_MS },
       );
 
       if (pollResponse.error) {
-        return err(pollResponse.error.data?.message ?? 'Compilation error');
+        return err(pollResponse.error.data?.message ? this.extractDbtError(pollResponse.error.data.message) : 'Compilation error');
       }
 
-      const compiledSql = this.getCompiledSql(pollResponse);
+      const compiledSql = await this.getCompiledSql(pollResponse);
       return compiledSql === undefined ? err("Couldn't find compiled sql") : ok(compiledSql);
     } catch (e) {
       return err(e instanceof Error ? e.message : JSON.stringify(e));
     }
   }
 
-  getCompiledSql(pollResponse: PollResponse): string | undefined {
+  async getCompiledSql(pollResponse: PollResponse): Promise<string | undefined> {
     const compiledNodes = pollResponse.result.results;
     if (compiledNodes && compiledNodes.length > 0) {
       return compiledNodes[0].node.compiled_sql;
     }
     if (pollResponse.result.state === 'success') {
-      return ' ';
+      // For some reason rpc server don't return compilation result for models with materialized='ephemeral'
+      return this.fallbackForEphemeralModel();
     }
     return undefined;
   }
 
-  async stop(): Promise<void> {
+  async forceStop(): Promise<void> {
     this.stopRequired = true;
     await this.kill();
   }
@@ -121,6 +131,16 @@ export class DbtCompileJob {
   private async kill(): Promise<void> {
     if (this.pollRequestToken) {
       await this.dbtRpcClient.kill(this.pollRequestToken);
+    }
+  }
+
+  private async fallbackForEphemeralModel(): Promise<string> {
+    console.log(`Use fallback for ephemeral model ${this.modelPath}`);
+    try {
+      const resultPath = await this.findCompiledFilePath();
+      return fs.readFileSync(`${resultPath}`, 'utf8');
+    } catch (e) {
+      return ' ';
     }
   }
 }

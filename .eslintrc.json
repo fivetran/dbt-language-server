@@ -4,9 +4,20 @@
   "parserOptions": {
     "ecmaVersion": "es2021",
     "sourceType": "module",
-    "project": ["./server/tsconfig.json", "./client/tsconfig.json", "./e2e/tsconfig.json", "./markdown_parser/tsconfig.json"]
+    "project": [
+      "./server/tsconfig.json",
+      "./client/tsconfig.json",
+      "./e2e/tsconfig.json",
+      "./markdown_parser/tsconfig.json"
+    ]
   },
-  "plugins": ["@typescript-eslint", "sonarjs", "prettier", "promise", "eslint-plugin-unicorn"],
+  "plugins": [
+    "@typescript-eslint",
+    "sonarjs",
+    "prettier",
+    "promise",
+    "eslint-plugin-unicorn"
+  ],
 
   "extends": [
     "eslint:recommended",
@@ -17,7 +28,7 @@
     "plugin:promise/recommended"
   ],
   "rules": {
-    "no-param-reassign":["error"],
+    "no-param-reassign": ["error"],
     "prefer-template": ["error"],
     "no-restricted-syntax": [
       "error",
@@ -48,14 +59,26 @@
 
     "@typescript-eslint/no-shadow": ["error"],
     "@typescript-eslint/explicit-function-return-type": ["error"],
-    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { "argsIgnorePattern": "^_" }
+    ],
     "@typescript-eslint/return-await": ["error"],
     "@typescript-eslint/no-useless-constructor": ["error"],
-    "@typescript-eslint/consistent-type-assertions": ["error", { "assertionStyle": "as", "objectLiteralTypeAssertions": "never" }],
+    "@typescript-eslint/consistent-type-assertions": [
+      "error",
+      { "assertionStyle": "as", "objectLiteralTypeAssertions": "never" }
+    ],
     "@typescript-eslint/no-unnecessary-condition": ["error"],
     "@typescript-eslint/no-unsafe-return": ["error"],
-    "@typescript-eslint/no-floating-promises": ["error", { "ignoreVoid": false }],
-    "@typescript-eslint/no-misused-promises": ["error", { "checksVoidReturn": false } ],
+    "@typescript-eslint/no-floating-promises": [
+      "error",
+      { "ignoreVoid": false }
+    ],
+    "@typescript-eslint/no-misused-promises": [
+      "error",
+      { "checksVoidReturn": false }
+    ],
     "@typescript-eslint/no-explicit-any": ["error"],
     "@typescript-eslint/no-unsafe-assignment": ["error"],
     "@typescript-eslint/no-unsafe-argument": ["error"],
@@ -67,7 +90,7 @@
 
     "unicorn/no-useless-promise-resolve-reject": ["error"],
     "unicorn/no-for-loop": ["error"],
-    
+
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 
     "prettier/prettier": ["error"]
