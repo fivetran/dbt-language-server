@@ -112,7 +112,7 @@
     "lint": "eslint . --ext .ts",
     "lint-fix": "eslint . --ext .ts --fix",
     "test": "mocha",
-    "clean": "rm -rf client/out && rm -rf server/out && rm -rf e2e/out",
+    "clean": "rm -rf client/out server/out e2e/out",
     "clean-node-modules": "rm -rf node_modules && rm -rf client/node_modules && rm -rf server/node_modules",
     "clean-install": "npm run clean && npm run clean-node-modules && npm ci",
     "prepare-zetasql": "cp -R ./server/node_modules/@fivetrandevelopers/zetasql/lib/protos/ ./server/out/protos/ && cp -R ./server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql/ ./server/out/zetasql/",

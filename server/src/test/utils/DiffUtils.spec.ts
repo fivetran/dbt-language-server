@@ -155,7 +155,7 @@ describe('DiffUtils', () => {
   function getFilesContent(fileName: string): content {
     let fileContent = FILES.get(fileName);
     if (!fileContent) {
-      const filesRootPath = `${__dirname}/../../../src/test/diff/`;
+      const filesRootPath = './server/src/test/diff/';
       const raw = fs.readFileSync(`${filesRootPath}raw/${fileName}.sql`, 'utf8');
       const compiled = fs.readFileSync(`${filesRootPath}compiled/${fileName}.sql`, 'utf8');
       fileContent = { raw, compiled };

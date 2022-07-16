@@ -10,7 +10,7 @@ describe('ZetaSqlAst', () => {
   function getAst(fileName: string): AnalyzeResponse {
     let ast = AST.get(fileName);
     if (!ast) {
-      const data = fs.readFileSync(`${__dirname}/../../src/test/ast/${fileName}.json`, 'utf8');
+      const data = fs.readFileSync(`./server/src/test/ast/${fileName}.json`, 'utf8');
       ast = JSON.parse(data) as AnalyzeResponse;
       AST.set(fileName, ast);
     }

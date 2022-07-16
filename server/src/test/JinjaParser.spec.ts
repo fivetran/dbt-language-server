@@ -120,7 +120,7 @@ describe('JinjaParser', () => {
   }
 
   function findAllJinjaRangesInFile(fileName: string): Range[] | undefined {
-    const doc = TextDocument.create('uri', 'id', 1, fs.readFileSync(`${__dirname}/../../src/test/sql_files/${fileName}.sql`, 'utf8'));
+    const doc = TextDocument.create('uri', 'id', 1, fs.readFileSync(`./server/src/test/sql_files/${fileName}.sql`, 'utf8'));
     return JINJA_PARSER.findAllJinjaRanges(doc);
   }
 });

@@ -13,7 +13,7 @@ describe('SourceDefinitionProvider', () => {
   let sourceDefinitionLines: string[];
 
   before(() => {
-    const sourceDefinitionFileContent = fs.readFileSync(`${__dirname}/../../../src/test/yml_files/${SOURCE_FILE_NAME}`, 'utf8');
+    const sourceDefinitionFileContent = fs.readFileSync(`./server/src/test/yml_files/${SOURCE_FILE_NAME}`, 'utf8');
     sourceDefinitionLines = sourceDefinitionFileContent.split('\n');
   });
 

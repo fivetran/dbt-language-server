@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import { PythonInfo } from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
 import { performance } from 'perf_hooks';
 import {
@@ -61,7 +62,7 @@ interface TelemetryEvent {
 }
 
 interface CustomInitParams {
-  python?: string;
+  pythonInfo?: PythonInfo;
 }
 
 export class LspServer {
@@ -126,7 +127,7 @@ export class LspServer {
 
     this.initializeNotifications();
 
-    this.featureFinder = new FeatureFinder((params.initializationOptions as CustomInitParams).python);
+    this.featureFinder = new FeatureFinder((params.initializationOptions as CustomInitParams).pythonInfo);
     this.dbt = this.createDbt(dbtMode, this.featureFinder);
 
     const { capabilities } = params;
@@ -232,7 +233,8 @@ export class LspServer {
   logStartupInfo(contextInfo: DbtProfileInfo, initTime: number): void {
     this.sendTelemetry('log', {
       dbtVersion: getStringVersion(this.featureFinder?.versionInfo?.installedVersion),
-      python: this.featureFinder?.python ?? 'undefined',
+      pythonPath: this.featureFinder?.pythonInfo?.path ?? 'undefined',
+      pythonVersion: this.featureFinder?.pythonInfo?.version?.join('.') ?? 'undefined',
       initTime: initTime.toString(),
       type: contextInfo.type ?? 'unknown type',
       method: contextInfo.method ?? 'unknown method',

@@ -20,13 +20,13 @@ export class DbtCli implements Dbt {
     if (modelName) {
       parameters.push(...['-m', modelName]);
     }
-    const compileCliCommand = new DbtCommand(parameters, this.featureFinder.python);
+    const compileCliCommand = new DbtCommand(parameters, this.featureFinder.getPythonPath());
     return DbtCli.DBT_COMMAND_EXECUTOR.execute(compileCliCommand);
   }
 
   async prepare(dbtProfileType?: string | undefined): Promise<void> {
     if (await this.featureFinder.findGlobalDbtCommand(dbtProfileType)) {
-      this.featureFinder.python = undefined;
+      this.featureFinder.pythonInfo = undefined;
     }
 
     this.compile().catch(e => {

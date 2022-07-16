@@ -1,0 +1,7 @@
+{
+  "name": "dbt-language-server-common",
+  "license": "MIT",
+  "version": "0.0.1",
+  "main": "out/index.js",
+  "types": "out/index.d.ts"
+}

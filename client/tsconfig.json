@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
+    "baseUrl": "src",
     "module": "commonjs",
     "target": "es2021",
     "lib": ["es2021"],
     "outDir": "out",
-    "rootDir": "src",
     "moduleResolution": "node",
     "allowUnreachableCode": false,
     "noFallthroughCasesInSwitch": true,
@@ -15,6 +15,5 @@
     "sourceMap": true,
     "strict": true,
   },
-  "include": ["src/**/*"],
   "exclude": ["node_modules"]
 }
