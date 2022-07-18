@@ -56,6 +56,8 @@ export class DbtTextDocument {
   compiledDocument: TextDocument;
   requireCompileOnSave: boolean;
 
+  requireDiagnosticsUpdate = false;
+
   ast?: AnalyzeResponse;
   signatureHelpProvider = new SignatureHelpProvider();
   diagnosticGenerator: DiagnosticGenerator;
@@ -80,6 +82,8 @@ export class DbtTextDocument {
     private jinjaParser: JinjaParser,
     private onGlobalDbtErrorFixedEmitter: Emitter<void>,
     private dbtRepository: DbtRepository,
+    private onContextInitializedEmitter: Emitter<void>,
+    private isContextInitialized: boolean,
     private bigQueryContext?: BigQueryContext,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -91,6 +95,7 @@ export class DbtTextDocument {
     this.modelCompiler.onCompilationFinished(this.onCompilationFinished.bind(this));
     this.modelCompiler.onFinishAllCompilationJobs(this.onFinishAllCompilationTasks.bind(this));
     this.onGlobalDbtErrorFixedEmitter.event(this.onDbtErrorFixed.bind(this));
+    this.onContextInitializedEmitter.event(this.onContextInitialized.bind(this));
   }
 
   willSaveTextDocument(reason: TextDocumentSaveReason): void {
@@ -238,13 +243,30 @@ export class DbtTextDocument {
     }
 
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
-    [this.rawDocDiagnostics, this.compiledDocDiagnostics] = await this.createDiagnostics(compiledSql);
     this.sendUpdateQueryPreview();
-    this.sendDiagnostics();
+
+    if (this.isContextInitialized) {
+      await this.updateDiagnostics(compiledSql);
+    } else {
+      this.requireDiagnosticsUpdate = true;
+    }
 
     if (!this.modelCompiler.compilationInProgress) {
       this.progressReporter.sendFinish(this.rawDocument.uri);
     }
+  }
+
+  async onContextInitialized(): Promise<void> {
+    this.isContextInitialized = true;
+    if (this.requireDiagnosticsUpdate) {
+      this.requireDiagnosticsUpdate = false;
+      await this.updateDiagnostics();
+    }
+  }
+
+  async updateDiagnostics(compiledSql?: string): Promise<void> {
+    [this.rawDocDiagnostics, this.compiledDocDiagnostics] = await this.createDiagnostics(compiledSql ?? this.compiledDocument.getText());
+    this.sendDiagnostics();
   }
 
   async createDiagnostics(compiledSql: string): Promise<[Diagnostic[], Diagnostic[]]> {

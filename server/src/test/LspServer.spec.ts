@@ -56,6 +56,8 @@ describe('LspServer', () => {
       mock(JinjaParser),
       new Emitter<void>(),
       dbtRepository,
+      new Emitter<void>(),
+      true,
       mockBigQueryContext,
     );
     lspServer.openedDocuments.set(OPENED_URI, document);

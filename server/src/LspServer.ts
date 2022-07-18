@@ -80,6 +80,8 @@ export class LspServer {
 
   bigQueryContext?: BigQueryContext;
   contextInitializedDeferred = deferred<void>();
+  isContextInitialized = false;
+  onContextInitializedEmitter = new Emitter<void>();
 
   openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
 
@@ -94,6 +96,11 @@ export class LspServer {
     this.sqlCompletionProvider = new SqlCompletionProvider();
     this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);
     this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
+
+    // eslint-disable-next-line promise/catch-or-return
+    this.contextInitializedDeferred.promise.finally(() => {
+      this.isContextInitialized = true;
+    });
   }
 
   onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> {
@@ -203,6 +210,7 @@ export class LspServer {
     const dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
 
     await Promise.all([this.dbt?.prepare(dbtProfileType), this.prepareDestination(profileResult)]);
+
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime);
   }
@@ -326,6 +334,8 @@ export class LspServer {
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,
         this.dbtRepository,
+        this.onContextInitializedEmitter,
+        this.isContextInitialized,
         this.bigQueryContext,
       );
       this.openedDocuments.set(uri, document);
@@ -346,7 +356,7 @@ export class LspServer {
 
   async isLanguageServerReady(): Promise<boolean> {
     try {
-      await Promise.all([this.dbt?.isReady(), this.contextInitializedDeferred.promise]);
+      await this.dbt?.isReady();
       return true;
     } catch (e) {
       return false;

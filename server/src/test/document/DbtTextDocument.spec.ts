@@ -53,6 +53,8 @@ describe('DbtTextDocument', () => {
       instance(mockJinjaParser),
       onGlobalDbtErrorFixedEmitter,
       new DbtRepository(),
+      new Emitter<void>(),
+      true,
       undefined,
     );
   });
