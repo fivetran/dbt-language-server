@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { PythonInfo } from 'dbt-language-server-common';
+import { deferred, PythonInfo, TelemetryEvent } from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
 import { performance } from 'perf_hooks';
 import {
@@ -54,12 +54,6 @@ import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
-import { deferred } from './utils/Utils';
-
-interface TelemetryEvent {
-  name: string;
-  properties?: { [key: string]: string };
-}
 
 interface CustomInitParams {
   pythonInfo?: PythonInfo;

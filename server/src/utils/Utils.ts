@@ -96,28 +96,6 @@ export function positionInRange(position: Position, range: Range): boolean {
   return comparePositions(range.start, position) <= 0 && comparePositions(range.end, position) >= 0;
 }
 
-export interface DeferredResult<T> {
-  resolve: (value: T | PromiseLike<T>) => void;
-  reject: (reason?: unknown) => void;
-  promise: Promise<T>;
-}
-
-export const deferred = <T>(): DeferredResult<T> => {
-  let resolveFunc!: (value: T | PromiseLike<T>) => void;
-  let rejectFunc!: (reason?: unknown) => void;
-
-  const promise = new Promise<T>((resolve, reject) => {
-    resolveFunc = resolve;
-    rejectFunc = reject;
-  });
-
-  return {
-    resolve: resolveFunc,
-    reject: rejectFunc,
-    promise,
-  };
-};
-
 // min and max included
 export function randomNumber(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1) + min);
