@@ -1,33 +1,32 @@
 {
-    "folders": [
-      {
-        "path": "completion-jinja"
-      },
-      {
-        "path": "test-fixture"
-      },
-      {
-        "path": "two-projects"
-      },
-      {
-        "path": "without-projects"
-      },
-      {
-        "path": "special-python-settings"
-      },
-      {
-        "path": "postgres"
-      },
-      {
-        "path": "project-with-packages"
-      }
-    ],
-    "settings": {
-      "files.associations": {
-          "**/models/jinja_sql.sql": "jinja-sql"
-      },
-      
-      "files.autoSave": "afterDelay"
+  "folders": [
+    {
+      "path": "completion-jinja"
+    },
+    {
+      "path": "test-fixture"
+    },
+    {
+      "path": "two-projects"
+    },
+    {
+      "path": "without-projects"
+    },
+    {
+      "path": "special-python-settings"
+    },
+    {
+      "path": "postgres"
+    },
+    {
+      "path": "project-with-packages"
     }
+  ],
+  "settings": {
+    "files.associations": {
+      "**/models/jinja_sql.sql": "jinja-sql"
+    },
+
+    "files.autoSave": "afterDelay"
   }
-  
+}
