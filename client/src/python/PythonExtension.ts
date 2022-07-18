@@ -1,18 +1,9 @@
-import { extensions, Uri, WorkspaceFolder } from 'vscode';
-
-// See https://github.com/microsoft/vscode-python/blob/3698950c97982f31bb9dbfc19c4cd8308acda284/src/client/api.ts#L22
-interface IExtensionApi {
-  settings: {
-    getExecutionDetails(resource?: Resource): {
-      execCommand: string[] | undefined;
-    };
-  };
-}
-
-type Resource = Uri | undefined;
+import { PythonInfo } from 'dbt-language-server-common';
+import { extensions, WorkspaceFolder } from 'vscode';
+import { IExtensionApi, IProposedExtensionAPI } from './PythonApi';
 
 export class PythonExtension {
-  async getPython(workspaceFolder?: WorkspaceFolder): Promise<string | undefined> {
+  async getPythonInfo(workspaceFolder?: WorkspaceFolder): Promise<PythonInfo | undefined> {
     const extension = extensions.getExtension('ms-python.python');
     if (!extension) {
       return this.pythonNotFound();
@@ -22,7 +13,9 @@ export class PythonExtension {
       await extension.activate();
     }
 
-    const details = (extension.exports as IExtensionApi).settings.getExecutionDetails(workspaceFolder?.uri);
+    const api = extension.exports as IExtensionApi & IProposedExtensionAPI;
+
+    const details = api.settings.getExecutionDetails(workspaceFolder?.uri);
     if (!details.execCommand) {
       return this.pythonNotFound();
     }
@@ -33,7 +26,10 @@ export class PythonExtension {
       return this.pythonNotFound();
     }
     console.log(`Python path used: ${path}`);
-    return path;
+
+    const envDetails = await api.environment.getEnvironmentDetails(path);
+
+    return { path, version: envDetails?.version };
   }
 
   pythonNotFound(): undefined {

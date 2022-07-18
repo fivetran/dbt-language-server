@@ -44,8 +44,8 @@ export class DbtRpc implements Dbt {
 
     if (command === undefined) {
       try {
-        if (dbtProfileType && this.featureFinder.python) {
-          await this.suggestToInstallDbt(this.featureFinder.python, dbtProfileType);
+        if (dbtProfileType && this.featureFinder.pythonInfo) {
+          await this.suggestToInstallDbt(this.featureFinder.pythonInfo.path, dbtProfileType);
         } else {
           this.onRpcServerFindFailed();
         }
@@ -53,7 +53,9 @@ export class DbtRpc implements Dbt {
         this.onRpcServerFindFailed();
       }
     } else {
-      this.featureFinder.python = command.python;
+      if (!command.python) {
+        this.featureFinder.pythonInfo = undefined;
+      }
       command.addParameter(dbtPort.toString());
       try {
         await this.startDbtRpc(command, dbtPort);

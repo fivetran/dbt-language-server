@@ -1,7 +1,7 @@
 {
   "include": ["src"],
-  "exclude": ["node_modules"],
   "references": [
+    { "path": "./common" },
     { "path": "./client" },
     { "path": "./server" },
     { "path": "./markdown_parser" },

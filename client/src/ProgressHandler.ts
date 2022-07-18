@@ -1,6 +1,6 @@
+import { deferred, DeferredResult } from 'dbt-language-server-common';
 import { ProgressLocation, window } from 'vscode';
 import { WorkDoneProgressBegin, WorkDoneProgressEnd, WorkDoneProgressReport } from 'vscode-languageserver-protocol';
-import { deferred, DeferredResult } from './Utils';
 
 export class ProgressHandler {
   progressDeferred?: DeferredResult<void>;

@@ -5,6 +5,7 @@
     "ecmaVersion": "es2021",
     "sourceType": "module",
     "project": [
+      "./common/tsconfig.json",
       "./server/tsconfig.json",
       "./client/tsconfig.json",
       "./e2e/tsconfig.json",

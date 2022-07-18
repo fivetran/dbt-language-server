@@ -10,7 +10,7 @@ import { DbtProfileCreator } from '../DbtProfileCreator';
 import { DbtProject } from '../DbtProject';
 import { JinjaPartType } from '../JinjaParser';
 
-const PROFILES_PATH = path.resolve(__dirname, '../../src/test/profiles');
+const PROFILES_PATH = path.resolve('./server/src/test/profiles');
 
 export const BIG_QUERY_CONFIG = 'bigquery.yml';
 export const OTHERS_CONFIG = 'others.yml';

@@ -1,5 +1,5 @@
 import { ExecException } from 'child_process';
-import { deferred } from '../utils/Utils';
+import { deferred } from 'dbt-language-server-common';
 import { Command } from './commands/Command';
 import { DbtCommandExecutor } from './commands/DbtCommandExecutor';
 import { DbtRpcClient } from './DbtRpcClient';

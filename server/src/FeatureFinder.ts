@@ -1,3 +1,4 @@
+import { PythonInfo } from 'dbt-language-server-common';
 import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
 import { DbtVersionInfo, getStringVersion, Version } from './DbtVersion';
 import { Command } from './dbt_execution/commands/Command';
@@ -37,7 +38,11 @@ export class FeatureFinder {
 
   versionInfo?: DbtVersionInfo;
 
-  constructor(public python: string | undefined) {}
+  constructor(public pythonInfo: PythonInfo | undefined) {}
+
+  getPythonPath(): string | undefined {
+    return this.pythonInfo?.path;
+  }
 
   /** Tries to find a suitable command to start the server first in the current Python environment and then in the global scope.
    * Installs dbt-rpc for dbt version > 1.0.0.
@@ -63,13 +68,13 @@ export class FeatureFinder {
 
     if (dbtRpcPythonVersion?.installedVersion && dbtRpcPythonVersion.installedAdapter) {
       this.versionInfo = dbtRpcPythonVersion;
-      return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS, this.python);
+      return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS, this.pythonInfo?.path);
     }
     if (dbtPythonVersion?.installedVersion) {
       this.versionInfo = dbtPythonVersion;
       return dbtPythonVersion.installedVersion.major >= 1
         ? this.installAndFindCommandForV1(dbtProfileType)
-        : new DbtCommand(FeatureFinder.LEGACY_DBT_PARAMS, this.python);
+        : new DbtCommand(FeatureFinder.LEGACY_DBT_PARAMS, this.pythonInfo?.path);
     }
     if (dbtRpcGlobalVersion?.installedVersion && dbtRpcGlobalVersion.installedAdapter) {
       this.versionInfo = dbtRpcGlobalVersion;
@@ -106,10 +111,10 @@ export class FeatureFinder {
   }
 
   private async installAndFindCommandForV1(dbtProfileType?: string): Promise<Command | undefined> {
-    if (this.python) {
-      const installResult = await DbtUtilitiesInstaller.installLatestDbtRpc(this.python, dbtProfileType);
+    if (this.pythonInfo) {
+      const installResult = await DbtUtilitiesInstaller.installLatestDbtRpc(this.pythonInfo.path, dbtProfileType);
       if (installResult.isOk()) {
-        return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS, this.python);
+        return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS, this.pythonInfo.path);
       }
     }
     return undefined;
@@ -120,11 +125,11 @@ export class FeatureFinder {
   }
 
   private async findDbtRpcPythonVersion(dbtProfileType?: string): Promise<DbtVersionInfo | undefined> {
-    return this.findCommandPythonVersion(new DbtRpcCommand([FeatureFinder.VERSION_PARAM], this.python), dbtProfileType);
+    return this.findCommandPythonVersion(new DbtRpcCommand([FeatureFinder.VERSION_PARAM], this.pythonInfo?.path), dbtProfileType);
   }
 
   private async findDbtPythonVersion(dbtProfileType?: string): Promise<DbtVersionInfo | undefined> {
-    return this.findCommandPythonVersion(new DbtCommand([FeatureFinder.VERSION_PARAM], this.python), dbtProfileType);
+    return this.findCommandPythonVersion(new DbtCommand([FeatureFinder.VERSION_PARAM], this.pythonInfo?.path), dbtProfileType);
   }
 
   private async findDbtGlobalVersion(dbtProfileType?: string): Promise<DbtVersionInfo | undefined> {

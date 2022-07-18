@@ -1,15 +1,11 @@
+import { TelemetryEvent } from 'dbt-language-server-common';
 import { Diagnostic, Disposable, OutputChannel, Uri, workspace, WorkspaceFolder } from 'vscode';
 import { LanguageClient, LanguageClientOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { SUPPORTED_LANG_IDS } from './ExtensionClient';
 import { ProgressHandler } from './ProgressHandler';
-import { PythonExtension } from './PythonExtension';
+import { PythonExtension } from './python/PythonExtension';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 import { TelemetryClient } from './TelemetryClient';
-
-interface TelemetryEvent {
-  name: string;
-  properties?: { [key: string]: string };
-}
 
 export class DbtLanguageClient implements Disposable {
   client: LanguageClient;
@@ -75,7 +71,7 @@ export class DbtLanguageClient implements Disposable {
     });
 
     this.client.clientOptions.initializationOptions = {
-      python: await new PythonExtension().getPython(this.client.clientOptions.workspaceFolder),
+      pythonInfo: await new PythonExtension().getPythonInfo(this.client.clientOptions.workspaceFolder),
     };
   }
 
