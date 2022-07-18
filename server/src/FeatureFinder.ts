@@ -148,6 +148,12 @@ export class FeatureFinder {
 
   private async findCommandVersion(command: Command, dbtProfileType?: string): Promise<DbtVersionInfo> {
     const { stdout, stderr } = await FeatureFinder.DBT_COMMAND_EXECUTOR.execute(command);
+    console.log('------');
+    console.log(command.toString());
+    console.log(dbtProfileType);
+    console.log(stdout);
+    console.log(stderr);
+    console.log('------');
 
     const installedVersion = FeatureFinder.readInstalledVersion(stderr) ?? FeatureFinder.readInstalledVersion(stdout);
     const latestVersion = FeatureFinder.readLatestVersion(stderr) ?? FeatureFinder.readLatestVersion(stdout);
