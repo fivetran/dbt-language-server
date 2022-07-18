@@ -59,6 +59,10 @@ interface CustomInitParams {
   pythonInfo?: PythonInfo;
 }
 
+export enum LogLevel {
+  Debug = '__LogLevelDebug',
+}
+
 export class LspServer {
   static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
   private static readonly ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
@@ -104,7 +108,14 @@ export class LspServer {
 
     const old = console.log;
     console.log = (...args): void => {
-      Array.prototype.unshift.call(args, `${id} ${new Date().toISOString()}: `);
+      const count = Array.prototype.unshift.call(args, `${id} ${new Date().toISOString()}: `);
+      if (count >= 3 && args[2] === LogLevel.Debug) {
+        if (process.env['DBT_LS_ENABLE_DEBUG_LOGS'] === 'true') {
+          args.splice(2, 1);
+        } else {
+          return;
+        }
+      }
       old.apply(console, args);
     };
   }
