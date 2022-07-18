@@ -50,6 +50,7 @@ import { DbtTextDocument } from './document/DbtTextDocument';
 import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
 import { JinjaParser } from './JinjaParser';
+import { Logger } from './Logger';
 import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
@@ -57,10 +58,6 @@ import { SqlCompletionProvider } from './SqlCompletionProvider';
 
 interface CustomInitParams {
   pythonInfo?: PythonInfo;
-}
-
-export enum LogLevel {
-  Debug = '__LogLevelDebug',
 }
 
 export class LspServer {
@@ -92,7 +89,7 @@ export class LspServer {
 
   constructor(private connection: _Connection) {
     this.workspaceFolder = process.cwd();
-    LspServer.prepareLogger(this.workspaceFolder);
+    Logger.prepareLogger(this.workspaceFolder);
     const dbtProject = new DbtProject('.');
 
     this.progressReporter = new ProgressReporter(this.connection);
@@ -101,23 +98,6 @@ export class LspServer {
     this.sqlCompletionProvider = new SqlCompletionProvider();
     this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);
     this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
-  }
-
-  static prepareLogger(workspaceFolder: string): void {
-    const id = workspaceFolder.substring(workspaceFolder.lastIndexOf('/') + 1);
-
-    const old = console.log;
-    console.log = (...args): void => {
-      const count = Array.prototype.unshift.call(args, `${id} ${new Date().toISOString()}: `);
-      if (count >= 3 && args[2] === LogLevel.Debug) {
-        if (process.env['DBT_LS_ENABLE_DEBUG_LOGS'] === 'true') {
-          args.splice(2, 1);
-        } else {
-          return;
-        }
-      }
-      old.apply(console, args);
-    };
   }
 
   onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> {

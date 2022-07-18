@@ -1,6 +1,6 @@
 import { exec, PromiseWithChild } from 'child_process';
 import { promisify } from 'util';
-import { LogLevel } from './LspServer';
+import { LogLevel } from './Logger';
 
 export class ProcessExecutor {
   execProcess(
