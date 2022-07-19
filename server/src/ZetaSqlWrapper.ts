@@ -349,7 +349,9 @@ export class ZetaSqlWrapper {
   }
 
   async getNewCustomFunctions(sql: string): Promise<string[][]> {
-    return (await this.zetaSqlParser.getAllFunctions(sql)).filter(f => !this.registeredFunctions.find(rf => arraysAreEqual(f, rf)));
+    return (await this.zetaSqlParser.getAllFunctions(sql, (await this.getLanguageOptions())?.serialize())).filter(
+      f => !this.registeredFunctions.find(rf => arraysAreEqual(f, rf)),
+    );
   }
 
   async getAstOrError(compiledSql: string): Promise<Result<AnalyzeResponse__Output, string>> {

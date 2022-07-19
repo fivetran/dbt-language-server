@@ -1,5 +1,6 @@
 import { ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { ASTFunctionCallProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTFunctionCallProto';
+import { LanguageOptionsProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/LanguageOptionsProto';
 import { promisify } from 'util';
 import { arraysAreEqual } from './utils/Utils';
 
@@ -9,12 +10,13 @@ interface Node {
 }
 
 export class ZetaSqlParser {
-  async getAllFunctions(sqlStatement: string): Promise<string[][]> {
+  async getAllFunctions(sqlStatement: string, options?: LanguageOptionsProto): Promise<string[][]> {
     const parse = promisify(ZetaSQLClient.API.parse.bind(ZetaSQLClient.API));
     let parseResult = undefined;
     try {
       parseResult = await parse({
         sqlStatement,
+        options,
       });
     } catch (e) {
       console.log(e);
