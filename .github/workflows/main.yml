@@ -88,7 +88,7 @@ jobs:
             target: darwin-x64
             python-version: '3.10'
             use-dbt-cli: true
-            SKIP_TESTS: ['custom_version.spec.js']
+            SKIP_TESTS: 'custom_version.spec.js'
 
           - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
             os: ubuntu-latest
