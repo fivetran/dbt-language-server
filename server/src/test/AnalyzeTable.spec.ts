@@ -44,7 +44,7 @@ describe('ZetaSqlWrapper analyzeTable', () => {
     const zetaSqlWrapper = new ZetaSqlWrapper(instance(mockDbtRepository), instance(mockBigQueryClient), instance(mockZetaSqlParser));
     zetaSqlWrapper['languageOptions'] = new LanguageOptions();
 
-    when(mockZetaSqlParser.getAllFunctions(compiledSql)).thenReturn(Promise.resolve([udfNamePath]));
+    when(mockZetaSqlParser.getAllFunctions(compiledSql, anything())).thenReturn(Promise.resolve([udfNamePath]));
     when(mockZetaSQLClient.extractTableNamesFromStatement(anything())).thenReturn(
       Promise.resolve({ tableName: [{ tableNameSegment: internalTableNamePath }] }),
     );
