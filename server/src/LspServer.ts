@@ -50,6 +50,7 @@ import { DbtTextDocument } from './document/DbtTextDocument';
 import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
 import { JinjaParser } from './JinjaParser';
+import { Logger } from './Logger';
 import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
@@ -88,7 +89,7 @@ export class LspServer {
 
   constructor(private connection: _Connection) {
     this.workspaceFolder = process.cwd();
-    LspServer.prepareLogger(this.workspaceFolder);
+    Logger.prepareLogger(this.workspaceFolder);
     const dbtProject = new DbtProject('.');
 
     this.progressReporter = new ProgressReporter(this.connection);
@@ -99,19 +100,8 @@ export class LspServer {
     this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
   }
 
-  static prepareLogger(workspaceFolder: string): void {
-    const id = workspaceFolder.substring(workspaceFolder.lastIndexOf('/') + 1);
-
-    const old = console.log;
-    console.log = (...args): void => {
-      Array.prototype.unshift.call(args, `${id} ${new Date().toISOString()}: `);
-      old.apply(console, args);
-    };
-  }
-
   onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> {
-    const dbtMode = process.env['USE_DBT_CLI'] === 'true' ? DbtMode.CLI : DbtMode.DBT_RPC;
-    console.log(`Starting server for folder ${this.workspaceFolder}. ModelCompiler mode: ${DbtMode[dbtMode]}.`);
+    console.log(`Starting server for folder ${this.workspaceFolder}.`);
 
     process.on('uncaughtException', this.onUncaughtException.bind(this));
     process.on('SIGTERM', () => this.onShutdown());
@@ -122,7 +112,8 @@ export class LspServer {
     this.initializeNotifications();
 
     this.featureFinder = new FeatureFinder((params.initializationOptions as CustomInitParams).pythonInfo);
-    this.dbt = this.createDbt(dbtMode, this.featureFinder);
+
+    this.dbt = this.createDbt(this.featureFinder);
 
     const { capabilities } = params;
     // Does the client support the `workspace/configuration` request?
@@ -154,10 +145,22 @@ export class LspServer {
     };
   }
 
-  createDbt(dbtMode: DbtMode, featureFinder: FeatureFinder): Dbt {
+  createDbt(featureFinder: FeatureFinder): Dbt {
+    const dbtMode = this.getDbtMode(featureFinder);
+    console.log(`ModelCompiler mode: ${DbtMode[dbtMode]}.`);
+
     return dbtMode === DbtMode.DBT_RPC
       ? new DbtRpc(featureFinder, this.connection, this.progressReporter, this.fileChangeListener)
       : new DbtCli(featureFinder);
+  }
+
+  getDbtMode(featureFinder: FeatureFinder): DbtMode {
+    const pythonVersion = featureFinder.getPythonVersion();
+    // https://github.com/dbt-labs/dbt-rpc/issues/85
+    if (pythonVersion !== undefined && pythonVersion[0] >= 3 && pythonVersion[1] >= 10) {
+      return DbtMode.CLI;
+    }
+    return process.env['USE_DBT_CLI'] === 'true' ? DbtMode.CLI : DbtMode.DBT_RPC;
   }
 
   onUncaughtException(error: Error, _origin: 'uncaughtException' | 'unhandledRejection'): void {

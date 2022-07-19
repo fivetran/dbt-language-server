@@ -44,6 +44,12 @@ export class FeatureFinder {
     return this.pythonInfo?.path;
   }
 
+  getPythonVersion(): [number, number] | undefined {
+    return this.pythonInfo?.version && this.pythonInfo.version.length >= 2
+      ? [Number(this.pythonInfo.version[0]), Number(this.pythonInfo.version[1])]
+      : undefined;
+  }
+
   /** Tries to find a suitable command to start the server first in the current Python environment and then in the global scope.
    * Installs dbt-rpc for dbt version > 1.0.0.
    * @returns {Command} or `undefined` if nothing is found

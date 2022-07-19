@@ -1,5 +1,6 @@
 import { exec, PromiseWithChild } from 'child_process';
 import { promisify } from 'util';
+import { LogLevel } from './Logger';
 
 export class ProcessExecutor {
   execProcess(
@@ -11,6 +12,8 @@ export class ProcessExecutor {
     stdout: string;
     stderr: string;
   }> {
+    console.log(`Run process '${command}'`, LogLevel.Debug);
+
     const promisifiedExec = promisify(exec);
 
     const { env } = process;

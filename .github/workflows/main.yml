@@ -75,11 +75,20 @@ jobs:
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_0_20_1_env/bin/activate
+            python-version: '3.9.12'
 
           - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_0_20_1_env/bin/activate
+            python-version: '3.9.12'
+
+          - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
+            os: macos-latest
+            target: darwin-x64
+            python-version: '3.10.5'
+            use-dbt-cli: true
+            SKIP_TESTS: 'custom_version.spec.js'
 
           - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
             os: ubuntu-latest
@@ -88,16 +97,7 @@ jobs:
               Xvfb -ac :99 -screen 0 1280x1024x16 &
               export DISPLAY=:99
             activate-venv: source ~/dbt_0_20_1_env/bin/activate
-
-          # TODO: enable this for testing CLI on Ubuntu
-          # - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
-          #   os: ubuntu-latest
-          #   target: linux-x64
-          #   prepare-for-tests: |
-          #     Xvfb -ac :99 -screen 0 1280x1024x16 &
-          #     export DISPLAY=:99
-          #   activate-venv: source ~/dbt_0_20_1_env/bin/activate
-          #   use-dbt-cli: true
+            python-version: '3.9.12'
 
           # TODO: enable this tests after implementing Windows support
           # - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
@@ -115,9 +115,10 @@ jobs:
           #   activate-venv: |
           #     cd ~/dbt_0_20_1_env/Scripts
           #     . activate
+          #   python-version: '3.9.12'
           #   use-dbt-cli: true
 
-    name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.use-dbt-cli }}
+    name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.python-version }} ${{ matrix.use-dbt-cli }}
 
     runs-on: ${{ matrix.os }}
     defaults:
@@ -159,9 +160,10 @@ jobs:
 
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.9.12'
+          python-version: ${{ matrix.python-version }}
 
       - name: add custom python venv with dbt@0.20.1
+        if: matrix.python-version != '3.10'
         run: | # https://github.com/dbt-labs/dbt-core/issues/4745
           python -m venv ~/dbt_0_20_1_env
           ${{ matrix.activate-venv }}
@@ -282,12 +284,13 @@ jobs:
           node e2e/out/runners/runTest $(pwd)/e2e-tests/extension
         env:
           USE_DBT_CLI: ${{ matrix.use-dbt-cli }}
+          SKIP_TESTS: ${{ matrix.SKIP_TESTS }}
 
       - name: upload logs
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.use-dbt-cli }}
+          name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.python-version }} ${{ matrix.use-dbt-cli }}
           path: |
             ./.vscode-test/user-data/logs/**/*dbt Wizard.log
             ./e2e/projects/completion-jinja/logs/*

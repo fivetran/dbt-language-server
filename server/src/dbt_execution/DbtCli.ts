@@ -1,4 +1,5 @@
 import { PromiseWithChild } from 'child_process';
+import { deferred } from 'dbt-language-server-common';
 import { DbtRepository } from '../DbtRepository';
 import { FeatureFinder } from '../FeatureFinder';
 import { DbtCommand } from './commands/DbtCommand';
@@ -9,6 +10,8 @@ import { DbtCompileJob } from './DbtCompileJob';
 
 export class DbtCli implements Dbt {
   static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
+
+  readyDeferred = deferred<void>();
 
   constructor(private featureFinder: FeatureFinder) {}
 
@@ -25,9 +28,11 @@ export class DbtCli implements Dbt {
   }
 
   async prepare(dbtProfileType?: string | undefined): Promise<void> {
-    if (await this.featureFinder.findGlobalDbtCommand(dbtProfileType)) {
+    const globalFound = await this.featureFinder.findGlobalDbtCommand(dbtProfileType);
+    if (globalFound) {
       this.featureFinder.pythonInfo = undefined;
     }
+    this.readyDeferred.resolve();
 
     this.compile().catch(e => {
       console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
@@ -47,7 +52,7 @@ export class DbtCli implements Dbt {
   }
 
   isReady(): Promise<void> {
-    return Promise.resolve();
+    return this.readyDeferred.promise;
   }
 
   dispose(): void {
