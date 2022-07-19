@@ -72,9 +72,12 @@ export class FileChangeListener {
       console.log(`${ManifestParser.MANIFEST_FILE_NAME} was successfully parsed`);
 
       this.dbtRepository.updateDbtNodes(models, macros, sources);
-      this.dbtRepository.manifestExists = true;
+
+      if (!this.dbtRepository.manifestInitiallyParsed) {
+        this.dbtRepository.manifestInitiallyParsedDeferred.resolve();
+        this.dbtRepository.manifestInitiallyParsed = true;
+      }
     } catch (e) {
-      this.dbtRepository.manifestExists = false;
       console.log(`Failed to read ${ManifestParser.MANIFEST_FILE_NAME}`, e);
     }
   }

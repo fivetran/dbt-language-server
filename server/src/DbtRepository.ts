@@ -1,5 +1,6 @@
-import path = require('path');
+import { deferred } from 'dbt-language-server-common';
 import { ManifestMacro, ManifestModel, ManifestSource } from './manifest/ManifestJson';
+import path = require('path');
 
 export class DbtRepository {
   static readonly DBT_PROJECT_FILE_NAME = 'dbt_project.yml';
@@ -23,12 +24,14 @@ export class DbtRepository {
   static readonly DEFAULT_MODEL_PATHS = ['models'];
   static readonly DEFAULT_PACKAGES_PATHS = ['dbt_packages', 'dbt_modules'];
 
-  manifestExists = false;
   dbtTargetPath = DbtRepository.DEFAULT_TARGET_PATH;
   projectName?: string;
   macroPaths: string[] = DbtRepository.DEFAULT_MACRO_PATHS;
   modelPaths: string[] = DbtRepository.DEFAULT_MODEL_PATHS;
   packagesInstallPaths: string[] = DbtRepository.DEFAULT_PACKAGES_PATHS;
+
+  manifestInitiallyParsed = false;
+  manifestInitiallyParsedDeferred = deferred<void>();
 
   models: ManifestModel[] = [];
   macros: ManifestMacro[] = [];

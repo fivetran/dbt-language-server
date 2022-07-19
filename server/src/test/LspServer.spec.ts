@@ -4,6 +4,8 @@ import { anything, instance, mock, spy, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentIdentifier, _Connection } from 'vscode-languageserver';
 import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
+import { DbtContext } from '../DbtContext';
+import { DbtDestinationContext } from '../DbtDestinationContext';
 import { DbtRepository } from '../DbtRepository';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
 import { DbtDocumentKind } from '../document/DbtDocumentKind';
@@ -30,6 +32,8 @@ describe('LspServer', () => {
   let dbtRepository: DbtRepository;
   let mockBigQueryContext: BigQueryContext;
 
+  const dbtDestinationContext = new DbtDestinationContext();
+
   beforeEach(() => {
     lspServer = new LspServer(mock<_Connection>());
     LspServer.OPEN_CLOSE_DEBOUNCE_PERIOD = TEST_DEBOUNCE_PERIOD;
@@ -42,6 +46,7 @@ describe('LspServer', () => {
 
     dbtRepository = mock(DbtRepository);
     mockBigQueryContext = mock(BigQueryContext);
+    dbtDestinationContext.bigQueryContext = mockBigQueryContext;
 
     document = new DbtTextDocument(
       { uri: OPENED_URI, languageId: SQL_LANGUAGE_ID, version: 1, text: TEXT },
@@ -56,9 +61,8 @@ describe('LspServer', () => {
       mock(JinjaParser),
       new Emitter<void>(),
       dbtRepository,
-      new Emitter<void>(),
-      true,
-      mockBigQueryContext,
+      new DbtContext(),
+      dbtDestinationContext,
     );
     lspServer.openedDocuments.set(OPENED_URI, document);
 

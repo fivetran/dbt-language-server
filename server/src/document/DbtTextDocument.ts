@@ -21,8 +21,9 @@ import {
   _Connection,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
+import { DbtContext } from '../DbtContext';
+import { DbtDestinationContext } from '../DbtDestinationContext';
 import { DbtRepository } from '../DbtRepository';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
@@ -82,9 +83,8 @@ export class DbtTextDocument {
     private jinjaParser: JinjaParser,
     private onGlobalDbtErrorFixedEmitter: Emitter<void>,
     private dbtRepository: DbtRepository,
-    private onContextInitializedEmitter: Emitter<void>,
-    private isContextInitialized: boolean,
-    private bigQueryContext?: BigQueryContext,
+    _dbtContext: DbtContext,
+    private dbtDestinationContext: DbtDestinationContext,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -95,7 +95,10 @@ export class DbtTextDocument {
     this.modelCompiler.onCompilationFinished(this.onCompilationFinished.bind(this));
     this.modelCompiler.onFinishAllCompilationJobs(this.onFinishAllCompilationTasks.bind(this));
     this.onGlobalDbtErrorFixedEmitter.event(this.onDbtErrorFixed.bind(this));
-    this.onContextInitializedEmitter.event(this.onContextInitialized.bind(this));
+
+    if (!this.dbtDestinationContext.contextInitialized) {
+      this.dbtDestinationContext.onContextInitializedEmitter.event(this.onContextInitialized.bind(this));
+    }
   }
 
   willSaveTextDocument(reason: TextDocumentSaveReason): void {
@@ -245,7 +248,7 @@ export class DbtTextDocument {
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
     this.sendUpdateQueryPreview();
 
-    if (this.isContextInitialized) {
+    if (this.dbtDestinationContext.contextInitialized) {
       await this.updateDiagnostics(compiledSql);
     } else {
       this.requireDiagnosticsUpdate = true;
@@ -257,7 +260,6 @@ export class DbtTextDocument {
   }
 
   async onContextInitialized(): Promise<void> {
-    this.isContextInitialized = true;
     if (this.requireDiagnosticsUpdate) {
       this.requireDiagnosticsUpdate = false;
       await this.updateDiagnostics();
@@ -273,11 +275,11 @@ export class DbtTextDocument {
     let rawDocDiagnostics: Diagnostic[] = [];
     let compiledDocDiagnostics: Diagnostic[] = [];
 
-    if (this.bigQueryContext && this.dbtDocumentKind === DbtDocumentKind.MODEL) {
+    if (this.dbtDestinationContext.bigQueryContext && this.dbtDocumentKind === DbtDocumentKind.MODEL) {
       const originalFilePath = this.rawDocument.uri.substring(
         this.rawDocument.uri.lastIndexOf(this.workspaceFolder) + this.workspaceFolder.length + 1,
       );
-      const astResult = await this.bigQueryContext.analyzeTable(originalFilePath, compiledSql);
+      const astResult = await this.dbtDestinationContext.bigQueryContext.analyzeTable(originalFilePath, compiledSql);
       if (astResult.isOk()) {
         console.log(`AST was successfully received for ${originalFilePath}`);
         this.ast = astResult.value;
@@ -353,7 +355,7 @@ export class DbtTextDocument {
   }
 
   async getSqlCompletions(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
-    if (!this.bigQueryContext) {
+    if (!this.dbtDestinationContext.contextInitialized || !this.dbtDestinationContext.bigQueryContext) {
       return undefined;
     }
 
@@ -369,7 +371,12 @@ export class DbtTextDocument {
       const offset = this.compiledDocument.offsetAt(Position.create(line, completionParams.position.character));
       completionInfo = DbtTextDocument.ZETA_SQL_AST.getCompletionInfo(this.ast, offset);
     }
-    return this.sqlCompletionProvider.onSqlCompletion(text, completionParams, this.bigQueryContext.destinationDefinition, completionInfo);
+    return this.sqlCompletionProvider.onSqlCompletion(
+      text,
+      completionParams,
+      this.dbtDestinationContext.bigQueryContext.destinationDefinition,
+      completionInfo,
+    );
   }
 
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {

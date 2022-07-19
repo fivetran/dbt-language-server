@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { CustomInitParams, DbtCompilerType, deferred, TelemetryEvent } from 'dbt-language-server-common';
+import { CustomInitParams, DbtCompilerType, TelemetryEvent } from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
 import { performance } from 'perf_hooks';
 import {
@@ -36,6 +36,8 @@ import {
 } from 'vscode-languageserver';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
+import { DbtContext } from './DbtContext';
+import { DbtDestinationContext } from './DbtDestinationContext';
 import { DbtProfileCreator, DbtProfileError, DbtProfileInfo, DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
@@ -64,7 +66,6 @@ export class LspServer {
   workspaceFolder: string;
   hasConfigurationCapability = false;
   featureFinder?: FeatureFinder;
-  dbt?: Dbt;
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
   fileChangeListener: FileChangeListener;
@@ -78,10 +79,8 @@ export class LspServer {
   initStart = performance.now();
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
 
-  bigQueryContext?: BigQueryContext;
-  contextInitializedDeferred = deferred<void>();
-  isContextInitialized = false;
-  onContextInitializedEmitter = new Emitter<void>();
+  dbtDestinationContext = new DbtDestinationContext();
+  dbtContext = new DbtContext();
 
   openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
 
@@ -96,11 +95,6 @@ export class LspServer {
     this.sqlCompletionProvider = new SqlCompletionProvider();
     this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);
     this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
-
-    // eslint-disable-next-line promise/catch-or-return
-    this.contextInitializedDeferred.promise.finally(() => {
-      this.isContextInitialized = true;
-    });
   }
 
   onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> {
@@ -116,8 +110,7 @@ export class LspServer {
 
     const customInitParams = params.initializationOptions as CustomInitParams;
     this.featureFinder = new FeatureFinder(customInitParams.pythonInfo);
-
-    this.dbt = this.createDbt(this.featureFinder, customInitParams.dbtCompiler);
+    this.dbtContext.dbt = this.createDbt(this.featureFinder, customInitParams.dbtCompiler);
 
     const { capabilities } = params;
     // Does the client support the `workspace/configuration` request?
@@ -209,7 +202,7 @@ export class LspServer {
     );
     const dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
 
-    await Promise.all([this.dbt?.prepare(dbtProfileType), this.prepareDestination(profileResult)]);
+    await Promise.allSettled([this.dbtContext.dbt?.prepare(dbtProfileType), this.prepareDestination(profileResult)]);
 
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime);
@@ -223,14 +216,14 @@ export class LspServer {
         this.dbtRepository,
       );
       if (bigQueryContextInfo.isOk()) {
-        this.bigQueryContext = bigQueryContextInfo.value;
+        this.dbtDestinationContext.bigQueryContext = bigQueryContextInfo.value;
       } else {
         this.showCreateContextWarning(bigQueryContextInfo.error);
       }
     } else if (profileResult.isErr()) {
       this.showPrepareDestinationWarning(profileResult.error.message);
     }
-    this.contextInitializedDeferred.resolve();
+    this.dbtDestinationContext.onContextInitializedEmitter.fire();
   }
 
   showCreateContextWarning(error: string): void {
@@ -284,7 +277,7 @@ export class LspServer {
 
     const document = this.openedDocuments.get(params.textDocument.uri);
     if (document) {
-      await document.didSaveTextDocument(() => this.dbt?.refresh());
+      await document.didSaveTextDocument(() => this.dbtContext.dbt?.refresh());
     }
   }
 
@@ -311,7 +304,7 @@ export class LspServer {
     let document = this.openedDocuments.get(uri);
 
     if (!document) {
-      if (!(await this.isLanguageServerReady()) || !this.dbt) {
+      if (!(await this.isLanguageServerReady()) || !this.dbtContext.dbt) {
         return;
       }
 
@@ -330,17 +323,16 @@ export class LspServer {
         this.sqlCompletionProvider,
         this.dbtCompletionProvider,
         this.dbtDefinitionProvider,
-        new ModelCompiler(this.dbt, this.dbtRepository),
+        new ModelCompiler(this.dbtContext.dbt, this.dbtRepository),
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,
         this.dbtRepository,
-        this.onContextInitializedEmitter,
-        this.isContextInitialized,
-        this.bigQueryContext,
+        this.dbtContext,
+        this.dbtDestinationContext,
       );
       this.openedDocuments.set(uri, document);
 
-      await document.didOpenTextDocument(!this.dbtRepository.manifestExists);
+      await document.didOpenTextDocument(false);
     }
   }
 
@@ -356,7 +348,9 @@ export class LspServer {
 
   async isLanguageServerReady(): Promise<boolean> {
     try {
-      await this.dbt?.isReady();
+      if (!this.dbtRepository.manifestInitiallyParsed) {
+        await this.dbtRepository.manifestInitiallyParsedDeferred.promise;
+      }
       return true;
     } catch (e) {
       return false;
@@ -430,8 +424,8 @@ export class LspServer {
 
   dispose(): void {
     console.log('Dispose start...');
-    this.dbt?.dispose();
-    this.bigQueryContext?.dispose();
+    this.dbtContext.dbt?.dispose();
+    this.dbtDestinationContext.bigQueryContext?.dispose();
     this.onGlobalDbtErrorFixedEmitter.dispose();
     console.log('Dispose end.');
   }

@@ -4,6 +4,8 @@ import { assertThat } from 'hamjest';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentSaveReason, _Connection } from 'vscode-languageserver';
 import { DbtCompletionProvider } from '../../completion/DbtCompletionProvider';
+import { DbtContext } from '../../DbtContext';
+import { DbtDestinationContext } from '../../DbtDestinationContext';
 import { DbtRepository } from '../../DbtRepository';
 import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
 import { DbtDocumentKind } from '../../document/DbtDocumentKind';
@@ -53,9 +55,8 @@ describe('DbtTextDocument', () => {
       instance(mockJinjaParser),
       onGlobalDbtErrorFixedEmitter,
       new DbtRepository(),
-      new Emitter<void>(),
-      true,
-      undefined,
+      new DbtContext(),
+      new DbtDestinationContext(),
     );
   });
 
