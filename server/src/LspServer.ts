@@ -342,7 +342,7 @@ export class LspServer {
       );
       this.openedDocuments.set(uri, document);
 
-      await document.didOpenTextDocument(false);
+      await document.didOpenTextDocument();
     }
   }
 

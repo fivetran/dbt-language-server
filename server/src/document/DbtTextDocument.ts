@@ -120,11 +120,13 @@ export class DbtTextDocument {
 
   async didSaveTextDocument(refreshServer?: () => void): Promise<void> {
     if (this.requireCompileOnSave) {
-      this.requireCompileOnSave = false;
-      if (refreshServer) {
-        refreshServer();
+      if (this.dbtContext.dbtReady) {
+        this.requireCompileOnSave = false;
+        if (refreshServer) {
+          refreshServer();
+        }
+        this.debouncedCompile();
       }
-      this.debouncedCompile();
     } else if (this.currentDbtError) {
       this.onCompilationError(this.currentDbtError);
     } else {
@@ -132,10 +134,7 @@ export class DbtTextDocument {
     }
   }
 
-  async didOpenTextDocument(requireCompile: boolean): Promise<void> {
-    if (requireCompile) {
-      this.requireCompileOnSave = true;
-    }
+  async didOpenTextDocument(): Promise<void> {
     this.didChangeTextDocument({
       textDocument: VersionedTextDocumentIdentifier.create(this.rawDocument.uri, this.rawDocument.version),
       contentChanges: [
@@ -170,8 +169,8 @@ export class DbtTextDocument {
     }
   }
 
-  onDbtReady(): void {
-    // todo:
+  async onDbtReady(): Promise<void> {
+    await this.didSaveTextDocument();
   }
 
   isDbtCompileNeeded(changes: TextDocumentContentChangeEvent[]): boolean {
@@ -197,7 +196,9 @@ export class DbtTextDocument {
   forceRecompile(): void {
     if (this.dbtDocumentKind === DbtDocumentKind.MODEL) {
       this.progressReporter.sendStart(this.rawDocument.uri);
-      this.debouncedCompile();
+      if (this.dbtContext.dbtReady) {
+        this.debouncedCompile();
+      }
     }
   }
 
