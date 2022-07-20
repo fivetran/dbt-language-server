@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 0.6.2 (01/01/1970)
+## What's Changed
+* Fix working with python >= 3.10. Now extension uses dbt CLI in such case.
+* Add setting `dbtWizard.dbtCompiler` to specify which command the extension will use to compile models.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.6.1...v0.6.2
+---
+
 ## Version 0.6.1 (12/07/2022)
 ## What's Changed
 * Fix an issue when go to definition didn't work for models from packages if package is not specified
