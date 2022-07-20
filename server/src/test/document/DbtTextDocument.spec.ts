@@ -42,6 +42,9 @@ describe('DbtTextDocument', () => {
 
     mockJinjaParser = mock(JinjaParser);
 
+    const dbtContext = new DbtContext();
+    dbtContext.dbtReady = true;
+
     document = new DbtTextDocument(
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
       DbtDocumentKind.MODEL,
@@ -55,7 +58,7 @@ describe('DbtTextDocument', () => {
       instance(mockJinjaParser),
       onGlobalDbtErrorFixedEmitter,
       new DbtRepository(),
-      new DbtContext(),
+      dbtContext,
       new DbtDestinationContext(),
     );
   });
@@ -91,7 +94,7 @@ describe('DbtTextDocument', () => {
     when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(true);
 
     // act
-    await document.didOpenTextDocument(false);
+    await document.didOpenTextDocument();
     await sleepMoreThanDebounceTime();
 
     document.willSaveTextDocument(TextDocumentSaveReason.Manual);
@@ -109,7 +112,7 @@ describe('DbtTextDocument', () => {
     when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(true);
 
     // act
-    await document.didOpenTextDocument(false);
+    await document.didOpenTextDocument();
     await sleepMoreThanDebounceTime();
 
     document.willSaveTextDocument(TextDocumentSaveReason.AfterDelay);
@@ -126,7 +129,7 @@ describe('DbtTextDocument', () => {
     when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(true);
 
     // act
-    await document.didOpenTextDocument(false);
+    await document.didOpenTextDocument();
     await sleepMoreThanDebounceTime();
 
     // assert
@@ -139,24 +142,11 @@ describe('DbtTextDocument', () => {
     when(mockJinjaParser.findAllJinjaRanges(document.rawDocument)).thenReturn([]);
 
     // act
-    await document.didOpenTextDocument(false);
+    await document.didOpenTextDocument();
     await sleepMoreThanDebounceTime();
 
     // assert
     verify(mockModelCompiler.compile(anything())).never();
-  });
-
-  it('Should compile for first open if manifest.json does not exist if jinja not found', async () => {
-    // arrange
-    when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(false);
-    when(mockJinjaParser.findAllJinjaRanges(document.rawDocument)).thenReturn([]);
-
-    // act
-    await document.didOpenTextDocument(true);
-    await sleepMoreThanDebounceTime();
-
-    // assert
-    verify(mockModelCompiler.compile(anything())).once();
   });
 
   it('Should set hasDbtError flag on dbt compilation error', () => {
