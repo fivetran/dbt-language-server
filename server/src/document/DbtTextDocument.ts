@@ -83,7 +83,7 @@ export class DbtTextDocument {
     private jinjaParser: JinjaParser,
     private onGlobalDbtErrorFixedEmitter: Emitter<void>,
     private dbtRepository: DbtRepository,
-    _dbtContext: DbtContext,
+    private dbtContext: DbtContext,
     private dbtDestinationContext: DbtDestinationContext,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -98,6 +98,9 @@ export class DbtTextDocument {
 
     if (!this.dbtDestinationContext.contextInitialized) {
       this.dbtDestinationContext.onContextInitializedEmitter.event(this.onContextInitialized.bind(this));
+    }
+    if (!this.dbtContext.dbtReady) {
+      this.dbtContext.onDbtReadyEmitter.event(this.onDbtReady.bind(this));
     }
   }
 
@@ -165,6 +168,10 @@ export class DbtTextDocument {
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
       TextDocument.update(this.compiledDocument, compiledContentChanges, params.textDocument.version);
     }
+  }
+
+  onDbtReady(): void {
+    // todo:
   }
 
   isDbtCompileNeeded(changes: TextDocumentContentChangeEvent[]): boolean {
