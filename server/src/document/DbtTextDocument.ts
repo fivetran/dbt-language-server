@@ -123,7 +123,7 @@ export class DbtTextDocument {
       if (this.dbtContext.dbtReady) {
         this.requireCompileOnSave = false;
         if (refresh) {
-          this.dbtContext.dbt?.refresh();
+          this.dbtContext.refresh();
         }
         this.debouncedCompile();
       }

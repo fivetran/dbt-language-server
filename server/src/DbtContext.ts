@@ -5,4 +5,8 @@ export class DbtContext {
   dbtReady = false;
   onDbtReadyEmitter = new Emitter<void>();
   dbt?: Dbt;
+
+  refresh(): void {
+    this.dbt?.refresh();
+  }
 }
