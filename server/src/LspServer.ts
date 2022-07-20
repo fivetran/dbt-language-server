@@ -202,8 +202,18 @@ export class LspServer {
     );
     const dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
 
-    await Promise.allSettled([this.dbtContext.dbt?.prepare(dbtProfileType), this.prepareDestination(profileResult)]);
+    const prepareDbt = this.dbtContext.dbt?.prepare(dbtProfileType).then(() => {
+      this.dbtContext.dbtReady = true;
+      this.dbtContext.onDbtReadyEmitter.fire();
+      return this.dbtContext;
+    });
+    const prepareDestination = this.prepareDestination(profileResult).then(() => {
+      this.dbtDestinationContext.contextInitialized = true;
+      this.dbtDestinationContext.onContextInitializedEmitter.fire();
+      return this.dbtDestinationContext;
+    });
 
+    await Promise.allSettled([prepareDbt, prepareDestination]);
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime);
   }
