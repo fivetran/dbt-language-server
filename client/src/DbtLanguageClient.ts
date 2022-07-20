@@ -1,4 +1,4 @@
-import { TelemetryEvent } from 'dbt-language-server-common';
+import { CustomInitParams, DbtCompilerType, TelemetryEvent } from 'dbt-language-server-common';
 import { Diagnostic, Disposable, OutputChannel, Uri, workspace, WorkspaceFolder } from 'vscode';
 import { LanguageClient, LanguageClientOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { SUPPORTED_LANG_IDS } from './ExtensionClient';
@@ -70,9 +70,12 @@ export class DbtLanguageClient implements Disposable {
       console.log(`Client switched to state ${State[e.newState]}`);
     });
 
-    this.client.clientOptions.initializationOptions = {
+    const customInitParams: CustomInitParams = {
       pythonInfo: await new PythonExtension().getPythonInfo(this.client.clientOptions.workspaceFolder),
+      dbtCompiler: workspace.getConfiguration('dbtWizard').get('dbtCompiler', 'Auto') as DbtCompilerType,
     };
+
+    this.client.clientOptions.initializationOptions = customInitParams;
   }
 
   sendNotification(method: string, params: unknown): void {

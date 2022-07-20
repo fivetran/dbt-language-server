@@ -34,11 +34,23 @@
   "contributes": {
     "configuration": {
       "type": "object",
-      "title": "Configuration",
+      "title": "dbt Wizard",
       "properties": {
-        "dbtLanguageServer.trace.server": {
+        "dbtWizard.dbtCompiler": {
+          "type": "string",
+          "order": 1,
+          "enum": [
+            "Auto",
+            "dbt-rpc",
+            "dbt"
+          ],
+          "default": "Auto",
+          "description": "Command used to compile models."
+        },
+        "dbtWizard.trace.server": {
           "scope": "window",
           "type": "string",
+          "order": 2,
           "enum": [
             "off",
             "messages",
