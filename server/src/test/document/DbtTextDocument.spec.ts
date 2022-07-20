@@ -7,6 +7,7 @@ import { DbtCompletionProvider } from '../../completion/DbtCompletionProvider';
 import { DbtContext } from '../../DbtContext';
 import { DbtDestinationContext } from '../../DbtDestinationContext';
 import { DbtRepository } from '../../DbtRepository';
+import { Dbt } from '../../dbt_execution/Dbt';
 import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
 import { DbtDocumentKind } from '../../document/DbtDocumentKind';
 import { DbtTextDocument } from '../../document/DbtTextDocument';
@@ -23,6 +24,8 @@ describe('DbtTextDocument', () => {
   let document: DbtTextDocument;
   let mockModelCompiler: ModelCompiler;
   let mockJinjaParser: JinjaParser;
+  let mockDbt: Dbt;
+  let dbtContext: DbtContext;
 
   const onCompilationErrorEmitter = new Emitter<string>();
   const onCompilationFinishedEmitter = new Emitter<string>();
@@ -41,9 +44,11 @@ describe('DbtTextDocument', () => {
     when(mockModelCompiler.onFinishAllCompilationJobs).thenReturn(new Emitter<void>().event);
 
     mockJinjaParser = mock(JinjaParser);
+    mockDbt = mock<Dbt>();
 
-    const dbtContext = new DbtContext();
+    dbtContext = new DbtContext();
     dbtContext.dbtReady = true;
+    dbtContext.dbt = instance(mockDbt);
 
     document = new DbtTextDocument(
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
@@ -91,6 +96,7 @@ describe('DbtTextDocument', () => {
   it('Should compile for first save in Not Auto save mode', async () => {
     // arrange
     let count = 0;
+    when(mockDbt.refresh()).thenCall(() => count++);
     when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(true);
 
     // act
@@ -98,7 +104,7 @@ describe('DbtTextDocument', () => {
     await sleepMoreThanDebounceTime();
 
     document.willSaveTextDocument(TextDocumentSaveReason.Manual);
-    await document.didSaveTextDocument(() => count++);
+    await document.didSaveTextDocument(true);
     await sleepMoreThanDebounceTime();
 
     // assert
@@ -109,6 +115,7 @@ describe('DbtTextDocument', () => {
   it('Should not compile for first save in Auto save mode', async () => {
     // arrange
     let count = 0;
+    when(mockDbt.refresh()).thenCall(() => count++);
     when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(true);
 
     // act
@@ -116,7 +123,7 @@ describe('DbtTextDocument', () => {
     await sleepMoreThanDebounceTime();
 
     document.willSaveTextDocument(TextDocumentSaveReason.AfterDelay);
-    await document.didSaveTextDocument(() => count++);
+    await document.didSaveTextDocument(true);
     await sleepMoreThanDebounceTime();
 
     // assert
