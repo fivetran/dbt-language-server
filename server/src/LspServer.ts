@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { deferred, PythonInfo, TelemetryEvent } from 'dbt-language-server-common';
+import { CustomInitParams, DbtCompilerType, deferred, TelemetryEvent } from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
 import { performance } from 'perf_hooks';
 import {
@@ -56,10 +56,6 @@ import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
 
-interface CustomInitParams {
-  pythonInfo?: PythonInfo;
-}
-
 export class LspServer {
   static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
   private static readonly ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
@@ -111,9 +107,10 @@ export class LspServer {
 
     this.initializeNotifications();
 
-    this.featureFinder = new FeatureFinder((params.initializationOptions as CustomInitParams).pythonInfo);
+    const customInitParams = params.initializationOptions as CustomInitParams;
+    this.featureFinder = new FeatureFinder(customInitParams.pythonInfo);
 
-    this.dbt = this.createDbt(this.featureFinder);
+    this.dbt = this.createDbt(this.featureFinder, customInitParams.dbtCompiler);
 
     const { capabilities } = params;
     // Does the client support the `workspace/configuration` request?
@@ -145,8 +142,8 @@ export class LspServer {
     };
   }
 
-  createDbt(featureFinder: FeatureFinder): Dbt {
-    const dbtMode = this.getDbtMode(featureFinder);
+  createDbt(featureFinder: FeatureFinder, dbtCompiler: DbtCompilerType): Dbt {
+    const dbtMode = this.getDbtMode(featureFinder, dbtCompiler);
     console.log(`ModelCompiler mode: ${DbtMode[dbtMode]}.`);
 
     return dbtMode === DbtMode.DBT_RPC
@@ -154,13 +151,26 @@ export class LspServer {
       : new DbtCli(featureFinder);
   }
 
-  getDbtMode(featureFinder: FeatureFinder): DbtMode {
-    const pythonVersion = featureFinder.getPythonVersion();
-    // https://github.com/dbt-labs/dbt-rpc/issues/85
-    if (pythonVersion !== undefined && pythonVersion[0] >= 3 && pythonVersion[1] >= 10) {
-      return DbtMode.CLI;
+  getDbtMode(featureFinder: FeatureFinder, dbtCompiler: DbtCompilerType): DbtMode {
+    switch (dbtCompiler) {
+      case 'Auto': {
+        const pythonVersion = featureFinder.getPythonVersion();
+        // https://github.com/dbt-labs/dbt-rpc/issues/85
+        if (pythonVersion !== undefined && pythonVersion[0] >= 3 && pythonVersion[1] >= 10) {
+          return DbtMode.CLI;
+        }
+        return process.env['USE_DBT_CLI'] === 'true' ? DbtMode.CLI : DbtMode.DBT_RPC;
+      }
+      case 'dbt-rpc': {
+        return DbtMode.DBT_RPC;
+      }
+      case 'dbt': {
+        return DbtMode.CLI;
+      }
+      default: {
+        return DbtMode.DBT_RPC;
+      }
     }
-    return process.env['USE_DBT_CLI'] === 'true' ? DbtMode.CLI : DbtMode.DBT_RPC;
   }
 
   onUncaughtException(error: Error, _origin: 'uncaughtException' | 'unhandledRejection'): void {

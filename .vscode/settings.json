@@ -49,6 +49,7 @@
     "mockito",
     "neverthrow",
     "no-cond-assign",
+    "nodir",
     "normalize_and_casefold",
     "ntile",
     "ovsx",
