@@ -118,12 +118,12 @@ export class DbtTextDocument {
     this.firstSave = false;
   }
 
-  async didSaveTextDocument(refreshServer?: () => void): Promise<void> {
+  async didSaveTextDocument(refresh: boolean): Promise<void> {
     if (this.requireCompileOnSave) {
       if (this.dbtContext.dbtReady) {
         this.requireCompileOnSave = false;
-        if (refreshServer) {
-          refreshServer();
+        if (refresh) {
+          this.dbtContext.dbt?.refresh();
         }
         this.debouncedCompile();
       }
@@ -144,7 +144,7 @@ export class DbtTextDocument {
         },
       ],
     });
-    await this.didSaveTextDocument();
+    await this.didSaveTextDocument(false);
   }
 
   didChangeTextDocument(params: DidChangeTextDocumentParams): void {
@@ -170,7 +170,8 @@ export class DbtTextDocument {
   }
 
   async onDbtReady(): Promise<void> {
-    await this.didSaveTextDocument();
+    console.log('Dbt is ready. Save the document.');
+    await this.didSaveTextDocument(true);
   }
 
   isDbtCompileNeeded(changes: TextDocumentContentChangeEvent[]): boolean {

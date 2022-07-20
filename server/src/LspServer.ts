@@ -287,7 +287,7 @@ export class LspServer {
 
     const document = this.openedDocuments.get(params.textDocument.uri);
     if (document) {
-      await document.didSaveTextDocument(() => this.dbtContext.dbt?.refresh());
+      await document.didSaveTextDocument(true);
     }
   }
 
