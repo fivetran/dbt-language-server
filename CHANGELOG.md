@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.6.2 (01/01/1970)
+## Version 0.6.2 (20/07/2022)
 ## What's Changed
 * Fix working with python >= 3.10. Now extension uses dbt CLI in such case.
 * Add setting `dbtWizard.dbtCompiler` to specify which command the extension will use to compile models.
