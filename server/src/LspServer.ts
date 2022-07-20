@@ -348,8 +348,8 @@ export class LspServer {
 
   async isLanguageServerReady(): Promise<boolean> {
     try {
-      if (!this.dbtRepository.manifestInitiallyParsed) {
-        await this.dbtRepository.manifestInitiallyParsedDeferred.promise;
+      if (!this.dbtRepository.projectConfigParsed) {
+        await this.dbtRepository.projectConfigParsedDeferred.promise;
       }
       return true;
     } catch (e) {

@@ -30,8 +30,8 @@ export class DbtRepository {
   modelPaths: string[] = DbtRepository.DEFAULT_MODEL_PATHS;
   packagesInstallPaths: string[] = DbtRepository.DEFAULT_PACKAGES_PATHS;
 
-  manifestInitiallyParsed = false;
-  manifestInitiallyParsedDeferred = deferred<void>();
+  projectConfigParsed = false;
+  projectConfigParsedDeferred = deferred<void>();
 
   models: ManifestModel[] = [];
   macros: ManifestMacro[] = [];

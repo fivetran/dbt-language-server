@@ -73,9 +73,9 @@ export class FileChangeListener {
 
       this.dbtRepository.updateDbtNodes(models, macros, sources);
 
-      if (!this.dbtRepository.manifestInitiallyParsed) {
-        this.dbtRepository.manifestInitiallyParsedDeferred.resolve();
-        this.dbtRepository.manifestInitiallyParsed = true;
+      if (!this.dbtRepository.projectConfigParsed) {
+        this.dbtRepository.projectConfigParsed = true;
+        this.dbtRepository.projectConfigParsedDeferred.resolve();
       }
     } catch (e) {
       console.log(`Failed to read ${ManifestParser.MANIFEST_FILE_NAME}`, e);
