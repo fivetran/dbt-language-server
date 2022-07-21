@@ -50,17 +50,12 @@ export class FeatureFinder {
       : undefined;
   }
 
-  /** Tries to find a suitable command to start the server first in the current Python environment and then in the global scope.
-   * Installs dbt-rpc for dbt version > 1.0.0.
-   * @returns {Command} or `undefined` if nothing is found
-   */
-  async findDbtRpcCommand(dbtProfileType?: string): Promise<Command | undefined> {
+  async getAvailableDbt(dbtProfileType?: string): Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]> {
     const settledResults = await Promise.allSettled([
       this.findDbtRpcPythonVersion(dbtProfileType),
       this.findDbtPythonVersion(dbtProfileType),
       this.findDbtRpcGlobalVersion(dbtProfileType),
     ]);
-
     const [dbtRpcPythonVersion, dbtPythonVersion, dbtRpcGlobalVersion] = settledResults.map(v => {
       return v.status === 'fulfilled' ? v.value : undefined;
     });
@@ -71,6 +66,15 @@ export class FeatureFinder {
     versions += dbtRpcPythonVersion ? `dbtRpcPythonVersion = ${getStringVersion(dbtRpcPythonVersion.installedVersion)}` : '';
 
     console.log(versions);
+    return [dbtRpcPythonVersion, dbtPythonVersion, dbtRpcGlobalVersion];
+  }
+
+  /** Tries to find a suitable command to start the server first in the current Python environment and then in the global scope.
+   * Installs dbt-rpc for dbt version > 1.0.0.
+   * @returns {Command} or `undefined` if nothing is found
+   */
+  async findDbtRpcCommand(dbtProfileType?: string): Promise<Command | undefined> {
+    const [dbtRpcPythonVersion, dbtPythonVersion, dbtRpcGlobalVersion] = await this.getAvailableDbt(dbtProfileType);
 
     if (dbtRpcPythonVersion?.installedVersion && dbtRpcPythonVersion.installedAdapter) {
       this.versionInfo = dbtRpcPythonVersion;
