@@ -256,17 +256,11 @@ export class LspServer {
   }
 
   onDbtCompile(uri: string): void {
-    const document = this.openedDocuments.get(uri);
-    if (document) {
-      document.forceRecompile();
-    }
+    this.openedDocuments.get(uri)?.forceRecompile();
   }
 
   onWillSaveTextDocument(params: WillSaveTextDocumentParams): void {
-    const document = this.openedDocuments.get(params.textDocument.uri);
-    if (document) {
-      document.willSaveTextDocument(params.reason);
-    }
+    this.openedDocuments.get(params.textDocument.uri)?.willSaveTextDocument(params.reason);
   }
 
   async onDidSaveTextDocument(params: DidSaveTextDocumentParams): Promise<void> {
@@ -275,9 +269,7 @@ export class LspServer {
     }
 
     const document = this.openedDocuments.get(params.textDocument.uri);
-    if (document) {
-      await document.didSaveTextDocument(() => this.dbt?.refresh());
-    }
+    await document?.didSaveTextDocument(() => this.dbt?.refresh());
   }
 
   onDidOpenTextDocumentDelayed(params: DidOpenTextDocumentParams): Promise<void> {
@@ -338,10 +330,7 @@ export class LspServer {
     if (!(await this.isLanguageServerReady())) {
       return;
     }
-    const document = this.openedDocuments.get(params.textDocument.uri);
-    if (document) {
-      document.didChangeTextDocument(params);
-    }
+    this.openedDocuments.get(params.textDocument.uri)?.didChangeTextDocument(params);
   }
 
   async isLanguageServerReady(): Promise<boolean> {
