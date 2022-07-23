@@ -9,13 +9,18 @@ import {
   Command,
   CompletionItem,
   CompletionParams,
+  CreateFilesParams,
   DefinitionLink,
   DefinitionParams,
+  DeleteFilesParams,
   DidChangeConfigurationNotification,
   DidChangeTextDocumentParams,
   DidChangeWatchedFilesParams,
   DidCloseTextDocumentParams,
+  DidCreateFilesNotification,
+  DidDeleteFilesNotification,
   DidOpenTextDocumentParams,
+  DidRenameFilesNotification,
   DidSaveTextDocumentParams,
   Emitter,
   ExecuteCommandParams,
@@ -25,6 +30,7 @@ import {
   InitializeParams,
   InitializeResult,
   Range,
+  RenameFilesParams,
   ResponseError,
   SignatureHelp,
   SignatureHelpParams,
@@ -34,6 +40,7 @@ import {
   WillSaveTextDocumentParams,
   _Connection,
 } from 'vscode-languageserver';
+import { FileOperationFilter } from 'vscode-languageserver-protocol/lib/common/protocol.fileOperations';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
 import { DbtProfileCreator, DbtProfileError, DbtProfileInfo, DbtProfileSuccess } from './DbtProfileCreator';
@@ -59,6 +66,7 @@ import { SqlCompletionProvider } from './SqlCompletionProvider';
 export class LspServer {
   static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
   private static readonly ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
+  private static readonly FILES_FILTER: FileOperationFilter[] = [{ scheme: 'file', pattern: { glob: '**/*', matches: 'file' } }];
 
   sqlToRefCommandName = randomUUID();
   workspaceFolder: string;
@@ -138,6 +146,13 @@ export class LspServer {
         executeCommandProvider: {
           commands: [this.sqlToRefCommandName],
         },
+        workspace: {
+          fileOperations: {
+            didRename: {
+              filters: LspServer.FILES_FILTER,
+            },
+          },
+        },
       },
     };
   }
@@ -190,10 +205,7 @@ export class LspServer {
   }
 
   async onInitialized(): Promise<void> {
-    if (this.hasConfigurationCapability) {
-      // Register for all configuration changes.
-      await this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
-    }
+    this.registerClientNotification();
 
     const profileResult = this.dbtProfileCreator.createDbtProfile();
     const contextInfo = profileResult.match<DbtProfileInfo>(
@@ -205,6 +217,27 @@ export class LspServer {
     await Promise.all([this.dbt?.prepare(dbtProfileType), this.prepareDestination(profileResult)]);
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime);
+  }
+
+  registerClientNotification(): void {
+    if (this.hasConfigurationCapability) {
+      this.connection.client
+        .register(DidChangeConfigurationNotification.type, undefined)
+        .catch(e => console.log(`Error while registering DidChangeConfiguration notification: ${e instanceof Error ? e.message : String(e)}`));
+    }
+
+    const filters = LspServer.FILES_FILTER;
+    this.connection.client
+      .register(DidCreateFilesNotification.type, { filters })
+      .catch(e => console.log(`Error while registering DidCreateFiles notification: ${e instanceof Error ? e.message : String(e)}`));
+
+    this.connection.client
+      .register(DidRenameFilesNotification.type, { filters })
+      .catch(e => console.log(`Error while registering DidRenameFiles notification: ${e instanceof Error ? e.message : String(e)}`));
+
+    this.connection.client
+      .register(DidDeleteFilesNotification.type, { filters })
+      .catch(e => console.log(`Error while registering DidDeleteFiles notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   async prepareDestination(profileResult: Result<DbtProfileSuccess, DbtProfileError>): Promise<void> {
@@ -401,6 +434,24 @@ export class LspServer {
         textDocument.fixInformationDiagnostic(range);
       }
     }
+  }
+
+  onDidCreateFiles(_params: CreateFilesParams): void {
+    this.dbt?.refresh();
+  }
+
+  onDidRenameFiles(params: RenameFilesParams): void {
+    this.dbt?.refresh();
+    this.clearDiagnosticsForOutdatedFiles(params.files.map(f => f.oldUri));
+  }
+
+  onDidDeleteFiles(params: DeleteFilesParams): void {
+    this.dbt?.refresh();
+    this.clearDiagnosticsForOutdatedFiles(params.files.map(f => f.uri));
+  }
+
+  clearDiagnosticsForOutdatedFiles(uris: string[]): void {
+    uris.forEach(uri => this.openedDocuments.get(uri)?.clearDiagnostics());
   }
 
   onShutdown(): void {
