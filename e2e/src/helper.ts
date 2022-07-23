@@ -1,4 +1,5 @@
 import { spawnSync, SpawnSyncReturns } from 'child_process';
+import * as clipboard from 'clipboardy';
 import * as fs from 'fs';
 import { WatchEventType, writeFileSync } from 'fs';
 import * as path from 'path';
@@ -107,6 +108,10 @@ export async function showPreview(): Promise<void> {
 
 export async function closeAllEditors(): Promise<void> {
   await commands.executeCommand('workbench.action.closeAllEditors');
+}
+
+export async function closeActiveEditor(): Promise<void> {
+  await commands.executeCommand('workbench.action.closeActiveEditor');
 }
 
 export async function compileDocument(): Promise<void> {
@@ -304,6 +309,27 @@ export async function createAndOpenTempModel(workspaceName: string): Promise<Uri
   writeFileSync(newUri.fsPath, '-- Empty');
   await activateAndWait(newUri);
   return newUri;
+}
+
+export async function renameFile(uri: Uri, newName: string): Promise<Uri> {
+  const newUri = uri.with({ path: uri.path.substring(0, uri.path.lastIndexOf('/') + 1) + newName });
+
+  clipboard.writeSync(newName);
+
+  await commands.executeCommand('workbench.files.action.showActiveFileInExplorer');
+  await commands.executeCommand('renameFile');
+  await commands.executeCommand('editor.action.selectAll');
+  await commands.executeCommand('editor.action.clipboardPasteAction');
+  await commands.executeCommand('workbench.action.showCommands');
+
+  await sleep(200);
+  return newUri;
+}
+
+export async function deleteCurrentFile(): Promise<void> {
+  await commands.executeCommand('workbench.files.action.showActiveFileInExplorer');
+  await commands.executeCommand('deleteFile');
+  await sleep(200);
 }
 
 export function getTextInQuotesIfNeeded(text: string, withQuotes: boolean): string {
