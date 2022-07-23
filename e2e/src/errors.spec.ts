@@ -3,13 +3,12 @@ import { Diagnostic, languages, Position, Range } from 'vscode';
 import { assertAllDiagnostics } from './asserts';
 import {
   activateAndWait,
-  closeActiveEditor,
   createAndOpenTempModel,
   deleteCurrentFile,
   getDocUri,
   getPreviewText,
   insertText,
-  renameFile,
+  renameCurrentFile,
   setTestContent,
 } from './helper';
 
@@ -66,9 +65,7 @@ suite('Errors', () => {
     assertThat(languages.getDiagnostics(uri), hasSize(1));
     assertThat(getPreviewText(), query);
 
-    await closeActiveEditor();
-    const newUri = await renameFile(uri, 'temp_model_renamed.sql');
-    await activateAndWait(newUri);
+    const newUri = await renameCurrentFile('temp_model_renamed.sql');
 
     // Diagnostic should exist for new file and shouldn't exist for old file
     assertThat(getPreviewText(), query);

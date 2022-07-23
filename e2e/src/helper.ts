@@ -41,6 +41,8 @@ workspace.onDidChangeTextDocument(onDidChangeTextDocument);
 let previewPromiseResolve: voidFunc | undefined;
 let documentPromiseResolve: voidFunc | undefined;
 
+let tempModelIndex = 0;
+
 export async function activateAndWait(docUri: Uri): Promise<void> {
   // The extensionId is `publisher.name` from package.json
   const ext = extensions.getExtension('Fivetran.dbt-language-server');
@@ -108,10 +110,6 @@ export async function showPreview(): Promise<void> {
 
 export async function closeAllEditors(): Promise<void> {
   await commands.executeCommand('workbench.action.closeAllEditors');
-}
-
-export async function closeActiveEditor(): Promise<void> {
-  await commands.executeCommand('workbench.action.closeActiveEditor');
 }
 
 export async function compileDocument(): Promise<void> {
@@ -303,7 +301,8 @@ export async function createAndOpenTempModel(workspaceName: string): Promise<Uri
   if (thisWorkspace === undefined) {
     throw new Error('Workspace not found');
   }
-  const newUri = Uri.parse(`${thisWorkspace}/models/temp_model.sql`);
+  const newUri = Uri.parse(`${thisWorkspace}/models/temp_model${tempModelIndex}.sql`);
+  tempModelIndex++;
 
   console.log(`Creating new file: ${newUri.toString()}`);
   writeFileSync(newUri.fsPath, '-- Empty');
@@ -311,7 +310,8 @@ export async function createAndOpenTempModel(workspaceName: string): Promise<Uri
   return newUri;
 }
 
-export async function renameFile(uri: Uri, newName: string): Promise<Uri> {
+export async function renameCurrentFile(newName: string): Promise<Uri> {
+  const { uri } = doc;
   const newUri = uri.with({ path: uri.path.substring(0, uri.path.lastIndexOf('/') + 1) + newName });
 
   clipboard.writeSync(newName);
@@ -323,6 +323,12 @@ export async function renameFile(uri: Uri, newName: string): Promise<Uri> {
   await commands.executeCommand('workbench.action.showCommands');
 
   await sleep(200);
+  const renameFinished = createChangePromise('preview');
+
+  doc = await workspace.openTextDocument(newUri);
+  editor = await window.showTextDocument(doc);
+
+  await renameFinished;
   return newUri;
 }
 
