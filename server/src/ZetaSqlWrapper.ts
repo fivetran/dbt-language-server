@@ -30,7 +30,10 @@ export class ZetaSqlWrapper {
   private static readonly MIN_PORT = 1024;
   private static readonly MAX_PORT = 65535;
 
-  private readonly catalog: SimpleCatalogProto = { name: 'catalog' };
+  private readonly catalog: SimpleCatalogProto = {
+    name: 'catalog',
+    constant: [{ namePath: ['_dbt_max_partition'], type: { typeKind: TypeKind.TYPE_DATE } }],
+  };
   private languageOptions: LanguageOptions | undefined;
   private registeredTables: TableDefinition[] = [];
   private registeredFunctions: string[][] = [];
