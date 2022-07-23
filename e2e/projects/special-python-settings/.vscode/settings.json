@@ -1,4 +1,4 @@
 {
-	"python.defaultInterpreterPath": "~/dbt_0_20_1_env/bin/python3",
-	"python.pythonPath": "~/dbt_0_20_1_env/bin/python3",
+  "python.defaultInterpreterPath": "~/dbt_1_0_0_env/bin/python3",
+  "python.pythonPath": "~/dbt_1_0_0_env/bin/python3"
 }

@@ -5,6 +5,6 @@ suite('Custom version', () => {
   test('Should run project with dbt version specified for workspace', async () => {
     await activateAndWait(getCustomDocUri('special-python-settings/models/version.sql'));
 
-    assertThat(getPreviewText(), '0.20.1');
+    assertThat(getPreviewText(), '1.0.0');
   });
 });
