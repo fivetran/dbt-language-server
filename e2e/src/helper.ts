@@ -317,6 +317,8 @@ export async function renameCurrentFile(newName: string): Promise<Uri> {
   const { uri } = doc;
   const newUri = uri.with({ path: uri.path.substring(0, uri.path.lastIndexOf('/') + 1) + newName });
 
+  const renameFinished = createChangePromise('preview');
+
   clipboard.writeSync(newName);
 
   await commands.executeCommand('workbench.files.action.showActiveFileInExplorer');
@@ -325,20 +327,21 @@ export async function renameCurrentFile(newName: string): Promise<Uri> {
   await commands.executeCommand('editor.action.clipboardPasteAction');
   await commands.executeCommand('workbench.action.showCommands');
 
-  await sleep(200);
-  const renameFinished = createChangePromise('preview');
+  await renameFinished;
 
   doc = await workspace.openTextDocument(newUri);
   editor = await window.showTextDocument(doc);
 
-  await renameFinished;
   return newUri;
 }
 
 export async function deleteCurrentFile(): Promise<void> {
+  const deleteFinished = createChangePromise('preview');
+
   await commands.executeCommand('workbench.files.action.showActiveFileInExplorer');
   await commands.executeCommand('deleteFile');
-  await sleep(200);
+
+  await deleteFinished;
 }
 
 export function getTextInQuotesIfNeeded(text: string, withQuotes: boolean): string {
