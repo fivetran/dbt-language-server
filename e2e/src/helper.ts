@@ -37,6 +37,9 @@ export const MAX_RANGE = new Range(0, 0, MAX_VSCODE_INTEGER, MAX_VSCODE_INTEGER)
 export const MIN_RANGE = new Range(0, 0, 0, 0);
 
 workspace.onDidChangeTextDocument(onDidChangeTextDocument);
+window.onDidChangeActiveTextEditor(e => {
+  console.log(`Active document changed: ${e?.document.uri.toString() ?? 'undefined'}`);
+});
 
 let previewPromiseResolve: voidFunc | undefined;
 let documentPromiseResolve: voidFunc | undefined;
