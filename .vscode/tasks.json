@@ -43,6 +43,16 @@
         "+"
       ],
       "type": "shell"
+    },
+    {
+      "label": "deleteTempFiles",
+      "command": "rm",
+      "args": ["-rf", "./e2e/projects/**/temp_model*.sql"],
+      "type": "shell"
+    },
+    {
+      "label": "prepareE2e",
+      "dependsOn": ["deleteTargetFolders", "deleteTempFiles"]
     }
   ]
 }
