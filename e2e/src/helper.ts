@@ -1,4 +1,5 @@
 import { spawnSync, SpawnSyncReturns } from 'child_process';
+import { DebugEvent, ExtensionApi } from 'dbt-language-server-common';
 import * as fs from 'fs';
 import { WatchEventType, writeFileSync } from 'fs';
 import * as path from 'path';
@@ -39,6 +40,8 @@ workspace.onDidChangeTextDocument(onDidChangeTextDocument);
 
 let previewPromiseResolve: voidFunc | undefined;
 let documentPromiseResolve: voidFunc | undefined;
+
+let extensionApi: ExtensionApi | undefined = undefined;
 
 export async function activateAndWait(docUri: Uri): Promise<void> {
   // The extensionId is `publisher.name` from package.json
@@ -314,4 +317,53 @@ export function ensureDirectoryExists(dir: string): void {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir);
   }
+}
+
+let languageServerReadyResolve: () => void;
+let dbtSourceContextInitializedResolve: () => void;
+let diagnosticsSentResolve: () => void;
+
+export async function waitForLanguageServerReady(): Promise<void> {
+  return new Promise<void>(resolve => {
+    languageServerReadyResolve = resolve;
+  });
+}
+
+export async function waitForContextInitialized(): Promise<void> {
+  return new Promise<void>(resolve => {
+    dbtSourceContextInitializedResolve = resolve;
+  });
+}
+
+export async function waitForDiagnosticsSent(): Promise<void> {
+  return new Promise<void>(resolve => {
+    diagnosticsSentResolve = resolve;
+  });
+}
+
+export function registerExtensionApi(): void {
+  const dbtLanguageServer = extensions.getExtension('fivetran.dbt-language-server');
+  if (dbtLanguageServer) {
+    extensionApi = dbtLanguageServer.exports as ExtensionApi;
+  } else {
+    throw new Error("Extension with id 'fivetran.dbt-language-server' not found");
+  }
+
+  languageServerReadyResolve = (): void => console.log('languageServerReadyResolve stub');
+  extensionApi.languageServerEventEmitter.on(DebugEvent[DebugEvent.LANGUAGE_SERVER_READY], () => {
+    console.log('Language Server ready');
+    languageServerReadyResolve();
+  });
+
+  dbtSourceContextInitializedResolve = (): void => console.log('dbtSourceContextInitializedResolve stub');
+  extensionApi.languageServerEventEmitter.on(DebugEvent[DebugEvent.DBT_SOURCE_CONTEXT_INITIALIZED], () => {
+    console.log('Dbt source context initialized');
+    dbtSourceContextInitializedResolve();
+  });
+
+  diagnosticsSentResolve = (): void => console.log('diagnosticsSentResolve stub');
+  extensionApi.languageServerEventEmitter.on(DebugEvent[DebugEvent.DIAGNOSTICS_SENT], () => {
+    console.log('Diagnostics sent');
+    diagnosticsSentResolve();
+  });
 }

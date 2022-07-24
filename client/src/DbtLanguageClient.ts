@@ -1,4 +1,4 @@
-import { CustomInitParams, DbtCompilerType, TelemetryEvent } from 'dbt-language-server-common';
+import { CustomInitParams, DbtCompilerType, DebugEvent, TelemetryEvent } from 'dbt-language-server-common';
 import { Diagnostic, Disposable, OutputChannel, Uri, workspace, WorkspaceFolder } from 'vscode';
 import { LanguageClient, LanguageClientOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { SUPPORTED_LANG_IDS } from './ExtensionClient';
@@ -6,6 +6,7 @@ import { ProgressHandler } from './ProgressHandler';
 import { PythonExtension } from './python/PythonExtension';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 import { TelemetryClient } from './TelemetryClient';
+import EventEmitter = require('node:events');
 
 export class DbtLanguageClient implements Disposable {
   client: LanguageClient;
@@ -19,6 +20,7 @@ export class DbtLanguageClient implements Disposable {
     dbtProjectUri: Uri,
     private previewContentProvider: SqlPreviewContentProvider,
     private progressHandler: ProgressHandler,
+    private languageServerEventEmitter: EventEmitter,
   ) {
     const debugOptions = { execArgv: ['--nolazy', `--inspect=${port}`] };
     const serverOptions = {
@@ -49,6 +51,9 @@ export class DbtLanguageClient implements Disposable {
       }),
       this.client.onNotification('custom/updateQueryPreviewDiagnostics', ({ uri, diagnostics }) => {
         this.previewContentProvider.updateDiagnostics(uri as string, diagnostics as Diagnostic[]);
+      }),
+      this.client.onNotification('custom/languageServerEventNotification', (event: DebugEvent) => {
+        this.languageServerEventEmitter.emit(DebugEvent[event]);
       }),
 
       this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),

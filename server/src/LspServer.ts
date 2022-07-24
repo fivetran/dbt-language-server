@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { CustomInitParams, DbtCompilerType, TelemetryEvent } from 'dbt-language-server-common';
+import { CustomInitParams, DbtCompilerType, DebugEvent, TelemetryEvent } from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
 import { performance } from 'perf_hooks';
 import {
@@ -53,6 +53,7 @@ import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
 import { JinjaParser } from './JinjaParser';
 import { Logger } from './Logger';
+import { LspServerEventReporter } from './LspServerEventReporter';
 import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
@@ -202,6 +203,11 @@ export class LspServer {
     );
     const dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
 
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises, promise/catch-or-return, promise/always-return
+    this.dbtRepository.projectConfigParsedDeferred.promise.then(() => {
+      LspServerEventReporter.logLanguageServerEvent(this.connection, DebugEvent.LANGUAGE_SERVER_READY);
+    });
+
     const prepareDbt = this.dbtContext.dbt?.prepare(dbtProfileType).then(() => {
       this.dbtContext.dbtReady = true;
       this.dbtContext.onDbtReadyEmitter.fire();
@@ -210,6 +216,7 @@ export class LspServer {
     const prepareDestination = this.prepareDestination(profileResult).then(() => {
       this.dbtDestinationContext.contextInitialized = true;
       this.dbtDestinationContext.onContextInitializedEmitter.fire();
+      LspServerEventReporter.logLanguageServerEvent(this.connection, DebugEvent.DBT_SOURCE_CONTEXT_INITIALIZED);
       return this.dbtDestinationContext;
     });
 

@@ -4,6 +4,9 @@
   "engines": {
     "vscode": "^1.52.0"
   },
+  "dependencies": {
+    "dbt-language-server-common": "file:../common"
+  },
   "devDependencies": {
     "@google-cloud/bigquery": "^6.0.1",
     "@types/glob": "^7.2.0",

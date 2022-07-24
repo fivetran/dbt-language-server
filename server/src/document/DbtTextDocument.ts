@@ -1,4 +1,5 @@
 import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
+import { DebugEvent } from 'dbt-language-server-common';
 import {
   CompletionItem,
   CompletionParams,
@@ -29,6 +30,7 @@ import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
 import { HoverProvider } from '../HoverProvider';
 import { JinjaParser, JinjaPartType } from '../JinjaParser';
+import { LspServerEventReporter } from '../LspServerEventReporter';
 import { ModelCompiler } from '../ModelCompiler';
 import { PositionConverter } from '../PositionConverter';
 import { ProgressReporter } from '../ProgressReporter';
@@ -278,6 +280,7 @@ export class DbtTextDocument {
   async updateDiagnostics(compiledSql?: string): Promise<void> {
     [this.rawDocDiagnostics, this.compiledDocDiagnostics] = await this.createDiagnostics(compiledSql ?? this.compiledDocument.getText());
     this.sendDiagnostics();
+    LspServerEventReporter.logLanguageServerEvent(this.connection, DebugEvent.DIAGNOSTICS_SENT);
   }
 
   async createDiagnostics(compiledSql: string): Promise<[Diagnostic[], Diagnostic[]]> {
