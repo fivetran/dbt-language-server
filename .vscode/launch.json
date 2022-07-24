@@ -68,7 +68,7 @@
       "name": "E2E Tests Client",
       "type": "extensionHost",
       "request": "launch",
-      "preLaunchTask": "prepareE2e",
+      "preLaunchTask": "prepare_e2e",
       "runtimeExecutable": "${execPath}",
       "args": [
         // "--extensionDevelopmentPath=${workspaceRoot}/e2e-tests/extension",
@@ -86,7 +86,7 @@
       "name": "dbt_ft Tests Client",
       "type": "extensionHost",
       "request": "launch",
-      "preLaunchTask": "prepareE2e",
+      "preLaunchTask": "prepare_e2e",
       "runtimeExecutable": "${execPath}",
       "args": [
         "--extensionDevelopmentPath=${workspaceRoot}",

@@ -28,31 +28,9 @@
       "problemMatcher": ["$tsc-watch"]
     },
     {
-      "label": "deleteTargetFolders",
-      "command": "find",
-      "args": [
-        "${workspaceRoot}/e2e/projects/",
-        "-type",
-        "d",
-        "-name",
-        "target",
-        "-exec",
-        "rm",
-        "-rf",
-        "{}",
-        "+"
-      ],
+      "label": "prepare_e2e",
+      "command": "./.vscode/prepare_e2e.sh",
       "type": "shell"
-    },
-    {
-      "label": "deleteTempFiles",
-      "command": "rm",
-      "args": ["-rf", "./e2e/projects/**/temp_model*.sql"],
-      "type": "shell"
-    },
-    {
-      "label": "prepareE2e",
-      "dependsOn": ["deleteTargetFolders", "deleteTempFiles"]
     }
   ]
 }
