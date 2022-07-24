@@ -66,9 +66,9 @@ import { SqlCompletionProvider } from './SqlCompletionProvider';
 export class LspServer {
   static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
   private static readonly ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
-  private static readonly FILES_FILTER: FileOperationFilter[] = [{ scheme: 'file', pattern: { glob: '**/*', matches: 'file' } }];
 
   sqlToRefCommandName = randomUUID();
+  filesFilter: FileOperationFilter[];
   workspaceFolder: string;
   hasConfigurationCapability = false;
   featureFinder?: FeatureFinder;
@@ -93,6 +93,7 @@ export class LspServer {
 
   constructor(private connection: _Connection) {
     this.workspaceFolder = process.cwd();
+    this.filesFilter = [{ scheme: 'file', pattern: { glob: `${this.workspaceFolder}/**/*`, matches: 'file' } }];
     Logger.prepareLogger(this.workspaceFolder);
     const dbtProject = new DbtProject('.');
 
@@ -149,7 +150,7 @@ export class LspServer {
         workspace: {
           fileOperations: {
             didRename: {
-              filters: LspServer.FILES_FILTER,
+              filters: this.filesFilter,
             },
           },
         },
@@ -226,7 +227,7 @@ export class LspServer {
         .catch(e => console.log(`Error while registering DidChangeConfiguration notification: ${e instanceof Error ? e.message : String(e)}`));
     }
 
-    const filters = LspServer.FILES_FILTER;
+    const filters = this.filesFilter;
     this.connection.client
       .register(DidCreateFilesNotification.type, { filters })
       .catch(e => console.log(`Error while registering DidCreateFiles notification: ${e instanceof Error ? e.message : String(e)}`));
