@@ -75,6 +75,7 @@
     "upsert",
     "venv",
     "vsix",
+    "werkzeug",
     "Xvfb",
     "zetasql"
   ],

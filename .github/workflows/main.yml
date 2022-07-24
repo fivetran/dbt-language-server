@@ -71,16 +71,16 @@ jobs:
       fail-fast: false
       matrix:
         include: # Run tests on latest version and version used in https://github.com/fivetran/analytics/blob/main/dbt_ft_prod/deployment.yml#L1
-          - install-dbt: 'pip install dbt-bigquery==1.0.0 dbt-postgres==1.0.4 dbt-rpc'
+          - install-dbt: 'pip install dbt-core==1.0.4 dbt-bigquery==1.0.0 dbt-postgres==1.0.4 dbt-rpc'
             os: macos-latest
             target: darwin-x64
-            activate-venv: source ~/dbt_0_20_1_env/bin/activate
+            activate-venv: source ~/dbt_1_0_0_env/bin/activate
             python-version: '3.9.12'
 
           - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
             os: macos-latest
             target: darwin-x64
-            activate-venv: source ~/dbt_0_20_1_env/bin/activate
+            activate-venv: source ~/dbt_1_0_0_env/bin/activate
             python-version: '3.9.12'
 
           - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
@@ -96,7 +96,7 @@ jobs:
             prepare-for-tests: |
               Xvfb -ac :99 -screen 0 1280x1024x16 &
               export DISPLAY=:99
-            activate-venv: source ~/dbt_0_20_1_env/bin/activate
+            activate-venv: source ~/dbt_1_0_0_env/bin/activate
             python-version: '3.9.12'
 
           # TODO: enable this tests after implementing Windows support
@@ -105,7 +105,7 @@ jobs:
           #   target: win32-x64
           #   add-colon-to-key-file-path: |
           #     homedir=c:/${homedir#*c/}
-          #     python=${homedir}/dbt_0_20_1_env/Scripts/python
+          #     python=${homedir}/dbt_1_0_0_env/Scripts/python
           #     cat <<EOT > ${GITHUB_WORKSPACE}/e2e/projects/special-python-settings/.vscode/settings.json
           #     {
           #       "python.defaultInterpreterPath": "${python}",
@@ -113,7 +113,7 @@ jobs:
           #     }
           #     EOT
           #   activate-venv: |
-          #     cd ~/dbt_0_20_1_env/Scripts
+          #     cd ~/dbt_1_0_0_env/Scripts
           #     . activate
           #   python-version: '3.9.12'
           #   use-dbt-cli: true
@@ -162,13 +162,14 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: add custom python venv with dbt@0.20.1
+      - name: add custom python venv with dbt@1.0.0
         if: matrix.python-version != '3.10.5'
         run: | # https://github.com/dbt-labs/dbt-core/issues/4745
-          python -m venv ~/dbt_0_20_1_env
+          python -m venv ~/dbt_1_0_0_env
           ${{ matrix.activate-venv }}
-          pip install --force-reinstall MarkupSafe==2.0.1
-          pip install dbt==0.20.1 dbt-bigquery==0.20.1 dbt-postgres==0.20.1
+          python -m pip install --force-reinstall werkzeug==2.1.2
+          python -m pip install --force-reinstall MarkupSafe==2.0.1
+          python -m pip install dbt-bigquery==1.0.0 dbt-postgres==1.0.0 dbt-rpc
           dbt --version
 
       - name: prepare profile config
