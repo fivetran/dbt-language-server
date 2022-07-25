@@ -4,9 +4,6 @@
   "engines": {
     "vscode": "^1.52.0"
   },
-  "dependencies": {
-    "dbt-language-server-common": "file:../common"
-  },
   "devDependencies": {
     "@google-cloud/bigquery": "^6.0.1",
     "@types/glob": "^7.2.0",
@@ -15,6 +12,7 @@
     "@vscode/test-electron": "^2.1.5",
     "hamjest": "^3.7.3",
     "mocha": "^10.0.0",
-    "pg": "^8.7.3"
+    "pg": "^8.7.3",
+    "dbt-language-server-common": "file:../common"
   }
 }
