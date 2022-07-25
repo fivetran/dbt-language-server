@@ -5,6 +5,7 @@ import { AdapterInfo, DbtVersionInfo, Version } from '../DbtVersion';
 import { DbtCommand } from '../dbt_execution/commands/DbtCommand';
 import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor';
 import { DbtRpcCommand } from '../dbt_execution/commands/DbtRpcCommand';
+import { DbtCommandFactory } from '../dbt_execution/DbtCommandFactory';
 import { FeatureFinder } from '../FeatureFinder';
 
 describe('FeatureFinder', () => {
@@ -18,7 +19,7 @@ describe('FeatureFinder', () => {
                             - bigquery:   1.1.1 - Up to date!
                             - spark:      1.1.0 - Up to date!`;
 
-  const LEGACY_VERSION_OUTPU = `installed version: 0.20.1
+  const LEGACY_VERSION_OUTPUT = `installed version: 0.20.1
                                   latest version: 1.0.0
 
                                 Your version of dbt is out of date! You can find instructions for upgrading here:
@@ -35,14 +36,14 @@ describe('FeatureFinder', () => {
   });
 
   const LEGACY_VERSION_COMMAND_RESULT = Promise.resolve({
-    stderr: LEGACY_VERSION_OUTPU,
+    stderr: LEGACY_VERSION_OUTPUT,
     stdout: '',
   });
 
-  const RPC_WITH_PYTHON = new DbtRpcCommand([FeatureFinder.VERSION_PARAM], PYTHON_PATH);
-  const DBT_WITH_PYTHON = new DbtCommand([FeatureFinder.VERSION_PARAM], PYTHON_PATH);
-  const RPC_GLOBAL = new DbtRpcCommand([FeatureFinder.VERSION_PARAM]);
-  const DBT_GLOBAL = new DbtCommand([FeatureFinder.VERSION_PARAM]);
+  const RPC_WITH_PYTHON = new DbtRpcCommand([DbtCommandFactory.VERSION_PARAM], PYTHON_PATH);
+  const DBT_WITH_PYTHON = new DbtCommand([DbtCommandFactory.VERSION_PARAM], PYTHON_PATH);
+  const RPC_GLOBAL = new DbtRpcCommand([DbtCommandFactory.VERSION_PARAM]);
+  const DBT_GLOBAL = new DbtCommand([DbtCommandFactory.VERSION_PARAM]);
 
   let mockCommandExecutor: DbtCommandExecutor;
   before(() => {

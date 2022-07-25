@@ -2,31 +2,12 @@ import { PythonInfo } from 'dbt-language-server-common';
 import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
 import { AdapterInfo, DbtVersionInfo, getStringVersion, Version } from './DbtVersion';
 import { Command } from './dbt_execution/commands/Command';
-import { DbtCommand } from './dbt_execution/commands/DbtCommand';
 import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
-import { DbtRpcCommand } from './dbt_execution/commands/DbtRpcCommand';
+import { DbtCommandFactory } from './dbt_execution/DbtCommandFactory';
 import { randomNumber } from './utils/Utils';
 import findFreePortPmfy = require('find-free-port');
 
 export class FeatureFinder {
-  private static readonly NO_VERSION_CHECK_PARAM = '--no-version-check';
-  private static readonly PARTIAL_PARSE_PARAM = '--partial-parse';
-  private static readonly PORT_PARAM = '--port';
-  static readonly VERSION_PARAM = '--version';
-  private static readonly LEGACY_DBT_PARAMS = [
-    `${FeatureFinder.PARTIAL_PARSE_PARAM}`,
-    'rpc',
-    `${FeatureFinder.NO_VERSION_CHECK_PARAM}`,
-    `${FeatureFinder.PORT_PARAM}`,
-  ];
-  private static readonly DBT_RPC_PARAMS = [
-    `${FeatureFinder.PARTIAL_PARSE_PARAM}`,
-    `${FeatureFinder.NO_VERSION_CHECK_PARAM}`,
-    '--no-anonymous-usage-stats',
-    'serve',
-    `${FeatureFinder.PORT_PARAM}`,
-  ];
-
   private static readonly DBT_INSTALLED_VERSION_PATTERN = /installed.*:\s+(\d+)\.(\d+)\.(\d+)/;
   private static readonly DBT_LATEST_VERSION_PATTERN = /latest.*:\s+(\d+)\.(\d+)\.(\d+)/;
   private static readonly DBT_ADAPTER_PATTERN = /- (\w+):.*/g;
@@ -35,7 +16,10 @@ export class FeatureFinder {
   versionInfo?: DbtVersionInfo;
   availableCommandsPromise: Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]>;
 
+  dbtCommandFactory: DbtCommandFactory;
+
   constructor(public pythonInfo: PythonInfo | undefined, private dbtCommandExecutor: DbtCommandExecutor) {
+    this.dbtCommandFactory = new DbtCommandFactory(pythonInfo?.path);
     this.availableCommandsPromise = this.getAvailableDbt();
   }
 
@@ -51,23 +35,27 @@ export class FeatureFinder {
 
   async getAvailableDbt(): Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]> {
     const settledResults = await Promise.allSettled([
-      this.findDbtRpcPythonVersion(),
-      this.findDbtPythonVersion(),
-      this.findDbtRpcGlobalVersion(),
-      this.findDbtGlobalVersion(),
+      this.findDbtRpcPythonInfo(),
+      this.findDbtPythonInfo(),
+      this.findDbtRpcGlobalInfo(),
+      this.findDbtGlobalInfo(),
     ]);
     const [dbtRpcPythonVersion, dbtPythonVersion, dbtRpcGlobalVersion, dbtGlobalVersion] = settledResults.map(v => {
       return v.status === 'fulfilled' ? v.value : undefined;
     });
 
-    let versions = '';
-    versions += dbtRpcGlobalVersion ? `dbtRpcGlobalVersion = ${getStringVersion(dbtRpcGlobalVersion.installedVersion)} ` : '';
-    versions += dbtPythonVersion ? `dbtPythonVersion = ${getStringVersion(dbtPythonVersion.installedVersion)} ` : '';
-    versions += dbtRpcPythonVersion ? `dbtRpcPythonVersion = ${getStringVersion(dbtRpcPythonVersion.installedVersion)}` : '';
-    versions += dbtGlobalVersion ? `dbtGlobalVersion = ${getStringVersion(dbtGlobalVersion.installedVersion)}` : '';
+    console.log(
+      this.getLogString('dbtRpcGlobalVersion', dbtRpcGlobalVersion) +
+        this.getLogString('dbtPythonVersion', dbtPythonVersion) +
+        this.getLogString('dbtRpcPythonVersion', dbtRpcPythonVersion) +
+        this.getLogString('dbtGlobalVersion', dbtGlobalVersion),
+    );
 
-    console.log(versions);
     return [dbtRpcPythonVersion, dbtPythonVersion, dbtRpcGlobalVersion, dbtGlobalVersion];
+  }
+
+  getLogString(name: string, dbtVersionInfo?: DbtVersionInfo): string {
+    return dbtVersionInfo ? `${name} = ${getStringVersion(dbtVersionInfo.installedVersion)} ` : '';
   }
 
   /** Tries to find a suitable command to start the server first in the current Python environment and then in the global scope.
@@ -79,17 +67,17 @@ export class FeatureFinder {
 
     if (dbtRpcPythonVersion?.installedVersion && dbtRpcPythonVersion.installedAdapters.some(a => a.name === dbtProfileType)) {
       this.versionInfo = dbtRpcPythonVersion;
-      return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS, this.pythonInfo?.path);
+      return this.dbtCommandFactory.getDbtRpcRun();
     }
     if (dbtPythonVersion?.installedVersion) {
       this.versionInfo = dbtPythonVersion;
       return dbtPythonVersion.installedVersion.major >= 1
         ? this.installAndFindCommandForV1(dbtProfileType)
-        : new DbtCommand(FeatureFinder.LEGACY_DBT_PARAMS, this.pythonInfo?.path);
+        : this.dbtCommandFactory.getLegacyDbtRpcRun();
     }
     if (dbtRpcGlobalVersion?.installedVersion && dbtRpcGlobalVersion.installedAdapters.some(a => a.name === dbtProfileType)) {
       this.versionInfo = dbtRpcGlobalVersion;
-      return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS);
+      return this.dbtCommandFactory.getGlobalDbtRpcRun();
     }
 
     return undefined;
@@ -115,38 +103,37 @@ export class FeatureFinder {
     if (this.pythonInfo) {
       const installResult = await DbtUtilitiesInstaller.installLatestDbtRpc(this.pythonInfo.path, dbtProfileType);
       if (installResult.isOk()) {
-        return new DbtRpcCommand(FeatureFinder.DBT_RPC_PARAMS, this.pythonInfo.path);
+        return this.dbtCommandFactory.getDbtRpcRun();
       }
     }
     return undefined;
   }
 
-  private async findDbtRpcGlobalVersion(): Promise<DbtVersionInfo | undefined> {
-    return this.findCommandVersion(new DbtRpcCommand([FeatureFinder.VERSION_PARAM]));
+  private async findDbtRpcPythonInfo(): Promise<DbtVersionInfo | undefined> {
+    return this.findCommandPythonInfo(this.dbtCommandFactory.getDbtRpcWithPythonVersion());
   }
 
-  private async findDbtRpcPythonVersion(): Promise<DbtVersionInfo | undefined> {
-    return this.findCommandPythonVersion(new DbtRpcCommand([FeatureFinder.VERSION_PARAM], this.pythonInfo?.path));
+  private async findDbtPythonInfo(): Promise<DbtVersionInfo | undefined> {
+    return this.findCommandPythonInfo(this.dbtCommandFactory.getDbtWithPythonVersion());
   }
 
-  private async findDbtPythonVersion(): Promise<DbtVersionInfo | undefined> {
-    return this.findCommandPythonVersion(new DbtCommand([FeatureFinder.VERSION_PARAM], this.pythonInfo?.path));
+  private async findDbtRpcGlobalInfo(): Promise<DbtVersionInfo | undefined> {
+    return this.findCommandInfo(this.dbtCommandFactory.getDbtRpcGlobalVersion());
   }
 
-  private async findDbtGlobalVersion(): Promise<DbtVersionInfo | undefined> {
-    return this.findCommandVersion(new DbtCommand([FeatureFinder.VERSION_PARAM]));
+  private async findDbtGlobalInfo(): Promise<DbtVersionInfo | undefined> {
+    return this.findCommandInfo(this.dbtCommandFactory.getDbtGlobalVersion());
   }
 
-  private async findCommandPythonVersion(command: Command): Promise<DbtVersionInfo | undefined> {
-    return command.python ? this.findCommandVersion(command) : undefined;
+  private async findCommandPythonInfo(command: Command): Promise<DbtVersionInfo | undefined> {
+    return command.python ? this.findCommandInfo(command) : undefined;
   }
 
-  private async findCommandVersion(command: Command): Promise<DbtVersionInfo> {
+  private async findCommandInfo(command: Command): Promise<DbtVersionInfo> {
     const { stderr } = await this.dbtCommandExecutor.execute(command);
 
     const installedVersion = FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_INSTALLED_VERSION_PATTERN);
     const latestVersion = FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_LATEST_VERSION_PATTERN);
-
     const installedAdapters = FeatureFinder.getInstalledAdapters(stderr.substring(stderr.indexOf('Plugins:')));
 
     return {
