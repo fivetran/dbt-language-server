@@ -27,10 +27,8 @@ export class FeatureFinder {
     `${FeatureFinder.PORT_PARAM}`,
   ];
 
-  private static readonly DBT_INSTALLED_VERSION_PATTERN_LESS_1_1_0 = /installed version: (\d+)\.(\d+)\.(\d+)/;
-  private static readonly DBT_INSTALLED_VERSION_PATTERN = /installed:\s+(\d+)\.(\d+)\.(\d+)/;
-  private static readonly DBT_LATEST_VERSION_PATTERN_LESS_1_1_0 = /latest version:\s+(\d+)\.(\d+)\.(\d+)/;
-  private static readonly DBT_LATEST_VERSION_PATTERN = /latest:\s+(\d+)\.(\d+)\.(\d+)/;
+  private static readonly DBT_INSTALLED_VERSION_PATTERN = /installed.*:\s+(\d+)\.(\d+)\.(\d+)/;
+  private static readonly DBT_LATEST_VERSION_PATTERN = /latest.*:\s+(\d+)\.(\d+)\.(\d+)/;
   private static readonly DBT_ADAPTER_PATTERN = /- (\w+):.*/g;
   private static readonly DBT_ADAPTER_VERSION_PATTERN = /:\s+(\d+)\.(\d+)\.(\d+)/;
 
@@ -141,10 +139,10 @@ export class FeatureFinder {
   }
 
   private async findCommandVersion(command: Command): Promise<DbtVersionInfo> {
-    const { stdout, stderr } = await this.dbtCommandExecutor.execute(command);
+    const { stderr } = await this.dbtCommandExecutor.execute(command);
 
-    const installedVersion = FeatureFinder.readInstalledVersion(stderr) ?? FeatureFinder.readInstalledVersion(stdout);
-    const latestVersion = FeatureFinder.readLatestVersion(stderr) ?? FeatureFinder.readLatestVersion(stdout);
+    const installedVersion = FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_INSTALLED_VERSION_PATTERN);
+    const latestVersion = FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_LATEST_VERSION_PATTERN);
 
     const installedAdapters = FeatureFinder.getInstalledAdapters(stderr.substring(stderr.indexOf('Plugins:')));
 
@@ -153,20 +151,6 @@ export class FeatureFinder {
       latestVersion,
       installedAdapters,
     };
-  }
-
-  private static readInstalledVersion(output: string): Version | undefined {
-    return (
-      FeatureFinder.readVersionByPattern(output, FeatureFinder.DBT_INSTALLED_VERSION_PATTERN) ??
-      FeatureFinder.readVersionByPattern(output, FeatureFinder.DBT_INSTALLED_VERSION_PATTERN_LESS_1_1_0)
-    );
-  }
-
-  private static readLatestVersion(output: string): Version | undefined {
-    return (
-      FeatureFinder.readVersionByPattern(output, FeatureFinder.DBT_LATEST_VERSION_PATTERN) ??
-      FeatureFinder.readVersionByPattern(output, FeatureFinder.DBT_LATEST_VERSION_PATTERN_LESS_1_1_0)
-    );
   }
 
   private static getInstalledAdapters(data: string): AdapterInfo[] {
