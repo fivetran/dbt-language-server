@@ -8,7 +8,9 @@ import {
   CompletionItem,
   CompletionList,
   DefinitionLink,
+  DiagnosticChangeEvent,
   extensions,
+  languages,
   Position,
   Range,
   Selection,
@@ -37,6 +39,7 @@ export const MAX_RANGE = new Range(0, 0, MAX_VSCODE_INTEGER, MAX_VSCODE_INTEGER)
 export const MIN_RANGE = new Range(0, 0, 0, 0);
 
 workspace.onDidChangeTextDocument(onDidChangeTextDocument);
+languages.onDidChangeDiagnostics(onDidChangeDiagnostics);
 
 let previewPromiseResolve: voidFunc | undefined;
 let documentPromiseResolve: voidFunc | undefined;
@@ -46,6 +49,23 @@ let extensionApi: ExtensionApi | undefined = undefined;
 let languageServerReadyResolve: () => void;
 let dbtSourceContextInitializedResolve: () => void;
 let diagnosticsSentResolve: () => void;
+
+const changeDiagnosticsResolve = new Map<string, () => void>();
+
+function onDidChangeDiagnostics(event: DiagnosticChangeEvent): void {
+  event.uris.forEach((uri: Uri) => {
+    const resolve = changeDiagnosticsResolve.get(uri.toString());
+    if (resolve) {
+      resolve();
+    }
+  });
+}
+
+export function waitForChangeDiagnosticsChange(uri: Uri): Promise<void> {
+  return new Promise<void>(resolve => {
+    changeDiagnosticsResolve.set(uri.toString(), resolve);
+  });
+}
 
 export async function openAndWaitDiagnostics(docUri: Uri): Promise<void> {
   if (!extensionApi) {

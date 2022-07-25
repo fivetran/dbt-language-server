@@ -1,5 +1,5 @@
 import { DiagnosticSeverity, Location, Range } from 'vscode';
-import { assertAllDiagnostics } from './asserts';
+import { assertAllDiagnostics, assertDiagnostics } from './asserts';
 import { activateAndWait, getDocUri, replaceText } from './helper';
 
 suite('Should show dbt error and link to it', () => {
@@ -50,9 +50,12 @@ suite('Should show dbt error and link to it', () => {
 
     // 3. Should clear diagnostics for both documents
     await activateAndWait(DOC_WITH_ERROR);
-    await replaceText(LINE_WITH_ERROR, ORIGINAL_LINE);
 
-    await assertAllDiagnostics(DOC_WITH_ERROR, []);
-    await assertAllDiagnostics(DOC_WITHOUT_ERROR, []);
+    // const docWithError = waitForChangeDiagnosticsChange(DOC_WITH_ERROR);
+    await replaceText(LINE_WITH_ERROR, ORIGINAL_LINE);
+    // await docWithError;
+
+    await assertDiagnostics(DOC_WITH_ERROR, []);
+    await assertDiagnostics(DOC_WITHOUT_ERROR, []);
   });
 });
