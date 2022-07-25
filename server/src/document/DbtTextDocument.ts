@@ -365,4 +365,10 @@ export class DbtTextDocument {
     }
     return undefined;
   }
+
+  clearDiagnostics(): void {
+    this.connection
+      .sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: [] })
+      .catch(e => console.log(`Failed to send diagnostics while closing document: ${e instanceof Error ? e.message : String(e)}`));
+  }
 }

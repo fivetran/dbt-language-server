@@ -1,3 +1,3 @@
 projects/**/logs
 projects/**/target/*
-projects/**/temp_model.sql
+projects/**/temp_model*.sql
