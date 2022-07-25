@@ -143,7 +143,12 @@ export class ExtensionClient {
       this.previewContentProvider.changeActiveDocument(editor.document.uri);
 
       const doc = await workspace.openTextDocument(SqlPreviewContentProvider.URI);
-      await window.showTextDocument(doc, ViewColumn.Beside, true);
+      const preserveFocus = window.visibleTextEditors.some(e => e.document.uri.path === SqlPreviewContentProvider.URI.path);
+      await window.showTextDocument(doc, ViewColumn.Beside, preserveFocus);
+      if (!preserveFocus) {
+        await commands.executeCommand('workbench.action.lockEditorGroup');
+        await commands.executeCommand('workbench.action.focusPreviousGroup');
+      }
       await languages.setTextDocumentLanguage(doc, 'sql');
       this.previewContentProvider.updatePreviewDiagnostics(this.getDiagnostics());
     });
