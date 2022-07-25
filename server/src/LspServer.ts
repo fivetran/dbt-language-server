@@ -48,6 +48,7 @@ import { DbtProfileCreator, DbtProfileError, DbtProfileInfo, DbtProfileSuccess }
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
 import { getStringVersion } from './DbtVersion';
+import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
 import { Dbt, DbtMode } from './dbt_execution/Dbt';
 import { DbtCli } from './dbt_execution/DbtCli';
 import { DbtRpc } from './dbt_execution/DbtRpc';
@@ -119,7 +120,7 @@ export class LspServer {
     this.initializeNotifications();
 
     const customInitParams = params.initializationOptions as CustomInitParams;
-    this.featureFinder = new FeatureFinder(customInitParams.pythonInfo);
+    this.featureFinder = new FeatureFinder(customInitParams.pythonInfo, new DbtCommandExecutor());
 
     this.dbt = this.createDbt(this.featureFinder, customInitParams.dbtCompiler);
 

@@ -1,7 +1,12 @@
 export interface DbtVersionInfo {
   installedVersion?: Version;
   latestVersion?: Version;
-  installedAdapter?: Version;
+  installedAdapters: AdapterInfo[];
+}
+
+export interface AdapterInfo {
+  name: string;
+  version?: Version;
 }
 
 export interface Version {
