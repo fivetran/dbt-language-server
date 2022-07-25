@@ -33,8 +33,11 @@ export class FeatureFinder {
   private static readonly DBT_ADAPTER_VERSION_PATTERN = /:\s+(\d+)\.(\d+)\.(\d+)/;
 
   versionInfo?: DbtVersionInfo;
+  availableCommandsPromise: Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]>;
 
-  constructor(public pythonInfo: PythonInfo | undefined, private dbtCommandExecutor: DbtCommandExecutor) {}
+  constructor(public pythonInfo: PythonInfo | undefined, private dbtCommandExecutor: DbtCommandExecutor) {
+    this.availableCommandsPromise = this.getAvailableDbt();
+  }
 
   getPythonPath(): string | undefined {
     return this.pythonInfo?.path;
@@ -72,7 +75,7 @@ export class FeatureFinder {
    * @returns {Command} or `undefined` if nothing is found
    */
   async findDbtRpcCommand(dbtProfileType?: string): Promise<Command | undefined> {
-    const [dbtRpcPythonVersion, dbtPythonVersion, dbtRpcGlobalVersion] = await this.getAvailableDbt();
+    const [dbtRpcPythonVersion, dbtPythonVersion, dbtRpcGlobalVersion] = await this.availableCommandsPromise;
 
     if (dbtRpcPythonVersion?.installedVersion && dbtRpcPythonVersion.installedAdapters.some(a => a.name === dbtProfileType)) {
       this.versionInfo = dbtRpcPythonVersion;
@@ -93,7 +96,7 @@ export class FeatureFinder {
   }
 
   async findGlobalDbtCommand(dbtProfileType?: string): Promise<boolean> {
-    const [, dbtPythonVersion, , dbtGlobalVersion] = await this.getAvailableDbt();
+    const [, dbtPythonVersion, , dbtGlobalVersion] = await this.availableCommandsPromise;
 
     if (dbtPythonVersion?.installedVersion && dbtPythonVersion.installedAdapters.some(a => a.name === dbtProfileType)) {
       this.versionInfo = dbtPythonVersion;
