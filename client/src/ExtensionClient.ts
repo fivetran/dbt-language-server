@@ -147,6 +147,7 @@ export class ExtensionClient {
       await window.showTextDocument(doc, ViewColumn.Beside, preserveFocus);
       if (!preserveFocus) {
         await commands.executeCommand('workbench.action.lockEditorGroup');
+        await commands.executeCommand('workbench.action.focusPreviousGroup');
       }
       await languages.setTextDocumentLanguage(doc, 'sql');
       this.previewContentProvider.updatePreviewDiagnostics(this.getDiagnostics());
