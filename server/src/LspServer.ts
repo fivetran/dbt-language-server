@@ -111,6 +111,9 @@ export class LspServer {
   onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> {
     console.log(`Starting server for folder ${this.workspaceFolder}.`);
 
+    const customInitParams = params.initializationOptions as CustomInitParams;
+    this.featureFinder = new FeatureFinder(customInitParams.pythonInfo, new DbtCommandExecutor());
+
     process.on('uncaughtException', this.onUncaughtException.bind(this));
     process.on('SIGTERM', () => this.onShutdown());
     process.on('SIGINT', () => this.onShutdown());
@@ -118,9 +121,6 @@ export class LspServer {
     this.fileChangeListener.onInit();
 
     this.initializeNotifications();
-
-    const customInitParams = params.initializationOptions as CustomInitParams;
-    this.featureFinder = new FeatureFinder(customInitParams.pythonInfo, new DbtCommandExecutor());
 
     this.dbt = this.createDbt(this.featureFinder, customInitParams.dbtCompiler);
 
