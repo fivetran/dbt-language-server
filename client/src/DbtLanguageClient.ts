@@ -51,6 +51,7 @@ export class DbtLanguageClient implements Disposable {
       }),
       this.client.onNotification('custom/updateQueryPreviewDiagnostics', ({ uri, diagnostics }) => {
         this.previewContentProvider.updateDiagnostics(uri as string, diagnostics as Diagnostic[]);
+        this.languageServerEventEmitter.emit(DebugEvent[DebugEvent.DIAGNOSTICS_SENT]);
       }),
       this.client.onNotification('custom/languageServerEventNotification', (event: DebugEvent) => {
         this.languageServerEventEmitter.emit(DebugEvent[event]);
