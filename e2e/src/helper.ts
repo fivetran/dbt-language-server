@@ -49,10 +49,10 @@ let diagnosticsSentResolve: () => void;
 
 export async function openAndWaitDiagnostics(docUri: Uri): Promise<void> {
   if (!extensionApi) {
-    registerExtensionApi();
+    initializeExtensionApi();
   }
 
-  const existingEditor = window.visibleTextEditors.find(e => e.document.uri.path === docUri.path);
+  const existingEditor = findExistingEditor(docUri);
   if (existingEditor && existingEditor.document.getText() === window.activeTextEditor?.document.getText()) {
     return;
   }
@@ -70,7 +70,7 @@ export async function activateAndWait(docUri: Uri): Promise<void> {
     throw new Error('Fivetran.dbt-language-server not found');
   }
 
-  const existingEditor = window.visibleTextEditors.find(e => e.document.uri.path === docUri.path);
+  const existingEditor = findExistingEditor(docUri);
   const doNotWaitChanges = existingEditor && existingEditor.document.getText() === window.activeTextEditor?.document.getText() && getPreviewEditor();
   const activateFinished = doNotWaitChanges ? Promise.resolve() : createChangePromise('preview');
 
@@ -80,6 +80,10 @@ export async function activateAndWait(docUri: Uri): Promise<void> {
   editor = await window.showTextDocument(doc);
   await showPreview();
   await activateFinished;
+}
+
+function findExistingEditor(docUri: Uri): TextEditor | undefined {
+  return window.visibleTextEditors.find(e => e.document.uri.path === docUri.path);
 }
 
 function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
@@ -371,7 +375,7 @@ export async function waitForDiagnosticsSent(): Promise<void> {
   });
 }
 
-export function registerExtensionApi(): void {
+export function initializeExtensionApi(): void {
   const dbtLanguageServer = extensions.getExtension('fivetran.dbt-language-server');
   if (dbtLanguageServer) {
     extensionApi = dbtLanguageServer.exports as ExtensionApi;
