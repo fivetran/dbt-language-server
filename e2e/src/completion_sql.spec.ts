@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
 import { assertCompletions } from './asserts';
-import { activateAndWait, getDocUri, replaceText } from './helper';
+import { getDocUri, openAndWaitDiagnostics, replaceTextWaitDiagnostics } from './helper';
 
 suite('Should do completion', () => {
   test('Should suggest table columns', async () => {
     const docUri = getDocUri('simple_select.sql');
-    await activateAndWait(docUri);
+    await openAndWaitDiagnostics(docUri);
+
     await assertCompletions(docUri, new vscode.Position(0, 8), [
       { label: 'date', kind: vscode.CompletionItemKind.Value },
       { label: 'id', kind: vscode.CompletionItemKind.Value },
@@ -16,7 +17,8 @@ suite('Should do completion', () => {
 
   test('Should suggest columns for both tables', async () => {
     const docUri = getDocUri('join_tables.sql');
-    await activateAndWait(docUri);
+    await openAndWaitDiagnostics(docUri);
+
     await assertCompletions(docUri, new vscode.Position(0, 8), [
       { label: 'test_table1.date', kind: vscode.CompletionItemKind.Value },
       { label: 'test_table1.id', kind: vscode.CompletionItemKind.Value },
@@ -36,8 +38,9 @@ suite('Should do completion', () => {
 
   test('Should suggest columns for table name after press .', async () => {
     const docUri = getDocUri('join_tables.sql');
-    await activateAndWait(docUri);
-    await replaceText('*', 'users.');
+    await openAndWaitDiagnostics(docUri);
+    await replaceTextWaitDiagnostics('*', 'users.');
+
     await assertCompletions(
       docUri,
       new vscode.Position(0, 13),
@@ -57,8 +60,8 @@ suite('Should do completion', () => {
 
   test('Should suggest columns for table alias after press .', async () => {
     const docUri = getDocUri('select_with_alias.sql');
-    await activateAndWait(docUri);
-    await replaceText('*', 't.');
+    await openAndWaitDiagnostics(docUri);
+    await replaceTextWaitDiagnostics('*', 't.');
 
     await assertCompletions(
       docUri,
@@ -75,8 +78,8 @@ suite('Should do completion', () => {
 
   test('Should suggest tables from with clause', async () => {
     const docUri = getDocUri('multiple_with.sql');
-    await activateAndWait(docUri);
-    await replaceText('from aaa_table', 'from ');
+    await openAndWaitDiagnostics(docUri);
+    await replaceTextWaitDiagnostics('from aaa_table', 'from ');
 
     await assertCompletions(docUri, new vscode.Position(7, 14), [
       { label: 'aaa_table', kind: vscode.CompletionItemKind.Value, detail: 'Table' },

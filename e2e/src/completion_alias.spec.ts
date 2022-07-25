@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
-import { workspace } from 'vscode';
 import { assertCompletions } from './asserts';
-import { getCustomDocUri, registerExtensionApi, waitForDiagnosticsSent } from './helper';
+import { getCustomDocUri, openAndWaitDiagnostics } from './helper';
 
 suite('Should suggest completions after ref aliases', () => {
   const PROJECT_FILE_NAME = 'completion-jinja/models/join_ref.sql';
@@ -9,10 +8,8 @@ suite('Should suggest completions after ref aliases', () => {
   let docUri: vscode.Uri;
 
   suiteSetup(async () => {
-    registerExtensionApi();
     docUri = getCustomDocUri(PROJECT_FILE_NAME);
-    await workspace.openTextDocument(docUri);
-    await waitForDiagnosticsSent();
+    await openAndWaitDiagnostics(docUri);
   });
 
   test('Should suggest columns for ref alias after press . in select', async () => {
