@@ -255,13 +255,12 @@ export class DbtTextDocument {
     }
 
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
-    this.sendUpdateQueryPreview();
-
     if (this.dbtDestinationContext.contextInitialized) {
       await this.updateDiagnostics(compiledSql);
     } else {
       this.requireDiagnosticsUpdate = true;
     }
+    this.sendUpdateQueryPreview();
 
     if (!this.modelCompiler.compilationInProgress) {
       this.progressReporter.sendFinish(this.rawDocument.uri);
