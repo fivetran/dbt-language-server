@@ -67,6 +67,17 @@ export function waitForChangeDiagnosticsChange(uri: Uri): Promise<void> {
   });
 }
 
+export function waitForPreviewDiagnostics(): Promise<void> {
+  return new Promise<void>(resolve => {
+    changeDiagnosticsResolve.set(PREVIEW_URI, resolve);
+  });
+}
+
+export async function openTextDocument(docUri: Uri): Promise<void> {
+  await workspace.openTextDocument(docUri);
+  editor = await window.showTextDocument(docUri);
+}
+
 export async function openAndWaitDiagnostics(docUri: Uri): Promise<void> {
   if (!extensionApi) {
     initializeExtensionApi();
@@ -233,6 +244,10 @@ export async function appendText(value: string): Promise<void> {
 
 export async function insertText(position: Position, value: string): Promise<void> {
   return edit(eb => eb.insert(position, value));
+}
+
+export async function replace(oldText: string, newText: string): Promise<void> {
+  await editor.edit(prepareReplaceTextCallback(oldText, newText));
 }
 
 export async function replaceTextWaitDiagnostics(oldText: string, newText: string): Promise<void> {

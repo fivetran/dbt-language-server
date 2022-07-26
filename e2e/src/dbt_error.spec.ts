@@ -49,13 +49,10 @@ suite('Should show dbt error and link to it', () => {
     ]);
 
     // 3. Should clear diagnostics for both documents
-    // await activateAndWait(DOC_WITH_ERROR);
+    await activateAndWait(DOC_WITH_ERROR);
+    await replaceText(LINE_WITH_ERROR, ORIGINAL_LINE);
 
-    // // const docWithError = waitForChangeDiagnosticsChange(DOC_WITH_ERROR);
-    // await replaceText(LINE_WITH_ERROR, ORIGINAL_LINE);
-    // // await docWithError;
-
-    // await assertDiagnostics(DOC_WITH_ERROR, []);
-    // await assertDiagnostics(DOC_WITHOUT_ERROR, []);
+    await assertAllDiagnostics(DOC_WITH_ERROR, []);
+    await assertAllDiagnostics(DOC_WITHOUT_ERROR, []);
   });
 });
