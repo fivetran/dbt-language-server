@@ -2,7 +2,7 @@
 
 ## Version 0.6.3 (26/07/2022)
 ## What's Changed
-* Fix issue with `_dbt_max_partition` dbt specific keyword
+* Fix issue with `_dbt_max_partition` dbt specific keyword.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.6.2...v0.6.3
 ---
