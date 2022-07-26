@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.6.3 (01/01/1970)
+## Version 0.6.3 (26/07/2022)
 ## What's Changed
 * Fix issue with `_dbt_max_partition` dbt specific keyword
 
