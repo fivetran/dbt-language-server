@@ -1,4 +1,5 @@
 import { spawnSync, SpawnSyncReturns } from 'child_process';
+import { DebugEvent, ExtensionApi } from 'dbt-language-server-common';
 import * as fs from 'fs';
 import { WatchEventType, writeFileSync } from 'fs';
 import * as path from 'path';
@@ -7,7 +8,9 @@ import {
   CompletionItem,
   CompletionList,
   DefinitionLink,
+  DiagnosticChangeEvent,
   extensions,
+  languages,
   Position,
   Range,
   Selection,
@@ -36,9 +39,60 @@ export const MAX_RANGE = new Range(0, 0, MAX_VSCODE_INTEGER, MAX_VSCODE_INTEGER)
 export const MIN_RANGE = new Range(0, 0, 0, 0);
 
 workspace.onDidChangeTextDocument(onDidChangeTextDocument);
+languages.onDidChangeDiagnostics(onDidChangeDiagnostics);
 
 let previewPromiseResolve: voidFunc | undefined;
 let documentPromiseResolve: voidFunc | undefined;
+
+let extensionApi: ExtensionApi | undefined = undefined;
+
+let languageServerReadyResolve: () => void;
+let dbtSourceContextInitializedResolve: () => void;
+let diagnosticsSentResolve: () => void;
+
+const changeDiagnosticsResolve = new Map<string, () => void>();
+
+function onDidChangeDiagnostics(event: DiagnosticChangeEvent): void {
+  event.uris.forEach((uri: Uri) => {
+    const resolve = changeDiagnosticsResolve.get(uri.toString());
+    if (resolve) {
+      resolve();
+    }
+  });
+}
+
+export function waitForChangeDiagnosticsChange(uri: Uri): Promise<void> {
+  return new Promise<void>(resolve => {
+    changeDiagnosticsResolve.set(uri.toString(), resolve);
+  });
+}
+
+export function waitForPreviewDiagnostics(): Promise<void> {
+  return new Promise<void>(resolve => {
+    changeDiagnosticsResolve.set(PREVIEW_URI, resolve);
+  });
+}
+
+export async function openTextDocument(docUri: Uri): Promise<void> {
+  await workspace.openTextDocument(docUri);
+  editor = await window.showTextDocument(docUri);
+}
+
+export async function openAndWaitDiagnostics(docUri: Uri): Promise<void> {
+  if (!extensionApi) {
+    initializeExtensionApi();
+  }
+
+  const existingEditor = findExistingEditor(docUri);
+  if (existingEditor && existingEditor.document.getText() === window.activeTextEditor?.document.getText()) {
+    return;
+  }
+
+  await workspace.openTextDocument(docUri);
+  editor = await window.showTextDocument(docUri);
+
+  await waitForDiagnosticsSent();
+}
 
 export async function activateAndWait(docUri: Uri): Promise<void> {
   // The extensionId is `publisher.name` from package.json
@@ -47,7 +101,7 @@ export async function activateAndWait(docUri: Uri): Promise<void> {
     throw new Error('Fivetran.dbt-language-server not found');
   }
 
-  const existingEditor = window.visibleTextEditors.find(e => e.document.uri.path === docUri.path);
+  const existingEditor = findExistingEditor(docUri);
   const doNotWaitChanges = existingEditor && existingEditor.document.getText() === window.activeTextEditor?.document.getText() && getPreviewEditor();
   const activateFinished = doNotWaitChanges ? Promise.resolve() : createChangePromise('preview');
 
@@ -57,6 +111,10 @@ export async function activateAndWait(docUri: Uri): Promise<void> {
   editor = await window.showTextDocument(doc);
   await showPreview();
   await activateFinished;
+}
+
+function findExistingEditor(docUri: Uri): TextEditor | undefined {
+  return window.visibleTextEditors.find(e => e.document.uri.path === docUri.path);
 }
 
 function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
@@ -188,7 +246,19 @@ export async function insertText(position: Position, value: string): Promise<voi
   return edit(eb => eb.insert(position, value));
 }
 
+export async function replace(oldText: string, newText: string): Promise<void> {
+  await editor.edit(prepareReplaceTextCallback(oldText, newText));
+}
+
+export async function replaceTextWaitDiagnostics(oldText: string, newText: string): Promise<void> {
+  return editWaitDiagnostics(prepareReplaceTextCallback(oldText, newText));
+}
+
 export async function replaceText(oldText: string, newText: string): Promise<void> {
+  return edit(prepareReplaceTextCallback(oldText, newText));
+}
+
+function prepareReplaceTextCallback(oldText: string, newText: string): (editBuilder: TextEditorEdit) => void {
   const offsetStart = editor.document.getText().indexOf(oldText);
   if (offsetStart === -1) {
     throw new Error(`text "${oldText}"" not found in "${editor.document.getText()}"`);
@@ -197,7 +267,13 @@ export async function replaceText(oldText: string, newText: string): Promise<voi
   const positionStart = editor.document.positionAt(offsetStart);
   const positionEnd = editor.document.positionAt(offsetStart + oldText.length);
 
-  return edit(eb => eb.replace(new Range(positionStart, positionEnd), newText));
+  return eb => eb.replace(new Range(positionStart, positionEnd), newText);
+}
+
+async function editWaitDiagnostics(callback: (editBuilder: TextEditorEdit) => void): Promise<void> {
+  const diagnosticsSent = waitForDiagnosticsSent();
+  await editor.edit(callback);
+  await diagnosticsSent;
 }
 
 async function edit(callback: (editBuilder: TextEditorEdit) => void): Promise<void> {
@@ -314,4 +390,49 @@ export function ensureDirectoryExists(dir: string): void {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir);
   }
+}
+
+export async function waitForLanguageServerReady(): Promise<void> {
+  return new Promise<void>(resolve => {
+    languageServerReadyResolve = resolve;
+  });
+}
+
+export async function waitForContextInitialized(): Promise<void> {
+  return new Promise<void>(resolve => {
+    dbtSourceContextInitializedResolve = resolve;
+  });
+}
+
+export async function waitForDiagnosticsSent(): Promise<void> {
+  return new Promise<void>(resolve => {
+    diagnosticsSentResolve = resolve;
+  });
+}
+
+export function initializeExtensionApi(): void {
+  const dbtLanguageServer = extensions.getExtension('fivetran.dbt-language-server');
+  if (dbtLanguageServer) {
+    extensionApi = dbtLanguageServer.exports as ExtensionApi;
+  } else {
+    throw new Error("Extension with id 'fivetran.dbt-language-server' not found");
+  }
+
+  languageServerReadyResolve = (): void => console.log('languageServerReadyResolve stub');
+  extensionApi.languageServerEventEmitter.on(DebugEvent[DebugEvent.LANGUAGE_SERVER_READY], () => {
+    console.log('Language Server ready');
+    languageServerReadyResolve();
+  });
+
+  dbtSourceContextInitializedResolve = (): void => console.log('dbtSourceContextInitializedResolve stub');
+  extensionApi.languageServerEventEmitter.on(DebugEvent[DebugEvent.DBT_SOURCE_CONTEXT_INITIALIZED], () => {
+    console.log('Dbt source context initialized');
+    dbtSourceContextInitializedResolve();
+  });
+
+  diagnosticsSentResolve = (): void => console.log('diagnosticsSentResolve stub');
+  extensionApi.languageServerEventEmitter.on(DebugEvent[DebugEvent.DIAGNOSTICS_SENT], () => {
+    console.log('Diagnostics sent');
+    diagnosticsSentResolve();
+  });
 }
