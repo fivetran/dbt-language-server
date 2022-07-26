@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 0.6.3 (01/01/1970)
+## What's Changed
+* Fix issue with `_dbt_max_partition` dbt specific keyword
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.6.2...v0.6.3
+---
+
 ## Version 0.6.2 (20/07/2022)
 ## What's Changed
 * Fix working with python >= 3.10. Now extension uses dbt CLI in such case.
