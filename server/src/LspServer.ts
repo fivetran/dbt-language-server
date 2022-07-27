@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { CustomInitParams, DbtCompilerType, deferred, TelemetryEvent } from 'dbt-language-server-common';
+import { CustomInitParams, DbtCompilerType, deferred, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
 import { homedir } from 'os';
 import { performance } from 'perf_hooks';
@@ -113,6 +113,11 @@ export class LspServer {
 
     const customInitParams = params.initializationOptions as CustomInitParams;
     this.featureFinder = new FeatureFinder(customInitParams.pythonInfo, new DbtCommandExecutor());
+    this.featureFinder.availableCommandsPromise
+      .then(_ => this.sendStatus())
+      .catch(_ => {
+        // do nothing
+      });
 
     process.on('uncaughtException', this.onUncaughtException.bind(this));
     process.on('SIGTERM', () => this.onShutdown());
@@ -247,6 +252,20 @@ export class LspServer {
       .catch(e => console.log(`Error while registering DidDeleteFiles notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
+  sendStatus(): void {
+    const statusNotification: StatusNotification = {
+      projectPath: this.workspaceFolder,
+      status: {
+        pythonStatus: {
+          path: this.featureFinder?.getPythonPath(),
+        },
+      },
+    };
+
+    this.connection
+      .sendNotification('dbtWizard/status', statusNotification)
+      .catch(e => console.log(`Failed to send status notification: ${e instanceof Error ? e.message : String(e)}`));
+  }
   async prepareDestination(profileResult: Result<DbtProfileSuccess, DbtProfileError>): Promise<void> {
     if (LspServer.ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) && profileResult.isOk() && profileResult.value.dbtProfile) {
       const bigQueryContextInfo = await BigQueryContext.createContext(

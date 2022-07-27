@@ -1,10 +1,11 @@
-import { CustomInitParams, DbtCompilerType, TelemetryEvent } from 'dbt-language-server-common';
-import { Diagnostic, Disposable, OutputChannel, RelativePattern, Uri, workspace, WorkspaceFolder } from 'vscode';
-import { LanguageClient, LanguageClientOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
+import { CustomInitParams, DbtCompilerType, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
+import { Diagnostic, OutputChannel, RelativePattern, Uri, workspace, WorkspaceFolder } from 'vscode';
+import { Disposable, LanguageClient, LanguageClientOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { SUPPORTED_LANG_IDS } from './ExtensionClient';
 import { ProgressHandler } from './ProgressHandler';
 import { PythonExtension } from './python/PythonExtension';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
+import { StatusHandler } from './StatusHandler';
 import { TelemetryClient } from './TelemetryClient';
 
 export class DbtLanguageClient implements Disposable {
@@ -19,6 +20,7 @@ export class DbtLanguageClient implements Disposable {
     dbtProjectUri: Uri,
     private previewContentProvider: SqlPreviewContentProvider,
     private progressHandler: ProgressHandler,
+    private statusHandler: StatusHandler,
   ) {
     const debugOptions = { execArgv: ['--nolazy', `--inspect=${port}`] };
     const serverOptions = {
@@ -49,6 +51,9 @@ export class DbtLanguageClient implements Disposable {
       }),
       this.client.onNotification('custom/updateQueryPreviewDiagnostics', ({ uri, diagnostics }) => {
         this.previewContentProvider.updateDiagnostics(uri as string, diagnostics as Diagnostic[]);
+      }),
+      this.client.onNotification('dbtWizard/status', (statusNotification: StatusNotification) => {
+        this.statusHandler.onStatusChanged(statusNotification);
       }),
 
       this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),

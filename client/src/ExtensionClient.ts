@@ -15,6 +15,7 @@ import {
 import { DbtLanguageClient } from './DbtLanguageClient';
 import { ProgressHandler } from './ProgressHandler';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
+import { StatusHandler } from './StatusHandler';
 import { TelemetryClient } from './TelemetryClient';
 import { WorkspaceHelper } from './WorkspaceHelper';
 
@@ -35,6 +36,7 @@ export class ExtensionClient {
   outputChannel: OutputChannel;
   previewContentProvider = new SqlPreviewContentProvider();
   progressHandler = new ProgressHandler();
+  statusHandler = new StatusHandler();
   workspaceHelper = new WorkspaceHelper();
   clients: Map<string, DbtLanguageClient> = new Map();
   packageJson?: PackageJson;
@@ -47,23 +49,38 @@ export class ExtensionClient {
   public onActivate(): void {
     console.log('Extension "dbt-language-server" is now active!');
 
-    workspace.onDidOpenTextDocument(this.onDidOpenTextDocument.bind(this));
-    workspace.textDocuments.forEach(t => void this.onDidOpenTextDocument(t));
-    workspace.onDidChangeWorkspaceFolders(event => {
-      for (const folder of event.removed) {
-        const client = this.clients.get(folder.uri.toString());
-        if (client) {
-          this.clients.delete(folder.uri.toString());
-          client.stop().catch(e => console.log(`Error while stopping client: ${e instanceof Error ? e.message : String(e)}`));
+    this.context.subscriptions.push(
+      workspace.onDidOpenTextDocument(this.onDidOpenTextDocument.bind(this)),
+      workspace.onDidChangeWorkspaceFolders(event => {
+        for (const folder of event.removed) {
+          const client = this.clients.get(folder.uri.toString());
+          if (client) {
+            this.clients.delete(folder.uri.toString());
+            client.stop().catch(e => console.log(`Error while stopping client: ${e instanceof Error ? e.message : String(e)}`));
+          }
         }
-      }
-    });
-    workspace.onDidChangeTextDocument(e => {
-      if (e.document.uri.toString() === SqlPreviewContentProvider.URI.toString()) {
-        this.previewContentProvider.updatePreviewDiagnostics(this.getDiagnostics());
-      }
-    });
+      }),
 
+      workspace.onDidChangeTextDocument(e => {
+        if (e.document.uri.toString() === SqlPreviewContentProvider.URI.toString()) {
+          this.previewContentProvider.updatePreviewDiagnostics(this.getDiagnostics());
+        }
+      }),
+
+      window.onDidChangeActiveTextEditor(e => {
+        if (!e || e.document.uri.toString() === SqlPreviewContentProvider.URI.toString()) {
+          return;
+        }
+
+        this.previewContentProvider.changeActiveDocument(e.document.uri);
+        if (SUPPORTED_LANG_IDS.includes(e.document.languageId)) {
+          this.statusHandler.updateLanguageItems(e.document.uri);
+        }
+      }),
+    );
+    workspace.textDocuments.forEach(t =>
+      this.onDidOpenTextDocument(t).catch(e => console.log(`Error while opening text document ${e instanceof Error ? e.message : String(e)}`)),
+    );
     this.registerSqlPreviewContentProvider(this.context);
 
     this.registerCommands();
@@ -186,6 +203,7 @@ export class ExtensionClient {
         projectUri,
         this.previewContentProvider,
         this.progressHandler,
+        this.statusHandler,
       );
       this.context.subscriptions.push(client);
       await client.initialize();
