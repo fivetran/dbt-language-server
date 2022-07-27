@@ -240,7 +240,6 @@ export class LspServer {
     } else if (profileResult.isErr()) {
       this.showPrepareDestinationWarning(profileResult.error.message);
     }
-    this.dbtDestinationContext.onContextInitializedEmitter.fire();
   }
 
   showCreateContextWarning(error: string): void {
