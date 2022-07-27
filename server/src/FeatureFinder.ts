@@ -83,16 +83,19 @@ export class FeatureFinder {
     return undefined;
   }
 
-  async findGlobalDbtCommand(dbtProfileType?: string): Promise<boolean> {
+  async findPythonForCli(dbtProfileType?: string): Promise<string | undefined> {
     const [, dbtPythonVersion, , dbtGlobalVersion] = await this.availableCommandsPromise;
 
     if (dbtPythonVersion?.installedVersion && dbtPythonVersion.installedAdapters.some(a => a.name === dbtProfileType)) {
       this.versionInfo = dbtPythonVersion;
-    } else if (dbtGlobalVersion?.installedVersion && dbtGlobalVersion.installedAdapters.some(a => a.name === dbtProfileType)) {
+      return this.getPythonPath();
+    }
+
+    if (dbtGlobalVersion?.installedVersion && dbtGlobalVersion.installedAdapters.some(a => a.name === dbtProfileType)) {
       this.versionInfo = dbtGlobalVersion;
     }
 
-    return dbtPythonVersion === undefined && dbtGlobalVersion !== undefined;
+    return undefined;
   }
 
   findFreePort(): Promise<number> {
