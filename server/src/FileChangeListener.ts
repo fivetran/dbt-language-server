@@ -61,11 +61,15 @@ export class FileChangeListener {
   }
 
   updateDbtProjectConfig(): void {
-    this.dbtRepository.dbtTargetPath = this.dbtProject.findTargetPath();
+    this.dbtRepository.dbtTargetPath = path.normalize(this.dbtProject.findTargetPath());
     this.dbtRepository.projectName = this.dbtProject.findProjectName();
-    this.dbtRepository.macroPaths = this.dbtProject.findMacroPaths();
-    this.dbtRepository.modelPaths = this.dbtProject.findModelPaths();
-    this.dbtRepository.packagesInstallPaths = this.dbtProject.findPackagesInstallPaths();
+    this.dbtRepository.macroPaths = this.normalizePaths(this.dbtProject.findMacroPaths());
+    this.dbtRepository.modelPaths = this.normalizePaths(this.dbtProject.findModelPaths());
+    this.dbtRepository.packagesInstallPaths = this.normalizePaths(this.dbtProject.findPackagesInstallPaths());
+  }
+
+  normalizePaths(paths: string[]): string[] {
+    return paths.map(p => path.normalize(p));
   }
 
   updateManifestNodes(): void {
