@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { assertCompletions } from './asserts';
-import { getCustomDocUri, openAndWaitDiagnostics } from './helper';
+import { activateAndWait, getCustomDocUri } from './helper';
 
 suite('Should suggest completions after ref aliases', () => {
   const PROJECT_FILE_NAME = 'completion-jinja/models/join_ref.sql';
@@ -9,7 +9,7 @@ suite('Should suggest completions after ref aliases', () => {
 
   suiteSetup(async () => {
     docUri = getCustomDocUri(PROJECT_FILE_NAME);
-    await openAndWaitDiagnostics(docUri);
+    await activateAndWait(docUri);
   });
 
   test('Should suggest columns for ref alias after press . in select', async () => {

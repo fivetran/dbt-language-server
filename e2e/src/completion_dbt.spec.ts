@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
 import { assertCompletions } from './asserts';
-import { getDocUri, openAndWaitDiagnostics } from './helper';
+import { activateAndWait, getDocUri } from './helper';
 
 suite('Should do completion with jinjas in query', () => {
   test('Should suggest table columns', async () => {
     const docUri = getDocUri('simple_select_dbt.sql');
-    await openAndWaitDiagnostics(docUri);
+    await activateAndWait(docUri);
 
     await assertCompletions(docUri, new vscode.Position(0, 8), [
       { label: 'date', kind: vscode.CompletionItemKind.Value },
