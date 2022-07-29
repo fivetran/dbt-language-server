@@ -360,6 +360,9 @@ export class LspServer {
       if (!this.dbtRepository.projectConfigParsed) {
         await this.dbtRepository.projectConfigParsedDeferred.promise;
       }
+      if (!this.dbtRepository.manifestParsed) {
+        await this.dbtRepository.manifestParsedDeferred.promise;
+      }
       return true;
     } catch (e) {
       return false;

@@ -33,6 +33,9 @@ export class DbtRepository {
   projectConfigParsed = false;
   projectConfigParsedDeferred = deferred<void>();
 
+  manifestParsed = false;
+  manifestParsedDeferred = deferred<void>();
+
   models: ManifestModel[] = [];
   macros: ManifestMacro[] = [];
   sources: ManifestSource[] = [];
