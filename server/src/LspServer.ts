@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import { CustomInitParams, DbtCompilerType, deferred, TelemetryEvent } from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
+import { homedir } from 'os';
 import { performance } from 'perf_hooks';
 import {
   CodeAction,
@@ -62,6 +63,7 @@ import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
+import path = require('path');
 
 export class LspServer {
   static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
@@ -98,7 +100,7 @@ export class LspServer {
     const dbtProject = new DbtProject('.');
 
     this.progressReporter = new ProgressReporter(this.connection);
-    this.dbtProfileCreator = new DbtProfileCreator(dbtProject, '~/.dbt/profiles.yml');
+    this.dbtProfileCreator = new DbtProfileCreator(dbtProject, path.join(homedir(), '.dbt', 'profiles.yml'));
     this.fileChangeListener = new FileChangeListener(this.workspaceFolder, dbtProject, this.manifestParser, this.dbtRepository);
     this.sqlCompletionProvider = new SqlCompletionProvider();
     this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);

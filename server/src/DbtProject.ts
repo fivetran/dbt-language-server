@@ -3,13 +3,10 @@ import { DbtRepository } from './DbtRepository';
 import { YamlParserUtils } from './YamlParserUtils';
 
 export class DbtProject {
-  projectPath: string;
   parsedProject?: Record<string, unknown>;
   isParsedProjectOutdated = true;
 
-  constructor(projectPath: string) {
-    this.projectPath = YamlParserUtils.replaceTilde(projectPath);
-  }
+  constructor(private projectPath: string) {}
 
   setParsedProjectOutdated(): void {
     this.isParsedProjectOutdated = true;
