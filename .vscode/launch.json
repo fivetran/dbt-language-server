@@ -28,6 +28,7 @@
       "request": "attach",
       "port": 6009,
       "restart": true,
+      "timeout": 30000,
       "skipFiles": ["<node_internals>/**"],
       "outFiles": ["${workspaceFolder}/server/out/**/*.js"]
     },
