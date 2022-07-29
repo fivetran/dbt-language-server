@@ -7,7 +7,7 @@ import { ProgressReporter } from '../ProgressReporter';
 import { DbtCommand } from './commands/DbtCommand';
 import { Dbt } from './Dbt';
 import { DbtCompileJob } from './DbtCompileJob';
-import { DbtRpcClient } from './DbtRpcClient';
+import { CompileResponse, DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcCompileJob } from './DbtRpcCompileJob';
 import { DbtRpcServer } from './DbtRpcServer';
 
@@ -62,14 +62,26 @@ export class DbtRpc implements Dbt {
       } catch (e) {
         this.finishWithError(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
       }
-      this.doInitialCompile();
+      await this.doInitialCompile();
     }
   }
 
-  doInitialCompile(): void {
-    this.dbtRpcClient.compile().catch(e => {
+  async doInitialCompile(): Promise<void> {
+    let compileResponse: CompileResponse | undefined;
+    try {
+      // eslint-disable-next-line prefer-const
+      compileResponse = await this.dbtRpcClient.compile();
+    } catch (e) {
       console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
-    });
+      return;
+    }
+
+    if (!compileResponse || compileResponse.error) {
+      console.log(`Error while compiling project. ${compileResponse?.error?.data?.message ?? 'unknown error'}`);
+      return;
+    }
+
+    await this.dbtRpcClient.pollOnceCompileResult(compileResponse.result.request_token);
   }
 
   async isReady(): Promise<void> {

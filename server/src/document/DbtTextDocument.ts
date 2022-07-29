@@ -268,7 +268,7 @@ export class DbtTextDocument {
   }
 
   async onContextInitialized(): Promise<void> {
-    if (this.requireDiagnosticsUpdate) {
+    if (this.requireDiagnosticsUpdate && this.dbtContext.dbtReady) {
       this.requireDiagnosticsUpdate = false;
       await this.updateDiagnostics();
     }
