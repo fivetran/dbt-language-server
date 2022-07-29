@@ -115,7 +115,6 @@ jobs:
               cd ~/dbt_1_0_0_env/Scripts
               . activate
             python-version: '3.9.12'
-            use-dbt-cli: true # TODO: delete this
 
     name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.python-version }} ${{ matrix.use-dbt-cli }}
 

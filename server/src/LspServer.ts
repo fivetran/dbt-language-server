@@ -172,6 +172,9 @@ export class LspServer {
   getDbtMode(featureFinder: FeatureFinder, dbtCompiler: DbtCompilerType): DbtMode {
     switch (dbtCompiler) {
       case 'Auto': {
+        if (process.platform === 'win32') {
+          return DbtMode.CLI;
+        }
         const pythonVersion = featureFinder.getPythonVersion();
         // https://github.com/dbt-labs/dbt-rpc/issues/85
         if (pythonVersion !== undefined && pythonVersion[0] >= 3 && pythonVersion[1] >= 10) {
