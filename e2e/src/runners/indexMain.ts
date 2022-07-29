@@ -9,7 +9,8 @@ const TESTS_WITHOUT_ZETASQL = [
   'completion_macros.spec.js',
   'completion_models.spec.js',
   'completion_sources.spec.js',
-  'multi-project.spec.js' /* 'completion_jinja.spec.js' */,
+  'multi-project.spec.js',
+  'custom_version.spec.js' /* 'completion_jinja.spec.js' */,
 ]; // TODO: add more tests
 const ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
 
