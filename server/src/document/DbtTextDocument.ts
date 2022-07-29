@@ -170,7 +170,6 @@ export class DbtTextDocument {
   }
 
   async onDbtReady(): Promise<void> {
-    console.log('Dbt is ready. Save the document.');
     await this.didSaveTextDocument(true);
   }
 

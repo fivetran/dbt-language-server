@@ -62,6 +62,10 @@ export class DbtRpc implements Dbt {
       } catch (e) {
         this.finishWithError(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
       }
+
+      // We need to wait for initial compile to be finished.
+      // Compilation of some model with '--select' key may
+      //  not compile models from which compiled one is dependant.
       await this.doInitialCompile();
     }
   }
