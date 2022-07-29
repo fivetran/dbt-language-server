@@ -1,5 +1,6 @@
 import path = require('path');
 import { DidChangeWatchedFilesParams, Emitter, Event } from 'vscode-languageserver';
+import { URI } from 'vscode-uri';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
 import { ManifestParser } from './manifest/ManifestParser';
@@ -43,16 +44,17 @@ export class FileChangeListener {
     const packagesPaths = this.dbtRepository.packagesInstallPaths.map(p => path.resolve(this.workspaceFolder, p));
 
     for (const change of params.changes) {
-      if (change.uri.endsWith(dbtProjectYmlPath)) {
+      const changePath = URI.parse(change.uri).fsPath;
+      if (changePath === dbtProjectYmlPath) {
         this.dbtProject.setParsedProjectOutdated();
         this.onDbtProjectYmlChangedEmitter.fire();
         this.updateDbtProjectConfig();
         this.updateManifestNodes();
-      } else if (change.uri.endsWith(manifestJsonPath)) {
+      } else if (changePath === manifestJsonPath) {
         this.updateManifestNodes();
-      } else if (change.uri.endsWith(packagesYmlPath)) {
+      } else if (changePath === packagesYmlPath) {
         this.onDbtPackagesYmlChangedEmitter.fire();
-      } else if (packagesPaths.some(p => change.uri.includes(p))) {
+      } else if (packagesPaths.some(p => changePath === p)) {
         this.debouncedDbtPackagesChangedEmitter();
       }
     }
