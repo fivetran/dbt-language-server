@@ -256,10 +256,10 @@ export class DbtTextDocument {
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
     if (this.dbtDestinationContext.contextInitialized) {
       await this.updateDiagnostics(compiledSql);
+      this.sendUpdateQueryPreview();
     } else {
       this.requireDiagnosticsUpdate = true;
     }
-    this.sendUpdateQueryPreview();
 
     if (!this.modelCompiler.compilationInProgress) {
       this.progressReporter.sendFinish(this.rawDocument.uri);
@@ -270,6 +270,7 @@ export class DbtTextDocument {
     if (this.requireDiagnosticsUpdate && this.dbtContext.dbtReady) {
       this.requireDiagnosticsUpdate = false;
       await this.updateDiagnostics();
+      this.sendUpdateQueryPreview();
     }
   }
 

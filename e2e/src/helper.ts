@@ -60,12 +60,6 @@ export function waitForDiagnosticsChange(uri: Uri): Promise<void> {
   });
 }
 
-export function waitForPreviewDiagnosticsChange(): Promise<void> {
-  return new Promise<void>(resolve => {
-    changeDiagnosticsResolve.set(PREVIEW_URI, resolve);
-  });
-}
-
 export async function openTextDocument(docUri: Uri): Promise<void> {
   await workspace.openTextDocument(docUri);
   editor = await window.showTextDocument(docUri);
@@ -77,11 +71,9 @@ export async function openAndWaitDiagnostics(docUri: Uri): Promise<void> {
     return;
   }
 
-  const diagnosticsChange = waitForDiagnosticsChange(docUri);
-  await workspace.openTextDocument(docUri);
-  editor = await window.showTextDocument(docUri);
-
-  await diagnosticsChange;
+  const waitForDiagnostics = waitForDiagnosticsChange(docUri);
+  await openTextDocument(docUri);
+  await waitForDiagnostics;
 }
 
 export async function activateAndWait(docUri: Uri): Promise<void> {
