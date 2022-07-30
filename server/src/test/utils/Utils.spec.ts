@@ -13,6 +13,7 @@ import {
   rangesOverlap,
 } from '../../utils/Utils';
 import { sleep } from '../helper';
+import path = require('path');
 
 describe('Utils', () => {
   it('comparePositions_shouldComparePositions', () => {
@@ -137,13 +138,13 @@ describe('Utils', () => {
     assertThat(secondDebounceCounter, 1);
   });
 
-  it('getFilePathRelatedToWorkspace should return path on linux', () => {
+  it('getFilePathRelatedToWorkspace should return path', () => {
     assertThat(
       getFilePathRelatedToWorkspace(
         'file:///Users/user/Fivetran/dbt-language-server/e2e/projects/test-fixture/models/simple_select_dbt.sql',
-        '/Users/user/Fivetran/dbt-language-server/e2e/projects/test-fixture',
+        path.normalize('/Users/user/Fivetran/dbt-language-server/e2e/projects/test-fixture'),
       ),
-      'models/simple_select_dbt.sql',
+      path.normalize('models/simple_select_dbt.sql'),
     );
   });
 

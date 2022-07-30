@@ -13,10 +13,11 @@ import { ModelCompiler } from '../../ModelCompiler';
 import { ProgressReporter } from '../../ProgressReporter';
 import { SqlCompletionProvider } from '../../SqlCompletionProvider';
 import { sleep } from '../helper';
+import path = require('path');
 
 describe('DbtTextDocument', () => {
   const TEXT = 'select 1;';
-  const WORKSPACE = '/workspace';
+  const WORKSPACE = path.normalize('/workspace');
 
   let document: DbtTextDocument;
   let mockModelCompiler: ModelCompiler;
@@ -190,7 +191,7 @@ describe('DbtTextDocument', () => {
     const name = DbtTextDocument.getModelPathOrFullyQualifiedName('/workspace/models/model.sql', WORKSPACE, dbtRepository);
 
     // assert
-    assertThat(name, 'models/model.sql');
+    assertThat(name, path.normalize('models/model.sql'));
   });
 
   it('Should return fully qualified model name', () => {

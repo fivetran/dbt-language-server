@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { DefinitionLink, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { URI } from 'vscode-uri';
 import { DbtRepository } from '../DbtRepository';
 import { ParseNode } from '../JinjaParser';
 import { ManifestModel } from '../manifest/ManifestJson';
@@ -68,29 +69,22 @@ export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
     const modelIdPattern = `model.${dbtPackage}.`;
     return dbtModels
       .filter(m => m.uniqueId.startsWith(modelIdPattern))
-      .map(m =>
-        LocationLink.create(
-          path.join(m.rootPath, m.originalFilePath),
-          DbtDefinitionProvider.MAX_RANGE,
-          DbtDefinitionProvider.MAX_RANGE,
-          packageSelectionRange,
-        ),
-      );
+      .map(m => this.createLocationLink(m, DbtDefinitionProvider.MAX_RANGE, packageSelectionRange));
   }
 
   searchModelDefinition(model: string, dbtModels: ManifestModel[], modelSelectionRange: Range, dbPackage?: string): DefinitionLink[] | undefined {
     const foundModel = dbtModels.find(m => m.name === model && (dbPackage === undefined || m.packageName === dbPackage));
-    if (foundModel) {
-      return [
-        LocationLink.create(
-          path.join(foundModel.rootPath, foundModel.originalFilePath),
-          DbtDefinitionProvider.MAX_RANGE,
-          DbtDefinitionProvider.MIN_RANGE, // Decided to use the same range as other dbt extensions in order VS Code to filter equal values from definitions list (some details here: https://github.com/microsoft/vscode/issues/63895)
-          modelSelectionRange,
-        ),
-      ];
-    }
-    return undefined;
+    // Decided to use the same range as other dbt extensions in order VS Code to filter equal values from definitions list (some details here: https://github.com/microsoft/vscode/issues/63895)
+    return foundModel ? [this.createLocationLink(foundModel, DbtDefinitionProvider.MIN_RANGE, modelSelectionRange)] : undefined;
+  }
+
+  createLocationLink(manifestModel: ManifestModel, targetSelectionRange: Range, originSelectionRange: Range): LocationLink {
+    return LocationLink.create(
+      URI.file(path.join(manifestModel.rootPath, manifestModel.originalFilePath)).toString(),
+      DbtDefinitionProvider.MAX_RANGE,
+      targetSelectionRange,
+      originSelectionRange,
+    );
   }
 
   getAbsoluteTextRange(document: TextDocument, textBlockOffset: number, textBlock: { text: string; index: number }): Range {
