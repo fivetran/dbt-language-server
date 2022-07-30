@@ -1,6 +1,8 @@
+import { EOL } from 'os';
 import { DiagnosticSeverity, Location, Range } from 'vscode';
 import { assertAllDiagnostics } from './asserts';
 import { activateAndWait, getDocUri, replaceText } from './helper';
+import path = require('path');
 
 suite('Should show dbt error and link to it', () => {
   const DOC_WITH_ERROR = getDocUri('package_ref.sql');
@@ -9,9 +11,9 @@ suite('Should show dbt error and link to it', () => {
   const ORIGINAL_LINE = "from {{ source('new_project', 'users') }} u";
   const LINE_WITH_ERROR = "from {{ source('new_project', 'users') } u";
 
-  const ERROR_IN_CURRENT_FILE = `Compilation Error in model package_ref (models/package_ref.sql)\n  unexpected '}'\n    line 5\n      from {{ source('new_project', 'users') } u`;
+  const ERROR_IN_CURRENT_FILE = `Compilation Error in model package_ref (models${path.sep}package_ref.sql)${EOL}  unexpected '}'${EOL}    line 5${EOL}      from {{ source('new_project', 'users') } u`;
   const ERROR_IN_OTHER_FILE = 'Error in other file';
-  const MESSAGE_AFTER_LINK = `Compilation Error in model package_ref (models/package_ref.sql)\n  unexpected '}'`;
+  const MESSAGE_AFTER_LINK = `Compilation Error in model package_ref (models${path.sep}package_ref.sql)${EOL}  unexpected '}'`;
 
   const DBT_ERROR_HIGHLIGHT_LAST_CHAR = 100;
 
