@@ -18,7 +18,6 @@ const TESTS_WITHOUT_ZETASQL = [
   'functions.spec',
   'multi-project.spec.js',
   'postgres.spec.js',
-  'ref_sql.spec.js',
   'signature_help.spec.js',
 ];
 const ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
