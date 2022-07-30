@@ -9,7 +9,6 @@ const TESTS_WITHOUT_ZETASQL = [
   'completion_macros.spec.js',
   'completion_models.spec.js',
   'completion_sources.spec.js',
-  'multi-project.spec.js',
   'custom_version.spec.js',
   'dbt_compile.spec.js',
   'dbt_error.spec.js',
@@ -17,7 +16,11 @@ const TESTS_WITHOUT_ZETASQL = [
   'definition.spec',
   'editing_outside_jinja.spec',
   'functions.spec',
-]; // TODO: add more tests
+  'multi-project.spec.js',
+  'postgres.spec.js',
+  'ref_sql.spec.js',
+  'signature_help.spec.js',
+];
 const ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
 
 export async function indexMain(timeout: string, globPattern: string, doNotRun: string[]): Promise<void> {
