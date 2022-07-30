@@ -12,7 +12,11 @@ const TESTS_WITHOUT_ZETASQL = [
   'multi-project.spec.js',
   'custom_version.spec.js',
   'dbt_compile.spec.js',
-  'dbt_error.spec.js' /* 'completion_jinja.spec.js' */,
+  'dbt_error.spec.js',
+  'dbt_packages.spec',
+  'definition.spec',
+  'editing_outside_jinja.spec',
+  'functions.spec',
 ]; // TODO: add more tests
 const ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
 
