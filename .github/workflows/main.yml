@@ -23,10 +23,13 @@ jobs:
             target: linux-x64
             zetasql-lib: libremote_server.so
 
-          - os: ubuntu-latest
+          - os: windows-latest
             target: win32-x64
 
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - name: checkout
