@@ -443,16 +443,19 @@ export class LspServer {
 
   onDidRenameFiles(params: RenameFilesParams): void {
     this.dbt?.refresh();
-    this.clearDiagnosticsForOutdatedFiles(params.files.map(f => f.oldUri));
+    this.disposeOutdatedDocuments(params.files.map(f => f.oldUri));
   }
 
   onDidDeleteFiles(params: DeleteFilesParams): void {
     this.dbt?.refresh();
-    this.clearDiagnosticsForOutdatedFiles(params.files.map(f => f.uri));
+    this.disposeOutdatedDocuments(params.files.map(f => f.uri));
   }
 
-  clearDiagnosticsForOutdatedFiles(uris: string[]): void {
-    uris.forEach(uri => this.openedDocuments.get(uri)?.clearDiagnostics());
+  disposeOutdatedDocuments(uris: string[]): void {
+    uris.forEach(uri => {
+      this.openedDocuments.get(uri)?.dispose();
+      this.openedDocuments.delete(uri);
+    });
   }
 
   onShutdown(): void {

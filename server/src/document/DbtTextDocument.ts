@@ -34,6 +34,7 @@ import { ProgressReporter } from '../ProgressReporter';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { SqlCompletionProvider } from '../SqlCompletionProvider';
 import { DiffUtils } from '../utils/DiffUtils';
+import path = require('path');
 
 import { getTextRangeBeforeBracket } from '../utils/TextUtils';
 import {
@@ -228,14 +229,19 @@ export class DbtTextDocument {
       this.rawDocDiagnostics = [];
       this.compiledDocDiagnostics = [];
       this.sendDiagnostics();
+      this.requireCompileOnSave = true;
     }
   }
 
-  async onCompilationFinished(compiledSql: string): Promise<void> {
+  fixGlobalDbtError(): void {
     if (this.currentDbtError) {
       this.currentDbtError = undefined;
       this.onGlobalDbtErrorFixedEmitter.fire();
     }
+  }
+
+  async onCompilationFinished(compiledSql: string): Promise<void> {
+    this.fixGlobalDbtError();
 
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
     [this.rawDocDiagnostics, this.compiledDocDiagnostics] = await this.createDiagnostics(compiledSql);
@@ -370,5 +376,16 @@ export class DbtTextDocument {
     this.connection
       .sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: [] })
       .catch(e => console.log(`Failed to send diagnostics while closing document: ${e instanceof Error ? e.message : String(e)}`));
+  }
+
+  dispose(): void {
+    const { uri } = this.rawDocument;
+    const fileName = uri.substring(uri.lastIndexOf(path.sep));
+
+    if (this.currentDbtError?.includes(fileName)) {
+      this.fixGlobalDbtError();
+    }
+
+    this.clearDiagnostics();
   }
 }
