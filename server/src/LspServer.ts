@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { CustomInitParams, DbtCompilerType, TelemetryEvent } from 'dbt-language-server-common';
+import { CustomInitParams, DbtCompilerType, DebugEvent, TelemetryEvent } from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
 import { performance } from 'perf_hooks';
 import {
@@ -53,6 +53,7 @@ import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
 import { JinjaParser } from './JinjaParser';
 import { Logger } from './Logger';
+import { LspServerEventReporter } from './LspServerEventReporter';
 import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
@@ -211,6 +212,11 @@ export class LspServer {
       this.dbtDestinationContext.contextInitialized = true;
       this.dbtDestinationContext.onContextInitializedEmitter.fire();
       return this.dbtDestinationContext;
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises, promise/catch-or-return, promise/always-return
+    Promise.all([this.dbtRepository.projectConfigParsedDeferred.promise, this.dbtRepository.manifestParsedDeferred.promise]).then(() => {
+      LspServerEventReporter.logLanguageServerEvent(this.connection, DebugEvent.LANGUAGE_SERVER_READY);
     });
 
     await Promise.allSettled([prepareDbt, prepareDestination]);

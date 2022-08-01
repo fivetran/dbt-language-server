@@ -1,4 +1,5 @@
 import { spawnSync, SpawnSyncReturns } from 'child_process';
+import { DebugEvent, deferred, DeferredResult, ExtensionApi } from 'dbt-language-server-common';
 import * as fs from 'fs';
 import { WatchEventType, writeFileSync } from 'fs';
 import * as path from 'path';
@@ -37,11 +38,16 @@ export const MAX_VSCODE_INTEGER = 2147483647;
 export const MAX_RANGE = new Range(0, 0, MAX_VSCODE_INTEGER, MAX_VSCODE_INTEGER);
 export const MIN_RANGE = new Range(0, 0, 0, 0);
 
+export const LS_MORE_THAN_OPEN_DEBOUNCE = 1200;
+
 workspace.onDidChangeTextDocument(onDidChangeTextDocument);
 languages.onDidChangeDiagnostics(onDidChangeDiagnostics);
 
 let previewPromiseResolve: voidFunc | undefined;
 let documentPromiseResolve: voidFunc | undefined;
+
+let extensionApi: ExtensionApi | undefined = undefined;
+const languageServerReady = new Map<string, DeferredResult<void>>();
 
 const changeDiagnosticsResolve = new Map<string, () => void>();
 
@@ -93,6 +99,12 @@ export async function activateAndWait(docUri: Uri): Promise<void> {
   editor = await window.showTextDocument(doc);
   await showPreview();
   await activateFinished;
+}
+
+export async function activateAndWaitServerReady(docUri: Uri, projectFolderName: string): Promise<void> {
+  doc = await workspace.openTextDocument(docUri);
+  editor = await window.showTextDocument(doc);
+  await Promise.all([sleep(LS_MORE_THAN_OPEN_DEBOUNCE), waitForLanguageServerReady(projectFolderName)]);
 }
 
 function findExistingEditor(docUri: Uri): TextEditor | undefined {
@@ -358,4 +370,41 @@ export function ensureDirectoryExists(dir: string): void {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir);
   }
+}
+
+export function waitForLanguageServerReady(projectFolderName: string): Promise<void> {
+  initializeExtensionApiIfNeeded();
+
+  let lsReadyDeferred = languageServerReady.get(projectFolderName);
+  if (lsReadyDeferred === undefined) {
+    lsReadyDeferred = deferred<void>();
+    languageServerReady.set(projectFolderName, lsReadyDeferred);
+  }
+
+  return lsReadyDeferred.promise;
+}
+
+export function initializeExtensionApiIfNeeded(): void {
+  if (extensionApi) {
+    return;
+  }
+
+  const dbtLanguageServer = extensions.getExtension('fivetran.dbt-language-server');
+  if (dbtLanguageServer) {
+    extensionApi = dbtLanguageServer.exports as ExtensionApi;
+  } else {
+    throw new Error("Extension with id 'fivetran.dbt-language-server' not found");
+  }
+
+  extensionApi.languageServerEventEmitter.on(DebugEvent[DebugEvent.LANGUAGE_SERVER_READY], (languageServerRootPath: string) => {
+    console.log(`Language Server '${languageServerRootPath}' ready`);
+
+    let lsReadyDeferred = languageServerReady.get(languageServerRootPath);
+    if (lsReadyDeferred === undefined) {
+      lsReadyDeferred = deferred<void>();
+      languageServerReady.set(languageServerRootPath, lsReadyDeferred);
+    }
+
+    lsReadyDeferred.resolve();
+  });
 }
