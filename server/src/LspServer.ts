@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { CustomInitParams, DbtCompilerType, deferred, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
+import { CustomInitParams, DbtCompilerType, deferred, getStringVersion, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
 import { homedir } from 'os';
 import { performance } from 'perf_hooks';
@@ -47,7 +47,6 @@ import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
 import { DbtProfileCreator, DbtProfileError, DbtProfileInfo, DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
-import { getStringVersion } from './DbtVersion';
 import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
 import { Dbt, DbtMode } from './dbt_execution/Dbt';
 import { DbtCli } from './dbt_execution/DbtCli';
@@ -113,11 +112,6 @@ export class LspServer {
 
     const customInitParams = params.initializationOptions as CustomInitParams;
     this.featureFinder = new FeatureFinder(customInitParams.pythonInfo, new DbtCommandExecutor());
-    this.featureFinder.availableCommandsPromise
-      .then(_ => this.sendStatus())
-      .catch(_ => {
-        // do nothing
-      });
 
     process.on('uncaughtException', this.onUncaughtException.bind(this));
     process.on('SIGTERM', () => this.onShutdown());
@@ -226,7 +220,7 @@ export class LspServer {
     );
     const dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
 
-    await Promise.all([this.dbt?.prepare(dbtProfileType), this.prepareDestination(profileResult)]);
+    await Promise.all([this.dbt?.prepare(dbtProfileType).then(_ => this.sendStatus()), this.prepareDestination(profileResult)]);
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime);
   }
@@ -254,11 +248,11 @@ export class LspServer {
 
   sendStatus(): void {
     const statusNotification: StatusNotification = {
-      projectPath: this.workspaceFolder,
-      status: {
-        pythonStatus: {
-          path: this.featureFinder?.getPythonPath(),
-        },
+      pythonStatus: {
+        path: this.featureFinder?.getPythonPath(),
+      },
+      dbtStatus: {
+        versionInfo: this.featureFinder?.versionInfo,
       },
     };
 

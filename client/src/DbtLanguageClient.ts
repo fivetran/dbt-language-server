@@ -5,7 +5,7 @@ import { SUPPORTED_LANG_IDS } from './ExtensionClient';
 import { ProgressHandler } from './ProgressHandler';
 import { PythonExtension } from './python/PythonExtension';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
-import { StatusHandler } from './StatusHandler';
+import { StatusHandler } from './status/StatusHandler';
 import { TelemetryClient } from './TelemetryClient';
 
 export class DbtLanguageClient implements Disposable {
@@ -53,7 +53,7 @@ export class DbtLanguageClient implements Disposable {
         this.previewContentProvider.updateDiagnostics(uri as string, diagnostics as Diagnostic[]);
       }),
       this.client.onNotification('dbtWizard/status', (statusNotification: StatusNotification) => {
-        this.statusHandler.onStatusChanged(statusNotification);
+        this.statusHandler.onStatusChanged(statusNotification, this.workspaceFolder?.uri.toString());
       }),
 
       this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),

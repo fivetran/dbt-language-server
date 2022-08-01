@@ -1,6 +1,5 @@
-import { PythonInfo } from 'dbt-language-server-common';
+import { AdapterInfo, DbtVersionInfo, getStringVersion, PythonInfo, Version } from 'dbt-language-server-common';
 import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
-import { AdapterInfo, DbtVersionInfo, getStringVersion, Version } from './DbtVersion';
 import { Command } from './dbt_execution/commands/Command';
 import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
 import { DbtCommandFactory } from './dbt_execution/DbtCommandFactory';

@@ -15,7 +15,7 @@ import {
 import { DbtLanguageClient } from './DbtLanguageClient';
 import { ProgressHandler } from './ProgressHandler';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
-import { StatusHandler } from './StatusHandler';
+import { StatusHandler } from './status/StatusHandler';
 import { TelemetryClient } from './TelemetryClient';
 import { WorkspaceHelper } from './WorkspaceHelper';
 
@@ -67,14 +67,17 @@ export class ExtensionClient {
         }
       }),
 
-      window.onDidChangeActiveTextEditor(e => {
+      window.onDidChangeActiveTextEditor(async e => {
         if (!e || e.document.uri.toString() === SqlPreviewContentProvider.URI.toString()) {
           return;
         }
 
         this.previewContentProvider.changeActiveDocument(e.document.uri);
         if (SUPPORTED_LANG_IDS.includes(e.document.languageId)) {
-          this.statusHandler.updateLanguageItems(e.document.uri);
+          const projectFolder = await this.getDbtProjectUri(e.document.uri);
+          if (projectFolder) {
+            this.statusHandler.updateLanguageItems(projectFolder.toString());
+          }
         }
       }),
     );
