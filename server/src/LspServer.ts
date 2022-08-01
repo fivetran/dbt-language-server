@@ -166,7 +166,7 @@ export class LspServer {
 
     return dbtMode === DbtMode.DBT_RPC
       ? new DbtRpc(featureFinder, this.connection, this.progressReporter, this.fileChangeListener)
-      : new DbtCli(featureFinder);
+      : new DbtCli(featureFinder, this.connection, this.progressReporter);
   }
 
   getDbtMode(featureFinder: FeatureFinder, dbtCompiler: DbtCompilerType): DbtMode {

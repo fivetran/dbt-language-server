@@ -1,6 +1,5 @@
 import { _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
-import { DbtUtilitiesInstaller } from '../DbtUtilitiesInstaller';
 import { FeatureFinder } from '../FeatureFinder';
 import { FileChangeListener } from '../FileChangeListener';
 import { ProgressReporter } from '../ProgressReporter';
@@ -11,16 +10,17 @@ import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcCompileJob } from './DbtRpcCompileJob';
 import { DbtRpcServer } from './DbtRpcServer';
 
-export class DbtRpc implements Dbt {
+export class DbtRpc extends Dbt {
   dbtRpcServer = new DbtRpcServer();
   dbtRpcClient = new DbtRpcClient();
 
   constructor(
     private featureFinder: FeatureFinder,
-    private connection: _Connection,
-    private progressReporter: ProgressReporter,
+    connection: _Connection,
+    progressReporter: ProgressReporter,
     private fileChangeListener: FileChangeListener,
   ) {
+    super(connection, progressReporter);
     this.fileChangeListener.onDbtProjectYmlChanged(() => this.refresh());
     this.fileChangeListener.onDbtPackagesYmlChanged(() => this.refresh());
     this.fileChangeListener.onDbtPackagesChanged(() => this.refresh());
@@ -82,36 +82,8 @@ export class DbtRpc implements Dbt {
     this.progressReporter.sendFinish();
   }
 
-  async suggestToInstallDbt(python: string, dbtProfileType: string): Promise<void> {
-    const actions = { title: 'Install', id: 'install' };
-    const errorMessageResult = await this.connection.window.showErrorMessage(
-      `dbt is not installed. Would you like to install dbt, dbt-rpc and ${dbtProfileType} adapter?`,
-      actions,
-    );
-
-    if (errorMessageResult?.id === 'install') {
-      console.log(`Trying to install dbt, dbt-rpc and ${dbtProfileType} adapter`);
-      const installResult = await DbtUtilitiesInstaller.installDbt(python, dbtProfileType);
-      if (installResult.isOk()) {
-        this.connection.window.showInformationMessage(installResult.value);
-        await this.prepare(dbtProfileType);
-      } else {
-        this.finishWithError(installResult.error);
-      }
-    } else {
-      this.onRpcServerFindFailed();
-    }
-  }
-
-  onRpcServerFindFailed(): void {
-    this.finishWithError(
-      `Failed to find dbt-rpc. You can use 'python3 -m pip install dbt-bigquery dbt-rpc' command to install it. Check in Terminal that dbt-rpc works running 'dbt-rpc --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g. ~/dbt-env/bin/python3).`,
-    );
-  }
-
-  finishWithError(message: string): void {
-    this.progressReporter.sendFinish();
-    this.connection.window.showErrorMessage(message);
+  getError(): string {
+    return this.getInstallError('dbt-rpc', 'python3 -m pip install dbt-bigquery dbt-rpc');
   }
 
   dispose(): void {
