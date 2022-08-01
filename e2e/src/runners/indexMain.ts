@@ -19,7 +19,7 @@ const TESTS_WITHOUT_ZETASQL = [
   'multi-project.spec.js',
   'postgres.spec.js',
   'signature_help.spec.js',
-];
+]; // TODO: combine ZetaSQL tests and skip them on Windows
 const ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
 
 export async function indexMain(timeout: string, globPattern: string, doNotRun: string[]): Promise<void> {
