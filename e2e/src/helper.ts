@@ -413,12 +413,7 @@ export function ensureDirectoryExists(dir: string): void {
 }
 
 export function waitForLanguageServerReady(projectFolderName: string): Promise<void> {
-  let lsReadyDeferred = languageServerReady.get(projectFolderName);
-  if (lsReadyDeferred === undefined) {
-    lsReadyDeferred = deferred<void>();
-    languageServerReady.set(projectFolderName, lsReadyDeferred);
-  }
-  return lsReadyDeferred.promise;
+  return getLanguageServerReadyDeferred(projectFolderName).promise;
 }
 
 export function initializeExtensionApi(): void {
@@ -431,13 +426,15 @@ export function initializeExtensionApi(): void {
 
   extensionApi.languageServerEventEmitter.on(DebugEvent[DebugEvent.LANGUAGE_SERVER_READY], (languageServerRootPath: string) => {
     console.log(`Language Server '${languageServerRootPath}' ready`);
-
-    let lsReadyDeferred = languageServerReady.get(languageServerRootPath);
-    if (lsReadyDeferred === undefined) {
-      lsReadyDeferred = deferred<void>();
-      languageServerReady.set(languageServerRootPath, lsReadyDeferred);
-    }
-
-    lsReadyDeferred.resolve();
+    getLanguageServerReadyDeferred(languageServerRootPath).resolve();
   });
+}
+
+function getLanguageServerReadyDeferred(rootPath: string): DeferredResult<void> {
+  let lsReadyDeferred = languageServerReady.get(rootPath);
+  if (lsReadyDeferred === undefined) {
+    lsReadyDeferred = deferred<void>();
+    languageServerReady.set(rootPath, lsReadyDeferred);
+  }
+  return lsReadyDeferred;
 }
