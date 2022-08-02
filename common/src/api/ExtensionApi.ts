@@ -6,6 +6,4 @@ export interface ExtensionApi {
 
 export enum DebugEvent {
   LANGUAGE_SERVER_READY,
-  DBT_SOURCE_CONTEXT_INITIALIZED,
-  DIAGNOSTICS_SENT,
 }
