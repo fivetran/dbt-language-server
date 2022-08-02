@@ -44,7 +44,7 @@ describe('DiagnosticGenerator', () => {
         relatedInformation: [
           {
             location: Location.create(
-              `${WORKSPACE_FOLDER}/${MODEL_PATH}`,
+              `file://${WORKSPACE_FOLDER}/${MODEL_PATH}`,
               Range.create(ERROR_LINE - 1, 0, ERROR_LINE - 1, DiagnosticGenerator.DBT_ERROR_HIGHLIGHT_LAST_CHAR),
             ),
             message: "Compilation Error in model simple_select_dbt (models/simple_select_dbt.sql)\n  unexpected '}'",

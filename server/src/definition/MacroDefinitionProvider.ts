@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { DefinitionLink, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { URI } from 'vscode-uri';
 import { DbtRepository } from '../DbtRepository';
 import { ParseNode } from '../JinjaParser';
 import { ManifestMacro } from '../manifest/ManifestJson';
@@ -43,7 +44,12 @@ export class MacroDefinitionProvider implements DbtNodeDefinitionProvider {
           const macroFilePath = path.join(m.rootPath, m.originalFilePath);
           const [definitionRange, selectionRange] = this.getMacroRange(m.name, macroFilePath);
           wordRange.end.character -= 1;
-          return LocationLink.create(macroFilePath, definitionRange, selectionRange, getAbsoluteRange(jinja.range.start, wordRange));
+          return LocationLink.create(
+            URI.file(macroFilePath).toString(),
+            definitionRange,
+            selectionRange,
+            getAbsoluteRange(jinja.range.start, wordRange),
+          );
         });
     }
 
