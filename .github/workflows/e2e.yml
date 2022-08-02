@@ -1,4 +1,3 @@
-
 name: e2e
 
 on:
@@ -7,11 +6,11 @@ on:
       USE_DBT_CLI:
         description: 'Use dbt CLI for compiling models'
         required: true
-        default: 'false' 
+        default: 'false'
         type: choice
         options:
-        - false
-        - true
+          - false
+          - true
 
 jobs:
   package:
@@ -30,7 +29,7 @@ jobs:
         run: |
           npm install
           npm run build
-          
+
       - name: set environment variable with file name
         run: echo "FILE_NAME=${{ github.sha }}-darwin-x64.vsix" >> $GITHUB_ENV
 
@@ -86,7 +85,9 @@ jobs:
       - name: build tests
         run: | # ignore postinstall script and install dependencies for e2e
           npm install --ignore-scripts
-          cd e2e
+          cd common
+          npx tsc --sourceMap false --project tsconfig.json
+          cd ../e2e
           npm install
           npx tsc --sourceMap false --project tsconfig.json
 
@@ -144,7 +145,7 @@ jobs:
           dbt deps
 
       - run: unzip ${{ env.FILE_NAME }} -d e2e-tests
-      
+
       - name: run e2e tests
         run: node e2e/out/runners/runFtTest $(pwd)/e2e-tests/extension
         env:
