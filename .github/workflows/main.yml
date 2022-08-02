@@ -23,10 +23,13 @@ jobs:
             target: linux-x64
             zetasql-lib: libremote_server.so
 
-          - os: ubuntu-latest
+          - os: windows-latest
             target: win32-x64
 
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - name: checkout
@@ -56,7 +59,13 @@ jobs:
         run: echo ${{ matrix.target }} > target_os
 
       - name: package to vsix file
-        run: npx vsce package -o ${FILE_NAME} --target ${{ matrix.target }} --githubBranch main
+        run: |
+          npm config set script-shell bash
+          npx vsce package -o ${FILE_NAME} --target ${{ matrix.target }} --githubBranch main
+
+      - name: fix cache issue on windows (use GNU tar instead BSD tar) # https://github.com/actions/toolkit/issues/552
+        if: matrix.os == 'windows-latest'
+        run: echo "C:/Program Files/Git/usr/bin/" >> $GITHUB_PATH
 
       - name: create cache
         uses: actions/cache@v3
@@ -99,24 +108,22 @@ jobs:
             activate-venv: source ~/dbt_1_0_0_env/bin/activate
             python-version: '3.9.12'
 
-          # TODO: enable this tests after implementing Windows support
-          # - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
-          #   os: windows-latest
-          #   target: win32-x64
-          #   add-colon-to-key-file-path: |
-          #     homedir=c:/${homedir#*c/}
-          #     python=${homedir}/dbt_1_0_0_env/Scripts/python
-          #     cat <<EOT > ${GITHUB_WORKSPACE}/e2e/projects/special-python-settings/.vscode/settings.json
-          #     {
-          #       "python.defaultInterpreterPath": "${python}",
-          #       "python.pythonPath": "${python}",
-          #     }
-          #     EOT
-          #   activate-venv: |
-          #     cd ~/dbt_1_0_0_env/Scripts
-          #     . activate
-          #   python-version: '3.9.12'
-          #   use-dbt-cli: true
+          - install-dbt: 'pip install dbt-bigquery dbt-postgres'
+            os: windows-latest
+            target: win32-x64
+            add-colon-to-key-file-path: |
+              homedir=c:/${homedir#*c/}
+              python=${homedir}/dbt_1_0_0_env/Scripts/python
+              cat <<EOT > ${GITHUB_WORKSPACE}/e2e/projects/special-python-settings/.vscode/settings.json
+              {
+                "python.defaultInterpreterPath": "${python}",
+                "python.pythonPath": "${python}",
+              }
+              EOT
+            activate-venv: |
+              cd ~/dbt_1_0_0_env/Scripts
+              . activate
+            python-version: '3.9.12'
 
     name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.python-version }} ${{ matrix.use-dbt-cli }}
 
@@ -310,10 +317,6 @@ jobs:
 
     runs-on: macos-latest
     steps:
-      - name: fix cache issue on windows (use GNU tar instead BSD tar) # https://github.com/actions/toolkit/issues/552
-        if: matrix.os == 'windows-latest'
-        run: echo "C:/Program Files/Git/usr/bin/" >> $GITHUB_PATH
-
       - name: load darwin-x64 vsix from cache
         id: darwin-cache
         uses: actions/cache@v3
@@ -360,7 +363,7 @@ jobs:
           credentials_json: '${{ secrets.GCS_SERVICE_ACCOUNT }}'
 
       - name: push vsix files to GCS
-        if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/linux-support' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: google-github-actions/upload-cloud-storage@v0
         with:
           path: .

@@ -28,6 +28,7 @@
       "request": "attach",
       "port": 6009,
       "restart": true,
+      "timeout": 30000,
       "skipFiles": ["<node_internals>/**"],
       "outFiles": ["${workspaceFolder}/server/out/**/*.js"]
     },
@@ -68,7 +69,7 @@
       "name": "E2E Tests Client",
       "type": "extensionHost",
       "request": "launch",
-      "preLaunchTask": "deleteTargetFolders",
+      "preLaunchTask": "prepare_e2e",
       "runtimeExecutable": "${execPath}",
       "args": [
         // "--extensionDevelopmentPath=${workspaceRoot}/e2e-tests/extension",
@@ -86,7 +87,7 @@
       "name": "dbt_ft Tests Client",
       "type": "extensionHost",
       "request": "launch",
-      "preLaunchTask": "deleteTargetFolders",
+      "preLaunchTask": "prepare_e2e",
       "runtimeExecutable": "${execPath}",
       "args": [
         "--extensionDevelopmentPath=${workspaceRoot}",

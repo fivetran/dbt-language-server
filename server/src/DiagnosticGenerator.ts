@@ -2,6 +2,7 @@ import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/z
 import { Result } from 'neverthrow';
 import { Diagnostic, DiagnosticRelatedInformation, DiagnosticSeverity, Location, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { URI } from 'vscode-uri';
 import { DbtRepository } from './DbtRepository';
 import { DbtTextDocument } from './document/DbtTextDocument';
 import { PositionConverter } from './PositionConverter';
@@ -12,7 +13,7 @@ import path = require('path');
 
 export class DiagnosticGenerator {
   private static readonly DBT_ERROR_LINE_PATTERN = /\n\s*line (\d+)\s*\n/;
-  private static readonly DBT_COMPILATION_ERROR_PATTERN = /(Compilation Error in model \w+ \((.*)\)\n.*)\n/;
+  private static readonly DBT_COMPILATION_ERROR_PATTERN = /(Compilation Error in model \w+ \((.*)\)(?:\r\n?|\n).*)(?:\r\n?|\n)/;
   private static readonly SQL_COMPILATION_ERROR_PATTERN = /(.*?) \[at (\d+):(\d+)\]/;
 
   static readonly ERROR_IN_OTHER_FILE = 'Error in other file';
@@ -122,7 +123,7 @@ export class DiagnosticGenerator {
         const [, error, modelPath] = match;
         return [
           {
-            location: Location.create(path.join(workspaceFolder, modelPath), this.getDbtErrorRange(errorLine)),
+            location: Location.create(URI.file(path.join(workspaceFolder, modelPath)).toString(), this.getDbtErrorRange(errorLine)),
             message: error,
           },
         ];

@@ -28,20 +28,8 @@
       "problemMatcher": ["$tsc-watch"]
     },
     {
-      "label": "deleteTargetFolders",
-      "command": "find",
-      "args": [
-        "${workspaceRoot}/e2e/projects/",
-        "-type",
-        "d",
-        "-name",
-        "target",
-        "-exec",
-        "rm",
-        "-rf",
-        "{}",
-        "+"
-      ],
+      "label": "prepare_e2e",
+      "command": "./.vscode/prepare_e2e.sh",
       "type": "shell"
     }
   ]

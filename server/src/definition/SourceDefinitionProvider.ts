@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { DefinitionLink, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { URI } from 'vscode-uri';
 import { DbtRepository } from '../DbtRepository';
 import { ParseNode } from '../JinjaParser';
 import { ManifestSource } from '../manifest/ManifestJson';
@@ -78,7 +79,7 @@ export class SourceDefinitionProvider implements DbtNodeDefinitionProvider {
       const targetRange = this.getSourceRange(sourceDefinitionFileLines, table);
       return [
         LocationLink.create(
-          path.join(foundSource.rootPath, foundSource.originalFilePath),
+          URI.file(path.join(foundSource.rootPath, foundSource.originalFilePath)).toString(),
           targetRange ?? DbtDefinitionProvider.MAX_RANGE,
           targetRange ?? DbtDefinitionProvider.MAX_RANGE,
           tableSelectionRange,

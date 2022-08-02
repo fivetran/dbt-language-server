@@ -1,4 +1,5 @@
 import { spawnSync, SpawnSyncReturns } from 'child_process';
+import * as clipboard from 'clipboardy';
 import { DebugEvent, deferred, DeferredResult, ExtensionApi } from 'dbt-language-server-common';
 import * as fs from 'fs';
 import { WatchEventType, writeFileSync } from 'fs';
@@ -44,6 +45,10 @@ export const LS_MORE_THAN_OPEN_DEBOUNCE = 1200;
 workspace.onDidChangeTextDocument(onDidChangeTextDocument);
 languages.onDidChangeDiagnostics(onDidChangeDiagnostics);
 
+window.onDidChangeActiveTextEditor(e => {
+  console.log(`Active document changed: ${e?.document.uri.toString() ?? 'undefined'}`);
+});
+
 let previewPromiseResolve: voidFunc | undefined;
 let documentPromiseResolve: voidFunc | undefined;
 
@@ -51,6 +56,8 @@ let extensionApi: ExtensionApi | undefined = undefined;
 const languageServerReady = new Map<string, DeferredResult<void>>();
 
 const changeDiagnosticsResolve = new Map<string, () => void>();
+
+let tempModelIndex = 0;
 
 function onDidChangeDiagnostics(event: DiagnosticChangeEvent): void {
   event.uris.forEach((uri: Uri) => {
@@ -355,12 +362,44 @@ export async function createAndOpenTempModel(workspaceName: string): Promise<Uri
   if (thisWorkspace === undefined) {
     throw new Error('Workspace not found');
   }
-  const newUri = Uri.parse(`${thisWorkspace}/models/temp_model.sql`);
+  const newUri = Uri.parse(`${thisWorkspace}/models/temp_model${tempModelIndex}.sql`);
+  tempModelIndex++;
 
   console.log(`Creating new file: ${newUri.toString()}`);
   writeFileSync(newUri.fsPath, '-- Empty');
   await activateAndWait(newUri);
   return newUri;
+}
+
+export async function renameCurrentFile(newName: string): Promise<Uri> {
+  const { uri } = doc;
+  const newUri = uri.with({ path: uri.path.substring(0, uri.path.lastIndexOf('/') + 1) + newName });
+
+  const renameFinished = createChangePromise('preview');
+
+  clipboard.writeSync(newName);
+
+  await commands.executeCommand('workbench.files.action.showActiveFileInExplorer');
+  await commands.executeCommand('renameFile');
+  await commands.executeCommand('editor.action.selectAll');
+  await commands.executeCommand('editor.action.clipboardPasteAction');
+  await commands.executeCommand('workbench.action.showCommands');
+
+  await renameFinished;
+
+  doc = await workspace.openTextDocument(newUri);
+  editor = await window.showTextDocument(doc);
+
+  return newUri;
+}
+
+export async function deleteCurrentFile(): Promise<void> {
+  const deleteFinished = createChangePromise('preview');
+
+  await commands.executeCommand('workbench.files.action.showActiveFileInExplorer');
+  await commands.executeCommand('deleteFile');
+
+  await deleteFinished;
 }
 
 export function getTextInQuotesIfNeeded(text: string, withQuotes: boolean): string {

@@ -25,11 +25,7 @@ type ProfileYamlValidated = {
 };
 
 export class DbtProfileCreator {
-  private profilesPath: string;
-
-  constructor(private dbtProject: DbtProject, profilesPath: string) {
-    this.profilesPath = YamlParserUtils.replaceTilde(profilesPath);
-  }
+  constructor(private dbtProject: DbtProject, private profilesPath: string) {}
 
   validateProfilesFile(profiles: unknown, profileName: string): Result<ProfileYamlValidated, DbtProfileError> {
     const profile = (profiles as Record<string, unknown>)[profileName] as ProfileYaml | undefined;

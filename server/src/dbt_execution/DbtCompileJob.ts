@@ -1,4 +1,5 @@
 import { Result } from 'neverthrow';
+import { pathEqual } from 'path-equal';
 import { DbtRepository } from '../DbtRepository';
 import { ManifestModel } from '../manifest/ManifestJson';
 import path = require('path');
@@ -38,7 +39,7 @@ export abstract class DbtCompileJob {
   async findModelWithRetries(): Promise<ManifestModel> {
     return retry(
       () => {
-        const model = this.dbtRepository.models.find(m => m.originalFilePath === this.modelPath);
+        const model = this.dbtRepository.models.find(m => pathEqual(m.originalFilePath, this.modelPath));
         if (model === undefined) {
           console.log('Model not found in manifest.json, retrying...');
           throw new Error('Model not found in manifest.json');

@@ -35,6 +35,7 @@ import { ProgressReporter } from '../ProgressReporter';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { SqlCompletionProvider } from '../SqlCompletionProvider';
 import { DiffUtils } from '../utils/DiffUtils';
+import path = require('path');
 
 import { getTextRangeBeforeBracket } from '../utils/TextUtils';
 import {
@@ -215,7 +216,7 @@ export class DbtTextDocument {
     const filePath = getFilePathRelatedToWorkspace(docUri, workspaceFolder);
     if (dbtRepository.packagesInstallPaths.some(p => filePath.startsWith(p))) {
       const startWithPackagesFolder = new RegExp(`^(${dbtRepository.packagesInstallPaths.join('|')}).`);
-      return filePath.replaceAll('/', '.').replace(startWithPackagesFolder, '').replace('models.', '').replace(/.sql$/, '');
+      return filePath.replaceAll(path.sep, '.').replace(startWithPackagesFolder, '').replace('models.', '').replace(/.sql$/, '');
     }
     return filePath;
   }
@@ -244,14 +245,19 @@ export class DbtTextDocument {
       this.rawDocDiagnostics = [];
       this.compiledDocDiagnostics = [];
       this.sendDiagnostics();
+      this.requireCompileOnSave = true;
     }
   }
 
-  async onCompilationFinished(compiledSql: string): Promise<void> {
+  fixGlobalDbtError(): void {
     if (this.currentDbtError) {
       this.currentDbtError = undefined;
       this.onGlobalDbtErrorFixedEmitter.fire();
     }
+  }
+
+  async onCompilationFinished(compiledSql: string): Promise<void> {
+    this.fixGlobalDbtError();
 
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
     if (this.dbtDestinationContext.contextInitialized) {
@@ -401,5 +407,22 @@ export class DbtTextDocument {
       }
     }
     return undefined;
+  }
+
+  clearDiagnostics(): void {
+    this.connection
+      .sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: [] })
+      .catch(e => console.log(`Failed to send diagnostics while closing document: ${e instanceof Error ? e.message : String(e)}`));
+  }
+
+  dispose(): void {
+    const { uri } = this.rawDocument;
+    const fileName = uri.substring(uri.lastIndexOf(path.sep));
+
+    if (this.currentDbtError?.includes(fileName)) {
+      this.fixGlobalDbtError();
+    }
+
+    this.clearDiagnostics();
   }
 }

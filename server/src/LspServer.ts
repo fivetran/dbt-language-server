@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import { CustomInitParams, DbtCompilerType, DebugEvent, TelemetryEvent } from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
+import { homedir } from 'os';
 import { performance } from 'perf_hooks';
 import {
   CodeAction,
@@ -9,13 +10,18 @@ import {
   Command,
   CompletionItem,
   CompletionParams,
+  CreateFilesParams,
   DefinitionLink,
   DefinitionParams,
+  DeleteFilesParams,
   DidChangeConfigurationNotification,
   DidChangeTextDocumentParams,
   DidChangeWatchedFilesParams,
   DidCloseTextDocumentParams,
+  DidCreateFilesNotification,
+  DidDeleteFilesNotification,
   DidOpenTextDocumentParams,
+  DidRenameFilesNotification,
   DidSaveTextDocumentParams,
   Emitter,
   ExecuteCommandParams,
@@ -25,6 +31,7 @@ import {
   InitializeParams,
   InitializeResult,
   Range,
+  RenameFilesParams,
   ResponseError,
   SignatureHelp,
   SignatureHelpParams,
@@ -34,6 +41,7 @@ import {
   WillSaveTextDocumentParams,
   _Connection,
 } from 'vscode-languageserver';
+import { FileOperationFilter } from 'vscode-languageserver-protocol/lib/common/protocol.fileOperations';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
 import { DbtContext } from './DbtContext';
@@ -58,12 +66,14 @@ import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
+import path = require('path');
 
 export class LspServer {
   static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
   private static readonly ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
 
   sqlToRefCommandName = randomUUID();
+  filesFilter: FileOperationFilter[];
   workspaceFolder: string;
   hasConfigurationCapability = false;
   featureFinder?: FeatureFinder;
@@ -87,11 +97,12 @@ export class LspServer {
 
   constructor(private connection: _Connection) {
     this.workspaceFolder = process.cwd();
+    this.filesFilter = [{ scheme: 'file', pattern: { glob: `${this.workspaceFolder}/**/*`, matches: 'file' } }];
     Logger.prepareLogger(this.workspaceFolder);
     const dbtProject = new DbtProject('.');
 
     this.progressReporter = new ProgressReporter(this.connection);
-    this.dbtProfileCreator = new DbtProfileCreator(dbtProject, '~/.dbt/profiles.yml');
+    this.dbtProfileCreator = new DbtProfileCreator(dbtProject, path.join(homedir(), '.dbt', 'profiles.yml'));
     this.fileChangeListener = new FileChangeListener(this.workspaceFolder, dbtProject, this.manifestParser, this.dbtRepository);
     this.sqlCompletionProvider = new SqlCompletionProvider();
     this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);
@@ -139,6 +150,13 @@ export class LspServer {
         executeCommandProvider: {
           commands: [this.sqlToRefCommandName],
         },
+        workspace: {
+          fileOperations: {
+            didRename: {
+              filters: this.filesFilter,
+            },
+          },
+        },
       },
     };
   }
@@ -149,12 +167,15 @@ export class LspServer {
 
     return dbtMode === DbtMode.DBT_RPC
       ? new DbtRpc(featureFinder, this.connection, this.progressReporter, this.fileChangeListener)
-      : new DbtCli(featureFinder);
+      : new DbtCli(featureFinder, this.connection, this.progressReporter);
   }
 
   getDbtMode(featureFinder: FeatureFinder, dbtCompiler: DbtCompilerType): DbtMode {
     switch (dbtCompiler) {
       case 'Auto': {
+        if (process.platform === 'win32') {
+          return DbtMode.CLI;
+        }
         const pythonVersion = featureFinder.getPythonVersion();
         // https://github.com/dbt-labs/dbt-rpc/issues/85
         if (pythonVersion !== undefined && pythonVersion[0] >= 3 && pythonVersion[1] >= 10) {
@@ -191,10 +212,7 @@ export class LspServer {
   }
 
   async onInitialized(): Promise<void> {
-    if (this.hasConfigurationCapability) {
-      // Register for all configuration changes.
-      await this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
-    }
+    this.registerClientNotification();
 
     const profileResult = this.dbtProfileCreator.createDbtProfile();
     const contextInfo = profileResult.match<DbtProfileInfo>(
@@ -222,6 +240,27 @@ export class LspServer {
     await Promise.allSettled([prepareDbt, prepareDestination]);
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime);
+  }
+
+  registerClientNotification(): void {
+    if (this.hasConfigurationCapability) {
+      this.connection.client
+        .register(DidChangeConfigurationNotification.type, undefined)
+        .catch(e => console.log(`Error while registering DidChangeConfiguration notification: ${e instanceof Error ? e.message : String(e)}`));
+    }
+
+    const filters = this.filesFilter;
+    this.connection.client
+      .register(DidCreateFilesNotification.type, { filters })
+      .catch(e => console.log(`Error while registering DidCreateFiles notification: ${e instanceof Error ? e.message : String(e)}`));
+
+    this.connection.client
+      .register(DidRenameFilesNotification.type, { filters })
+      .catch(e => console.log(`Error while registering DidRenameFiles notification: ${e instanceof Error ? e.message : String(e)}`));
+
+    this.connection.client
+      .register(DidDeleteFilesNotification.type, { filters })
+      .catch(e => console.log(`Error while registering DidDeleteFiles notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   async prepareDestination(profileResult: Result<DbtProfileSuccess, DbtProfileError>): Promise<void> {
@@ -272,17 +311,11 @@ export class LspServer {
   }
 
   onDbtCompile(uri: string): void {
-    const document = this.openedDocuments.get(uri);
-    if (document) {
-      document.forceRecompile();
-    }
+    this.openedDocuments.get(uri)?.forceRecompile();
   }
 
   onWillSaveTextDocument(params: WillSaveTextDocumentParams): void {
-    const document = this.openedDocuments.get(params.textDocument.uri);
-    if (document) {
-      document.willSaveTextDocument(params.reason);
-    }
+    this.openedDocuments.get(params.textDocument.uri)?.willSaveTextDocument(params.reason);
   }
 
   async onDidSaveTextDocument(params: DidSaveTextDocumentParams): Promise<void> {
@@ -291,9 +324,7 @@ export class LspServer {
     }
 
     const document = this.openedDocuments.get(params.textDocument.uri);
-    if (document) {
-      await document.didSaveTextDocument(true);
-    }
+    await document?.didSaveTextDocument(true);
   }
 
   onDidOpenTextDocumentDelayed(params: DidOpenTextDocumentParams): Promise<void> {
@@ -355,10 +386,7 @@ export class LspServer {
     if (!(await this.isLanguageServerReady())) {
       return;
     }
-    const document = this.openedDocuments.get(params.textDocument.uri);
-    if (document) {
-      document.didChangeTextDocument(params);
-    }
+    this.openedDocuments.get(params.textDocument.uri)?.didChangeTextDocument(params);
   }
 
   async isLanguageServerReady(): Promise<boolean> {
@@ -434,6 +462,27 @@ export class LspServer {
         textDocument.fixInformationDiagnostic(range);
       }
     }
+  }
+
+  onDidCreateFiles(_params: CreateFilesParams): void {
+    this.dbtContext.dbt?.refresh();
+  }
+
+  onDidRenameFiles(params: RenameFilesParams): void {
+    this.dbtContext.dbt?.refresh();
+    this.disposeOutdatedDocuments(params.files.map(f => f.oldUri));
+  }
+
+  onDidDeleteFiles(params: DeleteFilesParams): void {
+    this.dbtContext.dbt?.refresh();
+    this.disposeOutdatedDocuments(params.files.map(f => f.uri));
+  }
+
+  disposeOutdatedDocuments(uris: string[]): void {
+    uris.forEach(uri => {
+      this.openedDocuments.get(uri)?.dispose();
+      this.openedDocuments.delete(uri);
+    });
   }
 
   onShutdown(): void {

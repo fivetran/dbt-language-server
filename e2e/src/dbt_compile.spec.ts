@@ -1,4 +1,5 @@
 import { assertThat } from 'hamjest';
+import { EOL } from 'os';
 import { activateAndWait, getDocUri, getPreviewText, installExtension, replaceText, setTestContent, sleep, uninstallExtension } from './helper';
 
 suite('Should compile jinja expressions', () => {
@@ -33,12 +34,12 @@ suite('Should compile jinja expressions', () => {
     await activateAndWait(docUri);
     await setTestContent(users);
 
-    await replaceText('}}', '}}\n\n\ns');
+    await replaceText('}}', `}}${EOL}${EOL}${EOL}s`);
     await sleep(moreThanDebounceTimeout);
 
-    await replaceText('\ns', '\nselect 1;');
+    await replaceText(`${EOL}s`, `${EOL}select 1;`);
 
-    assertThat(getPreviewText(), `users\n\n\nselect 1;`);
+    assertThat(getPreviewText(), `users${EOL}${EOL}${EOL}select 1;`);
   });
 
   // Sometimes 'samuelcolvin.jinjahtml' extension cannot be installed - server responded with 503.

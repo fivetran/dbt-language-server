@@ -5,7 +5,21 @@ import { performance } from 'perf_hooks';
 import { languages, Uri } from 'vscode';
 import { closeAllEditors, doc, getPreviewText, PREVIEW_URI } from '../helper';
 
-const TESTS_WITHOUT_ZETASQL = ['multi-project.spec.js' /* 'completion_jinja.spec.js' */]; // TODO: add more tests
+const TESTS_WITHOUT_ZETASQL = [
+  'completion_macros.spec.js',
+  'completion_models.spec.js',
+  'completion_sources.spec.js',
+  'custom_version.spec.js',
+  'dbt_compile.spec.js',
+  'dbt_error.spec.js',
+  'dbt_packages.spec',
+  'definition.spec',
+  'editing_outside_jinja.spec',
+  'functions.spec',
+  'multi-project.spec.js',
+  'postgres.spec.js',
+  'signature_help.spec.js',
+]; // TODO: combine ZetaSQL tests and skip them on Windows
 const ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
 
 export async function indexMain(timeout: string, globPattern: string, doNotRun: string[]): Promise<void> {

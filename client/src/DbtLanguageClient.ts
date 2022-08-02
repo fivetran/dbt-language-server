@@ -1,5 +1,5 @@
 import { CustomInitParams, DbtCompilerType, DebugEvent, TelemetryEvent } from 'dbt-language-server-common';
-import { Diagnostic, Disposable, OutputChannel, Uri, workspace, WorkspaceFolder } from 'vscode';
+import { Diagnostic, Disposable, OutputChannel, RelativePattern, Uri, workspace, WorkspaceFolder } from 'vscode';
 import { LanguageClient, LanguageClientOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { SUPPORTED_LANG_IDS } from './ExtensionClient';
 import { ProgressHandler } from './ProgressHandler';
@@ -33,9 +33,9 @@ export class DbtLanguageClient implements Disposable {
       diagnosticCollectionName: 'dbtWizard',
       synchronize: {
         fileEvents: [
-          workspace.createFileSystemWatcher('**/dbt_project.yml', undefined, undefined, true),
-          workspace.createFileSystemWatcher('**/manifest.json', undefined, undefined, true),
-          workspace.createFileSystemWatcher('**/packages.yml', undefined, undefined, true),
+          workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/dbt_project.yml'), undefined, undefined, true),
+          workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/manifest.json'), undefined, undefined, true),
+          workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/packages.yml'), undefined, undefined, true),
         ],
       },
       outputChannel,
