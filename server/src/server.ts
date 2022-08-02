@@ -30,4 +30,8 @@ connection.onDidChangeWatchedFiles(server.onDidChangeWatchedFiles.bind(server));
 
 connection.onShutdown(server.onShutdown.bind(server));
 
+connection.workspace.onDidCreateFiles(server.onDidCreateFiles.bind(server));
+connection.workspace.onDidRenameFiles(server.onDidRenameFiles.bind(server));
+connection.workspace.onDidDeleteFiles(server.onDidDeleteFiles.bind(server));
+
 connection.listen();

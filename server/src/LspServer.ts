@@ -9,13 +9,18 @@ import {
   Command,
   CompletionItem,
   CompletionParams,
+  CreateFilesParams,
   DefinitionLink,
   DefinitionParams,
+  DeleteFilesParams,
   DidChangeConfigurationNotification,
   DidChangeTextDocumentParams,
   DidChangeWatchedFilesParams,
   DidCloseTextDocumentParams,
+  DidCreateFilesNotification,
+  DidDeleteFilesNotification,
   DidOpenTextDocumentParams,
+  DidRenameFilesNotification,
   DidSaveTextDocumentParams,
   Emitter,
   ExecuteCommandParams,
@@ -25,6 +30,7 @@ import {
   InitializeParams,
   InitializeResult,
   Range,
+  RenameFilesParams,
   ResponseError,
   SignatureHelp,
   SignatureHelpParams,
@@ -34,6 +40,7 @@ import {
   WillSaveTextDocumentParams,
   _Connection,
 } from 'vscode-languageserver';
+import { FileOperationFilter } from 'vscode-languageserver-protocol/lib/common/protocol.fileOperations';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
 import { DbtProfileCreator, DbtProfileError, DbtProfileInfo, DbtProfileSuccess } from './DbtProfileCreator';
@@ -61,6 +68,7 @@ export class LspServer {
   private static readonly ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
 
   sqlToRefCommandName = randomUUID();
+  filesFilter: FileOperationFilter[];
   workspaceFolder: string;
   hasConfigurationCapability = false;
   featureFinder?: FeatureFinder;
@@ -85,6 +93,7 @@ export class LspServer {
 
   constructor(private connection: _Connection) {
     this.workspaceFolder = process.cwd();
+    this.filesFilter = [{ scheme: 'file', pattern: { glob: `${this.workspaceFolder}/**/*`, matches: 'file' } }];
     Logger.prepareLogger(this.workspaceFolder);
     const dbtProject = new DbtProject('.');
 
@@ -138,6 +147,13 @@ export class LspServer {
         executeCommandProvider: {
           commands: [this.sqlToRefCommandName],
         },
+        workspace: {
+          fileOperations: {
+            didRename: {
+              filters: this.filesFilter,
+            },
+          },
+        },
       },
     };
   }
@@ -190,10 +206,7 @@ export class LspServer {
   }
 
   async onInitialized(): Promise<void> {
-    if (this.hasConfigurationCapability) {
-      // Register for all configuration changes.
-      await this.connection.client.register(DidChangeConfigurationNotification.type, undefined);
-    }
+    this.registerClientNotification();
 
     const profileResult = this.dbtProfileCreator.createDbtProfile();
     const contextInfo = profileResult.match<DbtProfileInfo>(
@@ -205,6 +218,27 @@ export class LspServer {
     await Promise.all([this.dbt?.prepare(dbtProfileType), this.prepareDestination(profileResult)]);
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime);
+  }
+
+  registerClientNotification(): void {
+    if (this.hasConfigurationCapability) {
+      this.connection.client
+        .register(DidChangeConfigurationNotification.type, undefined)
+        .catch(e => console.log(`Error while registering DidChangeConfiguration notification: ${e instanceof Error ? e.message : String(e)}`));
+    }
+
+    const filters = this.filesFilter;
+    this.connection.client
+      .register(DidCreateFilesNotification.type, { filters })
+      .catch(e => console.log(`Error while registering DidCreateFiles notification: ${e instanceof Error ? e.message : String(e)}`));
+
+    this.connection.client
+      .register(DidRenameFilesNotification.type, { filters })
+      .catch(e => console.log(`Error while registering DidRenameFiles notification: ${e instanceof Error ? e.message : String(e)}`));
+
+    this.connection.client
+      .register(DidDeleteFilesNotification.type, { filters })
+      .catch(e => console.log(`Error while registering DidDeleteFiles notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   async prepareDestination(profileResult: Result<DbtProfileSuccess, DbtProfileError>): Promise<void> {
@@ -256,17 +290,11 @@ export class LspServer {
   }
 
   onDbtCompile(uri: string): void {
-    const document = this.openedDocuments.get(uri);
-    if (document) {
-      document.forceRecompile();
-    }
+    this.openedDocuments.get(uri)?.forceRecompile();
   }
 
   onWillSaveTextDocument(params: WillSaveTextDocumentParams): void {
-    const document = this.openedDocuments.get(params.textDocument.uri);
-    if (document) {
-      document.willSaveTextDocument(params.reason);
-    }
+    this.openedDocuments.get(params.textDocument.uri)?.willSaveTextDocument(params.reason);
   }
 
   async onDidSaveTextDocument(params: DidSaveTextDocumentParams): Promise<void> {
@@ -275,9 +303,7 @@ export class LspServer {
     }
 
     const document = this.openedDocuments.get(params.textDocument.uri);
-    if (document) {
-      await document.didSaveTextDocument(() => this.dbt?.refresh());
-    }
+    await document?.didSaveTextDocument(() => this.dbt?.refresh());
   }
 
   onDidOpenTextDocumentDelayed(params: DidOpenTextDocumentParams): Promise<void> {
@@ -338,10 +364,7 @@ export class LspServer {
     if (!(await this.isLanguageServerReady())) {
       return;
     }
-    const document = this.openedDocuments.get(params.textDocument.uri);
-    if (document) {
-      document.didChangeTextDocument(params);
-    }
+    this.openedDocuments.get(params.textDocument.uri)?.didChangeTextDocument(params);
   }
 
   async isLanguageServerReady(): Promise<boolean> {
@@ -412,6 +435,27 @@ export class LspServer {
         textDocument.fixInformationDiagnostic(range);
       }
     }
+  }
+
+  onDidCreateFiles(_params: CreateFilesParams): void {
+    this.dbt?.refresh();
+  }
+
+  onDidRenameFiles(params: RenameFilesParams): void {
+    this.dbt?.refresh();
+    this.disposeOutdatedDocuments(params.files.map(f => f.oldUri));
+  }
+
+  onDidDeleteFiles(params: DeleteFilesParams): void {
+    this.dbt?.refresh();
+    this.disposeOutdatedDocuments(params.files.map(f => f.uri));
+  }
+
+  disposeOutdatedDocuments(uris: string[]): void {
+    uris.forEach(uri => {
+      this.openedDocuments.get(uri)?.dispose();
+      this.openedDocuments.delete(uri);
+    });
   }
 
   onShutdown(): void {

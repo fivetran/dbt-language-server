@@ -1,4 +1,5 @@
 import { spawnSync, SpawnSyncReturns } from 'child_process';
+import * as clipboard from 'clipboardy';
 import * as fs from 'fs';
 import { WatchEventType, writeFileSync } from 'fs';
 import * as path from 'path';
@@ -36,9 +37,14 @@ export const MAX_RANGE = new Range(0, 0, MAX_VSCODE_INTEGER, MAX_VSCODE_INTEGER)
 export const MIN_RANGE = new Range(0, 0, 0, 0);
 
 workspace.onDidChangeTextDocument(onDidChangeTextDocument);
+window.onDidChangeActiveTextEditor(e => {
+  console.log(`Active document changed: ${e?.document.uri.toString() ?? 'undefined'}`);
+});
 
 let previewPromiseResolve: voidFunc | undefined;
 let documentPromiseResolve: voidFunc | undefined;
+
+let tempModelIndex = 0;
 
 export async function activateAndWait(docUri: Uri): Promise<void> {
   // The extensionId is `publisher.name` from package.json
@@ -298,12 +304,44 @@ export async function createAndOpenTempModel(workspaceName: string): Promise<Uri
   if (thisWorkspace === undefined) {
     throw new Error('Workspace not found');
   }
-  const newUri = Uri.parse(`${thisWorkspace}/models/temp_model.sql`);
+  const newUri = Uri.parse(`${thisWorkspace}/models/temp_model${tempModelIndex}.sql`);
+  tempModelIndex++;
 
   console.log(`Creating new file: ${newUri.toString()}`);
   writeFileSync(newUri.fsPath, '-- Empty');
   await activateAndWait(newUri);
   return newUri;
+}
+
+export async function renameCurrentFile(newName: string): Promise<Uri> {
+  const { uri } = doc;
+  const newUri = uri.with({ path: uri.path.substring(0, uri.path.lastIndexOf('/') + 1) + newName });
+
+  const renameFinished = createChangePromise('preview');
+
+  clipboard.writeSync(newName);
+
+  await commands.executeCommand('workbench.files.action.showActiveFileInExplorer');
+  await commands.executeCommand('renameFile');
+  await commands.executeCommand('editor.action.selectAll');
+  await commands.executeCommand('editor.action.clipboardPasteAction');
+  await commands.executeCommand('workbench.action.showCommands');
+
+  await renameFinished;
+
+  doc = await workspace.openTextDocument(newUri);
+  editor = await window.showTextDocument(doc);
+
+  return newUri;
+}
+
+export async function deleteCurrentFile(): Promise<void> {
+  const deleteFinished = createChangePromise('preview');
+
+  await commands.executeCommand('workbench.files.action.showActiveFileInExplorer');
+  await commands.executeCommand('deleteFile');
+
+  await deleteFinished;
 }
 
 export function getTextInQuotesIfNeeded(text: string, withQuotes: boolean): string {
