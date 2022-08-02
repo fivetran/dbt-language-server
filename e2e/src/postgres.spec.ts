@@ -1,7 +1,7 @@
 import { assertThat, instanceOf } from 'hamjest';
 import { commands, MarkdownString, Position, Range, SignatureHelp } from 'vscode';
 import { assertDefinitions } from './asserts';
-import { activateAndWait, getCustomDocUri, getPreviewText, MAX_RANGE, MIN_RANGE } from './helper';
+import { activateAndWait, activateAndWaitServerReady, getCustomDocUri, getPreviewText, MAX_RANGE, MIN_RANGE, POSTGRES_PATH } from './helper';
 
 const ACTIVE_USERS_URI = getCustomDocUri('postgres/models/active_users.sql');
 const ORDERS_COUNT_DOC_URI = getCustomDocUri('postgres/models/active_users_orders_count.sql');
@@ -17,7 +17,7 @@ suite('Postgres destination', () => {
   });
 
   test('Should provide ref definitions', async () => {
-    await activateAndWait(ORDERS_COUNT_DOC_URI);
+    await activateAndWaitServerReady(ORDERS_COUNT_DOC_URI, POSTGRES_PATH);
 
     await assertDefinitions(ORDERS_COUNT_DOC_URI, new Position(1, 40), [
       {
@@ -45,7 +45,7 @@ suite('Postgres destination', () => {
   });
 
   test('Should provide macro definitions', async () => {
-    await activateAndWait(ORDERS_COUNT_DOC_URI);
+    await activateAndWaitServerReady(ORDERS_COUNT_DOC_URI, POSTGRES_PATH);
 
     await assertDefinitions(ORDERS_COUNT_DOC_URI, new Position(0, 24), [
       {
@@ -58,7 +58,7 @@ suite('Postgres destination', () => {
   });
 
   test('Should provide source definitions', async () => {
-    await activateAndWait(ACTIVE_USERS_URI);
+    await activateAndWaitServerReady(ACTIVE_USERS_URI, POSTGRES_PATH);
     await assertDefinitions(ACTIVE_USERS_URI, new Position(1, 34), [
       {
         originSelectionRange: new Range(1, 32, 1, 37),
@@ -71,7 +71,7 @@ suite('Postgres destination', () => {
 
   test('Should provide signature help for COUNT function', async () => {
     // arrange
-    await activateAndWait(ORDERS_COUNT_DOC_URI);
+    await activateAndWaitServerReady(ORDERS_COUNT_DOC_URI, POSTGRES_PATH);
 
     // act
     const help = await commands.executeCommand<SignatureHelp>('vscode.executeSignatureHelpProvider', ORDERS_COUNT_DOC_URI, new Position(0, 145), '(');

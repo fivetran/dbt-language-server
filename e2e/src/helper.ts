@@ -32,6 +32,7 @@ type voidFunc = () => void;
 const PROJECTS_PATH = path.resolve(__dirname, '../projects');
 const DOWNLOADS_PATH = path.resolve(__dirname, '../.downloads');
 export const TEST_FIXTURE_PATH = path.resolve(PROJECTS_PATH, 'test-fixture');
+export const POSTGRES_PATH = path.resolve(PROJECTS_PATH, 'postgres');
 export const PREVIEW_URI = 'query-preview:Preview?dbt-language-server';
 
 export const MAX_VSCODE_INTEGER = 2147483647;
@@ -373,22 +374,15 @@ export function ensureDirectoryExists(dir: string): void {
 }
 
 export function waitForLanguageServerReady(projectFolderName: string): Promise<void> {
-  initializeExtensionApiIfNeeded();
-
   let lsReadyDeferred = languageServerReady.get(projectFolderName);
   if (lsReadyDeferred === undefined) {
     lsReadyDeferred = deferred<void>();
     languageServerReady.set(projectFolderName, lsReadyDeferred);
   }
-
   return lsReadyDeferred.promise;
 }
 
-export function initializeExtensionApiIfNeeded(): void {
-  if (extensionApi) {
-    return;
-  }
-
+export function initializeExtensionApi(): void {
   const dbtLanguageServer = extensions.getExtension('fivetran.dbt-language-server');
   if (dbtLanguageServer) {
     extensionApi = dbtLanguageServer.exports as ExtensionApi;
