@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { CustomInitParams, DbtCompilerType, DebugEvent, TelemetryEvent } from 'dbt-language-server-common';
+import { CustomInitParams, DbtCompilerType, DebugEvent } from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
 import { homedir } from 'os';
 import { performance } from 'perf_hooks';
@@ -35,7 +35,6 @@ import {
   ResponseError,
   SignatureHelp,
   SignatureHelpParams,
-  TelemetryEventNotification,
   TextDocumentSyncKind,
   TextEdit,
   WillSaveTextDocumentParams,
@@ -61,9 +60,9 @@ import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
 import { JinjaParser } from './JinjaParser';
 import { Logger } from './Logger';
-import { LspServerEventReporter } from './LspServerEventReporter';
 import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
+import { NotificationSender } from './NotificationSender';
 import { ProgressReporter } from './ProgressReporter';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
 import path = require('path');
@@ -79,6 +78,7 @@ export class LspServer {
   featureFinder?: FeatureFinder;
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
+  notificationSender: NotificationSender;
   fileChangeListener: FileChangeListener;
   sqlCompletionProvider: SqlCompletionProvider;
   dbtCompletionProvider: DbtCompletionProvider;
@@ -102,6 +102,7 @@ export class LspServer {
     const dbtProject = new DbtProject('.');
 
     this.progressReporter = new ProgressReporter(this.connection);
+    this.notificationSender = new NotificationSender(this.connection);
     this.dbtProfileCreator = new DbtProfileCreator(dbtProject, path.join(homedir(), '.dbt', 'profiles.yml'));
     this.fileChangeListener = new FileChangeListener(this.workspaceFolder, dbtProject, this.manifestParser, this.dbtRepository);
     this.sqlCompletionProvider = new SqlCompletionProvider();
@@ -198,7 +199,7 @@ export class LspServer {
   onUncaughtException(error: Error, _origin: 'uncaughtException' | 'unhandledRejection'): void {
     console.log(error.stack);
 
-    this.sendTelemetry('error', {
+    this.notificationSender.sendTelemetry('error', {
       name: error.name,
       message: error.message,
       stack: error.stack ?? '',
@@ -231,7 +232,7 @@ export class LspServer {
     this.dbtRepository.manifestParsedDeferred.promise
       // eslint-disable-next-line promise/always-return
       .then(() => {
-        LspServerEventReporter.logLanguageServerEvent(this.connection, DebugEvent.LANGUAGE_SERVER_READY);
+        this.notificationSender.logLanguageServerEvent(DebugEvent.LANGUAGE_SERVER_READY);
       })
       .catch(e => console.log(`Manifest was not parsed: ${e instanceof Error ? e.message : String(e)}`));
 
@@ -291,7 +292,7 @@ export class LspServer {
   }
 
   logStartupInfo(contextInfo: DbtProfileInfo, initTime: number): void {
-    this.sendTelemetry('log', {
+    this.notificationSender.sendTelemetry('log', {
       dbtVersion: getStringVersion(this.featureFinder?.versionInfo?.installedVersion),
       pythonPath: this.featureFinder?.pythonInfo?.path ?? 'undefined',
       pythonVersion: this.featureFinder?.pythonInfo?.version?.join('.') ?? 'undefined',
@@ -299,13 +300,6 @@ export class LspServer {
       type: contextInfo.type ?? 'unknown type',
       method: contextInfo.method ?? 'unknown method',
     });
-  }
-
-  sendTelemetry(name: string, properties?: { [key: string]: string }): void {
-    console.log(JSON.stringify(properties));
-    this.connection
-      .sendNotification<TelemetryEvent>(TelemetryEventNotification.type, { name, properties })
-      .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   onDbtCompile(uri: string): void {
