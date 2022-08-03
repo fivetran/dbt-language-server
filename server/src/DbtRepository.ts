@@ -30,9 +30,6 @@ export class DbtRepository {
   modelPaths: string[] = DbtRepository.DEFAULT_MODEL_PATHS;
   packagesInstallPaths: string[] = DbtRepository.DEFAULT_PACKAGES_PATHS;
 
-  projectConfigParsed = false;
-  projectConfigParsedDeferred = deferred<void>();
-
   manifestParsed = false;
   manifestParsedDeferred = deferred<void>();
 

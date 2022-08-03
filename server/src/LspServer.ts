@@ -233,7 +233,7 @@ export class LspServer {
     });
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises, promise/catch-or-return, promise/always-return
-    Promise.all([this.dbtRepository.projectConfigParsedDeferred.promise, this.dbtRepository.manifestParsedDeferred.promise]).then(() => {
+    this.dbtRepository.manifestParsedDeferred.promise.then(() => {
       LspServerEventReporter.logLanguageServerEvent(this.connection, DebugEvent.LANGUAGE_SERVER_READY);
     });
 
@@ -391,9 +391,6 @@ export class LspServer {
 
   async isLanguageServerReady(): Promise<boolean> {
     try {
-      if (!this.dbtRepository.projectConfigParsed) {
-        await this.dbtRepository.projectConfigParsedDeferred.promise;
-      }
       if (!this.dbtRepository.manifestParsed) {
         await this.dbtRepository.manifestParsedDeferred.promise;
       }

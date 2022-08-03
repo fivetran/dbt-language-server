@@ -66,11 +66,6 @@ export class FileChangeListener {
     this.dbtRepository.macroPaths = this.normalizePaths(this.dbtProject.findMacroPaths());
     this.dbtRepository.modelPaths = this.normalizePaths(this.dbtProject.findModelPaths());
     this.dbtRepository.packagesInstallPaths = this.normalizePaths(this.dbtProject.findPackagesInstallPaths());
-
-    if (!this.dbtRepository.projectConfigParsed) {
-      this.dbtRepository.projectConfigParsed = true;
-      this.dbtRepository.projectConfigParsedDeferred.resolve();
-    }
   }
 
   normalizePaths(paths: string[]): string[] {
