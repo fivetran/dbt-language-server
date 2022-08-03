@@ -88,7 +88,7 @@ export class ExtensionClient {
   }
 
   registerCommands(): void {
-    this.registerCommand('dbt.compile', async () => {
+    this.registerCommand('dbtWizard.compile', async () => {
       const document = this.getCommandDocument();
       if (!document) {
         return;
@@ -99,7 +99,7 @@ export class ExtensionClient {
       const client = await this.getClient(uri);
       if (client) {
         client.sendNotification('custom/dbtCompile', uri.toString());
-        await commands.executeCommand('editor.showQueryPreview');
+        await commands.executeCommand('dbtWizard.showQueryPreview');
       }
     });
 
@@ -143,7 +143,7 @@ export class ExtensionClient {
 
   registerSqlPreviewContentProvider(context: ExtensionContext): void {
     const providerRegistrations = workspace.registerTextDocumentContentProvider(SqlPreviewContentProvider.SCHEME, this.previewContentProvider);
-    const commandRegistration = commands.registerTextEditorCommand('editor.showQueryPreview', async (editor: TextEditor) => {
+    const commandRegistration = commands.registerTextEditorCommand('dbtWizard.showQueryPreview', async (editor: TextEditor) => {
       if (editor.document.uri.toString() === SqlPreviewContentProvider.URI.toString()) {
         return;
       }

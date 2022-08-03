@@ -108,7 +108,7 @@ export function getMainEditorText(): string {
 }
 
 export async function showPreview(): Promise<void> {
-  await commands.executeCommand('editor.showQueryPreview');
+  await commands.executeCommand('dbtWizard.showQueryPreview');
 }
 
 export async function closeAllEditors(): Promise<void> {
@@ -116,7 +116,7 @@ export async function closeAllEditors(): Promise<void> {
 }
 
 export async function compileDocument(): Promise<void> {
-  await commands.executeCommand('dbt.compile');
+  await commands.executeCommand('dbtWizard.compile');
 }
 
 export function getPreviewText(): string {

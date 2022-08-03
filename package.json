@@ -63,12 +63,12 @@
     },
     "commands": [
       {
-        "command": "editor.showQueryPreview",
+        "command": "dbtWizard.showQueryPreview",
         "title": "Show query preview",
         "icon": "$(book)"
       },
       {
-        "command": "dbt.compile",
+        "command": "dbtWizard.compile",
         "title": "dbt compile"
       },
       {
@@ -79,18 +79,18 @@
     "menus": {
       "editor/title": [
         {
-          "command": "editor.showQueryPreview",
+          "command": "dbtWizard.showQueryPreview",
           "group": "navigation",
           "when": "editorLangId =~ /^sql$|^jinja-sql$|^sql-bigquery$/ && !editorReadonly"
         }
       ],
       "dbt": [
         {
-          "command": "dbt.compile",
+          "command": "dbtWizard.compile",
           "group": "1_common"
         },
         {
-          "command": "editor.showQueryPreview",
+          "command": "dbtWizard.showQueryPreview",
           "group": "1_common"
         }
       ],
