@@ -236,8 +236,7 @@ export class DbtTextDocument {
     this.rawDocDiagnostics = diagnostics;
     this.compiledDocDiagnostics = diagnostics;
 
-    this.notificationSender.sendUpdateQueryPreview(this.rawDocument.uri, this.compiledDocument.getText());
-
+    this.sendUpdateQueryPreview();
     this.sendDiagnostics();
   }
 
@@ -264,7 +263,7 @@ export class DbtTextDocument {
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
     if (this.dbtDestinationContext.contextInitialized) {
       await this.updateDiagnostics(compiledSql);
-      this.notificationSender.sendUpdateQueryPreview(this.rawDocument.uri, this.compiledDocument.getText());
+      this.sendUpdateQueryPreview();
     } else {
       this.requireDiagnosticsUpdate = true;
     }
@@ -278,7 +277,7 @@ export class DbtTextDocument {
     if (this.requireDiagnosticsUpdate && this.dbtContext.dbtReady) {
       this.requireDiagnosticsUpdate = false;
       await this.updateDiagnostics();
-      this.notificationSender.sendUpdateQueryPreview(this.rawDocument.uri, this.compiledDocument.getText());
+      this.sendUpdateQueryPreview();
     }
   }
 
@@ -318,13 +317,12 @@ export class DbtTextDocument {
     this.sendDiagnostics();
   }
 
+  sendUpdateQueryPreview(): void {
+    this.notificationSender.sendUpdateQueryPreview(this.rawDocument.uri, this.compiledDocument.getText());
+  }
+
   sendDiagnostics(): void {
-    this.connection
-      .sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: this.rawDocDiagnostics })
-      .catch(e => console.log(`Failed to send diagnostics: ${e instanceof Error ? e.message : String(e)}`));
-    this.connection
-      .sendNotification('custom/updateQueryPreviewDiagnostics', { uri: this.rawDocument.uri, diagnostics: this.compiledDocDiagnostics })
-      .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
+    this.notificationSender.sendDiagnostics(this.rawDocument.uri, this.rawDocDiagnostics, this.compiledDocDiagnostics);
   }
 
   onFinishAllCompilationTasks(): void {
