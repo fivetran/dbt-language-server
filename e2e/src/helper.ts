@@ -1,5 +1,5 @@
 import { spawnSync, SpawnSyncReturns } from 'child_process';
-import clipboard from 'clipboardy';
+import * as clipboard from 'clipboardy';
 import * as fs from 'fs';
 import { WatchEventType, writeFileSync } from 'fs';
 import * as path from 'path';
