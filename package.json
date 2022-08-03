@@ -70,6 +70,10 @@
       {
         "command": "dbt.compile",
         "title": "dbt compile"
+      },
+      {
+        "command": "dbtWizard.installLatestDbt",
+        "title": "Install Latest dbt"
       }
     ],
     "menus": {

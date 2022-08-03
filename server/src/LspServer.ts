@@ -47,6 +47,7 @@ import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
 import { DbtProfileCreator, DbtProfileError, DbtProfileInfo, DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
+import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
 import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
 import { Dbt, DbtMode } from './dbt_execution/Dbt';
 import { DbtCli } from './dbt_execution/DbtCli';
@@ -208,6 +209,7 @@ export class LspServer {
 
   initializeNotifications(): void {
     this.connection.onNotification('custom/dbtCompile', this.onDbtCompile.bind(this));
+    this.connection.onNotification('dbtWizard/installLatestDbt', this.installLatestDbt.bind(this));
   }
 
   async onInitialized(): Promise<void> {
@@ -310,6 +312,23 @@ export class LspServer {
 
   onDbtCompile(uri: string): void {
     this.openedDocuments.get(uri)?.forceRecompile();
+  }
+
+  async installLatestDbt(): Promise<void> {
+    const pythonPath = this.featureFinder?.getPythonPath();
+    if (pythonPath) {
+      const sendInstallLatestDbtLog = (data: string): void => {
+        this.connection
+          .sendNotification('dbtWizard/installLatestDbtLog', data)
+          .catch(e => console.log(`Failed to send installLatestDbtLog notification: ${e instanceof Error ? e.message : String(e)}`));
+      };
+
+      const installResult = await DbtUtilitiesInstaller.installDbt(pythonPath, 'bigquery', sendInstallLatestDbtLog, sendInstallLatestDbtLog);
+
+      if (installResult.isOk()) {
+        // update status, restart extension?
+      }
+    }
   }
 
   onWillSaveTextDocument(params: WillSaveTextDocumentParams): void {

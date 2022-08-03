@@ -1,18 +1,7 @@
 import * as fs from 'fs';
-import {
-  commands,
-  DiagnosticCollection,
-  ExtensionContext,
-  languages,
-  OutputChannel,
-  TextDocument,
-  TextEditor,
-  Uri,
-  ViewColumn,
-  window,
-  workspace,
-} from 'vscode';
+import { commands, DiagnosticCollection, ExtensionContext, languages, TextDocument, TextEditor, Uri, ViewColumn, window, workspace } from 'vscode';
 import { DbtLanguageClient } from './DbtLanguageClient';
+import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 import { StatusHandler } from './status/StatusHandler';
@@ -33,7 +22,7 @@ export class ExtensionClient {
   static readonly DEFAULT_PACKAGES_PATHS = ['dbt_packages', 'dbt_modules'];
 
   serverAbsolutePath: string;
-  outputChannel: OutputChannel;
+  outputChannelProvider = new OutputChannelProvider();
   previewContentProvider = new SqlPreviewContentProvider();
   progressHandler = new ProgressHandler();
   statusHandler = new StatusHandler();
@@ -43,7 +32,6 @@ export class ExtensionClient {
 
   constructor(private context: ExtensionContext) {
     this.serverAbsolutePath = this.context.asAbsolutePath(path.join('server', 'out', 'server.js'));
-    this.outputChannel = window.createOutputChannel('dbt Wizard');
   }
 
   public onActivate(): void {
@@ -96,7 +84,7 @@ export class ExtensionClient {
   parseVersion(): void {
     const extensionPath = path.join(this.context.extensionPath, 'package.json');
     this.packageJson = JSON.parse(fs.readFileSync(extensionPath, 'utf8')) as PackageJson;
-    this.outputChannel.appendLine(`dbt Wizard version: ${this.packageJson.version}`);
+    this.outputChannelProvider.getMainLogChannel().appendLine(`dbt Wizard version: ${this.packageJson.version}`);
   }
 
   registerCommands(): void {
@@ -123,6 +111,11 @@ export class ExtensionClient {
         value: 1,
       });
       await commands.executeCommand('editor.action.triggerParameterHints');
+    });
+
+    this.registerCommand('dbtWizard.installLatestDbt', () => {
+      const [client] = this.clients.values();
+      client.sendNotification('dbtWizard/installLatestDbt');
     });
   }
 
@@ -201,7 +194,7 @@ export class ExtensionClient {
     if (!this.clients.has(projectUri.toString())) {
       const client = new DbtLanguageClient(
         6009 + this.clients.size,
-        this.outputChannel,
+        this.outputChannelProvider,
         this.serverAbsolutePath,
         projectUri,
         this.previewContentProvider,

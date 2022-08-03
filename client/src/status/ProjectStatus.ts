@@ -73,13 +73,14 @@ export class ProjectStatus {
   }
 
   private updateDbtStatusItemData(status: StatusNotification): void {
-    if (status.dbtStatus.versionInfo && status.dbtStatus.versionInfo.installedVersion && status.dbtStatus.versionInfo.latestVersion) {
+    if (status.dbtStatus.versionInfo?.installedVersion && status.dbtStatus.versionInfo.latestVersion) {
       const compareResult = compareVersions(status.dbtStatus.versionInfo.installedVersion, status.dbtStatus.versionInfo.latestVersion);
       if (compareResult === 0) {
         this.dbtData = {
           severity: LanguageStatusSeverity.Information,
           text: `dbt ${getStringVersion(status.dbtStatus.versionInfo.installedVersion)}`,
           detail: `latest version installed`,
+          command: undefined,
         };
         return;
       }
@@ -87,8 +88,7 @@ export class ProjectStatus {
         severity: LanguageStatusSeverity.Warning,
         text: `dbt ${getStringVersion(status.dbtStatus.versionInfo.installedVersion)}`,
         detail: `installed version. Latest version: ${getStringVersion(status.dbtStatus.versionInfo.latestVersion)}`,
-        command: { command: 'dbtWizard.installLatestDbt', title: 'Install Latest Version' },
-        // command: { command: 'python.setInterpreter', title: 'Install Latest Version' },
+        command: { command: 'dbtWizard.installLatestDbt', title: 'Update To Latest Version' },
       };
       return;
     }
@@ -98,7 +98,6 @@ export class ProjectStatus {
       text: 'dbt',
       detail: 'not found',
       command: { command: 'dbtWizard.installLatestDbt', title: 'Install Latest Version' },
-      // command: { command: 'python.setInterpreter', title: 'Install Latest Version' },
     };
   }
 }

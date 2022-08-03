@@ -1,7 +1,8 @@
 import { CustomInitParams, DbtCompilerType, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
-import { Diagnostic, OutputChannel, RelativePattern, Uri, workspace, WorkspaceFolder } from 'vscode';
+import { Diagnostic, RelativePattern, Uri, workspace, WorkspaceFolder } from 'vscode';
 import { Disposable, LanguageClient, LanguageClientOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { SUPPORTED_LANG_IDS } from './ExtensionClient';
+import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';
 import { PythonExtension } from './python/PythonExtension';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
@@ -15,7 +16,7 @@ export class DbtLanguageClient implements Disposable {
 
   constructor(
     port: number,
-    outputChannel: OutputChannel,
+    outputChannelProvider: OutputChannelProvider,
     module: string,
     dbtProjectUri: Uri,
     private previewContentProvider: SqlPreviewContentProvider,
@@ -38,7 +39,7 @@ export class DbtLanguageClient implements Disposable {
           workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/packages.yml'), undefined, undefined, true),
         ],
       },
-      outputChannel,
+      outputChannel: outputChannelProvider.getMainLogChannel(),
       workspaceFolder: { uri: dbtProjectUri, name: dbtProjectUri.path, index: port },
     };
 
@@ -54,6 +55,11 @@ export class DbtLanguageClient implements Disposable {
       }),
       this.client.onNotification('dbtWizard/status', (statusNotification: StatusNotification) => {
         this.statusHandler.onStatusChanged(statusNotification, this.workspaceFolder?.uri.toString());
+      }),
+      this.client.onNotification('dbtWizard/installLatestDbtLog', (data: string) => {
+        const channel = outputChannelProvider.getInstallLatestDbtChannel();
+        channel.show();
+        channel.append(data);
       }),
 
       this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),
@@ -83,7 +89,7 @@ export class DbtLanguageClient implements Disposable {
     this.client.clientOptions.initializationOptions = customInitParams;
   }
 
-  sendNotification(method: string, params: unknown): void {
+  sendNotification(method: string, params?: unknown): void {
     this.client
       .sendNotification(method, params)
       .catch(e => console.log(`Error while sending notification: ${e instanceof Error ? e.message : String(e)}`));
