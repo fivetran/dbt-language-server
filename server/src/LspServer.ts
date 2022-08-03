@@ -228,10 +228,12 @@ export class LspServer {
       return this.dbtDestinationContext;
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises, promise/catch-or-return, promise/always-return
-    this.dbtRepository.manifestParsedDeferred.promise.then(() => {
-      LspServerEventReporter.logLanguageServerEvent(this.connection, DebugEvent.LANGUAGE_SERVER_READY);
-    });
+    this.dbtRepository.manifestParsedDeferred.promise
+      // eslint-disable-next-line promise/always-return
+      .then(() => {
+        LspServerEventReporter.logLanguageServerEvent(this.connection, DebugEvent.LANGUAGE_SERVER_READY);
+      })
+      .catch(e => console.log(`Manifest was not parsed: ${e instanceof Error ? e.message : String(e)}`));
 
     await Promise.allSettled([prepareDbt, prepareDestination]);
     const initTime = performance.now() - this.initStart;
