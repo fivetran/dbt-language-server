@@ -391,9 +391,7 @@ export class LspServer {
 
   async isLanguageServerReady(): Promise<boolean> {
     try {
-      if (!this.dbtRepository.manifestParsed) {
-        await this.dbtRepository.manifestParsedDeferred.promise;
-      }
+      await this.dbtRepository.manifestParsedDeferred.promise;
       return true;
     } catch (e) {
       return false;
