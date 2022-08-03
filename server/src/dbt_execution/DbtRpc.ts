@@ -73,9 +73,8 @@ export class DbtRpc extends Dbt {
   }
 
   async doInitialCompile(): Promise<void> {
-    let compileResponse: CompileResponse | undefined;
+    let compileResponse: CompileResponse | undefined = undefined;
     try {
-      // eslint-disable-next-line prefer-const
       compileResponse = await this.dbtRpcClient.compile();
     } catch (e) {
       console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
