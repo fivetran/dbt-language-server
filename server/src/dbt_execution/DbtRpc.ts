@@ -65,7 +65,7 @@ export class DbtRpc extends Dbt {
 
       // We need to wait for initial compile to be finished.
       // Compilation of some model with '--select' key may
-      //  not compile models from which compiled one is dependant.
+      // not compile models from which compiled one is dependant.
       await this.doInitialCompile();
     }
   }
