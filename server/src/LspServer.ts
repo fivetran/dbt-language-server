@@ -221,11 +221,7 @@ export class LspServer {
     );
     const dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
 
-    const prepareDbt = this.dbtContext.dbt?.prepare(dbtProfileType).then(() => {
-      this.dbtContext.dbtReady = true;
-      this.dbtContext.onDbtReadyEmitter.fire();
-      return this.dbtContext;
-    });
+    const prepareDbt = this.dbtContext.prepare(dbtProfileType);
     const prepareDestination = this.prepareDestination(profileResult).then(() => {
       this.dbtDestinationContext.contextInitialized = true;
       this.dbtDestinationContext.onContextInitializedEmitter.fire();
