@@ -44,7 +44,6 @@ import { FileOperationFilter } from 'vscode-languageserver-protocol/lib/common/p
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
 import { DbtContext } from './DbtContext';
-import { DbtDestinationContext } from './DbtDestinationContext';
 import { DbtProfileCreator, DbtProfileError, DbtProfileInfo, DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
@@ -53,6 +52,7 @@ import { Dbt, DbtMode } from './dbt_execution/Dbt';
 import { DbtCli } from './dbt_execution/DbtCli';
 import { DbtRpc } from './dbt_execution/DbtRpc';
 import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
+import { DestinationState } from './DestinationState';
 import { DbtDocumentKind } from './document/DbtDocumentKind';
 import { DbtDocumentKindResolver } from './document/DbtDocumentKindResolver';
 import { DbtTextDocument } from './document/DbtTextDocument';
@@ -90,7 +90,7 @@ export class LspServer {
   initStart = performance.now();
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
 
-  dbtDestinationContext = new DbtDestinationContext();
+  destinationState = new DestinationState();
   dbtContext = new DbtContext();
 
   openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
@@ -224,9 +224,9 @@ export class LspServer {
 
     const prepareDbt = this.dbtContext.prepare(dbtProfileType);
     const prepareDestination = this.prepareDestination(profileResult).then(() => {
-      this.dbtDestinationContext.contextInitialized = true;
-      this.dbtDestinationContext.onContextInitializedEmitter.fire();
-      return this.dbtDestinationContext;
+      this.destinationState.contextInitialized = true;
+      this.destinationState.onContextInitializedEmitter.fire();
+      return this.destinationState;
     });
 
     this.dbtRepository.manifestParsedDeferred.promise
@@ -270,7 +270,7 @@ export class LspServer {
         this.dbtRepository,
       );
       if (bigQueryContextInfo.isOk()) {
-        this.dbtDestinationContext.bigQueryContext = bigQueryContextInfo.value;
+        this.destinationState.bigQueryContext = bigQueryContextInfo.value;
       } else {
         this.showCreateContextWarning(bigQueryContextInfo.error);
       }
@@ -366,7 +366,7 @@ export class LspServer {
         this.onGlobalDbtErrorFixedEmitter,
         this.dbtRepository,
         this.dbtContext,
-        this.dbtDestinationContext,
+        this.destinationState,
       );
       this.openedDocuments.set(uri, document);
 
@@ -479,7 +479,7 @@ export class LspServer {
   dispose(): void {
     console.log('Dispose start...');
     this.dbtContext.dbt?.dispose();
-    this.dbtDestinationContext.bigQueryContext?.dispose();
+    this.destinationState.bigQueryContext?.dispose();
     this.onGlobalDbtErrorFixedEmitter.dispose();
     console.log('Dispose end.');
   }

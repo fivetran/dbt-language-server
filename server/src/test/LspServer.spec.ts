@@ -5,9 +5,9 @@ import { Emitter, TextDocumentIdentifier, _Connection } from 'vscode-languageser
 import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
 import { DbtContext } from '../DbtContext';
-import { DbtDestinationContext } from '../DbtDestinationContext';
 import { DbtRepository } from '../DbtRepository';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
+import { DestinationState } from '../DestinationState';
 import { DbtDocumentKind } from '../document/DbtDocumentKind';
 import { DbtTextDocument } from '../document/DbtTextDocument';
 import { JinjaParser } from '../JinjaParser';
@@ -33,7 +33,7 @@ describe('LspServer', () => {
   let dbtRepository: DbtRepository;
   let mockBigQueryContext: BigQueryContext;
 
-  const dbtDestinationContext = new DbtDestinationContext();
+  const destinationState = new DestinationState();
 
   beforeEach(() => {
     lspServer = new LspServer(mock<_Connection>());
@@ -47,7 +47,7 @@ describe('LspServer', () => {
 
     dbtRepository = mock(DbtRepository);
     mockBigQueryContext = mock(BigQueryContext);
-    dbtDestinationContext.bigQueryContext = mockBigQueryContext;
+    destinationState.bigQueryContext = mockBigQueryContext;
 
     document = new DbtTextDocument(
       { uri: OPENED_URI, languageId: SQL_LANGUAGE_ID, version: 1, text: TEXT },
@@ -63,7 +63,7 @@ describe('LspServer', () => {
       new Emitter<void>(),
       dbtRepository,
       new DbtContext(),
-      dbtDestinationContext,
+      destinationState,
     );
     lspServer.openedDocuments.set(OPENED_URI, document);
 

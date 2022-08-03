@@ -5,10 +5,10 @@ import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentSaveReason } from 'vscode-languageserver';
 import { DbtCompletionProvider } from '../../completion/DbtCompletionProvider';
 import { DbtContext } from '../../DbtContext';
-import { DbtDestinationContext } from '../../DbtDestinationContext';
 import { DbtRepository } from '../../DbtRepository';
 import { Dbt } from '../../dbt_execution/Dbt';
 import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
+import { DestinationState } from '../../DestinationState';
 import { DbtDocumentKind } from '../../document/DbtDocumentKind';
 import { DbtTextDocument } from '../../document/DbtTextDocument';
 import { JinjaParser } from '../../JinjaParser';
@@ -62,7 +62,7 @@ describe('DbtTextDocument', () => {
       onGlobalDbtErrorFixedEmitter,
       new DbtRepository(),
       dbtContext,
-      new DbtDestinationContext(),
+      new DestinationState(),
     );
   });
 

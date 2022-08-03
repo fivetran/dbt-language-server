@@ -22,7 +22,6 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
 import { DbtContext } from '../DbtContext';
-import { DbtDestinationContext } from '../DbtDestinationContext';
 import { DbtRepository } from '../DbtRepository';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
@@ -36,6 +35,7 @@ import { SqlCompletionProvider } from '../SqlCompletionProvider';
 import { DiffUtils } from '../utils/DiffUtils';
 import path = require('path');
 
+import { DestinationState } from '../DestinationState';
 import { NotificationSender } from '../NotificationSender';
 import { getTextRangeBeforeBracket } from '../utils/TextUtils';
 import {
@@ -85,7 +85,7 @@ export class DbtTextDocument {
     private onGlobalDbtErrorFixedEmitter: Emitter<void>,
     private dbtRepository: DbtRepository,
     private dbtContext: DbtContext,
-    private dbtDestinationContext: DbtDestinationContext,
+    private destinationState: DestinationState,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -97,8 +97,8 @@ export class DbtTextDocument {
     this.modelCompiler.onFinishAllCompilationJobs(this.onFinishAllCompilationTasks.bind(this));
     this.onGlobalDbtErrorFixedEmitter.event(this.onDbtErrorFixed.bind(this));
 
-    if (!this.dbtDestinationContext.contextInitialized) {
-      this.dbtDestinationContext.onContextInitializedEmitter.event(this.onContextInitialized.bind(this));
+    if (!this.destinationState.contextInitialized) {
+      this.destinationState.onContextInitializedEmitter.event(this.onContextInitialized.bind(this));
     }
     if (!this.dbtContext.dbtReady) {
       this.dbtContext.onDbtReadyEmitter.event(this.onDbtReady.bind(this));
@@ -259,7 +259,7 @@ export class DbtTextDocument {
     this.fixGlobalDbtError();
 
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
-    if (this.dbtDestinationContext.contextInitialized) {
+    if (this.destinationState.contextInitialized) {
       await this.updateDiagnostics(compiledSql);
       this.sendUpdateQueryPreview();
     } else {
@@ -288,11 +288,11 @@ export class DbtTextDocument {
     let rawDocDiagnostics: Diagnostic[] = [];
     let compiledDocDiagnostics: Diagnostic[] = [];
 
-    if (this.dbtDestinationContext.bigQueryContext && this.dbtDocumentKind === DbtDocumentKind.MODEL) {
+    if (this.destinationState.bigQueryContext && this.dbtDocumentKind === DbtDocumentKind.MODEL) {
       const originalFilePath = this.rawDocument.uri.substring(
         this.rawDocument.uri.lastIndexOf(this.workspaceFolder) + this.workspaceFolder.length + 1,
       );
-      const astResult = await this.dbtDestinationContext.bigQueryContext.analyzeTable(originalFilePath, compiledSql);
+      const astResult = await this.destinationState.bigQueryContext.analyzeTable(originalFilePath, compiledSql);
       if (astResult.isOk()) {
         console.log(`AST was successfully received for ${originalFilePath}`);
         this.ast = astResult.value;
@@ -361,7 +361,7 @@ export class DbtTextDocument {
   }
 
   async getSqlCompletions(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
-    if (!this.dbtDestinationContext.contextInitialized || !this.dbtDestinationContext.bigQueryContext) {
+    if (!this.destinationState.contextInitialized || !this.destinationState.bigQueryContext) {
       return undefined;
     }
 
@@ -380,7 +380,7 @@ export class DbtTextDocument {
     return this.sqlCompletionProvider.onSqlCompletion(
       text,
       completionParams,
-      this.dbtDestinationContext.bigQueryContext.destinationDefinition,
+      this.destinationState.bigQueryContext.destinationDefinition,
       completionInfo,
     );
   }
