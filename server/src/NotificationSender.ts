@@ -31,4 +31,10 @@ export class NotificationSender {
       .sendNotification('custom/updateQueryPreviewDiagnostics', { uri, diagnostics: compiledDiagnostics })
       .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
   }
+
+  clearDiagnostics(uri: string): void {
+    this.connection
+      .sendDiagnostics({ uri, diagnostics: [] })
+      .catch(e => console.log(`Failed to send diagnostics while closing document: ${e instanceof Error ? e.message : String(e)}`));
+  }
 }

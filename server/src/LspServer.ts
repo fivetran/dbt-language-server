@@ -356,7 +356,6 @@ export class LspServer {
         params.textDocument,
         dbtDocumentKind,
         this.workspaceFolder,
-        this.connection,
         this.notificationSender,
         this.progressReporter,
         this.sqlCompletionProvider,

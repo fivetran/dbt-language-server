@@ -53,7 +53,6 @@ describe('LspServer', () => {
       { uri: OPENED_URI, languageId: SQL_LANGUAGE_ID, version: 1, text: TEXT },
       DbtDocumentKind.MODEL,
       '',
-      mock<_Connection>(),
       mock(NotificationSender),
       mock(ProgressReporter),
       mock(SqlCompletionProvider),

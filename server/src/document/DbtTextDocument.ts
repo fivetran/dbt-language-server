@@ -18,7 +18,6 @@ import {
   TextDocumentItem,
   TextDocumentSaveReason,
   VersionedTextDocumentIdentifier,
-  _Connection,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
@@ -76,7 +75,6 @@ export class DbtTextDocument {
     doc: TextDocumentItem,
     private dbtDocumentKind: DbtDocumentKind,
     private workspaceFolder: string,
-    private connection: _Connection,
     private notificationSender: NotificationSender,
     private progressReporter: ProgressReporter,
     private sqlCompletionProvider: SqlCompletionProvider,
@@ -403,12 +401,6 @@ export class DbtTextDocument {
     return undefined;
   }
 
-  clearDiagnostics(): void {
-    this.connection
-      .sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: [] })
-      .catch(e => console.log(`Failed to send diagnostics while closing document: ${e instanceof Error ? e.message : String(e)}`));
-  }
-
   dispose(): void {
     const { uri } = this.rawDocument;
     const fileName = uri.substring(uri.lastIndexOf(path.sep));
@@ -417,6 +409,6 @@ export class DbtTextDocument {
       this.fixGlobalDbtError();
     }
 
-    this.clearDiagnostics();
+    this.notificationSender.clearDiagnostics(this.rawDocument.uri);
   }
 }
