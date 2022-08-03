@@ -16,4 +16,10 @@ export class NotificationSender {
       .sendNotification<TelemetryEvent>(TelemetryEventNotification.type, { name, properties })
       .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
   }
+
+  sendUpdateQueryPreview(uri: string, previewText: string): void {
+    this.connection
+      .sendNotification('custom/updateQueryPreview', { uri, previewText })
+      .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
+  }
 }

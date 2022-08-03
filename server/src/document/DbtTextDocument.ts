@@ -37,6 +37,7 @@ import { SqlCompletionProvider } from '../SqlCompletionProvider';
 import { DiffUtils } from '../utils/DiffUtils';
 import path = require('path');
 
+import { NotificationSender } from '../NotificationSender';
 import { getTextRangeBeforeBracket } from '../utils/TextUtils';
 import {
   areRangesEqual,
@@ -76,6 +77,7 @@ export class DbtTextDocument {
     private dbtDocumentKind: DbtDocumentKind,
     private workspaceFolder: string,
     private connection: _Connection,
+    private notificationSender: NotificationSender,
     private progressReporter: ProgressReporter,
     private sqlCompletionProvider: SqlCompletionProvider,
     private dbtCompletionProvider: DbtCompletionProvider,
@@ -234,7 +236,7 @@ export class DbtTextDocument {
     this.rawDocDiagnostics = diagnostics;
     this.compiledDocDiagnostics = diagnostics;
 
-    this.sendUpdateQueryPreview();
+    this.notificationSender.sendUpdateQueryPreview(this.rawDocument.uri, this.compiledDocument.getText());
 
     this.sendDiagnostics();
   }
@@ -262,7 +264,7 @@ export class DbtTextDocument {
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
     if (this.dbtDestinationContext.contextInitialized) {
       await this.updateDiagnostics(compiledSql);
-      this.sendUpdateQueryPreview();
+      this.notificationSender.sendUpdateQueryPreview(this.rawDocument.uri, this.compiledDocument.getText());
     } else {
       this.requireDiagnosticsUpdate = true;
     }
@@ -276,7 +278,7 @@ export class DbtTextDocument {
     if (this.requireDiagnosticsUpdate && this.dbtContext.dbtReady) {
       this.requireDiagnosticsUpdate = false;
       await this.updateDiagnostics();
-      this.sendUpdateQueryPreview();
+      this.notificationSender.sendUpdateQueryPreview(this.rawDocument.uri, this.compiledDocument.getText());
     }
   }
 
@@ -309,12 +311,6 @@ export class DbtTextDocument {
     }
 
     return [rawDocDiagnostics, compiledDocDiagnostics];
-  }
-
-  sendUpdateQueryPreview(): void {
-    this.connection
-      .sendNotification('custom/updateQueryPreview', { uri: this.rawDocument.uri, previewText: this.compiledDocument.getText() })
-      .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   fixInformationDiagnostic(range: Range): void {

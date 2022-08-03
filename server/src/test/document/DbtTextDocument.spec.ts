@@ -13,6 +13,7 @@ import { DbtDocumentKind } from '../../document/DbtDocumentKind';
 import { DbtTextDocument } from '../../document/DbtTextDocument';
 import { JinjaParser } from '../../JinjaParser';
 import { ModelCompiler } from '../../ModelCompiler';
+import { NotificationSender } from '../../NotificationSender';
 import { ProgressReporter } from '../../ProgressReporter';
 import { SqlCompletionProvider } from '../../SqlCompletionProvider';
 import { sleep } from '../helper';
@@ -56,6 +57,7 @@ describe('DbtTextDocument', () => {
       DbtDocumentKind.MODEL,
       '',
       instance(mockConnection),
+      mock(NotificationSender),
       mock(ProgressReporter),
       mock(SqlCompletionProvider),
       mock(DbtCompletionProvider),

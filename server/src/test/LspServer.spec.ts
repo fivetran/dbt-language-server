@@ -13,6 +13,7 @@ import { DbtTextDocument } from '../document/DbtTextDocument';
 import { JinjaParser } from '../JinjaParser';
 import { LspServer } from '../LspServer';
 import { ModelCompiler } from '../ModelCompiler';
+import { NotificationSender } from '../NotificationSender';
 import { ProgressReporter } from '../ProgressReporter';
 import { SqlCompletionProvider } from '../SqlCompletionProvider';
 import { sleep } from './helper';
@@ -53,6 +54,7 @@ describe('LspServer', () => {
       DbtDocumentKind.MODEL,
       '',
       mock<_Connection>(),
+      mock(NotificationSender),
       mock(ProgressReporter),
       mock(SqlCompletionProvider),
       mock(DbtCompletionProvider),
