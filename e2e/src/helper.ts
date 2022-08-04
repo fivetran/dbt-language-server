@@ -9,9 +9,7 @@ import {
   CompletionItem,
   CompletionList,
   DefinitionLink,
-  DiagnosticChangeEvent,
   extensions,
-  languages,
   Position,
   Range,
   Selection,
@@ -43,7 +41,6 @@ export const MIN_RANGE = new Range(0, 0, 0, 0);
 export const LS_MORE_THAN_OPEN_DEBOUNCE = 1200;
 
 workspace.onDidChangeTextDocument(onDidChangeTextDocument);
-languages.onDidChangeDiagnostics(onDidChangeDiagnostics);
 
 window.onDidChangeActiveTextEditor(e => {
   console.log(`Active document changed: ${e?.document.uri.toString() ?? 'undefined'}`);
@@ -55,39 +52,11 @@ let documentPromiseResolve: voidFunc | undefined;
 let extensionApi: ExtensionApi | undefined = undefined;
 const languageServerReady = new Map<string, DeferredResult<void>>();
 
-const changeDiagnosticsResolve = new Map<string, () => void>();
-
 let tempModelIndex = 0;
-
-function onDidChangeDiagnostics(event: DiagnosticChangeEvent): void {
-  event.uris.forEach((uri: Uri) => {
-    const resolve = changeDiagnosticsResolve.get(uri.toString());
-    if (resolve) {
-      resolve();
-    }
-  });
-}
-
-export function waitForDiagnosticsChange(uri: Uri): Promise<void> {
-  return new Promise<void>(resolve => {
-    changeDiagnosticsResolve.set(uri.toString(), resolve);
-  });
-}
 
 export async function openTextDocument(docUri: Uri): Promise<void> {
   await workspace.openTextDocument(docUri);
   editor = await window.showTextDocument(docUri);
-}
-
-export async function openAndWaitDiagnostics(docUri: Uri): Promise<void> {
-  const existingEditor = findExistingEditor(docUri);
-  if (existingEditor && existingEditor.document.getText() === window.activeTextEditor?.document.getText()) {
-    return;
-  }
-
-  const waitForDiagnostics = waitForDiagnosticsChange(docUri);
-  await openTextDocument(docUri);
-  await waitForDiagnostics;
 }
 
 export async function activateAndWait(docUri: Uri): Promise<void> {
