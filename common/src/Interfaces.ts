@@ -63,3 +63,5 @@ export function compareVersions(v1: Version, v2: Version): number {
 function getVersionHash(version: Version): number {
   return version.major * 100000 + version.minor * 1000 + version.patch;
 }
+
+export const INSTALL_LATEST_DBT_FINISHED = '__InstallLatestDbtFinished';

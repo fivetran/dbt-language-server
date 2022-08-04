@@ -1,5 +1,13 @@
 import { randomUUID } from 'crypto';
-import { CustomInitParams, DbtCompilerType, deferred, getStringVersion, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
+import {
+  CustomInitParams,
+  DbtCompilerType,
+  deferred,
+  getStringVersion,
+  INSTALL_LATEST_DBT_FINISHED,
+  StatusNotification,
+  TelemetryEvent,
+} from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
 import { homedir } from 'os';
 import { performance } from 'perf_hooks';
@@ -326,7 +334,7 @@ export class LspServer {
       const installResult = await DbtUtilitiesInstaller.installDbt(pythonPath, 'bigquery', sendInstallLatestDbtLog, sendInstallLatestDbtLog);
 
       if (installResult.isOk()) {
-        // update status, restart extension?
+        sendInstallLatestDbtLog(INSTALL_LATEST_DBT_FINISHED);
       }
     }
   }

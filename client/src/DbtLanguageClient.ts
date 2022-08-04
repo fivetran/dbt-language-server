@@ -1,5 +1,5 @@
-import { CustomInitParams, DbtCompilerType, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
-import { Diagnostic, RelativePattern, Uri, workspace, WorkspaceFolder } from 'vscode';
+import { CustomInitParams, DbtCompilerType, INSTALL_LATEST_DBT_FINISHED, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
+import { commands, Diagnostic, RelativePattern, Uri, workspace, WorkspaceFolder } from 'vscode';
 import { Disposable, LanguageClient, LanguageClientOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { SUPPORTED_LANG_IDS } from './ExtensionClient';
 import { OutputChannelProvider } from './OutputChannelProvider';
@@ -56,7 +56,12 @@ export class DbtLanguageClient implements Disposable {
       this.client.onNotification('dbtWizard/status', (statusNotification: StatusNotification) => {
         this.statusHandler.onStatusChanged(statusNotification, this.workspaceFolder?.uri.toString());
       }),
-      this.client.onNotification('dbtWizard/installLatestDbtLog', (data: string) => {
+      this.client.onNotification('dbtWizard/installLatestDbtLog', async (data: string) => {
+        if (data === INSTALL_LATEST_DBT_FINISHED) {
+          await commands.executeCommand('dbtWizard.restart');
+          return;
+        }
+
         const channel = outputChannelProvider.getInstallLatestDbtChannel();
         channel.show();
         channel.append(data);
