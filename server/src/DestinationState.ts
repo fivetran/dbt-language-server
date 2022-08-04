@@ -35,4 +35,8 @@ export class DestinationState {
     this.contextInitialized = true;
     this.onContextInitializedEmitter.fire();
   }
+
+  dispose(): void {
+    this.bigQueryContext?.dispose();
+  }
 }

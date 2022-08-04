@@ -466,8 +466,8 @@ export class LspServer {
 
   dispose(): void {
     console.log('Dispose start...');
-    this.dbtContext.dbt?.dispose();
-    this.destinationState.bigQueryContext?.dispose();
+    this.dbtContext.dispose();
+    this.destinationState.dispose();
     this.onGlobalDbtErrorFixedEmitter.dispose();
     console.log('Dispose end.');
   }

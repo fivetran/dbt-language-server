@@ -15,4 +15,8 @@ export class DbtContext {
   refresh(): void {
     this.dbt?.refresh();
   }
+
+  dispose(): void {
+    this.dbt?.dispose();
+  }
 }
