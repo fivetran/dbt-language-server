@@ -222,12 +222,16 @@ export class LspServer {
     );
     const dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
 
-    const prepareDbt = this.dbtContext.prepare(dbtProfileType);
-    const prepareDestination = this.prepareDestination(profileResult).then(() => {
+    if (profileResult.isErr()) {
+      this.showProfileCreationWarning(profileResult.error.message);
+    }
+
+    // eslint-disable-next-line promise/always-return
+    const prepareDestination = (profileResult.isErr() ? Promise.resolve() : this.prepareDestination(profileResult)).then(() => {
       this.destinationState.contextInitialized = true;
       this.destinationState.onContextInitializedEmitter.fire();
-      return this.destinationState;
     });
+    const prepareDbt = this.dbtContext.prepare(dbtProfileType);
 
     this.dbtRepository.manifestParsedDeferred.promise
       // eslint-disable-next-line promise/always-return
@@ -274,19 +278,17 @@ export class LspServer {
       } else {
         this.showCreateContextWarning(bigQueryContextInfo.error);
       }
-    } else if (profileResult.isErr()) {
-      this.showPrepareDestinationWarning(profileResult.error.message);
     }
   }
 
-  showCreateContextWarning(error: string): void {
-    const message = `Unable to initialize BigQuery. ${error}`;
+  showProfileCreationWarning(error: string): void {
+    const message = `Dbt profile was not properly configured. ${error}`;
     console.log(message);
     this.connection.window.showWarningMessage(message);
   }
 
-  showPrepareDestinationWarning(error: string): void {
-    const message = `Dbt profile was not properly configured. ${error}`;
+  showCreateContextWarning(error: string): void {
+    const message = `Unable to initialize BigQuery. ${error}`;
     console.log(message);
     this.connection.window.showWarningMessage(message);
   }
