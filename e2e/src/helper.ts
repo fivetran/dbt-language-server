@@ -413,6 +413,7 @@ export function ensureDirectoryExists(dir: string): void {
 }
 
 export function waitForLanguageServerReady(projectFolderName: string): Promise<void> {
+  console.log(`waitForLanguageServerReady '${projectFolderName}'`);
   return getLanguageServerReadyDeferred(projectFolderName).promise;
 }
 
