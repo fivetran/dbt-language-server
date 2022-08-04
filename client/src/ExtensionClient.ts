@@ -113,9 +113,12 @@ export class ExtensionClient {
       await commands.executeCommand('editor.action.triggerParameterHints');
     });
 
-    this.registerCommand('dbtWizard.installLatestDbt', () => {
-      const [client] = this.clients.values();
-      client.sendNotification('dbtWizard/installLatestDbt');
+    this.registerCommand('dbtWizard.installLatestDbt', async () => {
+      const answer = await window.showInformationMessage('Do you want to install latest dbt?', 'Yes', 'No');
+      if (answer === 'Yes') {
+        const [client] = this.clients.values();
+        client.sendNotification('dbtWizard/installLatestDbt');
+      }
     });
 
     this.registerCommand('dbtWizard.restart', () => {
