@@ -260,7 +260,7 @@ export class DbtTextDocument {
 
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
     if (this.destinationState.contextInitialized) {
-      await this.updateDiagnostics(compiledSql);
+      await this.updateDiagnostics();
       this.sendUpdateQueryPreview();
     } else {
       this.requireDiagnosticsUpdate = true;
@@ -279,8 +279,8 @@ export class DbtTextDocument {
     }
   }
 
-  async updateDiagnostics(compiledSql?: string): Promise<void> {
-    [this.rawDocDiagnostics, this.compiledDocDiagnostics] = await this.createDiagnostics(compiledSql ?? this.compiledDocument.getText());
+  async updateDiagnostics(): Promise<void> {
+    [this.rawDocDiagnostics, this.compiledDocDiagnostics] = await this.createDiagnostics(this.compiledDocument.getText());
     this.sendDiagnostics();
   }
 
