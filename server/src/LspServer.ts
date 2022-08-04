@@ -440,16 +440,16 @@ export class LspServer {
   }
 
   onDidCreateFiles(_params: CreateFilesParams): void {
-    this.dbtContext.dbt?.refresh();
+    this.dbtContext.refresh();
   }
 
   onDidRenameFiles(params: RenameFilesParams): void {
-    this.dbtContext.dbt?.refresh();
+    this.dbtContext.refresh();
     this.disposeOutdatedDocuments(params.files.map(f => f.oldUri));
   }
 
   onDidDeleteFiles(params: DeleteFilesParams): void {
-    this.dbtContext.dbt?.refresh();
+    this.dbtContext.refresh();
     this.disposeOutdatedDocuments(params.files.map(f => f.uri));
   }
 
