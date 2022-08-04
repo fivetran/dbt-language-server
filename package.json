@@ -65,15 +65,18 @@
       {
         "command": "dbtWizard.showQueryPreview",
         "title": "Show query preview",
+        "category": "dbtWizard",
         "icon": "$(book)"
       },
       {
         "command": "dbtWizard.compile",
-        "title": "dbt compile"
+        "title": "dbt compile",
+        "category": "dbtWizard"
       },
       {
         "command": "dbtWizard.installLatestDbt",
-        "title": "Install Latest dbt"
+        "title": "Install Latest dbt",
+        "category": "dbtWizard"
       }
     ],
     "menus": {
