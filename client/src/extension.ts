@@ -6,12 +6,12 @@ import EventEmitter = require('node:events');
 let extensionClient: ExtensionClient;
 
 export function activate(context: ExtensionContext): ExtensionApi {
-  const languageServerEventEmitter = new EventEmitter();
+  const manifestParsedEventEmitter = new EventEmitter();
 
-  extensionClient = new ExtensionClient(context, languageServerEventEmitter);
+  extensionClient = new ExtensionClient(context, manifestParsedEventEmitter);
   extensionClient.onActivate();
 
-  return { languageServerEventEmitter };
+  return { manifestParsedEventEmitter };
 }
 
 // This method is called when extension is deactivated

@@ -1,4 +1,4 @@
-import { CustomInitParams, DbtCompilerType, DebugEvent, TelemetryEvent } from 'dbt-language-server-common';
+import { CustomInitParams, DbtCompilerType, LS_MANIFEST_PARSED_EVENT, TelemetryEvent } from 'dbt-language-server-common';
 import { Diagnostic, Disposable, OutputChannel, RelativePattern, Uri, workspace, WorkspaceFolder } from 'vscode';
 import { LanguageClient, LanguageClientOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { SUPPORTED_LANG_IDS } from './ExtensionClient';
@@ -20,7 +20,7 @@ export class DbtLanguageClient implements Disposable {
     dbtProjectUri: Uri,
     private previewContentProvider: SqlPreviewContentProvider,
     private progressHandler: ProgressHandler,
-    private languageServerEventEmitter: EventEmitter,
+    private manifestParsedEventEmitter: EventEmitter,
   ) {
     const debugOptions = { execArgv: ['--nolazy', `--inspect=${port}`] };
     const serverOptions = {
@@ -52,8 +52,8 @@ export class DbtLanguageClient implements Disposable {
       this.client.onNotification('custom/updateQueryPreviewDiagnostics', ({ uri, diagnostics }) => {
         this.previewContentProvider.updateDiagnostics(uri as string, diagnostics as Diagnostic[]);
       }),
-      this.client.onNotification('custom/languageServerEventNotification', (event: DebugEvent) => {
-        this.languageServerEventEmitter.emit(DebugEvent[event], this.workspaceFolder?.uri.path);
+      this.client.onNotification('custom/manifestParsed', () => {
+        this.manifestParsedEventEmitter.emit(LS_MANIFEST_PARSED_EVENT, this.workspaceFolder?.uri.path);
       }),
 
       this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),

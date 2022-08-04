@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { CustomInitParams, DbtCompilerType, DebugEvent } from 'dbt-language-server-common';
+import { CustomInitParams, DbtCompilerType } from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
 import { homedir } from 'os';
 import { performance } from 'perf_hooks';
@@ -237,7 +237,7 @@ export class LspServer {
     this.dbtRepository.manifestParsedDeferred.promise
       // eslint-disable-next-line promise/always-return
       .then(() => {
-        this.notificationSender.logLanguageServerEvent(DebugEvent.LANGUAGE_SERVER_READY);
+        this.notificationSender.logLanguageServerManifestParsed();
       })
       .catch(e => console.log(`Manifest was not parsed: ${e instanceof Error ? e.message : String(e)}`));
 

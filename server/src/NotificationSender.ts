@@ -1,13 +1,13 @@
-import { DebugEvent, TelemetryEvent } from 'dbt-language-server-common';
+import { TelemetryEvent } from 'dbt-language-server-common';
 import { Diagnostic, TelemetryEventNotification, _Connection } from 'vscode-languageserver';
 
 export class NotificationSender {
   constructor(private connection: _Connection) {}
 
-  logLanguageServerEvent(event: DebugEvent): void {
+  logLanguageServerManifestParsed(): void {
     this.connection
-      .sendNotification('custom/languageServerEventNotification', event)
-      .catch(e => console.log(`Failed to send language server event notification: ${e instanceof Error ? e.message : String(e)}`));
+      .sendNotification('custom/manifestParsed')
+      .catch(e => console.log(`Failed to send language server manifest parsed notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   sendTelemetry(name: string, properties?: { [key: string]: string }): void {

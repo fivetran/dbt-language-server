@@ -1,9 +1,7 @@
 import EventEmitter = require('events');
 
 export interface ExtensionApi {
-  languageServerEventEmitter: EventEmitter;
+  manifestParsedEventEmitter: EventEmitter;
 }
 
-export enum DebugEvent {
-  LANGUAGE_SERVER_READY,
-}
+export const LS_MANIFEST_PARSED_EVENT = 'manifestParsedEvent';

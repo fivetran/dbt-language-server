@@ -1,6 +1,6 @@
 import { spawnSync, SpawnSyncReturns } from 'child_process';
 import * as clipboard from 'clipboardy';
-import { DebugEvent, deferred, DeferredResult, ExtensionApi } from 'dbt-language-server-common';
+import { deferred, DeferredResult, ExtensionApi, LS_MANIFEST_PARSED_EVENT } from 'dbt-language-server-common';
 import * as fs from 'fs';
 import { WatchEventType, writeFileSync } from 'fs';
 import * as path from 'path';
@@ -385,7 +385,7 @@ export async function initializeExtension(): Promise<void> {
   }
   extensionApi = (await ext.activate()) as ExtensionApi;
 
-  extensionApi.languageServerEventEmitter.on(DebugEvent[DebugEvent.LANGUAGE_SERVER_READY], (languageServerRootPath: string) => {
+  extensionApi.manifestParsedEventEmitter.on(LS_MANIFEST_PARSED_EVENT, (languageServerRootPath: string) => {
     console.log(`Language Server '${normalizePath(languageServerRootPath)}' ready`);
     getLanguageServerReadyDeferred(languageServerRootPath).resolve();
   });
