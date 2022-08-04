@@ -401,10 +401,13 @@ export function initializeExtensionApi(): void {
 }
 
 function getLanguageServerReadyDeferred(rootPath: string): DeferredResult<void> {
-  let lsReadyDeferred = languageServerReady.get(rootPath);
+  const normalizedPath = path.normalize(rootPath);
+
+  let lsReadyDeferred = languageServerReady.get(normalizedPath);
   if (lsReadyDeferred === undefined) {
     lsReadyDeferred = deferred<void>();
-    languageServerReady.set(rootPath, lsReadyDeferred);
+    languageServerReady.set(normalizedPath, lsReadyDeferred);
   }
+
   return lsReadyDeferred;
 }
