@@ -77,6 +77,11 @@
         "command": "dbtWizard.installLatestDbt",
         "title": "Install Latest dbt",
         "category": "dbtWizard"
+      },
+      {
+        "command": "dbtWizard.restart",
+        "title": "Restart dbtWizard",
+        "category": "dbtWizard"
       }
     ],
     "menus": {

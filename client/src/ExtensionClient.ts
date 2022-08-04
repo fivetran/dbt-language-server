@@ -117,6 +117,12 @@ export class ExtensionClient {
       const [client] = this.clients.values();
       client.sendNotification('dbtWizard/installLatestDbt');
     });
+
+    this.registerCommand('dbtWizard.restart', () => {
+      for (const client of this.clients.values()) {
+        client.restart();
+      }
+    });
   }
 
   getCommandDocument(): TextDocument | undefined {

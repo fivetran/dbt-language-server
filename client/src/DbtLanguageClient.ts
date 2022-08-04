@@ -99,6 +99,10 @@ export class DbtLanguageClient implements Disposable {
     this.client.start().catch(e => console.log(`Error while starting server: ${e instanceof Error ? e.message : String(e)}`));
   }
 
+  restart(): void {
+    this.client.restart().catch(error => this.client.error(`Restarting client failed`, error, 'force'));
+  }
+
   stop(): Promise<void> {
     return this.client.stop();
   }
