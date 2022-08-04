@@ -382,7 +382,7 @@ export function ensureDirectoryExists(dir: string): void {
 }
 
 export function waitForLanguageServerReady(projectFolderName: string): Promise<void> {
-  console.log(`waitForLanguageServerReady '${projectFolderName}'`);
+  console.log(`waitForLanguageServerReady '${path.normalize(projectFolderName)}'`);
   return getLanguageServerReadyDeferred(projectFolderName).promise;
 }
 
@@ -395,7 +395,7 @@ export function initializeExtensionApi(): void {
   }
 
   extensionApi.languageServerEventEmitter.on(DebugEvent[DebugEvent.LANGUAGE_SERVER_READY], (languageServerRootPath: string) => {
-    console.log(`Language Server '${languageServerRootPath}' ready`);
+    console.log(`Language Server '${path.normalize(languageServerRootPath)}' ready`);
     getLanguageServerReadyDeferred(languageServerRootPath).resolve();
   });
 }
