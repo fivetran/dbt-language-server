@@ -60,17 +60,9 @@ export async function openTextDocument(docUri: Uri): Promise<void> {
 }
 
 export async function activateAndWait(docUri: Uri): Promise<void> {
-  // The extensionId is `publisher.name` from package.json
-  const ext = extensions.getExtension('Fivetran.dbt-language-server');
-  if (!ext) {
-    throw new Error('Fivetran.dbt-language-server not found');
-  }
-
   const existingEditor = findExistingEditor(docUri);
   const doNotWaitChanges = existingEditor && existingEditor.document.getText() === window.activeTextEditor?.document.getText() && getPreviewEditor();
   const activateFinished = doNotWaitChanges ? Promise.resolve() : createChangePromise('preview');
-
-  await ext.activate();
 
   doc = await workspace.openTextDocument(docUri);
   editor = await window.showTextDocument(doc);
@@ -386,13 +378,12 @@ export function waitForLanguageServerReady(projectFolderName: string): Promise<v
   return getLanguageServerReadyDeferred(projectFolderName).promise;
 }
 
-export function initializeExtensionApi(): void {
-  const dbtLanguageServer = extensions.getExtension('fivetran.dbt-language-server');
-  if (dbtLanguageServer) {
-    extensionApi = dbtLanguageServer.exports as ExtensionApi;
-  } else {
-    throw new Error("Extension with id 'fivetran.dbt-language-server' not found");
+export async function initializeExtension(): Promise<void> {
+  const ext = extensions.getExtension('Fivetran.dbt-language-server');
+  if (!ext) {
+    throw new Error('Fivetran.dbt-language-server not found');
   }
+  extensionApi = (await ext.activate()) as ExtensionApi;
 
   extensionApi.languageServerEventEmitter.on(DebugEvent[DebugEvent.LANGUAGE_SERVER_READY], (languageServerRootPath: string) => {
     console.log(`Language Server '${normalizePath(languageServerRootPath)}' ready`);
