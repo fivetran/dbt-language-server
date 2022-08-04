@@ -413,5 +413,12 @@ function getLanguageServerReadyDeferred(rootPath: string): DeferredResult<void> 
 }
 
 function normalizePath(rawPath: string): string {
-  return process.platform === 'win32' ? path.normalize(rawPath.toLocaleLowerCase()) : path.normalize(rawPath);
+  return process.platform === 'win32' ? trimPath(path.normalize(rawPath)).toLocaleLowerCase() : path.normalize(rawPath);
+}
+
+function trimPath(rawPath: string): string {
+  return rawPath
+    .trim()
+    .replace(/^[\\/]+/, '')
+    .replace(/[\\/]+$/, '');
 }
