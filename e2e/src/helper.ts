@@ -382,7 +382,7 @@ export function ensureDirectoryExists(dir: string): void {
 }
 
 export function waitForLanguageServerReady(projectFolderName: string): Promise<void> {
-  console.log(`waitForLanguageServerReady '${path.normalize(projectFolderName)}'`);
+  console.log(`waitForLanguageServerReady '${normalizePath(projectFolderName)}'`);
   return getLanguageServerReadyDeferred(projectFolderName).promise;
 }
 
@@ -395,13 +395,13 @@ export function initializeExtensionApi(): void {
   }
 
   extensionApi.languageServerEventEmitter.on(DebugEvent[DebugEvent.LANGUAGE_SERVER_READY], (languageServerRootPath: string) => {
-    console.log(`Language Server '${path.normalize(languageServerRootPath)}' ready`);
+    console.log(`Language Server '${normalizePath(languageServerRootPath)}' ready`);
     getLanguageServerReadyDeferred(languageServerRootPath).resolve();
   });
 }
 
 function getLanguageServerReadyDeferred(rootPath: string): DeferredResult<void> {
-  const normalizedPath = path.normalize(rootPath);
+  const normalizedPath = normalizePath(rootPath);
 
   let lsReadyDeferred = languageServerReady.get(normalizedPath);
   if (lsReadyDeferred === undefined) {
@@ -410,4 +410,8 @@ function getLanguageServerReadyDeferred(rootPath: string): DeferredResult<void> 
   }
 
   return lsReadyDeferred;
+}
+
+function normalizePath(rawPath: string): string {
+  return process.platform === 'win32' ? path.normalize(rawPath.toLocaleLowerCase()) : path.normalize(rawPath);
 }
