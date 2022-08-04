@@ -73,7 +73,7 @@ export async function activateAndWait(docUri: Uri): Promise<void> {
 export async function activateAndWaitServerReady(docUri: Uri, projectFolderName: string): Promise<void> {
   doc = await workspace.openTextDocument(docUri);
   editor = await window.showTextDocument(doc);
-  await Promise.all([sleep(LS_MORE_THAN_OPEN_DEBOUNCE), waitForLanguageServerReady(projectFolderName)]);
+  await Promise.all([sleep(LS_MORE_THAN_OPEN_DEBOUNCE), waitForManifestParsed(projectFolderName)]);
 }
 
 function findExistingEditor(docUri: Uri): TextEditor | undefined {
@@ -373,8 +373,8 @@ export function ensureDirectoryExists(dir: string): void {
   }
 }
 
-export function waitForLanguageServerReady(projectFolderName: string): Promise<void> {
-  console.log(`waitForLanguageServerReady '${normalizePath(projectFolderName)}'`);
+export function waitForManifestParsed(projectFolderName: string): Promise<void> {
+  console.log(`waitForManifestParsed '${normalizePath(projectFolderName)}'`);
   return getLanguageServerReadyDeferred(projectFolderName).promise;
 }
 
