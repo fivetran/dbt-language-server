@@ -70,7 +70,7 @@ export async function activateAndWait(docUri: Uri): Promise<void> {
   await activateFinished;
 }
 
-export async function activateAndWaitServerReady(docUri: Uri, projectFolderName: string): Promise<void> {
+export async function activateAndWaitManifestParsed(docUri: Uri, projectFolderName: string): Promise<void> {
   doc = await workspace.openTextDocument(docUri);
   editor = await window.showTextDocument(doc);
   await Promise.all([sleep(LS_MORE_THAN_OPEN_DEBOUNCE), waitForManifestParsed(projectFolderName)]);

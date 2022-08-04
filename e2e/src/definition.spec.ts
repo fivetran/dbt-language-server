@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import { Position, Range } from 'vscode';
 import { assertDefinitions } from './asserts';
-import { activateAndWaitServerReady, getCustomDocUri, getDocUri, MAX_RANGE, MIN_RANGE, TEST_FIXTURE_PATH } from './helper';
+import { activateAndWaitManifestParsed, getCustomDocUri, getDocUri, MAX_RANGE, MIN_RANGE, TEST_FIXTURE_PATH } from './helper';
 import path = require('path');
 
 const PROJECT_PATH = TEST_FIXTURE_PATH;
@@ -10,7 +10,7 @@ const PACKAGE_REF_DOC_URI = getDocUri('package_ref.sql');
 
 suite('ref definitions', () => {
   test('Should suggest definitions for ref without package', async () => {
-    await activateAndWaitServerReady(REF_SQL_DOC_URI, PROJECT_PATH);
+    await activateAndWaitManifestParsed(REF_SQL_DOC_URI, PROJECT_PATH);
     await assertDefinitions(REF_SQL_DOC_URI, new Position(1, 24), [
       {
         originSelectionRange: new Range(1, 19, 1, 31),
@@ -22,7 +22,7 @@ suite('ref definitions', () => {
   });
 
   test('Should suggest definitions for ref with package', async () => {
-    await activateAndWaitServerReady(PACKAGE_REF_DOC_URI, PROJECT_PATH);
+    await activateAndWaitManifestParsed(PACKAGE_REF_DOC_URI, PROJECT_PATH);
 
     await assertDefinitions(
       PACKAGE_REF_DOC_URI,
@@ -50,7 +50,7 @@ suite('ref definitions', () => {
 
 suite('macro definitions', () => {
   test('Should suggest definitions for macros', async () => {
-    await activateAndWaitServerReady(PACKAGE_REF_DOC_URI, PROJECT_PATH);
+    await activateAndWaitManifestParsed(PACKAGE_REF_DOC_URI, PROJECT_PATH);
 
     await assertDefinitions(PACKAGE_REF_DOC_URI, new Position(2, 9), [
       {
@@ -74,7 +74,7 @@ suite('macro definitions', () => {
 
 suite('source definitions', () => {
   test('Should suggest definitions for source', async () => {
-    await activateAndWaitServerReady(PACKAGE_REF_DOC_URI, PROJECT_PATH);
+    await activateAndWaitManifestParsed(PACKAGE_REF_DOC_URI, PROJECT_PATH);
 
     await assertDefinitions(PACKAGE_REF_DOC_URI, new Position(4, 33), [
       {
