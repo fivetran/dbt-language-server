@@ -202,6 +202,23 @@ describe('DbtTextDocument', () => {
     assertThat(name, 'package.model');
   });
 
+  it('Should compile dbt document when dbt ready', () => {
+    // arrange
+    document.requireCompileOnSave = true;
+    dbtContext.onDbtReadyEmitter.event(document.onDbtReady.bind(document));
+
+    let compileCalls = 0;
+    document.debouncedCompile = (): void => {
+      compileCalls++;
+    };
+
+    // act
+    dbtContext.onDbtReadyEmitter.fire();
+
+    // assert
+    assertThat(compileCalls, 1);
+  });
+
   async function sleepMoreThanDebounceTime(): Promise<void> {
     await sleep(2 * DbtTextDocument.DEBOUNCE_TIMEOUT);
   }
