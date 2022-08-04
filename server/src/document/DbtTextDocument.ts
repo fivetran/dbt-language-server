@@ -58,8 +58,6 @@ export class DbtTextDocument {
   compiledDocument: TextDocument;
   requireCompileOnSave: boolean;
 
-  requireDiagnosticsUpdate = false;
-
   ast?: AnalyzeResponse;
   signatureHelpProvider = new SignatureHelpProvider();
   diagnosticGenerator: DiagnosticGenerator;
@@ -262,8 +260,6 @@ export class DbtTextDocument {
     if (this.destinationState.contextInitialized) {
       await this.updateDiagnostics();
       this.sendUpdateQueryPreview();
-    } else {
-      this.requireDiagnosticsUpdate = true;
     }
 
     if (!this.modelCompiler.compilationInProgress) {
@@ -272,8 +268,7 @@ export class DbtTextDocument {
   }
 
   async onContextInitialized(): Promise<void> {
-    if (this.requireDiagnosticsUpdate && this.dbtContext.dbtReady) {
-      this.requireDiagnosticsUpdate = false;
+    if (this.dbtContext.dbtReady) {
       await this.updateDiagnostics();
       this.sendUpdateQueryPreview();
     }
