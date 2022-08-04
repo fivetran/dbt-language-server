@@ -88,7 +88,7 @@ export class ProjectStatus {
         severity: LanguageStatusSeverity.Warning,
         text: `dbt ${getStringVersion(status.dbtStatus.versionInfo.installedVersion)}`,
         detail: `installed version. Latest version: ${getStringVersion(status.dbtStatus.versionInfo.latestVersion)}`,
-        command: { command: 'dbtWizard.installLatestDbt', title: 'Update To Latest Version' },
+        command: this.installDbtCommand('Update To Latest Version'),
       };
       return;
     }
@@ -97,7 +97,11 @@ export class ProjectStatus {
       severity: LanguageStatusSeverity.Error,
       text: 'dbt',
       detail: 'not found',
-      command: { command: 'dbtWizard.installLatestDbt', title: 'Install Latest Version' },
+      command: this.installDbtCommand('Install Latest Version'),
     };
+  }
+
+  installDbtCommand(title: string): Command {
+    return { command: 'dbtWizard.installLatestDbt', title };
   }
 }

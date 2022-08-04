@@ -1,4 +1,4 @@
-import { CustomInitParams, DbtCompilerType, INSTALL_LATEST_DBT_FINISHED, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
+import { CustomInitParams, DbtCompilerType, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
 import { commands, Diagnostic, RelativePattern, Uri, workspace, WorkspaceFolder } from 'vscode';
 import { Disposable, LanguageClient, LanguageClientOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { SUPPORTED_LANG_IDS } from './ExtensionClient';
@@ -57,14 +57,12 @@ export class DbtLanguageClient implements Disposable {
         this.statusHandler.onStatusChanged(statusNotification, this.workspaceFolder?.uri.toString());
       }),
       this.client.onNotification('dbtWizard/installLatestDbtLog', async (data: string) => {
-        if (data === INSTALL_LATEST_DBT_FINISHED) {
-          await commands.executeCommand('dbtWizard.restart');
-          return;
-        }
-
         const channel = outputChannelProvider.getInstallLatestDbtChannel();
-        channel.show();
         channel.append(data);
+        await commands.executeCommand('workbench.action.focusActiveEditorGroup');
+      }),
+      this.client.onNotification('dbtWizard/restart', () => {
+        this.restart();
       }),
 
       this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),

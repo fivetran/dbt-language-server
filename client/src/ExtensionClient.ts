@@ -89,16 +89,9 @@ export class ExtensionClient {
 
   registerCommands(): void {
     this.registerCommand('dbtWizard.compile', async () => {
-      const document = this.getCommandDocument();
-      if (!document) {
-        return;
-      }
-
-      const uri = document.uri.toString() === SqlPreviewContentProvider.URI.toString() ? this.previewContentProvider.activeDocUri : document.uri;
-
-      const client = await this.getClient(uri);
+      const client = await this.getClientForActiveDocument();
       if (client) {
-        client.sendNotification('custom/dbtCompile', uri.toString());
+        client.sendNotification('custom/dbtCompile', window.activeTextEditor?.document.uri.toString());
         await commands.executeCommand('dbtWizard.showQueryPreview');
       }
     });
@@ -113,18 +106,24 @@ export class ExtensionClient {
       await commands.executeCommand('editor.action.triggerParameterHints');
     });
 
-    this.registerCommand('dbtWizard.installLatestDbt', async () => {
-      const answer = await window.showInformationMessage('Do you want to install latest dbt?', 'Yes', 'No');
+    this.registerCommand('dbtWizard.installLatestDbt', async (skipDialog?: unknown) => {
+      const answer =
+        skipDialog === undefined ? await window.showInformationMessage('Do you want to install latest dbt?', { modal: true }, 'Yes', 'No') : 'Yes';
       if (answer === 'Yes') {
-        const [client] = this.clients.values();
-        client.sendNotification('dbtWizard/installLatestDbt');
+        const client = await this.getClientForActiveDocument();
+        if (client) {
+          client.sendNotification('dbtWizard/installLatestDbt');
+          this.outputChannelProvider.getInstallLatestDbtChannel().show();
+          await commands.executeCommand('workbench.action.focusActiveEditorGroup');
+        } else {
+          console.log('Client not found while installing latest dbt');
+        }
       }
     });
 
-    this.registerCommand('dbtWizard.restart', () => {
-      for (const client of this.clients.values()) {
-        client.restart();
-      }
+    this.registerCommand('dbtWizard.restart', async () => {
+      const client = await this.getClientForActiveDocument();
+      client?.restart();
     });
   }
 
@@ -139,6 +138,18 @@ export class ExtensionClient {
     }
 
     return document;
+  }
+
+  async getClientForActiveDocument(): Promise<DbtLanguageClient | undefined> {
+    const document = this.getCommandDocument();
+    if (document === undefined) {
+      console.log(`Can't find active document`);
+      return undefined;
+    }
+
+    const uri = document.uri.toString() === SqlPreviewContentProvider.URI.toString() ? this.previewContentProvider.activeDocUri : document.uri;
+
+    return this.getClient(uri);
   }
 
   async getClient(uri: Uri): Promise<DbtLanguageClient | undefined> {

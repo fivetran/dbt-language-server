@@ -169,6 +169,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: show python info
+        run: |
+          python --version
+          python -m pip --version
+
       - name: add custom python venv with dbt@1.0.0
         if: matrix.python-version != '3.10.5'
         run: | # https://github.com/dbt-labs/dbt-core/issues/4745
@@ -301,6 +306,7 @@ jobs:
           name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.python-version }} ${{ matrix.use-dbt-cli }}
           path: |
             ./.vscode-test/user-data/logs/**/*dbt Wizard.log
+            ./.vscode-test/user-data/logs/**/*Install Latest dbt.log
             ./e2e/projects/completion-jinja/logs/*
             ./e2e/projects/test-fixture/logs/*
             ./e2e/projects/two-projects/logs/*

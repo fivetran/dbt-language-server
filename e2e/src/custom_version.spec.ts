@@ -1,10 +1,24 @@
 import { assertThat } from 'hamjest';
-import { activateAndWait, getCustomDocUri, getPreviewText } from './helper';
+import { activateAndWait, executeInstallLatestDbt, getCustomDocUri, getLatestDbtVersion, getPreviewText, waitPreviewText } from './helper';
 
 suite('Custom version', () => {
+  const DOC_URI = getCustomDocUri('special-python-settings/models/version.sql');
+
   test('Should run project with dbt version specified for workspace', async () => {
-    await activateAndWait(getCustomDocUri('special-python-settings/models/version.sql'));
+    await activateAndWait(DOC_URI);
 
     assertThat(getPreviewText(), '1.0.0');
   });
+
+  test('Should install latest dbt, restart language server and compile model with new dbt version', async () => {
+    const latestVersion = getLatestDbtVersion();
+    await activateAndWait(DOC_URI);
+
+    assertThat(getPreviewText(), '1.0.0');
+    await executeInstallLatestDbt();
+
+    await waitPreviewText(latestVersion);
+
+    assertThat(getPreviewText(), latestVersion);
+  }).timeout('100s');
 });
