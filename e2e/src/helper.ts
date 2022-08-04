@@ -4,7 +4,6 @@ import { DebugEvent, deferred, DeferredResult, ExtensionApi } from 'dbt-language
 import * as fs from 'fs';
 import { WatchEventType, writeFileSync } from 'fs';
 import * as path from 'path';
-import { pathEqual } from 'path-equal';
 import {
   commands,
   CompletionItem,
@@ -51,7 +50,7 @@ let previewPromiseResolve: voidFunc | undefined;
 let documentPromiseResolve: voidFunc | undefined;
 
 let extensionApi: ExtensionApi | undefined = undefined;
-const languageServerReady = new Array<[string, DeferredResult<void>]>();
+const languageServerReady = new Map<string, DeferredResult<void>>();
 
 let tempModelIndex = 0;
 
@@ -383,7 +382,7 @@ export function ensureDirectoryExists(dir: string): void {
 }
 
 export function waitForLanguageServerReady(projectFolderName: string): Promise<void> {
-  console.log(`waitForLanguageServerReady '${projectFolderName}'`);
+  console.log(`waitForLanguageServerReady '${normalizePath(projectFolderName)}'`);
   return getLanguageServerReadyDeferred(projectFolderName).promise;
 }
 
@@ -396,16 +395,23 @@ export function initializeExtensionApi(): void {
   }
 
   extensionApi.languageServerEventEmitter.on(DebugEvent[DebugEvent.LANGUAGE_SERVER_READY], (languageServerRootPath: string) => {
-    console.log(`Language Server '${languageServerRootPath}' ready`);
+    console.log(`Language Server '${normalizePath(languageServerRootPath)}' ready`);
     getLanguageServerReadyDeferred(languageServerRootPath).resolve();
   });
 }
 
 function getLanguageServerReadyDeferred(rootPath: string): DeferredResult<void> {
-  let lsReadyDeferred = languageServerReady.find(i => pathEqual(i[0], rootPath));
+  const normalizedPath = normalizePath(rootPath);
+
+  let lsReadyDeferred = languageServerReady.get(normalizedPath);
   if (lsReadyDeferred === undefined) {
-    lsReadyDeferred = [rootPath, deferred<void>()];
-    languageServerReady.push(lsReadyDeferred);
+    lsReadyDeferred = deferred<void>();
+    languageServerReady.set(normalizedPath, lsReadyDeferred);
   }
-  return lsReadyDeferred[1];
+
+  return lsReadyDeferred;
+}
+
+function normalizePath(rawPath: string): string {
+  return process.platform === 'win32' ? path.normalize(rawPath.toLocaleLowerCase()) : path.normalize(rawPath);
 }

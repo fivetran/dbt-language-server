@@ -13,7 +13,6 @@
     "clipboardy": "^2.3.0",
     "hamjest": "^3.7.3",
     "mocha": "^10.0.0",
-    "path-equal": "^1.2.2",
     "pg": "^8.7.3",
     "dbt-language-server-common": "file:../common"
   }
