@@ -41,10 +41,9 @@ import {
   _Connection,
 } from 'vscode-languageserver';
 import { FileOperationFilter } from 'vscode-languageserver-protocol/lib/common/protocol.fileOperations';
-import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
 import { DbtContext } from './DbtContext';
-import { DbtProfileCreator, DbtProfileError, DbtProfileInfo, DbtProfileSuccess } from './DbtProfileCreator';
+import { DbtProfileCreator, DbtProfileInfo } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
 import { getStringVersion } from './DbtVersion';
@@ -69,7 +68,6 @@ import path = require('path');
 
 export class LspServer {
   static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
-  private static readonly ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
 
   sqlToRefCommandName = randomUUID();
   filesFilter: FileOperationFilter[];
@@ -226,11 +224,14 @@ export class LspServer {
       this.showProfileCreationWarning(profileResult.error.message);
     }
 
-    // eslint-disable-next-line promise/always-return
-    const prepareDestination = (profileResult.isErr() ? Promise.resolve() : this.prepareDestination(profileResult)).then(() => {
-      this.destinationState.contextInitialized = true;
-      this.destinationState.onContextInitializedEmitter.fire();
-    });
+    const prepareDestination = profileResult.isErr()
+      ? this.destinationState.prepareDestinationStub()
+      : this.destinationState.prepareBigQueryDestination(profileResult.value, this.dbtRepository).then((prepareResult: Result<void, string>) => {
+          // eslint-disable-next-line promise/always-return
+          if (prepareResult.isErr()) {
+            this.showCreateContextWarning(prepareResult.error);
+          }
+        });
     const prepareDbt = this.dbtContext.prepare(dbtProfileType);
 
     this.dbtRepository.manifestParsedDeferred.promise
@@ -264,21 +265,6 @@ export class LspServer {
     this.connection.client
       .register(DidDeleteFilesNotification.type, { filters })
       .catch(e => console.log(`Error while registering DidDeleteFiles notification: ${e instanceof Error ? e.message : String(e)}`));
-  }
-
-  async prepareDestination(profileResult: Result<DbtProfileSuccess, DbtProfileError>): Promise<void> {
-    if (LspServer.ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) && profileResult.isOk() && profileResult.value.dbtProfile) {
-      const bigQueryContextInfo = await BigQueryContext.createContext(
-        profileResult.value.dbtProfile,
-        profileResult.value.targetConfig,
-        this.dbtRepository,
-      );
-      if (bigQueryContextInfo.isOk()) {
-        this.destinationState.bigQueryContext = bigQueryContextInfo.value;
-      } else {
-        this.showCreateContextWarning(bigQueryContextInfo.error);
-      }
-    }
   }
 
   showProfileCreationWarning(error: string): void {
