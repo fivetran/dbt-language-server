@@ -2,7 +2,6 @@
 
 import { anything, instance, mock, spy, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentIdentifier, _Connection } from 'vscode-languageserver';
-import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
 import { DbtContext } from '../DbtContext';
 import { DbtRepository } from '../DbtRepository';
@@ -31,9 +30,7 @@ describe('LspServer', () => {
   let spiedLspServer: LspServer;
   let document: DbtTextDocument;
   let dbtRepository: DbtRepository;
-  let mockBigQueryContext: BigQueryContext;
-
-  const destinationState = new DestinationState();
+  let destinationState: DestinationState;
 
   beforeEach(() => {
     lspServer = new LspServer(mock<_Connection>());
@@ -46,8 +43,7 @@ describe('LspServer', () => {
     when(mockModelCompiler.onFinishAllCompilationJobs).thenReturn(new Emitter<void>().event);
 
     dbtRepository = mock(DbtRepository);
-    mockBigQueryContext = mock(BigQueryContext);
-    destinationState.bigQueryContext = mockBigQueryContext;
+    destinationState = mock(DestinationState);
 
     document = new DbtTextDocument(
       { uri: OPENED_URI, languageId: SQL_LANGUAGE_ID, version: 1, text: TEXT },
