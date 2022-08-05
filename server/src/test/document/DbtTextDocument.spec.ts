@@ -61,6 +61,7 @@ describe('DbtTextDocument', () => {
       instance(mockDbt),
       new DestinationState(),
     );
+    onDbtReadyEmitter.event(document.onDbtReady.bind(document));
   });
 
   describe('Debounce tests', () => {
@@ -200,7 +201,6 @@ describe('DbtTextDocument', () => {
   it('Should compile dbt document when dbt ready', () => {
     // arrange
     document.requireCompileOnSave = true;
-    onDbtReadyEmitter.event(document.onDbtReady.bind(document));
 
     let compileCalls = 0;
     document.debouncedCompile = (): void => {
