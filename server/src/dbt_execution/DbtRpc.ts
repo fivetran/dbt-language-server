@@ -39,7 +39,7 @@ export class DbtRpc extends Dbt {
     this.dbtRpcServer.refresh();
   }
 
-  async prepare(dbtProfileType?: string): Promise<void> {
+  async prepareImplementation(dbtProfileType?: string): Promise<void> {
     const [command, dbtPort] = await Promise.all([this.featureFinder.findDbtRpcCommand(dbtProfileType), this.featureFinder.findFreePort()]);
 
     if (command === undefined) {

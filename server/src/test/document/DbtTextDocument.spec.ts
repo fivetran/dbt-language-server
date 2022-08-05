@@ -4,7 +4,6 @@ import { assertThat } from 'hamjest';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentSaveReason } from 'vscode-languageserver';
 import { DbtCompletionProvider } from '../../completion/DbtCompletionProvider';
-import { DbtContext } from '../../DbtContext';
 import { DbtRepository } from '../../DbtRepository';
 import { Dbt } from '../../dbt_execution/Dbt';
 import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
@@ -27,11 +26,11 @@ describe('DbtTextDocument', () => {
   let mockModelCompiler: ModelCompiler;
   let mockJinjaParser: JinjaParser;
   let mockDbt: Dbt;
-  let dbtContext: DbtContext;
 
   const onCompilationErrorEmitter = new Emitter<string>();
   const onCompilationFinishedEmitter = new Emitter<string>();
   const onGlobalDbtErrorFixedEmitter = new Emitter<void>();
+  const onDbtReadyEmitter = new Emitter<void>();
 
   beforeEach(() => {
     DbtTextDocument.DEBOUNCE_TIMEOUT = 0;
@@ -43,10 +42,8 @@ describe('DbtTextDocument', () => {
 
     mockJinjaParser = mock(JinjaParser);
     mockDbt = mock<Dbt>();
-
-    dbtContext = new DbtContext();
-    dbtContext.dbtReady = true;
-    dbtContext.dbt = instance(mockDbt);
+    when(mockDbt.dbtReady).thenReturn(true);
+    when(mockDbt.onDbtReadyEmitter).thenReturn(onDbtReadyEmitter);
 
     document = new DbtTextDocument(
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
@@ -61,7 +58,7 @@ describe('DbtTextDocument', () => {
       instance(mockJinjaParser),
       onGlobalDbtErrorFixedEmitter,
       new DbtRepository(),
-      dbtContext,
+      instance(mockDbt),
       new DestinationState(),
     );
   });
@@ -93,8 +90,6 @@ describe('DbtTextDocument', () => {
 
   it('Should compile for first save in Not Auto save mode', async () => {
     // arrange
-    let count = 0;
-    when(mockDbt.refresh()).thenCall(() => count++);
     when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(true);
 
     // act
@@ -106,7 +101,7 @@ describe('DbtTextDocument', () => {
     await sleepMoreThanDebounceTime();
 
     // assert
-    assertThat(count, 1);
+    verify(mockDbt.refresh()).once();
     verify(mockModelCompiler.compile(anything())).twice();
   });
 
@@ -205,7 +200,7 @@ describe('DbtTextDocument', () => {
   it('Should compile dbt document when dbt ready', () => {
     // arrange
     document.requireCompileOnSave = true;
-    dbtContext.onDbtReadyEmitter.event(document.onDbtReady.bind(document));
+    onDbtReadyEmitter.event(document.onDbtReady.bind(document));
 
     let compileCalls = 0;
     document.debouncedCompile = (): void => {
@@ -213,7 +208,7 @@ describe('DbtTextDocument', () => {
     };
 
     // act
-    dbtContext.onDbtReadyEmitter.fire();
+    onDbtReadyEmitter.fire();
 
     // assert
     assertThat(compileCalls, 1);

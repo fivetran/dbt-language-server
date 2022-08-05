@@ -42,7 +42,6 @@ import {
 } from 'vscode-languageserver';
 import { FileOperationFilter } from 'vscode-languageserver-protocol/lib/common/protocol.fileOperations';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
-import { DbtContext } from './DbtContext';
 import { DbtProfileCreator, DbtProfileInfo } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
@@ -89,7 +88,7 @@ export class LspServer {
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
 
   destinationState = new DestinationState();
-  dbtContext = new DbtContext();
+  dbt?: Dbt;
 
   openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
 
@@ -121,7 +120,7 @@ export class LspServer {
 
     const customInitParams = params.initializationOptions as CustomInitParams;
     this.featureFinder = new FeatureFinder(customInitParams.pythonInfo);
-    this.dbtContext.dbt = this.createDbt(this.featureFinder, customInitParams.dbtCompiler);
+    this.dbt = this.createDbt(this.featureFinder, customInitParams.dbtCompiler);
 
     const { capabilities } = params;
     // Does the client support the `workspace/configuration` request?
@@ -229,7 +228,7 @@ export class LspServer {
       : this.destinationState
           .prepareBigQueryDestination(profileResult.value, this.dbtRepository)
           .then((prepareResult: Result<void, string>) => (prepareResult.isErr() ? this.showCreateContextWarning(prepareResult.error) : undefined));
-    const prepareDbt = this.dbtContext.prepare(dbtProfileType);
+    const prepareDbt = this.dbt?.prepare(dbtProfileType);
 
     this.dbtRepository.manifestParsedDeferred.promise
       .then(() => this.notificationSender.logLanguageServerManifestParsed())
@@ -324,7 +323,7 @@ export class LspServer {
     let document = this.openedDocuments.get(uri);
 
     if (!document) {
-      if (!(await this.isLanguageServerReady()) || !this.dbtContext.dbt) {
+      if (!(await this.isLanguageServerReady()) || !this.dbt) {
         return;
       }
 
@@ -343,11 +342,11 @@ export class LspServer {
         this.sqlCompletionProvider,
         this.dbtCompletionProvider,
         this.dbtDefinitionProvider,
-        new ModelCompiler(this.dbtContext.dbt, this.dbtRepository),
+        new ModelCompiler(this.dbt, this.dbtRepository),
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,
         this.dbtRepository,
-        this.dbtContext,
+        this.dbt,
         this.destinationState,
       );
       this.openedDocuments.set(uri, document);
@@ -434,16 +433,16 @@ export class LspServer {
   }
 
   onDidCreateFiles(_params: CreateFilesParams): void {
-    this.dbtContext.refresh();
+    this.dbt?.refresh();
   }
 
   onDidRenameFiles(params: RenameFilesParams): void {
-    this.dbtContext.refresh();
+    this.dbt?.refresh();
     this.disposeOutdatedDocuments(params.files.map(f => f.oldUri));
   }
 
   onDidDeleteFiles(params: DeleteFilesParams): void {
-    this.dbtContext.refresh();
+    this.dbt?.refresh();
     this.disposeOutdatedDocuments(params.files.map(f => f.uri));
   }
 
@@ -460,7 +459,7 @@ export class LspServer {
 
   dispose(): void {
     console.log('Dispose start...');
-    this.dbtContext.dispose();
+    this.dbt?.dispose();
     this.destinationState.dispose();
     this.onGlobalDbtErrorFixedEmitter.dispose();
     console.log('Dispose end.');

@@ -1,4 +1,4 @@
-import { _Connection } from 'vscode-languageserver';
+import { Emitter, _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { DbtUtilitiesInstaller } from '../DbtUtilitiesInstaller';
 import { ProgressReporter } from '../ProgressReporter';
@@ -10,13 +10,25 @@ export enum DbtMode {
 }
 
 export abstract class Dbt {
-  constructor(private connection: _Connection, protected progressReporter: ProgressReporter) {}
+  dbtReady: boolean;
+  onDbtReadyEmitter: Emitter<void>;
+
+  constructor(private connection: _Connection, protected progressReporter: ProgressReporter) {
+    this.dbtReady = false;
+    this.onDbtReadyEmitter = new Emitter<void>();
+  }
 
   abstract refresh(): void;
 
   abstract isReady(): Promise<void>;
 
-  abstract prepare(dbtProfileType?: string): Promise<void>;
+  async prepare(dbtProfileType?: string): Promise<void> {
+    await this.prepareImplementation(dbtProfileType);
+    this.dbtReady = true;
+    this.onDbtReadyEmitter.fire();
+  }
+
+  protected abstract prepareImplementation(dbtProfileType?: string): Promise<void>;
 
   /** @returns undefined when ready and string error otherwise */
   abstract getStatus(): Promise<string | undefined>;

@@ -31,7 +31,7 @@ export class DbtCli extends Dbt {
     return DbtCli.DBT_COMMAND_EXECUTOR.execute(compileCliCommand);
   }
 
-  async prepare(dbtProfileType?: string | undefined): Promise<void> {
+  async prepareImplementation(dbtProfileType?: string | undefined): Promise<void> {
     const globalFound = await this.featureFinder.findGlobalDbtCommand(dbtProfileType);
     if (globalFound) {
       this.featureFinder.pythonInfo = undefined;

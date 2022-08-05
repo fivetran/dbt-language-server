@@ -3,8 +3,8 @@
 import { anything, instance, mock, spy, verify, when } from 'ts-mockito';
 import { Emitter, TextDocumentIdentifier, _Connection } from 'vscode-languageserver';
 import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
-import { DbtContext } from '../DbtContext';
 import { DbtRepository } from '../DbtRepository';
+import { Dbt } from '../dbt_execution/Dbt';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
 import { DestinationState } from '../DestinationState';
 import { DbtDocumentKind } from '../document/DbtDocumentKind';
@@ -58,7 +58,7 @@ describe('LspServer', () => {
       mock(JinjaParser),
       new Emitter<void>(),
       dbtRepository,
-      new DbtContext(),
+      mock<Dbt>(),
       destinationState,
     );
     lspServer.openedDocuments.set(OPENED_URI, document);

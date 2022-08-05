@@ -21,22 +21,20 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
-import { DbtContext } from '../DbtContext';
 import { DbtRepository } from '../DbtRepository';
+import { Dbt } from '../dbt_execution/Dbt';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
+import { DestinationState } from '../DestinationState';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
 import { HoverProvider } from '../HoverProvider';
 import { JinjaParser, JinjaPartType } from '../JinjaParser';
 import { ModelCompiler } from '../ModelCompiler';
+import { NotificationSender } from '../NotificationSender';
 import { PositionConverter } from '../PositionConverter';
 import { ProgressReporter } from '../ProgressReporter';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { SqlCompletionProvider } from '../SqlCompletionProvider';
 import { DiffUtils } from '../utils/DiffUtils';
-import path = require('path');
-
-import { DestinationState } from '../DestinationState';
-import { NotificationSender } from '../NotificationSender';
 import { getTextRangeBeforeBracket } from '../utils/TextUtils';
 import {
   areRangesEqual,
@@ -48,6 +46,7 @@ import {
 } from '../utils/Utils';
 import { ZetaSqlAst } from '../ZetaSqlAst';
 import { DbtDocumentKind } from './DbtDocumentKind';
+import path = require('path');
 
 export class DbtTextDocument {
   static DEBOUNCE_TIMEOUT = 300;
@@ -82,7 +81,7 @@ export class DbtTextDocument {
     private jinjaParser: JinjaParser,
     private onGlobalDbtErrorFixedEmitter: Emitter<void>,
     private dbtRepository: DbtRepository,
-    private dbtContext: DbtContext,
+    private dbt: Dbt,
     private destinationState: DestinationState,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -98,8 +97,8 @@ export class DbtTextDocument {
     if (!this.destinationState.contextInitialized) {
       this.destinationState.onContextInitializedEmitter.event(this.onContextInitialized.bind(this));
     }
-    if (!this.dbtContext.dbtReady) {
-      this.dbtContext.onDbtReadyEmitter.event(this.onDbtReady.bind(this));
+    if (!this.dbt.dbtReady) {
+      this.dbt.onDbtReadyEmitter.event(this.onDbtReady.bind(this));
     }
   }
 
@@ -119,10 +118,10 @@ export class DbtTextDocument {
 
   async didSaveTextDocument(refresh: boolean): Promise<void> {
     if (this.requireCompileOnSave) {
-      if (this.dbtContext.dbtReady) {
+      if (this.dbt.dbtReady) {
         this.requireCompileOnSave = false;
         if (refresh) {
-          this.dbtContext.refresh();
+          this.dbt.refresh();
         }
         this.debouncedCompile();
       }
@@ -195,7 +194,7 @@ export class DbtTextDocument {
   forceRecompile(): void {
     if (this.dbtDocumentKind === DbtDocumentKind.MODEL) {
       this.progressReporter.sendStart(this.rawDocument.uri);
-      if (this.dbtContext.dbtReady) {
+      if (this.dbt.dbtReady) {
         this.debouncedCompile();
       }
     }
@@ -268,7 +267,7 @@ export class DbtTextDocument {
   }
 
   async onContextInitialized(): Promise<void> {
-    if (this.dbtContext.dbtReady) {
+    if (this.dbt.dbtReady) {
       await this.updateDiagnostics();
       this.sendUpdateQueryPreview();
     }
