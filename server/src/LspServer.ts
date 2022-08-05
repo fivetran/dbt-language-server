@@ -226,19 +226,13 @@ export class LspServer {
 
     const prepareDestination = profileResult.isErr()
       ? this.destinationState.prepareDestinationStub()
-      : this.destinationState.prepareBigQueryDestination(profileResult.value, this.dbtRepository).then((prepareResult: Result<void, string>) => {
-          // eslint-disable-next-line promise/always-return
-          if (prepareResult.isErr()) {
-            this.showCreateContextWarning(prepareResult.error);
-          }
-        });
+      : this.destinationState
+          .prepareBigQueryDestination(profileResult.value, this.dbtRepository)
+          .then((prepareResult: Result<void, string>) => (prepareResult.isErr() ? this.showCreateContextWarning(prepareResult.error) : undefined));
     const prepareDbt = this.dbtContext.prepare(dbtProfileType);
 
     this.dbtRepository.manifestParsedDeferred.promise
-      // eslint-disable-next-line promise/always-return
-      .then(() => {
-        this.notificationSender.logLanguageServerManifestParsed();
-      })
+      .then(() => this.notificationSender.logLanguageServerManifestParsed())
       .catch(e => console.log(`Manifest was not parsed: ${e instanceof Error ? e.message : String(e)}`));
 
     await Promise.allSettled([prepareDbt, prepareDestination]);
