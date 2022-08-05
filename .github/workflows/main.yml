@@ -63,6 +63,10 @@ jobs:
           npm config set script-shell bash
           npx vsce package -o ${FILE_NAME} --target ${{ matrix.target }} --githubBranch main
 
+      - name: fix cache issue on windows (use GNU tar instead BSD tar) # https://github.com/actions/toolkit/issues/552
+        if: matrix.os == 'windows-latest'
+        run: echo "C:/Program Files/Git/usr/bin/" >> $GITHUB_PATH
+
       - name: create cache
         uses: actions/cache@v3
         with:
@@ -134,6 +138,10 @@ jobs:
 
       - name: checkout
         uses: actions/checkout@v3
+
+      - name: fix cache issue on windows (use GNU tar instead BSD tar) # https://github.com/actions/toolkit/issues/552
+        if: matrix.os == 'windows-latest'
+        run: echo "C:/Program Files/Git/usr/bin/" >> $GITHUB_PATH
 
       - name: load e2e tests and vsix from cache
         uses: actions/cache@v3
