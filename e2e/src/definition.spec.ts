@@ -4,13 +4,12 @@ import { assertDefinitions } from './asserts';
 import { activateAndWaitManifestParsed, getCustomDocUri, getDocUri, MAX_RANGE, MIN_RANGE, TEST_FIXTURE_PATH } from './helper';
 import path = require('path');
 
-const PROJECT_PATH = TEST_FIXTURE_PATH;
 const REF_SQL_DOC_URI = getDocUri('ref_sql.sql');
 const PACKAGE_REF_DOC_URI = getDocUri('package_ref.sql');
 
 suite('ref definitions', () => {
   test('Should suggest definitions for ref without package', async () => {
-    await activateAndWaitManifestParsed(REF_SQL_DOC_URI, PROJECT_PATH);
+    await activateAndWaitManifestParsed(REF_SQL_DOC_URI, TEST_FIXTURE_PATH);
     await assertDefinitions(REF_SQL_DOC_URI, new Position(1, 24), [
       {
         originSelectionRange: new Range(1, 19, 1, 31),
@@ -22,7 +21,7 @@ suite('ref definitions', () => {
   });
 
   test('Should suggest definitions for ref with package', async () => {
-    await activateAndWaitManifestParsed(PACKAGE_REF_DOC_URI, PROJECT_PATH);
+    await activateAndWaitManifestParsed(PACKAGE_REF_DOC_URI, TEST_FIXTURE_PATH);
 
     await assertDefinitions(
       PACKAGE_REF_DOC_URI,
@@ -50,7 +49,7 @@ suite('ref definitions', () => {
 
 suite('macro definitions', () => {
   test('Should suggest definitions for macros', async () => {
-    await activateAndWaitManifestParsed(PACKAGE_REF_DOC_URI, PROJECT_PATH);
+    await activateAndWaitManifestParsed(PACKAGE_REF_DOC_URI, TEST_FIXTURE_PATH);
 
     await assertDefinitions(PACKAGE_REF_DOC_URI, new Position(2, 9), [
       {
@@ -74,7 +73,7 @@ suite('macro definitions', () => {
 
 suite('source definitions', () => {
   test('Should suggest definitions for source', async () => {
-    await activateAndWaitManifestParsed(PACKAGE_REF_DOC_URI, PROJECT_PATH);
+    await activateAndWaitManifestParsed(PACKAGE_REF_DOC_URI, TEST_FIXTURE_PATH);
 
     await assertDefinitions(PACKAGE_REF_DOC_URI, new Position(4, 33), [
       {
