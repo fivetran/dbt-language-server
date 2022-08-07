@@ -4,11 +4,9 @@ import { activateAndWait, getCustomDocUri } from './helper';
 
 suite('Should suggest completions after ref aliases', () => {
   const PROJECT_FILE_NAME = 'completion-jinja/models/join_ref.sql';
-
-  let docUri: vscode.Uri;
+  const docUri = getCustomDocUri(PROJECT_FILE_NAME);
 
   suiteSetup(async () => {
-    docUri = getCustomDocUri(PROJECT_FILE_NAME);
     await activateAndWait(docUri);
   });
 
