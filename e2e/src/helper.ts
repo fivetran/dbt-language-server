@@ -71,9 +71,10 @@ export async function activateAndWait(docUri: Uri): Promise<void> {
 }
 
 export async function activateAndWaitManifestParsed(docUri: Uri, projectFolderName: string): Promise<void> {
+  const existingEditor = findExistingEditor(docUri);
   doc = await workspace.openTextDocument(docUri);
   editor = await window.showTextDocument(doc);
-  await Promise.all([sleep(LS_MORE_THAN_OPEN_DEBOUNCE), waitForManifestParsed(projectFolderName)]);
+  await Promise.all([existingEditor ? Promise.resolve() : sleep(LS_MORE_THAN_OPEN_DEBOUNCE), waitForManifestParsed(projectFolderName)]);
 }
 
 function findExistingEditor(docUri: Uri): TextEditor | undefined {
