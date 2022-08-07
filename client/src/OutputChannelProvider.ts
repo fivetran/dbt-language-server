@@ -10,7 +10,7 @@ export class OutputChannelProvider {
 
   getInstallLatestDbtChannel(): OutputChannel {
     if (!this.installLatestDbtChannel) {
-      this.installLatestDbtChannel = window.createOutputChannel('Install Latest dbt', 'shellscript');
+      this.installLatestDbtChannel = window.createOutputChannel('Install Latest dbt');
     }
     return this.installLatestDbtChannel;
   }
