@@ -250,6 +250,7 @@ export class LspServer {
 
   sendStatus(): void {
     const statusNotification: StatusNotification = {
+      projectPath: this.workspaceFolder,
       pythonStatus: {
         path: this.featureFinder?.getPythonPath(),
       },

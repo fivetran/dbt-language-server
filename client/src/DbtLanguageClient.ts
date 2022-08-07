@@ -54,7 +54,7 @@ export class DbtLanguageClient implements Disposable {
         this.previewContentProvider.updateDiagnostics(uri as string, diagnostics as Diagnostic[]);
       }),
       this.client.onNotification('dbtWizard/status', (statusNotification: StatusNotification) => {
-        this.statusHandler.onStatusChanged(statusNotification, this.workspaceFolder?.uri.toString());
+        this.statusHandler.onStatusChanged(statusNotification);
       }),
       this.client.onNotification('dbtWizard/installLatestDbtLog', async (data: string) => {
         const channel = outputChannelProvider.getInstallLatestDbtChannel();

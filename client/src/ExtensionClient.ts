@@ -64,7 +64,7 @@ export class ExtensionClient {
         if (SUPPORTED_LANG_IDS.includes(e.document.languageId)) {
           const projectFolder = await this.getDbtProjectUri(e.document.uri);
           if (projectFolder) {
-            this.statusHandler.updateLanguageItems(projectFolder.toString());
+            this.statusHandler.updateLanguageItems(projectFolder.path);
           }
         }
       }),

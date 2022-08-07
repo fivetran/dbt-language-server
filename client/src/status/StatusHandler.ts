@@ -10,11 +10,9 @@ export class StatusHandler {
     this.getProjectStatus(projectPath).updateStatusUi();
   }
 
-  onStatusChanged(statusNotification: StatusNotification, projectPath?: string): void {
-    if (projectPath) {
-      this.getProjectStatus(projectPath).updateStatusData(statusNotification);
-      this.updateLanguageItems(projectPath);
-    }
+  onStatusChanged(statusNotification: StatusNotification): void {
+    this.getProjectStatus(statusNotification.projectPath).updateStatusData(statusNotification);
+    this.updateLanguageItems(statusNotification.projectPath);
   }
 
   private getStatusItems(): LanguageStatusItems {

@@ -20,6 +20,7 @@ export interface PythonStatus {
 }
 
 export interface StatusNotification {
+  projectPath: string;
   pythonStatus: PythonStatus;
   dbtStatus: DbtStatus;
 }
