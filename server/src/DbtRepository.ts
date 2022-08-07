@@ -30,7 +30,6 @@ export class DbtRepository {
   modelPaths: string[] = DbtRepository.DEFAULT_MODEL_PATHS;
   packagesInstallPaths: string[] = DbtRepository.DEFAULT_PACKAGES_PATHS;
 
-  manifestParsed = false;
   manifestParsedDeferred = deferred<void>();
 
   models: ManifestModel[] = [];
@@ -41,12 +40,18 @@ export class DbtRepository {
   packageToMacros = new Map<string, Set<ManifestMacro>>();
   packageToSources = new Map<string, Map<string, Set<ManifestSource>>>();
 
+  manifestParsed(): Promise<void> {
+    return this.manifestParsedDeferred.promise;
+  }
+
   updateDbtNodes(models: ManifestModel[], macros: ManifestMacro[], sources: ManifestSource[]): void {
     this.models = models;
     this.macros = macros;
     this.sources = sources;
 
     this.groupManifestNodes();
+
+    this.manifestParsedDeferred.resolve();
   }
 
   getModelCompiledPath(model: ManifestModel): string {
