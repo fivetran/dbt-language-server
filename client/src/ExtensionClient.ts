@@ -108,7 +108,9 @@ export class ExtensionClient {
 
     this.registerCommand('dbtWizard.installLatestDbt', async (skipDialog?: unknown) => {
       const answer =
-        skipDialog === undefined ? await window.showInformationMessage('Do you want to install latest dbt?', { modal: true }, 'Yes', 'No') : 'Yes';
+        skipDialog === undefined
+          ? await window.showInformationMessage('Are you sure you want to install the latest version of dbt?', { modal: true }, 'Yes', 'No')
+          : 'Yes';
       if (answer === 'Yes') {
         const client = await this.getClientForActiveDocument();
         if (client) {
