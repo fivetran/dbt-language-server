@@ -55,7 +55,7 @@ const languageServerReady = new Map<string, DeferredResult<void>>();
 let tempModelIndex = 0;
 
 export async function openTextDocument(docUri: Uri): Promise<void> {
-  await workspace.openTextDocument(docUri);
+  doc = await workspace.openTextDocument(docUri);
   editor = await window.showTextDocument(docUri);
 }
 
