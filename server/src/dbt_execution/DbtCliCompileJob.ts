@@ -19,7 +19,7 @@ export class DbtCliCompileJob extends DbtCompileJob {
     this.process = promise.child;
 
     try {
-      await runWithTimeout(promise, 15000, 'dbt compile timeout exceeded');
+      await runWithTimeout(promise, 18000, 'dbt compile timeout exceeded');
     } catch (e: unknown) {
       if (e instanceof Object && 'stdout' in e) {
         const error = e as ExecException & { stdout?: string; stderr?: string };

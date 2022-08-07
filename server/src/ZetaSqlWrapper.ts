@@ -18,6 +18,7 @@ import { BigQueryClient, Udf } from './bigquery/BigQueryClient';
 import { DbtRepository } from './DbtRepository';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
 import { ManifestModel } from './manifest/ManifestJson';
+import { ModelFetcher } from './ModelFetcher';
 import { ColumnDefinition, TableDefinition } from './TableDefinition';
 import { arraysAreEqual, randomNumber } from './utils/Utils';
 import { ZetaSqlParser } from './ZetaSqlParser';
@@ -255,12 +256,13 @@ export class ZetaSqlWrapper {
   }
 
   private async analyzeTableInternal(originalFilePath: string, sql?: string): Promise<Result<AnalyzeResponse__Output, string>> {
-    const compiledSql = sql ?? this.getCompiledSql(originalFilePath);
+    const modelFetcher = new ModelFetcher(this.dbtRepository, originalFilePath);
+
+    const compiledSql = sql ?? this.getCompiledSql(await modelFetcher.getModel());
     if (compiledSql === undefined) {
       return err('Compiled SQL not found');
     }
 
-    const model = this.getModel(originalFilePath);
     let tables = await this.findTableNames(compiledSql);
 
     const settledResult = await Promise.allSettled(tables.map(t => this.fillTableSchemaFromBq(t)));
@@ -275,8 +277,9 @@ export class ZetaSqlWrapper {
       if (schemaIsFilled) {
         this.registerTable(table);
       } else {
+        const model = await modelFetcher.getModel();
         if (!model) {
-          return err('Model not found');
+          return err(this.createUnknownError(`Model not found for table ${table.tableName ?? 'undefined'}`));
         }
         await this.analyzeRef(table, model);
       }
@@ -285,10 +288,13 @@ export class ZetaSqlWrapper {
     await this.registerUdfs(compiledSql);
 
     const ast = await this.getAstOrError(compiledSql);
-    if (ast.isOk() && model) {
-      const table = new TableDefinition([model.database, model.schema, model.name]);
-      this.fillTableWithAnalyzeResponse(table, ast.value);
-      this.registerTable(table);
+    if (ast.isOk()) {
+      const model = await modelFetcher.getModel();
+      if (model) {
+        const table = new TableDefinition([model.database, model.schema, model.name]);
+        this.fillTableWithAnalyzeResponse(table, ast.value);
+        this.registerTable(table);
+      }
     }
 
     return ast;
@@ -323,14 +329,6 @@ export class ZetaSqlWrapper {
     return refModel;
   }
 
-  getModel(originalFilePath: string): ManifestModel | undefined {
-    const model = this.dbtRepository.models.find(m => m.originalFilePath === originalFilePath);
-    if (!model) {
-      console.log(`Model ${originalFilePath} not found`);
-    }
-    return model;
-  }
-
   async registerAllLanguageFeatures(catalog: SimpleCatalogProto): Promise<void> {
     if (!catalog.builtinFunctionOptions) {
       const languageOptions = await this.getLanguageOptions();
@@ -362,12 +360,11 @@ export class ZetaSqlWrapper {
       const ast = await this.analyze(compiledSql, this.catalog);
       return ok(ast);
     } catch (e) {
-      return err((e as Partial<Record<string, string>>)['details'] ?? 'Unknown parser error [at 0:0]');
+      return err((e as Partial<Record<string, string>>)['details'] ?? this.createUnknownError('Unknown parser error'));
     }
   }
 
-  getCompiledSql(originalFilePath: string): string | undefined {
-    const model = this.getModel(originalFilePath);
+  getCompiledSql(model?: ManifestModel): string | undefined {
     if (!model) {
       return undefined;
     }
@@ -424,6 +421,10 @@ export class ZetaSqlWrapper {
     }
 
     return response;
+  }
+
+  private createUnknownError(message: string): string {
+    return `${message} [at 1:1]`;
   }
 
   private async getLanguageOptions(): Promise<LanguageOptions | undefined> {
