@@ -65,7 +65,7 @@ export class ProjectStatus {
           detail: 'python interpreter path',
         }
       : {
-          severity: LanguageStatusSeverity.Warning,
+          severity: LanguageStatusSeverity.Error,
           text: 'Python',
           detail:
             'not found. [Install a supported version of Python on your system](https://code.visualstudio.com/docs/python/python-tutorial#_install-a-python-interpreter)',
