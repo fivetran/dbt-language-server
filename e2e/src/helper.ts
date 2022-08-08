@@ -336,7 +336,10 @@ export async function createAndOpenTempModel(workspaceName: string, waitFor: 'pr
   console.log(`Creating new file: ${newUri.toString()}`);
   writeFileSync(newUri.fsPath, '-- Empty');
 
-  waitFor === 'preview' ? await activateAndWait(newUri) : await activateAndWaitManifestParsed(newUri, path.resolve(thisWorkspaceUri.path));
+  waitFor === 'preview' ? await activateAndWait(newUri) : await activateAndWaitManifestParsed(newUri, thisWorkspaceUri.path);
+  if (waitFor === 'manifest') {
+    console.log(`createAndOpenTempModel: wait for manifest parsed in '${thisWorkspaceUri.path}'`);
+  }
 
   return newUri;
 }
@@ -413,7 +416,7 @@ function getLanguageServerReadyDeferred(rootPath: string): DeferredResult<void> 
 }
 
 function normalizePath(rawPath: string): string {
-  return process.platform === 'win32' ? trimPath(path.normalize(rawPath)).toLocaleLowerCase() : path.normalize(rawPath);
+  return process.platform === 'win32' ? trimPath(rawPath).toLocaleLowerCase() : rawPath;
 }
 
 function trimPath(rawPath: string): string {
