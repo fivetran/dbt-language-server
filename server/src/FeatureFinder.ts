@@ -82,7 +82,7 @@ export class FeatureFinder {
     return undefined;
   }
 
-  async findPythonForCli(dbtProfileType?: string): Promise<string | undefined> {
+  async findInformationForCli(dbtProfileType?: string): Promise<string | undefined> {
     const [, dbtPythonVersion, , dbtGlobalVersion] = await this.availableCommandsPromise;
 
     if (dbtPythonVersion?.installedVersion && dbtPythonVersion.installedAdapters.some(a => a.name === dbtProfileType)) {
