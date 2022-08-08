@@ -4,7 +4,7 @@ import { ProjectStatus } from './ProjectStatus';
 
 export class StatusHandler {
   private projectStatuses: Map<string, ProjectStatus> = new Map();
-  private statusItems?: LanguageStatusItems;
+  private statusItems = new LanguageStatusItems();
 
   updateLanguageItems(projectPath: string): void {
     this.getProjectStatus(projectPath).updateStatusUi();
@@ -15,17 +15,10 @@ export class StatusHandler {
     this.updateLanguageItems(statusNotification.projectPath);
   }
 
-  private getStatusItems(): LanguageStatusItems {
-    if (this.statusItems === undefined) {
-      this.statusItems = new LanguageStatusItems();
-    }
-    return this.statusItems;
-  }
-
   private getProjectStatus(projectPath: string): ProjectStatus {
     let projectStatus = this.projectStatuses.get(projectPath);
     if (projectStatus === undefined) {
-      projectStatus = new ProjectStatus(this.getStatusItems());
+      projectStatus = new ProjectStatus(this.statusItems);
       this.projectStatuses.set(projectPath, projectStatus);
     }
     return projectStatus;

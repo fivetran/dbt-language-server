@@ -29,31 +29,20 @@ export class ProjectStatus {
 
   private updatePythonUi(): void {
     if (this.pythonData === undefined) {
-      this.items.python.busy = true;
-      this.items.python.severity = LanguageStatusSeverity.Information;
-      this.items.python.text = 'Python';
-      this.items.python.detail = undefined;
+      this.items.python.setBusy();
     } else {
-      this.items.python.busy = false;
-      this.items.python.severity = this.pythonData.severity;
-      this.items.python.text = this.pythonData.text;
-      this.items.python.detail = this.pythonData.detail;
+      this.items.python.setState(this.pythonData.severity, this.pythonData.text, this.pythonData.detail, {
+        command: 'python.setInterpreter',
+        title: 'Set Interpreter',
+      });
     }
-    this.items.python.command = { command: 'python.setInterpreter', title: 'Set Interpreter' };
   }
 
   private updateDbtUi(): void {
     if (this.dbtData === undefined) {
-      this.items.dbt.busy = true;
-      this.items.dbt.severity = LanguageStatusSeverity.Information;
-      this.items.dbt.text = 'dbt';
-      this.items.dbt.detail = undefined;
+      this.items.dbt.setBusy();
     } else {
-      this.items.dbt.busy = false;
-      this.items.dbt.severity = this.dbtData.severity;
-      this.items.dbt.text = this.dbtData.text;
-      this.items.dbt.detail = this.dbtData.detail;
-      this.items.dbt.command = this.dbtData.command;
+      this.items.dbt.setState(this.dbtData.severity, this.dbtData.text, this.dbtData.detail, this.dbtData.command);
     }
   }
 

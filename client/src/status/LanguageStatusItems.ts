@@ -1,7 +1,6 @@
-import { languages } from 'vscode';
-import { SUPPORTED_LANG_IDS } from '../ExtensionClient';
+import { DbtWizardLanguageStatusItem } from './DbtWizardLanguageStatusItem';
 
 export class LanguageStatusItems {
-  python = languages.createLanguageStatusItem('dbtWizardPython', SUPPORTED_LANG_IDS);
-  dbt = languages.createLanguageStatusItem('dbtWizardDbt', SUPPORTED_LANG_IDS);
+  python = new DbtWizardLanguageStatusItem('dbtWizardPython', 'Python');
+  dbt = new DbtWizardLanguageStatusItem('dbtWizardDbt', 'dbt');
 }
