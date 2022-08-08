@@ -4,6 +4,7 @@ import { deferred, DeferredResult, ExtensionApi, LS_MANIFEST_PARSED_EVENT } from
 import * as fs from 'fs';
 import { WatchEventType, writeFileSync } from 'fs';
 import * as path from 'path';
+import { pathEqual } from 'path-equal';
 import {
   commands,
   CompletionItem,
@@ -50,7 +51,7 @@ let previewPromiseResolve: voidFunc | undefined;
 let documentPromiseResolve: voidFunc | undefined;
 
 let extensionApi: ExtensionApi | undefined = undefined;
-const languageServerReady = new Map<string, DeferredResult<void>>();
+const languageServerReady = new Array<[string, DeferredResult<void>]>();
 
 let tempModelIndex = 0;
 
@@ -406,13 +407,13 @@ export async function initializeExtension(): Promise<void> {
 function getLanguageServerReadyDeferred(rootPath: string): DeferredResult<void> {
   const normalizedPath = normalizePath(rootPath);
 
-  let lsReadyDeferred = languageServerReady.get(normalizedPath);
+  let lsReadyDeferred = languageServerReady.find(r => pathEqual(r[0], normalizedPath));
   if (lsReadyDeferred === undefined) {
-    lsReadyDeferred = deferred<void>();
-    languageServerReady.set(normalizedPath, lsReadyDeferred);
+    lsReadyDeferred = [normalizedPath, deferred<void>()];
+    languageServerReady.push(lsReadyDeferred);
   }
 
-  return lsReadyDeferred;
+  return lsReadyDeferred[1];
 }
 
 function normalizePath(rawPath: string): string {
