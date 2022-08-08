@@ -57,8 +57,7 @@ export class DbtLanguageClient implements Disposable {
         this.statusHandler.onStatusChanged(statusNotification);
       }),
       this.client.onNotification('dbtWizard/installLatestDbtLog', async (data: string) => {
-        const channel = outputChannelProvider.getInstallLatestDbtChannel();
-        channel.append(data);
+        outputChannelProvider.getInstallLatestDbtChannel().append(data);
         await commands.executeCommand('workbench.action.focusActiveEditorGroup');
       }),
       this.client.onNotification('dbtWizard/restart', () => {
