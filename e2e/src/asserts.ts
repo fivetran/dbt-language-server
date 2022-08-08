@@ -69,11 +69,11 @@ export async function assertCompletions(
   assertThat(actualCompletionList.items.length, greaterThanOrEqualTo(expectedCompletionList.length));
   expectedCompletionList.forEach((expectedItem, i) => {
     const actualItem = actualCompletionList.items[i];
-    assertThat(JSON.stringify(actualCompletionList), actualItem.label, expectedItem.label);
-    assertThat(JSON.stringify(actualCompletionList), actualItem.kind, expectedItem.kind);
-    assertThat(JSON.stringify(actualCompletionList), actualItem.insertText, expectedItem.insertText ?? expectedItem.label);
+    assertThat(actualItem.label, expectedItem.label);
+    assertThat(actualItem.kind, expectedItem.kind);
+    assertThat(actualItem.insertText, expectedItem.insertText ?? expectedItem.label);
     if (expectedItem.detail) {
-      assertThat(JSON.stringify(actualCompletionList), actualItem.detail, expectedItem.detail);
+      assertThat(actualItem.detail, expectedItem.detail);
     }
   });
 }
