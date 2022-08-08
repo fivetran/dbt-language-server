@@ -1,4 +1,4 @@
-import { compareVersions, DbtStatus, getStringVersion, PythonStatus, StatusNotification } from 'dbt-language-server-common';
+import { AdapterInfo, compareVersions, DbtStatus, getStringVersion, PythonStatus, StatusNotification } from 'dbt-language-server-common';
 import { Command, LanguageStatusSeverity } from 'vscode';
 import { LanguageStatusItems } from './LanguageStatusItems';
 
@@ -10,8 +10,13 @@ interface StatusItemData {
 }
 
 export class ProjectStatus {
+  private static readonly PYTHON_DEFAULT_TEXT = 'Python';
+  private static readonly DBT_DEFAULT_TEXT = 'dbt';
+  private static readonly DBT_ADAPTERS_DEFAULT_TEXT = 'dbt Adapters';
+
   private pythonData?: StatusItemData;
   private dbtData?: StatusItemData;
+  private dbtAdaptersData?: StatusItemData;
 
   constructor(private items: LanguageStatusItems) {
     this.updateStatusUi();
@@ -20,11 +25,13 @@ export class ProjectStatus {
   updateStatusUi(): void {
     this.updatePythonUi();
     this.updateDbtUi();
+    this.updateDbtAdaptersUi();
   }
 
   updateStatusData(status: StatusNotification): void {
     this.updatePythonStatusItemData(status.pythonStatus);
     this.updateDbtStatusItemData(status.dbtStatus);
+    this.updateDbtAdaptersStatusItemData(status.dbtStatus.versionInfo?.installedAdapters ?? []);
   }
 
   private updatePythonUi(): void {
@@ -46,6 +53,17 @@ export class ProjectStatus {
     }
   }
 
+  private updateDbtAdaptersUi(): void {
+    if (this.dbtAdaptersData === undefined) {
+      this.items.dbt.setBusy();
+    } else {
+      this.items.dbtAdapters.setState(this.dbtAdaptersData.severity, this.dbtAdaptersData.text, this.dbtAdaptersData.detail, {
+        command: 'dbtWizard.installDbtAdapters',
+        title: 'Install dbt Adapters',
+      });
+    }
+  }
+
   private updatePythonStatusItemData(status: PythonStatus): void {
     this.pythonData = status.path
       ? {
@@ -55,7 +73,7 @@ export class ProjectStatus {
         }
       : {
           severity: LanguageStatusSeverity.Error,
-          text: 'Python',
+          text: ProjectStatus.PYTHON_DEFAULT_TEXT,
           detail:
             'not found. [Install a supported version of Python on your system](https://code.visualstudio.com/docs/python/python-tutorial#_install-a-python-interpreter)',
         };
@@ -97,10 +115,25 @@ export class ProjectStatus {
 
     this.dbtData = {
       severity: LanguageStatusSeverity.Error,
-      text: 'dbt',
+      text: ProjectStatus.DBT_DEFAULT_TEXT,
       detail: 'not found',
       command: this.installDbtCommand('Install Latest Version'),
     };
+  }
+
+  private updateDbtAdaptersStatusItemData(adaptersInfo: AdapterInfo[]): void {
+    this.dbtAdaptersData =
+      adaptersInfo.length > 0
+        ? {
+            severity: LanguageStatusSeverity.Information,
+            text: adaptersInfo.map(a => `${a.name} ${a.version ? getStringVersion(a.version) : ''}`).join(', '),
+            detail: 'installed dbt adapters',
+          }
+        : {
+            severity: LanguageStatusSeverity.Error,
+            text: ProjectStatus.DBT_ADAPTERS_DEFAULT_TEXT,
+            detail: 'No dbt adapters installed',
+          };
   }
 
   installDbtCommand(title: string): Command {
