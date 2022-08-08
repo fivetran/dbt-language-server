@@ -94,8 +94,8 @@ export class DbtTextDocument {
     this.modelCompiler.onFinishAllCompilationJobs(this.onFinishAllCompilationTasks.bind(this));
     this.onGlobalDbtErrorFixedEmitter.event(this.onDbtErrorFixed.bind(this));
 
-    this.destinationState.onContextInitializedEmitter.event(this.onContextInitialized.bind(this));
-    this.dbt.onDbtReadyEmitter.event(this.onDbtReady.bind(this));
+    this.destinationState.onContextInitialized(this.onContextInitialized.bind(this));
+    this.dbt.onDbtReady(this.onDbtReady.bind(this));
   }
 
   willSaveTextDocument(reason: TextDocumentSaveReason): void {

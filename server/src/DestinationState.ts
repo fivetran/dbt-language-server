@@ -1,5 +1,5 @@
 import { err, ok, Result } from 'neverthrow';
-import { Emitter } from 'vscode-languageserver';
+import { Emitter, Event } from 'vscode-languageserver';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtRepository } from './DbtRepository';
@@ -34,6 +34,10 @@ export class DestinationState {
   onDestinationPrepared(): void {
     this.contextInitialized = true;
     this.onContextInitializedEmitter.fire();
+  }
+
+  get onContextInitialized(): Event<void> {
+    return this.onContextInitializedEmitter.event;
   }
 
   dispose(): void {
