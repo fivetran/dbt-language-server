@@ -192,12 +192,18 @@ export const getCustomDocUri = (p: string): Uri => {
   return Uri.file(getAbsolutePath(p));
 };
 
-export async function setTestContent(content: string): Promise<void> {
+export async function setTestContent(content: string, waitForPreview = true): Promise<void> {
+  await showPreview();
+
   if (doc.getText() === content) {
     return;
   }
+
   const all = new Range(doc.positionAt(0), doc.positionAt(doc.getText().length));
-  await edit(eb => eb.replace(all, content));
+
+  const editCallback = (eb: TextEditorEdit): void => eb.replace(all, content);
+  waitForPreview ? await edit(editCallback) : await editor.edit(editCallback);
+
   const lastPos = doc.positionAt(doc.getText().length);
   editor.selection = new Selection(lastPos, lastPos);
 }
@@ -319,17 +325,19 @@ export async function moveCursorLeft(): Promise<unknown> {
   });
 }
 
-export async function createAndOpenTempModel(workspaceName: string): Promise<Uri> {
-  const thisWorkspace = workspace.workspaceFolders?.find(w => w.name === workspaceName)?.uri.toString();
-  if (thisWorkspace === undefined) {
+export async function createAndOpenTempModel(workspaceName: string, waitFor: 'preview' | 'manifest' = 'preview'): Promise<Uri> {
+  const thisWorkspaceUri = workspace.workspaceFolders?.find(w => w.name === workspaceName)?.uri;
+  if (thisWorkspaceUri === undefined) {
     throw new Error('Workspace not found');
   }
-  const newUri = Uri.parse(`${thisWorkspace}/models/temp_model${tempModelIndex}.sql`);
+  const newUri = Uri.parse(`${thisWorkspaceUri.toString()}/models/temp_model${tempModelIndex}.sql`);
   tempModelIndex++;
 
   console.log(`Creating new file: ${newUri.toString()}`);
   writeFileSync(newUri.fsPath, '-- Empty');
-  await activateAndWait(newUri);
+
+  waitFor === 'preview' ? await activateAndWait(newUri) : await activateAndWaitManifestParsed(newUri, path.resolve(thisWorkspaceUri.path));
+
   return newUri;
 }
 
