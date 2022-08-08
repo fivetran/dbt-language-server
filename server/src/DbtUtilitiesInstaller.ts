@@ -12,7 +12,11 @@ export class DbtUtilitiesInstaller {
   static readonly PROCESS_EXECUTOR = new ProcessExecutor();
 
   static getFullDbtInstallationPackages(dbtProfileType: string): string[] {
-    return [DbtUtilitiesInstaller.DBT_CORE, DbtUtilitiesInstaller.DBT_RPC, DbtUtilitiesInstaller.buildAdapterPackageName(dbtProfileType)];
+    const packages = [DbtUtilitiesInstaller.DBT_CORE, DbtUtilitiesInstaller.buildAdapterPackageName(dbtProfileType)];
+    if (process.platform !== 'win32') {
+      packages.push(DbtUtilitiesInstaller.DBT_RPC);
+    }
+    return packages;
   }
 
   static async installDbt(
