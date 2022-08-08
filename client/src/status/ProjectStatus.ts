@@ -1,4 +1,4 @@
-import { compareVersions, getStringVersion, StatusNotification } from 'dbt-language-server-common';
+import { compareVersions, DbtStatus, getStringVersion, PythonStatus, StatusNotification } from 'dbt-language-server-common';
 import { Command, LanguageStatusSeverity } from 'vscode';
 import { LanguageStatusItems } from './LanguageStatusItems';
 
@@ -23,8 +23,8 @@ export class ProjectStatus {
   }
 
   updateStatusData(status: StatusNotification): void {
-    this.updatePythonStatusItemData(status);
-    this.updateDbtStatusItemData(status);
+    this.updatePythonStatusItemData(status.pythonStatus);
+    this.updateDbtStatusItemData(status.dbtStatus);
   }
 
   private updatePythonUi(): void {
@@ -57,11 +57,11 @@ export class ProjectStatus {
     }
   }
 
-  private updatePythonStatusItemData(status: StatusNotification): void {
-    this.pythonData = status.pythonStatus.path
+  private updatePythonStatusItemData(status: PythonStatus): void {
+    this.pythonData = status.path
       ? {
           severity: LanguageStatusSeverity.Information,
-          text: status.pythonStatus.path,
+          text: status.path,
           detail: 'python interpreter path',
         }
       : {
@@ -72,15 +72,15 @@ export class ProjectStatus {
         };
   }
 
-  private updateDbtStatusItemData(status: StatusNotification): void {
-    if (status.dbtStatus.versionInfo?.installedVersion && status.dbtStatus.versionInfo.latestVersion) {
-      const compareResult = compareVersions(status.dbtStatus.versionInfo.installedVersion, status.dbtStatus.versionInfo.latestVersion);
+  private updateDbtStatusItemData(status: DbtStatus): void {
+    if (status.versionInfo?.installedVersion && status.versionInfo.latestVersion) {
+      const compareResult = compareVersions(status.versionInfo.installedVersion, status.versionInfo.latestVersion);
       // For v1.0.0 dbt CLI returns that latest version is 1.0.0, in later versions looks like it is fixed
-      const versionGreaterThan1_0_0 = compareVersions(status.dbtStatus.versionInfo.installedVersion, { major: 1, minor: 0, patch: 0 }) > 0;
+      const versionGreaterThan1_0_0 = compareVersions(status.versionInfo.installedVersion, { major: 1, minor: 0, patch: 0 }) > 0;
       if (compareResult === 0 && versionGreaterThan1_0_0) {
         this.dbtData = {
           severity: LanguageStatusSeverity.Information,
-          text: `dbt ${getStringVersion(status.dbtStatus.versionInfo.installedVersion)}`,
+          text: `dbt ${getStringVersion(status.versionInfo.installedVersion)}`,
           detail: `latest version installed`,
           command: undefined,
         };
@@ -88,8 +88,8 @@ export class ProjectStatus {
       }
       this.dbtData = {
         severity: LanguageStatusSeverity.Warning,
-        text: `dbt ${getStringVersion(status.dbtStatus.versionInfo.installedVersion)}`,
-        detail: `installed version. Latest version: ${getStringVersion(status.dbtStatus.versionInfo.latestVersion)}`,
+        text: `dbt ${getStringVersion(status.versionInfo.installedVersion)}`,
+        detail: `installed version. Latest version: ${getStringVersion(status.versionInfo.latestVersion)}`,
         command: this.installDbtCommand('Update To Latest Version'),
       };
       return;
