@@ -22,6 +22,12 @@ export class ProjectStatus {
     this.updateStatusUi();
   }
 
+  setBusy(): void {
+    this.items.python.setBusy();
+    this.items.dbt.setBusy();
+    this.items.dbtAdapters.setBusy();
+  }
+
   updateStatusUi(): void {
     this.updatePythonUi();
     this.updateDbtUi();
@@ -55,7 +61,7 @@ export class ProjectStatus {
 
   private updateDbtAdaptersUi(): void {
     if (this.dbtAdaptersData === undefined) {
-      this.items.dbt.setBusy();
+      this.items.dbtAdapters.setBusy();
     } else {
       this.items.dbtAdapters.setState(this.dbtAdaptersData.severity, this.dbtAdaptersData.text, this.dbtAdaptersData.detail, {
         command: 'dbtWizard.installDbtAdapters',

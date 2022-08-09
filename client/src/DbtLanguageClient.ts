@@ -18,7 +18,7 @@ export class DbtLanguageClient implements Disposable {
     port: number,
     outputChannelProvider: OutputChannelProvider,
     module: string,
-    dbtProjectUri: Uri,
+    private dbtProjectUri: Uri,
     private previewContentProvider: SqlPreviewContentProvider,
     private progressHandler: ProgressHandler,
     private statusHandler: StatusHandler,
@@ -50,16 +50,25 @@ export class DbtLanguageClient implements Disposable {
       this.client.onNotification('custom/updateQueryPreview', ({ uri, previewText }) => {
         this.previewContentProvider.updateText(uri as string, previewText as string);
       }),
+
       this.client.onNotification('custom/updateQueryPreviewDiagnostics', ({ uri, diagnostics }) => {
         this.previewContentProvider.updateDiagnostics(uri as string, diagnostics as Diagnostic[]);
       }),
+
       this.client.onNotification('dbtWizard/status', (statusNotification: StatusNotification) => {
         this.statusHandler.onStatusChanged(statusNotification);
       }),
+
       this.client.onNotification('dbtWizard/installLatestDbtLog', async (data: string) => {
         outputChannelProvider.getInstallLatestDbtChannel().append(data);
         await commands.executeCommand('workbench.action.focusActiveEditorGroup');
       }),
+
+      this.client.onNotification('dbtWizard/installDbtAdapterLog', async (data: string) => {
+        outputChannelProvider.getInstallDbtAdaptersChannel().append(data);
+        await commands.executeCommand('workbench.action.focusActiveEditorGroup');
+      }),
+
       this.client.onNotification('dbtWizard/restart', () => {
         this.restart();
       }),
@@ -102,6 +111,7 @@ export class DbtLanguageClient implements Disposable {
   }
 
   restart(): void {
+    this.statusHandler.onRestart(this.dbtProjectUri.fsPath);
     this.client.restart().catch(error => this.client.error(`Restarting client failed`, error, 'force'));
   }
 
