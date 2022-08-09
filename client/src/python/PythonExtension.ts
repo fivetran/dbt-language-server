@@ -26,8 +26,6 @@ export class PythonExtension {
 
     const api = this.extension.exports as IExtensionApi & IProposedExtensionAPI;
 
-    api.settings.onDidChangeExecutionDetails;
-
     const details = api.settings.getExecutionDetails(workspaceFolder?.uri);
     if (!details.execCommand) {
       return this.pythonNotFound();
