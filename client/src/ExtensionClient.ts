@@ -171,7 +171,7 @@ export class ExtensionClient {
 
     this.registerCommand('dbtWizard.restart', async () => {
       const client = await this.getClientForActiveDocument();
-      client?.restart();
+      await client?.restart();
     });
   }
 

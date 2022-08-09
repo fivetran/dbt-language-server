@@ -13,6 +13,7 @@ export class DbtLanguageClient implements Disposable {
   client: LanguageClient;
   disposables: Disposable[] = [];
   workspaceFolder?: WorkspaceFolder;
+  pythonExtension = new PythonExtension();
 
   constructor(
     port: number,
@@ -69,8 +70,8 @@ export class DbtLanguageClient implements Disposable {
         await commands.executeCommand('workbench.action.focusActiveEditorGroup');
       }),
 
-      this.client.onNotification('dbtWizard/restart', () => {
-        this.restart();
+      this.client.onNotification('dbtWizard/restart', async () => {
+        await this.restart();
       }),
 
       this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),
@@ -92,8 +93,13 @@ export class DbtLanguageClient implements Disposable {
       console.log(`Client switched to state ${State[e.newState]}`);
     });
 
+    await this.initPythonParams();
+    (await this.pythonExtension.onDidChangeExecutionDetails())(() => this.restart());
+  }
+
+  async initPythonParams(): Promise<void> {
     const customInitParams: CustomInitParams = {
-      pythonInfo: await new PythonExtension().getPythonInfo(this.client.clientOptions.workspaceFolder),
+      pythonInfo: await this.pythonExtension.getPythonInfo(this.client.clientOptions.workspaceFolder),
       dbtCompiler: workspace.getConfiguration('dbtWizard').get('dbtCompiler', 'Auto') as DbtCompilerType,
     };
 
@@ -110,7 +116,8 @@ export class DbtLanguageClient implements Disposable {
     this.client.start().catch(e => console.log(`Error while starting server: ${e instanceof Error ? e.message : String(e)}`));
   }
 
-  restart(): void {
+  async restart(): Promise<void> {
+    await this.initPythonParams();
     this.statusHandler.onRestart(this.dbtProjectUri.fsPath);
     this.client.restart().catch(error => this.client.error(`Restarting client failed`, error, 'force'));
   }

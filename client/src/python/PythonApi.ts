@@ -1,8 +1,13 @@
-import { Uri } from 'vscode';
+import { Event, Uri } from 'vscode';
 
 // https://github.com/microsoft/vscode-python/blob/3698950c97982f31bb9dbfc19c4cd8308acda284/src/client/api.ts#L22
 export interface IExtensionApi {
   settings: {
+    /**
+     * An event that is emitted when execution details (for a resource) change. For instance, when interpreter configuration changes.
+     */
+    readonly onDidChangeExecutionDetails: Event<Uri | undefined>;
+
     getExecutionDetails(resource?: Resource): {
       execCommand: string[] | undefined;
     };
