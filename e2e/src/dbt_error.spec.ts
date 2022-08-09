@@ -33,7 +33,7 @@ suite('Should show dbt error and link to it', () => {
       },
     ]);
 
-    // 2. Should show error with link on another document
+    // 2. Should show error with link to another document
     await activateAndWait(DOC_WITHOUT_ERROR);
 
     await assertAllDiagnostics(DOC_WITHOUT_ERROR, [

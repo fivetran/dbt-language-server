@@ -12,7 +12,7 @@ import { DbtCompileJob } from './DbtCompileJob';
 
 export class DbtCli extends Dbt {
   static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
-
+  pythonPathForCli?: string;
   readyDeferred = deferred<void>();
 
   constructor(private featureFinder: FeatureFinder, connection: _Connection, progressReporter: ProgressReporter) {
@@ -27,17 +27,14 @@ export class DbtCli extends Dbt {
     if (modelName) {
       parameters.push(...['-m', modelName]);
     }
-    const compileCliCommand = new DbtCommand(parameters, this.featureFinder.getPythonPath());
+    const compileCliCommand = new DbtCommand(parameters, this.pythonPathForCli);
     return DbtCli.DBT_COMMAND_EXECUTOR.execute(compileCliCommand);
   }
 
-  async prepareImplementation(dbtProfileType?: string | undefined): Promise<void> {
-    const globalFound = await this.featureFinder.findGlobalDbtCommand(dbtProfileType);
-    if (globalFound) {
-      this.featureFinder.pythonInfo = undefined;
-    }
+  async prepareImplementation(dbtProfileType?: string): Promise<void> {
+    this.pythonPathForCli = await this.featureFinder.findInformationForCli(dbtProfileType);
 
-    if (!this.featureFinder.versionInfo?.installedVersion || !this.featureFinder.versionInfo.installedAdapter) {
+    if (!this.featureFinder.versionInfo?.installedVersion || this.featureFinder.versionInfo.installedAdapters.length === 0) {
       try {
         if (dbtProfileType && this.featureFinder.pythonInfo) {
           await this.suggestToInstallDbt(this.featureFinder.pythonInfo.path, dbtProfileType);

@@ -22,6 +22,7 @@
     "covar_pop",
     "covar_samp",
     "cume_dist",
+    "databricks",
     "datetime",
     "dbname",
     "deps",

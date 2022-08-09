@@ -1,13 +1,32 @@
+export interface PythonStatus {
+  path?: string;
+}
+
+export interface StatusNotification {
+  projectPath: string;
+  pythonStatus: PythonStatus;
+  dbtStatus: DbtStatus;
+}
+
+export interface DbtStatus {
+  versionInfo?: DbtVersionInfo;
+}
+
 export interface DbtVersionInfo {
   installedVersion?: Version;
   latestVersion?: Version;
-  installedAdapter?: Version;
+  installedAdapters: AdapterInfo[];
 }
 
 export interface Version {
   major: number;
   minor: number;
   patch: number;
+}
+
+export interface AdapterInfo {
+  name: string;
+  version?: Version;
 }
 
 export function getStringVersion(version: Version | undefined): string {

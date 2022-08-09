@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { CustomInitParams, DbtCompilerType } from 'dbt-language-server-common';
+import { CustomInitParams, DbtCompilerType, getStringVersion, StatusNotification } from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
 import { homedir } from 'os';
 import { performance } from 'perf_hooks';
@@ -45,7 +45,8 @@ import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
 import { DbtProfileCreator, DbtProfileInfo } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
-import { getStringVersion } from './DbtVersion';
+import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
+import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
 import { Dbt, DbtMode } from './dbt_execution/Dbt';
 import { DbtCli } from './dbt_execution/DbtCli';
 import { DbtRpc } from './dbt_execution/DbtRpc';
@@ -110,6 +111,9 @@ export class LspServer {
   onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> {
     console.log(`Starting server for folder ${this.workspaceFolder}.`);
 
+    const customInitParams = params.initializationOptions as CustomInitParams;
+    this.featureFinder = new FeatureFinder(customInitParams.pythonInfo, new DbtCommandExecutor());
+
     process.on('uncaughtException', this.onUncaughtException.bind(this));
     process.on('SIGTERM', () => this.onShutdown());
     process.on('SIGINT', () => this.onShutdown());
@@ -118,8 +122,6 @@ export class LspServer {
 
     this.initializeNotifications();
 
-    const customInitParams = params.initializationOptions as CustomInitParams;
-    this.featureFinder = new FeatureFinder(customInitParams.pythonInfo);
     this.dbt = this.createDbt(this.featureFinder, customInitParams.dbtCompiler);
 
     const { capabilities } = params;
@@ -207,6 +209,7 @@ export class LspServer {
 
   initializeNotifications(): void {
     this.connection.onNotification('custom/dbtCompile', this.onDbtCompile.bind(this));
+    this.connection.onNotification('dbtWizard/installLatestDbt', this.installLatestDbt.bind(this));
   }
 
   async onInitialized(): Promise<void> {
@@ -228,13 +231,14 @@ export class LspServer {
       : this.destinationState
           .prepareBigQueryDestination(profileResult.value, this.dbtRepository)
           .then((prepareResult: Result<void, string>) => (prepareResult.isErr() ? this.showCreateContextWarning(prepareResult.error) : undefined));
-    const prepareDbt = this.dbt?.prepare(dbtProfileType);
+    const prepareDbt = this.dbt?.prepare(dbtProfileType).then(_ => this.sendStatus());
 
     this.dbtRepository.manifestParsedDeferred.promise
       .then(() => this.notificationSender.logLanguageServerManifestParsed())
       .catch(e => console.log(`Manifest was not parsed: ${e instanceof Error ? e.message : String(e)}`));
 
     await Promise.allSettled([prepareDbt, prepareDestination]);
+
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime);
   }
@@ -266,6 +270,22 @@ export class LspServer {
     this.connection.window.showWarningMessage(message);
   }
 
+  sendStatus(): void {
+    const statusNotification: StatusNotification = {
+      projectPath: this.workspaceFolder,
+      pythonStatus: {
+        path: this.featureFinder?.getPythonPath(),
+      },
+      dbtStatus: {
+        versionInfo: this.featureFinder?.versionInfo,
+      },
+    };
+
+    this.connection
+      .sendNotification('dbtWizard/status', statusNotification)
+      .catch(e => console.log(`Failed to send status notification: ${e instanceof Error ? e.message : String(e)}`));
+  }
+
   showCreateContextWarning(error: string): void {
     const message = `Unable to initialize BigQuery. ${error}`;
     console.log(message);
@@ -285,6 +305,25 @@ export class LspServer {
 
   onDbtCompile(uri: string): void {
     this.openedDocuments.get(uri)?.forceRecompile();
+  }
+
+  async installLatestDbt(): Promise<void> {
+    const pythonPath = this.featureFinder?.getPythonPath();
+    if (pythonPath) {
+      const sendInstallLatestDbtLog = (data: string): void => {
+        this.connection
+          .sendNotification('dbtWizard/installLatestDbtLog', data)
+          .catch(e => console.log(`Failed to send installLatestDbtLog notification: ${e instanceof Error ? e.message : String(e)}`));
+      };
+
+      const installResult = await DbtUtilitiesInstaller.installDbt(pythonPath, 'bigquery', sendInstallLatestDbtLog, sendInstallLatestDbtLog);
+
+      if (installResult.isOk()) {
+        this.connection
+          .sendNotification('dbtWizard/restart')
+          .catch(e => console.log(`Failed to send restart notification: ${e instanceof Error ? e.message : String(e)}`));
+      }
+    }
   }
 
   onWillSaveTextDocument(params: WillSaveTextDocumentParams): void {

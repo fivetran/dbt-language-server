@@ -1,4 +1,5 @@
 import { err, ok, Result } from 'neverthrow';
+import { EOL } from 'os';
 import { ProcessExecutor } from './ProcessExecutor';
 
 export class DbtUtilitiesInstaller {
@@ -11,12 +12,21 @@ export class DbtUtilitiesInstaller {
   static readonly PROCESS_EXECUTOR = new ProcessExecutor();
 
   static getFullDbtInstallationPackages(dbtProfileType: string): string[] {
-    return [DbtUtilitiesInstaller.DBT_CORE, DbtUtilitiesInstaller.DBT_RPC, DbtUtilitiesInstaller.buildAdapterPackageName(dbtProfileType)];
+    const packages = [DbtUtilitiesInstaller.DBT_CORE, DbtUtilitiesInstaller.buildAdapterPackageName(dbtProfileType)];
+    if (process.platform !== 'win32') {
+      packages.push(DbtUtilitiesInstaller.DBT_RPC);
+    }
+    return packages;
   }
 
-  static async installDbt(python: string, dbtProfileType: string): Promise<Result<string, string>> {
+  static async installDbt(
+    python: string,
+    dbtProfileType: string,
+    onStdoutData?: (data: string) => void,
+    onStderrData?: (data: string) => void,
+  ): Promise<Result<string, string>> {
     const packagesToInstall = DbtUtilitiesInstaller.getFullDbtInstallationPackages(dbtProfileType);
-    return DbtUtilitiesInstaller.installPythonPackages(python, packagesToInstall);
+    return DbtUtilitiesInstaller.installPythonPackages(python, packagesToInstall, true, onStdoutData, onStderrData);
   }
 
   static async installLatestDbtRpc(python: string, dbtProfileType?: string): Promise<Result<string, string>> {
@@ -27,10 +37,19 @@ export class DbtUtilitiesInstaller {
     return DbtUtilitiesInstaller.installPythonPackages(python, packages);
   }
 
-  static async installPythonPackages(python: string, packages: string[], upgrade = false): Promise<Result<string, string>> {
+  static async installPythonPackages(
+    python: string,
+    packages: string[],
+    upgrade = false,
+    onStdoutData?: (data: string) => void,
+    onStderrData?: (data: string) => void,
+  ): Promise<Result<string, string>> {
     const installCommand = `${python} -m pip install ${upgrade ? DbtUtilitiesInstaller.UPGRADE_PARAM : ''} ${packages.join(' ')}`;
+    if (onStdoutData) {
+      onStdoutData(`${EOL}${EOL}${installCommand}${EOL}`);
+    }
     try {
-      await DbtUtilitiesInstaller.PROCESS_EXECUTOR.execProcess(installCommand);
+      await DbtUtilitiesInstaller.PROCESS_EXECUTOR.execProcess(installCommand, onStdoutData, onStderrData);
       const successMessage = `Packages successfully installed ('${installCommand}')`;
       console.log(successMessage);
       return ok(successMessage);

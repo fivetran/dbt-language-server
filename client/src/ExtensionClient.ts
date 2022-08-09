@@ -1,20 +1,10 @@
 import * as fs from 'fs';
-import {
-  commands,
-  DiagnosticCollection,
-  ExtensionContext,
-  languages,
-  OutputChannel,
-  TextDocument,
-  TextEditor,
-  Uri,
-  ViewColumn,
-  window,
-  workspace,
-} from 'vscode';
+import { commands, DiagnosticCollection, ExtensionContext, languages, TextDocument, TextEditor, Uri, ViewColumn, window, workspace } from 'vscode';
 import { DbtLanguageClient } from './DbtLanguageClient';
+import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
+import { StatusHandler } from './status/StatusHandler';
 import { TelemetryClient } from './TelemetryClient';
 import { WorkspaceHelper } from './WorkspaceHelper';
 
@@ -33,38 +23,56 @@ export class ExtensionClient {
   static readonly DEFAULT_PACKAGES_PATHS = ['dbt_packages', 'dbt_modules'];
 
   serverAbsolutePath: string;
-  outputChannel: OutputChannel;
+  outputChannelProvider = new OutputChannelProvider();
   previewContentProvider = new SqlPreviewContentProvider();
   progressHandler = new ProgressHandler();
+  statusHandler = new StatusHandler();
   workspaceHelper = new WorkspaceHelper();
   clients: Map<string, DbtLanguageClient> = new Map();
   packageJson?: PackageJson;
 
   constructor(private context: ExtensionContext, private languageServerEventEmitter: EventEmitter) {
     this.serverAbsolutePath = this.context.asAbsolutePath(path.join('server', 'out', 'server.js'));
-    this.outputChannel = window.createOutputChannel('dbt Wizard');
   }
 
   public onActivate(): void {
     console.log('Extension "dbt-language-server" is now active!');
 
-    workspace.onDidOpenTextDocument(this.onDidOpenTextDocument.bind(this));
-    workspace.textDocuments.forEach(t => void this.onDidOpenTextDocument(t));
-    workspace.onDidChangeWorkspaceFolders(event => {
-      for (const folder of event.removed) {
-        const client = this.clients.get(folder.uri.toString());
-        if (client) {
-          this.clients.delete(folder.uri.toString());
-          client.stop().catch(e => console.log(`Error while stopping client: ${e instanceof Error ? e.message : String(e)}`));
+    this.context.subscriptions.push(
+      workspace.onDidOpenTextDocument(this.onDidOpenTextDocument.bind(this)),
+      workspace.onDidChangeWorkspaceFolders(event => {
+        for (const folder of event.removed) {
+          const client = this.clients.get(folder.uri.toString());
+          if (client) {
+            this.clients.delete(folder.uri.toString());
+            client.stop().catch(e => console.log(`Error while stopping client: ${e instanceof Error ? e.message : String(e)}`));
+          }
         }
-      }
-    });
-    workspace.onDidChangeTextDocument(e => {
-      if (e.document.uri.toString() === SqlPreviewContentProvider.URI.toString()) {
-        this.previewContentProvider.updatePreviewDiagnostics(this.getDiagnostics());
-      }
-    });
+      }),
 
+      workspace.onDidChangeTextDocument(e => {
+        if (e.document.uri.toString() === SqlPreviewContentProvider.URI.toString()) {
+          this.previewContentProvider.updatePreviewDiagnostics(this.getDiagnostics());
+        }
+      }),
+
+      window.onDidChangeActiveTextEditor(async e => {
+        if (!e || e.document.uri.toString() === SqlPreviewContentProvider.URI.toString()) {
+          return;
+        }
+
+        this.previewContentProvider.changeActiveDocument(e.document.uri);
+        if (SUPPORTED_LANG_IDS.includes(e.document.languageId)) {
+          const projectFolder = await this.getDbtProjectUri(e.document.uri);
+          if (projectFolder) {
+            this.statusHandler.updateLanguageItems(projectFolder.path);
+          }
+        }
+      }),
+    );
+    workspace.textDocuments.forEach(t =>
+      this.onDidOpenTextDocument(t).catch(e => console.log(`Error while opening text document ${e instanceof Error ? e.message : String(e)}`)),
+    );
     this.registerSqlPreviewContentProvider(this.context);
 
     this.registerCommands();
@@ -77,22 +85,15 @@ export class ExtensionClient {
   parseVersion(): void {
     const extensionPath = path.join(this.context.extensionPath, 'package.json');
     this.packageJson = JSON.parse(fs.readFileSync(extensionPath, 'utf8')) as PackageJson;
-    this.outputChannel.appendLine(`dbt Wizard version: ${this.packageJson.version}`);
+    this.outputChannelProvider.getMainLogChannel().appendLine(`dbt Wizard version: ${this.packageJson.version}`);
   }
 
   registerCommands(): void {
-    this.registerCommand('dbt.compile', async () => {
-      const document = this.getCommandDocument();
-      if (!document) {
-        return;
-      }
-
-      const uri = document.uri.toString() === SqlPreviewContentProvider.URI.toString() ? this.previewContentProvider.activeDocUri : document.uri;
-
-      const client = await this.getClient(uri);
+    this.registerCommand('dbtWizard.compile', async () => {
+      const client = await this.getClientForActiveDocument();
       if (client) {
-        client.sendNotification('custom/dbtCompile', uri.toString());
-        await commands.executeCommand('editor.showQueryPreview');
+        client.sendNotification('custom/dbtCompile', window.activeTextEditor?.document.uri.toString());
+        await commands.executeCommand('dbtWizard.showQueryPreview');
       }
     });
 
@@ -104,6 +105,28 @@ export class ExtensionClient {
         value: 1,
       });
       await commands.executeCommand('editor.action.triggerParameterHints');
+    });
+
+    this.registerCommand('dbtWizard.installLatestDbt', async (skipDialog?: unknown) => {
+      const answer =
+        skipDialog === undefined
+          ? await window.showInformationMessage('Are you sure you want to install the latest version of dbt?', { modal: true }, 'Yes', 'No')
+          : 'Yes';
+      if (answer === 'Yes') {
+        const client = await this.getClientForActiveDocument();
+        if (client) {
+          client.sendNotification('dbtWizard/installLatestDbt');
+          this.outputChannelProvider.getInstallLatestDbtChannel().show();
+          await commands.executeCommand('workbench.action.focusActiveEditorGroup');
+        } else {
+          console.log('Client not found while installing latest dbt');
+        }
+      }
+    });
+
+    this.registerCommand('dbtWizard.restart', async () => {
+      const client = await this.getClientForActiveDocument();
+      client?.restart();
     });
   }
 
@@ -120,6 +143,18 @@ export class ExtensionClient {
     return document;
   }
 
+  async getClientForActiveDocument(): Promise<DbtLanguageClient | undefined> {
+    const document = this.getCommandDocument();
+    if (document === undefined) {
+      console.log(`Can't find active document`);
+      return undefined;
+    }
+
+    const uri = document.uri.toString() === SqlPreviewContentProvider.URI.toString() ? this.previewContentProvider.activeDocUri : document.uri;
+
+    return this.getClient(uri);
+  }
+
   async getClient(uri: Uri): Promise<DbtLanguageClient | undefined> {
     const projectFolder = await this.getDbtProjectUri(uri);
     return projectFolder ? this.clients.get(projectFolder.toString()) : undefined;
@@ -131,7 +166,7 @@ export class ExtensionClient {
 
   registerSqlPreviewContentProvider(context: ExtensionContext): void {
     const providerRegistrations = workspace.registerTextDocumentContentProvider(SqlPreviewContentProvider.SCHEME, this.previewContentProvider);
-    const commandRegistration = commands.registerTextEditorCommand('editor.showQueryPreview', async (editor: TextEditor) => {
+    const commandRegistration = commands.registerTextEditorCommand('dbtWizard.showQueryPreview', async (editor: TextEditor) => {
       if (editor.document.uri.toString() === SqlPreviewContentProvider.URI.toString()) {
         return;
       }
@@ -182,12 +217,13 @@ export class ExtensionClient {
     if (!this.clients.has(projectUri.toString())) {
       const client = new DbtLanguageClient(
         6009 + this.clients.size,
-        this.outputChannel,
+        this.outputChannelProvider,
         this.serverAbsolutePath,
         projectUri,
         this.previewContentProvider,
         this.progressHandler,
         this.languageServerEventEmitter,
+        this.statusHandler,
       );
       this.context.subscriptions.push(client);
       await client.initialize();
