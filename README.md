@@ -13,6 +13,7 @@ Note: Turning on [Auto Save](https://code.visualstudio.com/docs/editor/codebasic
   - [Auto-completion of columns, tables, and refs](#auto-completion-of-columns-tables-and-refs)
   - [Function signature help (BQ only)](#function-signature-help)
   - [Go to Definition](#go-to-definition)
+  - [dbt status](#dbt-status)
 - [How to get set up](#how-to-get-set-up)
 - [Issues](#issues)
 
@@ -64,6 +65,16 @@ You can jump to the definition with `Cmd+Click` or open the definition to the si
 
 ![Function signature help](images/go-to-definition.gif)
 
+### dbt status
+
+When you open dbt model you can use dbt Wizard status bar items. The following actions are available:
+
+- Change path to python interpreter used by extension
+- Install latest dbt in the selected python environment
+- See the list of installed dbt adapters and install new adapters
+
+![dbt status](images/status-items.gif)
+
 ## How to get set up
 
 The extension works on MacOS, Linux, and Windows (for Windows, see the additional steps in the [Windows Support](docs/WindowsSupport.md) article). It supports the default locations for `profiles.yml` and `dbt_project.yml` files.
@@ -71,13 +82,13 @@ The extension works on MacOS, Linux, and Windows (for Windows, see the additiona
 Prior to using the extension, you need to perform the following steps in the VS Code Terminal:
 
 1. [Install your dbt Core adapter and dbt-rpc](https://docs.getdbt.com/dbt-cli/install/overview).
-    - `python3 -m pip install dbt-bigquery dbt-rpc`  
-    Note: `dbt-rpc` is compatible with Python versions less than 3.10
+   - `python3 -m pip install dbt-bigquery dbt-rpc`  
+     Note: `dbt-rpc` is compatible with Python versions less than 3.10
 1. Test that dbt-rpc works
-    - `dbt-rpc --version`
+   - `dbt-rpc --version`
 1. Create your [dbt profile](https://docs.getdbt.com/dbt-cli/configure-your-profile) and add your credentials.
-    - `touch ~/.dbt/profiles.yml`
-    - See dbt Labs’ [BigQuery profile](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) documentation for more guidance on how to populate this file.
+   - `touch ~/.dbt/profiles.yml`
+   - See dbt Labs’ [BigQuery profile](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) documentation for more guidance on how to populate this file.
 1. Open your dbt project in a new VS Code window.
 1. Check that the extension is operating by right-clicking in any .sql model file, and selecting `dbt Wizard > Show query preview`.
 
