@@ -43,6 +43,7 @@ window.onDidChangeActiveTextEditor(e => {
 
 let previewPromiseResolve: voidFunc | undefined;
 let documentPromiseResolve: voidFunc | undefined;
+let expectedEditorText: string | undefined;
 
 let tempModelIndex = 0;
 
@@ -76,7 +77,9 @@ function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
     ) {
       return;
     }
-    previewPromiseResolve();
+    if (expectedEditorText === undefined || getPreviewText() === expectedEditorText) {
+      previewPromiseResolve();
+    }
   } else if (e.document === doc && documentPromiseResolve) {
     documentPromiseResolve();
   }
@@ -97,6 +100,10 @@ export async function waitDocumentModification(func: () => Promise<void>): Promi
   await waitWithTimeout(promise, 1000);
 }
 
+export async function waitPreviewText(text: string): Promise<void> {
+  await createChangePromise('preview', text);
+}
+
 export async function waitPreviewModification(func: () => Promise<void>): Promise<void> {
   const promise = createChangePromise('preview');
   await func();
@@ -108,7 +115,7 @@ export function getMainEditorText(): string {
 }
 
 export async function showPreview(): Promise<void> {
-  await commands.executeCommand('editor.showQueryPreview');
+  await commands.executeCommand('dbtWizard.showQueryPreview');
 }
 
 export async function closeAllEditors(): Promise<void> {
@@ -116,7 +123,7 @@ export async function closeAllEditors(): Promise<void> {
 }
 
 export async function compileDocument(): Promise<void> {
-  await commands.executeCommand('dbt.compile');
+  await commands.executeCommand('dbtWizard.compile');
 }
 
 export function getPreviewText(): string {
@@ -212,13 +219,14 @@ async function edit(callback: (editBuilder: TextEditorEdit) => void): Promise<vo
   });
 }
 
-async function createChangePromise(type: 'preview' | 'document'): Promise<void> {
+async function createChangePromise(type: 'preview' | 'document', expectedText?: string): Promise<void> {
   return new Promise<void>(resolve => {
     if (type === 'preview') {
       previewPromiseResolve = resolve;
     } else {
       documentPromiseResolve = resolve;
     }
+    expectedEditorText = expectedText;
   });
 }
 
@@ -256,6 +264,22 @@ export function installExtension(extensionId: string): void {
   }
 }
 
+export function getLatestDbtVersion(): string {
+  const commandResult = spawnSync('dbt', ['--version'], {
+    encoding: 'utf-8',
+  });
+
+  const match = /latest.*:\s+(\d+\.\d+\.\d+)/.exec(commandResult.stderr);
+  if (!match) {
+    throw new Error('Failed to find latest dbt version');
+  }
+
+  const [, latestDbtVersion] = match;
+  console.log(`Latest dbt version ${latestDbtVersion}`);
+
+  return match[1];
+}
+
 export function uninstallExtension(extensionId: string): void {
   installUninstallExtension('uninstall', extensionId);
 }
@@ -288,6 +312,10 @@ export async function triggerDefinition(docUri: Uri, position: Position): Promis
 
 export async function executeSignatureHelpProvider(docUri: Uri, position: Position, triggerChar?: string): Promise<SignatureHelp> {
   return commands.executeCommand<SignatureHelp>('vscode.executeSignatureHelpProvider', docUri, position, triggerChar);
+}
+
+export async function executeInstallLatestDbt(): Promise<void> {
+  return commands.executeCommand('dbtWizard.installLatestDbt', true);
 }
 
 export async function moveCursorLeft(): Promise<unknown> {

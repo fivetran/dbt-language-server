@@ -63,30 +63,42 @@
     },
     "commands": [
       {
-        "command": "editor.showQueryPreview",
+        "command": "dbtWizard.showQueryPreview",
         "title": "Show query preview",
+        "category": "dbtWizard",
         "icon": "$(book)"
       },
       {
-        "command": "dbt.compile",
-        "title": "dbt compile"
+        "command": "dbtWizard.compile",
+        "title": "dbt compile",
+        "category": "dbtWizard"
+      },
+      {
+        "command": "dbtWizard.installLatestDbt",
+        "title": "Install Latest dbt",
+        "category": "dbtWizard"
+      },
+      {
+        "command": "dbtWizard.restart",
+        "title": "Restart dbtWizard",
+        "category": "dbtWizard"
       }
     ],
     "menus": {
       "editor/title": [
         {
-          "command": "editor.showQueryPreview",
+          "command": "dbtWizard.showQueryPreview",
           "group": "navigation",
           "when": "editorLangId =~ /^sql$|^jinja-sql$|^sql-bigquery$/ && !editorReadonly"
         }
       ],
       "dbt": [
         {
-          "command": "dbt.compile",
+          "command": "dbtWizard.compile",
           "group": "1_common"
         },
         {
-          "command": "editor.showQueryPreview",
+          "command": "dbtWizard.showQueryPreview",
           "group": "1_common"
         }
       ],

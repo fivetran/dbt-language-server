@@ -53,9 +53,6 @@ export class DbtRpc extends Dbt {
         this.onRpcServerFindFailed();
       }
     } else {
-      if (!command.python) {
-        this.featureFinder.pythonInfo = undefined;
-      }
       command.addParameter(dbtPort.toString());
       try {
         await this.startDbtRpc(command, dbtPort);

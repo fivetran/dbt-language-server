@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { CustomInitParams, DbtCompilerType, deferred, TelemetryEvent } from 'dbt-language-server-common';
+import { CustomInitParams, DbtCompilerType, deferred, getStringVersion, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
 import { homedir } from 'os';
 import { performance } from 'perf_hooks';
@@ -47,7 +47,8 @@ import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
 import { DbtProfileCreator, DbtProfileError, DbtProfileInfo, DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
-import { getStringVersion } from './DbtVersion';
+import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
+import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
 import { Dbt, DbtMode } from './dbt_execution/Dbt';
 import { DbtCli } from './dbt_execution/DbtCli';
 import { DbtRpc } from './dbt_execution/DbtRpc';
@@ -110,6 +111,9 @@ export class LspServer {
   onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> {
     console.log(`Starting server for folder ${this.workspaceFolder}.`);
 
+    const customInitParams = params.initializationOptions as CustomInitParams;
+    this.featureFinder = new FeatureFinder(customInitParams.pythonInfo, new DbtCommandExecutor());
+
     process.on('uncaughtException', this.onUncaughtException.bind(this));
     process.on('SIGTERM', () => this.onShutdown());
     process.on('SIGINT', () => this.onShutdown());
@@ -117,9 +121,6 @@ export class LspServer {
     this.fileChangeListener.onInit();
 
     this.initializeNotifications();
-
-    const customInitParams = params.initializationOptions as CustomInitParams;
-    this.featureFinder = new FeatureFinder(customInitParams.pythonInfo);
 
     this.dbt = this.createDbt(this.featureFinder, customInitParams.dbtCompiler);
 
@@ -208,6 +209,7 @@ export class LspServer {
 
   initializeNotifications(): void {
     this.connection.onNotification('custom/dbtCompile', this.onDbtCompile.bind(this));
+    this.connection.onNotification('dbtWizard/installLatestDbt', this.installLatestDbt.bind(this));
   }
 
   async onInitialized(): Promise<void> {
@@ -220,7 +222,7 @@ export class LspServer {
     );
     const dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
 
-    await Promise.all([this.dbt?.prepare(dbtProfileType), this.prepareDestination(profileResult)]);
+    await Promise.all([this.dbt?.prepare(dbtProfileType).then(_ => this.sendStatus()), this.prepareDestination(profileResult)]);
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime);
   }
@@ -246,6 +248,21 @@ export class LspServer {
       .catch(e => console.log(`Error while registering DidDeleteFiles notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
+  sendStatus(): void {
+    const statusNotification: StatusNotification = {
+      projectPath: this.workspaceFolder,
+      pythonStatus: {
+        path: this.featureFinder?.getPythonPath(),
+      },
+      dbtStatus: {
+        versionInfo: this.featureFinder?.versionInfo,
+      },
+    };
+
+    this.connection
+      .sendNotification('dbtWizard/status', statusNotification)
+      .catch(e => console.log(`Failed to send status notification: ${e instanceof Error ? e.message : String(e)}`));
+  }
   async prepareDestination(profileResult: Result<DbtProfileSuccess, DbtProfileError>): Promise<void> {
     if (LspServer.ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) && profileResult.isOk() && profileResult.value.dbtProfile) {
       const bigQueryContextInfo = await BigQueryContext.createContext(
@@ -296,6 +313,25 @@ export class LspServer {
 
   onDbtCompile(uri: string): void {
     this.openedDocuments.get(uri)?.forceRecompile();
+  }
+
+  async installLatestDbt(): Promise<void> {
+    const pythonPath = this.featureFinder?.getPythonPath();
+    if (pythonPath) {
+      const sendInstallLatestDbtLog = (data: string): void => {
+        this.connection
+          .sendNotification('dbtWizard/installLatestDbtLog', data)
+          .catch(e => console.log(`Failed to send installLatestDbtLog notification: ${e instanceof Error ? e.message : String(e)}`));
+      };
+
+      const installResult = await DbtUtilitiesInstaller.installDbt(pythonPath, 'bigquery', sendInstallLatestDbtLog, sendInstallLatestDbtLog);
+
+      if (installResult.isOk()) {
+        this.connection
+          .sendNotification('dbtWizard/restart')
+          .catch(e => console.log(`Failed to send restart notification: ${e instanceof Error ? e.message : String(e)}`));
+      }
+    }
   }
 
   onWillSaveTextDocument(params: WillSaveTextDocumentParams): void {
