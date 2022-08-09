@@ -124,45 +124,46 @@ export class ExtensionClient {
     });
 
     this.registerCommand('dbtWizard.installDbtAdapters', async () => {
-      const adapters = [
-        'dbt-postgres',
-        'dbt-redshift',
-        'dbt-bigquery',
-        'dbt-snowflake',
-        'dbt-spark[PyHive]',
-        'dbt-clickhouse',
-        'dbt-databricks',
-        'dbt-firebolt',
-        'dbt-impala',
-        'dbt-iomete',
-        'dbt-layer-bigquery',
-        'dbt-materialize',
-        'dbt-mindsdb',
-        'dbt-oracle',
-        'dbt-rockset',
-        'dbt-singlestore',
-        'dbt-trino',
-        'dbt-teradata',
-        'dbt-tidb',
-        'dbt-sqlserver',
-        'dbt-synapse',
-        'dbt-exasol',
-        'dbt-dremio',
-        'git+https://github.com/Tomme/dbt-athena.git',
-        'dbt-vertica',
-        'dbt-glue',
-        'dbt-greenplum',
-        'dbt-duckdb',
-        'dbt-sqlite',
-        'dbt-mysql',
-        'dbt-ibmdb2',
-      ];
-      const dbtAdapter = await window.showQuickPick(adapters, {
-        placeHolder: 'Select dbt adapter to install',
-      });
-
       const client = await this.getClientForActiveDocument();
       if (client) {
+        const adapters = [
+          'dbt-postgres',
+          'dbt-redshift',
+          'dbt-bigquery',
+          'dbt-snowflake',
+          'dbt-spark[PyHive]',
+          'dbt-clickhouse',
+          'dbt-databricks',
+          'dbt-firebolt',
+          'dbt-impala',
+          'dbt-iomete',
+          'dbt-layer-bigquery',
+          'dbt-materialize',
+          'dbt-mindsdb',
+          'dbt-oracle',
+          'dbt-rockset',
+          'dbt-singlestore',
+          'dbt-trino',
+          'dbt-teradata',
+          'dbt-tidb',
+          'dbt-sqlserver',
+          'dbt-synapse',
+          'dbt-exasol',
+          'dbt-dremio',
+          'git+https://github.com/Tomme/dbt-athena.git',
+          'dbt-vertica',
+          'dbt-glue',
+          'dbt-greenplum',
+          'dbt-duckdb',
+          'dbt-sqlite',
+          'dbt-mysql',
+          'dbt-ibmdb2',
+        ];
+
+        const dbtAdapter = await window.showQuickPick(adapters, {
+          placeHolder: 'Select dbt adapter to install',
+        });
+
         client.sendNotification('dbtWizard/installDbtAdapter', dbtAdapter);
         this.outputChannelProvider.getInstallDbtAdaptersChannel().show();
         await commands.executeCommand('workbench.action.focusActiveEditorGroup');
