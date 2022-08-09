@@ -233,7 +233,8 @@ export class LspServer {
           .then((prepareResult: Result<void, string>) => (prepareResult.isErr() ? this.showCreateContextWarning(prepareResult.error) : undefined));
     const prepareDbt = this.dbt?.prepare(dbtProfileType).then(_ => this.sendStatus());
 
-    this.dbtRepository.manifestParsedDeferred.promise
+    this.dbtRepository
+      .manifestParsed()
       .then(() => this.notificationSender.logLanguageServerManifestParsed())
       .catch(e => console.log(`Manifest was not parsed: ${e instanceof Error ? e.message : String(e)}`));
 
