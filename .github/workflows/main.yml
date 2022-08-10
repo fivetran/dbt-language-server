@@ -184,6 +184,7 @@ jobs:
           python -m pip install --force-reinstall werkzeug==2.1.2
           python -m pip install --force-reinstall MarkupSafe==2.0.1
           python -m pip install dbt-core==1.0.1 dbt-bigquery==1.0.0 dbt-rpc
+          python -m pip list | grep dbt
           dbt --version
 
       - name: prepare profile config
