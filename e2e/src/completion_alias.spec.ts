@@ -4,10 +4,10 @@ import { activateAndWait, getCustomDocUri } from './helper';
 
 suite('Should suggest completions after ref aliases', () => {
   const PROJECT_FILE_NAME = 'completion-jinja/models/join_ref.sql';
-  const docUri = getCustomDocUri(PROJECT_FILE_NAME);
+  const DOC_URI = getCustomDocUri(PROJECT_FILE_NAME);
 
   suiteSetup(async () => {
-    await activateAndWait(docUri);
+    await activateAndWait(DOC_URI);
   });
 
   test('Should suggest columns for ref alias after press . in select', async () => {
@@ -21,7 +21,7 @@ suite('Should suggest completions after ref aliases', () => {
   async function shouldSuggestUsersTableColumns(position: vscode.Position): Promise<void> {
     // act
     await assertCompletions(
-      docUri,
+      DOC_URI,
       position,
       [
         { label: 'division', kind: vscode.CompletionItemKind.Value },
