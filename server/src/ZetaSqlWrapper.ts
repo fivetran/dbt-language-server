@@ -434,6 +434,7 @@ export class ZetaSqlWrapper {
         (await LanguageOptions.getLanguageFeaturesForVersion(LanguageVersion.VERSION_CURRENT)).forEach(f =>
           this.languageOptions?.enableLanguageFeature(f),
         );
+        this.languageOptions.options.reservedKeywords = ['QUALIFY'];
       } catch (e) {
         console.log(e instanceof Error ? e.stack : e);
       }

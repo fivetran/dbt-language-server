@@ -8,6 +8,15 @@ with recursive referrers as (
     select u.id as used_id, rf.referrer_id as referrer_id
     from `singular-vector-135519.dbt_ls_e2e_dataset.users` u
         inner join referrers rf on u.referrer_id = rf.user_id
+), test as (
+    WITH Produce AS
+    (SELECT 'kale' as item, 23 as purchases, 'vegetable' as category)
+
+    SELECT
+        item,
+        rank() OVER (PARTITION BY category ORDER BY purchases DESC) as rank
+    FROM Produce
+        qualify rank <= 3
 )
 
 select 
