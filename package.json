@@ -79,6 +79,11 @@
         "category": "dbtWizard"
       },
       {
+        "command": "dbtWizard.installDbtAdapters",
+        "title": "Install dbt Adapters",
+        "category": "dbtWizard"
+      },
+      {
         "command": "dbtWizard.restart",
         "title": "Restart dbtWizard",
         "category": "dbtWizard"

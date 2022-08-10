@@ -1,19 +1,30 @@
 import { PythonInfo } from 'dbt-language-server-common';
-import { extensions, WorkspaceFolder } from 'vscode';
+import { Event, Extension, extensions, Uri, WorkspaceFolder } from 'vscode';
 import { IExtensionApi, IProposedExtensionAPI } from './PythonApi';
 
 export class PythonExtension {
-  async getPythonInfo(workspaceFolder?: WorkspaceFolder): Promise<PythonInfo | undefined> {
+  extension: Extension<unknown>;
+
+  constructor() {
     const extension = extensions.getExtension('ms-python.python');
     if (!extension) {
-      return this.pythonNotFound();
+      throw new Error('Could not find Python extension');
     }
+    this.extension = extension;
 
-    if (!extension.isActive) {
-      await extension.activate();
-    }
+    this.activate().catch(e => console.log(`Error while activating Python extension: ${e instanceof Error ? e.message : String(e)}`));
+  }
 
-    const api = extension.exports as IExtensionApi & IProposedExtensionAPI;
+  async onDidChangeExecutionDetails(): Promise<Event<Uri | undefined>> {
+    await this.activate();
+
+    return (this.extension.exports as IExtensionApi).settings.onDidChangeExecutionDetails;
+  }
+
+  async getPythonInfo(workspaceFolder?: WorkspaceFolder): Promise<PythonInfo | undefined> {
+    await this.activate();
+
+    const api = this.extension.exports as IExtensionApi & IProposedExtensionAPI;
 
     const details = api.settings.getExecutionDetails(workspaceFolder?.uri);
     if (!details.execCommand) {
@@ -30,6 +41,12 @@ export class PythonExtension {
     const envDetails = await api.environment.getEnvironmentDetails(path);
 
     return { path, version: envDetails?.version };
+  }
+
+  async activate(): Promise<void> {
+    if (!this.extension.isActive) {
+      await this.extension.activate();
+    }
   }
 
   pythonNotFound(): undefined {

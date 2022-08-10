@@ -13,12 +13,13 @@ export class DbtLanguageClient implements Disposable {
   client: LanguageClient;
   disposables: Disposable[] = [];
   workspaceFolder?: WorkspaceFolder;
+  pythonExtension = new PythonExtension();
 
   constructor(
     port: number,
     outputChannelProvider: OutputChannelProvider,
     module: string,
-    dbtProjectUri: Uri,
+    private dbtProjectUri: Uri,
     private previewContentProvider: SqlPreviewContentProvider,
     private progressHandler: ProgressHandler,
     private statusHandler: StatusHandler,
@@ -50,18 +51,27 @@ export class DbtLanguageClient implements Disposable {
       this.client.onNotification('custom/updateQueryPreview', ({ uri, previewText }) => {
         this.previewContentProvider.updateText(uri as string, previewText as string);
       }),
+
       this.client.onNotification('custom/updateQueryPreviewDiagnostics', ({ uri, diagnostics }) => {
         this.previewContentProvider.updateDiagnostics(uri as string, diagnostics as Diagnostic[]);
       }),
+
       this.client.onNotification('dbtWizard/status', (statusNotification: StatusNotification) => {
         this.statusHandler.onStatusChanged(statusNotification);
       }),
+
       this.client.onNotification('dbtWizard/installLatestDbtLog', async (data: string) => {
         outputChannelProvider.getInstallLatestDbtChannel().append(data);
         await commands.executeCommand('workbench.action.focusActiveEditorGroup');
       }),
-      this.client.onNotification('dbtWizard/restart', () => {
-        this.restart();
+
+      this.client.onNotification('dbtWizard/installDbtAdapterLog', async (data: string) => {
+        outputChannelProvider.getInstallDbtAdaptersChannel().append(data);
+        await commands.executeCommand('workbench.action.focusActiveEditorGroup');
+      }),
+
+      this.client.onNotification('dbtWizard/restart', async () => {
+        await this.restart();
       }),
 
       this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),
@@ -83,8 +93,13 @@ export class DbtLanguageClient implements Disposable {
       console.log(`Client switched to state ${State[e.newState]}`);
     });
 
+    await this.initPythonParams();
+    (await this.pythonExtension.onDidChangeExecutionDetails())(() => this.restart());
+  }
+
+  async initPythonParams(): Promise<void> {
     const customInitParams: CustomInitParams = {
-      pythonInfo: await new PythonExtension().getPythonInfo(this.client.clientOptions.workspaceFolder),
+      pythonInfo: await this.pythonExtension.getPythonInfo(this.client.clientOptions.workspaceFolder),
       dbtCompiler: workspace.getConfiguration('dbtWizard').get('dbtCompiler', 'Auto') as DbtCompilerType,
     };
 
@@ -101,7 +116,9 @@ export class DbtLanguageClient implements Disposable {
     this.client.start().catch(e => console.log(`Error while starting server: ${e instanceof Error ? e.message : String(e)}`));
   }
 
-  restart(): void {
+  async restart(): Promise<void> {
+    await this.initPythonParams();
+    this.statusHandler.onRestart(this.dbtProjectUri.fsPath);
     this.client.restart().catch(error => this.client.error(`Restarting client failed`, error, 'force'));
   }
 

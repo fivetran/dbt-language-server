@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import { commands, DiagnosticCollection, ExtensionContext, languages, TextDocument, TextEditor, Uri, ViewColumn, window, workspace } from 'vscode';
+import { DBT_ADAPTERS } from './DbtAdapters';
 import { DbtLanguageClient } from './DbtLanguageClient';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';
@@ -123,9 +124,22 @@ export class ExtensionClient {
       }
     });
 
+    this.registerCommand('dbtWizard.installDbtAdapters', async () => {
+      const client = await this.getClientForActiveDocument();
+      if (client) {
+        const dbtAdapter = await window.showQuickPick(DBT_ADAPTERS, {
+          placeHolder: 'Select dbt adapter to install',
+        });
+
+        client.sendNotification('dbtWizard/installDbtAdapter', dbtAdapter);
+        this.outputChannelProvider.getInstallDbtAdaptersChannel().show();
+        await commands.executeCommand('workbench.action.focusActiveEditorGroup');
+      }
+    });
+
     this.registerCommand('dbtWizard.restart', async () => {
       const client = await this.getClientForActiveDocument();
-      client?.restart();
+      await client?.restart();
     });
   }
 
