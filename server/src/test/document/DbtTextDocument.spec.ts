@@ -25,7 +25,6 @@ describe('DbtTextDocument', () => {
   let document: DbtTextDocument;
   let mockModelCompiler: ModelCompiler;
   let mockJinjaParser: JinjaParser;
-  let mockDbtReady: boolean;
   let mockDbt: Dbt;
 
   const onCompilationErrorEmitter = new Emitter<string>();
@@ -43,9 +42,8 @@ describe('DbtTextDocument', () => {
 
     mockJinjaParser = mock(JinjaParser);
 
-    mockDbtReady = true;
     mockDbt = mock<Dbt>();
-    when(mockDbt.dbtReady).thenReturn(mockDbtReady);
+    when(mockDbt.dbtReady).thenReturn(true);
     when(mockDbt.onDbtReady).thenReturn(onDbtReadyEmitter.event);
 
     document = new DbtTextDocument(
@@ -202,16 +200,15 @@ describe('DbtTextDocument', () => {
 
   it('Should compile dbt document when dbt ready', async () => {
     // arrange
+    when(mockDbt.dbtReady).thenReturn(false).thenReturn(true);
     let compileCalls = 0;
     document.debouncedCompile = (): void => {
       compileCalls++;
     };
     document.requireCompileOnSave = true;
-    mockDbtReady = false;
 
     // act
     await document.didOpenTextDocument();
-    mockDbtReady = true;
     onDbtReadyEmitter.fire();
 
     // assert
