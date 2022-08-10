@@ -46,7 +46,7 @@ describe('DbtTextDocument', () => {
     mockDbtReady = true;
     mockDbt = mock<Dbt>();
     when(mockDbt.dbtReady).thenReturn(mockDbtReady);
-    when(mockDbt.onDbtReadyEmitter).thenReturn(onDbtReadyEmitter);
+    when(mockDbt.onDbtReady).thenReturn(onDbtReadyEmitter.event);
 
     document = new DbtTextDocument(
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
@@ -64,7 +64,6 @@ describe('DbtTextDocument', () => {
       instance(mockDbt),
       new DestinationState(),
     );
-    onDbtReadyEmitter.event(document.onDbtReady.bind(document));
   });
 
   describe('Debounce tests', () => {
