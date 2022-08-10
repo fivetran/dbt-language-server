@@ -1,5 +1,17 @@
 # Changelog
 
+## Version 0.7.0 (01/01/1970)
+## What's Changed
+* [Lock](https://code.visualstudio.com/updates/v1_60#_locked-editor-groups) query preview group automatically
+* Fix diagnostics issue after deleting/creating file
+* Add Windows support
+* Show information about python and dbt and dbt adapters in status bar
+* Add the ability to install dbt, dbt adapters and choose python environment from status bar
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.6.3...v0.7.0
+---
+
 ## Version 0.6.3 (26/07/2022)
 ## What's Changed
 * Fix issue with `_dbt_max_partition` dbt specific keyword.
