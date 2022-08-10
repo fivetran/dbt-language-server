@@ -1,5 +1,4 @@
 import { PromiseWithChild } from 'child_process';
-import { deferred } from 'dbt-language-server-common';
 import { _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { FeatureFinder } from '../FeatureFinder';
@@ -13,7 +12,6 @@ import { DbtCompileJob } from './DbtCompileJob';
 export class DbtCli extends Dbt {
   static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
   pythonPathForCli?: string;
-  readyDeferred = deferred<void>();
 
   constructor(private featureFinder: FeatureFinder, connection: _Connection, progressReporter: ProgressReporter) {
     super(connection, progressReporter);
@@ -46,8 +44,6 @@ export class DbtCli extends Dbt {
       }
     }
 
-    this.readyDeferred.resolve();
-
     this.compile().catch(e => {
       console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
     });
@@ -63,10 +59,6 @@ export class DbtCli extends Dbt {
 
   refresh(): void {
     // Nothing to refresh
-  }
-
-  isReady(): Promise<void> {
-    return this.readyDeferred.promise;
   }
 
   getError(): string {

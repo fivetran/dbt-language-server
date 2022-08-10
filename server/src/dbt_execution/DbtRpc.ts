@@ -86,10 +86,6 @@ export class DbtRpc extends Dbt {
     await this.dbtRpcClient.pollOnceCompileResult(compileResponse.result.request_token);
   }
 
-  async isReady(): Promise<void> {
-    return this.dbtRpcServer.startDeferred.promise;
-  }
-
   async startDbtRpc(command: DbtCommand, port: number): Promise<void> {
     this.dbtRpcClient.setPort(port);
     await this.dbtRpcServer.startDbtRpc(command, this.dbtRpcClient);

@@ -20,8 +20,6 @@ export abstract class Dbt {
 
   abstract refresh(): void;
 
-  abstract isReady(): Promise<void>;
-
   async prepare(dbtProfileType?: string): Promise<void> {
     await this.prepareImplementation(dbtProfileType);
     this.dbtReady = true;
