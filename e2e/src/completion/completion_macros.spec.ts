@@ -1,10 +1,11 @@
 import { assertThat, defined } from 'hamjest';
 import { CompletionItem, CompletionItemKind, Position } from 'vscode';
 import { assertCompletions } from '../asserts';
-import { activateAndWait, getCustomDocUri, triggerCompletion, waitManifestJson } from '../helper';
+import { activateAndWaitManifestParsed, getAbsolutePath, getCustomDocUri, triggerCompletion } from '../helper';
 
 suite('Should suggest macros completions', () => {
   const PROJECT = 'postgres';
+  const PROJECT_ABSOLUTE_PATH = getAbsolutePath(PROJECT);
   const PROJECT_FILE_NAME = `${PROJECT}/models/active_users_orders_count.sql`;
 
   const MACROS_COMPLETIONS = [
@@ -15,8 +16,7 @@ suite('Should suggest macros completions', () => {
   test('Should suggest macros', async () => {
     // arrange
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
-    await activateAndWait(docUri);
-    await waitManifestJson(PROJECT);
+    await activateAndWaitManifestParsed(docUri, PROJECT_ABSOLUTE_PATH);
 
     // act
     const actualCompletionList = await triggerCompletion(docUri, new Position(0, 17));
@@ -31,9 +31,7 @@ suite('Should suggest macros completions', () => {
 
   test('Should suggest macros from package', async () => {
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
-
-    await activateAndWait(docUri);
-    await waitManifestJson(PROJECT);
+    await activateAndWaitManifestParsed(docUri, PROJECT_ABSOLUTE_PATH);
 
     await assertCompletions(docUri, new Position(0, 89), getMacrosCompletionList());
   });
