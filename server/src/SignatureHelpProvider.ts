@@ -13,7 +13,7 @@ export interface SignatureInfo {
 
 export class SignatureHelpProvider {
   onSignatureHelp(text: string): SignatureHelp | undefined {
-    const index = HelpProviderWords.findIndex(w => w.name === text);
+    const index = HelpProviderWords.findIndex(w => w.name === text.toLocaleLowerCase());
     if (index !== -1) {
       return {
         signatures: HelpProviderWords[index].signatures.map<SignatureInformation>(s => ({
