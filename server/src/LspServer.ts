@@ -210,6 +210,7 @@ export class LspServer {
   initializeNotifications(): void {
     this.connection.onNotification('custom/dbtCompile', this.onDbtCompile.bind(this));
     this.connection.onNotification('dbtWizard/installLatestDbt', this.installLatestDbt.bind(this));
+    this.connection.onNotification('dbtWizard/installDbtAdapter', this.installDbtAdapter.bind(this));
   }
 
   async onInitialized(): Promise<void> {
@@ -318,6 +319,25 @@ export class LspServer {
       };
 
       const installResult = await DbtUtilitiesInstaller.installDbt(pythonPath, 'bigquery', sendInstallLatestDbtLog, sendInstallLatestDbtLog);
+
+      if (installResult.isOk()) {
+        this.connection
+          .sendNotification('dbtWizard/restart')
+          .catch(e => console.log(`Failed to send restart notification: ${e instanceof Error ? e.message : String(e)}`));
+      }
+    }
+  }
+
+  async installDbtAdapter(dbtAdapter: string): Promise<void> {
+    const pythonPath = this.featureFinder?.getPythonPath();
+    if (pythonPath) {
+      const sendInstallDbtAdapterLog = (data: string): void => {
+        this.connection
+          .sendNotification('dbtWizard/installDbtAdapterLog', data)
+          .catch(e => console.log(`Failed to send installDbtAdapterLog notification: ${e instanceof Error ? e.message : String(e)}`));
+      };
+
+      const installResult = await DbtUtilitiesInstaller.installDbtAdapter(pythonPath, dbtAdapter, sendInstallDbtAdapterLog, sendInstallDbtAdapterLog);
 
       if (installResult.isOk()) {
         this.connection

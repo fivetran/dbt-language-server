@@ -12,7 +12,7 @@ export class HoverProvider {
   signatureHelpProvider = new SignatureHelpProvider();
 
   hoverOnText(text: string, ast: AnalyzeResponse | undefined): Hover | null {
-    const index = HelpProviderWords.findIndex(w => w.name === text);
+    const index = HelpProviderWords.findIndex(w => w.name === text.toLocaleLowerCase());
     if (index !== -1) {
       const [firstSignature] = HelpProviderWords[index].signatures;
       return {

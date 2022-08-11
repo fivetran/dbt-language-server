@@ -3,7 +3,7 @@
   "displayName": "dbt Wizard",
   "description": "This extension will help you work with dbt",
   "icon": "images/Icon.png",
-  "version": "0.6.3",
+  "version": "0.7.0",
   "publisher": "Fivetran",
   "license": "MIT",
   "preview": true,
@@ -79,6 +79,11 @@
         "category": "dbtWizard"
       },
       {
+        "command": "dbtWizard.installDbtAdapters",
+        "title": "Install dbt Adapters",
+        "category": "dbtWizard"
+      },
+      {
         "command": "dbtWizard.restart",
         "title": "Restart dbtWizard",
         "category": "dbtWizard"
@@ -146,20 +151,20 @@
   "devDependencies": {
     "@size-limit/file": "^8.0.0",
     "@types/mocha": "^9.1.1",
-    "@types/node": "^18.6.3",
-    "@typescript-eslint/eslint-plugin": "^5.32.0",
-    "@typescript-eslint/parser": "^5.32.0",
+    "@types/node": "^18.7.1",
+    "@typescript-eslint/eslint-plugin": "^5.33.0",
+    "@typescript-eslint/parser": "^5.33.0",
     "eslint": "^8.21.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-promise": "^6.0.0",
-    "eslint-plugin-sonarjs": "^0.14.0",
+    "eslint-plugin-sonarjs": "^0.15.0",
     "eslint-plugin-unicorn": "^43.0.2",
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",
     "merge-options": "^3.0.4",
     "mocha": "^10.0.0",
     "prettier": "^2.7.1",
-    "prettier-plugin-organize-imports": "^3.0.1",
+    "prettier-plugin-organize-imports": "^3.0.3",
     "size-limit": "^8.0.0",
     "ts-loader": "^9.3.1",
     "ts-mockito": "^2.6.1",

@@ -5,10 +5,10 @@
     "vscode": "^1.52.0"
   },
   "devDependencies": {
-    "@google-cloud/bigquery": "^6.0.1",
+    "@google-cloud/bigquery": "^6.0.2",
     "@types/glob": "^7.2.0",
     "@types/pg": "^8.6.5",
-    "@types/vscode": "^1.69.0",
+    "@types/vscode": "^1.70.0",
     "@vscode/test-electron": "^2.1.5",
     "clipboardy": "^2.3.0",
     "dbt-language-server-common": "file:../common",

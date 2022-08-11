@@ -6,6 +6,10 @@ export class StatusHandler {
   private projectStatuses: Map<string, ProjectStatus> = new Map();
   private statusItems = new LanguageStatusItems();
 
+  onRestart(projectPath: string): void {
+    this.getProjectStatus(projectPath).setBusy();
+  }
+
   updateLanguageItems(projectPath: string): void {
     this.getProjectStatus(projectPath).updateStatusUi();
   }

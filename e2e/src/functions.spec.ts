@@ -10,7 +10,7 @@ suite('Functions', () => {
     // arrange
     await activateAndWaitManifestParsed(DOC_URI, TEST_FIXTURE_PATH);
 
-    await setTestContent('select max(', false);
+    await setTestContent('select Max(', false);
 
     // act
     const help = await vscode.commands.executeCommand<vscode.SignatureHelp>(
@@ -34,7 +34,7 @@ suite('Functions', () => {
     // arrange
     await activateAndWaitManifestParsed(DOC_URI, TEST_FIXTURE_PATH);
 
-    await setTestContent('select avg()', false);
+    await setTestContent('select Avg()', false);
 
     // act
     await vscode.commands.executeCommand('editor.afterFunctionCompletion');
@@ -48,7 +48,7 @@ suite('Functions', () => {
     // arrange
     await activateAndWaitManifestParsed(DOC_URI, TEST_FIXTURE_PATH);
 
-    await setTestContent('select coalesce', false);
+    await setTestContent('select Coalesce', false);
 
     // act
     const hovers = await vscode.commands.executeCommand<Hover[]>('vscode.executeHoverProvider', DOC_URI, new vscode.Position(0, 8));
