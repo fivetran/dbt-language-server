@@ -43,7 +43,6 @@ window.onDidChangeActiveTextEditor(e => {
 
 let previewPromiseResolve: voidFunc | undefined;
 let documentPromiseResolve: voidFunc | undefined;
-let expectedEditorText: string | undefined;
 
 let tempModelIndex = 0;
 
@@ -77,9 +76,7 @@ function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
     ) {
       return;
     }
-    if (expectedEditorText === undefined || getPreviewText() === expectedEditorText) {
-      previewPromiseResolve();
-    }
+    previewPromiseResolve();
   } else if (e.document === doc && documentPromiseResolve) {
     documentPromiseResolve();
   }
@@ -100,13 +97,11 @@ export async function waitDocumentModification(func: () => Promise<void>): Promi
   await waitWithTimeout(promise, 1000);
 }
 
-export async function waitPreviewText(text: string): Promise<void> {
-  await createChangePromise('preview', text);
-}
-
-export async function waitPreviewModification(func: () => Promise<void>): Promise<void> {
+export async function waitPreviewModification(func?: () => Promise<void>): Promise<void> {
   const promise = createChangePromise('preview');
-  await func();
+  if (func) {
+    await func();
+  }
   await promise;
 }
 
@@ -219,14 +214,13 @@ async function edit(callback: (editBuilder: TextEditorEdit) => void): Promise<vo
   });
 }
 
-async function createChangePromise(type: 'preview' | 'document', expectedText?: string): Promise<void> {
+async function createChangePromise(type: 'preview' | 'document'): Promise<void> {
   return new Promise<void>(resolve => {
     if (type === 'preview') {
       previewPromiseResolve = resolve;
     } else {
       documentPromiseResolve = resolve;
     }
-    expectedEditorText = expectedText;
   });
 }
 

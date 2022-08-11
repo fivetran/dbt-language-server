@@ -1,5 +1,5 @@
 import { assertThat } from 'hamjest';
-import { activateAndWait, executeInstallLatestDbt, getCustomDocUri, getLatestDbtVersion, getPreviewText, waitPreviewText } from './helper';
+import { activateAndWait, executeInstallLatestDbt, getCustomDocUri, getLatestDbtVersion, getPreviewText, waitPreviewModification } from './helper';
 
 suite('Custom version', () => {
   const DOC_URI = getCustomDocUri('special-python-settings/models/version.sql');
@@ -17,7 +17,7 @@ suite('Custom version', () => {
     assertThat(getPreviewText(), '1.0.1');
     await executeInstallLatestDbt();
 
-    await waitPreviewText(latestVersion);
+    await waitPreviewModification();
 
     assertThat(getPreviewText(), latestVersion);
   }).timeout('100s');
