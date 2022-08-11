@@ -27,6 +27,7 @@
     "datetime",
     "dbname",
     "deps",
+    "devcontainers",
     "dremio",
     "duckdb",
     "dylib",
