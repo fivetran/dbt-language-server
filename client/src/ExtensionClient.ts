@@ -61,8 +61,9 @@ export class ExtensionClient {
           return;
         }
 
-        this.previewContentProvider.changeActiveDocument(e.document.uri);
         if (SUPPORTED_LANG_IDS.includes(e.document.languageId)) {
+          this.previewContentProvider.changeActiveDocument(e.document.uri);
+
           const projectFolder = await this.getDbtProjectUri(e.document.uri);
           if (projectFolder) {
             this.statusHandler.updateLanguageItems(projectFolder.path);
@@ -202,14 +203,7 @@ export class ExtensionClient {
       this.previewContentProvider.updatePreviewDiagnostics(this.getDiagnostics());
     });
 
-    const eventRegistration = window.onDidChangeActiveTextEditor(e => {
-      if (!e || e.document.uri.toString() === SqlPreviewContentProvider.URI.toString()) {
-        return;
-      }
-      this.previewContentProvider.changeActiveDocument(e.document.uri);
-    });
-
-    context.subscriptions.push(this.previewContentProvider, commandRegistration, providerRegistrations, eventRegistration);
+    context.subscriptions.push(this.previewContentProvider, commandRegistration, providerRegistrations);
   }
 
   getDiagnostics(): DiagnosticCollection | undefined {
