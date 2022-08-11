@@ -35,9 +35,9 @@ export class DbtLanguageClient implements Disposable {
       diagnosticCollectionName: 'dbtWizard',
       synchronize: {
         fileEvents: [
-          workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/dbt_project.yml'), undefined, undefined, true),
-          workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/manifest.json'), undefined, undefined, true),
-          workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/packages.yml'), undefined, undefined, true),
+          workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/dbt_project.yml'), false, false, true),
+          workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/manifest.json'), false, false, true),
+          workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/packages.yml'), false, false, true),
         ],
       },
       outputChannel: outputChannelProvider.getMainLogChannel(),
