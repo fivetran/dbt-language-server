@@ -434,6 +434,7 @@ export class ZetaSqlWrapper {
         (await LanguageOptions.getLanguageFeaturesForVersion(LanguageVersion.VERSION_CURRENT)).forEach(f =>
           this.languageOptions?.enableLanguageFeature(f),
         );
+        // https://github.com/google/zetasql/issues/115#issuecomment-1210881670
         this.languageOptions.options.reservedKeywords = ['QUALIFY'];
       } catch (e) {
         console.log(e instanceof Error ? e.stack : e);
