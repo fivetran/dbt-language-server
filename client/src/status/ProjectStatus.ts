@@ -18,7 +18,7 @@ export class ProjectStatus {
   private dbtData?: StatusItemData;
   private dbtAdaptersData?: StatusItemData;
 
-  constructor(private items: LanguageStatusItems) {
+  constructor(private projectPath: string, private items: LanguageStatusItems) {
     this.updateStatusUi();
   }
 
@@ -66,6 +66,7 @@ export class ProjectStatus {
       this.items.dbtAdapters.setState(this.dbtAdaptersData.severity, this.dbtAdaptersData.text, this.dbtAdaptersData.detail, {
         command: 'dbtWizard.installDbtAdapters',
         title: 'Install dbt Adapters',
+        arguments: [this.projectPath],
       });
     }
   }
@@ -143,6 +144,6 @@ export class ProjectStatus {
   }
 
   installDbtCommand(title: string): Command {
-    return { command: 'dbtWizard.installLatestDbt', title };
+    return { command: 'dbtWizard.installLatestDbt', title, arguments: [this.projectPath] };
   }
 }

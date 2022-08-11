@@ -42,22 +42,22 @@ export class ExtensionClient {
       workspace.onDidOpenTextDocument(this.onDidOpenTextDocument.bind(this)),
       workspace.onDidChangeWorkspaceFolders(event => {
         for (const folder of event.removed) {
-          const client = this.clients.get(folder.uri.toString());
+          const client = this.clients.get(folder.uri.path);
           if (client) {
-            this.clients.delete(folder.uri.toString());
+            this.clients.delete(folder.uri.path);
             client.stop().catch(e => console.log(`Error while stopping client: ${e instanceof Error ? e.message : String(e)}`));
           }
         }
       }),
 
       workspace.onDidChangeTextDocument(e => {
-        if (e.document.uri.toString() === SqlPreviewContentProvider.URI.toString()) {
+        if (e.document.uri.path === SqlPreviewContentProvider.URI.path) {
           this.previewContentProvider.updatePreviewDiagnostics(this.getDiagnostics());
         }
       }),
 
       window.onDidChangeActiveTextEditor(async e => {
-        if (!e || e.document.uri.toString() === SqlPreviewContentProvider.URI.toString()) {
+        if (!e || e.document.uri.path === SqlPreviewContentProvider.URI.path) {
           return;
         }
 
@@ -108,25 +108,27 @@ export class ExtensionClient {
       await commands.executeCommand('editor.action.triggerParameterHints');
     });
 
-    this.registerCommand('dbtWizard.installLatestDbt', async (skipDialog?: unknown) => {
-      const answer =
-        skipDialog === undefined
-          ? await window.showInformationMessage('Are you sure you want to install the latest version of dbt?', { modal: true }, 'Yes', 'No')
-          : 'Yes';
-      if (answer === 'Yes') {
-        const client = await this.getClientForActiveDocument();
-        if (client) {
+    this.registerCommand('dbtWizard.installLatestDbt', async (projectPath?: unknown, skipDialog?: unknown) => {
+      const client = projectPath === undefined ? await this.getClientForActiveDocument() : this.getClientByPath(projectPath as string);
+      if (client) {
+        const answer =
+          skipDialog === undefined
+            ? await window.showInformationMessage('Are you sure you want to install the latest version of dbt?', { modal: true }, 'Yes', 'No')
+            : 'Yes';
+        if (answer === 'Yes') {
           client.sendNotification('dbtWizard/installLatestDbt');
           this.outputChannelProvider.getInstallLatestDbtChannel().show();
           await commands.executeCommand('workbench.action.focusActiveEditorGroup');
-        } else {
-          console.log('Client not found while installing latest dbt');
         }
+      } else {
+        window.showWarningMessage('First, open the model from the dbt project.').then(undefined, e => {
+          console.log(`Error while sending notification: ${e instanceof Error ? e.message : String(e)}`);
+        });
       }
     });
 
-    this.registerCommand('dbtWizard.installDbtAdapters', async () => {
-      const client = await this.getClientForActiveDocument();
+    this.registerCommand('dbtWizard.installDbtAdapters', async (projectPath?: unknown) => {
+      const client = projectPath === undefined ? await this.getClientForActiveDocument() : this.getClientByPath(projectPath as string);
       if (client) {
         const dbtAdapter = await window.showQuickPick(DBT_ADAPTERS, {
           placeHolder: 'Select dbt adapter to install',
@@ -164,14 +166,18 @@ export class ExtensionClient {
       return undefined;
     }
 
-    const uri = document.uri.toString() === SqlPreviewContentProvider.URI.toString() ? this.previewContentProvider.activeDocUri : document.uri;
+    const uri = document.uri.path === SqlPreviewContentProvider.URI.path ? this.previewContentProvider.activeDocUri : document.uri;
 
-    return this.getClient(uri);
+    return this.getClientByUri(uri);
   }
 
-  async getClient(uri: Uri): Promise<DbtLanguageClient | undefined> {
-    const projectFolder = await this.getDbtProjectUri(uri);
-    return projectFolder ? this.clients.get(projectFolder.toString()) : undefined;
+  async getClientByUri(uri: Uri): Promise<DbtLanguageClient | undefined> {
+    const projectUri = await this.getDbtProjectUri(uri);
+    return projectUri ? this.getClientByPath(projectUri.path) : undefined;
+  }
+
+  getClientByPath(projectPath: string): DbtLanguageClient | undefined {
+    return this.clients.get(projectPath);
   }
 
   registerCommand(command: string, callback: (...args: unknown[]) => unknown): void {
@@ -181,7 +187,7 @@ export class ExtensionClient {
   registerSqlPreviewContentProvider(context: ExtensionContext): void {
     const providerRegistrations = workspace.registerTextDocumentContentProvider(SqlPreviewContentProvider.SCHEME, this.previewContentProvider);
     const commandRegistration = commands.registerTextEditorCommand('dbtWizard.showQueryPreview', async (editor: TextEditor) => {
-      if (editor.document.uri.toString() === SqlPreviewContentProvider.URI.toString()) {
+      if (editor.document.uri.path === SqlPreviewContentProvider.URI.path) {
         return;
       }
 
@@ -221,7 +227,7 @@ export class ExtensionClient {
       return;
     }
 
-    if (!this.clients.has(projectUri.toString())) {
+    if (!this.clients.has(projectUri.path)) {
       const client = new DbtLanguageClient(
         6009 + this.clients.size,
         this.outputChannelProvider,
@@ -237,7 +243,7 @@ export class ExtensionClient {
       void this.progressHandler.begin();
 
       client.start();
-      this.clients.set(projectUri.toString(), client);
+      this.clients.set(projectUri.path, client);
     }
   }
 
@@ -248,7 +254,7 @@ export class ExtensionClient {
       return undefined;
     }
 
-    const projectFolder = [...this.clients.keys()].find(k => fileUri.toString().startsWith(k));
+    const projectFolder = [...this.clients.keys()].find(k => fileUri.path.startsWith(k));
     if (projectFolder) {
       return Uri.parse(projectFolder);
     }
