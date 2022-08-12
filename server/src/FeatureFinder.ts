@@ -16,14 +16,14 @@ export class FeatureFinder {
 
   versionInfo?: DbtVersionInfo;
   availableCommandsPromise: Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]>;
-  dbtPackagesPathPromise: Promise<string | undefined>;
+  dbtPackagesPathPromise: Promise<boolean>;
 
   dbtCommandFactory: DbtCommandFactory;
 
   constructor(public pythonInfo: PythonInfo | undefined, private dbtCommandExecutor: DbtCommandExecutor) {
     this.dbtCommandFactory = new DbtCommandFactory(pythonInfo?.path);
     this.availableCommandsPromise = this.getAvailableDbt();
-    this.dbtPackagesPathPromise = this.getPackagesYmlPath();
+    this.dbtPackagesPathPromise = this.packagesYmlExists();
   }
 
   getPythonPath(): string | undefined {
@@ -36,11 +36,13 @@ export class FeatureFinder {
       : undefined;
   }
 
-  async getPackagesYmlPath(): Promise<string | undefined> {
-    return fsPromises
-      .stat(DbtRepository.DBT_PACKAGES_FILE_NAME)
-      .then(_ => DbtRepository.DBT_PACKAGES_FILE_NAME)
-      .catch(_ => undefined);
+  async packagesYmlExists(): Promise<boolean> {
+    try {
+      await fsPromises.stat(DbtRepository.DBT_PACKAGES_FILE_NAME);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async getAvailableDbt(): Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]> {

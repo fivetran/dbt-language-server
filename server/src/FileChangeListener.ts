@@ -1,5 +1,5 @@
 import path = require('path');
-import { DidChangeWatchedFilesParams, Emitter, Event } from 'vscode-languageserver';
+import { DidChangeWatchedFilesParams, Emitter, Event, FileChangeType } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
@@ -10,7 +10,7 @@ export class FileChangeListener {
   private static PACKAGES_UPDATE_DEBOUNCE_TIMEOUT = 1000;
 
   private onDbtProjectYmlChangedEmitter = new Emitter<void>();
-  private onDbtPackagesYmlChangedEmitter = new Emitter<void>();
+  private onDbtPackagesYmlChangedEmitter = new Emitter<FileChangeType>();
   private onDbtPackagesChangedEmitter = new Emitter<void>();
 
   constructor(
@@ -24,7 +24,7 @@ export class FileChangeListener {
     return this.onDbtProjectYmlChangedEmitter.event;
   }
 
-  get onDbtPackagesYmlChanged(): Event<void> {
+  get onDbtPackagesYmlChanged(): Event<FileChangeType> {
     return this.onDbtPackagesYmlChangedEmitter.event;
   }
 
@@ -53,7 +53,7 @@ export class FileChangeListener {
       } else if (changePath === manifestJsonPath) {
         this.updateManifestNodes();
       } else if (changePath === packagesYmlPath) {
-        this.onDbtPackagesYmlChangedEmitter.fire();
+        this.onDbtPackagesYmlChangedEmitter.fire(change.type);
       } else if (packagesPaths.some(p => changePath === p)) {
         this.debouncedDbtPackagesChangedEmitter();
       }

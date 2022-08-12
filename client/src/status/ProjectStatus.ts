@@ -18,6 +18,8 @@ interface StatusItemData {
 }
 
 export class ProjectStatus {
+  static readonly PACKAGES_YML = 'packages.yml';
+
   private pythonData?: StatusItemData;
   private dbtData?: StatusItemData;
   private dbtAdaptersData?: StatusItemData;
@@ -42,10 +44,18 @@ export class ProjectStatus {
   }
 
   updateStatusData(status: StatusNotification): void {
-    this.updatePythonStatusItemData(status.pythonStatus);
-    this.updateDbtStatusItemData(status.dbtStatus);
-    this.updateDbtAdaptersStatusItemData(status.dbtStatus.versionInfo?.installedAdapters ?? []);
-    this.updateDbtPackagesStatusItemData(status.packagesStatus);
+    if (status.pythonStatus) {
+      this.updatePythonStatusItemData(status.pythonStatus);
+    }
+
+    if (status.dbtStatus) {
+      this.updateDbtStatusItemData(status.dbtStatus);
+      this.updateDbtAdaptersStatusItemData(status.dbtStatus.versionInfo?.installedAdapters ?? []);
+    }
+
+    if (status.packagesStatus) {
+      this.updateDbtPackagesStatusItemData(status.packagesStatus);
+    }
   }
 
   private updatePythonUi(): void {
@@ -160,16 +170,16 @@ export class ProjectStatus {
   }
 
   private updateDbtPackagesStatusItemData(packagesStatus: PackagesStatus): void {
-    this.dbtPackagesData = packagesStatus.configPath
+    this.dbtPackagesData = packagesStatus.packagesYmlFound
       ? {
           severity: LanguageStatusSeverity.Information,
-          text: packagesStatus.configPath,
+          text: ProjectStatus.PACKAGES_YML,
           command: { command: 'dbtWizard.openOrCreatePackagesYml', title: 'Open Packages Config', arguments: [this.projectPath] },
         }
       : {
           severity: LanguageStatusSeverity.Information,
-          text: 'No packages.yml',
-          command: { command: 'dbtWizard.openOrCreatePackagesYml', title: 'Create packages.yml', arguments: [this.projectPath] },
+          text: `No ${ProjectStatus.PACKAGES_YML}`,
+          command: { command: 'dbtWizard.openOrCreatePackagesYml', title: `Create ${ProjectStatus.PACKAGES_YML}`, arguments: [this.projectPath] },
         };
   }
 

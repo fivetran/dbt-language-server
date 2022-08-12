@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { CustomInitParams, DbtCompilerType, deferred, getStringVersion, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
+import { CustomInitParams, DbtCompilerType, deferred, getStringVersion, TelemetryEvent } from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
 import { homedir } from 'os';
 import { performance } from 'perf_hooks';
@@ -64,6 +64,7 @@ import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { ProgressReporter } from './ProgressReporter';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
+import { StatusSender } from './StatusSender';
 import path = require('path');
 
 export class LspServer {
@@ -75,6 +76,7 @@ export class LspServer {
   workspaceFolder: string;
   hasConfigurationCapability = false;
   featureFinder?: FeatureFinder;
+  statusSender?: StatusSender;
   dbt?: Dbt;
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
@@ -117,6 +119,7 @@ export class LspServer {
     process.on('uncaughtException', this.onUncaughtException.bind(this));
     process.on('SIGTERM', () => this.onShutdown());
     process.on('SIGINT', () => this.onShutdown());
+    this.statusSender = new StatusSender(this.connection, this.workspaceFolder, this.featureFinder, this.fileChangeListener);
 
     this.fileChangeListener.onInit();
 
@@ -223,7 +226,7 @@ export class LspServer {
     );
     const dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
 
-    await Promise.all([this.dbt?.prepare(dbtProfileType).then(_ => this.sendStatus()), this.prepareDestination(profileResult)]);
+    await Promise.all([this.dbt?.prepare(dbtProfileType).then(_ => this.statusSender?.sendStatus()), this.prepareDestination(profileResult)]);
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime);
   }
@@ -249,24 +252,6 @@ export class LspServer {
       .catch(e => console.log(`Error while registering DidDeleteFiles notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
-  async sendStatus(): Promise<void> {
-    const statusNotification: StatusNotification = {
-      projectPath: this.workspaceFolder,
-      pythonStatus: {
-        path: this.featureFinder?.getPythonPath(),
-      },
-      dbtStatus: {
-        versionInfo: this.featureFinder?.versionInfo,
-      },
-      packagesStatus: {
-        configPath: await this.featureFinder?.dbtPackagesPathPromise,
-      },
-    };
-
-    this.connection
-      .sendNotification('dbtWizard/status', statusNotification)
-      .catch(e => console.log(`Failed to send status notification: ${e instanceof Error ? e.message : String(e)}`));
-  }
   async prepareDestination(profileResult: Result<DbtProfileSuccess, DbtProfileError>): Promise<void> {
     if (LspServer.ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) && profileResult.isOk() && profileResult.value.dbtProfile) {
       const bigQueryContextInfo = await BigQueryContext.createContext(

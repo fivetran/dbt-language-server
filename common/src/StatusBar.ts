@@ -4,9 +4,9 @@ export interface PythonStatus {
 
 export interface StatusNotification {
   projectPath: string;
-  pythonStatus: PythonStatus;
-  dbtStatus: DbtStatus;
-  packagesStatus: PackagesStatus;
+  pythonStatus?: PythonStatus;
+  dbtStatus?: DbtStatus;
+  packagesStatus?: PackagesStatus;
 }
 
 export interface DbtStatus {
@@ -14,7 +14,7 @@ export interface DbtStatus {
 }
 
 export interface PackagesStatus {
-  configPath?: string;
+  packagesYmlFound: boolean;
 }
 
 export interface DbtVersionInfo {

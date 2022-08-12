@@ -37,7 +37,7 @@ export class DbtLanguageClient implements Disposable {
         fileEvents: [
           workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/dbt_project.yml'), false, false, true),
           workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/manifest.json'), false, false, true),
-          workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/packages.yml'), false, false, true),
+          workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/packages.yml')),
         ],
       },
       outputChannel: outputChannelProvider.getMainLogChannel(),
