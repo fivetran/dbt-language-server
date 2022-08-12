@@ -74,8 +74,7 @@ jobs:
           key: ${{ env.FILE_NAME }}
 
   run-e2e-tests:
-    if: github.actor != 'dependabot'
-
+    if: github.actor != 'dependabot[bot]'
     needs: test-and-package
 
     strategy:
