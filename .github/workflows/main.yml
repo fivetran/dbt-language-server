@@ -75,6 +75,7 @@ jobs:
 
   run-e2e-tests:
     if: github.actor != 'dependabot'
+
     needs: test-and-package
 
     strategy:
