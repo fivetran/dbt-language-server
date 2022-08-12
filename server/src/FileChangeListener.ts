@@ -13,12 +13,18 @@ export class FileChangeListener {
   private onDbtPackagesYmlChangedEmitter = new Emitter<FileChangeType>();
   private onDbtPackagesChangedEmitter = new Emitter<void>();
 
+  private dbtProjectYmlPath: string;
+  private packagesYmlPath: string;
+
   constructor(
     private workspaceFolder: string,
     private dbtProject: DbtProject,
     private manifestParser: ManifestParser,
     private dbtRepository: DbtRepository,
-  ) {}
+  ) {
+    this.dbtProjectYmlPath = path.resolve(this.workspaceFolder, DbtRepository.DBT_PROJECT_FILE_NAME);
+    this.packagesYmlPath = path.resolve(this.workspaceFolder, DbtRepository.DBT_PACKAGES_FILE_NAME);
+  }
 
   get onDbtProjectYmlChanged(): Event<void> {
     return this.onDbtProjectYmlChangedEmitter.event;
@@ -38,21 +44,19 @@ export class FileChangeListener {
   }
 
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
-    const dbtProjectYmlPath = path.resolve(this.workspaceFolder, DbtRepository.DBT_PROJECT_FILE_NAME);
     const manifestJsonPath = path.resolve(this.workspaceFolder, this.dbtRepository.dbtTargetPath, DbtRepository.DBT_MANIFEST_FILE_NAME);
-    const packagesYmlPath = path.resolve(this.workspaceFolder, DbtRepository.DBT_PACKAGES_FILE_NAME);
     const packagesPaths = this.dbtRepository.packagesInstallPaths.map(p => path.resolve(this.workspaceFolder, p));
 
     for (const change of params.changes) {
       const changePath = URI.parse(change.uri).fsPath;
-      if (changePath === dbtProjectYmlPath) {
+      if (changePath === this.dbtProjectYmlPath) {
         this.dbtProject.setParsedProjectOutdated();
         this.onDbtProjectYmlChangedEmitter.fire();
         this.updateDbtProjectConfig();
         this.updateManifestNodes();
       } else if (changePath === manifestJsonPath) {
         this.updateManifestNodes();
-      } else if (changePath === packagesYmlPath) {
+      } else if (changePath === this.packagesYmlPath) {
         this.onDbtPackagesYmlChangedEmitter.fire(change.type);
       } else if (packagesPaths.some(p => changePath === p)) {
         this.debouncedDbtPackagesChangedEmitter();
