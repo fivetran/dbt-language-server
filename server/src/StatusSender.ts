@@ -11,9 +11,12 @@ export class StatusSender {
     private fileChangeListener: FileChangeListener,
   ) {
     this.fileChangeListener.onDbtPackagesYmlChanged(e => this.onDbtPackagesYmlChanged(e));
+    this.featureFinder.packagesYmlExistsPromise
+      .then(packagesYmlFound => this.sendPackagesStatus(packagesYmlFound))
+      .catch(e => console.log(`Error while finding packages.yml: ${e instanceof Error ? e.message : String(e)}`));
   }
 
-  async sendStatus(): Promise<void> {
+  sendStatus(): void {
     const statusNotification: StatusNotification = {
       projectPath: this.projectPath,
       pythonStatus: {
@@ -21,9 +24,6 @@ export class StatusSender {
       },
       dbtStatus: {
         versionInfo: this.featureFinder.versionInfo,
-      },
-      packagesStatus: {
-        packagesYmlFound: await this.featureFinder.dbtPackagesPathPromise,
       },
     };
 

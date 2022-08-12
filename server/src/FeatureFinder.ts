@@ -16,14 +16,14 @@ export class FeatureFinder {
 
   versionInfo?: DbtVersionInfo;
   availableCommandsPromise: Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]>;
-  dbtPackagesPathPromise: Promise<boolean>;
+  packagesYmlExistsPromise: Promise<boolean>;
 
   dbtCommandFactory: DbtCommandFactory;
 
   constructor(public pythonInfo: PythonInfo | undefined, private dbtCommandExecutor: DbtCommandExecutor) {
     this.dbtCommandFactory = new DbtCommandFactory(pythonInfo?.path);
     this.availableCommandsPromise = this.getAvailableDbt();
-    this.dbtPackagesPathPromise = this.packagesYmlExists();
+    this.packagesYmlExistsPromise = this.packagesYmlExists();
   }
 
   getPythonPath(): string | undefined {
