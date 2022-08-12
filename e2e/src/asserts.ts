@@ -65,6 +65,7 @@ export async function assertCompletions(
   triggerChar?: string,
 ): Promise<void> {
   const actualCompletionList = await triggerCompletion(docUri, position, triggerChar);
+  console.log(`Actual completion list: ${actualCompletionList.items.map<string>(c => c.insertText?.toString() ?? '').join(',')}`);
 
   assertThat(actualCompletionList.items.length, greaterThanOrEqualTo(expectedCompletionList.length));
   expectedCompletionList.forEach((expectedItem, i) => {
