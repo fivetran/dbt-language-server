@@ -6,7 +6,7 @@ import { ProgressReporter } from '../ProgressReporter';
 import { DbtCommand } from './commands/DbtCommand';
 import { Dbt } from './Dbt';
 import { DbtCompileJob } from './DbtCompileJob';
-import { CompileResponse, DbtRpcClient } from './DbtRpcClient';
+import { DbtRpcClient } from './DbtRpcClient';
 import { DbtRpcCompileJob } from './DbtRpcCompileJob';
 import { DbtRpcServer } from './DbtRpcServer';
 
@@ -59,31 +59,14 @@ export class DbtRpc extends Dbt {
       } catch (e) {
         this.finishWithError(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
       }
-
-      // We need to wait for initial compile to be finished.
-      // Compilation of some model with '--select' key may
-      // not compile models from which compiled one is dependant.
-      // Despite awaiting of initial compile it does not block
-      // dbt completions and definitions provisioning.
-      await this.doInitialCompile();
+      this.doInitialCompile();
     }
   }
 
-  async doInitialCompile(): Promise<void> {
-    let compileResponse: CompileResponse | undefined = undefined;
-    try {
-      compileResponse = await this.dbtRpcClient.compile();
-    } catch (e) {
+  doInitialCompile(): void {
+    this.dbtRpcClient.compile().catch(e => {
       console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
-      return;
-    }
-
-    if (!compileResponse || compileResponse.error) {
-      console.log(`Error while compiling project. ${compileResponse?.error?.data?.message ?? 'unknown error'}`);
-      return;
-    }
-
-    await this.dbtRpcClient.pollOnceCompileResult(compileResponse.result.request_token);
+    });
   }
 
   async startDbtRpc(command: DbtCommand, port: number): Promise<void> {
