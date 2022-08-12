@@ -39,7 +39,7 @@ export const MAX_VSCODE_INTEGER = 2147483647;
 export const MAX_RANGE = new Range(0, 0, MAX_VSCODE_INTEGER, MAX_VSCODE_INTEGER);
 export const MIN_RANGE = new Range(0, 0, 0, 0);
 
-export const LS_MORE_THAN_OPEN_DEBOUNCE = 1005;
+export const LS_MORE_THAN_OPEN_DEBOUNCE = 1100;
 
 workspace.onDidChangeTextDocument(onDidChangeTextDocument);
 
