@@ -6,10 +6,15 @@ export interface StatusNotification {
   projectPath: string;
   pythonStatus: PythonStatus;
   dbtStatus: DbtStatus;
+  packagesStatus: PackagesStatus;
 }
 
 export interface DbtStatus {
   versionInfo?: DbtVersionInfo;
+}
+
+export interface PackagesStatus {
+  configPath?: string;
 }
 
 export interface DbtVersionInfo {

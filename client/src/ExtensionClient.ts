@@ -140,6 +140,19 @@ export class ExtensionClient {
       }
     });
 
+    this.registerCommand('dbtWizard.openOrCreatePackagesYml', async (projectPath: unknown) => {
+      const column = window.activeTextEditor?.viewColumn;
+      const fileUri = Uri.joinPath(Uri.parse(projectPath as string), 'packages.yml');
+
+      try {
+        const document = await workspace.openTextDocument(fileUri);
+        await window.showTextDocument(document, column);
+      } catch {
+        const doc = await workspace.openTextDocument(fileUri.with({ scheme: 'untitled' }));
+        await window.showTextDocument(doc, column);
+      }
+    });
+
     this.registerCommand('dbtWizard.restart', async () => {
       const client = await this.getClientForActiveDocument();
       await client?.restart();

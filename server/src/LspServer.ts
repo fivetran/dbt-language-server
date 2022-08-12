@@ -249,7 +249,7 @@ export class LspServer {
       .catch(e => console.log(`Error while registering DidDeleteFiles notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
-  sendStatus(): void {
+  async sendStatus(): Promise<void> {
     const statusNotification: StatusNotification = {
       projectPath: this.workspaceFolder,
       pythonStatus: {
@@ -257,6 +257,9 @@ export class LspServer {
       },
       dbtStatus: {
         versionInfo: this.featureFinder?.versionInfo,
+      },
+      packagesStatus: {
+        configPath: await this.featureFinder?.dbtPackagesPathPromise,
       },
     };
 
