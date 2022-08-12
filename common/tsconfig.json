@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "outDir": "out",
-    "declaration": true
+    "declaration": true,
+    "declarationMap": true
   },
   "extends": "../tsconfig.base.json",
   "include": ["src/**/*"]
