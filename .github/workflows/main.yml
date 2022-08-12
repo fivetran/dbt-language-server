@@ -83,13 +83,13 @@ jobs:
           - install-dbt: 'pip install dbt-core==1.0.4 dbt-bigquery==1.0.0 dbt-postgres==1.0.4 dbt-rpc'
             os: macos-latest
             target: darwin-x64
-            activate-venv: source ~/dbt_1_0_1_env/bin/activate
+            activate-venv: source ~/dbt_1_0_8_env/bin/activate
             python-version: '3.9.12'
 
           - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
             os: macos-latest
             target: darwin-x64
-            activate-venv: source ~/dbt_1_0_1_env/bin/activate
+            activate-venv: source ~/dbt_1_0_8_env/bin/activate
             python-version: '3.9.12'
 
           - install-dbt: 'pip install dbt-bigquery dbt-postgres'
@@ -105,7 +105,7 @@ jobs:
             prepare-for-tests: |
               Xvfb -ac :99 -screen 0 1280x1024x16 &
               export DISPLAY=:99
-            activate-venv: source ~/dbt_1_0_1_env/bin/activate
+            activate-venv: source ~/dbt_1_0_8_env/bin/activate
             python-version: '3.9.12'
 
           - install-dbt: 'pip install dbt-bigquery dbt-postgres'
@@ -113,7 +113,7 @@ jobs:
             target: win32-x64
             add-colon-to-key-file-path: |
               homedir=c:/${homedir#*c/}
-              python=${homedir}/dbt_1_0_1_env/Scripts/python
+              python=${homedir}/dbt_1_0_8_env/Scripts/python
               cat <<EOT > ${GITHUB_WORKSPACE}/e2e/projects/special-python-settings/.vscode/settings.json
               {
                 "python.defaultInterpreterPath": "${python}",
@@ -121,7 +121,7 @@ jobs:
               }
               EOT
             activate-venv: |
-              cd ~/dbt_1_0_1_env/Scripts
+              cd ~/dbt_1_0_8_env/Scripts
               . activate
             python-version: '3.9.12'
 
@@ -176,14 +176,14 @@ jobs:
           python --version
           python -m pip --version
 
-      - name: add custom python venv with dbt@1.0.1
+      - name: add custom python venv with dbt@1.0.8
         if: matrix.python-version != '3.10.5'
         run: | # https://github.com/dbt-labs/dbt-core/issues/4745
-          python -m venv ~/dbt_1_0_1_env
+          python -m venv ~/dbt_1_0_8_env
           ${{ matrix.activate-venv }}
           python -m pip install --force-reinstall werkzeug==2.1.2
           python -m pip install --force-reinstall MarkupSafe==2.0.1
-          python -m pip install dbt-core==1.0.1 dbt-bigquery==1.0.0 dbt-rpc
+          python -m pip install dbt-core==1.0.8 dbt-bigquery==1.0.0 dbt-rpc
           python -m pip list | grep dbt
           dbt --version
 
