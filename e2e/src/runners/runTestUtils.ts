@@ -56,6 +56,7 @@ export async function installVsCodeAndRunTests(indexName: string, projectWithMod
         DBT_LS_DISABLE_TELEMETRY: 'true',
         DBT_LS_ENABLE_DEBUG_LOGS: 'true',
         DBT_LS_COMPILE_MODEL_MAX_RETRIES: '0',
+        DBT_LS_POST_REQUEST_TIMEOUT: '20000',
       },
     });
   } catch (err) {

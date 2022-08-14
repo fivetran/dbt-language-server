@@ -71,7 +71,22 @@ interface Response {
 }
 
 export class DbtRpcClient {
+  static DEFAULT_POST_REQUEST_TIMEOUT = 10000;
+
   private port?: number;
+  private postRequestTimeout: number;
+
+  constructor() {
+    this.postRequestTimeout = this.initPostRequestTimeout();
+  }
+
+  initPostRequestTimeout(): number {
+    if (process.env['DBT_LS_POST_REQUEST_TIMEOUT']) {
+      const timeout = parseInt(process.env['DBT_LS_POST_REQUEST_TIMEOUT']);
+      return isNaN(timeout) ? DbtRpcClient.DEFAULT_POST_REQUEST_TIMEOUT : timeout;
+    }
+    return DbtRpcClient.DEFAULT_POST_REQUEST_TIMEOUT;
+  }
 
   setPort(port: number): void {
     this.port = port;
@@ -122,7 +137,7 @@ export class DbtRpcClient {
 
   async makePostRequest<T extends Response>(postData: PostData): Promise<T | undefined> {
     try {
-      const response = await axios.post<T>(`http://localhost:${String(this.port)}/jsonrpc`, postData, { timeout: 10000 });
+      const response = await axios.post<T>(`http://localhost:${String(this.port)}/jsonrpc`, postData, { timeout: this.postRequestTimeout });
       return response.data;
     } catch (e) {
       console.log(`Error while sending request ${JSON.stringify(postData)}: ${e instanceof Error ? e.message : String(e)}`);
