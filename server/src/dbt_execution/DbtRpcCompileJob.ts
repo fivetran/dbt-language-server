@@ -10,7 +10,6 @@ export class DbtRpcCompileJob extends DbtCompileJob {
   static readonly STOP_ERROR = 'Job was stopped';
   static readonly NETWORK_ERROR = 'Network error';
 
-  static COMPILE_MODEL_MAX_RETRIES = 6;
   static COMPILE_MODEL_TIMEOUT_MS = 100;
 
   static POLL_MAX_RETRIES = 86;
@@ -22,7 +21,7 @@ export class DbtRpcCompileJob extends DbtCompileJob {
 
   result?: Result<string, string>;
 
-  constructor(modelPath: string, dbtRepository: DbtRepository, private dbtRpcClient: DbtRpcClient) {
+  constructor(modelPath: string, dbtRepository: DbtRepository, private dbtRpcClient: DbtRpcClient, private compileModelMaxRetries: number) {
     super(modelPath, dbtRepository);
   }
 
@@ -59,7 +58,7 @@ export class DbtRpcCompileJob extends DbtCompileJob {
           }
           return compileResponseAttempt;
         },
-        { factor: 1, retries: DbtRpcCompileJob.COMPILE_MODEL_MAX_RETRIES, minTimeout: DbtRpcCompileJob.COMPILE_MODEL_TIMEOUT_MS },
+        { factor: 1, retries: this.compileModelMaxRetries, minTimeout: DbtRpcCompileJob.COMPILE_MODEL_TIMEOUT_MS },
       );
 
       return ok(startCompileResponse.result.request_token);
