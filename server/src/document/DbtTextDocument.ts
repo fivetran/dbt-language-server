@@ -227,8 +227,8 @@ export class DbtTextDocument {
     this.rawDocDiagnostics = diagnostics;
     this.compiledDocDiagnostics = diagnostics;
 
-    this.sendUpdateQueryPreview();
     this.sendDiagnostics();
+    this.sendUpdateQueryPreview();
   }
 
   onDbtErrorFixed(): void {
