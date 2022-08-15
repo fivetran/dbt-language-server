@@ -31,7 +31,6 @@ describe('LspServer', () => {
   let document: DbtTextDocument;
   let dbtRepository: DbtRepository;
   let destinationState: DestinationState;
-  let mockDbt: Dbt;
 
   beforeEach(() => {
     lspServer = new LspServer(mock<_Connection>());
@@ -48,9 +47,6 @@ describe('LspServer', () => {
     destinationState = mock(DestinationState);
     when(destinationState.onContextInitialized).thenReturn(new Emitter<void>().event);
 
-    mockDbt = mock<Dbt>();
-    when(mockDbt.onDbtReady).thenReturn(new Emitter<void>().event);
-
     document = new DbtTextDocument(
       { uri: OPENED_URI, languageId: SQL_LANGUAGE_ID, version: 1, text: TEXT },
       DbtDocumentKind.MODEL,
@@ -64,7 +60,7 @@ describe('LspServer', () => {
       mock(JinjaParser),
       new Emitter<void>(),
       dbtRepository,
-      instance(mockDbt),
+      mock<Dbt>(),
       instance(destinationState),
     );
     lspServer.openedDocuments.set(OPENED_URI, document);
