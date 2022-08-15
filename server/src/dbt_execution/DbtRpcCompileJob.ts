@@ -26,16 +26,20 @@ export class DbtRpcCompileJob extends DbtCompileJob {
     super(modelPath, dbtRepository);
   }
 
+  pollCount = 0;
   async start(): Promise<void> {
+    console.log('Starting compilation...');
     const pollTokenResult = await this.getPollToken();
     if (pollTokenResult.isErr()) {
       this.result = pollTokenResult;
       return;
     }
 
+    console.log('Token received');
     this.pollRequestToken = pollTokenResult.value;
 
     this.result = await this.getPollResponse(pollTokenResult.value);
+    console.log(`this.pollCount: ${this.pollCount}`);
   }
 
   getResult(): Result<string, string> | undefined {
@@ -46,6 +50,7 @@ export class DbtRpcCompileJob extends DbtCompileJob {
     try {
       const startCompileResponse = await retry(
         async bail => {
+          console.log('getPollToken');
           // Here dbt-rpc can be in compilation state after HUP signal and return an error
           const compileResponseAttempt = await this.dbtRpcClient.compile(this.modelPath);
 
@@ -73,6 +78,8 @@ export class DbtRpcCompileJob extends DbtCompileJob {
     try {
       const pollResponse = await retry(
         async bail => {
+          console.log('getPollResponse');
+          this.pollCount++;
           const pollAttempt = await this.dbtRpcClient.pollOnceCompileResult(pollRequestToken);
 
           if (this.stopRequired) {
