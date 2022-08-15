@@ -58,7 +58,7 @@ import { DbtTextDocument } from './document/DbtTextDocument';
 import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
 import { JinjaParser } from './JinjaParser';
-import { Logger } from './Logger';
+import { Logger, LogLevel } from './Logger';
 import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { NotificationSender } from './NotificationSender';
@@ -444,6 +444,7 @@ export class LspServer {
 
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
     const document = this.openedDocuments.get(completionParams.textDocument.uri);
+    console.log(`onCompletion: ${document ? 'found' : 'not found'}`, LogLevel.Debug);
     return document?.onCompletion(completionParams);
   }
 
