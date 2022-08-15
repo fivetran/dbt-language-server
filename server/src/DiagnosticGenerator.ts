@@ -72,9 +72,15 @@ export class DiagnosticGenerator {
       const [, errorText] = matchResults;
       const lineInCompiledDoc = Number(matchResults[2]) - 1;
       const characterInCompiledDoc = Number(matchResults[3]) - 1;
-      const lineInRawDoc = DiffUtils.getOldLineNumber(rawDocText, compiledDocText, lineInCompiledDoc);
 
-      rawDocDiagnostics.push(this.createErrorDiagnostic(rawDocText, lineInRawDoc, characterInCompiledDoc, errorText));
+      const lineInRawDoc = DiffUtils.getOldLineNumber(rawDocText, compiledDocText, lineInCompiledDoc);
+      const characterInRawDoc = DiffUtils.getOldCharacter(
+        rawDocText.split('\n')[lineInRawDoc],
+        compiledDocText.split('\n')[lineInCompiledDoc],
+        characterInCompiledDoc,
+      );
+
+      rawDocDiagnostics.push(this.createErrorDiagnostic(rawDocText, lineInRawDoc, characterInRawDoc, errorText));
       compiledDocDiagnostics.push(this.createErrorDiagnostic(compiledDocText, lineInCompiledDoc, characterInCompiledDoc, errorText));
     }
   }
