@@ -11,6 +11,8 @@ export class DbtRpcCompileJob extends DbtCompileJob {
   static readonly STOP_ERROR = 'Job was stopped';
   static readonly NETWORK_ERROR = 'Network error';
 
+  static readonly DBT_COMPILATION_ERROR_CODE = 10011;
+
   static COMPILE_MODEL_MAX_RETRIES = 6;
   static COMPILE_MODEL_TIMEOUT_MS = 100;
 
@@ -63,6 +65,12 @@ export class DbtRpcCompileJob extends DbtCompileJob {
           }
 
           if (!compileResponseAttempt || compileResponseAttempt.error) {
+            if (compileResponseAttempt?.error?.code === DbtRpcCompileJob.DBT_COMPILATION_ERROR_CODE) {
+              // Do not retry dbt compile errors
+              bail(new Error(compileResponseAttempt.error.data?.message));
+              return {} as unknown as CompileResponse; // We should explicitly return from here to avoid unnecessary retries: https://github.com/vercel/async-retry/issues/69
+            }
+
             throw new Error(compileResponseAttempt?.error?.data?.message ?? DbtRpcCompileJob.NETWORK_ERROR);
           }
           return compileResponseAttempt;
