@@ -15,7 +15,7 @@ suite('Multi-project', () => {
       getCustomDocUri('two-projects/project1/models/project1_model.sql'),
       'select * from `singular-vector-135519`.dbt_ls_e2e_dataset.test_table1',
     );
-  });
+  }).timeout('100s');
 
   async function testOneProject(docUri: Uri, expectedPreview: string): Promise<void> {
     await activateAndWait(docUri);
