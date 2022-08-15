@@ -1,13 +1,11 @@
 import * as fs from 'fs';
-import { commands, DiagnosticCollection, ExtensionContext, languages, TextDocument, TextEditor, Uri, ViewColumn, window, workspace } from 'vscode';
+import { commands, ExtensionContext, languages, TextDocument, TextEditor, Uri, ViewColumn, window, workspace } from 'vscode';
 import { DBT_ADAPTERS } from './DbtAdapters';
-import { DbtLanguageClient } from './DbtLanguageClient';
+import { DbtLanguageClientManager } from './DbtLanguageClientManager';
 import { OutputChannelProvider } from './OutputChannelProvider';
-import { ProgressHandler } from './ProgressHandler';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 import { StatusHandler } from './status/StatusHandler';
 import { TelemetryClient } from './TelemetryClient';
-import { WorkspaceHelper } from './WorkspaceHelper';
 
 import path = require('path');
 
@@ -22,17 +20,19 @@ export interface PackageJson {
 export class ExtensionClient {
   static readonly DEFAULT_PACKAGES_PATHS = ['dbt_packages', 'dbt_modules'];
 
-  serverAbsolutePath: string;
   outputChannelProvider = new OutputChannelProvider();
   previewContentProvider = new SqlPreviewContentProvider();
-  progressHandler = new ProgressHandler();
   statusHandler = new StatusHandler();
-  workspaceHelper = new WorkspaceHelper();
-  clients: Map<string, DbtLanguageClient> = new Map();
+  dbtLanguageClientManager: DbtLanguageClientManager;
   packageJson?: PackageJson;
 
   constructor(private context: ExtensionContext) {
-    this.serverAbsolutePath = this.context.asAbsolutePath(path.join('server', 'out', 'server.js'));
+    this.dbtLanguageClientManager = new DbtLanguageClientManager(
+      this.previewContentProvider,
+      this.outputChannelProvider,
+      this.context.asAbsolutePath(path.join('server', 'out', 'server.js')),
+      this.statusHandler,
+    );
   }
 
   public onActivate(): void {
@@ -42,17 +42,13 @@ export class ExtensionClient {
       workspace.onDidOpenTextDocument(this.onDidOpenTextDocument.bind(this)),
       workspace.onDidChangeWorkspaceFolders(event => {
         for (const folder of event.removed) {
-          const client = this.clients.get(folder.uri.path);
-          if (client) {
-            this.clients.delete(folder.uri.path);
-            client.stop().catch(e => console.log(`Error while stopping client: ${e instanceof Error ? e.message : String(e)}`));
-          }
+          this.dbtLanguageClientManager.stopClient(folder.uri.path);
         }
       }),
 
       workspace.onDidChangeTextDocument(e => {
         if (e.document.uri.path === SqlPreviewContentProvider.URI.path) {
-          this.previewContentProvider.updatePreviewDiagnostics(this.getDiagnostics());
+          this.previewContentProvider.updatePreviewDiagnostics(this.dbtLanguageClientManager.getDiagnostics());
         }
       }),
 
@@ -64,7 +60,7 @@ export class ExtensionClient {
         if (SUPPORTED_LANG_IDS.includes(e.document.languageId)) {
           this.previewContentProvider.changeActiveDocument(e.document.uri);
 
-          const projectFolder = await this.getDbtProjectUri(e.document.uri);
+          const projectFolder = await this.dbtLanguageClientManager.getDbtProjectUri(e.document.uri);
           if (projectFolder) {
             this.statusHandler.updateLanguageItems(projectFolder.path);
           }
@@ -91,7 +87,7 @@ export class ExtensionClient {
 
   registerCommands(): void {
     this.registerCommand('dbtWizard.compile', async () => {
-      const client = await this.getClientForActiveDocument();
+      const client = await this.dbtLanguageClientManager.getClientForActiveDocument();
       if (client) {
         client.sendNotification('custom/dbtCompile', window.activeTextEditor?.document.uri.toString());
         await commands.executeCommand('dbtWizard.showQueryPreview');
@@ -109,7 +105,10 @@ export class ExtensionClient {
     });
 
     this.registerCommand('dbtWizard.installLatestDbt', async (projectPath?: unknown, skipDialog?: unknown) => {
-      const client = projectPath === undefined ? await this.getClientForActiveDocument() : this.getClientByPath(projectPath as string);
+      const client =
+        projectPath === undefined
+          ? await this.dbtLanguageClientManager.getClientForActiveDocument()
+          : this.dbtLanguageClientManager.getClientByPath(projectPath as string);
       if (client) {
         const answer =
           skipDialog === undefined
@@ -128,7 +127,10 @@ export class ExtensionClient {
     });
 
     this.registerCommand('dbtWizard.installDbtAdapters', async (projectPath?: unknown) => {
-      const client = projectPath === undefined ? await this.getClientForActiveDocument() : this.getClientByPath(projectPath as string);
+      const client =
+        projectPath === undefined
+          ? await this.dbtLanguageClientManager.getClientForActiveDocument()
+          : this.dbtLanguageClientManager.getClientByPath(projectPath as string);
       if (client) {
         const dbtAdapter = await window.showQuickPick(DBT_ADAPTERS, {
           placeHolder: 'Select dbt adapter to install',
@@ -154,43 +156,9 @@ export class ExtensionClient {
     });
 
     this.registerCommand('dbtWizard.restart', async () => {
-      const client = await this.getClientForActiveDocument();
+      const client = await this.dbtLanguageClientManager.getClientForActiveDocument();
       await client?.restart();
     });
-  }
-
-  getCommandDocument(): TextDocument | undefined {
-    if (!window.activeTextEditor) {
-      return undefined;
-    }
-
-    const { document } = window.activeTextEditor;
-    if (!SUPPORTED_LANG_IDS.includes(document.languageId)) {
-      return undefined;
-    }
-
-    return document;
-  }
-
-  async getClientForActiveDocument(): Promise<DbtLanguageClient | undefined> {
-    const document = this.getCommandDocument();
-    if (document === undefined) {
-      console.log(`Can't find active document`);
-      return undefined;
-    }
-
-    const uri = document.uri.path === SqlPreviewContentProvider.URI.path ? this.previewContentProvider.activeDocUri : document.uri;
-
-    return this.getClientByUri(uri);
-  }
-
-  async getClientByUri(uri: Uri): Promise<DbtLanguageClient | undefined> {
-    const projectUri = await this.getDbtProjectUri(uri);
-    return projectUri ? this.getClientByPath(projectUri.path) : undefined;
-  }
-
-  getClientByPath(projectPath: string): DbtLanguageClient | undefined {
-    return this.clients.get(projectPath);
   }
 
   registerCommand(command: string, callback: (...args: unknown[]) => unknown): void {
@@ -204,7 +172,7 @@ export class ExtensionClient {
         return;
       }
 
-      const projectUri = await this.getDbtProjectUri(editor.document.uri);
+      const projectUri = await this.dbtLanguageClientManager.getDbtProjectUri(editor.document.uri);
       if (!projectUri) {
         return;
       }
@@ -219,15 +187,10 @@ export class ExtensionClient {
         await commands.executeCommand('workbench.action.focusPreviousGroup');
       }
       await languages.setTextDocumentLanguage(doc, 'sql');
-      this.previewContentProvider.updatePreviewDiagnostics(this.getDiagnostics());
+      this.previewContentProvider.updatePreviewDiagnostics(this.dbtLanguageClientManager.getDiagnostics());
     });
 
     context.subscriptions.push(this.previewContentProvider, commandRegistration, providerRegistrations);
-  }
-
-  getDiagnostics(): DiagnosticCollection | undefined {
-    const [[, client]] = this.clients;
-    return client.client.diagnostics;
   }
 
   async onDidOpenTextDocument(document: TextDocument): Promise<void> {
@@ -235,67 +198,10 @@ export class ExtensionClient {
       return;
     }
 
-    const projectUri = await this.getDbtProjectUri(document.uri);
-    if (!projectUri) {
-      return;
-    }
-
-    if (!this.clients.has(projectUri.path)) {
-      const client = new DbtLanguageClient(
-        6009 + this.clients.size,
-        this.outputChannelProvider,
-        this.serverAbsolutePath,
-        projectUri,
-        this.previewContentProvider,
-        this.progressHandler,
-        this.statusHandler,
-      );
-      this.context.subscriptions.push(client);
-      await client.initialize();
-
-      void this.progressHandler.begin();
-
-      client.start();
-      this.clients.set(projectUri.path, client);
-    }
-  }
-
-  /** We expect the dbt project folder to be the folder containing the dbt_project.yml file. This folder is used to run dbt-rpc. */
-  async getDbtProjectUri(fileUri: Uri): Promise<Uri | undefined> {
-    const folder = workspace.getWorkspaceFolder(fileUri);
-    if (!folder) {
-      return undefined;
-    }
-
-    const projectFolder = [...this.clients.keys()].find(k => fileUri.path.startsWith(k));
-    if (projectFolder) {
-      return Uri.parse(projectFolder);
-    }
-
-    const outerWorkspace = this.workspaceHelper.getOuterMostWorkspaceFolder(folder);
-
-    let currentUri = fileUri;
-    do {
-      currentUri = Uri.joinPath(currentUri, '..');
-      try {
-        await workspace.fs.stat(currentUri.with({ path: `${currentUri.path}/dbt_project.yml` }));
-        const oneLevelUpPath = Uri.joinPath(currentUri, '..').path;
-        if (ExtensionClient.DEFAULT_PACKAGES_PATHS.some(p => oneLevelUpPath.endsWith(p))) {
-          continue;
-        }
-        return currentUri;
-      } catch (e) {
-        // file does not exist
-      }
-    } while (currentUri.path !== outerWorkspace.uri.path);
-    return undefined;
+    await this.dbtLanguageClientManager.ensureClient(document);
   }
 
   onDeactivate(): Thenable<void> {
-    const promises: Thenable<void>[] = [];
-    for (const client of this.clients.values()) {
-      promises.push(client.stop());
-    }
-    return Promise.all(promises).then(() => undefined);
+    return this.dbtLanguageClientManager.onDeactivate();
   }
 }
