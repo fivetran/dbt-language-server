@@ -2,6 +2,7 @@ import { Emitter, Event } from 'vscode-languageserver';
 import { DbtRepository } from './DbtRepository';
 import { Dbt } from './dbt_execution/Dbt';
 import { DbtCompileJob } from './dbt_execution/DbtCompileJob';
+import { DbtRpcCompileJob } from './dbt_execution/DbtRpcCompileJob';
 import { wait } from './utils/Utils';
 
 export class ModelCompiler {
@@ -71,7 +72,11 @@ export class ModelCompiler {
           }
 
           if (result.isErr()) {
-            this.onCompilationErrorEmitter.fire(result.error);
+            if (result.error === DbtRpcCompileJob.JOB_IS_NOT_COMPLETED) {
+              // Don't fire any event and leave an preview result
+            } else {
+              this.onCompilationErrorEmitter.fire(result.error);
+            }
           } else {
             this.onCompilationFinishedEmitter.fire(result.value);
           }

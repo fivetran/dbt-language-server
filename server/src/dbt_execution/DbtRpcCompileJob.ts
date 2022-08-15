@@ -10,6 +10,7 @@ export class DbtRpcCompileJob extends DbtCompileJob {
   static readonly UNKNOWN_ERROR = 'Unknown dbt-rpc error';
   static readonly STOP_ERROR = 'Job was stopped';
   static readonly NETWORK_ERROR = 'Network error';
+  static readonly JOB_IS_NOT_COMPLETED = 'Job is still not completed';
 
   static readonly DBT_COMPILATION_ERROR_CODE = 10011;
 
@@ -110,7 +111,7 @@ export class DbtRpcCompileJob extends DbtCompileJob {
 
           const stillRunning = !pollAttempt.error && pollAttempt.result.state === 'running';
           if (stillRunning) {
-            throw new Error('Job is still not completed');
+            throw new Error(DbtRpcCompileJob.JOB_IS_NOT_COMPLETED);
           }
 
           return pollAttempt;

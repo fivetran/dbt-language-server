@@ -80,7 +80,7 @@ describe('DbtRpcCompileJob', () => {
     DbtRpcCompileJob.COMPILE_MODEL_MAX_RETRIES = 10;
     DbtRpcCompileJob.COMPILE_MODEL_TIMEOUT_MS = 0;
 
-    DbtRpcCompileJob.POLL_MAX_RETRIES = 86;
+    DbtRpcCompileJob.POLL_MAX_RETRIES = 15;
     DbtRpcCompileJob.POLL_TIMEOUT_MS = 0;
     DbtRpcCompileJob.MAX_RETRIES_FOR_UNKNOWN_ERROR = 5;
   });
@@ -278,5 +278,24 @@ describe('DbtRpcCompileJob', () => {
     assertThat(compileJob.result, err(COMPILE_MODEL_ERROR));
     verify(mockDbtRpcClient.compile(MODEL)).times(1);
     verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(1);
+  });
+
+  it('start should return JOB_IS_NOT_COMPLETED error after all retries', async () => {
+    // arrange
+    DbtRpcCompileJob.POLL_MAX_RETRIES = 1;
+    const mockDbtRpcClient = mock(DbtRpcClient);
+
+    when(mockDbtRpcClient.compile(MODEL)).thenReturn(compileModelSuccess());
+    when(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).thenReturn(pollOnceCompileResultRunning());
+
+    const compileJob = createDbtRpcCompileJob(mockDbtRpcClient);
+
+    // act
+    await compileJob.start();
+
+    // assert
+    assertThat(compileJob.result, err(DbtRpcCompileJob.JOB_IS_NOT_COMPLETED));
+    verify(mockDbtRpcClient.compile(MODEL)).times(1);
+    verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(DbtRpcCompileJob.POLL_MAX_RETRIES + 1);
   });
 });
