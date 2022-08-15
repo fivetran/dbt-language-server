@@ -2,7 +2,7 @@ import { spawnSync, SpawnSyncReturns } from 'child_process';
 import * as clipboard from 'clipboardy';
 import { deferred, DeferredResult, ExtensionApi, LS_MANIFEST_PARSED_EVENT } from 'dbt-language-server-common';
 import * as fs from 'fs';
-import { WatchEventType, writeFileSync } from 'fs';
+import { writeFileSync } from 'fs';
 import * as path from 'path';
 import { pathEqual } from 'path-equal';
 import {
@@ -156,28 +156,6 @@ export function sleep(ms: number): Promise<unknown> {
   return new Promise(resolve => {
     setTimeout(resolve, ms);
   });
-}
-
-export async function waitManifestJson(projectFolderName: string): Promise<void> {
-  const projectPath = getAbsolutePath(projectFolderName);
-  if (fs.existsSync(path.resolve(projectPath, 'target', 'manifest.json'))) {
-    console.log('manifest.json already exists. Wait when it parsed.');
-    await sleep(200);
-    return;
-  }
-
-  let resolveFunc: voidFunc;
-  const result = new Promise<void>(resolve => {
-    resolveFunc = resolve;
-  });
-  fs.watch(projectPath, { recursive: true }, async (event: WatchEventType, fileName: string) => {
-    if (fileName.endsWith('manifest.json')) {
-      console.log('manifest.json created. Wait when it parsed.');
-      await sleep(200);
-      resolveFunc();
-    }
-  });
-  await result;
 }
 
 export const getDocPath = (p: string): string => {
