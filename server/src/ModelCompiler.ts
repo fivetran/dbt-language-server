@@ -31,12 +31,6 @@ export class ModelCompiler {
 
   async compile(modelPath: string): Promise<void> {
     this.compilationInProgress = true;
-    const status = await this.dbt.getStatus();
-    if (status) {
-      console.log('Status error occurred when compiling model.');
-      this.onCompilationErrorEmitter.fire(status);
-      return;
-    }
 
     if (this.dbtCompileJobQueue.length > 3) {
       const jobToStop = this.dbtCompileJobQueue.shift();
