@@ -11,12 +11,8 @@ import { DbtRpcCompileJob } from './DbtRpcCompileJob';
 import { DbtRpcServer } from './DbtRpcServer';
 
 export class DbtRpc extends Dbt {
-  static DEFAULT_COMPILE_MODEL_MAX_RETRIES = 6;
-
   dbtRpcServer = new DbtRpcServer();
   dbtRpcClient = new DbtRpcClient();
-
-  compileModelMaxRetries: number;
 
   constructor(
     private featureFinder: FeatureFinder,
@@ -25,24 +21,13 @@ export class DbtRpc extends Dbt {
     private fileChangeListener: FileChangeListener,
   ) {
     super(connection, progressReporter);
-
     this.fileChangeListener.onDbtProjectYmlChanged(() => this.refresh());
     this.fileChangeListener.onDbtPackagesYmlChanged(() => this.refresh());
     this.fileChangeListener.onDbtPackagesChanged(() => this.refresh());
-
-    this.compileModelMaxRetries = this.initCompileModelMaxRetries();
-  }
-
-  initCompileModelMaxRetries(): number {
-    if (process.env['DBT_LS_COMPILE_MODEL_MAX_RETRIES']) {
-      const maxRetries = parseInt(process.env['DBT_LS_COMPILE_MODEL_MAX_RETRIES']);
-      return isNaN(maxRetries) ? DbtRpc.DEFAULT_COMPILE_MODEL_MAX_RETRIES : maxRetries;
-    }
-    return DbtRpc.DEFAULT_COMPILE_MODEL_MAX_RETRIES;
   }
 
   createCompileJob(modelPath: string, dbtRepository: DbtRepository): DbtCompileJob {
-    return new DbtRpcCompileJob(modelPath, dbtRepository, this.dbtRpcClient, this.compileModelMaxRetries);
+    return new DbtRpcCompileJob(modelPath, dbtRepository, this.dbtRpcClient);
   }
 
   async getStatus(): Promise<string | undefined> {
