@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import { err, ok, Result } from 'neverthrow';
 import { DbtRepository } from '../DbtRepository';
+import { wait } from '../utils/Utils';
 import { DbtCompileJob } from './DbtCompileJob';
 import { CompileResponse, DbtRpcClient, PollResponse } from './DbtRpcClient';
 import retry = require('async-retry');
@@ -13,8 +14,8 @@ export class DbtRpcCompileJob extends DbtCompileJob {
   static COMPILE_MODEL_MAX_RETRIES = 6;
   static COMPILE_MODEL_TIMEOUT_MS = 100;
 
-  static POLL_MAX_RETRIES = 86;
-  static POLL_TIMEOUT_MS = 700;
+  static POLL_MAX_RETRIES = 15;
+  static POLL_TIMEOUT_MS = 1200;
   static MAX_RETRIES_FOR_UNKNOWN_ERROR = 5;
 
   private pollRequestToken?: string;
@@ -37,6 +38,8 @@ export class DbtRpcCompileJob extends DbtCompileJob {
 
     console.log('Token received');
     this.pollRequestToken = pollTokenResult.value;
+
+    await wait(DbtRpcCompileJob.POLL_TIMEOUT_MS);
 
     this.result = await this.getPollResponse(pollTokenResult.value);
     console.log(`this.pollCount: ${this.pollCount}`);

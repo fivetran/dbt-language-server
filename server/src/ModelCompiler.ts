@@ -2,6 +2,7 @@ import { Emitter, Event } from 'vscode-languageserver';
 import { DbtRepository } from './DbtRepository';
 import { Dbt } from './dbt_execution/Dbt';
 import { DbtCompileJob } from './dbt_execution/DbtCompileJob';
+import { wait } from './utils/Utils';
 
 export class ModelCompiler {
   private dbtCompileJobQueue: DbtCompileJob[] = [];
@@ -81,16 +82,10 @@ export class ModelCompiler {
       if (this.dbtCompileJobQueue.length === 0) {
         break;
       }
-      await this.wait(500);
+      await wait(500);
     }
     this.pollIsRunning = false;
     this.compilationInProgress = false;
     this.onFinishAllCompilationJobsEmitter.fire();
-  }
-
-  wait(ms: number): Promise<void> {
-    return new Promise(resolve => {
-      setTimeout(resolve, ms);
-    });
   }
 }
