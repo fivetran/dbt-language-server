@@ -1,6 +1,12 @@
 import * as fs from 'fs';
-import { commands, ExtensionContext, languages, TextDocument, TextEditor, Uri, ViewColumn, window, workspace } from 'vscode';
-import { DBT_ADAPTERS } from './DbtAdapters';
+import { commands, ExtensionContext, languages, TextDocument, TextEditor, ViewColumn, window, workspace } from 'vscode';
+import { AfterFunctionCompletion } from './commands/AfterFunctionCompletion';
+import { CommandManager } from './commands/CommandManager';
+import { Compile } from './commands/Compile';
+import { InstallDbtAdapters } from './commands/InstallDbtAdapters';
+import { InstallLatestDbt } from './commands/InstallLatestDbt';
+import { OpenOrCreatePackagesYml } from './commands/OpenOrCreatePackagesYml';
+import { Restart } from './commands/Restart';
 import { DbtLanguageClientManager } from './DbtLanguageClientManager';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
@@ -24,6 +30,7 @@ export class ExtensionClient {
   previewContentProvider = new SqlPreviewContentProvider();
   statusHandler = new StatusHandler();
   dbtLanguageClientManager: DbtLanguageClientManager;
+  commandManager = new CommandManager();
   packageJson?: PackageJson;
 
   constructor(private context: ExtensionContext) {
@@ -33,6 +40,8 @@ export class ExtensionClient {
       this.context.asAbsolutePath(path.join('server', 'out', 'server.js')),
       this.statusHandler,
     );
+
+    this.context.subscriptions.push(this.dbtLanguageClientManager, this.commandManager);
   }
 
   public onActivate(): void {
@@ -86,83 +95,12 @@ export class ExtensionClient {
   }
 
   registerCommands(): void {
-    this.registerCommand('dbtWizard.compile', async () => {
-      const client = await this.dbtLanguageClientManager.getClientForActiveDocument();
-      if (client) {
-        client.sendNotification('custom/dbtCompile', window.activeTextEditor?.document.uri.toString());
-        await commands.executeCommand('dbtWizard.showQueryPreview');
-      }
-    });
-
-    this.registerCommand('editor.afterFunctionCompletion', async () => {
-      await commands.executeCommand('cursorMove', {
-        to: 'left',
-        by: 'wrappedLine',
-        select: false,
-        value: 1,
-      });
-      await commands.executeCommand('editor.action.triggerParameterHints');
-    });
-
-    this.registerCommand('dbtWizard.installLatestDbt', async (projectPath?: unknown, skipDialog?: unknown) => {
-      const client =
-        projectPath === undefined
-          ? await this.dbtLanguageClientManager.getClientForActiveDocument()
-          : this.dbtLanguageClientManager.getClientByPath(projectPath as string);
-      if (client) {
-        const answer =
-          skipDialog === undefined
-            ? await window.showInformationMessage('Are you sure you want to install the latest version of dbt?', { modal: true }, 'Yes', 'No')
-            : 'Yes';
-        if (answer === 'Yes') {
-          client.sendNotification('dbtWizard/installLatestDbt');
-          this.outputChannelProvider.getInstallLatestDbtChannel().show();
-          await commands.executeCommand('workbench.action.focusActiveEditorGroup');
-        }
-      } else {
-        window.showWarningMessage('First, open the model from the dbt project.').then(undefined, e => {
-          console.log(`Error while sending notification: ${e instanceof Error ? e.message : String(e)}`);
-        });
-      }
-    });
-
-    this.registerCommand('dbtWizard.installDbtAdapters', async (projectPath?: unknown) => {
-      const client =
-        projectPath === undefined
-          ? await this.dbtLanguageClientManager.getClientForActiveDocument()
-          : this.dbtLanguageClientManager.getClientByPath(projectPath as string);
-      if (client) {
-        const dbtAdapter = await window.showQuickPick(DBT_ADAPTERS, {
-          placeHolder: 'Select dbt adapter to install',
-        });
-
-        client.sendNotification('dbtWizard/installDbtAdapter', dbtAdapter);
-        this.outputChannelProvider.getInstallDbtAdaptersChannel().show();
-        await commands.executeCommand('workbench.action.focusActiveEditorGroup');
-      }
-    });
-
-    this.registerCommand('dbtWizard.openOrCreatePackagesYml', async (projectPath: unknown) => {
-      const column = window.activeTextEditor?.viewColumn;
-      const fileUri = Uri.joinPath(Uri.parse(projectPath as string), 'packages.yml');
-
-      try {
-        const document = await workspace.openTextDocument(fileUri);
-        await window.showTextDocument(document, column);
-      } catch {
-        const doc = await workspace.openTextDocument(fileUri.with({ scheme: 'untitled' }));
-        await window.showTextDocument(doc, column);
-      }
-    });
-
-    this.registerCommand('dbtWizard.restart', async () => {
-      const client = await this.dbtLanguageClientManager.getClientForActiveDocument();
-      await client?.restart();
-    });
-  }
-
-  registerCommand(command: string, callback: (...args: unknown[]) => unknown): void {
-    this.context.subscriptions.push(commands.registerCommand(command, callback));
+    this.commandManager.register(new Compile(this.dbtLanguageClientManager));
+    this.commandManager.register(new AfterFunctionCompletion());
+    this.commandManager.register(new InstallLatestDbt(this.dbtLanguageClientManager, this.outputChannelProvider));
+    this.commandManager.register(new InstallDbtAdapters(this.dbtLanguageClientManager, this.outputChannelProvider));
+    this.commandManager.register(new OpenOrCreatePackagesYml());
+    this.commandManager.register(new Restart(this.dbtLanguageClientManager));
   }
 
   registerSqlPreviewContentProvider(context: ExtensionContext): void {

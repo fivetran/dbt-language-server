@@ -37,7 +37,7 @@ suite('Functions', () => {
     await setTestContent('select Avg()');
 
     // act
-    await vscode.commands.executeCommand('editor.afterFunctionCompletion');
+    await vscode.commands.executeCommand('dbtWizard.afterFunctionCompletion');
 
     // assert
     await sleep(300);
