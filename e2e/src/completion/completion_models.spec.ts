@@ -4,7 +4,7 @@ import { CompletionItem, CompletionItemKind } from 'vscode';
 import { assertCompletions } from '../asserts';
 import {
   activateAndWaitManifestParsed,
-  getAbsolutePath,
+  COMPLETION_JINJA_PATH,
   getCustomDocUri,
   getTextInQuotesIfNeeded,
   setTestContent,
@@ -12,9 +12,7 @@ import {
 } from '../helper';
 
 suite('Should suggest model completions', () => {
-  const PROJECT = 'completion-jinja';
-  const PROJECT_ABSOLUTE_PATH = getAbsolutePath(PROJECT);
-  const PROJECT_FILE_NAME = `${PROJECT}/models/completion_jinja.sql`;
+  const PROJECT_FILE_NAME = `${COMPLETION_JINJA_PATH}/models/completion_jinja.sql`;
 
   const MODELS_COMPLETIONS = [
     ['(my_new_project) completion_jinja', 'completion_jinja'],
@@ -25,21 +23,21 @@ suite('Should suggest model completions', () => {
 
   test('Should suggest models for ref function by pressing "("', async () => {
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
-    await activateAndWaitManifestParsed(docUri, PROJECT_ABSOLUTE_PATH);
+    await activateAndWaitManifestParsed(docUri, COMPLETION_JINJA_PATH);
     await setTestContent('select * from {{ref(', false);
     await assertCompletions(docUri, new vscode.Position(0, 20), getCompletionList(true), '(');
   });
 
   test('Should suggest models for ref function', async () => {
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
-    await activateAndWaitManifestParsed(docUri, PROJECT_ABSOLUTE_PATH);
+    await activateAndWaitManifestParsed(docUri, COMPLETION_JINJA_PATH);
     await setTestContent('select * from {{ref(', false);
     await assertCompletions(docUri, new vscode.Position(0, 20), getCompletionList(true));
   });
 
   test("Should suggest models for ref function by pressing ' ", async () => {
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
-    await activateAndWaitManifestParsed(docUri, PROJECT_ABSOLUTE_PATH);
+    await activateAndWaitManifestParsed(docUri, COMPLETION_JINJA_PATH);
     await setTestContent(`select * from {{ref('`, false);
     await assertCompletions(docUri, new vscode.Position(0, 21), getCompletionList(false), "'");
   });
@@ -47,7 +45,7 @@ suite('Should suggest model completions', () => {
   test('Should not suggest models outside jinja', async () => {
     // arrange
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
-    await activateAndWaitManifestParsed(docUri, PROJECT_ABSOLUTE_PATH);
+    await activateAndWaitManifestParsed(docUri, COMPLETION_JINJA_PATH);
     await setTestContent(`select * from {{}}ref('`, false);
 
     // act

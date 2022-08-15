@@ -33,6 +33,7 @@ const PROJECTS_PATH = path.resolve(__dirname, '../projects');
 const DOWNLOADS_PATH = path.resolve(__dirname, '../.downloads');
 export const TEST_FIXTURE_PATH = path.resolve(PROJECTS_PATH, 'test-fixture');
 export const POSTGRES_PATH = path.resolve(PROJECTS_PATH, 'postgres');
+export const COMPLETION_JINJA_PATH = path.resolve(PROJECTS_PATH, 'completion-jinja');
 export const PREVIEW_URI = 'query-preview:Preview?dbt-language-server';
 
 export const MAX_VSCODE_INTEGER = 2147483647;
