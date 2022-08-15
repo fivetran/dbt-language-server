@@ -1,5 +1,7 @@
 import * as fs from 'fs';
 import { assertThat } from 'hamjest';
+import { Position } from 'vscode-languageserver';
+import { PositionConverter } from '../../PositionConverter';
 import { DiffUtils } from '../../utils/DiffUtils';
 
 describe('DiffUtils', () => {
@@ -117,7 +119,7 @@ describe('DiffUtils', () => {
 
   function shouldReturnCorrespondingCharacterForOldText(oldLine: string, newLine: string, newCharacter: number, expectedOldCharacter: number): void {
     // act
-    const actualOldCharacter = DiffUtils.getOldCharacter(oldLine, newLine, newCharacter);
+    const actualOldCharacter = new PositionConverter(oldLine, newLine).convertPositionBackward(Position.create(0, newCharacter)).character;
 
     // assert
     assertThat(actualOldCharacter, expectedOldCharacter);
@@ -135,7 +137,9 @@ describe('DiffUtils', () => {
     const fileContent = getFilesContent(fileName);
 
     // act
-    const number = DiffUtils.getOldLineNumber(fileContent.raw, fileContent.compiled, lineNumberInCompiled);
+    const number = new PositionConverter(fileContent.raw, fileContent.compiled).convertPositionBackward(
+      Position.create(lineNumberInCompiled, 0),
+    ).line;
 
     // assert
     assertThat(number, lineNumberInRaw);

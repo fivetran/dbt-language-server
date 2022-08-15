@@ -7,7 +7,6 @@ import { DbtRepository } from './DbtRepository';
 import { DbtTextDocument } from './document/DbtTextDocument';
 import { PositionConverter } from './PositionConverter';
 import { SqlRefConverter } from './SqlRefConverter';
-import { DiffUtils } from './utils/DiffUtils';
 import { getIdentifierRangeAtPosition } from './utils/Utils';
 import path = require('path');
 
@@ -73,15 +72,11 @@ export class DiagnosticGenerator {
       const lineInCompiledDoc = Number(matchResults[2]) - 1;
       const characterInCompiledDoc = Number(matchResults[3]) - 1;
 
-      const lineInRawDoc = DiffUtils.getOldLineNumber(rawDocText, compiledDocText, lineInCompiledDoc);
-      const characterInRawDoc = DiffUtils.getOldCharacter(
-        rawDocText.split('\n')[lineInRawDoc],
-        compiledDocText.split('\n')[lineInCompiledDoc],
-        characterInCompiledDoc,
-      );
+      const positionInCompiledDoc = Position.create(lineInCompiledDoc, characterInCompiledDoc);
+      const positionInRawDoc = new PositionConverter(rawDocText, compiledDocText).convertPositionBackward(positionInCompiledDoc);
 
-      rawDocDiagnostics.push(this.createErrorDiagnostic(rawDocText, lineInRawDoc, characterInRawDoc, errorText));
-      compiledDocDiagnostics.push(this.createErrorDiagnostic(compiledDocText, lineInCompiledDoc, characterInCompiledDoc, errorText));
+      rawDocDiagnostics.push(this.createErrorDiagnostic(rawDocText, positionInRawDoc, errorText));
+      compiledDocDiagnostics.push(this.createErrorDiagnostic(compiledDocText, positionInCompiledDoc, errorText));
     }
   }
 
@@ -138,8 +133,7 @@ export class DiagnosticGenerator {
     return [];
   }
 
-  private createErrorDiagnostic(docText: string, line: number, character: number, message: string): Diagnostic {
-    const position = Position.create(line, character);
+  private createErrorDiagnostic(docText: string, position: Position, message: string): Diagnostic {
     const range = this.extendRangeIfSmall(getIdentifierRangeAtPosition(position, docText));
     return {
       severity: DiagnosticSeverity.Error,
