@@ -2,7 +2,7 @@
 
 import { assertThat } from 'hamjest';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
-import { Emitter, Range, TextDocumentSaveReason, _Connection } from 'vscode-languageserver';
+import { Emitter, Range, TextDocumentSaveReason, VersionedTextDocumentIdentifier, _Connection } from 'vscode-languageserver';
 import { DbtCompletionProvider } from '../../completion/DbtCompletionProvider';
 import { DbtRepository } from '../../DbtRepository';
 import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
@@ -157,13 +157,16 @@ describe('DbtTextDocument', () => {
     verify(mockModelCompiler.compile(anything())).once();
   });
 
-  it('didOpenTextDocument should start compilation if previous compile stuck (document contains jinjas and raw document text is the same as compiled)', async () => {
+  it('didSaveTextDocument should start compilation if previous compile stuck (document contains jinjas and raw document text is the same as compiled)', async () => {
     // arrange
+    let count = 0;
     when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(false);
     when(mockJinjaParser.findAllJinjaRanges(document.rawDocument)).thenReturn([Range.create(0, 0, 1, 1)]);
+    when(mockJinjaParser.isJinjaModified(anything(), anything())).thenReturn(false);
 
     // act
-    await document.didOpenTextDocument(false);
+    document.didChangeTextDocument({ textDocument: VersionedTextDocumentIdentifier.create('uri', 1), contentChanges: [] });
+    await document.didSaveTextDocument(() => count++);
     await sleepMoreThanDebounceTime();
 
     // assert
