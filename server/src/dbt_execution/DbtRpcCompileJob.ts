@@ -102,8 +102,7 @@ export class DbtRpcCompileJob extends DbtCompileJob {
             throw new Error(DbtRpcCompileJob.NETWORK_ERROR);
           }
 
-          const stillRunning = !pollAttempt.error && pollAttempt.result.state === 'running';
-          if (stillRunning) {
+          if (!pollAttempt.error && pollAttempt.result.state === 'running') {
             throw new Error(DbtRpcCompileJob.JOB_IS_NOT_COMPLETED);
           }
 
