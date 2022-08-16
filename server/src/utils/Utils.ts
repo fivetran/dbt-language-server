@@ -140,3 +140,9 @@ export async function runWithTimeout(promise: Promise<unknown>, ms: number, erro
   });
   await Promise.race([promise, timeoutPromise]);
 }
+
+export async function wait(ms: number): Promise<void> {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
+}

@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import { err, ok, Result } from 'neverthrow';
 import { DbtRepository } from '../DbtRepository';
+import { wait } from '../utils/Utils';
 import { DbtCompileJob } from './DbtCompileJob';
 import { CompileResponse, DbtRpcClient, PollResponse } from './DbtRpcClient';
 import retry = require('async-retry');
@@ -9,12 +10,15 @@ export class DbtRpcCompileJob extends DbtCompileJob {
   static readonly UNKNOWN_ERROR = 'Unknown dbt-rpc error';
   static readonly STOP_ERROR = 'Job was stopped';
   static readonly NETWORK_ERROR = 'Network error';
+  static readonly JOB_IS_NOT_COMPLETED = 'Job is still not completed';
+
+  static readonly DBT_COMPILATION_ERROR_CODE = 10011;
 
   static COMPILE_MODEL_MAX_RETRIES = 6;
   static COMPILE_MODEL_TIMEOUT_MS = 100;
 
-  static POLL_MAX_RETRIES = 86;
-  static POLL_TIMEOUT_MS = 700;
+  static POLL_MAX_RETRIES = 15;
+  static POLL_TIMEOUT_MS = 1200;
   static MAX_RETRIES_FOR_UNKNOWN_ERROR = 5;
 
   private pollRequestToken?: string;
@@ -34,6 +38,8 @@ export class DbtRpcCompileJob extends DbtCompileJob {
     }
 
     this.pollRequestToken = pollTokenResult.value;
+
+    await wait(DbtRpcCompileJob.POLL_TIMEOUT_MS);
 
     this.result = await this.getPollResponse(pollTokenResult.value);
   }
@@ -55,6 +61,12 @@ export class DbtRpcCompileJob extends DbtCompileJob {
           }
 
           if (!compileResponseAttempt || compileResponseAttempt.error) {
+            if (compileResponseAttempt?.error?.code === DbtRpcCompileJob.DBT_COMPILATION_ERROR_CODE) {
+              // Do not retry dbt compile errors
+              bail(new Error(compileResponseAttempt.error.data?.message));
+              return {} as unknown as CompileResponse; // We should explicitly return from here to avoid unnecessary retries: https://github.com/vercel/async-retry/issues/69
+            }
+
             throw new Error(compileResponseAttempt?.error?.data?.message ?? DbtRpcCompileJob.NETWORK_ERROR);
           }
           return compileResponseAttempt;
@@ -90,9 +102,8 @@ export class DbtRpcCompileJob extends DbtCompileJob {
             throw new Error(DbtRpcCompileJob.NETWORK_ERROR);
           }
 
-          const stillRunning = !pollAttempt.error && pollAttempt.result.state === 'running';
-          if (stillRunning) {
-            throw new Error('Job is still not completed');
+          if (!pollAttempt.error && pollAttempt.result.state === 'running') {
+            throw new Error(DbtRpcCompileJob.JOB_IS_NOT_COMPLETED);
           }
 
           return pollAttempt;
