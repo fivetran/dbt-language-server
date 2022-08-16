@@ -459,6 +459,7 @@ export class LspServer {
 
   onDefinition(definitionParams: DefinitionParams): DefinitionLink[] | undefined {
     const document = this.openedDocuments.get(definitionParams.textDocument.uri);
+    console.log(`onDefinition: ${document ? 'found' : 'not found'}`, LogLevel.Debug);
     return document?.onDefinition(definitionParams);
   }
 
