@@ -1,5 +1,5 @@
 import assert = require('assert');
-import { assertThat, greaterThanOrEqualTo, hasSize } from 'hamjest';
+import { assertThat, greaterThanOrEqualTo, hasItem, hasProperties, hasSize } from 'hamjest';
 import { CompletionItem, DefinitionLink, Diagnostic, DiagnosticRelatedInformation, languages, Location, Position, Range, Uri } from 'vscode';
 import { PREVIEW_URI, sleep, triggerCompletion, triggerDefinition } from './helper';
 
@@ -76,4 +76,29 @@ export async function assertCompletions(
       assertThat(actualItem.detail, expectedItem.detail);
     }
   });
+}
+
+export async function assertCompletionsContain(
+  docUri: Uri,
+  position: Position,
+  expectedCompletionList: CompletionItem[],
+  triggerChar?: string,
+): Promise<void> {
+  const actualCompletionList = await triggerCompletion(docUri, position, triggerChar);
+
+  assertThat(actualCompletionList.items.length, greaterThanOrEqualTo(expectedCompletionList.length));
+
+  for (const expectedItem of expectedCompletionList) {
+    assertThat(
+      actualCompletionList.items,
+      hasItem(
+        hasProperties({
+          label: expectedItem.label,
+          kind: expectedItem.kind,
+          insertText: expectedItem.insertText ?? expectedItem.label,
+          detail: expectedItem.detail,
+        }),
+      ),
+    );
+  }
 }
