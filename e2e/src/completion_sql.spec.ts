@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { assertCompletions } from './asserts';
+import { assertCompletions, assertCompletionsContain } from './asserts';
 import { activateAndWait, getDocUri, replaceText } from './helper';
 
 suite('Should do completion', () => {
@@ -81,7 +81,7 @@ suite('Should do completion', () => {
     await activateAndWait(docUri);
     await replaceText('from aaa_table', 'from ');
 
-    await assertCompletions(docUri, new vscode.Position(7, 14), [
+    await assertCompletionsContain(docUri, new vscode.Position(7, 14), [
       { label: 'aaa_table', kind: vscode.CompletionItemKind.Value, detail: 'Table' },
       { label: 'bbb_table', kind: vscode.CompletionItemKind.Value, detail: 'Table' },
     ]);

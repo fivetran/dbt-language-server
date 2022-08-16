@@ -184,7 +184,10 @@ export class DbtTextDocument {
 
     const jinjas = this.jinjaParser.findAllJinjaRanges(this.rawDocument);
 
-    return jinjas === undefined || (jinjas.length > 0 && this.jinjaParser.isJinjaModified(jinjas, changes));
+    return (
+      jinjas === undefined ||
+      (jinjas.length > 0 && (this.jinjaParser.isJinjaModified(jinjas, changes) || this.compiledDocument.getText() === this.rawDocument.getText()))
+    );
   }
 
   forceRecompile(): void {

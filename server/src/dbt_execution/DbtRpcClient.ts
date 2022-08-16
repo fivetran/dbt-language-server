@@ -64,6 +64,7 @@ interface KillParams extends Params {
 
 interface Response {
   error?: {
+    code?: number;
     data?: {
       message?: string;
     };

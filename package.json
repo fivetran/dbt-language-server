@@ -149,12 +149,12 @@
     "prepare": "husky install"
   },
   "devDependencies": {
-    "@size-limit/file": "^8.0.0",
+    "@size-limit/file": "^8.0.1",
     "@types/mocha": "^9.1.1",
-    "@types/node": "^18.7.1",
-    "@typescript-eslint/eslint-plugin": "^5.33.0",
-    "@typescript-eslint/parser": "^5.33.0",
-    "eslint": "^8.21.0",
+    "@types/node": "^18.7.5",
+    "@typescript-eslint/eslint-plugin": "^5.33.1",
+    "@typescript-eslint/parser": "^5.33.1",
+    "eslint": "^8.22.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-sonarjs": "^0.15.0",

@@ -2,7 +2,7 @@
 
 import { assertThat } from 'hamjest';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
-import { Emitter, TextDocumentSaveReason } from 'vscode-languageserver';
+import { Emitter, Range, TextDocumentSaveReason, VersionedTextDocumentIdentifier } from 'vscode-languageserver';
 import { DbtCompletionProvider } from '../../completion/DbtCompletionProvider';
 import { DbtRepository } from '../../DbtRepository';
 import { Dbt } from '../../dbt_execution/Dbt';
@@ -148,6 +148,21 @@ describe('DbtTextDocument', () => {
 
     // assert
     verify(mockModelCompiler.compile(anything())).never();
+  });
+
+  it('didSaveTextDocument should start compilation if previous compile stuck (document contains jinjas and raw document text is the same as compiled)', async () => {
+    // arrange
+    when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(false);
+    when(mockJinjaParser.findAllJinjaRanges(document.rawDocument)).thenReturn([Range.create(0, 0, 1, 1)]);
+    when(mockJinjaParser.isJinjaModified(anything(), anything())).thenReturn(false);
+
+    // act
+    document.didChangeTextDocument({ textDocument: VersionedTextDocumentIdentifier.create('uri', 1), contentChanges: [] });
+    await document.didSaveTextDocument(true);
+    await sleepMoreThanDebounceTime();
+
+    // assert
+    verify(mockModelCompiler.compile(anything())).once();
   });
 
   it('Should set hasDbtError flag on dbt compilation error', () => {

@@ -49,10 +49,6 @@ export class DbtCli extends Dbt {
     });
   }
 
-  getStatus(): Promise<string | undefined> {
-    return Promise.resolve(undefined);
-  }
-
   createCompileJob(modelPath: string, dbtRepository: DbtRepository): DbtCompileJob {
     return new DbtCliCompileJob(modelPath, dbtRepository, this);
   }
