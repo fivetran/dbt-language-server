@@ -110,6 +110,14 @@ describe('DiffUtils', () => {
     shouldReturnCorrespondingCharacterFor(' `project-abcde-400`.`transforms`.`table_volume_filled` t', ` {{ref('table_volume_filled')}} t`, [[0, 0]]);
   });
 
+  it(`Should find word 'hour' in old text`, () => {
+    shouldReturnCorrespondingCharacterFor(
+      `  inner join {{ ref('current_time') }} as ct on td.hour = ct.hour;`,
+      '  inner join `singular-vector-135519`.`dbt_ls_e2e_dataset`.`current_time` as ct on td.hour = ct.hour;',
+      [[96, 61]],
+    );
+  });
+
   function shouldReturnCorrespondingCharacterFor(oldLine: string, newLine: string, params: number[][]): void {
     for (const param of params) {
       const [newCharacter, expectedOldCharacter] = param;
