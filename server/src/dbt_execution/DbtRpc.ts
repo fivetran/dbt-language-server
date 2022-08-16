@@ -30,11 +30,6 @@ export class DbtRpc extends Dbt {
     return new DbtRpcCompileJob(modelPath, dbtRepository, this.dbtRpcClient);
   }
 
-  async getStatus(): Promise<string | undefined> {
-    const status = await this.dbtRpcClient.getStatus();
-    return status?.error?.data?.message;
-  }
-
   refresh(): void {
     this.dbtRpcServer.refresh();
   }

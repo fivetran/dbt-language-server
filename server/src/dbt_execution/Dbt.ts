@@ -18,9 +18,6 @@ export abstract class Dbt {
 
   abstract prepare(dbtProfileType?: string): Promise<void>;
 
-  /** @returns undefined when ready and string error otherwise */
-  abstract getStatus(): Promise<string | undefined>;
-
   abstract createCompileJob(modelPath: string, dbtRepository: DbtRepository): DbtCompileJob;
 
   abstract getError(): string;
