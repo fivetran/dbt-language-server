@@ -265,7 +265,7 @@ export class ZetaSqlWrapper {
 
     let tables = await this.findTableNames(compiledSql);
 
-    const settledResult = await Promise.allSettled(tables.map(t => this.fillTableSchemaFromBq(t)));
+    const settledResult = await Promise.allSettled(tables.filter(t => !this.isTableRegistered(t)).map(t => this.fillTableSchemaFromBq(t)));
     tables = settledResult.filter((v): v is PromiseFulfilledResult<TableDefinition> => v.status === 'fulfilled').map(v => v.value);
 
     for (const table of tables) {
