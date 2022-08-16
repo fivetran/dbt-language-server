@@ -189,8 +189,10 @@ export class ZetaSqlWrapper {
   }
 
   static addColumn(table: SimpleTableProto, newColumn: SimpleColumnProto): void {
-    const column = table.column?.find(c => c.name === newColumn.name);
-    if (!column) {
+    const columnIndex = table.column?.findIndex(c => c.name === newColumn.name);
+    if (table.column && columnIndex !== undefined && columnIndex > -1) {
+      table.column[columnIndex] = newColumn;
+    } else {
       table.column = table.column ?? [];
       table.column.push(newColumn);
     }
