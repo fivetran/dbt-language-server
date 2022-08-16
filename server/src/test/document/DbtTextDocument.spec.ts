@@ -2,7 +2,7 @@
 
 import { assertThat } from 'hamjest';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
-import { Emitter, TextDocumentSaveReason, _Connection } from 'vscode-languageserver';
+import { Emitter, Range, TextDocumentSaveReason, _Connection } from 'vscode-languageserver';
 import { DbtCompletionProvider } from '../../completion/DbtCompletionProvider';
 import { DbtRepository } from '../../DbtRepository';
 import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
@@ -151,6 +151,19 @@ describe('DbtTextDocument', () => {
 
     // act
     await document.didOpenTextDocument(true);
+    await sleepMoreThanDebounceTime();
+
+    // assert
+    verify(mockModelCompiler.compile(anything())).once();
+  });
+
+  it('didOpenTextDocument should start compilation if previous compile stuck (document contains jinjas and raw document text is the same as compiled)', async () => {
+    // arrange
+    when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(false);
+    when(mockJinjaParser.findAllJinjaRanges(document.rawDocument)).thenReturn([Range.create(0, 0, 1, 1)]);
+
+    // act
+    await document.didOpenTextDocument(false);
     await sleepMoreThanDebounceTime();
 
     // assert
