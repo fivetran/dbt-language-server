@@ -460,7 +460,9 @@ export class LspServer {
   onDefinition(definitionParams: DefinitionParams): DefinitionLink[] | undefined {
     const document = this.openedDocuments.get(definitionParams.textDocument.uri);
     console.log(`onDefinition: ${document ? 'found' : 'not found'}`, LogLevel.Debug);
-    return document?.onDefinition(definitionParams);
+    const result = document?.onDefinition(definitionParams);
+    console.log(`onDefinition result: ${result?.map(d => d.targetUri).join('|') ?? 'empty'}`, LogLevel.Debug);
+    return result;
   }
 
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {

@@ -28,6 +28,7 @@ import { DestinationState } from '../DestinationState';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
 import { HoverProvider } from '../HoverProvider';
 import { JinjaParser, JinjaPartType } from '../JinjaParser';
+import { LogLevel } from '../Logger';
 import { ModelCompiler } from '../ModelCompiler';
 import { NotificationSender } from '../NotificationSender';
 import { PositionConverter } from '../PositionConverter';
@@ -329,6 +330,7 @@ export class DbtTextDocument {
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
     const dbtCompletionItems = this.getDbtCompletionItems(completionParams);
     if (dbtCompletionItems) {
+      console.log(`dbtCompletionItems: ${dbtCompletionItems.map(i => i.insertText).join('|')}`, LogLevel.Debug);
       return dbtCompletionItems;
     }
     return this.getSqlCompletions(completionParams);
