@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { CustomInitParams, DbtCompilerType, deferred, getStringVersion, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
+import { CustomInitParams, DbtCompilerType, getStringVersion, StatusNotification } from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
 import { homedir } from 'os';
 import { performance } from 'perf_hooks';
@@ -35,16 +35,14 @@ import {
   ResponseError,
   SignatureHelp,
   SignatureHelpParams,
-  TelemetryEventNotification,
   TextDocumentSyncKind,
   TextEdit,
   WillSaveTextDocumentParams,
   _Connection,
 } from 'vscode-languageserver';
 import { FileOperationFilter } from 'vscode-languageserver-protocol/lib/common/protocol.fileOperations';
-import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
-import { DbtProfileCreator, DbtProfileError, DbtProfileInfo, DbtProfileSuccess } from './DbtProfileCreator';
+import { DbtProfileCreator, DbtProfileInfo } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
 import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
@@ -53,31 +51,32 @@ import { Dbt, DbtMode } from './dbt_execution/Dbt';
 import { DbtCli } from './dbt_execution/DbtCli';
 import { DbtRpc } from './dbt_execution/DbtRpc';
 import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
+import { DestinationState } from './DestinationState';
 import { DbtDocumentKind } from './document/DbtDocumentKind';
 import { DbtDocumentKindResolver } from './document/DbtDocumentKindResolver';
 import { DbtTextDocument } from './document/DbtTextDocument';
 import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
 import { JinjaParser } from './JinjaParser';
-import { Logger } from './Logger';
+import { Logger, LogLevel } from './Logger';
 import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
+import { NotificationSender } from './NotificationSender';
 import { ProgressReporter } from './ProgressReporter';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
 import path = require('path');
 
 export class LspServer {
   static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
-  private static readonly ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
 
   sqlToRefCommandName = randomUUID();
   filesFilter: FileOperationFilter[];
   workspaceFolder: string;
   hasConfigurationCapability = false;
   featureFinder?: FeatureFinder;
-  dbt?: Dbt;
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
+  notificationSender: NotificationSender;
   fileChangeListener: FileChangeListener;
   sqlCompletionProvider: SqlCompletionProvider;
   dbtCompletionProvider: DbtCompletionProvider;
@@ -89,8 +88,8 @@ export class LspServer {
   initStart = performance.now();
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
 
-  bigQueryContext?: BigQueryContext;
-  contextInitializedDeferred = deferred<void>();
+  destinationState = new DestinationState();
+  dbt?: Dbt;
 
   openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
 
@@ -101,6 +100,7 @@ export class LspServer {
     const dbtProject = new DbtProject('.');
 
     this.progressReporter = new ProgressReporter(this.connection);
+    this.notificationSender = new NotificationSender(this.connection);
     this.dbtProfileCreator = new DbtProfileCreator(dbtProject, path.join(homedir(), '.dbt', 'profiles.yml'));
     this.fileChangeListener = new FileChangeListener(this.workspaceFolder, dbtProject, this.manifestParser, this.dbtRepository);
     this.sqlCompletionProvider = new SqlCompletionProvider();
@@ -198,7 +198,7 @@ export class LspServer {
   onUncaughtException(error: Error, _origin: 'uncaughtException' | 'unhandledRejection'): void {
     console.log(error.stack);
 
-    this.sendTelemetry('error', {
+    this.notificationSender.sendTelemetry('error', {
       name: error.name,
       message: error.message,
       stack: error.stack ?? '',
@@ -223,7 +223,24 @@ export class LspServer {
     );
     const dbtProfileType = profileResult.isOk() ? profileResult.value.type : profileResult.error.type;
 
-    await Promise.all([this.dbt?.prepare(dbtProfileType).then(_ => this.sendStatus()), this.prepareDestination(profileResult)]);
+    if (profileResult.isErr()) {
+      this.showProfileCreationWarning(profileResult.error.message);
+    }
+
+    const prepareDestination = profileResult.isErr()
+      ? this.destinationState.prepareDestinationStub()
+      : this.destinationState
+          .prepareBigQueryDestination(profileResult.value, this.dbtRepository)
+          .then((prepareResult: Result<void, string>) => (prepareResult.isErr() ? this.showCreateContextWarning(prepareResult.error) : undefined));
+    const prepareDbt = this.dbt?.prepare(dbtProfileType).then(_ => this.sendStatus());
+
+    this.dbtRepository
+      .manifestParsed()
+      .then(() => this.notificationSender.logLanguageServerManifestParsed())
+      .catch(e => console.log(`Manifest was not parsed: ${e instanceof Error ? e.message : String(e)}`));
+
+    await Promise.allSettled([prepareDbt, prepareDestination]);
+
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime);
   }
@@ -249,6 +266,12 @@ export class LspServer {
       .catch(e => console.log(`Error while registering DidDeleteFiles notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
+  showProfileCreationWarning(error: string): void {
+    const message = `Dbt profile was not properly configured. ${error}`;
+    console.log(message);
+    this.connection.window.showWarningMessage(message);
+  }
+
   sendStatus(): void {
     const statusNotification: StatusNotification = {
       projectPath: this.workspaceFolder,
@@ -264,23 +287,6 @@ export class LspServer {
       .sendNotification('dbtWizard/status', statusNotification)
       .catch(e => console.log(`Failed to send status notification: ${e instanceof Error ? e.message : String(e)}`));
   }
-  async prepareDestination(profileResult: Result<DbtProfileSuccess, DbtProfileError>): Promise<void> {
-    if (LspServer.ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) && profileResult.isOk() && profileResult.value.dbtProfile) {
-      const bigQueryContextInfo = await BigQueryContext.createContext(
-        profileResult.value.dbtProfile,
-        profileResult.value.targetConfig,
-        this.dbtRepository,
-      );
-      if (bigQueryContextInfo.isOk()) {
-        this.bigQueryContext = bigQueryContextInfo.value;
-      } else {
-        this.showCreateContextWarning(bigQueryContextInfo.error);
-      }
-    } else if (profileResult.isErr()) {
-      this.showPrepareDestinationWarning(profileResult.error.message);
-    }
-    this.contextInitializedDeferred.resolve();
-  }
 
   showCreateContextWarning(error: string): void {
     const message = `Unable to initialize BigQuery. ${error}`;
@@ -288,14 +294,8 @@ export class LspServer {
     this.connection.window.showWarningMessage(message);
   }
 
-  showPrepareDestinationWarning(error: string): void {
-    const message = `Dbt profile was not properly configured. ${error}`;
-    console.log(message);
-    this.connection.window.showWarningMessage(message);
-  }
-
   logStartupInfo(contextInfo: DbtProfileInfo, initTime: number): void {
-    this.sendTelemetry('log', {
+    this.notificationSender.sendTelemetry('log', {
       dbtVersion: getStringVersion(this.featureFinder?.versionInfo?.installedVersion),
       pythonPath: this.featureFinder?.pythonInfo?.path ?? 'undefined',
       pythonVersion: this.featureFinder?.pythonInfo?.version?.join('.') ?? 'undefined',
@@ -303,13 +303,6 @@ export class LspServer {
       type: contextInfo.type ?? 'unknown type',
       method: contextInfo.method ?? 'unknown method',
     });
-  }
-
-  sendTelemetry(name: string, properties?: { [key: string]: string }): void {
-    console.log(JSON.stringify(properties));
-    this.connection
-      .sendNotification<TelemetryEvent>(TelemetryEventNotification.type, { name, properties })
-      .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   onDbtCompile(uri: string): void {
@@ -364,7 +357,7 @@ export class LspServer {
     }
 
     const document = this.openedDocuments.get(params.textDocument.uri);
-    await document?.didSaveTextDocument(() => this.dbt?.refresh());
+    await document?.didSaveTextDocument(true);
   }
 
   onDidOpenTextDocumentDelayed(params: DidOpenTextDocumentParams): Promise<void> {
@@ -404,7 +397,7 @@ export class LspServer {
         params.textDocument,
         dbtDocumentKind,
         this.workspaceFolder,
-        this.connection,
+        this.notificationSender,
         this.progressReporter,
         this.sqlCompletionProvider,
         this.dbtCompletionProvider,
@@ -413,11 +406,12 @@ export class LspServer {
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,
         this.dbtRepository,
-        this.bigQueryContext,
+        this.dbt,
+        this.destinationState,
       );
       this.openedDocuments.set(uri, document);
 
-      await document.didOpenTextDocument(!this.dbtRepository.manifestExists);
+      await document.didOpenTextDocument();
     }
   }
 
@@ -430,7 +424,7 @@ export class LspServer {
 
   async isLanguageServerReady(): Promise<boolean> {
     try {
-      await Promise.all([this.dbt?.isReady(), this.contextInitializedDeferred.promise]);
+      await this.dbtRepository.manifestParsed();
       return true;
     } catch (e) {
       return false;
@@ -450,6 +444,7 @@ export class LspServer {
 
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
     const document = this.openedDocuments.get(completionParams.textDocument.uri);
+    console.log(`onCompletion: ${document ? 'found' : 'not found'}`, LogLevel.Debug);
     return document?.onCompletion(completionParams);
   }
 
@@ -464,7 +459,10 @@ export class LspServer {
 
   onDefinition(definitionParams: DefinitionParams): DefinitionLink[] | undefined {
     const document = this.openedDocuments.get(definitionParams.textDocument.uri);
-    return document?.onDefinition(definitionParams);
+    console.log(`onDefinition: ${document ? 'found' : 'not found'}`, LogLevel.Debug);
+    const result = document?.onDefinition(definitionParams);
+    console.log(`onDefinition result: ${result?.map(d => d.targetUri).join('|') ?? 'empty'}`, LogLevel.Debug);
+    return result;
   }
 
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
@@ -526,7 +524,7 @@ export class LspServer {
   dispose(): void {
     console.log('Dispose start...');
     this.dbt?.dispose();
-    this.bigQueryContext?.dispose();
+    this.destinationState.dispose();
     this.onGlobalDbtErrorFixedEmitter.dispose();
     console.log('Dispose end.');
   }

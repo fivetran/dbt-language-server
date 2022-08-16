@@ -10,6 +10,7 @@ import { TelemetryClient } from './TelemetryClient';
 import { WorkspaceHelper } from './WorkspaceHelper';
 
 import path = require('path');
+import EventEmitter = require('node:events');
 
 export const SUPPORTED_LANG_IDS = ['sql', 'jinja-sql', 'sql-bigquery'];
 
@@ -31,7 +32,7 @@ export class ExtensionClient {
   clients: Map<string, DbtLanguageClient> = new Map();
   packageJson?: PackageJson;
 
-  constructor(private context: ExtensionContext) {
+  constructor(private context: ExtensionContext, private languageServerEventEmitter: EventEmitter) {
     this.serverAbsolutePath = this.context.asAbsolutePath(path.join('server', 'out', 'server.js'));
   }
 
@@ -235,6 +236,7 @@ export class ExtensionClient {
         projectUri,
         this.previewContentProvider,
         this.progressHandler,
+        this.languageServerEventEmitter,
         this.statusHandler,
       );
       this.context.subscriptions.push(client);

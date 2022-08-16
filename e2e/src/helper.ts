@@ -1,8 +1,10 @@
 import { spawnSync, SpawnSyncReturns } from 'child_process';
 import * as clipboard from 'clipboardy';
+import { deferred, DeferredResult, ExtensionApi, LS_MANIFEST_PARSED_EVENT } from 'dbt-language-server-common';
 import * as fs from 'fs';
-import { WatchEventType, writeFileSync } from 'fs';
+import { writeFileSync } from 'fs';
 import * as path from 'path';
+import { pathEqual } from 'path-equal';
 import {
   commands,
   CompletionItem,
@@ -30,13 +32,18 @@ type voidFunc = () => void;
 const PROJECTS_PATH = path.resolve(__dirname, '../projects');
 const DOWNLOADS_PATH = path.resolve(__dirname, '../.downloads');
 export const TEST_FIXTURE_PATH = path.resolve(PROJECTS_PATH, 'test-fixture');
+export const POSTGRES_PATH = path.resolve(PROJECTS_PATH, 'postgres');
+export const COMPLETION_JINJA_PATH = path.resolve(PROJECTS_PATH, 'completion-jinja');
 export const PREVIEW_URI = 'query-preview:Preview?dbt-language-server';
 
 export const MAX_VSCODE_INTEGER = 2147483647;
 export const MAX_RANGE = new Range(0, 0, MAX_VSCODE_INTEGER, MAX_VSCODE_INTEGER);
 export const MIN_RANGE = new Range(0, 0, 0, 0);
 
+export const LS_MORE_THAN_OPEN_DEBOUNCE = 1100;
+
 workspace.onDidChangeTextDocument(onDidChangeTextDocument);
+
 window.onDidChangeActiveTextEditor(e => {
   console.log(`Active document changed: ${e?.document.uri.toString() ?? 'undefined'}`);
 });
@@ -45,25 +52,31 @@ let previewPromiseResolve: voidFunc | undefined;
 let documentPromiseResolve: voidFunc | undefined;
 let expectedEditorText: string | undefined;
 
+let extensionApi: ExtensionApi | undefined = undefined;
+const languageServerReady = new Array<[string, DeferredResult<void>]>();
+
 let tempModelIndex = 0;
 
 export async function activateAndWait(docUri: Uri): Promise<void> {
-  // The extensionId is `publisher.name` from package.json
-  const ext = extensions.getExtension('Fivetran.dbt-language-server');
-  if (!ext) {
-    throw new Error('Fivetran.dbt-language-server not found');
-  }
-
-  const existingEditor = window.visibleTextEditors.find(e => e.document.uri.path === docUri.path);
+  const existingEditor = findExistingEditor(docUri);
   const doNotWaitChanges = existingEditor && existingEditor.document.getText() === window.activeTextEditor?.document.getText() && getPreviewEditor();
   const activateFinished = doNotWaitChanges ? Promise.resolve() : createChangePromise('preview');
-
-  await ext.activate();
 
   doc = await workspace.openTextDocument(docUri);
   editor = await window.showTextDocument(doc);
   await showPreview();
   await activateFinished;
+}
+
+export async function activateAndWaitManifestParsed(docUri: Uri, projectFolderName: string): Promise<void> {
+  const existingEditor = findExistingEditor(docUri);
+  doc = await workspace.openTextDocument(docUri);
+  editor = await window.showTextDocument(doc);
+  await Promise.all([existingEditor ? Promise.resolve() : sleep(LS_MORE_THAN_OPEN_DEBOUNCE), waitForManifestParsed(projectFolderName)]);
+}
+
+function findExistingEditor(docUri: Uri): TextEditor | undefined {
+  return window.visibleTextEditors.find(e => e.document.uri.path === docUri.path);
 }
 
 function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
@@ -145,28 +158,6 @@ export function sleep(ms: number): Promise<unknown> {
   });
 }
 
-export async function waitManifestJson(projectFolderName: string): Promise<void> {
-  const projectPath = getAbsolutePath(projectFolderName);
-  if (fs.existsSync(path.resolve(projectPath, 'target', 'manifest.json'))) {
-    console.log('manifest.json already exists. Wait when it parsed.');
-    await sleep(200);
-    return;
-  }
-
-  let resolveFunc: voidFunc;
-  const result = new Promise<void>(resolve => {
-    resolveFunc = resolve;
-  });
-  fs.watch(projectPath, { recursive: true }, async (event: WatchEventType, fileName: string) => {
-    if (fileName.endsWith('manifest.json')) {
-      console.log('manifest.json created. Wait when it parsed.');
-      await sleep(200);
-      resolveFunc();
-    }
-  });
-  await result;
-}
-
 export const getDocPath = (p: string): string => {
   return path.resolve(TEST_FIXTURE_PATH, 'models', p);
 };
@@ -183,12 +174,18 @@ export const getCustomDocUri = (p: string): Uri => {
   return Uri.file(getAbsolutePath(p));
 };
 
-export async function setTestContent(content: string): Promise<void> {
+export async function setTestContent(content: string, waitForPreview = true): Promise<void> {
+  await showPreview();
+
   if (doc.getText() === content) {
     return;
   }
+
   const all = new Range(doc.positionAt(0), doc.positionAt(doc.getText().length));
-  await edit(eb => eb.replace(all, content));
+
+  const editCallback = (eb: TextEditorEdit): void => eb.replace(all, content);
+  waitForPreview ? await edit(editCallback) : await editor.edit(editCallback);
+
   const lastPos = doc.positionAt(doc.getText().length);
   editor.selection = new Selection(lastPos, lastPos);
 }
@@ -202,6 +199,10 @@ export async function insertText(position: Position, value: string): Promise<voi
 }
 
 export async function replaceText(oldText: string, newText: string): Promise<void> {
+  return edit(prepareReplaceTextCallback(oldText, newText));
+}
+
+function prepareReplaceTextCallback(oldText: string, newText: string): (editBuilder: TextEditorEdit) => void {
   const offsetStart = editor.document.getText().indexOf(oldText);
   if (offsetStart === -1) {
     throw new Error(`text "${oldText}"" not found in "${editor.document.getText()}"`);
@@ -210,7 +211,7 @@ export async function replaceText(oldText: string, newText: string): Promise<voi
   const positionStart = editor.document.positionAt(offsetStart);
   const positionEnd = editor.document.positionAt(offsetStart + oldText.length);
 
-  return edit(eb => eb.replace(new Range(positionStart, positionEnd), newText));
+  return eb => eb.replace(new Range(positionStart, positionEnd), newText);
 }
 
 async function edit(callback: (editBuilder: TextEditorEdit) => void): Promise<void> {
@@ -327,17 +328,22 @@ export async function moveCursorLeft(): Promise<unknown> {
   });
 }
 
-export async function createAndOpenTempModel(workspaceName: string): Promise<Uri> {
-  const thisWorkspace = workspace.workspaceFolders?.find(w => w.name === workspaceName)?.uri.toString();
-  if (thisWorkspace === undefined) {
+export async function createAndOpenTempModel(workspaceName: string, waitFor: 'preview' | 'manifest' = 'preview'): Promise<Uri> {
+  const thisWorkspaceUri = workspace.workspaceFolders?.find(w => w.name === workspaceName)?.uri;
+  if (thisWorkspaceUri === undefined) {
     throw new Error('Workspace not found');
   }
-  const newUri = Uri.parse(`${thisWorkspace}/models/temp_model${tempModelIndex}.sql`);
+  const newUri = Uri.parse(`${thisWorkspaceUri.toString()}/models/temp_model${tempModelIndex}.sql`);
   tempModelIndex++;
 
   console.log(`Creating new file: ${newUri.toString()}`);
   writeFileSync(newUri.fsPath, '-- Empty');
-  await activateAndWait(newUri);
+
+  waitFor === 'preview' ? await activateAndWait(newUri) : await activateAndWaitManifestParsed(newUri, thisWorkspaceUri.path);
+  if (waitFor === 'manifest') {
+    console.log(`createAndOpenTempModel: wait for manifest parsed in '${thisWorkspaceUri.path}'`);
+  }
+
   return newUri;
 }
 
@@ -380,4 +386,45 @@ export function ensureDirectoryExists(dir: string): void {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir);
   }
+}
+
+export function waitForManifestParsed(projectFolderName: string): Promise<void> {
+  console.log(`waitForManifestParsed '${normalizePath(projectFolderName)}'`);
+  return getLanguageServerReadyDeferred(projectFolderName).promise;
+}
+
+export async function initializeExtension(): Promise<void> {
+  const ext = extensions.getExtension('Fivetran.dbt-language-server');
+  if (!ext) {
+    throw new Error('Fivetran.dbt-language-server not found');
+  }
+  extensionApi = (await ext.activate()) as ExtensionApi;
+
+  extensionApi.manifestParsedEventEmitter.on(LS_MANIFEST_PARSED_EVENT, (languageServerRootPath: string) => {
+    console.log(`Language Server '${normalizePath(languageServerRootPath)}' ready`);
+    getLanguageServerReadyDeferred(languageServerRootPath).resolve();
+  });
+}
+
+function getLanguageServerReadyDeferred(rootPath: string): DeferredResult<void> {
+  const normalizedPath = normalizePath(rootPath);
+
+  let lsReadyDeferred = languageServerReady.find(r => pathEqual(r[0], normalizedPath));
+  if (lsReadyDeferred === undefined) {
+    lsReadyDeferred = [normalizedPath, deferred<void>()];
+    languageServerReady.push(lsReadyDeferred);
+  }
+
+  return lsReadyDeferred[1];
+}
+
+function normalizePath(rawPath: string): string {
+  return process.platform === 'win32' ? trimPath(rawPath).toLocaleLowerCase() : rawPath;
+}
+
+function trimPath(rawPath: string): string {
+  return rawPath
+    .trim()
+    .replace(/^[\\/]+/, '')
+    .replace(/[\\/]+$/, '');
 }

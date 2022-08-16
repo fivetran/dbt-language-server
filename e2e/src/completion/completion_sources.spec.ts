@@ -1,9 +1,9 @@
 import { CompletionItem, CompletionItemKind, Position } from 'vscode';
 import { assertCompletions } from '../asserts';
-import { activateAndWait, getCustomDocUri, getTextInQuotesIfNeeded } from '../helper';
+import { activateAndWaitManifestParsed, getCustomDocUri, getTextInQuotesIfNeeded, POSTGRES_PATH } from '../helper';
 
 suite('Should suggest sources completions', () => {
-  const PROJECT_FILE_NAME = 'postgres/models/active_users.sql';
+  const PROJECT_FILE_NAME = `${POSTGRES_PATH}/models/active_users.sql`;
 
   const SOURCES_COMPLETIONS: [string, string][] = [['(dbt_postgres_test) users_orders', 'users_orders']];
   const TABLES_COMPLETIONS: [string, string][] = [
@@ -13,13 +13,13 @@ suite('Should suggest sources completions', () => {
 
   test('Should suggest sources', async () => {
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
-    await activateAndWait(docUri);
+    await activateAndWaitManifestParsed(docUri, POSTGRES_PATH);
     await assertCompletions(docUri, new Position(1, 16), getSourcesCompletionList(SOURCES_COMPLETIONS, false, 'Source'));
   });
 
   test('Should suggest source tables', async () => {
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
-    await activateAndWait(docUri);
+    await activateAndWaitManifestParsed(docUri, POSTGRES_PATH);
     await assertCompletions(docUri, new Position(1, 32), getSourcesCompletionList(TABLES_COMPLETIONS, false, 'Table'));
   });
 

@@ -18,24 +18,24 @@ import {
   TextDocumentItem,
   TextDocumentSaveReason,
   VersionedTextDocumentIdentifier,
-  _Connection,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
 import { DbtRepository } from '../DbtRepository';
+import { Dbt } from '../dbt_execution/Dbt';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
+import { DestinationState } from '../DestinationState';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
 import { HoverProvider } from '../HoverProvider';
 import { JinjaParser, JinjaPartType } from '../JinjaParser';
+import { LogLevel } from '../Logger';
 import { ModelCompiler } from '../ModelCompiler';
+import { NotificationSender } from '../NotificationSender';
 import { PositionConverter } from '../PositionConverter';
 import { ProgressReporter } from '../ProgressReporter';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { SqlCompletionProvider } from '../SqlCompletionProvider';
 import { DiffUtils } from '../utils/DiffUtils';
-import path = require('path');
-
 import { getTextRangeBeforeBracket } from '../utils/TextUtils';
 import {
   areRangesEqual,
@@ -47,6 +47,7 @@ import {
 } from '../utils/Utils';
 import { ZetaSqlAst } from '../ZetaSqlAst';
 import { DbtDocumentKind } from './DbtDocumentKind';
+import path = require('path');
 
 export class DbtTextDocument {
   static DEBOUNCE_TIMEOUT = 300;
@@ -72,7 +73,7 @@ export class DbtTextDocument {
     doc: TextDocumentItem,
     private dbtDocumentKind: DbtDocumentKind,
     private workspaceFolder: string,
-    private connection: _Connection,
+    private notificationSender: NotificationSender,
     private progressReporter: ProgressReporter,
     private sqlCompletionProvider: SqlCompletionProvider,
     private dbtCompletionProvider: DbtCompletionProvider,
@@ -81,7 +82,8 @@ export class DbtTextDocument {
     private jinjaParser: JinjaParser,
     private onGlobalDbtErrorFixedEmitter: Emitter<void>,
     private dbtRepository: DbtRepository,
-    private bigQueryContext?: BigQueryContext,
+    private dbt: Dbt,
+    private destinationState: DestinationState,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -92,6 +94,9 @@ export class DbtTextDocument {
     this.modelCompiler.onCompilationFinished(this.onCompilationFinished.bind(this));
     this.modelCompiler.onFinishAllCompilationJobs(this.onFinishAllCompilationTasks.bind(this));
     this.onGlobalDbtErrorFixedEmitter.event(this.onDbtErrorFixed.bind(this));
+
+    this.destinationState.onContextInitialized(this.onContextInitialized.bind(this));
+    this.dbt.onDbtReady(this.onDbtReady.bind(this));
   }
 
   willSaveTextDocument(reason: TextDocumentSaveReason): void {
@@ -108,13 +113,15 @@ export class DbtTextDocument {
     this.firstSave = false;
   }
 
-  async didSaveTextDocument(refreshServer?: () => void): Promise<void> {
+  async didSaveTextDocument(refresh: boolean): Promise<void> {
     if (this.requireCompileOnSave) {
-      this.requireCompileOnSave = false;
-      if (refreshServer) {
-        refreshServer();
+      if (this.dbt.dbtReady) {
+        this.requireCompileOnSave = false;
+        if (refresh) {
+          this.dbt.refresh();
+        }
+        this.debouncedCompile();
       }
-      this.debouncedCompile();
     } else if (this.currentDbtError) {
       this.onCompilationError(this.currentDbtError);
     } else {
@@ -122,10 +129,7 @@ export class DbtTextDocument {
     }
   }
 
-  async didOpenTextDocument(requireCompile: boolean): Promise<void> {
-    if (requireCompile) {
-      this.requireCompileOnSave = true;
-    }
+  async didOpenTextDocument(): Promise<void> {
     this.didChangeTextDocument({
       textDocument: VersionedTextDocumentIdentifier.create(this.rawDocument.uri, this.rawDocument.version),
       contentChanges: [
@@ -135,7 +139,7 @@ export class DbtTextDocument {
         },
       ],
     });
-    await this.didSaveTextDocument();
+    await this.didSaveTextDocument(false);
   }
 
   didChangeTextDocument(params: DidChangeTextDocumentParams): void {
@@ -158,6 +162,10 @@ export class DbtTextDocument {
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
       TextDocument.update(this.compiledDocument, compiledContentChanges, params.textDocument.version);
     }
+  }
+
+  async onDbtReady(): Promise<void> {
+    await this.didSaveTextDocument(true);
   }
 
   isDbtCompileNeeded(changes: TextDocumentContentChangeEvent[]): boolean {
@@ -186,7 +194,9 @@ export class DbtTextDocument {
   forceRecompile(): void {
     if (this.dbtDocumentKind === DbtDocumentKind.MODEL) {
       this.progressReporter.sendStart(this.rawDocument.uri);
-      this.debouncedCompile();
+      if (this.dbt.dbtReady) {
+        this.debouncedCompile();
+      }
     }
   }
 
@@ -221,9 +231,8 @@ export class DbtTextDocument {
     this.rawDocDiagnostics = diagnostics;
     this.compiledDocDiagnostics = diagnostics;
 
-    this.sendUpdateQueryPreview();
-
     this.sendDiagnostics();
+    this.sendUpdateQueryPreview();
   }
 
   onDbtErrorFixed(): void {
@@ -247,24 +256,37 @@ export class DbtTextDocument {
     this.fixGlobalDbtError();
 
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
-    [this.rawDocDiagnostics, this.compiledDocDiagnostics] = await this.createDiagnostics(compiledSql);
-    this.sendUpdateQueryPreview();
-    this.sendDiagnostics();
+    if (this.destinationState.contextInitialized) {
+      await this.updateDiagnostics();
+      this.sendUpdateQueryPreview();
+    }
 
     if (!this.modelCompiler.compilationInProgress) {
       this.progressReporter.sendFinish(this.rawDocument.uri);
     }
   }
 
+  async onContextInitialized(): Promise<void> {
+    if (this.dbt.dbtReady) {
+      await this.updateDiagnostics();
+      this.sendUpdateQueryPreview();
+    }
+  }
+
+  async updateDiagnostics(): Promise<void> {
+    [this.rawDocDiagnostics, this.compiledDocDiagnostics] = await this.createDiagnostics(this.compiledDocument.getText());
+    this.sendDiagnostics();
+  }
+
   async createDiagnostics(compiledSql: string): Promise<[Diagnostic[], Diagnostic[]]> {
     let rawDocDiagnostics: Diagnostic[] = [];
     let compiledDocDiagnostics: Diagnostic[] = [];
 
-    if (this.bigQueryContext && this.dbtDocumentKind === DbtDocumentKind.MODEL) {
+    if (this.destinationState.bigQueryContext && this.dbtDocumentKind === DbtDocumentKind.MODEL) {
       const originalFilePath = this.rawDocument.uri.substring(
         this.rawDocument.uri.lastIndexOf(this.workspaceFolder) + this.workspaceFolder.length + 1,
       );
-      const astResult = await this.bigQueryContext.analyzeTable(originalFilePath, compiledSql);
+      const astResult = await this.destinationState.bigQueryContext.analyzeTable(originalFilePath, compiledSql);
       if (astResult.isOk()) {
         console.log(`AST was successfully received for ${originalFilePath}`);
         this.ast = astResult.value;
@@ -282,24 +304,17 @@ export class DbtTextDocument {
     return [rawDocDiagnostics, compiledDocDiagnostics];
   }
 
-  sendUpdateQueryPreview(): void {
-    this.connection
-      .sendNotification('custom/updateQueryPreview', { uri: this.rawDocument.uri, previewText: this.compiledDocument.getText() })
-      .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
-  }
-
   fixInformationDiagnostic(range: Range): void {
     this.rawDocDiagnostics = this.rawDocDiagnostics.filter(d => !(areRangesEqual(d.range, range) && d.severity === DiagnosticSeverity.Information));
     this.sendDiagnostics();
   }
 
+  sendUpdateQueryPreview(): void {
+    this.notificationSender.sendUpdateQueryPreview(this.rawDocument.uri, this.compiledDocument.getText());
+  }
+
   sendDiagnostics(): void {
-    this.connection
-      .sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: this.rawDocDiagnostics })
-      .catch(e => console.log(`Failed to send diagnostics: ${e instanceof Error ? e.message : String(e)}`));
-    this.connection
-      .sendNotification('custom/updateQueryPreviewDiagnostics', { uri: this.rawDocument.uri, diagnostics: this.compiledDocDiagnostics })
-      .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
+    this.notificationSender.sendDiagnostics(this.rawDocument.uri, this.rawDocDiagnostics, this.compiledDocDiagnostics);
   }
 
   onFinishAllCompilationTasks(): void {
@@ -315,6 +330,7 @@ export class DbtTextDocument {
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
     const dbtCompletionItems = this.getDbtCompletionItems(completionParams);
     if (dbtCompletionItems) {
+      console.log(`dbtCompletionItems: ${dbtCompletionItems.map(i => i.insertText).join('|')}`, LogLevel.Debug);
       return dbtCompletionItems;
     }
     return this.getSqlCompletions(completionParams);
@@ -340,7 +356,7 @@ export class DbtTextDocument {
   }
 
   async getSqlCompletions(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
-    if (!this.bigQueryContext) {
+    if (!this.destinationState.contextInitialized || !this.destinationState.bigQueryContext) {
       return undefined;
     }
 
@@ -356,7 +372,12 @@ export class DbtTextDocument {
       const offset = this.compiledDocument.offsetAt(Position.create(line, completionParams.position.character));
       completionInfo = DbtTextDocument.ZETA_SQL_AST.getCompletionInfo(this.ast, offset);
     }
-    return this.sqlCompletionProvider.onSqlCompletion(text, completionParams, this.bigQueryContext.destinationDefinition, completionInfo);
+    return this.sqlCompletionProvider.onSqlCompletion(
+      text,
+      completionParams,
+      this.destinationState.bigQueryContext.destinationDefinition,
+      completionInfo,
+    );
   }
 
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
@@ -375,12 +396,6 @@ export class DbtTextDocument {
     return undefined;
   }
 
-  clearDiagnostics(): void {
-    this.connection
-      .sendDiagnostics({ uri: this.rawDocument.uri, diagnostics: [] })
-      .catch(e => console.log(`Failed to send diagnostics while closing document: ${e instanceof Error ? e.message : String(e)}`));
-  }
-
   dispose(): void {
     const { uri } = this.rawDocument;
     const fileName = uri.substring(uri.lastIndexOf(path.sep));
@@ -389,6 +404,6 @@ export class DbtTextDocument {
       this.fixGlobalDbtError();
     }
 
-    this.clearDiagnostics();
+    this.notificationSender.clearDiagnostics(this.rawDocument.uri);
   }
 }
