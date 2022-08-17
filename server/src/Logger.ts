@@ -1,10 +1,12 @@
+import path = require('path');
+
 export enum LogLevel {
   Debug = '__LogLevelDebug',
 }
 
 export class Logger {
   static prepareLogger(workspaceFolder: string): void {
-    const id = workspaceFolder.substring(workspaceFolder.lastIndexOf('/') + 1);
+    const id = workspaceFolder.substring(workspaceFolder.lastIndexOf(path.sep) + 1);
 
     const old = console.log;
     console.log = (...args): void => {

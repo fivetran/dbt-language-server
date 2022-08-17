@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { CustomInitParams, DbtCompilerType, getStringVersion, StatusNotification } from 'dbt-language-server-common';
+import { CustomInitParams, DbtCompilerType, getStringVersion } from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
 import { homedir } from 'os';
 import { performance } from 'perf_hooks';
@@ -64,6 +64,7 @@ import { ModelCompiler } from './ModelCompiler';
 import { NotificationSender } from './NotificationSender';
 import { ProgressReporter } from './ProgressReporter';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
+import { StatusSender } from './StatusSender';
 import path = require('path');
 
 export class LspServer {
@@ -74,6 +75,7 @@ export class LspServer {
   workspaceFolder: string;
   hasConfigurationCapability = false;
   featureFinder?: FeatureFinder;
+  statusSender?: StatusSender;
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
   notificationSender: NotificationSender;
@@ -117,6 +119,7 @@ export class LspServer {
     process.on('uncaughtException', this.onUncaughtException.bind(this));
     process.on('SIGTERM', () => this.onShutdown());
     process.on('SIGINT', () => this.onShutdown());
+    this.statusSender = new StatusSender(this.notificationSender, this.workspaceFolder, this.featureFinder, this.fileChangeListener);
 
     this.fileChangeListener.onInit();
 
@@ -232,7 +235,7 @@ export class LspServer {
       : this.destinationState
           .prepareBigQueryDestination(profileResult.value, this.dbtRepository)
           .then((prepareResult: Result<void, string>) => (prepareResult.isErr() ? this.showCreateContextWarning(prepareResult.error) : undefined));
-    const prepareDbt = this.dbt?.prepare(dbtProfileType).then(_ => this.sendStatus());
+    const prepareDbt = this.dbt?.prepare(dbtProfileType).then(_ => this.statusSender?.sendStatus());
 
     this.dbtRepository
       .manifestParsed()
@@ -270,22 +273,6 @@ export class LspServer {
     const message = `Dbt profile was not properly configured. ${error}`;
     console.log(message);
     this.connection.window.showWarningMessage(message);
-  }
-
-  sendStatus(): void {
-    const statusNotification: StatusNotification = {
-      projectPath: this.workspaceFolder,
-      pythonStatus: {
-        path: this.featureFinder?.getPythonPath(),
-      },
-      dbtStatus: {
-        versionInfo: this.featureFinder?.versionInfo,
-      },
-    };
-
-    this.connection
-      .sendNotification('dbtWizard/status', statusNotification)
-      .catch(e => console.log(`Failed to send status notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   showCreateContextWarning(error: string): void {

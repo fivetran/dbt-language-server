@@ -1,5 +1,7 @@
 import * as fs from 'fs';
 import { assertThat } from 'hamjest';
+import { Position } from 'vscode-languageserver';
+import { PositionConverter } from '../../PositionConverter';
 import { DiffUtils } from '../../utils/DiffUtils';
 
 describe('DiffUtils', () => {
@@ -108,6 +110,14 @@ describe('DiffUtils', () => {
     shouldReturnCorrespondingCharacterFor(' `project-abcde-400`.`transforms`.`table_volume_filled` t', ` {{ref('table_volume_filled')}} t`, [[0, 0]]);
   });
 
+  it(`Should find word 'hour' in old text`, () => {
+    shouldReturnCorrespondingCharacterFor(
+      `  inner join {{ ref('current_time') }} as ct on td.hour = ct.hour;`,
+      '  inner join `singular-vector-135519`.`dbt_ls_e2e_dataset`.`current_time` as ct on td.hour = ct.hour;',
+      [[96, 61]],
+    );
+  });
+
   function shouldReturnCorrespondingCharacterFor(oldLine: string, newLine: string, params: number[][]): void {
     for (const param of params) {
       const [newCharacter, expectedOldCharacter] = param;
@@ -117,7 +127,7 @@ describe('DiffUtils', () => {
 
   function shouldReturnCorrespondingCharacterForOldText(oldLine: string, newLine: string, newCharacter: number, expectedOldCharacter: number): void {
     // act
-    const actualOldCharacter = DiffUtils.getOldCharacter(oldLine, newLine, newCharacter);
+    const actualOldCharacter = new PositionConverter(oldLine, newLine).convertPositionBackward(Position.create(0, newCharacter)).character;
 
     // assert
     assertThat(actualOldCharacter, expectedOldCharacter);
@@ -135,7 +145,9 @@ describe('DiffUtils', () => {
     const fileContent = getFilesContent(fileName);
 
     // act
-    const number = DiffUtils.getOldLineNumber(fileContent.raw, fileContent.compiled, lineNumberInCompiled);
+    const number = new PositionConverter(fileContent.raw, fileContent.compiled).convertPositionBackward(
+      Position.create(lineNumberInCompiled, 0),
+    ).line;
 
     // assert
     assertThat(number, lineNumberInRaw);

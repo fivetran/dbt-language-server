@@ -22,7 +22,7 @@ export class StatusHandler {
   private getProjectStatus(projectPath: string): ProjectStatus {
     let projectStatus = this.projectStatuses.get(projectPath);
     if (projectStatus === undefined) {
-      projectStatus = new ProjectStatus(this.statusItems);
+      projectStatus = new ProjectStatus(projectPath, this.statusItems);
       this.projectStatuses.set(projectPath, projectStatus);
     }
     return projectStatus;

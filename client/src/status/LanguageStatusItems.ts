@@ -1,7 +1,13 @@
 import { DbtWizardLanguageStatusItem } from './DbtWizardLanguageStatusItem';
 
 export class LanguageStatusItems {
-  python = new DbtWizardLanguageStatusItem('dbtWizardPython', 'Python');
-  dbt = new DbtWizardLanguageStatusItem('dbtWizardDbt', 'dbt');
-  dbtAdapters = new DbtWizardLanguageStatusItem('dbtWizardDbtAdapters', 'dbt Adapters');
+  static readonly PYTHON_DEFAULT_TEXT = 'Python';
+  static readonly DBT_DEFAULT_TEXT = 'dbt';
+  static readonly DBT_ADAPTERS_DEFAULT_TEXT = 'dbt Adapters';
+  static readonly DBT_PACKAGES_DEFAULT_TEXT = 'dbt Packages';
+
+  python = new DbtWizardLanguageStatusItem('dbtWizardPython', LanguageStatusItems.PYTHON_DEFAULT_TEXT);
+  dbt = new DbtWizardLanguageStatusItem('dbtWizardDbt', LanguageStatusItems.DBT_DEFAULT_TEXT);
+  dbtAdapters = new DbtWizardLanguageStatusItem('dbtWizardDbtAdapters', LanguageStatusItems.DBT_ADAPTERS_DEFAULT_TEXT);
+  dbtPackages = new DbtWizardLanguageStatusItem('dbtWizardDbtPackages', LanguageStatusItems.DBT_PACKAGES_DEFAULT_TEXT);
 }

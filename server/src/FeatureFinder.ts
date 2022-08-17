@@ -1,4 +1,6 @@
 import { AdapterInfo, DbtVersionInfo, getStringVersion, PythonInfo, Version } from 'dbt-language-server-common';
+import { promises as fsPromises } from 'fs';
+import { DbtRepository } from './DbtRepository';
 import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
 import { Command } from './dbt_execution/commands/Command';
 import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
@@ -14,12 +16,14 @@ export class FeatureFinder {
 
   versionInfo?: DbtVersionInfo;
   availableCommandsPromise: Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]>;
+  packagesYmlExistsPromise: Promise<boolean>;
 
   dbtCommandFactory: DbtCommandFactory;
 
   constructor(public pythonInfo: PythonInfo | undefined, private dbtCommandExecutor: DbtCommandExecutor) {
     this.dbtCommandFactory = new DbtCommandFactory(pythonInfo?.path);
     this.availableCommandsPromise = this.getAvailableDbt();
+    this.packagesYmlExistsPromise = this.packagesYmlExists();
   }
 
   getPythonPath(): string | undefined {
@@ -30,6 +34,15 @@ export class FeatureFinder {
     return this.pythonInfo?.version && this.pythonInfo.version.length >= 2
       ? [Number(this.pythonInfo.version[0]), Number(this.pythonInfo.version[1])]
       : undefined;
+  }
+
+  async packagesYmlExists(): Promise<boolean> {
+    try {
+      await fsPromises.stat(DbtRepository.DBT_PACKAGES_FILE_NAME);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async getAvailableDbt(): Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]> {
