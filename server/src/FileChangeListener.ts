@@ -51,6 +51,9 @@ export class FileChangeListener {
     if (this.containsChangeWithPath(params.changes, manifestJsonPath)) {
       this.updateManifestNodes();
     }
+    if (packagesPaths.some(p => this.containsChangeWithPath(params.changes, p))) {
+      this.debouncedDbtPackagesChangedEmitter();
+    }
 
     for (const change of params.changes) {
       const changePath = URI.parse(change.uri).fsPath;
@@ -61,8 +64,6 @@ export class FileChangeListener {
         this.updateManifestNodes();
       } else if (changePath === this.packagesYmlPath) {
         this.onDbtPackagesYmlChangedEmitter.fire(change.type);
-      } else if (packagesPaths.some(p => changePath === p)) {
-        this.debouncedDbtPackagesChangedEmitter();
       }
     }
   }
