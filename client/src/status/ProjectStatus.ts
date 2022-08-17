@@ -1,4 +1,12 @@
-import { AdapterInfo, compareVersions, DbtStatus, getStringVersion, PythonStatus, StatusNotification } from 'dbt-language-server-common';
+import {
+  AdapterInfo,
+  compareVersions,
+  DbtStatus,
+  getStringVersion,
+  PackagesStatus,
+  PythonStatus,
+  StatusNotification,
+} from 'dbt-language-server-common';
 import { Command, LanguageStatusSeverity } from 'vscode';
 import { LanguageStatusItems } from './LanguageStatusItems';
 
@@ -10,15 +18,14 @@ interface StatusItemData {
 }
 
 export class ProjectStatus {
-  private static readonly PYTHON_DEFAULT_TEXT = 'Python';
-  private static readonly DBT_DEFAULT_TEXT = 'dbt';
-  private static readonly DBT_ADAPTERS_DEFAULT_TEXT = 'dbt Adapters';
+  static readonly PACKAGES_YML = 'packages.yml';
 
   private pythonData?: StatusItemData;
   private dbtData?: StatusItemData;
   private dbtAdaptersData?: StatusItemData;
+  private dbtPackagesData?: StatusItemData;
 
-  constructor(private items: LanguageStatusItems) {
+  constructor(private projectPath: string, private items: LanguageStatusItems) {
     this.updateStatusUi();
   }
 
@@ -26,18 +33,29 @@ export class ProjectStatus {
     this.items.python.setBusy();
     this.items.dbt.setBusy();
     this.items.dbtAdapters.setBusy();
+    this.items.dbtPackages.setBusy();
   }
 
   updateStatusUi(): void {
     this.updatePythonUi();
     this.updateDbtUi();
     this.updateDbtAdaptersUi();
+    this.updateDbtPackagesUi();
   }
 
   updateStatusData(status: StatusNotification): void {
-    this.updatePythonStatusItemData(status.pythonStatus);
-    this.updateDbtStatusItemData(status.dbtStatus);
-    this.updateDbtAdaptersStatusItemData(status.dbtStatus.versionInfo?.installedAdapters ?? []);
+    if (status.pythonStatus) {
+      this.updatePythonStatusItemData(status.pythonStatus);
+    }
+
+    if (status.dbtStatus) {
+      this.updateDbtStatusItemData(status.dbtStatus);
+      this.updateDbtAdaptersStatusItemData(status.dbtStatus.versionInfo?.installedAdapters ?? []);
+    }
+
+    if (status.packagesStatus) {
+      this.updateDbtPackagesStatusItemData(status.packagesStatus);
+    }
   }
 
   private updatePythonUi(): void {
@@ -66,7 +84,16 @@ export class ProjectStatus {
       this.items.dbtAdapters.setState(this.dbtAdaptersData.severity, this.dbtAdaptersData.text, this.dbtAdaptersData.detail, {
         command: 'dbtWizard.installDbtAdapters',
         title: 'Install dbt Adapters',
+        arguments: [this.projectPath],
       });
+    }
+  }
+
+  private updateDbtPackagesUi(): void {
+    if (!this.dbtPackagesData) {
+      this.items.dbtPackages.setBusy();
+    } else {
+      this.items.dbtPackages.setState(this.dbtPackagesData.severity, this.dbtPackagesData.text, undefined, this.dbtPackagesData.command);
     }
   }
 
@@ -79,7 +106,7 @@ export class ProjectStatus {
         }
       : {
           severity: LanguageStatusSeverity.Error,
-          text: ProjectStatus.PYTHON_DEFAULT_TEXT,
+          text: LanguageStatusItems.PYTHON_DEFAULT_TEXT,
           detail:
             'not found. [Install a supported version of Python on your system](https://code.visualstudio.com/docs/python/python-tutorial#_install-a-python-interpreter)',
         };
@@ -121,7 +148,7 @@ export class ProjectStatus {
 
     this.dbtData = {
       severity: LanguageStatusSeverity.Error,
-      text: ProjectStatus.DBT_DEFAULT_TEXT,
+      text: LanguageStatusItems.DBT_DEFAULT_TEXT,
       detail: 'not found',
       command: this.installDbtCommand('Install Latest Version'),
     };
@@ -137,12 +164,26 @@ export class ProjectStatus {
           }
         : {
             severity: LanguageStatusSeverity.Error,
-            text: ProjectStatus.DBT_ADAPTERS_DEFAULT_TEXT,
+            text: LanguageStatusItems.DBT_ADAPTERS_DEFAULT_TEXT,
             detail: 'No dbt adapters installed',
           };
   }
 
+  private updateDbtPackagesStatusItemData(packagesStatus: PackagesStatus): void {
+    this.dbtPackagesData = packagesStatus.packagesYmlFound
+      ? {
+          severity: LanguageStatusSeverity.Information,
+          text: ProjectStatus.PACKAGES_YML,
+          command: { command: 'dbtWizard.openOrCreatePackagesYml', title: 'Open Packages Config', arguments: [this.projectPath] },
+        }
+      : {
+          severity: LanguageStatusSeverity.Information,
+          text: `No ${ProjectStatus.PACKAGES_YML}`,
+          command: { command: 'dbtWizard.openOrCreatePackagesYml', title: `Create ${ProjectStatus.PACKAGES_YML}`, arguments: [this.projectPath] },
+        };
+  }
+
   installDbtCommand(title: string): Command {
-    return { command: 'dbtWizard.installLatestDbt', title };
+    return { command: 'dbtWizard.installLatestDbt', title, arguments: [this.projectPath] };
   }
 }

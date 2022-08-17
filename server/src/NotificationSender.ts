@@ -1,4 +1,4 @@
-import { TelemetryEvent } from 'dbt-language-server-common';
+import { StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
 import { Diagnostic, TelemetryEventNotification, _Connection } from 'vscode-languageserver';
 
 export class NotificationSender {
@@ -36,5 +36,11 @@ export class NotificationSender {
     this.connection
       .sendDiagnostics({ uri, diagnostics: [] })
       .catch(e => console.log(`Failed to send diagnostics while closing document: ${e instanceof Error ? e.message : String(e)}`));
+  }
+
+  sendStatus(statusNotification: StatusNotification): void {
+    this.connection
+      .sendNotification('dbtWizard/status', statusNotification)
+      .catch(e => console.log(`Failed to send status notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 }

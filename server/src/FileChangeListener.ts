@@ -1,30 +1,36 @@
-import path = require('path');
-import { DidChangeWatchedFilesParams, Emitter, Event } from 'vscode-languageserver';
+import { DidChangeWatchedFilesParams, Emitter, Event, FileChangeType, FileEvent } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
 import { ManifestParser } from './manifest/ManifestParser';
 import { debounce } from './utils/Utils';
+import path = require('path');
 
 export class FileChangeListener {
   private static PACKAGES_UPDATE_DEBOUNCE_TIMEOUT = 1000;
 
   private onDbtProjectYmlChangedEmitter = new Emitter<void>();
-  private onDbtPackagesYmlChangedEmitter = new Emitter<void>();
+  private onDbtPackagesYmlChangedEmitter = new Emitter<FileChangeType>();
   private onDbtPackagesChangedEmitter = new Emitter<void>();
+
+  private dbtProjectYmlPath: string;
+  private packagesYmlPath: string;
 
   constructor(
     private workspaceFolder: string,
     private dbtProject: DbtProject,
     private manifestParser: ManifestParser,
     private dbtRepository: DbtRepository,
-  ) {}
+  ) {
+    this.dbtProjectYmlPath = path.resolve(this.workspaceFolder, DbtRepository.DBT_PROJECT_FILE_NAME);
+    this.packagesYmlPath = path.resolve(this.workspaceFolder, DbtRepository.DBT_PACKAGES_FILE_NAME);
+  }
 
   get onDbtProjectYmlChanged(): Event<void> {
     return this.onDbtProjectYmlChangedEmitter.event;
   }
 
-  get onDbtPackagesYmlChanged(): Event<void> {
+  get onDbtPackagesYmlChanged(): Event<FileChangeType> {
     return this.onDbtPackagesYmlChangedEmitter.event;
   }
 
@@ -38,26 +44,37 @@ export class FileChangeListener {
   }
 
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
-    const dbtProjectYmlPath = path.resolve(this.workspaceFolder, DbtRepository.DBT_PROJECT_FILE_NAME);
     const manifestJsonPath = path.resolve(this.workspaceFolder, this.dbtRepository.dbtTargetPath, DbtRepository.DBT_MANIFEST_FILE_NAME);
-    const packagesYmlPath = path.resolve(this.workspaceFolder, DbtRepository.DBT_PACKAGES_FILE_NAME);
     const packagesPaths = this.dbtRepository.packagesInstallPaths.map(p => path.resolve(this.workspaceFolder, p));
+
+    // For some paths we want to do action only once even we got several changes here
+    if (this.containsChangeWithPath(params.changes, manifestJsonPath)) {
+      this.updateManifestNodes();
+    }
+    if (packagesPaths.some(p => this.containsChangeWithPath(params.changes, p))) {
+      this.debouncedDbtPackagesChangedEmitter();
+    }
 
     for (const change of params.changes) {
       const changePath = URI.parse(change.uri).fsPath;
-      if (changePath === dbtProjectYmlPath) {
+      if (changePath === this.dbtProjectYmlPath) {
         this.dbtProject.setParsedProjectOutdated();
         this.onDbtProjectYmlChangedEmitter.fire();
         this.updateDbtProjectConfig();
         this.updateManifestNodes();
-      } else if (changePath === manifestJsonPath) {
-        this.updateManifestNodes();
-      } else if (changePath === packagesYmlPath) {
-        this.onDbtPackagesYmlChangedEmitter.fire();
-      } else if (packagesPaths.some(p => changePath === p)) {
-        this.debouncedDbtPackagesChangedEmitter();
+      } else if (changePath === this.packagesYmlPath) {
+        this.onDbtPackagesYmlChangedEmitter.fire(change.type);
       }
     }
+  }
+
+  containsChangeWithPath(changes: FileEvent[], fsPath: string): boolean {
+    return (
+      changes.find(c => {
+        const changePath = URI.parse(c.uri).fsPath;
+        return changePath === fsPath;
+      }) !== undefined
+    );
   }
 
   updateDbtProjectConfig(): void {

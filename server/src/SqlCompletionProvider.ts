@@ -274,7 +274,7 @@ export class SqlCompletionProvider {
     }
     if (item.kind === CompletionItemKind.Function) {
       item.label += '()';
-      item.command = Command.create('additional', 'editor.afterFunctionCompletion');
+      item.command = Command.create('additional', 'dbtWizard.afterFunctionCompletion');
     }
     return item;
   }
