@@ -119,7 +119,7 @@ export class LspServer {
     process.on('uncaughtException', this.onUncaughtException.bind(this));
     process.on('SIGTERM', () => this.onShutdown());
     process.on('SIGINT', () => this.onShutdown());
-    this.statusSender = new StatusSender(this.connection, this.workspaceFolder, this.featureFinder, this.fileChangeListener);
+    this.statusSender = new StatusSender(this.notificationSender, this.workspaceFolder, this.featureFinder, this.fileChangeListener);
 
     this.fileChangeListener.onInit();
 

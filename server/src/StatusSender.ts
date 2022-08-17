@@ -1,11 +1,12 @@
 import { StatusNotification } from 'dbt-language-server-common';
-import { FileChangeType, _Connection } from 'vscode-languageserver';
+import { FileChangeType } from 'vscode-languageserver';
 import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
+import { NotificationSender } from './NotificationSender';
 
 export class StatusSender {
   constructor(
-    private connection: _Connection,
+    private notificationSender: NotificationSender,
     private projectPath: string,
     private featureFinder: FeatureFinder,
     private fileChangeListener: FileChangeListener,
@@ -27,7 +28,7 @@ export class StatusSender {
       },
     };
 
-    this.send(statusNotification);
+    this.notificationSender.sendStatus(statusNotification);
   }
 
   sendPackagesStatus(packagesYmlFound: boolean): void {
@@ -36,13 +37,7 @@ export class StatusSender {
       packagesStatus: { packagesYmlFound },
     };
 
-    this.send(statusNotification);
-  }
-
-  send(statusNotification: StatusNotification): void {
-    this.connection
-      .sendNotification('dbtWizard/status', statusNotification)
-      .catch(e => console.log(`Failed to send status notification: ${e instanceof Error ? e.message : String(e)}`));
+    this.notificationSender.sendStatus(statusNotification);
   }
 
   onDbtPackagesYmlChanged(e: FileChangeType): void {
