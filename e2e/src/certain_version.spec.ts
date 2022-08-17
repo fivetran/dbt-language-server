@@ -1,7 +1,7 @@
 import { assertThat } from 'hamjest';
 import { activateAndWait, executeInstallLatestDbt, getCustomDocUri, getLatestDbtVersion, getPreviewText, waitPreviewText } from './helper';
 
-suite('Custom version', () => {
+suite('Certain version', () => {
   const DOC_URI = getCustomDocUri('special-python-settings/models/version.sql');
 
   test('Should run project with dbt version specified for workspace', async () => {
