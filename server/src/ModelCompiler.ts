@@ -2,6 +2,8 @@ import { Emitter, Event } from 'vscode-languageserver';
 import { DbtRepository } from './DbtRepository';
 import { Dbt } from './dbt_execution/Dbt';
 import { DbtCompileJob } from './dbt_execution/DbtCompileJob';
+import { DbtRpcCompileJob } from './dbt_execution/DbtRpcCompileJob';
+import { wait } from './utils/Utils';
 
 export class ModelCompiler {
   private dbtCompileJobQueue: DbtCompileJob[] = [];
@@ -29,12 +31,6 @@ export class ModelCompiler {
 
   async compile(modelPath: string): Promise<void> {
     this.compilationInProgress = true;
-    const status = await this.dbt.getStatus();
-    if (status) {
-      console.log('Status error occurred when compiling model.');
-      this.onCompilationErrorEmitter.fire(status);
-      return;
-    }
 
     if (this.dbtCompileJobQueue.length > 3) {
       const jobToStop = this.dbtCompileJobQueue.shift();
@@ -70,7 +66,11 @@ export class ModelCompiler {
           }
 
           if (result.isErr()) {
-            this.onCompilationErrorEmitter.fire(result.error);
+            if (result.error === DbtRpcCompileJob.JOB_IS_NOT_COMPLETED) {
+              // Don't fire any event and don't change preview result
+            } else {
+              this.onCompilationErrorEmitter.fire(result.error);
+            }
           } else {
             this.onCompilationFinishedEmitter.fire(result.value);
           }
@@ -81,16 +81,10 @@ export class ModelCompiler {
       if (this.dbtCompileJobQueue.length === 0) {
         break;
       }
-      await this.wait(500);
+      await wait(500);
     }
     this.pollIsRunning = false;
     this.compilationInProgress = false;
     this.onFinishAllCompilationJobsEmitter.fire();
-  }
-
-  wait(ms: number): Promise<void> {
-    return new Promise(resolve => {
-      setTimeout(resolve, ms);
-    });
   }
 }

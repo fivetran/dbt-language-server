@@ -1,7 +1,16 @@
 import { assertThat, containsString } from 'hamjest';
 import { Position, Range, Uri } from 'vscode';
 import { assertDefinitions } from './asserts';
-import { activateAndWait, getCustomDocUri, getPreviewText, installDbtPackages, MAX_RANGE, MIN_RANGE } from './helper';
+import {
+  activateAndWait,
+  activateAndWaitManifestParsed,
+  getAbsolutePath,
+  getCustomDocUri,
+  getPreviewText,
+  installDbtPackages,
+  MAX_RANGE,
+  MIN_RANGE,
+} from './helper';
 
 suite('Extension should work inside dbt package', () => {
   const PROJECT = 'project-with-packages';
@@ -42,7 +51,7 @@ suite('Extension should work inside dbt package', () => {
     const docUri = findDocUriInPackage(`${MODELS_PATH}/stg_salesforce__user.sql`);
 
     // act
-    await activateAndWait(docUri);
+    await activateAndWaitManifestParsed(docUri, getAbsolutePath(PROJECT));
 
     // assert
     await assertDefinitions(docUri, new Position(3, 17), [
@@ -60,7 +69,7 @@ suite('Extension should work inside dbt package', () => {
     const docUri = findDocUriInPackage('fivetran_utils/macros/generate_columns_macro.sql');
 
     // act
-    await activateAndWait(docUri);
+    await activateAndWaitManifestParsed(docUri, getAbsolutePath(PROJECT));
 
     // assert
     await assertDefinitions(docUri, new Position(2, 17), [

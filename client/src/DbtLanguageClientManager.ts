@@ -1,3 +1,4 @@
+import EventEmitter = require('node:events');
 import { DiagnosticCollection, TextDocument, Uri, window, workspace } from 'vscode';
 import { DbtLanguageClient } from './DbtLanguageClient';
 import { ExtensionClient, SUPPORTED_LANG_IDS } from './ExtensionClient';
@@ -16,6 +17,7 @@ export class DbtLanguageClientManager {
     private previewContentProvider: SqlPreviewContentProvider,
     private outputChannelProvider: OutputChannelProvider,
     private serverAbsolutePath: string,
+    private manifestParsedEventEmitter: EventEmitter,
     private statusHandler: StatusHandler,
   ) {}
 
@@ -103,6 +105,7 @@ export class DbtLanguageClientManager {
         projectUri,
         this.previewContentProvider,
         this.progressHandler,
+        this.manifestParsedEventEmitter,
         this.statusHandler,
       );
       await client.initialize();

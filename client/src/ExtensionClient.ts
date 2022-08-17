@@ -14,6 +14,7 @@ import { StatusHandler } from './status/StatusHandler';
 import { TelemetryClient } from './TelemetryClient';
 
 import path = require('path');
+import EventEmitter = require('node:events');
 
 export const SUPPORTED_LANG_IDS = ['sql', 'jinja-sql', 'sql-bigquery'];
 
@@ -33,11 +34,12 @@ export class ExtensionClient {
   commandManager = new CommandManager();
   packageJson?: PackageJson;
 
-  constructor(private context: ExtensionContext) {
+  constructor(private context: ExtensionContext, manifestParsedEventEmitter: EventEmitter) {
     this.dbtLanguageClientManager = new DbtLanguageClientManager(
       this.previewContentProvider,
       this.outputChannelProvider,
       this.context.asAbsolutePath(path.join('server', 'out', 'server.js')),
+      manifestParsedEventEmitter,
       this.statusHandler,
     );
 

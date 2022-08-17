@@ -5,9 +5,9 @@ import { createAndOpenTempModel, executeSignatureHelpProvider, moveCursorLeft, s
 suite('Signature help', () => {
   test('Should show function signature help', async () => {
     // arrange
-    const uri = await createAndOpenTempModel('test-fixture');
+    const uri = await createAndOpenTempModel('test-fixture', 'manifest');
 
-    await setTestContent('select\n\n\ncount(*) from dbt_ls_e2e_dataset.test_table1');
+    await setTestContent('select\n\n\ncount(*) from dbt_ls_e2e_dataset.test_table1', false);
     await moveCursorLeft();
 
     // act

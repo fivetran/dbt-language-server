@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
-import { assertCompletions } from './asserts';
+import { assertCompletions, assertCompletionsContain } from './asserts';
 import { activateAndWait, getDocUri, replaceText } from './helper';
 
 suite('Should do completion', () => {
   test('Should suggest table columns', async () => {
     const docUri = getDocUri('simple_select.sql');
     await activateAndWait(docUri);
+
     await assertCompletions(docUri, new vscode.Position(0, 8), [
       { label: 'date', kind: vscode.CompletionItemKind.Value },
       { label: 'id', kind: vscode.CompletionItemKind.Value },
@@ -17,6 +18,7 @@ suite('Should do completion', () => {
   test('Should suggest columns for both tables', async () => {
     const docUri = getDocUri('join_tables.sql');
     await activateAndWait(docUri);
+
     await assertCompletions(docUri, new vscode.Position(0, 8), [
       { label: 'test_table1.date', kind: vscode.CompletionItemKind.Value },
       { label: 'test_table1.id', kind: vscode.CompletionItemKind.Value },
@@ -38,6 +40,7 @@ suite('Should do completion', () => {
     const docUri = getDocUri('join_tables.sql');
     await activateAndWait(docUri);
     await replaceText('*', 'users.');
+
     await assertCompletions(
       docUri,
       new vscode.Position(0, 13),
@@ -78,7 +81,7 @@ suite('Should do completion', () => {
     await activateAndWait(docUri);
     await replaceText('from aaa_table', 'from ');
 
-    await assertCompletions(docUri, new vscode.Position(7, 14), [
+    await assertCompletionsContain(docUri, new vscode.Position(7, 14), [
       { label: 'aaa_table', kind: vscode.CompletionItemKind.Value, detail: 'Table' },
       { label: 'bbb_table', kind: vscode.CompletionItemKind.Value, detail: 'Table' },
     ]);

@@ -1,4 +1,4 @@
-import { _Connection } from 'vscode-languageserver';
+import { Emitter, Event, _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { DbtUtilitiesInstaller } from '../DbtUtilitiesInstaller';
 import { ProgressReporter } from '../ProgressReporter';
@@ -10,16 +10,23 @@ export enum DbtMode {
 }
 
 export abstract class Dbt {
-  constructor(private connection: _Connection, protected progressReporter: ProgressReporter) {}
+  dbtReady: boolean;
+  onDbtReadyEmitter: Emitter<void>;
+
+  constructor(private connection: _Connection, protected progressReporter: ProgressReporter) {
+    this.dbtReady = false;
+    this.onDbtReadyEmitter = new Emitter<void>();
+  }
 
   abstract refresh(): void;
 
-  abstract isReady(): Promise<void>;
+  async prepare(dbtProfileType?: string): Promise<void> {
+    await this.prepareImplementation(dbtProfileType);
+    this.dbtReady = true;
+    this.onDbtReadyEmitter.fire();
+  }
 
-  abstract prepare(dbtProfileType?: string): Promise<void>;
-
-  /** @returns undefined when ready and string error otherwise */
-  abstract getStatus(): Promise<string | undefined>;
+  protected abstract prepareImplementation(dbtProfileType?: string): Promise<void>;
 
   abstract createCompileJob(modelPath: string, dbtRepository: DbtRepository): DbtCompileJob;
 
@@ -55,6 +62,10 @@ export abstract class Dbt {
 
   getInstallError(command: string, pythonInstallCommand: string): string {
     return `Failed to find ${command}. You can use '${pythonInstallCommand}' command to install it. Check in Terminal that ${command} works running '${command} --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g. ~/dbt-env/bin/python3).`;
+  }
+
+  get onDbtReady(): Event<void> {
+    return this.onDbtReadyEmitter.event;
   }
 
   onRpcServerFindFailed(): void {

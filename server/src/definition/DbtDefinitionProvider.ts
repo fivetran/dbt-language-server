@@ -2,6 +2,7 @@ import { DefinitionLink, integer, Position, Range } from 'vscode-languageserver'
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtRepository } from '../DbtRepository';
 import { JinjaType, ParseNode } from '../JinjaParser';
+import { LogLevel } from '../Logger';
 import { MacroDefinitionProvider } from './MacroDefinitionProvider';
 import { ModelDefinitionProvider } from './ModelDefinitionProvider';
 import { SourceDefinitionProvider } from './SourceDefinitionProvider';
@@ -25,6 +26,10 @@ export class DbtDefinitionProvider {
   }
 
   provideDefinitions(document: TextDocument, jinja: ParseNode, position: Position, jinjaType: JinjaType): DefinitionLink[] | undefined {
+    console.log(`dbtRepository.macros.length: ${this.dbtRepository.macros.length}`, LogLevel.Debug);
+    console.log(`dbtRepository.models.length: ${this.dbtRepository.models.length}`, LogLevel.Debug);
+    console.log(`dbtRepository.sources.length: ${this.dbtRepository.sources.length}`, LogLevel.Debug);
+
     if (jinjaType === JinjaType.UNKNOWN) {
       return undefined;
     }

@@ -3,7 +3,7 @@ import * as Mocha from 'mocha';
 import * as path from 'path';
 import { performance } from 'perf_hooks';
 import { languages, Uri } from 'vscode';
-import { closeAllEditors, doc, getPreviewText, PREVIEW_URI } from '../helper';
+import { closeAllEditors, doc, getPreviewText, initializeExtension, PREVIEW_URI } from '../helper';
 
 const TESTS_WITHOUT_ZETASQL = [
   'completion_macros.spec.js',
@@ -23,6 +23,14 @@ const TESTS_WITHOUT_ZETASQL = [
 const ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
 
 export async function indexMain(timeout: string, globPattern: string, doNotRun: string[]): Promise<void> {
+  try {
+    await initializeExtension();
+  } catch (e) {
+    const errorMessage = `Failed to initialize extension. Error: ${e instanceof Error ? e.message : String(e)}`;
+    console.log(errorMessage);
+    throw new Error(errorMessage);
+  }
+
   await closeAllEditors();
 
   const mocha = new Mocha({

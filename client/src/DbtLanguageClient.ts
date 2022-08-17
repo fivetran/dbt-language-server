@@ -1,6 +1,6 @@
-import { CustomInitParams, DbtCompilerType, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
-import { commands, Diagnostic, RelativePattern, Uri, workspace, WorkspaceFolder } from 'vscode';
-import { Disposable, LanguageClient, LanguageClientOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
+import { CustomInitParams, DbtCompilerType, LS_MANIFEST_PARSED_EVENT, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
+import { commands, Diagnostic, Disposable, RelativePattern, Uri, workspace, WorkspaceFolder } from 'vscode';
+import { LanguageClient, LanguageClientOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { SUPPORTED_LANG_IDS } from './ExtensionClient';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';
@@ -8,6 +8,7 @@ import { PythonExtension } from './python/PythonExtension';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 import { StatusHandler } from './status/StatusHandler';
 import { TelemetryClient } from './TelemetryClient';
+import EventEmitter = require('node:events');
 
 export class DbtLanguageClient implements Disposable {
   client: LanguageClient;
@@ -22,6 +23,7 @@ export class DbtLanguageClient implements Disposable {
     private dbtProjectUri: Uri,
     private previewContentProvider: SqlPreviewContentProvider,
     private progressHandler: ProgressHandler,
+    private manifestParsedEventEmitter: EventEmitter,
     private statusHandler: StatusHandler,
   ) {
     const debugOptions = { execArgv: ['--nolazy', `--inspect=${port}`] };
@@ -54,6 +56,10 @@ export class DbtLanguageClient implements Disposable {
 
       this.client.onNotification('custom/updateQueryPreviewDiagnostics', ({ uri, diagnostics }) => {
         this.previewContentProvider.updateDiagnostics(uri as string, diagnostics as Diagnostic[]);
+      }),
+
+      this.client.onNotification('custom/manifestParsed', () => {
+        this.manifestParsedEventEmitter.emit(LS_MANIFEST_PARSED_EVENT, this.workspaceFolder?.uri.path);
       }),
 
       this.client.onNotification('dbtWizard/status', (statusNotification: StatusNotification) => {

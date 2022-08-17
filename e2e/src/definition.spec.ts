@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import { Position, Range } from 'vscode';
 import { assertDefinitions } from './asserts';
-import { activateAndWait, getCustomDocUri, getDocUri, MAX_RANGE, MIN_RANGE, TEST_FIXTURE_PATH } from './helper';
+import { activateAndWaitManifestParsed, getCustomDocUri, getDocUri, MAX_RANGE, MIN_RANGE, TEST_FIXTURE_PATH } from './helper';
 import path = require('path');
 
 const REF_SQL_DOC_URI = getDocUri('ref_sql.sql');
@@ -9,7 +9,7 @@ const PACKAGE_REF_DOC_URI = getDocUri('package_ref.sql');
 
 suite('ref definitions', () => {
   test('Should suggest definitions for ref without package', async () => {
-    await activateAndWait(REF_SQL_DOC_URI);
+    await activateAndWaitManifestParsed(REF_SQL_DOC_URI, TEST_FIXTURE_PATH);
     await assertDefinitions(REF_SQL_DOC_URI, new Position(1, 24), [
       {
         originSelectionRange: new Range(1, 19, 1, 31),
@@ -21,7 +21,7 @@ suite('ref definitions', () => {
   });
 
   test('Should suggest definitions for ref with package', async () => {
-    await activateAndWait(PACKAGE_REF_DOC_URI);
+    await activateAndWaitManifestParsed(PACKAGE_REF_DOC_URI, TEST_FIXTURE_PATH);
 
     await assertDefinitions(
       PACKAGE_REF_DOC_URI,
@@ -49,7 +49,8 @@ suite('ref definitions', () => {
 
 suite('macro definitions', () => {
   test('Should suggest definitions for macros', async () => {
-    await activateAndWait(PACKAGE_REF_DOC_URI);
+    await activateAndWaitManifestParsed(PACKAGE_REF_DOC_URI, TEST_FIXTURE_PATH);
+
     await assertDefinitions(PACKAGE_REF_DOC_URI, new Position(2, 9), [
       {
         originSelectionRange: new Range(2, 7, 2, 25),
@@ -58,6 +59,7 @@ suite('macro definitions', () => {
         targetSelectionRange: new Range(0, 9, 0, 9),
       },
     ]);
+
     await assertDefinitions(PACKAGE_REF_DOC_URI, new Position(3, 9), [
       {
         originSelectionRange: new Range(3, 7, 3, 24),
@@ -71,7 +73,8 @@ suite('macro definitions', () => {
 
 suite('source definitions', () => {
   test('Should suggest definitions for source', async () => {
-    await activateAndWait(PACKAGE_REF_DOC_URI);
+    await activateAndWaitManifestParsed(PACKAGE_REF_DOC_URI, TEST_FIXTURE_PATH);
+
     await assertDefinitions(PACKAGE_REF_DOC_URI, new Position(4, 33), [
       {
         originSelectionRange: new Range(4, 31, 4, 36),

@@ -1,5 +1,4 @@
 import { PromiseWithChild } from 'child_process';
-import { deferred } from 'dbt-language-server-common';
 import { _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { FeatureFinder } from '../FeatureFinder';
@@ -13,7 +12,6 @@ import { DbtCompileJob } from './DbtCompileJob';
 export class DbtCli extends Dbt {
   static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
   pythonPathForCli?: string;
-  readyDeferred = deferred<void>();
 
   constructor(private featureFinder: FeatureFinder, connection: _Connection, progressReporter: ProgressReporter) {
     super(connection, progressReporter);
@@ -31,7 +29,7 @@ export class DbtCli extends Dbt {
     return DbtCli.DBT_COMMAND_EXECUTOR.execute(compileCliCommand);
   }
 
-  async prepare(dbtProfileType?: string): Promise<void> {
+  async prepareImplementation(dbtProfileType?: string): Promise<void> {
     this.pythonPathForCli = await this.featureFinder.findInformationForCli(dbtProfileType);
 
     if (!this.featureFinder.versionInfo?.installedVersion || this.featureFinder.versionInfo.installedAdapters.length === 0) {
@@ -46,15 +44,9 @@ export class DbtCli extends Dbt {
       }
     }
 
-    this.readyDeferred.resolve();
-
     this.compile().catch(e => {
       console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
     });
-  }
-
-  getStatus(): Promise<string | undefined> {
-    return Promise.resolve(undefined);
   }
 
   createCompileJob(modelPath: string, dbtRepository: DbtRepository): DbtCompileJob {
@@ -63,10 +55,6 @@ export class DbtCli extends Dbt {
 
   refresh(): void {
     // Nothing to refresh
-  }
-
-  isReady(): Promise<void> {
-    return this.readyDeferred.promise;
   }
 
   getError(): string {

@@ -30,16 +30,11 @@ export class DbtRpc extends Dbt {
     return new DbtRpcCompileJob(modelPath, dbtRepository, this.dbtRpcClient);
   }
 
-  async getStatus(): Promise<string | undefined> {
-    const status = await this.dbtRpcClient.getStatus();
-    return status?.error?.data?.message;
-  }
-
   refresh(): void {
     this.dbtRpcServer.refresh();
   }
 
-  async prepare(dbtProfileType?: string): Promise<void> {
+  async prepareImplementation(dbtProfileType?: string): Promise<void> {
     const [command, dbtPort] = await Promise.all([this.featureFinder.findDbtRpcCommand(dbtProfileType), this.featureFinder.findFreePort()]);
 
     if (command === undefined) {
@@ -67,10 +62,6 @@ export class DbtRpc extends Dbt {
     this.dbtRpcClient.compile().catch(e => {
       console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
     });
-  }
-
-  async isReady(): Promise<void> {
-    return this.dbtRpcServer.startDeferred.promise;
   }
 
   async startDbtRpc(command: DbtCommand, port: number): Promise<void> {
