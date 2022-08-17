@@ -9,7 +9,7 @@ const TESTS_WITHOUT_ZETASQL = [
   'completion_macros.spec.js',
   'completion_models.spec.js',
   'completion_sources.spec.js',
-  'custom_version.spec.js',
+  'certain_version.spec.js',
   'dbt_compile.spec.js',
   'dbt_error.spec.js',
   'dbt_packages.spec',
