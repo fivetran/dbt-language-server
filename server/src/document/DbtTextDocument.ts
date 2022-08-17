@@ -382,6 +382,7 @@ export class DbtTextDocument {
 
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
     const text = this.rawDocument.getText(getTextRangeBeforeBracket(this.rawDocument.getText(), params.position));
+    console.log(`onSignatureHelp(line='${params.position.line}', character='${params.position.character}', text='${text}')`, LogLevel.Debug);
     return this.signatureHelpProvider.onSignatureHelp(text);
   }
 

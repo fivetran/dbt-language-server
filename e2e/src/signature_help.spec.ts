@@ -7,7 +7,7 @@ suite('Signature help', () => {
     // arrange
     const uri = await createAndOpenTempModel('test-fixture', 'manifest');
 
-    await setTestContent('select\n\n\ncount(*) from dbt_ls_e2e_dataset.test_table1', false);
+    await setTestContent('select\n\n\ncount(*) from dbt_ls_e2e_dataset.test_table1');
     await moveCursorLeft();
 
     // act

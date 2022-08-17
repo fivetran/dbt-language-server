@@ -8,7 +8,7 @@ suite('Custom version', () => {
     await activateAndWait(DOC_URI);
 
     assertThat(getPreviewText(), '1.0.8');
-  });
+  }).timeout('100s');
 
   test('Should install latest dbt, restart language server and compile model with new dbt version', async () => {
     const latestVersion = getLatestDbtVersion();
