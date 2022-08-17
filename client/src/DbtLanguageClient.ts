@@ -32,19 +32,19 @@ export class DbtLanguageClient implements Disposable {
       debug: { module, transport: TransportKind.ipc, options: debugOptions },
     };
 
+    const fileEvents = [
+      workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/dbt_project.yml'), false, false, true),
+      workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/manifest.json'), false, false, true),
+      workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/packages.yml')),
+    ];
     const clientOptions: LanguageClientOptions = {
       documentSelector: SUPPORTED_LANG_IDS.map(langId => ({ scheme: 'file', language: langId, pattern: `${dbtProjectUri.fsPath}/**/*` })),
       diagnosticCollectionName: 'dbtWizard',
-      synchronize: {
-        fileEvents: [
-          workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/dbt_project.yml'), false, false, true),
-          workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/manifest.json'), false, false, true),
-          workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/packages.yml')),
-        ],
-      },
+      synchronize: { fileEvents },
       outputChannel: outputChannelProvider.getMainLogChannel(),
       workspaceFolder: { uri: dbtProjectUri, name: dbtProjectUri.path, index: port },
     };
+    this.disposables.push(...fileEvents);
 
     this.workspaceFolder = workspace.getWorkspaceFolder(dbtProjectUri);
 
