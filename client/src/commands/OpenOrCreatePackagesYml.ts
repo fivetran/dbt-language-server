@@ -9,11 +9,11 @@ export class OpenOrCreatePackagesYml implements Command {
     const fileUri = Uri.joinPath(Uri.parse(projectPath), 'packages.yml');
 
     try {
-      const document = await workspace.openTextDocument(fileUri);
-      await window.showTextDocument(document, column);
+      const existingDocument = await workspace.openTextDocument(fileUri);
+      await window.showTextDocument(existingDocument, column);
     } catch {
-      const doc = await workspace.openTextDocument(fileUri.with({ scheme: 'untitled' }));
-      await window.showTextDocument(doc, column);
+      const createdDocument = await workspace.openTextDocument(fileUri.with({ scheme: 'untitled' }));
+      await window.showTextDocument(createdDocument, column);
     }
   }
 }
