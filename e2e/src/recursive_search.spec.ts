@@ -31,7 +31,7 @@ suite('Recursive search', () => {
 
     const diagnostic: Diagnostic = {
       severity: DiagnosticSeverity.Information,
-      range: new Range(19, 96, 19, 96),
+      range: new Range(19, 61, 19, 65),
       message: 'Name hour not found inside ct',
     };
 
