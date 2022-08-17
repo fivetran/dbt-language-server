@@ -200,6 +200,12 @@ export class DbtTextDocument {
     }
   }
 
+  async resendDiagnostics(): Promise<void> {
+    if (this.destinationState.contextInitialized && !this.currentDbtError) {
+      await this.updateDiagnostics();
+    }
+  }
+
   debouncedCompile = debounce(async () => {
     this.progressReporter.sendStart(this.rawDocument.uri);
     await this.modelCompiler.compile(this.getModelPathOrFullyQualifiedName());

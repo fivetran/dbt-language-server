@@ -64,18 +64,19 @@ export class ExtensionClient {
       }),
 
       window.onDidChangeActiveTextEditor(async e => {
-        if (!e || e.document.uri.path === SqlPreviewContentProvider.URI.path) {
+        if (!e || e.document.uri.path === SqlPreviewContentProvider.URI.path || !SUPPORTED_LANG_IDS.includes(e.document.languageId)) {
           return;
         }
 
-        if (SUPPORTED_LANG_IDS.includes(e.document.languageId)) {
-          this.previewContentProvider.changeActiveDocument(e.document.uri);
+        this.previewContentProvider.changeActiveDocument(e.document.uri);
 
-          const projectFolder = await this.dbtLanguageClientManager.getDbtProjectUri(e.document.uri);
-          if (projectFolder) {
-            this.statusHandler.updateLanguageItems(projectFolder.path);
-          }
+        const projectFolder = await this.dbtLanguageClientManager.getDbtProjectUri(e.document.uri);
+        if (projectFolder) {
+          this.statusHandler.updateLanguageItems(projectFolder.path);
         }
+
+        const client = await this.dbtLanguageClientManager.getClientByUri(e.document.uri);
+        client?.sendNotification('dbtWizard/onDidChangeActiveTextEditor', e.document.uri.toString());
       }),
     );
     workspace.textDocuments.forEach(t =>
