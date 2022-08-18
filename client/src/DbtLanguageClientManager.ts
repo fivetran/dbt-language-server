@@ -96,8 +96,12 @@ export class DbtLanguageClientManager {
     if (!projectUri) {
       return;
     }
-
+    this.outputChannelProvider
+      .getMainLogChannel()
+      .append(`Checking: ${document.uri.fsPath} + ${this.clients.has(projectUri.path) ? 'true' : 'false'}`);
     if (!this.clients.has(projectUri.path)) {
+      this.outputChannelProvider.getMainLogChannel().append(`starting client for project ${projectUri.fsPath}`);
+
       const client = new DbtLanguageClient(
         6009 + this.clients.size,
         this.outputChannelProvider,
@@ -108,17 +112,18 @@ export class DbtLanguageClientManager {
         this.manifestParsedEventEmitter,
         this.statusHandler,
       );
+      this.clients.set(projectUri.path, client);
+
       await client.initialize();
 
       void this.progressHandler.begin();
 
       client.start();
-      this.clients.set(projectUri.path, client);
     }
   }
 
   stopClient(projectPath: string): void {
-    const client = this.clients.get(projectPath);
+    const client = this.getClientByPath(projectPath);
     if (client) {
       this.clients.delete(projectPath);
       client.stop().catch(e => console.log(`Error while stopping client: ${e instanceof Error ? e.message : String(e)}`));

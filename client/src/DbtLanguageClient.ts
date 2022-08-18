@@ -117,6 +117,8 @@ export class DbtLanguageClient implements Disposable {
       dbtCompiler: workspace.getConfiguration('dbtWizard').get('dbtCompiler', 'Auto') as DbtCompilerType,
     };
 
+    this.client.clientOptions.outputChannel?.append(customInitParams.pythonInfo?.path ?? 'undefined');
+    this.client.clientOptions.outputChannel?.append(customInitParams.dbtCompiler);
     this.client.clientOptions.initializationOptions = customInitParams;
   }
 
