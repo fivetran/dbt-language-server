@@ -1,5 +1,5 @@
 import { CustomInitParams, DbtCompilerType, LS_MANIFEST_PARSED_EVENT, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
-import { commands, Diagnostic, Disposable, RelativePattern, Uri, workspace, WorkspaceFolder } from 'vscode';
+import { commands, Diagnostic, Disposable, RelativePattern, Uri, window, workspace, WorkspaceFolder } from 'vscode';
 import { LanguageClient, LanguageClientOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { SUPPORTED_LANG_IDS } from './ExtensionClient';
 import { OutputChannelProvider } from './OutputChannelProvider';
@@ -55,6 +55,10 @@ export class DbtLanguageClient implements Disposable {
       }),
 
       this.client.onNotification('custom/updateQueryPreviewDiagnostics', ({ uri, diagnostics }) => {
+        if (window.activeTextEditor !== undefined && uri !== window.activeTextEditor.document.uri.toString()) {
+          this.resendDiagnostics(window.activeTextEditor.document.uri.toString());
+        }
+
         this.previewContentProvider.updateDiagnostics(uri as string, diagnostics as Diagnostic[]);
       }),
 
@@ -103,6 +107,10 @@ export class DbtLanguageClient implements Disposable {
     (await this.pythonExtension.onDidChangeExecutionDetails())(() => this.restart());
   }
 
+  getProjectUri(): Uri {
+    return this.dbtProjectUri;
+  }
+
   async initPythonParams(): Promise<void> {
     const customInitParams: CustomInitParams = {
       pythonInfo: await this.pythonExtension.getPythonInfo(this.client.clientOptions.workspaceFolder),
@@ -110,6 +118,10 @@ export class DbtLanguageClient implements Disposable {
     };
 
     this.client.clientOptions.initializationOptions = customInitParams;
+  }
+
+  resendDiagnostics(uri: string): void {
+    this.sendNotification('dbtWizard/resendDiagnostics', uri);
   }
 
   sendNotification(method: string, params?: unknown): void {

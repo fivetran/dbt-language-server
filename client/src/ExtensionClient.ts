@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import { commands, ExtensionContext, languages, TextDocument, TextEditor, ViewColumn, window, workspace } from 'vscode';
+import { ActiveTextEditorHandler } from './ActiveTextEditorHandler';
 import { AfterFunctionCompletion } from './commands/AfterFunctionCompletion';
 import { CommandManager } from './commands/CommandManager';
 import { Compile } from './commands/Compile';
@@ -33,6 +34,7 @@ export class ExtensionClient {
   dbtLanguageClientManager: DbtLanguageClientManager;
   commandManager = new CommandManager();
   packageJson?: PackageJson;
+  activeTextEditorHandler: ActiveTextEditorHandler;
 
   constructor(private context: ExtensionContext, manifestParsedEventEmitter: EventEmitter) {
     this.dbtLanguageClientManager = new DbtLanguageClientManager(
@@ -42,8 +44,9 @@ export class ExtensionClient {
       manifestParsedEventEmitter,
       this.statusHandler,
     );
+    this.activeTextEditorHandler = new ActiveTextEditorHandler(this.previewContentProvider, this.dbtLanguageClientManager, this.statusHandler);
 
-    this.context.subscriptions.push(this.dbtLanguageClientManager, this.commandManager);
+    this.context.subscriptions.push(this.dbtLanguageClientManager, this.commandManager, this.activeTextEditorHandler);
   }
 
   public onActivate(): void {
@@ -61,22 +64,6 @@ export class ExtensionClient {
         if (e.document.uri.path === SqlPreviewContentProvider.URI.path) {
           this.previewContentProvider.updatePreviewDiagnostics(this.dbtLanguageClientManager.getDiagnostics());
         }
-      }),
-
-      window.onDidChangeActiveTextEditor(async e => {
-        if (!e || e.document.uri.path === SqlPreviewContentProvider.URI.path || !SUPPORTED_LANG_IDS.includes(e.document.languageId)) {
-          return;
-        }
-
-        this.previewContentProvider.changeActiveDocument(e.document.uri);
-
-        const projectFolder = await this.dbtLanguageClientManager.getDbtProjectUri(e.document.uri);
-        if (projectFolder) {
-          this.statusHandler.updateLanguageItems(projectFolder.path);
-        }
-
-        const client = await this.dbtLanguageClientManager.getClientByUri(e.document.uri);
-        client?.sendNotification('dbtWizard/onDidChangeActiveTextEditor', e.document.uri.toString());
       }),
     );
     workspace.textDocuments.forEach(t =>

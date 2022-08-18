@@ -214,7 +214,7 @@ export class LspServer {
     this.connection.onNotification('custom/dbtCompile', this.onDbtCompile.bind(this));
     this.connection.onNotification('dbtWizard/installLatestDbt', this.installLatestDbt.bind(this));
     this.connection.onNotification('dbtWizard/installDbtAdapter', this.installDbtAdapter.bind(this));
-    this.connection.onNotification('dbtWizard/onDidChangeActiveTextEditor', this.onDidChangeActiveTextEditor.bind(this));
+    this.connection.onNotification('dbtWizard/resendDiagnostics', this.onDidChangeActiveTextEditor.bind(this));
   }
 
   async onInitialized(): Promise<void> {
