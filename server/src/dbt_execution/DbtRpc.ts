@@ -54,14 +54,20 @@ export class DbtRpc extends Dbt {
       } catch (e) {
         this.finishWithError(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
       }
-      this.doInitialCompile();
+      this.doInitialCompile().catch(e => console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`));
     }
   }
 
-  doInitialCompile(): void {
-    this.dbtRpcClient.compile().catch(e => {
-      console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
-    });
+  async doInitialCompile(): Promise<void> {
+    // Compilation can be started for a short time after the server receives a SIGHUP signal
+    await this.dbtRpcServer.ensureCompilationFinished();
+
+    const result = await this.dbtRpcClient.compile();
+    console.log(
+      result?.result.request_token !== undefined
+        ? 'Initial compilation finished successfully'
+        : `Initial compilation finished with error ${result?.error?.data?.message ?? 'undefined'}`,
+    );
   }
 
   async startDbtRpc(command: DbtCommand, port: number): Promise<void> {
