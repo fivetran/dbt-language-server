@@ -23,9 +23,8 @@ export class DbtLanguageClientManager {
   ) {}
 
   getDiagnostics(): DiagnosticCollection | undefined {
-    log('getDiagnostics');
     const [[, client]] = this.clients;
-    return client.client.diagnostics;
+    return client.getDiagnostics();
   }
 
   async getClientForActiveDocument(): Promise<DbtLanguageClient | undefined> {
@@ -59,7 +58,6 @@ export class DbtLanguageClientManager {
   }
 
   getClientByPath(projectPath: string): DbtLanguageClient | undefined {
-    log(`getClientByPath ${projectPath}`);
     return this.clients.get(projectPath);
   }
 
@@ -100,10 +98,7 @@ export class DbtLanguageClientManager {
       return;
     }
 
-    log(`Checking: ${document.uri.fsPath} + ${this.clients.has(projectUri.path) ? 'true' : 'false'}`);
     if (!this.clients.has(projectUri.path)) {
-      log(`starting client for project ${projectUri.fsPath}`);
-
       const client = new DbtLanguageClient(
         6009 + this.clients.size,
         this.outputChannelProvider,

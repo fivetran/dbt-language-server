@@ -37,7 +37,6 @@ export class PythonExtension {
     if (path === '') {
       return this.pythonNotFound();
     }
-    log(`Python path used: ${path}`);
 
     const envDetails = await api.environment.getEnvironmentDetails(path);
 

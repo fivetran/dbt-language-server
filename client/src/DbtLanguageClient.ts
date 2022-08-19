@@ -1,13 +1,6 @@
-import {
-  CustomInitParams,
-  DbtCompilerType,
-  LS_MANIFEST_PARSED_EVENT,
-  PythonInfo,
-  StatusNotification,
-  TelemetryEvent,
-} from 'dbt-language-server-common';
-import { commands, Diagnostic, Disposable, RelativePattern, Uri, window, workspace, WorkspaceFolder } from 'vscode';
-import { LanguageClient, LanguageClientOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
+import { CustomInitParams, DbtCompilerType, LS_MANIFEST_PARSED_EVENT, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
+import { commands, Diagnostic, DiagnosticCollection, Disposable, RelativePattern, Uri, window, workspace } from 'vscode';
+import { LanguageClient, LanguageClientOptions, ServerOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { SUPPORTED_LANG_IDS } from './ExtensionClient';
 import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
@@ -21,25 +14,40 @@ import EventEmitter = require('node:events');
 export class DbtLanguageClient implements Disposable {
   client: LanguageClient;
   disposables: Disposable[] = [];
-  workspaceFolder?: WorkspaceFolder;
   pythonExtension = new PythonExtension();
 
   constructor(
     port: number,
-    outputChannelProvider: OutputChannelProvider,
-    module: string,
+    private outputChannelProvider: OutputChannelProvider,
+    serverAbsolutePath: string,
     private dbtProjectUri: Uri,
     private previewContentProvider: SqlPreviewContentProvider,
     private progressHandler: ProgressHandler,
     private manifestParsedEventEmitter: EventEmitter,
     private statusHandler: StatusHandler,
   ) {
+    this.client = new LanguageClient(
+      'dbtLanguageServer',
+      'dbt Wizard',
+      DbtLanguageClient.createServerOptions(port, serverAbsolutePath),
+      DbtLanguageClient.createClientOptions(port, dbtProjectUri, outputChannelProvider, this.disposables),
+    );
+  }
+
+  static createServerOptions(port: number, module: string): ServerOptions {
     const debugOptions = { execArgv: ['--nolazy', `--inspect=${port}`] };
-    const serverOptions = {
+    return {
       run: { module, transport: TransportKind.ipc },
       debug: { module, transport: TransportKind.ipc, options: debugOptions },
     };
+  }
 
+  static createClientOptions(
+    port: number,
+    dbtProjectUri: Uri,
+    outputChannelProvider: OutputChannelProvider,
+    disposables: Disposable[],
+  ): LanguageClientOptions {
     const fileEvents = [
       workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/dbt_project.yml'), false, false, true),
       workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/manifest.json'), false, false, true),
@@ -52,11 +60,19 @@ export class DbtLanguageClient implements Disposable {
       outputChannel: outputChannelProvider.getMainLogChannel(),
       workspaceFolder: { uri: dbtProjectUri, name: dbtProjectUri.path, index: port },
     };
-    this.disposables.push(...fileEvents);
+    disposables.push(...fileEvents);
+    return clientOptions;
+  }
 
-    this.workspaceFolder = workspace.getWorkspaceFolder(dbtProjectUri);
+  async initialize(): Promise<void> {
+    await this.initPythonParams();
+    (await this.pythonExtension.onDidChangeExecutionDetails())(() => this.restart());
 
-    this.client = new LanguageClient('dbtLanguageServer', 'dbt Wizard', serverOptions, clientOptions);
+    this.initializeNotifications();
+    this.initializeEvents();
+  }
+
+  initializeNotifications(): void {
     this.disposables.push(
       this.client.onNotification('custom/updateQueryPreview', ({ uri, previewText }) => {
         this.previewContentProvider.updateText(uri as string, previewText as string);
@@ -71,7 +87,7 @@ export class DbtLanguageClient implements Disposable {
       }),
 
       this.client.onNotification('custom/manifestParsed', () => {
-        this.manifestParsedEventEmitter.emit(LS_MANIFEST_PARSED_EVENT, this.workspaceFolder?.uri.path);
+        this.manifestParsedEventEmitter.emit(LS_MANIFEST_PARSED_EVENT, this.dbtProjectUri.fsPath);
       }),
 
       this.client.onNotification('dbtWizard/status', (statusNotification: StatusNotification) => {
@@ -79,24 +95,22 @@ export class DbtLanguageClient implements Disposable {
       }),
 
       this.client.onNotification('dbtWizard/installLatestDbtLog', async (data: string) => {
-        outputChannelProvider.getInstallLatestDbtChannel().append(data);
+        this.outputChannelProvider.getInstallLatestDbtChannel().append(data);
         await commands.executeCommand('workbench.action.focusActiveEditorGroup');
       }),
 
       this.client.onNotification('dbtWizard/installDbtAdapterLog', async (data: string) => {
-        outputChannelProvider.getInstallDbtAdaptersChannel().append(data);
+        this.outputChannelProvider.getInstallDbtAdaptersChannel().append(data);
         await commands.executeCommand('workbench.action.focusActiveEditorGroup');
       }),
 
       this.client.onNotification('dbtWizard/restart', async () => {
         await this.restart();
       }),
-
-      this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),
     );
   }
 
-  async initialize(): Promise<void> {
+  initializeEvents(): void {
     this.disposables.push(
       this.client.onTelemetry((e: TelemetryEvent) => {
         if (e.name === 'error') {
@@ -105,14 +119,13 @@ export class DbtLanguageClient implements Disposable {
           TelemetryClient.sendEvent(e.name, e.properties);
         }
       }),
+
+      this.client.onDidChangeState(e => {
+        log(`Client switched to state ${State[e.newState]}`);
+      }),
+
+      this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),
     );
-
-    this.client.onDidChangeState(e => {
-      log(`Client switched to state ${State[e.newState]}`);
-    });
-
-    await this.initPythonParams();
-    (await this.pythonExtension.onDidChangeExecutionDetails())(() => this.restart());
   }
 
   getProjectUri(): Uri {
@@ -125,8 +138,6 @@ export class DbtLanguageClient implements Disposable {
       dbtCompiler: workspace.getConfiguration('dbtWizard').get('dbtCompiler', 'Auto') as DbtCompilerType,
     };
 
-    log(customInitParams.pythonInfo?.path ?? 'undefined');
-    log(customInitParams.dbtCompiler);
     this.client.clientOptions.initializationOptions = customInitParams;
   }
 
@@ -135,16 +146,17 @@ export class DbtLanguageClient implements Disposable {
   }
 
   sendNotification(method: string, params?: unknown): void {
-    this.client.sendNotification(method, params).catch(e => log(`Error while sending notification: ${e instanceof Error ? e.message : String(e)}`));
+    if (this.client.state === State.Running) {
+      this.client.sendNotification(method, params).catch(e => log(`Error while sending notification: ${e instanceof Error ? e.message : String(e)}`));
+    }
   }
 
   start(): void {
-    log(
-      `Python path: ${
-        ((this.client.clientOptions.initializationOptions as { pythonInfo: PythonInfo }).pythonInfo.path as string | undefined) ?? 'undefined'
-      }`,
-    );
     this.client.start().catch(e => log(`Error while starting server: ${e instanceof Error ? e.message : String(e)}`));
+  }
+
+  getDiagnostics(): DiagnosticCollection | undefined {
+    return this.client.diagnostics;
   }
 
   async restart(): Promise<void> {
