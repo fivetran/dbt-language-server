@@ -9,6 +9,7 @@ import { InstallLatestDbt } from './commands/InstallLatestDbt';
 import { OpenOrCreatePackagesYml } from './commands/OpenOrCreatePackagesYml';
 import { Restart } from './commands/Restart';
 import { DbtLanguageClientManager } from './DbtLanguageClientManager';
+import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 import { StatusHandler } from './status/StatusHandler';
@@ -28,7 +29,6 @@ export interface PackageJson {
 export class ExtensionClient {
   static readonly DEFAULT_PACKAGES_PATHS = ['dbt_packages', 'dbt_modules'];
 
-  outputChannelProvider = new OutputChannelProvider();
   previewContentProvider = new SqlPreviewContentProvider();
   statusHandler = new StatusHandler();
   dbtLanguageClientManager: DbtLanguageClientManager;
@@ -36,7 +36,7 @@ export class ExtensionClient {
   packageJson?: PackageJson;
   activeTextEditorHandler: ActiveTextEditorHandler;
 
-  constructor(private context: ExtensionContext, manifestParsedEventEmitter: EventEmitter) {
+  constructor(private context: ExtensionContext, private outputChannelProvider: OutputChannelProvider, manifestParsedEventEmitter: EventEmitter) {
     this.dbtLanguageClientManager = new DbtLanguageClientManager(
       this.previewContentProvider,
       this.outputChannelProvider,
@@ -50,8 +50,6 @@ export class ExtensionClient {
   }
 
   public onActivate(): void {
-    console.log('Extension "dbt-language-server" is now active!');
-
     this.context.subscriptions.push(
       workspace.onDidOpenTextDocument(this.onDidOpenTextDocument.bind(this)),
       workspace.onDidChangeWorkspaceFolders(event => {
@@ -67,7 +65,7 @@ export class ExtensionClient {
       }),
     );
     workspace.textDocuments.forEach(t =>
-      this.onDidOpenTextDocument(t).catch(e => console.log(`Error while opening text document ${e instanceof Error ? e.message : String(e)}`)),
+      this.onDidOpenTextDocument(t).catch(e => log(`Error while opening text document ${e instanceof Error ? e.message : String(e)}`)),
     );
     this.registerSqlPreviewContentProvider(this.context);
 
@@ -81,7 +79,7 @@ export class ExtensionClient {
   parseVersion(): void {
     const extensionPath = path.join(this.context.extensionPath, 'package.json');
     this.packageJson = JSON.parse(fs.readFileSync(extensionPath, 'utf8')) as PackageJson;
-    this.outputChannelProvider.getMainLogChannel().appendLine(`dbt Wizard version: ${this.packageJson.version}`);
+    log(`dbt Wizard version: ${this.packageJson.version}`);
   }
 
   registerCommands(): void {

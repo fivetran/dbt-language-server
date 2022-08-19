@@ -1,5 +1,6 @@
 import { commands, window } from 'vscode';
 import { DbtLanguageClientManager } from '../DbtLanguageClientManager';
+import { log } from '../Logger';
 import { OutputChannelProvider } from '../OutputChannelProvider';
 import { Command } from './CommandManager';
 
@@ -25,7 +26,7 @@ export class InstallLatestDbt implements Command {
       }
     } else {
       window.showWarningMessage('First, open the model from the dbt project.').then(undefined, e => {
-        console.log(`Error while sending notification: ${e instanceof Error ? e.message : String(e)}`);
+        log(`Error while sending notification: ${e instanceof Error ? e.message : String(e)}`);
       });
     }
   }

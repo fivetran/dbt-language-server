@@ -2,6 +2,7 @@ import EventEmitter = require('node:events');
 import { DiagnosticCollection, TextDocument, Uri, window, workspace } from 'vscode';
 import { DbtLanguageClient } from './DbtLanguageClient';
 import { ExtensionClient, SUPPORTED_LANG_IDS } from './ExtensionClient';
+import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
@@ -22,6 +23,7 @@ export class DbtLanguageClientManager {
   ) {}
 
   getDiagnostics(): DiagnosticCollection | undefined {
+    log('getDiagnostics');
     const [[, client]] = this.clients;
     return client.client.diagnostics;
   }
@@ -29,7 +31,7 @@ export class DbtLanguageClientManager {
   async getClientForActiveDocument(): Promise<DbtLanguageClient | undefined> {
     const document = this.getActiveDocument();
     if (document === undefined) {
-      console.log(`Can't find active document`);
+      log(`Can't find active document`);
       return undefined;
     }
 
@@ -57,6 +59,7 @@ export class DbtLanguageClientManager {
   }
 
   getClientByPath(projectPath: string): DbtLanguageClient | undefined {
+    log(`getClientByPath ${projectPath}`);
     return this.clients.get(projectPath);
   }
 
@@ -96,11 +99,10 @@ export class DbtLanguageClientManager {
     if (!projectUri) {
       return;
     }
-    this.outputChannelProvider
-      .getMainLogChannel()
-      .append(`Checking: ${document.uri.fsPath} + ${this.clients.has(projectUri.path) ? 'true' : 'false'}`);
+
+    log(`Checking: ${document.uri.fsPath} + ${this.clients.has(projectUri.path) ? 'true' : 'false'}`);
     if (!this.clients.has(projectUri.path)) {
-      this.outputChannelProvider.getMainLogChannel().append(`starting client for project ${projectUri.fsPath}`);
+      log(`starting client for project ${projectUri.fsPath}`);
 
       const client = new DbtLanguageClient(
         6009 + this.clients.size,
@@ -126,7 +128,7 @@ export class DbtLanguageClientManager {
     const client = this.getClientByPath(projectPath);
     if (client) {
       this.clients.delete(projectPath);
-      client.stop().catch(e => console.log(`Error while stopping client: ${e instanceof Error ? e.message : String(e)}`));
+      client.stop().catch(e => log(`Error while stopping client: ${e instanceof Error ? e.message : String(e)}`));
     }
   }
 

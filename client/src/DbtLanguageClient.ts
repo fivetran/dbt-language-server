@@ -1,7 +1,15 @@
-import { CustomInitParams, DbtCompilerType, LS_MANIFEST_PARSED_EVENT, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
+import {
+  CustomInitParams,
+  DbtCompilerType,
+  LS_MANIFEST_PARSED_EVENT,
+  PythonInfo,
+  StatusNotification,
+  TelemetryEvent,
+} from 'dbt-language-server-common';
 import { commands, Diagnostic, Disposable, RelativePattern, Uri, window, workspace, WorkspaceFolder } from 'vscode';
 import { LanguageClient, LanguageClientOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { SUPPORTED_LANG_IDS } from './ExtensionClient';
+import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';
 import { PythonExtension } from './python/PythonExtension';
@@ -100,7 +108,7 @@ export class DbtLanguageClient implements Disposable {
     );
 
     this.client.onDidChangeState(e => {
-      console.log(`Client switched to state ${State[e.newState]}`);
+      log(`Client switched to state ${State[e.newState]}`);
     });
 
     await this.initPythonParams();
@@ -117,8 +125,8 @@ export class DbtLanguageClient implements Disposable {
       dbtCompiler: workspace.getConfiguration('dbtWizard').get('dbtCompiler', 'Auto') as DbtCompilerType,
     };
 
-    this.client.clientOptions.outputChannel?.append(customInitParams.pythonInfo?.path ?? 'undefined');
-    this.client.clientOptions.outputChannel?.append(customInitParams.dbtCompiler);
+    log(customInitParams.pythonInfo?.path ?? 'undefined');
+    log(customInitParams.dbtCompiler);
     this.client.clientOptions.initializationOptions = customInitParams;
   }
 
@@ -127,13 +135,16 @@ export class DbtLanguageClient implements Disposable {
   }
 
   sendNotification(method: string, params?: unknown): void {
-    this.client
-      .sendNotification(method, params)
-      .catch(e => console.log(`Error while sending notification: ${e instanceof Error ? e.message : String(e)}`));
+    this.client.sendNotification(method, params).catch(e => log(`Error while sending notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   start(): void {
-    this.client.start().catch(e => console.log(`Error while starting server: ${e instanceof Error ? e.message : String(e)}`));
+    log(
+      `Python path: ${
+        ((this.client.clientOptions.initializationOptions as { pythonInfo: PythonInfo }).pythonInfo.path as string | undefined) ?? 'undefined'
+      }`,
+    );
+    this.client.start().catch(e => log(`Error while starting server: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   async restart(): Promise<void> {
