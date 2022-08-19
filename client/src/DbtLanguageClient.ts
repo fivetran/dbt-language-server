@@ -84,6 +84,7 @@ export class DbtLanguageClient implements Disposable {
         }
 
         this.previewContentProvider.updateDiagnostics(uri as string, diagnostics as Diagnostic[]);
+        this.previewContentProvider.applyDiagnostics(this.client.diagnostics);
       }),
 
       this.client.onNotification('custom/manifestParsed', () => {

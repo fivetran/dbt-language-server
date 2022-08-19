@@ -65,7 +65,7 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
     this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
   }
 
-  updatePreviewDiagnostics(diagnostics?: DiagnosticCollection): void {
+  applyDiagnostics(diagnostics?: DiagnosticCollection): void {
     const previewDiagnostics = this.previewInfos.get(this.activeDocUri.toString())?.diagnostics ?? [];
     diagnostics?.set(SqlPreviewContentProvider.URI, previewDiagnostics);
   }
