@@ -32,7 +32,9 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
       diagnostics: currentValue?.diagnostics ?? [],
     });
 
-    this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
+    if (uri.toString() === this.activeDocUri.toString()) {
+      this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
+    }
   }
 
   updateDiagnostics(uri: string, diagnostics: Diagnostic[]): void {
@@ -69,8 +71,10 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
   }
 
   changeActiveDocument(uri: Uri): void {
-    this.activeDocUri = uri;
-    this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
+    if (uri.toString() !== this.activeDocUri.toString()) {
+      this.activeDocUri = uri;
+      this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
+    }
   }
 
   dispose(): void {

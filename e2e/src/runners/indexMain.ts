@@ -65,21 +65,19 @@ export async function indexMain(timeout: string, globPattern: string, doNotRun: 
 
       try {
         // Run the mocha test
-        const runner = mocha.run(failures => {
+        mocha.run(failures => {
           console.log(`E2E tests duration: ${(performance.now() - startTime) / 1000} seconds.`);
           if (failures > 0) {
+            try {
+              console.log(`Content of document when test failed:\n|${doc.getText()}|\n`);
+              console.log(`Preview content:\n|${getPreviewText()}|\n`);
+              console.log(`Preview diagnostics:\n|${JSON.stringify(languages.getDiagnostics(Uri.parse(PREVIEW_URI)))}|\n`);
+            } catch (err) {
+              console.log(`Error in fail stage: ${err instanceof Error ? err.message : String(err)}`);
+            }
             reject(new Error(`${failures} tests failed.`));
           } else {
             resolve();
-          }
-        });
-        runner.on('fail', () => {
-          try {
-            console.log(`Content of document when test failed:\n|${doc.getText()}|\n`);
-            console.log(`Preview content:\n|${getPreviewText()}|\n`);
-            console.log(`Preview diagnostics:\n|${JSON.stringify(languages.getDiagnostics(Uri.parse(PREVIEW_URI)))}|\n`);
-          } catch (err) {
-            // do nothing
           }
         });
       } catch (err) {
