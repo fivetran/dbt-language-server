@@ -58,9 +58,9 @@ export class ExtensionClient {
         }
       }),
 
-      workspace.onDidChangeTextDocument(e => {
+      workspace.onDidChangeTextDocument(async e => {
         if (e.document.uri.path === SqlPreviewContentProvider.URI.path) {
-          this.previewContentProvider.applyDiagnostics(this.dbtLanguageClientManager.getDiagnostics());
+          await this.dbtLanguageClientManager.applyPreviewDiagnostics();
         }
       }),
     );
@@ -113,7 +113,7 @@ export class ExtensionClient {
         await commands.executeCommand('workbench.action.focusPreviousGroup');
       }
       await languages.setTextDocumentLanguage(doc, 'sql');
-      this.previewContentProvider.applyDiagnostics(this.dbtLanguageClientManager.getDiagnostics());
+      await this.dbtLanguageClientManager.applyPreviewDiagnostics();
     });
 
     context.subscriptions.push(this.previewContentProvider, commandRegistration, providerRegistrations);

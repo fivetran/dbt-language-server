@@ -1,5 +1,5 @@
 import EventEmitter = require('node:events');
-import { DiagnosticCollection, TextDocument, Uri, window, workspace } from 'vscode';
+import { Selection, TextDocument, Uri, window, workspace } from 'vscode';
 import { DbtLanguageClient } from './DbtLanguageClient';
 import { ExtensionClient, SUPPORTED_LANG_IDS } from './ExtensionClient';
 import { log } from './Logger';
@@ -20,11 +20,23 @@ export class DbtLanguageClientManager {
     private serverAbsolutePath: string,
     private manifestParsedEventEmitter: EventEmitter,
     private statusHandler: StatusHandler,
-  ) {}
+  ) {
+    previewContentProvider.onDidChange(() => this.applyPreviewDiagnostics());
+  }
 
-  getDiagnostics(): DiagnosticCollection | undefined {
-    const [[, client]] = this.clients;
-    return client.getDiagnostics();
+  async applyPreviewDiagnostics(): Promise<void> {
+    const previewDiagnostics = this.previewContentProvider.getPreviewDiagnostics();
+    const activeClient = await this.getClientForActiveDocument();
+
+    for (const client of this.clients.values()) {
+      const clientDiagnostics = client.getDiagnostics();
+      clientDiagnostics?.set(SqlPreviewContentProvider.URI, client.getProjectUri() === activeClient?.getProjectUri() ? previewDiagnostics : []);
+    }
+
+    const editor = window.visibleTextEditors.find(e => e.document.uri.toString() === SqlPreviewContentProvider.URI.toString());
+    if (editor) {
+      editor.selection = new Selection(0, 0, 0, 0);
+    }
   }
 
   async getClientForActiveDocument(): Promise<DbtLanguageClient | undefined> {

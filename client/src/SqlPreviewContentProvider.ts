@@ -1,6 +1,5 @@
 import {
   Diagnostic,
-  DiagnosticCollection,
   DiagnosticRelatedInformation,
   DiagnosticSeverity,
   Event,
@@ -65,9 +64,8 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
     this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
   }
 
-  applyDiagnostics(diagnostics?: DiagnosticCollection): void {
-    const previewDiagnostics = this.previewInfos.get(this.activeDocUri.toString())?.diagnostics ?? [];
-    diagnostics?.set(SqlPreviewContentProvider.URI, previewDiagnostics);
+  getPreviewDiagnostics(): Diagnostic[] {
+    return this.previewInfos.get(this.activeDocUri.toString())?.diagnostics ?? [];
   }
 
   changeActiveDocument(uri: Uri): void {
