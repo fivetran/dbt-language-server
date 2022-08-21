@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import { writeFileSync } from 'fs';
 import * as path from 'path';
 import { pathEqual } from 'path-equal';
+import { setTimeout } from 'timers/promises';
 import {
   commands,
   CompletionItem,
@@ -23,7 +24,6 @@ import {
   window,
   workspace,
 } from 'vscode';
-
 export let doc: TextDocument;
 export let editor: TextEditor;
 
@@ -95,13 +95,8 @@ function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
   }
 }
 
-function waitWithTimeout(promise: Promise<void>, ms: number): Promise<void> {
-  const timeoutPromise = new Promise<void>(resolve => {
-    setTimeout(() => {
-      resolve();
-    }, ms);
-  });
-  return Promise.race([promise, timeoutPromise]);
+function waitWithTimeout(promise: Promise<void>, timeout: number): Promise<void> {
+  return Promise.race([promise, setTimeout(timeout)]);
 }
 
 export async function waitDocumentModification(func: () => Promise<void>): Promise<void> {
@@ -148,9 +143,7 @@ function getPreviewEditor(): TextEditor | undefined {
 }
 
 export function sleep(ms: number): Promise<unknown> {
-  return new Promise(resolve => {
-    setTimeout(resolve, ms);
-  });
+  return setTimeout(ms);
 }
 
 export const getDocPath = (p: string): string => {
