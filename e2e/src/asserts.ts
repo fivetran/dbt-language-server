@@ -9,7 +9,7 @@ export async function assertAllDiagnostics(uri: Uri, diagnostics: Diagnostic[]):
 }
 
 export async function assertDiagnostics(uri: Uri, diagnostics: Diagnostic[]): Promise<void> {
-  await sleep(100);
+  await sleep(200);
 
   const rawDocDiagnostics = languages.getDiagnostics(uri);
   assertThat(rawDocDiagnostics, hasSize(diagnostics.length));
