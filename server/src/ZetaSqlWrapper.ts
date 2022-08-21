@@ -37,7 +37,7 @@ export class ZetaSqlWrapper {
   };
   private languageOptions: LanguageOptions | undefined;
   private registeredTables: TableDefinition[] = [];
-  private registeredFunctions: string[][] = [];
+  private registeredFunctions = new Set<string>();
   private informationSchemaConfigurator = new InformationSchemaConfigurator();
 
   constructor(private dbtRepository: DbtRepository, private bigQueryClient: BigQueryClient, private zetaSqlParser: ZetaSqlParser) {}
@@ -141,8 +141,10 @@ export class ZetaSqlWrapper {
     const func = this.createFunction(udf);
 
     udfOwner.customFunction = udfOwner.customFunction ?? [];
-    udfOwner.customFunction.push(func);
-    this.registeredFunctions.push(udf.nameParts);
+    if (!udfOwner.customFunction.some(c => c.namePath?.join() === func.namePath?.join())) {
+      udfOwner.customFunction.push(func);
+      this.registeredFunctions.add(udf.nameParts.join());
+    }
   }
 
   ensureUdfOwnerCatalogExists(udf: Udf): SimpleCatalogProto {
@@ -353,7 +355,7 @@ export class ZetaSqlWrapper {
 
   async getNewCustomFunctions(sql: string): Promise<string[][]> {
     return (await this.zetaSqlParser.getAllFunctions(sql, (await this.getLanguageOptions())?.serialize())).filter(
-      f => !this.registeredFunctions.find(rf => arraysAreEqual(f, rf)),
+      f => !this.registeredFunctions.has(f.join()),
     );
   }
 
