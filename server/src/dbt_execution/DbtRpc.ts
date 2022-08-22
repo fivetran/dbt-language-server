@@ -65,8 +65,8 @@ export class DbtRpc extends Dbt {
     const result = await this.dbtRpcClient.compile();
     console.log(
       result?.result.request_token !== undefined
-        ? 'Initial compilation finished successfully'
-        : `Initial compilation finished with error ${result?.error?.data?.message ?? 'undefined'}`,
+        ? 'Initial compilation started successfully'
+        : `There was an error while starting the compilation: ${result?.error?.data?.message ?? 'undefined'}`,
     );
   }
 
