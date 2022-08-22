@@ -1,4 +1,3 @@
 {
-	"python.defaultInterpreterPath": "~/new_dbt/bin/python3",
-	"python.pythonPath": "~/new_dbt/bin/python3",
+  "python.defaultInterpreterPath": "~/new_dbt/bin/python3"
 }
