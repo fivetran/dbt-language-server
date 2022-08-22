@@ -22,7 +22,7 @@
     "yaml": "^2.1.1"
   },
   "devDependencies": {
-    "@types/async-retry": "1.4.4",
+    "@types/async-retry": "1.4.5",
     "@types/diff": "^5.0.2",
     "@types/source-map-support": "^0.5.4",
     "@types/uuid": "^8.3.4",
