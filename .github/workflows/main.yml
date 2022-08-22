@@ -169,6 +169,7 @@ jobs:
           npx tsc --sourceMap false --project tsconfig.json
 
       - uses: actions/setup-python@v4
+        id: setup-python
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -301,6 +302,7 @@ jobs:
         env:
           USE_DBT_CLI: ${{ matrix.use-dbt-cli }}
           SKIP_TESTS: ${{ matrix.SKIP_TESTS }}
+          PYTHON_INSTALL_LOC: '${{ steps.setup-python.outputs.python-path }}'
 
       - name: upload logs
         if: always()

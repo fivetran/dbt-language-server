@@ -27,6 +27,8 @@
       "**/models/jinja_sql.sql": "jinja-sql"
     },
 
-    "files.autoSave": "afterDelay"
+    "files.autoSave": "afterDelay",
+
+    "python.defaultInterpreterPath": "${env:PYTHON_INSTALL_LOC}"
   }
 }
