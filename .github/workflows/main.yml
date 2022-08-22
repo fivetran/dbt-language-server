@@ -117,8 +117,7 @@ jobs:
               python=${homedir}/dbt_1_0_8_env/Scripts/python
               cat <<EOT > ${GITHUB_WORKSPACE}/e2e/projects/special-python-settings/.vscode/settings.json
               {
-                "python.defaultInterpreterPath": "${python}",
-                "python.pythonPath": "${python}",
+                "python.defaultInterpreterPath": "${python}"
               }
               EOT
             activate-venv: |
