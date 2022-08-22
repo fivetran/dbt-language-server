@@ -1,5 +1,6 @@
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 import { err, ok, Result } from 'neverthrow';
+import { setTimeout } from 'timers/promises';
 import { DbtDestinationClient } from '../DbtDestinationClient';
 import { DbtProfile, TargetConfig } from '../DbtProfile';
 import { ProcessExecutor } from '../ProcessExecutor';
@@ -97,12 +98,7 @@ export class OAuthProfile implements DbtProfile {
       .then(() => ok(undefined))
       .catch(() => err(OAuthProfile.GCLOUD_AUTHENTICATION_ERROR));
 
-    const timeoutPromise = new Promise<Result<void, string>>(resolve => {
-      setTimeout(() => {
-        resolve(err(OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT_ERROR));
-      }, OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT);
-    });
-
+    const timeoutPromise = setTimeout(OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT, err(OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT_ERROR));
     return Promise.race([authenticatePromise, timeoutPromise]);
   }
 

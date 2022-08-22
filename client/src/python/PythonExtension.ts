@@ -1,5 +1,6 @@
 import { PythonInfo } from 'dbt-language-server-common';
 import { Event, Extension, extensions, Uri, WorkspaceFolder } from 'vscode';
+import { log } from '../Logger';
 import { IExtensionApi, IProposedExtensionAPI } from './PythonApi';
 
 export class PythonExtension {
@@ -12,7 +13,7 @@ export class PythonExtension {
     }
     this.extension = extension;
 
-    this.activate().catch(e => console.log(`Error while activating Python extension: ${e instanceof Error ? e.message : String(e)}`));
+    this.activate().catch(e => log(`Error while activating Python extension: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   async onDidChangeExecutionDetails(): Promise<Event<Uri | undefined>> {
@@ -36,7 +37,6 @@ export class PythonExtension {
     if (path === '') {
       return this.pythonNotFound();
     }
-    console.log(`Python path used: ${path}`);
 
     const envDetails = await api.environment.getEnvironmentDetails(path);
 
@@ -50,7 +50,7 @@ export class PythonExtension {
   }
 
   pythonNotFound(): undefined {
-    console.log('ms-python.python not found');
+    log('ms-python.python not found');
     return undefined;
   }
 }

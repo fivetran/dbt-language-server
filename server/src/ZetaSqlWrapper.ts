@@ -37,7 +37,7 @@ export class ZetaSqlWrapper {
   };
   private languageOptions: LanguageOptions | undefined;
   private registeredTables: TableDefinition[] = [];
-  private registeredFunctions: string[][] = [];
+  private registeredFunctions = new Set<string>();
   private informationSchemaConfigurator = new InformationSchemaConfigurator();
 
   constructor(private dbtRepository: DbtRepository, private bigQueryClient: BigQueryClient, private zetaSqlParser: ZetaSqlParser) {}
@@ -141,8 +141,10 @@ export class ZetaSqlWrapper {
     const func = this.createFunction(udf);
 
     udfOwner.customFunction = udfOwner.customFunction ?? [];
-    udfOwner.customFunction.push(func);
-    this.registeredFunctions.push(udf.nameParts);
+    if (!udfOwner.customFunction.some(c => c.namePath?.join() === func.namePath?.join())) {
+      udfOwner.customFunction.push(func);
+      this.registeredFunctions.add(udf.nameParts.join());
+    }
   }
 
   ensureUdfOwnerCatalogExists(udf: Udf): SimpleCatalogProto {
@@ -189,8 +191,10 @@ export class ZetaSqlWrapper {
   }
 
   static addColumn(table: SimpleTableProto, newColumn: SimpleColumnProto): void {
-    const column = table.column?.find(c => c.name === newColumn.name);
-    if (!column) {
+    const columnIndex = table.column?.findIndex(c => c.name === newColumn.name);
+    if (table.column && columnIndex !== undefined && columnIndex > -1) {
+      table.column[columnIndex] = newColumn;
+    } else {
       table.column = table.column ?? [];
       table.column.push(newColumn);
     }
@@ -265,7 +269,7 @@ export class ZetaSqlWrapper {
 
     let tables = await this.findTableNames(compiledSql);
 
-    const settledResult = await Promise.allSettled(tables.map(t => this.fillTableSchemaFromBq(t)));
+    const settledResult = await Promise.allSettled(tables.filter(t => !this.isTableRegistered(t)).map(t => this.fillTableSchemaFromBq(t)));
     tables = settledResult.filter((v): v is PromiseFulfilledResult<TableDefinition> => v.status === 'fulfilled').map(v => v.value);
 
     for (const table of tables) {
@@ -351,7 +355,7 @@ export class ZetaSqlWrapper {
 
   async getNewCustomFunctions(sql: string): Promise<string[][]> {
     return (await this.zetaSqlParser.getAllFunctions(sql, (await this.getLanguageOptions())?.serialize())).filter(
-      f => !this.registeredFunctions.find(rf => arraysAreEqual(f, rf)),
+      f => !this.registeredFunctions.has(f.join()),
     );
   }
 

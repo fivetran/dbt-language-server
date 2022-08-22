@@ -1,6 +1,7 @@
 import TelemetryReporter, { TelemetryEventProperties } from '@vscode/extension-telemetry';
 import { ExtensionContext } from 'vscode';
 import { PackageJson } from './ExtensionClient';
+import { log } from './Logger';
 
 export class TelemetryClient {
   private static client: TelemetryReporter | undefined;
@@ -19,7 +20,7 @@ export class TelemetryClient {
 
   static activate(context: ExtensionContext, packageJson?: PackageJson): void {
     if (process.env['DBT_LS_DISABLE_TELEMETRY']) {
-      console.log('Telemetry is disabled');
+      log('Telemetry is disabled');
       return;
     }
 
@@ -27,7 +28,7 @@ export class TelemetryClient {
       TelemetryClient.client = new TelemetryReporter(packageJson.name, packageJson.version, packageJson.aiKey);
       context.subscriptions.push(TelemetryClient.client);
     } else {
-      console.log('Telemetry was not activated');
+      log('Telemetry was not activated');
     }
   }
 }

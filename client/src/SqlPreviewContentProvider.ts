@@ -1,6 +1,5 @@
 import {
   Diagnostic,
-  DiagnosticCollection,
   DiagnosticRelatedInformation,
   DiagnosticSeverity,
   Event,
@@ -33,7 +32,9 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
       diagnostics: currentValue?.diagnostics ?? [],
     });
 
-    this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
+    if (uri.toString() === this.activeDocUri.toString()) {
+      this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
+    }
   }
 
   updateDiagnostics(uri: string, diagnostics: Diagnostic[]): void {
@@ -65,14 +66,15 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
     this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
   }
 
-  updatePreviewDiagnostics(diagnostics?: DiagnosticCollection): void {
-    const previewDiagnostics = this.previewInfos.get(this.activeDocUri.toString())?.diagnostics ?? [];
-    diagnostics?.set(SqlPreviewContentProvider.URI, previewDiagnostics);
+  getPreviewDiagnostics(): Diagnostic[] {
+    return this.previewInfos.get(this.activeDocUri.toString())?.diagnostics ?? [];
   }
 
   changeActiveDocument(uri: Uri): void {
-    this.activeDocUri = uri;
-    this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
+    if (uri.toString() !== this.activeDocUri.toString()) {
+      this.activeDocUri = uri;
+      this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
+    }
   }
 
   dispose(): void {

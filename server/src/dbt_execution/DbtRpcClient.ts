@@ -138,7 +138,10 @@ export class DbtRpcClient {
 
   async makePostRequest<T extends Response>(postData: PostData): Promise<T | undefined> {
     try {
-      const response = await axios.post<T>(`http://localhost:${String(this.port)}/jsonrpc`, postData, { timeout: this.postRequestTimeout });
+      const response = await axios.post<T>(`http://localhost:${String(this.port)}/jsonrpc`, postData, {
+        timeout: this.postRequestTimeout,
+        headers: { 'Content-Type': 'application/json' },
+      });
       return response.data;
     } catch (e) {
       console.log(`Error while sending request ${JSON.stringify(postData)}: ${e instanceof Error ? e.message : String(e)}`);

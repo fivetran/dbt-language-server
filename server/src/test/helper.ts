@@ -2,6 +2,7 @@ import { ok } from 'assert';
 import { assertThat, defined, not } from 'hamjest';
 import { err } from 'neverthrow';
 import * as path from 'path';
+import { setTimeout } from 'timers/promises';
 import { instance, mock, when } from 'ts-mockito';
 import { CompletionItem } from 'vscode-languageserver';
 import { DbtNodeCompletionProvider } from '../completion/DbtCompletionProvider';
@@ -61,9 +62,7 @@ export function shouldPassValidProfile(config: string, profileName: string): voi
 }
 
 export function sleep(ms: number): Promise<unknown> {
-  return new Promise(resolve => {
-    setTimeout(resolve, ms);
-  });
+  return setTimeout(ms);
 }
 
 export function shouldNotProvideCompletions(completionProvider: DbtNodeCompletionProvider, jinjaPartType: JinjaPartType, text: string): void {

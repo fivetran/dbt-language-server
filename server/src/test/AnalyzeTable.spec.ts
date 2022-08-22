@@ -10,28 +10,32 @@ import { ZetaSqlParser } from '../ZetaSqlParser';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 
 describe('ZetaSqlWrapper analyzeTable', () => {
-  it('analyzeTable should register tables and udfs before calling analyze', async () => {
-    // arrange
-    const compiledSql = 'select * from dataset.table t where t.id = dataset.udf(1)';
-    const internalTableNamePath = ['dataset', 'table'];
-    const mainTableNamePath = ['db', 'schema', 'main_table'];
-    const udfNamePath = ['dataset', 'udf'];
+  const ORIGINAL_FILE_PATH = 'original/file/path';
+  const COMPILED_SQL = 'select * from dataset.table t where t.id = dataset.udf(1)';
+  const INTERNAL_TABLE_NAME_PATH = ['dataset', 'table'];
+  const MAIN_TABLE_NAME_PATH = ['db', 'schema', 'main_table'];
+  const UDF_NAME_PATH = ['dataset', 'udf'];
 
+  let zetaSqlWrapper: ZetaSqlWrapper;
+  let spiedZetaSqlWrapper: ZetaSqlWrapper;
+  let mockBigQueryClient: BigQueryClient;
+  let mockZetaSQLClient: ZetaSQLClient;
+
+  before(() => {
     ZetaSQLClient.getInstance = (): ZetaSQLClient => instance(mockZetaSQLClient);
 
     const mockZetaSqlParser = mock(ZetaSqlParser);
-    const mockBigQueryClient = mock(BigQueryClient);
     const mockDbtRepository = mock(DbtRepository);
-    const mockZetaSQLClient = mock(ZetaSQLClient);
+    mockBigQueryClient = mock(BigQueryClient);
+    mockZetaSQLClient = mock(ZetaSQLClient);
 
-    const originalFilePath = 'original/file/path';
     when(mockDbtRepository.models).thenReturn([
       {
         uniqueId: 'id',
         name: 'main_table',
         packageName: 'packageName',
         rootPath: 'rootPath',
-        originalFilePath,
+        originalFilePath: ORIGINAL_FILE_PATH,
         database: 'db',
         schema: 'schema',
         dependsOn: {
@@ -41,12 +45,12 @@ describe('ZetaSqlWrapper analyzeTable', () => {
       },
     ]);
 
-    const zetaSqlWrapper = new ZetaSqlWrapper(instance(mockDbtRepository), instance(mockBigQueryClient), instance(mockZetaSqlParser));
+    zetaSqlWrapper = new ZetaSqlWrapper(instance(mockDbtRepository), instance(mockBigQueryClient), instance(mockZetaSqlParser));
     zetaSqlWrapper['languageOptions'] = new LanguageOptions();
 
-    when(mockZetaSqlParser.getAllFunctions(compiledSql, anything())).thenReturn(Promise.resolve([udfNamePath]));
+    when(mockZetaSqlParser.getAllFunctions(COMPILED_SQL, anything())).thenReturn(Promise.resolve([UDF_NAME_PATH]));
     when(mockZetaSQLClient.extractTableNamesFromStatement(anything())).thenReturn(
-      Promise.resolve({ tableName: [{ tableNameSegment: internalTableNamePath }] }),
+      Promise.resolve({ tableName: [{ tableNameSegment: INTERNAL_TABLE_NAME_PATH }] }),
     );
 
     when(mockBigQueryClient.getTableMetadata('dataset', 'table')).thenReturn(
@@ -63,10 +67,10 @@ describe('ZetaSqlWrapper analyzeTable', () => {
       }),
     );
 
-    when(mockZetaSqlParser.getAllFunctions(compiledSql)).thenReturn(Promise.resolve([udfNamePath]));
+    when(mockZetaSqlParser.getAllFunctions(COMPILED_SQL)).thenReturn(Promise.resolve([UDF_NAME_PATH]));
     when(mockBigQueryClient.getUdf(undefined, 'dataset', 'udf')).thenReturn(
       Promise.resolve({
-        nameParts: udfNamePath,
+        nameParts: UDF_NAME_PATH,
       }),
     );
 
@@ -76,14 +80,16 @@ describe('ZetaSqlWrapper analyzeTable', () => {
         result: 'resolvedStatement',
       }),
     );
-    const spiedZetaSqlWrapper = spy(zetaSqlWrapper);
+    spiedZetaSqlWrapper = spy(zetaSqlWrapper);
+  });
 
+  it('analyzeTable should register tables and udfs before calling analyze', async () => {
     // act
-    await zetaSqlWrapper.analyzeTable(originalFilePath, compiledSql);
+    await zetaSqlWrapper.analyzeTable(ORIGINAL_FILE_PATH, COMPILED_SQL);
 
     // assert
-    verify(spiedZetaSqlWrapper.registerTable(objectContaining({ namePath: internalTableNamePath }))).calledBefore(
-      spiedZetaSqlWrapper.registerTable(objectContaining({ namePath: mainTableNamePath })),
+    verify(spiedZetaSqlWrapper.registerTable(objectContaining({ namePath: INTERNAL_TABLE_NAME_PATH }))).calledBefore(
+      spiedZetaSqlWrapper.registerTable(objectContaining({ namePath: MAIN_TABLE_NAME_PATH })),
     );
 
     verify(spiedZetaSqlWrapper.registerTable(anything())).twice();
@@ -95,8 +101,19 @@ describe('ZetaSqlWrapper analyzeTable', () => {
     assertThat(zetaSqlWrapper['registeredTables'], hasSize(2));
     assertThat(
       zetaSqlWrapper['registeredTables'],
-      contains(hasProperty('namePath', internalTableNamePath), hasProperty('namePath', mainTableNamePath)),
+      contains(hasProperty('namePath', INTERNAL_TABLE_NAME_PATH), hasProperty('namePath', MAIN_TABLE_NAME_PATH)),
     );
     assertThat(zetaSqlWrapper['registeredFunctions'], hasSize(1));
+  });
+
+  it('analyzeTable should call bigquery only once if table is already registered', async () => {
+    // arrange
+    await zetaSqlWrapper.analyzeTable(ORIGINAL_FILE_PATH, COMPILED_SQL);
+
+    // act
+    await zetaSqlWrapper.analyzeTable(ORIGINAL_FILE_PATH, COMPILED_SQL);
+
+    // assert
+    verify(mockBigQueryClient.getTableMetadata(anything(), anything())).once();
   });
 });

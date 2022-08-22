@@ -214,6 +214,7 @@ export class LspServer {
     this.connection.onNotification('custom/dbtCompile', this.onDbtCompile.bind(this));
     this.connection.onNotification('dbtWizard/installLatestDbt', this.installLatestDbt.bind(this));
     this.connection.onNotification('dbtWizard/installDbtAdapter', this.installDbtAdapter.bind(this));
+    this.connection.onNotification('dbtWizard/resendDiagnostics', this.onDidChangeActiveTextEditor.bind(this));
   }
 
   async onInitialized(): Promise<void> {
@@ -332,6 +333,11 @@ export class LspServer {
           .catch(e => console.log(`Failed to send restart notification: ${e instanceof Error ? e.message : String(e)}`));
       }
     }
+  }
+
+  async onDidChangeActiveTextEditor(uri: string): Promise<void> {
+    const document = this.openedDocuments.get(uri);
+    await document?.resendDiagnostics();
   }
 
   onWillSaveTextDocument(params: WillSaveTextDocumentParams): void {

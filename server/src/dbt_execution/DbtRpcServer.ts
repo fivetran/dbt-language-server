@@ -75,6 +75,7 @@ export class DbtRpcServer {
     return this.startDeferred.promise;
   }
 
+  /** Compilation can be started after server received SIGHUP signal */
   async ensureCompilationFinished(): Promise<void> {
     return new Promise((resolve, reject) => {
       const intervalId = setInterval(async () => {

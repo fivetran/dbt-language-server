@@ -1,5 +1,5 @@
 import { assertThat, endsWith, hasSize } from 'hamjest';
-import { Diagnostic, languages, Position, Range } from 'vscode';
+import { Diagnostic, DiagnosticSeverity, languages, Position, Range } from 'vscode';
 import { assertAllDiagnostics } from './asserts';
 import {
   activateAndWait,
@@ -9,6 +9,7 @@ import {
   getPreviewText,
   insertText,
   renameCurrentFile,
+  replaceText,
   setTestContent,
 } from './helper';
 
@@ -16,6 +17,8 @@ suite('Errors', () => {
   const ERRORS_URI = getDocUri('errors.sql');
   const COMPLEX_QUERY_URI = getDocUri('complex_query.sql');
   const EPHEMERAL_URI = getDocUri('ephemeral.sql');
+  const COMPARE_DATES_URI = getDocUri('compare_dates.sql');
+  const TABLE_DOES_NOT_EXIST_URI = getDocUri('table_does_not_exist.sql');
 
   const ERROR = 'Syntax error: SELECT list must not be empty';
 
@@ -76,5 +79,25 @@ suite('Errors', () => {
 
     // Diagnostic shouldn't exist for deleted file
     assertThat(languages.getDiagnostics(newUri), hasSize(0));
+  });
+
+  test('Should clear diagnostics when catalog changed due to fix from other file', async () => {
+    await activateAndWait(COMPARE_DATES_URI);
+    await assertAllDiagnostics(COMPARE_DATES_URI, [
+      {
+        severity: DiagnosticSeverity.Error,
+        range: new Range(2, 6, 2, 14),
+        message:
+          'No matching signature for operator = for argument types: INT64, DATE. Supported signatures: ANY = ANY; INT64 = UINT64; UINT64 = INT64',
+      },
+    ]);
+
+    await activateAndWait(TABLE_DOES_NOT_EXIST_URI);
+    await assertAllDiagnostics(TABLE_DOES_NOT_EXIST_URI, []);
+
+    await replaceText('2 as new_date', 'current_date() as new_date');
+    await activateAndWait(COMPARE_DATES_URI);
+    await assertAllDiagnostics(COMPARE_DATES_URI, []);
+    await assertAllDiagnostics(TABLE_DOES_NOT_EXIST_URI, []);
   });
 });

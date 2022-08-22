@@ -123,7 +123,7 @@ export class DbtTextDocument {
         this.debouncedCompile();
       }
     } else if (this.currentDbtError) {
-      this.onCompilationError(this.currentDbtError);
+      await this.onCompilationError(this.currentDbtError);
     } else {
       await this.onCompilationFinished(this.compiledDocument.getText());
     }
@@ -200,6 +200,12 @@ export class DbtTextDocument {
     }
   }
 
+  async resendDiagnostics(): Promise<void> {
+    if (this.destinationState.contextInitialized && this.dbt.dbtReady && !this.currentDbtError && !this.modelCompiler.compilationInProgress) {
+      await this.updateDiagnostics();
+    }
+  }
+
   debouncedCompile = debounce(async () => {
     this.progressReporter.sendStart(this.rawDocument.uri);
     await this.modelCompiler.compile(this.getModelPathOrFullyQualifiedName());
@@ -218,21 +224,12 @@ export class DbtTextDocument {
     return filePath;
   }
 
-  onCompilationError(dbtCompilationError: string): void {
+  async onCompilationError(dbtCompilationError: string): Promise<void> {
     console.log(`dbt compilation error: ${dbtCompilationError}`);
     this.currentDbtError = dbtCompilationError;
     TextDocument.update(this.compiledDocument, [{ text: this.rawDocument.getText() }], this.compiledDocument.version);
 
-    const diagnostics = this.diagnosticGenerator.getDbtErrorDiagnostics(
-      dbtCompilationError,
-      this.getModelPathOrFullyQualifiedName(),
-      this.workspaceFolder,
-    );
-    this.rawDocDiagnostics = diagnostics;
-    this.compiledDocDiagnostics = diagnostics;
-
-    this.sendDiagnostics();
-    this.sendUpdateQueryPreview();
+    await this.updateAndSendDiagnosticsAndPreview(dbtCompilationError);
   }
 
   onDbtErrorFixed(): void {
@@ -257,8 +254,7 @@ export class DbtTextDocument {
 
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
     if (this.destinationState.contextInitialized) {
-      await this.updateDiagnostics();
-      this.sendUpdateQueryPreview();
+      await this.updateAndSendDiagnosticsAndPreview();
     }
 
     if (!this.modelCompiler.compilationInProgress) {
@@ -268,13 +264,28 @@ export class DbtTextDocument {
 
   async onContextInitialized(): Promise<void> {
     if (this.dbt.dbtReady) {
-      await this.updateDiagnostics();
-      this.sendUpdateQueryPreview();
+      await this.updateAndSendDiagnosticsAndPreview();
     }
   }
 
-  async updateDiagnostics(): Promise<void> {
-    [this.rawDocDiagnostics, this.compiledDocDiagnostics] = await this.createDiagnostics(this.compiledDocument.getText());
+  async updateAndSendDiagnosticsAndPreview(dbtCompilationError?: string): Promise<void> {
+    await this.updateDiagnostics(dbtCompilationError);
+    this.notificationSender.sendUpdateQueryPreview(this.rawDocument.uri, this.compiledDocument.getText());
+  }
+
+  async updateDiagnostics(dbtCompilationError?: string): Promise<void> {
+    if (dbtCompilationError) {
+      const diagnostics = this.diagnosticGenerator.getDbtErrorDiagnostics(
+        dbtCompilationError,
+        this.getModelPathOrFullyQualifiedName(),
+        this.workspaceFolder,
+      );
+      this.rawDocDiagnostics = diagnostics;
+      this.compiledDocDiagnostics = diagnostics;
+    } else {
+      [this.rawDocDiagnostics, this.compiledDocDiagnostics] = await this.createDiagnostics(this.compiledDocument.getText());
+    }
+
     this.sendDiagnostics();
   }
 
@@ -288,11 +299,11 @@ export class DbtTextDocument {
       );
       const astResult = await this.destinationState.bigQueryContext.analyzeTable(originalFilePath, compiledSql);
       if (astResult.isOk()) {
-        console.log(`AST was successfully received for ${originalFilePath}`);
+        console.log(`AST was successfully received for ${originalFilePath}`, LogLevel.Debug);
         this.ast = astResult.value;
       } else {
-        console.log(`There was an error while parsing ${originalFilePath}`);
-        console.log(astResult);
+        console.log(`There was an error while parsing ${originalFilePath}`, LogLevel.Debug);
+        console.log(astResult, LogLevel.Debug);
       }
       [rawDocDiagnostics, compiledDocDiagnostics] = this.diagnosticGenerator.getDiagnosticsFromAst(
         astResult,
@@ -307,10 +318,6 @@ export class DbtTextDocument {
   fixInformationDiagnostic(range: Range): void {
     this.rawDocDiagnostics = this.rawDocDiagnostics.filter(d => !(areRangesEqual(d.range, range) && d.severity === DiagnosticSeverity.Information));
     this.sendDiagnostics();
-  }
-
-  sendUpdateQueryPreview(): void {
-    this.notificationSender.sendUpdateQueryPreview(this.rawDocument.uri, this.compiledDocument.getText());
   }
 
   sendDiagnostics(): void {

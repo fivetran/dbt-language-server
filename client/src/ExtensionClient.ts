@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import { commands, ExtensionContext, languages, TextDocument, TextEditor, ViewColumn, window, workspace } from 'vscode';
+import { ActiveTextEditorHandler } from './ActiveTextEditorHandler';
 import { AfterFunctionCompletion } from './commands/AfterFunctionCompletion';
 import { CommandManager } from './commands/CommandManager';
 import { Compile } from './commands/Compile';
@@ -8,6 +9,7 @@ import { InstallLatestDbt } from './commands/InstallLatestDbt';
 import { OpenOrCreatePackagesYml } from './commands/OpenOrCreatePackagesYml';
 import { Restart } from './commands/Restart';
 import { DbtLanguageClientManager } from './DbtLanguageClientManager';
+import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 import { StatusHandler } from './status/StatusHandler';
@@ -27,14 +29,14 @@ export interface PackageJson {
 export class ExtensionClient {
   static readonly DEFAULT_PACKAGES_PATHS = ['dbt_packages', 'dbt_modules'];
 
-  outputChannelProvider = new OutputChannelProvider();
   previewContentProvider = new SqlPreviewContentProvider();
   statusHandler = new StatusHandler();
   dbtLanguageClientManager: DbtLanguageClientManager;
   commandManager = new CommandManager();
   packageJson?: PackageJson;
+  activeTextEditorHandler: ActiveTextEditorHandler;
 
-  constructor(private context: ExtensionContext, manifestParsedEventEmitter: EventEmitter) {
+  constructor(private context: ExtensionContext, private outputChannelProvider: OutputChannelProvider, manifestParsedEventEmitter: EventEmitter) {
     this.dbtLanguageClientManager = new DbtLanguageClientManager(
       this.previewContentProvider,
       this.outputChannelProvider,
@@ -42,13 +44,12 @@ export class ExtensionClient {
       manifestParsedEventEmitter,
       this.statusHandler,
     );
+    this.activeTextEditorHandler = new ActiveTextEditorHandler(this.previewContentProvider, this.dbtLanguageClientManager, this.statusHandler);
 
-    this.context.subscriptions.push(this.dbtLanguageClientManager, this.commandManager);
+    this.context.subscriptions.push(this.dbtLanguageClientManager, this.commandManager, this.activeTextEditorHandler);
   }
 
   public onActivate(): void {
-    console.log('Extension "dbt-language-server" is now active!');
-
     this.context.subscriptions.push(
       workspace.onDidOpenTextDocument(this.onDidOpenTextDocument.bind(this)),
       workspace.onDidChangeWorkspaceFolders(event => {
@@ -57,29 +58,14 @@ export class ExtensionClient {
         }
       }),
 
-      workspace.onDidChangeTextDocument(e => {
+      workspace.onDidChangeTextDocument(async e => {
         if (e.document.uri.path === SqlPreviewContentProvider.URI.path) {
-          this.previewContentProvider.updatePreviewDiagnostics(this.dbtLanguageClientManager.getDiagnostics());
-        }
-      }),
-
-      window.onDidChangeActiveTextEditor(async e => {
-        if (!e || e.document.uri.path === SqlPreviewContentProvider.URI.path) {
-          return;
-        }
-
-        if (SUPPORTED_LANG_IDS.includes(e.document.languageId)) {
-          this.previewContentProvider.changeActiveDocument(e.document.uri);
-
-          const projectFolder = await this.dbtLanguageClientManager.getDbtProjectUri(e.document.uri);
-          if (projectFolder) {
-            this.statusHandler.updateLanguageItems(projectFolder.path);
-          }
+          await this.dbtLanguageClientManager.applyPreviewDiagnostics();
         }
       }),
     );
     workspace.textDocuments.forEach(t =>
-      this.onDidOpenTextDocument(t).catch(e => console.log(`Error while opening text document ${e instanceof Error ? e.message : String(e)}`)),
+      this.onDidOpenTextDocument(t).catch(e => log(`Error while opening text document ${e instanceof Error ? e.message : String(e)}`)),
     );
     this.registerSqlPreviewContentProvider(this.context);
 
@@ -93,7 +79,7 @@ export class ExtensionClient {
   parseVersion(): void {
     const extensionPath = path.join(this.context.extensionPath, 'package.json');
     this.packageJson = JSON.parse(fs.readFileSync(extensionPath, 'utf8')) as PackageJson;
-    this.outputChannelProvider.getMainLogChannel().appendLine(`dbt Wizard version: ${this.packageJson.version}`);
+    log(`dbt Wizard version: ${this.packageJson.version}`);
   }
 
   registerCommands(): void {
@@ -127,7 +113,7 @@ export class ExtensionClient {
         await commands.executeCommand('workbench.action.focusPreviousGroup');
       }
       await languages.setTextDocumentLanguage(doc, 'sql');
-      this.previewContentProvider.updatePreviewDiagnostics(this.dbtLanguageClientManager.getDiagnostics());
+      await this.dbtLanguageClientManager.applyPreviewDiagnostics();
     });
 
     context.subscriptions.push(this.previewContentProvider, commandRegistration, providerRegistrations);

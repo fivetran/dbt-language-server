@@ -1,7 +1,8 @@
 import EventEmitter = require('node:events');
-import { DiagnosticCollection, TextDocument, Uri, window, workspace } from 'vscode';
+import { Selection, TextDocument, Uri, window, workspace } from 'vscode';
 import { DbtLanguageClient } from './DbtLanguageClient';
 import { ExtensionClient, SUPPORTED_LANG_IDS } from './ExtensionClient';
+import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
@@ -19,17 +20,29 @@ export class DbtLanguageClientManager {
     private serverAbsolutePath: string,
     private manifestParsedEventEmitter: EventEmitter,
     private statusHandler: StatusHandler,
-  ) {}
+  ) {
+    previewContentProvider.onDidChange(() => this.applyPreviewDiagnostics());
+  }
 
-  getDiagnostics(): DiagnosticCollection | undefined {
-    const [[, client]] = this.clients;
-    return client.client.diagnostics;
+  async applyPreviewDiagnostics(): Promise<void> {
+    const previewDiagnostics = this.previewContentProvider.getPreviewDiagnostics();
+    const activeClient = await this.getClientForActiveDocument();
+
+    for (const client of this.clients.values()) {
+      const clientDiagnostics = client.getDiagnostics();
+      clientDiagnostics?.set(SqlPreviewContentProvider.URI, client.getProjectUri() === activeClient?.getProjectUri() ? previewDiagnostics : []);
+    }
+
+    const editor = window.visibleTextEditors.find(e => e.document.uri.toString() === SqlPreviewContentProvider.URI.toString());
+    if (editor) {
+      editor.selection = new Selection(0, 0, 0, 0);
+    }
   }
 
   async getClientForActiveDocument(): Promise<DbtLanguageClient | undefined> {
     const document = this.getActiveDocument();
     if (document === undefined) {
-      console.log(`Can't find active document`);
+      log(`Can't find active document`);
       return undefined;
     }
 
@@ -108,20 +121,21 @@ export class DbtLanguageClientManager {
         this.manifestParsedEventEmitter,
         this.statusHandler,
       );
+      this.clients.set(projectUri.path, client);
+
       await client.initialize();
 
       void this.progressHandler.begin();
 
       client.start();
-      this.clients.set(projectUri.path, client);
     }
   }
 
   stopClient(projectPath: string): void {
-    const client = this.clients.get(projectPath);
+    const client = this.getClientByPath(projectPath);
     if (client) {
       this.clients.delete(projectPath);
-      client.stop().catch(e => console.log(`Error while stopping client: ${e instanceof Error ? e.message : String(e)}`));
+      client.stop().catch(e => log(`Error while stopping client: ${e instanceof Error ? e.message : String(e)}`));
     }
   }
 

@@ -1,6 +1,7 @@
 import { deferred, DeferredResult } from 'dbt-language-server-common';
 import { ProgressLocation, window } from 'vscode';
 import { WorkDoneProgressBegin, WorkDoneProgressEnd, WorkDoneProgressReport } from 'vscode-languageserver-protocol';
+import { log } from './Logger';
 
 export class ProgressHandler {
   progressDeferred?: DeferredResult<void>;
@@ -15,7 +16,7 @@ export class ProgressHandler {
         this.progressDeferred = undefined;
         break;
       default:
-        console.log('Received event that is not supported');
+        log('Received event that is not supported');
         break;
     }
   }
@@ -33,7 +34,7 @@ export class ProgressHandler {
           },
           () => this.progressDeferred?.promise ?? Promise.resolve(),
         )
-        .then(undefined, e => console.log(e instanceof Error ? e.message : e));
+        .then(undefined, e => log(e instanceof Error ? e.message : String(e)));
     }
   }
 }

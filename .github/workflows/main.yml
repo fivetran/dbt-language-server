@@ -81,26 +81,26 @@ jobs:
       fail-fast: false
       matrix:
         include: # Run tests on latest version and version used in https://github.com/fivetran/analytics/blob/main/dbt_ft_prod/deployment.yml#L1
-          - install-dbt: 'pip install dbt-core==1.0.4 dbt-bigquery==1.0.0 dbt-postgres==1.0.4 dbt-rpc'
+          - install-dbt: 'python -m pip install dbt-core==1.0.4 dbt-bigquery==1.0.0 dbt-postgres==1.0.4 dbt-rpc'
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_1_0_8_env/bin/activate
             python-version: '3.9.12'
 
-          - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
+          - install-dbt: 'python -m pip install dbt-bigquery dbt-postgres dbt-rpc'
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_1_0_8_env/bin/activate
             python-version: '3.9.12'
 
-          - install-dbt: 'pip install dbt-bigquery dbt-postgres'
+          - install-dbt: 'python -m pip install dbt-bigquery dbt-postgres'
             os: macos-latest
             target: darwin-x64
             python-version: '3.10.5'
             use-dbt-cli: true
             SKIP_TESTS: 'certain_version.spec.js'
 
-          - install-dbt: 'pip install dbt-bigquery dbt-postgres dbt-rpc'
+          - install-dbt: 'python -m pip install dbt-bigquery dbt-postgres dbt-rpc'
             os: ubuntu-latest
             target: linux-x64
             prepare-for-tests: |
@@ -109,7 +109,7 @@ jobs:
             activate-venv: source ~/dbt_1_0_8_env/bin/activate
             python-version: '3.9.12'
 
-          - install-dbt: 'pip install dbt-bigquery dbt-postgres'
+          - install-dbt: 'python -m pip install dbt-bigquery dbt-postgres'
             os: windows-latest
             target: win32-x64
             add-colon-to-key-file-path: |
@@ -171,11 +171,6 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: show python info
-        run: |
-          python --version
-          python -m pip --version
 
       - name: add custom python venv with dbt@1.0.8
         if: matrix.python-version != '3.10.5'
@@ -280,8 +275,12 @@ jobs:
       - name: install dbt
         run: ${{ matrix.install-dbt }}
 
-      - name: show dbt info
+      - name: show info
         run: |
+          which python
+          python --version
+          python -m pip --version
+          python -m pip list | grep dbt
           which dbt
           dbt --version
           node -v
