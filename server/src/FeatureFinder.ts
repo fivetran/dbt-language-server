@@ -1,5 +1,8 @@
-import { AdapterInfo, DbtVersionInfo, getStringVersion, PythonInfo, Version } from 'dbt-language-server-common';
+import { Octokit } from '@octokit/rest';
+import axios from 'axios';
+import { AdapterInfo, DbtPackageInfo, DbtVersionInfo, getStringVersion, PythonInfo, Version } from 'dbt-language-server-common';
 import { promises as fsPromises } from 'fs';
+import * as yaml from 'yaml';
 import { DbtRepository } from './DbtRepository';
 import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
 import { Command } from './dbt_execution/commands/Command';
@@ -7,6 +10,10 @@ import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor'
 import { DbtCommandFactory } from './dbt_execution/DbtCommandFactory';
 import { randomNumber } from './utils/Utils';
 import findFreePortPmfy = require('find-free-port');
+
+interface HubJson {
+  [key: string]: string[];
+}
 
 export class FeatureFinder {
   private static readonly DBT_INSTALLED_VERSION_PATTERN = /installed.*:\s+(\d+)\.(\d+)\.(\d+)/;
@@ -17,6 +24,7 @@ export class FeatureFinder {
   versionInfo?: DbtVersionInfo;
   availableCommandsPromise: Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]>;
   packagesYmlExistsPromise: Promise<boolean>;
+  packageInfosPromise: Promise<DbtPackageInfo[]>;
 
   dbtCommandFactory: DbtCommandFactory;
 
@@ -24,6 +32,7 @@ export class FeatureFinder {
     this.dbtCommandFactory = new DbtCommandFactory(pythonInfo?.path);
     this.availableCommandsPromise = this.getAvailableDbt();
     this.packagesYmlExistsPromise = this.packagesYmlExists();
+    this.packageInfosPromise = this.getListOfPackages();
   }
 
   getPythonPath(): string | undefined {
@@ -43,6 +52,47 @@ export class FeatureFinder {
     } catch {
       return false;
     }
+  }
+
+  async getListOfPackages(): Promise<DbtPackageInfo[]> {
+    const hubResponse = await axios.get<HubJson>('https://cdn.jsdelivr.net/gh/dbt-labs/hubcap/hub.json');
+    const uriPromises = Object.entries<string[]>(hubResponse.data).flatMap(([gitHubUser, repositoryNames]) =>
+      repositoryNames.map(r => this.getPackageInfo(gitHubUser, r)),
+    );
+    const infos = await Promise.all(uriPromises);
+    return infos.filter((i): i is DbtPackageInfo => i !== undefined);
+  }
+
+  async getPackageInfo(gitHubUser: string, repositoryName: string): Promise<DbtPackageInfo | undefined> {
+    try {
+      const response = await axios.get<string>(`https://cdn.jsdelivr.net/gh/${gitHubUser}/${repositoryName}/dbt_project.yml`);
+      const parsedYaml = yaml.parse(response.data, { uniqueKeys: false }) as { name: string | undefined };
+      const packageName = parsedYaml.name;
+      if (packageName !== undefined) {
+        return {
+          gitHubUser,
+          repositoryName,
+          installString: `${gitHubUser}/${packageName}`,
+        };
+      }
+    } catch (e) {
+      // Do nothing
+    }
+    return undefined;
+  }
+
+  async packageVersions(dbtPackage: string): Promise<string[]> {
+    const octokit = new Octokit();
+    const packageInfo = (await this.packageInfosPromise).find(p => p.installString === dbtPackage);
+    if (packageInfo) {
+      const tagsResult = await octokit.rest.repos.listTags({
+        owner: packageInfo.gitHubUser,
+        repo: packageInfo.repositoryName,
+        per_page: 100,
+      });
+      return tagsResult.data.map(tag => tag.name);
+    }
+    return [];
   }
 
   async getAvailableDbt(): Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]> {

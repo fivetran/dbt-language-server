@@ -5,6 +5,7 @@ import { AfterFunctionCompletion } from './commands/AfterFunctionCompletion';
 import { CommandManager } from './commands/CommandManager';
 import { Compile } from './commands/Compile';
 import { InstallDbtAdapters } from './commands/InstallDbtAdapters';
+import { InstallDbtPackages } from './commands/InstallDbtPackages';
 import { InstallLatestDbt } from './commands/InstallLatestDbt';
 import { OpenOrCreatePackagesYml } from './commands/OpenOrCreatePackagesYml';
 import { Restart } from './commands/Restart';
@@ -89,6 +90,7 @@ export class ExtensionClient {
     this.commandManager.register(new InstallDbtAdapters(this.dbtLanguageClientManager, this.outputChannelProvider));
     this.commandManager.register(new OpenOrCreatePackagesYml());
     this.commandManager.register(new Restart(this.dbtLanguageClientManager));
+    this.commandManager.register(new InstallDbtPackages(this.dbtLanguageClientManager));
   }
 
   registerSqlPreviewContentProvider(context: ExtensionContext): void {

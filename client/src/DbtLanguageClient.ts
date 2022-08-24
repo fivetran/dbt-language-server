@@ -155,6 +155,10 @@ export class DbtLanguageClient implements Disposable {
     }
   }
 
+  sendRequest<R>(method: string, param?: unknown): Promise<R> {
+    return this.client.sendRequest(method, param);
+  }
+
   start(): void {
     this.client.start().catch(e => log(`Error while starting server: ${e instanceof Error ? e.message : String(e)}`));
   }
