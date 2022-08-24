@@ -12,6 +12,7 @@ import {
   window,
 } from 'vscode';
 import { DbtLanguageClientManager } from '../DbtLanguageClientManager';
+import { log } from '../Logger';
 import { Command } from './CommandManager';
 
 export class InstallDbtPackages implements Command {
@@ -35,20 +36,19 @@ export class InstallDbtPackages implements Command {
       const client = await this.dbtLanguageClientManager.getClientForActiveDocument();
 
       if (client) {
-        const packages = await client.sendRequest<DbtPackageInfo[]>('dbtWizard/getListOfPackages');
-        packages.sort((p1, p2) => p1.installString.localeCompare(p2.installString));
+        const packagesPromise = client.sendRequest<DbtPackageInfo[]>('dbtWizard/getListOfPackages');
 
         let version = undefined;
         let backPressed = false;
         do {
           backPressed = false;
-          const packageName = await this.getPackage(packages, this.selectedPackage);
+          const packageName = await this.getPackage(packagesPromise, this.selectedPackage);
           this.selectedPackage = packageName;
 
           if (packageName !== undefined) {
-            const versions = await client.sendRequest<string[]>('dbtWizard/getPackageVersions', packageName);
+            const versionsPromise = client.sendRequest<string[]>('dbtWizard/getPackageVersions', packageName);
             try {
-              version = await this.getVersion(packages, packageName, versions);
+              version = await this.getVersion(packagesPromise, packageName, versionsPromise);
             } catch (e) {
               backPressed = e === QuickInputButtons.Back;
             }
@@ -60,16 +60,16 @@ export class InstallDbtPackages implements Command {
     }
   }
 
-  private async getPackage(packages: DbtPackageInfo[], activeItemLabel?: string): Promise<string | undefined> {
+  private async getPackage(packagesPromise: Promise<DbtPackageInfo[]>, activeItemLabel?: string): Promise<string | undefined> {
     return InstallDbtPackages.showQuickPick(
       {
-        items: this.createPackageNameItems(packages),
         buttons: [InstallDbtPackages.DBT_HUB_BUTTON],
         placeholder: 'Filter by name, e.g. salesforce',
         title: 'Select dbt package to install',
       },
+      packagesPromise.then(p => this.createPackageNameItems(p)),
       async e => {
-        const packageInfo = packages.find(p => p.installString === e.item.label);
+        const packageInfo = (await packagesPromise).find(p => p.installString === e.item.label);
         if (packageInfo) {
           await env.openExternal(Uri.parse(`https://github.com/${packageInfo.gitHubUser}/${packageInfo.repositoryName}#readme`));
         }
@@ -78,16 +78,16 @@ export class InstallDbtPackages implements Command {
     );
   }
 
-  getVersion(packages: DbtPackageInfo[], packageName: string, versions: string[]): Promise<string | undefined> {
+  getVersion(packagesPromise: Promise<DbtPackageInfo[]>, packageName: string, versionsPromise: Promise<string[]>): Promise<string | undefined> {
     return InstallDbtPackages.showQuickPick(
       {
-        items: this.createVersionItems(versions),
         buttons: [QuickInputButtons.Back, InstallDbtPackages.DBT_HUB_BUTTON],
         placeholder: 'Filter by version, e.g. 0.5.0',
         title: `Select version of ${packageName} to install`,
       },
+      versionsPromise.then(v => this.createVersionItems(v)),
       async e => {
-        const packageInfo = packages.find(p => p.installString === packageName);
+        const packageInfo = (await packagesPromise).find(p => p.installString === packageName);
         if (packageInfo) {
           await env.openExternal(
             Uri.parse(`https://github.com/${packageInfo.gitHubUser}/${packageInfo.repositoryName}/tree/${e.item.label}/#readme`),
@@ -98,6 +98,8 @@ export class InstallDbtPackages implements Command {
   }
 
   createPackageNameItems(packages: DbtPackageInfo[]): QuickPickItem[] {
+    packages.sort((p1, p2) => p1.installString.localeCompare(p2.installString));
+
     let lastGitHubUser = undefined;
     const items: QuickPickItem[] = [];
 
@@ -123,23 +125,31 @@ export class InstallDbtPackages implements Command {
   }
 
   static async showQuickPick(
-    options: Pick<QuickPick<QuickPickItem>, 'items' | 'buttons' | 'title' | 'placeholder'>,
+    options: Pick<QuickPick<QuickPickItem>, 'buttons' | 'title' | 'placeholder'>,
+    itemsPromise: Promise<QuickPickItem[]>,
     onDidTriggerItemButton: (e: QuickPickItemButtonEvent<QuickPickItem>) => void,
     activeItemLabel?: string,
   ): Promise<string | undefined> {
     const disposables: Disposable[] = [];
     const pick = window.createQuickPick();
-    pick.items = options.items;
     pick.buttons = options.buttons;
     pick.title = options.title;
     pick.placeholder = options.placeholder;
     pick.ignoreFocusOut = true;
-    if (activeItemLabel) {
-      const item = pick.items.find(i => i.label === activeItemLabel);
-      if (item) {
-        pick.activeItems = [item];
-      }
-    }
+    pick.busy = true;
+    itemsPromise
+      .then(items => {
+        pick.busy = false;
+        pick.items = items;
+        if (activeItemLabel) {
+          const item = pick.items.find(i => i.label === activeItemLabel);
+          if (item) {
+            pick.activeItems = [item];
+          }
+        }
+        return items;
+      })
+      .catch(e => log(`Error while fetching items for QuickPick: ${e instanceof Error ? e.message : String(e)}`));
 
     pick.onDidTriggerItemButton(onDidTriggerItemButton);
 
@@ -156,6 +166,7 @@ export class InstallDbtPackages implements Command {
           pick.onDidAccept(() => {
             const [selection] = pick.selectedItems;
             resolve(selection.label);
+            pick.hide();
           }),
           pick.onDidHide(() => {
             resolve(undefined);
