@@ -8,6 +8,7 @@ import {
   StatusNotification,
 } from 'dbt-language-server-common';
 import { Command, LanguageStatusSeverity } from 'vscode';
+import { PACKAGES_YML } from '../Constants';
 import { LanguageStatusItems } from './LanguageStatusItems';
 
 interface StatusItemData {
@@ -18,8 +19,6 @@ interface StatusItemData {
 }
 
 export class ProjectStatus {
-  static readonly PACKAGES_YML = 'packages.yml';
-
   private pythonData?: StatusItemData;
   private dbtData?: StatusItemData;
   private dbtAdaptersData?: StatusItemData;
@@ -173,13 +172,13 @@ export class ProjectStatus {
     this.dbtPackagesData = packagesStatus.packagesYmlFound
       ? {
           severity: LanguageStatusSeverity.Information,
-          text: ProjectStatus.PACKAGES_YML,
+          text: PACKAGES_YML,
           command: { command: 'dbtWizard.openOrCreatePackagesYml', title: 'Open Packages Config', arguments: [this.projectPath] },
         }
       : {
           severity: LanguageStatusSeverity.Information,
-          text: `No ${ProjectStatus.PACKAGES_YML}`,
-          command: { command: 'dbtWizard.openOrCreatePackagesYml', title: `Create ${ProjectStatus.PACKAGES_YML}`, arguments: [this.projectPath] },
+          text: `No ${PACKAGES_YML}`,
+          command: { command: 'dbtWizard.openOrCreatePackagesYml', title: `Create ${PACKAGES_YML}`, arguments: [this.projectPath] },
         };
   }
 

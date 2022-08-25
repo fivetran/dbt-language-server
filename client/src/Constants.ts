@@ -1,3 +1,5 @@
+export const SUPPORTED_LANG_IDS = ['sql', 'jinja-sql', 'sql-bigquery'];
+export const PACKAGES_YML = 'packages.yml';
 export const DBT_ADAPTERS = [
   'dbt-postgres',
   'dbt-redshift',

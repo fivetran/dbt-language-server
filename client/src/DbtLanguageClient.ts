@@ -2,7 +2,7 @@ import { CustomInitParams, DbtCompilerType, LS_MANIFEST_PARSED_EVENT, StatusNoti
 import { commands, Diagnostic, DiagnosticCollection, Disposable, RelativePattern, Uri, window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { ActiveTextEditorHandler } from './ActiveTextEditorHandler';
-import { SUPPORTED_LANG_IDS } from './ExtensionClient';
+import { SUPPORTED_LANG_IDS } from './Constants';
 import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';

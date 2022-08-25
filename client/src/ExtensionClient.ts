@@ -9,6 +9,7 @@ import { InstallDbtPackages } from './commands/InstallDbtPackages';
 import { InstallLatestDbt } from './commands/InstallLatestDbt';
 import { OpenOrCreatePackagesYml } from './commands/OpenOrCreatePackagesYml';
 import { Restart } from './commands/Restart';
+import { PACKAGES_YML, SUPPORTED_LANG_IDS } from './Constants';
 import { DbtLanguageClientManager } from './DbtLanguageClientManager';
 import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
@@ -18,8 +19,6 @@ import { TelemetryClient } from './TelemetryClient';
 
 import path = require('path');
 import EventEmitter = require('node:events');
-
-export const SUPPORTED_LANG_IDS = ['sql', 'jinja-sql', 'sql-bigquery'];
 
 export interface PackageJson {
   name: string;
@@ -122,11 +121,9 @@ export class ExtensionClient {
   }
 
   async onDidOpenTextDocument(document: TextDocument): Promise<void> {
-    if (!SUPPORTED_LANG_IDS.includes(document.languageId) || document.uri.scheme !== 'file') {
-      return;
+    if ((SUPPORTED_LANG_IDS.includes(document.languageId) || document.fileName.endsWith(PACKAGES_YML)) && document.uri.scheme === 'file') {
+      await this.dbtLanguageClientManager.ensureClient(document);
     }
-
-    await this.dbtLanguageClientManager.ensureClient(document);
   }
 
   onDeactivate(): Thenable<void> {

@@ -1,7 +1,8 @@
 import EventEmitter = require('node:events');
 import { Selection, TextDocument, Uri, window, workspace } from 'vscode';
+import { PACKAGES_YML, SUPPORTED_LANG_IDS } from './Constants';
 import { DbtLanguageClient } from './DbtLanguageClient';
-import { ExtensionClient, SUPPORTED_LANG_IDS } from './ExtensionClient';
+import { ExtensionClient } from './ExtensionClient';
 import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';
@@ -57,11 +58,8 @@ export class DbtLanguageClientManager {
     }
 
     const { document } = window.activeTextEditor;
-    if (!SUPPORTED_LANG_IDS.includes(document.languageId)) {
-      return undefined;
-    }
 
-    return document;
+    return SUPPORTED_LANG_IDS.includes(document.languageId) || document.fileName.endsWith(PACKAGES_YML) ? document : undefined;
   }
 
   async getClientByUri(uri: Uri): Promise<DbtLanguageClient | undefined> {

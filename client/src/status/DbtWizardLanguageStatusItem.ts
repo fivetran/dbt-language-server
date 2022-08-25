@@ -1,5 +1,5 @@
 import { Command, languages, LanguageStatusItem, LanguageStatusSeverity } from 'vscode';
-import { SUPPORTED_LANG_IDS } from '../ExtensionClient';
+import { SUPPORTED_LANG_IDS } from '../Constants';
 
 export class DbtWizardLanguageStatusItem {
   item: LanguageStatusItem;

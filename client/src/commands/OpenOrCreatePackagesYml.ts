@@ -1,4 +1,5 @@
 import { TextEditor, Uri, window, workspace } from 'vscode';
+import { PACKAGES_YML } from '../Constants';
 import { Command } from './CommandManager';
 
 export class OpenOrCreatePackagesYml implements Command {
@@ -10,7 +11,7 @@ export class OpenOrCreatePackagesYml implements Command {
 
   static async openOrCreateConfig(projectPath: string): Promise<TextEditor> {
     const column = window.activeTextEditor?.viewColumn;
-    const fileUri = Uri.joinPath(Uri.parse(projectPath), 'packages.yml');
+    const fileUri = Uri.joinPath(Uri.parse(projectPath), PACKAGES_YML);
 
     try {
       const existingDocument = await workspace.openTextDocument(fileUri);

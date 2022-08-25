@@ -1,5 +1,5 @@
 import { commands, window } from 'vscode';
-import { DBT_ADAPTERS } from '../DbtAdapters';
+import { DBT_ADAPTERS } from '../Constants';
 import { DbtLanguageClientManager } from '../DbtLanguageClientManager';
 import { OutputChannelProvider } from '../OutputChannelProvider';
 import { Command } from './CommandManager';
