@@ -1,6 +1,7 @@
 import { CustomInitParams, DbtCompilerType, LS_MANIFEST_PARSED_EVENT, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
 import { commands, Diagnostic, DiagnosticCollection, Disposable, RelativePattern, Uri, window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
+import { ActiveTextEditorHandler } from './ActiveTextEditorHandler';
 import { SUPPORTED_LANG_IDS } from './ExtensionClient';
 import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
@@ -91,7 +92,10 @@ export class DbtLanguageClient implements Disposable {
       }),
 
       this.client.onNotification('dbtWizard/status', (statusNotification: StatusNotification) => {
-        this.statusHandler.onStatusChanged(statusNotification);
+        const { lastActiveEditor } = ActiveTextEditorHandler;
+        const currentStatusChanged =
+          lastActiveEditor === undefined || lastActiveEditor.document.uri.fsPath.startsWith(statusNotification.projectPath);
+        this.statusHandler.changeStatus(statusNotification, currentStatusChanged);
       }),
 
       this.client.onNotification('dbtWizard/installLatestDbtLog', async (data: string) => {
