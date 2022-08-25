@@ -26,3 +26,5 @@ export interface DbtPackageInfo {
   installString: string;
   versions?: string[];
 }
+
+export type DbtPackageVersions = { [key: string]: string };

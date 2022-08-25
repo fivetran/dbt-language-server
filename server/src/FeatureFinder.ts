@@ -1,7 +1,8 @@
 import { Octokit } from '@octokit/rest';
 import axios from 'axios';
-import { AdapterInfo, DbtPackageInfo, DbtVersionInfo, getStringVersion, PythonInfo, Version } from 'dbt-language-server-common';
+import { AdapterInfo, DbtPackageInfo, DbtPackageVersions, DbtVersionInfo, getStringVersion, PythonInfo, Version } from 'dbt-language-server-common';
 import { promises as fsPromises } from 'fs';
+import * as semver from 'semver';
 import * as yaml from 'yaml';
 import { DbtRepository } from './DbtRepository';
 import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
@@ -81,18 +82,26 @@ export class FeatureFinder {
     return undefined;
   }
 
-  async packageVersions(dbtPackage: string): Promise<string[]> {
+  async packageVersions(dbtPackage: string): Promise<DbtPackageVersions> {
     const octokit = new Octokit();
     const packageInfo = (await this.packageInfosPromise).find(p => p.installString === dbtPackage);
+    const result: DbtPackageVersions = {};
+
     if (packageInfo) {
       const tagsResult = await octokit.rest.repos.listTags({
         owner: packageInfo.gitHubUser,
         repo: packageInfo.repositoryName,
         per_page: 100,
       });
-      return tagsResult.data.map(tag => tag.name);
+
+      for (const tag of tagsResult.data) {
+        const validTag = semver.valid(tag.name);
+        if (validTag) {
+          result[validTag] = tag.name;
+        }
+      }
     }
-    return [];
+    return result;
   }
 
   async getAvailableDbt(): Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]> {

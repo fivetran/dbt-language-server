@@ -1,4 +1,4 @@
-import { DbtPackageInfo, InstallDbtPackagesParams } from 'dbt-language-server-common';
+import { DbtPackageInfo, DbtPackageVersions, InstallDbtPackagesParams } from 'dbt-language-server-common';
 import {
   Disposable,
   env,
@@ -46,7 +46,7 @@ export class InstallDbtPackages implements Command {
           this.selectedPackage = packageName;
 
           if (packageName !== undefined) {
-            const versionsPromise = client.sendRequest<string[]>('dbtWizard/getPackageVersions', packageName);
+            const versionsPromise = client.sendRequest<DbtPackageVersions>('dbtWizard/getPackageVersions', packageName);
             try {
               version = await this.getVersion(packagesPromise, packageName, versionsPromise);
             } catch (e) {
@@ -78,7 +78,11 @@ export class InstallDbtPackages implements Command {
     );
   }
 
-  getVersion(packagesPromise: Promise<DbtPackageInfo[]>, packageName: string, versionsPromise: Promise<string[]>): Promise<string | undefined> {
+  getVersion(
+    packagesPromise: Promise<DbtPackageInfo[]>,
+    packageName: string,
+    versionsPromise: Promise<DbtPackageVersions>,
+  ): Promise<string | undefined> {
     return InstallDbtPackages.showQuickPick(
       {
         buttons: [QuickInputButtons.Back, InstallDbtPackages.DBT_HUB_BUTTON],
@@ -89,9 +93,10 @@ export class InstallDbtPackages implements Command {
       async e => {
         const packageInfo = (await packagesPromise).find(p => p.installString === packageName);
         if (packageInfo) {
+          const actualTagName = (await versionsPromise)[e.item.label];
           await env.openExternal(
-            Uri.parse(`https://github.com/${packageInfo.gitHubUser}/${packageInfo.repositoryName}/tree/${e.item.label}/#readme`),
-          ); // TODO: not label
+            Uri.parse(`https://github.com/${packageInfo.gitHubUser}/${packageInfo.repositoryName}/tree/${actualTagName}/#readme`),
+          );
         }
       },
     );
@@ -117,8 +122,8 @@ export class InstallDbtPackages implements Command {
     return items;
   }
 
-  createVersionItems(versions: string[]): QuickPickItem[] {
-    return versions.map(label => ({
+  createVersionItems(versions: DbtPackageVersions): QuickPickItem[] {
+    return Object.keys(versions).map(label => ({
       label,
       buttons: [InstallDbtPackages.GIT_HUB_BUTTON],
     }));
