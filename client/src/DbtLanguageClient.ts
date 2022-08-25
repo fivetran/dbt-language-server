@@ -2,7 +2,7 @@ import { CustomInitParams, DbtCompilerType, LS_MANIFEST_PARSED_EVENT, StatusNoti
 import { commands, Diagnostic, DiagnosticCollection, Disposable, RelativePattern, Uri, window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { ActiveTextEditorHandler } from './ActiveTextEditorHandler';
-import { SUPPORTED_LANG_IDS } from './Constants';
+import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from './Constants';
 import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';
@@ -50,9 +50,9 @@ export class DbtLanguageClient implements Disposable {
     disposables: Disposable[],
   ): LanguageClientOptions {
     const fileEvents = [
-      workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/dbt_project.yml'), false, false, true),
+      workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, `**/${DBT_PROJECT_YML}`), false, false, true),
       workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/manifest.json'), false, false, true),
-      workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, '**/packages.yml')),
+      workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, `**/${PACKAGES_YML}`)),
     ];
     const clientOptions: LanguageClientOptions = {
       documentSelector: SUPPORTED_LANG_IDS.map(langId => ({ scheme: 'file', language: langId, pattern: `${dbtProjectUri.fsPath}/**/*` })),

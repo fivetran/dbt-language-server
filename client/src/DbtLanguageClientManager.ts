@@ -1,6 +1,6 @@
 import EventEmitter = require('node:events');
 import { Selection, TextDocument, Uri, window, workspace } from 'vscode';
-import { PACKAGES_YML, SUPPORTED_LANG_IDS } from './Constants';
+import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from './Constants';
 import { DbtLanguageClient } from './DbtLanguageClient';
 import { ExtensionClient } from './ExtensionClient';
 import { log } from './Logger';
@@ -89,7 +89,7 @@ export class DbtLanguageClientManager {
     do {
       currentUri = Uri.joinPath(currentUri, '..');
       try {
-        await workspace.fs.stat(currentUri.with({ path: `${currentUri.path}/dbt_project.yml` }));
+        await workspace.fs.stat(currentUri.with({ path: `${currentUri.path}/${DBT_PROJECT_YML}` }));
         const oneLevelUpPath = Uri.joinPath(currentUri, '..').path;
         if (ExtensionClient.DEFAULT_PACKAGES_PATHS.some(p => oneLevelUpPath.endsWith(p))) {
           continue;

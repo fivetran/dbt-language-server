@@ -66,7 +66,7 @@ export class FeatureFinder {
 
   async getPackageInfo(gitHubUser: string, repositoryName: string): Promise<DbtPackageInfo | undefined> {
     try {
-      const response = await axios.get<string>(`https://cdn.jsdelivr.net/gh/${gitHubUser}/${repositoryName}/dbt_project.yml`);
+      const response = await axios.get<string>(`https://cdn.jsdelivr.net/gh/${gitHubUser}/${repositoryName}/${DbtRepository.DBT_PROJECT_FILE_NAME}`);
       const parsedYaml = yaml.parse(response.data, { uniqueKeys: false }) as { name: string | undefined };
       const packageName = parsedYaml.name;
       if (packageName !== undefined) {

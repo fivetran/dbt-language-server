@@ -1,11 +1,14 @@
-import { Command, languages, LanguageStatusItem, LanguageStatusSeverity } from 'vscode';
-import { SUPPORTED_LANG_IDS } from '../Constants';
+import { Command, DocumentFilter, languages, LanguageStatusItem, LanguageStatusSeverity } from 'vscode';
+import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from '../Constants';
 
 export class DbtWizardLanguageStatusItem {
   item: LanguageStatusItem;
 
   constructor(id: string, private defaultText: string) {
-    this.item = languages.createLanguageStatusItem(id, SUPPORTED_LANG_IDS);
+    const filters = SUPPORTED_LANG_IDS.map<DocumentFilter>(language => ({ language })).concat(
+      [`**/${PACKAGES_YML}`, `**/${DBT_PROJECT_YML}`].map(pattern => ({ pattern })),
+    );
+    this.item = languages.createLanguageStatusItem(id, filters);
     this.setBusy();
   }
 
