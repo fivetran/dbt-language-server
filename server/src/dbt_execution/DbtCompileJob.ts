@@ -1,4 +1,5 @@
 import { Result } from 'neverthrow';
+import { EOL } from 'os';
 import { DbtRepository } from '../DbtRepository';
 import { ModelFetcher } from '../ModelFetcher';
 import path = require('path');
@@ -15,7 +16,13 @@ export abstract class DbtCompileJob {
 
   extractDbtError(message: string): string {
     const index = message.indexOf('Compilation Error');
-    return (index !== -1 ? message.substring(index) : message).trim();
+
+    if (index > -1) {
+      const error = message.substring(index);
+      const errorLines = error.split(EOL);
+      return (errorLines.length > 3 ? errorLines.slice(0, 4).join(EOL) : message).trim();
+    }
+    return message.trim();
   }
 
   async findCompiledFilePath(): Promise<string> {
