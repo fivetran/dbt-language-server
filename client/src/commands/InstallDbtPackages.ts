@@ -1,5 +1,6 @@
 import { DbtPackageInfo, DbtPackageVersions, InstallDbtPackagesParams } from 'dbt-language-server-common';
 import {
+  commands,
   Disposable,
   env,
   QuickInputButtons,
@@ -7,6 +8,7 @@ import {
   QuickPickItem,
   QuickPickItemButtonEvent,
   QuickPickItemKind,
+  Selection,
   ThemeIcon,
   Uri,
   window,
@@ -14,14 +16,12 @@ import {
 import { DbtLanguageClientManager } from '../DbtLanguageClientManager';
 import { log } from '../Logger';
 import { Command } from './CommandManager';
+import { OpenOrCreatePackagesYml } from './OpenOrCreatePackagesYml';
 
 export class InstallDbtPackages implements Command {
   readonly id = 'dbtWizard.installDbtPackages';
 
-  static readonly SEPARATOR = {
-    label: '',
-    kind: QuickPickItemKind.Separator,
-  };
+  static readonly SEPARATOR = { label: '', kind: QuickPickItemKind.Separator };
   static readonly DBT_HUB_TOOLTIP = 'Open dbt hub';
   static readonly HUB_URI = Uri.parse('https://hub.getdbt.com');
   static readonly GIT_HUB_BUTTON = { iconPath: new ThemeIcon('github'), tooltip: 'Open in GitHub' };
@@ -39,10 +39,11 @@ export class InstallDbtPackages implements Command {
         const packagesPromise = client.sendRequest<DbtPackageInfo[]>('dbtWizard/getListOfPackages');
 
         let version = undefined;
+        let packageName = undefined;
         let backPressed = false;
         do {
           backPressed = false;
-          const packageName = await this.getPackage(packagesPromise, this.selectedPackage);
+          packageName = await this.getPackage(packagesPromise, this.selectedPackage);
           this.selectedPackage = packageName;
 
           if (packageName !== undefined) {
@@ -55,7 +56,17 @@ export class InstallDbtPackages implements Command {
           }
         } while (backPressed);
 
-        console.log(version);
+        if (version) {
+          const selectionStart = await client.sendRequest<number>('dbtWizard/addNewDbtPackage', { packageName, version });
+          const textEditor = await OpenOrCreatePackagesYml.openOrCreateConfig(client.getProjectUri().fsPath);
+
+          // Sometimes document is not in refreshed state and we should ensure that it contains changes made on LS side
+          // https://github.com/microsoft/vscode/issues/7532#issuecomment-460158858
+          await commands.executeCommand('workbench.action.files.revert');
+
+          const position = textEditor.document.positionAt(selectionStart);
+          textEditor.selection = new Selection(position.line, 0, position.line + 2, 0);
+        }
       }
     }
   }

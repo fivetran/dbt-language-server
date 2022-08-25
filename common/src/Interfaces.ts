@@ -28,3 +28,8 @@ export interface DbtPackageInfo {
 }
 
 export type DbtPackageVersions = { [key: string]: string };
+
+export interface SelectedDbtPackage {
+  packageName: string;
+  version: string;
+}

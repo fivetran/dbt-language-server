@@ -1,4 +1,6 @@
 import path = require('path');
+import * as fs from 'fs';
+import * as yaml from 'yaml';
 import { DbtRepository } from './DbtRepository';
 import { YamlParserUtils } from './YamlParserUtils';
 
@@ -105,5 +107,39 @@ export class DbtProject {
     }
     console.log(`Profile name found: ${profileName}`);
     return profileName;
+  }
+
+  addNewDbtPackage(packageName: string, version: string): number | undefined {
+    const filePath = path.resolve(this.projectPath, DbtRepository.DBT_PACKAGES_FILE_NAME);
+
+    let content = undefined;
+    try {
+      content = fs.readFileSync(filePath, 'utf8');
+    } catch {
+      content = '';
+    }
+
+    const parsedYaml = (yaml.parse(content, { uniqueKeys: false }) as Record<string, unknown> | null | undefined) ?? {};
+
+    let packages = parsedYaml['packages'] as Record<string, unknown>[] | null | undefined;
+    if (!packages) {
+      packages = [];
+      parsedYaml['packages'] = packages;
+    }
+
+    const packageObject = packages.find(p => p['package'] === packageName);
+    if (packageObject) {
+      packageObject['version'] = version;
+    } else {
+      packages.push({
+        package: packageName,
+        version,
+      });
+    }
+
+    const textToWrite = yaml.stringify(parsedYaml);
+    const selectionStart = textToWrite.indexOf(packageName);
+    fs.writeFileSync(filePath, textToWrite);
+    return selectionStart;
   }
 }
