@@ -14,9 +14,11 @@ export class StatusHandler {
     this.getProjectStatus(projectPath).updateStatusUi();
   }
 
-  onStatusChanged(statusNotification: StatusNotification): void {
+  changeStatus(statusNotification: StatusNotification, forCurrentProject: boolean): void {
     this.getProjectStatus(statusNotification.projectPath).updateStatusData(statusNotification);
-    this.updateLanguageItems(statusNotification.projectPath);
+    if (forCurrentProject) {
+      this.updateLanguageItems(statusNotification.projectPath);
+    }
   }
 
   private getProjectStatus(projectPath: string): ProjectStatus {

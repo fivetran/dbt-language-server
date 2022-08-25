@@ -6,7 +6,7 @@ import { StatusHandler } from './status/StatusHandler';
 
 export class ActiveTextEditorHandler {
   handler: Disposable;
-  lastActiveEditor?: TextEditor;
+  static lastActiveEditor?: TextEditor;
 
   constructor(
     private previewContentProvider: SqlPreviewContentProvider,
@@ -14,19 +14,22 @@ export class ActiveTextEditorHandler {
     private statusHandler: StatusHandler,
   ) {
     this.handler = window.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditor.bind(this));
+    if (this.isValidLanguageId(window.activeTextEditor)) {
+      ActiveTextEditorHandler.lastActiveEditor = window.activeTextEditor;
+    }
   }
 
   async onDidChangeActiveTextEditor(activeEditor: TextEditor | undefined): Promise<void> {
     if (
       !activeEditor ||
       activeEditor.document.uri.path === SqlPreviewContentProvider.URI.path ||
-      !SUPPORTED_LANG_IDS.includes(activeEditor.document.languageId) ||
-      this.lastActiveEditor?.document.uri.path === activeEditor.document.uri.path
+      !this.isValidLanguageId(activeEditor) ||
+      ActiveTextEditorHandler.lastActiveEditor?.document.uri.path === activeEditor.document.uri.path
     ) {
       return;
     }
 
-    this.lastActiveEditor = activeEditor;
+    ActiveTextEditorHandler.lastActiveEditor = activeEditor;
 
     this.previewContentProvider.changeActiveDocument(activeEditor.document.uri);
 
@@ -36,6 +39,10 @@ export class ActiveTextEditorHandler {
       this.statusHandler.updateLanguageItems(client.getProjectUri().fsPath);
     }
     client?.resendDiagnostics(activeEditor.document.uri.toString());
+  }
+
+  isValidLanguageId(activeEditor: TextEditor | undefined): boolean {
+    return activeEditor !== undefined && SUPPORTED_LANG_IDS.includes(activeEditor.document.languageId);
   }
 
   dispose(): void {
