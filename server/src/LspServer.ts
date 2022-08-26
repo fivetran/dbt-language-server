@@ -216,7 +216,7 @@ export class LspServer {
     this.connection.onNotification('dbtWizard/installDbtAdapter', this.installDbtAdapter.bind(this));
     this.connection.onNotification('dbtWizard/resendDiagnostics', this.onDidChangeActiveTextEditor.bind(this));
 
-    this.connection.onRequest('dbtWizard/getListOfPackages', () => this.featureFinder?.packageInfosPromise);
+    this.connection.onRequest('dbtWizard/getListOfPackages', () => this.featureFinder?.packageInfosPromise.get());
     this.connection.onRequest('dbtWizard/getPackageVersions', (dbtPackage: string) => this.featureFinder?.packageVersions(dbtPackage));
     this.connection.onRequest('dbtWizard/addNewDbtPackage', (dbtPackage: SelectedDbtPackage) =>
       this.dbtProject.addNewDbtPackage(dbtPackage.packageName, dbtPackage.version),
@@ -253,6 +253,10 @@ export class LspServer {
 
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime);
+
+    this.featureFinder
+      ?.runPostInitTasks()
+      .catch(e => console.log(`Error while running post init tasks: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   registerClientNotification(): void {

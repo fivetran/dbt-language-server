@@ -9,6 +9,7 @@ import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
 import { Command } from './dbt_execution/commands/Command';
 import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
 import { DbtCommandFactory } from './dbt_execution/DbtCommandFactory';
+import { Lazy } from './utils/Lazy';
 import { randomNumber } from './utils/Utils';
 import findFreePortPmfy = require('find-free-port');
 
@@ -25,7 +26,7 @@ export class FeatureFinder {
   versionInfo?: DbtVersionInfo;
   availableCommandsPromise: Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]>;
   packagesYmlExistsPromise: Promise<boolean>;
-  packageInfosPromise: Promise<DbtPackageInfo[]>;
+  packageInfosPromise = new Lazy(() => this.getListOfPackages());
 
   dbtCommandFactory: DbtCommandFactory;
 
@@ -33,7 +34,10 @@ export class FeatureFinder {
     this.dbtCommandFactory = new DbtCommandFactory(pythonInfo?.path);
     this.availableCommandsPromise = this.getAvailableDbt();
     this.packagesYmlExistsPromise = this.packagesYmlExists();
-    this.packageInfosPromise = this.getListOfPackages();
+  }
+
+  runPostInitTasks(): Promise<unknown> {
+    return this.packageInfosPromise.get();
   }
 
   getPythonPath(): string | undefined {
@@ -84,7 +88,7 @@ export class FeatureFinder {
 
   async packageVersions(dbtPackage: string): Promise<DbtPackageVersions> {
     const octokit = new Octokit();
-    const packageInfo = (await this.packageInfosPromise).find(p => p.installString === dbtPackage);
+    const packageInfo = (await this.packageInfosPromise.get()).find(p => p.installString === dbtPackage);
     const result: DbtPackageVersions = {};
 
     if (packageInfo) {
