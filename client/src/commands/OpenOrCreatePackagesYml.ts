@@ -1,9 +1,11 @@
-import { TextEditor, Uri, window, workspace } from 'vscode';
+import { TextEncoder } from 'util';
+import { TextEditor, Uri, ViewColumn, window, workspace } from 'vscode';
 import { PACKAGES_YML } from '../Constants';
 import { Command } from './CommandManager';
 
 export class OpenOrCreatePackagesYml implements Command {
-  readonly id = 'dbtWizard.openOrCreatePackagesYml';
+  static readonly ID = 'dbtWizard.openOrCreatePackagesYml';
+  readonly id = OpenOrCreatePackagesYml.ID;
 
   async execute(projectPath: string): Promise<TextEditor> {
     return OpenOrCreatePackagesYml.openOrCreateConfig(projectPath);
@@ -14,11 +16,15 @@ export class OpenOrCreatePackagesYml implements Command {
     const fileUri = Uri.joinPath(Uri.parse(projectPath), PACKAGES_YML);
 
     try {
-      const existingDocument = await workspace.openTextDocument(fileUri);
-      return await window.showTextDocument(existingDocument, column);
+      return await OpenOrCreatePackagesYml.openExistingDocument(fileUri, column);
     } catch {
-      const createdDocument = await workspace.openTextDocument(fileUri.with({ scheme: 'untitled' }));
-      return await window.showTextDocument(createdDocument, column);
+      await workspace.fs.writeFile(fileUri, new TextEncoder().encode(''));
+      return OpenOrCreatePackagesYml.openExistingDocument(fileUri, column);
     }
+  }
+
+  private static async openExistingDocument(fileUri: Uri, column: ViewColumn | undefined): Promise<TextEditor> {
+    const existingDocument = await workspace.openTextDocument(fileUri);
+    return window.showTextDocument(existingDocument, column);
   }
 }

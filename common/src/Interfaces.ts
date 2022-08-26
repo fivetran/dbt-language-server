@@ -15,11 +15,6 @@ export interface CustomInitParams {
   dbtCompiler: DbtCompilerType;
 }
 
-export interface InstallDbtPackagesParams {
-  projectPath: string;
-  dbtPackageInfos: DbtPackageInfo[];
-}
-
 export interface DbtPackageInfo {
   gitHubUser: string;
   repositoryName: string;

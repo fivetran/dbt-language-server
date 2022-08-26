@@ -8,6 +8,8 @@ import {
   StatusNotification,
 } from 'dbt-language-server-common';
 import { Command, LanguageStatusSeverity } from 'vscode';
+import { InstallDbtPackages } from '../commands/InstallDbtPackages';
+import { OpenOrCreatePackagesYml } from '../commands/OpenOrCreatePackagesYml';
 import { PACKAGES_YML } from '../Constants';
 import { LanguageStatusItems } from './LanguageStatusItems';
 
@@ -92,7 +94,12 @@ export class ProjectStatus {
     if (!this.dbtPackagesData) {
       this.items.dbtPackages.setBusy();
     } else {
-      this.items.dbtPackages.setState(this.dbtPackagesData.severity, this.dbtPackagesData.text, undefined, this.dbtPackagesData.command);
+      this.items.dbtPackages.setState(
+        this.dbtPackagesData.severity,
+        this.dbtPackagesData.text,
+        this.dbtPackagesData.detail,
+        this.dbtPackagesData.command,
+      );
     }
   }
 
@@ -169,17 +176,24 @@ export class ProjectStatus {
   }
 
   private updateDbtPackagesStatusItemData(packagesStatus: PackagesStatus): void {
+    const command = { command: InstallDbtPackages.ID, title: 'Install dbt Packages', arguments: [this.projectPath] };
     this.dbtPackagesData = packagesStatus.packagesYmlFound
       ? {
           severity: LanguageStatusSeverity.Information,
           text: PACKAGES_YML,
-          command: { command: 'dbtWizard.openOrCreatePackagesYml', title: 'Open Packages Config', arguments: [this.projectPath] },
+          detail: this.openOrCreateLink(false),
+          command,
         }
       : {
           severity: LanguageStatusSeverity.Information,
           text: `No ${PACKAGES_YML}`,
-          command: { command: 'dbtWizard.openOrCreatePackagesYml', title: `Create ${PACKAGES_YML}`, arguments: [this.projectPath] },
+          detail: this.openOrCreateLink(true),
+          command,
         };
+  }
+
+  openOrCreateLink(create: boolean): string {
+    return `[${create ? 'Create' : 'Open'}](command:${OpenOrCreatePackagesYml.ID}?${encodeURIComponent(JSON.stringify(this.projectPath))})`;
   }
 
   installDbtCommand(title: string): Command {

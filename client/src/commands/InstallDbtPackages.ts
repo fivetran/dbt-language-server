@@ -1,4 +1,4 @@
-import { DbtPackageInfo, DbtPackageVersions, InstallDbtPackagesParams } from 'dbt-language-server-common';
+import { DbtPackageInfo, DbtPackageVersions } from 'dbt-language-server-common';
 import {
   commands,
   Disposable,
@@ -19,7 +19,8 @@ import { Command } from './CommandManager';
 import { OpenOrCreatePackagesYml } from './OpenOrCreatePackagesYml';
 
 export class InstallDbtPackages implements Command {
-  readonly id = 'dbtWizard.installDbtPackages';
+  static readonly ID = 'dbtWizard.installDbtPackages';
+  readonly id = InstallDbtPackages.ID;
 
   static readonly SEPARATOR = { label: '', kind: QuickPickItemKind.Separator };
   static readonly DBT_HUB_TOOLTIP = 'Open dbt hub';
@@ -31,42 +32,43 @@ export class InstallDbtPackages implements Command {
 
   constructor(private dbtLanguageClientManager: DbtLanguageClientManager) {}
 
-  async execute(installDbtPackagesParams?: InstallDbtPackagesParams): Promise<void> {
-    if (installDbtPackagesParams === undefined) {
-      const client = await this.dbtLanguageClientManager.getClientForActiveDocument();
+  async execute(projectPath?: string): Promise<void> {
+    const client =
+      projectPath === undefined
+        ? await this.dbtLanguageClientManager.getClientForActiveDocument()
+        : this.dbtLanguageClientManager.getClientByPath(projectPath);
 
-      if (client) {
-        const packagesPromise = client.sendRequest<DbtPackageInfo[]>('dbtWizard/getListOfPackages');
+    if (client) {
+      const packagesPromise = client.sendRequest<DbtPackageInfo[]>('dbtWizard/getListOfPackages');
 
-        let version = undefined;
-        let packageName = undefined;
-        let backPressed = false;
-        do {
-          backPressed = false;
-          packageName = await this.getPackage(packagesPromise, this.selectedPackage);
-          this.selectedPackage = packageName;
+      let version = undefined;
+      let packageName = undefined;
+      let backPressed = false;
+      do {
+        backPressed = false;
+        packageName = await this.getPackage(packagesPromise, this.selectedPackage);
+        this.selectedPackage = packageName;
 
-          if (packageName !== undefined) {
-            const versionsPromise = client.sendRequest<DbtPackageVersions>('dbtWizard/getPackageVersions', packageName);
-            try {
-              version = await this.getVersion(packagesPromise, packageName, versionsPromise);
-            } catch (e) {
-              backPressed = e === QuickInputButtons.Back;
-            }
+        if (packageName !== undefined) {
+          const versionsPromise = client.sendRequest<DbtPackageVersions>('dbtWizard/getPackageVersions', packageName);
+          try {
+            version = await this.getVersion(packagesPromise, packageName, versionsPromise);
+          } catch (e) {
+            backPressed = e === QuickInputButtons.Back;
           }
-        } while (backPressed);
-
-        if (version) {
-          const selectionStart = await client.sendRequest<number>('dbtWizard/addNewDbtPackage', { packageName, version });
-          const textEditor = await OpenOrCreatePackagesYml.openOrCreateConfig(client.getProjectUri().fsPath);
-
-          // Sometimes document is not in refreshed state and we should ensure that it contains changes made on LS side
-          // https://github.com/microsoft/vscode/issues/7532#issuecomment-460158858
-          await commands.executeCommand('workbench.action.files.revert');
-
-          const position = textEditor.document.positionAt(selectionStart);
-          textEditor.selection = new Selection(position.line, 0, position.line + 2, 0);
         }
+      } while (backPressed);
+
+      if (version) {
+        const selectionStart = await client.sendRequest<number>('dbtWizard/addNewDbtPackage', { packageName, version });
+        const textEditor = await OpenOrCreatePackagesYml.openOrCreateConfig(client.getProjectUri().fsPath);
+
+        // Sometimes document is not in refreshed state and we should ensure that it contains changes made on LS side
+        // https://github.com/microsoft/vscode/issues/7532#issuecomment-460158858
+        await commands.executeCommand('workbench.action.files.revert');
+
+        const position = textEditor.document.positionAt(selectionStart);
+        textEditor.selection = new Selection(position.line, 0, position.line + 2, 0);
       }
     }
   }
