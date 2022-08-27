@@ -32,6 +32,8 @@ export abstract class Dbt {
 
   abstract getError(): string;
 
+  abstract deps(): void;
+
   abstract dispose(): void;
 
   async suggestToInstallDbt(python: string, dbtProfileType: string): Promise<void> {

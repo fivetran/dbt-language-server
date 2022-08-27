@@ -211,16 +211,14 @@ export class LspServer {
   }
 
   initializeNotifications(): void {
-    this.connection.onNotification('custom/dbtCompile', this.onDbtCompile.bind(this));
-    this.connection.onNotification('dbtWizard/installLatestDbt', this.installLatestDbt.bind(this));
-    this.connection.onNotification('dbtWizard/installDbtAdapter', this.installDbtAdapter.bind(this));
-    this.connection.onNotification('dbtWizard/resendDiagnostics', this.onDidChangeActiveTextEditor.bind(this));
+    this.connection.onNotification('custom/dbtCompile', (uri: string) => this.onDbtCompile(uri));
+    this.connection.onNotification('dbtWizard/installLatestDbt', () => this.installLatestDbt());
+    this.connection.onNotification('dbtWizard/installDbtAdapter', (dbtAdapter: string) => this.installDbtAdapter(dbtAdapter));
+    this.connection.onNotification('dbtWizard/resendDiagnostics', (uri: string) => this.onDidChangeActiveTextEditor(uri));
 
     this.connection.onRequest('dbtWizard/getListOfPackages', () => this.featureFinder?.packageInfosPromise.get());
     this.connection.onRequest('dbtWizard/getPackageVersions', (dbtPackage: string) => this.featureFinder?.packageVersions(dbtPackage));
-    this.connection.onRequest('dbtWizard/addNewDbtPackage', (dbtPackage: SelectedDbtPackage) =>
-      this.dbtProject.addNewDbtPackage(dbtPackage.packageName, dbtPackage.version),
-    );
+    this.connection.onRequest('dbtWizard/addNewDbtPackage', (dbtPackage: SelectedDbtPackage) => this.onAddNewDbtPackage(dbtPackage));
   }
 
   async onInitialized(): Promise<void> {
@@ -497,6 +495,12 @@ export class LspServer {
         textDocument.fixInformationDiagnostic(range);
       }
     }
+  }
+
+  onAddNewDbtPackage(dbtPackage: SelectedDbtPackage): number | undefined {
+    const result = this.dbtProject.addNewDbtPackage(dbtPackage.packageName, dbtPackage.version);
+    this.dbt?.deps();
+    return result;
   }
 
   onDidCreateFiles(_params: CreateFilesParams): void {
