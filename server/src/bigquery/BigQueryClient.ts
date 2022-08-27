@@ -69,7 +69,7 @@ export class BigQueryClient implements DbtDestinationClient {
     const dataSet = this.bigQuery.dataset(dataSetId, { projectId });
 
     try {
-      if ((await dataSet.exists()) === [false]) {
+      if (!(await dataSet.exists())[0]) {
         return undefined;
       }
 
