@@ -59,7 +59,9 @@ export class DbtLanguageClientManager {
 
     const { document } = window.activeTextEditor;
 
-    return SUPPORTED_LANG_IDS.includes(document.languageId) || document.fileName.endsWith(PACKAGES_YML) ? document : undefined;
+    return SUPPORTED_LANG_IDS.includes(document.languageId) || document.fileName.endsWith(PACKAGES_YML) || document.fileName.endsWith(DBT_PROJECT_YML)
+      ? document
+      : undefined;
   }
 
   async getClientByUri(uri: Uri): Promise<DbtLanguageClient | undefined> {

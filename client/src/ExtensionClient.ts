@@ -9,7 +9,7 @@ import { InstallDbtPackages } from './commands/InstallDbtPackages';
 import { InstallLatestDbt } from './commands/InstallLatestDbt';
 import { OpenOrCreatePackagesYml } from './commands/OpenOrCreatePackagesYml';
 import { Restart } from './commands/Restart';
-import { PACKAGES_YML, SUPPORTED_LANG_IDS } from './Constants';
+import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from './Constants';
 import { DbtLanguageClientManager } from './DbtLanguageClientManager';
 import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
@@ -121,7 +121,10 @@ export class ExtensionClient {
   }
 
   async onDidOpenTextDocument(document: TextDocument): Promise<void> {
-    if ((SUPPORTED_LANG_IDS.includes(document.languageId) || document.fileName.endsWith(PACKAGES_YML)) && document.uri.scheme === 'file') {
+    if (
+      (SUPPORTED_LANG_IDS.includes(document.languageId) || document.fileName.endsWith(PACKAGES_YML) || document.fileName.endsWith(DBT_PROJECT_YML)) &&
+      document.uri.scheme === 'file'
+    ) {
       await this.dbtLanguageClientManager.ensureClient(document);
     }
   }
