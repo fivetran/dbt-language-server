@@ -51,7 +51,7 @@ export class FileChangeListener {
     if (this.containsChangeWithPath(params.changes, manifestJsonPath)) {
       this.updateManifestNodes();
     }
-    if (packagesPaths.some(p => this.containsChangeWithPath(params.changes, p))) {
+    if (packagesPaths.some(p => this.changeStartsWithPath(params.changes, p))) {
       this.debouncedDbtPackagesChangedEmitter();
     }
 
@@ -69,12 +69,11 @@ export class FileChangeListener {
   }
 
   containsChangeWithPath(changes: FileEvent[], fsPath: string): boolean {
-    return (
-      changes.find(c => {
-        const changePath = URI.parse(c.uri).fsPath;
-        return changePath === fsPath;
-      }) !== undefined
-    );
+    return changes.some(c => URI.parse(c.uri).fsPath === fsPath);
+  }
+
+  changeStartsWithPath(changes: FileEvent[], fsPath: string): boolean {
+    return changes.some(c => URI.parse(c.uri).fsPath.startsWith(fsPath));
   }
 
   updateDbtProjectConfig(): void {
