@@ -52,3 +52,17 @@ export function compareVersions(v1: Version, v2: Version): number {
 function getVersionHash(version: Version): number {
   return version.major * 100000 + version.minor * 1000 + version.patch;
 }
+
+export interface DbtPackageInfo {
+  gitHubUser: string;
+  repositoryName: string;
+  installString: string;
+  versions?: string[];
+}
+
+export type DbtPackageVersions = { [key: string]: string };
+
+export interface SelectedDbtPackage {
+  packageName: string;
+  version: string;
+}

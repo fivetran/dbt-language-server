@@ -14,17 +14,3 @@ export interface CustomInitParams {
   pythonInfo?: PythonInfo;
   dbtCompiler: DbtCompilerType;
 }
-
-export interface DbtPackageInfo {
-  gitHubUser: string;
-  repositoryName: string;
-  installString: string;
-  versions?: string[];
-}
-
-export type DbtPackageVersions = { [key: string]: string };
-
-export interface SelectedDbtPackage {
-  packageName: string;
-  version: string;
-}
