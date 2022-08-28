@@ -181,19 +181,19 @@ export class ProjectStatus {
       ? {
           severity: LanguageStatusSeverity.Information,
           text: PACKAGES_YML,
-          detail: this.openOrCreateLink(false),
+          detail: this.openOrCreateLink('Open'),
           command,
         }
       : {
           severity: LanguageStatusSeverity.Information,
           text: `No ${PACKAGES_YML}`,
-          detail: this.openOrCreateLink(true),
+          detail: this.openOrCreateLink('Create'),
           command,
         };
   }
 
-  openOrCreateLink(create: boolean): string {
-    return `[${create ? 'Create' : 'Open'}](command:${OpenOrCreatePackagesYml.ID}?${encodeURIComponent(JSON.stringify(this.projectPath))})`;
+  openOrCreateLink(action: 'Create' | 'Open'): string {
+    return `[${action}](command:${OpenOrCreatePackagesYml.ID}?${encodeURIComponent(JSON.stringify(this.projectPath))})`;
   }
 
   installDbtCommand(title: string): Command {
