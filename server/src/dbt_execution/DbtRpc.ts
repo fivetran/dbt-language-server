@@ -84,7 +84,7 @@ export class DbtRpc extends Dbt {
     try {
       await this.dbtRpcServer.ensureCompilationFinished();
     } catch {
-      // compilation finished with error
+      // Compilation finished with error
     }
     await this.dbtRpcClient.deps();
   }
