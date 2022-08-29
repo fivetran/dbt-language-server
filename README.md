@@ -78,7 +78,7 @@ When you open dbt model you can use dbt Wizard status bar items. The following a
 
 ### Install dbt packages
 
-You can install dbt packages using by running `dbtWizard.installDbtPackages` command or by using language status item menu. After selecting package name and version, the `packages.yml` file will be updated automatically.
+You can install dbt packages by running `dbtWizard.installDbtPackages` command or by using language status item menu. After selecting package name and version, the `packages.yml` file will be updated automatically.
 
 ![install dbt packages](images/install-dbt-packages.gif)
 
