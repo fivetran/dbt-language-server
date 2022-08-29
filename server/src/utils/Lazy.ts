@@ -10,7 +10,6 @@ export class Lazy<T> {
       this.value = this.getValue();
     }
 
-    /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
-    return this.value!;
+    return this.value as T;
   }
 }
