@@ -46,16 +46,17 @@ export class InstallDbtPackages implements Command {
         }
       } while (backPressed);
 
-      if (version) {
-        const selectionStart = await client.sendRequest<number>('dbtWizard/addNewDbtPackage', { packageName, version });
+      if (packageName && version) {
+        await client.sendRequest<number>('dbtWizard/addNewDbtPackage', { packageName, version });
         const textEditor = await OpenOrCreatePackagesYml.openOrCreateConfig(client.getProjectUri().fsPath);
 
         // Sometimes document is not in refreshed state and we should ensure that it contains changes made on LS side
         // https://github.com/microsoft/vscode/issues/7532#issuecomment-460158858
         await commands.executeCommand('workbench.action.files.revert');
 
-        const position = textEditor.document.positionAt(selectionStart);
-        textEditor.selection = new Selection(position.line, 0, position.line + 2, 0);
+        const offset = textEditor.document.getText().indexOf(packageName);
+        const { line } = textEditor.document.positionAt(offset);
+        textEditor.selection = new Selection(line, 0, line + 2, 0);
       }
     }
   }

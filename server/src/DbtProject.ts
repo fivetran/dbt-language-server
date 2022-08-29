@@ -109,7 +109,7 @@ export class DbtProject {
     return profileName;
   }
 
-  addNewDbtPackage(packageName: string, version: string): number | undefined {
+  addNewDbtPackage(packageName: string, version: string): void {
     const filePath = path.resolve(this.projectPath, DbtRepository.DBT_PACKAGES_FILE_NAME);
 
     let content = undefined;
@@ -137,9 +137,6 @@ export class DbtProject {
       });
     }
 
-    const textToWrite = yaml.stringify(parsedYaml);
-    const selectionStart = textToWrite.indexOf(packageName);
-    fs.writeFileSync(filePath, textToWrite);
-    return selectionStart;
+    fs.writeFileSync(filePath, yaml.stringify(parsedYaml));
   }
 }

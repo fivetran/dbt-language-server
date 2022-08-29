@@ -497,10 +497,9 @@ export class LspServer {
     }
   }
 
-  onAddNewDbtPackage(dbtPackage: SelectedDbtPackage): number | undefined {
-    const result = this.dbtProject.addNewDbtPackage(dbtPackage.packageName, dbtPackage.version);
+  onAddNewDbtPackage(dbtPackage: SelectedDbtPackage): void {
+    this.dbtProject.addNewDbtPackage(dbtPackage.packageName, dbtPackage.version);
     this.dbt?.deps().catch(e => console.log(`Error while running dbt deps: ${e instanceof Error ? e.message : String(e)}`));
-    return result;
   }
 
   onDidCreateFiles(_params: CreateFilesParams): void {
