@@ -150,11 +150,11 @@ export class InstallDbtPackages implements Command {
   ): Promise<string | undefined> {
     const disposables: Disposable[] = [];
     const pick = window.createQuickPick();
+    pick.busy = true;
     pick.buttons = options.buttons;
     pick.title = options.title;
     pick.placeholder = options.placeholder;
     pick.ignoreFocusOut = true;
-    pick.busy = true;
     itemsPromise
       .then(items => {
         pick.busy = false;

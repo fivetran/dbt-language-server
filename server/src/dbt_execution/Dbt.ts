@@ -32,7 +32,7 @@ export abstract class Dbt {
 
   abstract getError(): string;
 
-  abstract deps(): void;
+  abstract deps(): Promise<void>;
 
   abstract dispose(): void;
 

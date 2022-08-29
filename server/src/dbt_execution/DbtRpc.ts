@@ -80,8 +80,13 @@ export class DbtRpc extends Dbt {
     return this.getInstallError('dbt-rpc', 'python3 -m pip install dbt-bigquery dbt-rpc');
   }
 
-  deps(): void {
-    this.dbtRpcClient.deps().catch(e => console.log(`Error while running deps command: ${e instanceof Error ? e.message : String(e)}`));
+  async deps(): Promise<void> {
+    try {
+      await this.dbtRpcServer.ensureCompilationFinished();
+    } catch {
+      // compilation finished with error
+    }
+    await this.dbtRpcClient.deps();
   }
 
   dispose(): void {

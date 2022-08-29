@@ -53,11 +53,9 @@ export class DbtCli extends Dbt {
     return new DbtCliCompileJob(modelPath, dbtRepository, this);
   }
 
-  deps(): void {
+  async deps(): Promise<void> {
     const depsCommand = new DbtCommand(['deps'], this.pythonPathForCli);
-    DbtCli.DBT_COMMAND_EXECUTOR.execute(depsCommand).catch(e => {
-      console.log(`Error while running dbt deps: ${e instanceof Error ? e.message : String(e)}`);
-    });
+    await DbtCli.DBT_COMMAND_EXECUTOR.execute(depsCommand);
   }
 
   refresh(): void {

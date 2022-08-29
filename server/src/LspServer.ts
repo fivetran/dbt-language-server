@@ -499,7 +499,7 @@ export class LspServer {
 
   onAddNewDbtPackage(dbtPackage: SelectedDbtPackage): number | undefined {
     const result = this.dbtProject.addNewDbtPackage(dbtPackage.packageName, dbtPackage.version);
-    this.dbt?.deps();
+    this.dbt?.deps().catch(e => console.log(`Error while running dbt deps: ${e instanceof Error ? e.message : String(e)}`));
     return result;
   }
 
