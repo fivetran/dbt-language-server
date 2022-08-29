@@ -1,4 +1,3 @@
-import { Octokit } from '@octokit/rest';
 import axios from 'axios';
 import { AdapterInfo, DbtPackageInfo, DbtPackageVersions, DbtVersionInfo, getStringVersion, PythonInfo, Version } from 'dbt-language-server-common';
 import { promises as fsPromises } from 'fs';
@@ -87,21 +86,20 @@ export class FeatureFinder {
   }
 
   async packageVersions(dbtPackage: string): Promise<DbtPackageVersions> {
-    const octokit = new Octokit();
     const packageInfo = (await this.packageInfosPromise.get()).find(p => p.installString === dbtPackage);
     const result: DbtPackageVersions = {};
 
     if (packageInfo) {
-      const tagsResult = await octokit.rest.repos.listTags({
-        owner: packageInfo.gitHubUser,
-        repo: packageInfo.repositoryName,
-        per_page: 100,
-      });
+      const tagsResult = await axios.get<{ ref: string }[]>(
+        `https://api.github.com/repos/${packageInfo.gitHubUser}/${packageInfo.repositoryName}/git/refs/tags?per_page=100`,
+      );
 
-      for (const tag of tagsResult.data) {
-        const validTag = semver.valid(tag.name);
+      const indexOfTag = 'refs/tags/'.length;
+      for (const tagInfo of tagsResult.data) {
+        const tag = tagInfo.ref.substring(indexOfTag);
+        const validTag = semver.valid(tag);
         if (validTag) {
-          result[validTag] = tag.name;
+          result[validTag] = tag;
         }
       }
     }
