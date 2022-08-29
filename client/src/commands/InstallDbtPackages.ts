@@ -1,20 +1,7 @@
 import { DbtPackageInfo, DbtPackageVersions } from 'dbt-language-server-common';
-import {
-  commands,
-  Disposable,
-  env,
-  QuickInputButtons,
-  QuickPick,
-  QuickPickItem,
-  QuickPickItemButtonEvent,
-  QuickPickItemKind,
-  Selection,
-  ThemeIcon,
-  Uri,
-  window,
-} from 'vscode';
+import { commands, env, QuickInputButtons, QuickPickItem, QuickPickItemKind, Selection, ThemeIcon, Uri } from 'vscode';
 import { DbtLanguageClientManager } from '../DbtLanguageClientManager';
-import { log } from '../Logger';
+import { DbtWizardQuickPick } from '../QuickPick';
 import { Command } from './CommandManager';
 import { OpenOrCreatePackagesYml } from './OpenOrCreatePackagesYml';
 
@@ -74,7 +61,7 @@ export class InstallDbtPackages implements Command {
   }
 
   private async getPackage(packagesPromise: Promise<DbtPackageInfo[]>, activeItemLabel?: string): Promise<string | undefined> {
-    return InstallDbtPackages.showQuickPick(
+    return DbtWizardQuickPick.showQuickPick(
       {
         buttons: [InstallDbtPackages.DBT_HUB_BUTTON],
         placeholder: 'Filter by name, e.g. salesforce',
@@ -96,7 +83,7 @@ export class InstallDbtPackages implements Command {
     packageName: string,
     versionsPromise: Promise<DbtPackageVersions>,
   ): Promise<string | undefined> {
-    return InstallDbtPackages.showQuickPick(
+    return DbtWizardQuickPick.showQuickPick(
       {
         buttons: [QuickInputButtons.Back, InstallDbtPackages.DBT_HUB_BUTTON],
         placeholder: 'Filter by version, e.g. 0.5.0',
@@ -140,62 +127,5 @@ export class InstallDbtPackages implements Command {
       label,
       buttons: [InstallDbtPackages.GIT_HUB_BUTTON],
     }));
-  }
-
-  static async showQuickPick(
-    options: Pick<QuickPick<QuickPickItem>, 'buttons' | 'title' | 'placeholder'>,
-    itemsPromise: Promise<QuickPickItem[]>,
-    onDidTriggerItemButton: (e: QuickPickItemButtonEvent<QuickPickItem>) => void,
-    activeItemLabel?: string,
-  ): Promise<string | undefined> {
-    const disposables: Disposable[] = [];
-    const pick = window.createQuickPick();
-    pick.busy = true;
-    pick.buttons = options.buttons;
-    pick.title = options.title;
-    pick.placeholder = options.placeholder;
-    pick.ignoreFocusOut = true;
-    itemsPromise
-      .then(items => {
-        pick.busy = false;
-        pick.items = items;
-        if (activeItemLabel) {
-          const item = pick.items.find(i => i.label === activeItemLabel);
-          if (item) {
-            pick.activeItems = [item];
-          }
-        }
-        return items;
-      })
-      .catch(e => log(`Error while fetching items for QuickPick: ${e instanceof Error ? e.message : String(e)}`));
-
-    pick.onDidTriggerItemButton(onDidTriggerItemButton);
-
-    try {
-      return await new Promise<string | undefined>((resolve, reject) => {
-        disposables.push(
-          pick.onDidTriggerButton(async button => {
-            if (button === QuickInputButtons.Back) {
-              reject(QuickInputButtons.Back);
-            } else if (button.tooltip === InstallDbtPackages.DBT_HUB_TOOLTIP) {
-              await env.openExternal(InstallDbtPackages.HUB_URI);
-            }
-          }),
-          pick.onDidAccept(() => {
-            const [selection] = pick.selectedItems;
-            resolve(selection.label);
-            pick.hide();
-          }),
-          pick.onDidHide(() => {
-            resolve(undefined);
-          }),
-        );
-        pick.show();
-      });
-    } finally {
-      disposables.forEach(d => {
-        d.dispose();
-      });
-    }
   }
 }
