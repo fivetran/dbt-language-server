@@ -43,7 +43,7 @@ export class InstallDbtPackages implements Command {
 
       let version = undefined;
       let packageName = undefined;
-      let backPressed = false;
+      let backPressed;
       do {
         backPressed = false;
         packageName = await this.getPackage(packagesPromise, this.selectedPackage);
