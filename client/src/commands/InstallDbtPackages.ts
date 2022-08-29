@@ -124,9 +124,11 @@ export class InstallDbtPackages implements Command {
   }
 
   createVersionItems(versions: DbtPackageVersions): QuickPickItem[] {
-    return Object.keys(versions).map(label => ({
-      label,
-      buttons: [InstallDbtPackages.GIT_HUB_BUTTON],
-    }));
+    return Object.keys(versions)
+      .sort((v1, v2) => v2.localeCompare(v1))
+      .map(label => ({
+        label,
+        buttons: [InstallDbtPackages.GIT_HUB_BUTTON],
+      }));
   }
 }
