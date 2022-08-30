@@ -239,14 +239,12 @@ export function installExtension(extensionId: string): void {
     });
 
     if (downloadResult.status !== 0) {
-      console.error(`Failed to download '${extensionId}' extension from open-vsx.`);
-      process.exit(1);
+      throw new Error(`Failed to download '${extensionId}' extension from open-vsx.`);
     }
 
     const openVsxInstallResult = installUninstallExtension('install', extensionFilePath);
     if (openVsxInstallResult.status !== 0) {
-      console.log(`Failed to install '${extensionId}' extension from open-vsx.`);
-      process.exit(1);
+      throw new Error(`Failed to install '${extensionId}' extension from open-vsx.`);
     }
   }
 }

@@ -110,6 +110,7 @@
     "unicorn/text-encoding-identifier-case": ["error"],
     "unicorn/prefer-includes": ["error"],
     "unicorn/prefer-string-slice": ["error"],
+    "unicorn/no-process-exit": ["error"],
 
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 

@@ -207,7 +207,7 @@ export class LspServer {
       stack: error.stack ?? '',
     });
 
-    process.exit(1);
+    throw new Error('Uncaught exception. Server will be restarted.');
   }
 
   initializeNotifications(): void {

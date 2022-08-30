@@ -9,8 +9,7 @@ async function main(): Promise<void> {
     await preparePostgres();
     console.log('postgres prepared successfully');
   } catch (e) {
-    console.error(`Failed to prepare destination. Error: ${e instanceof Error ? e.message : String(e)}`);
-    process.exit(1);
+    throw new Error(`Failed to prepare destination. Error: ${e instanceof Error ? e.message : String(e)}`);
   }
 
   await installVsCodeAndRunTests('index', path.resolve(__dirname, '../../projects/test-workspace.code-workspace'));

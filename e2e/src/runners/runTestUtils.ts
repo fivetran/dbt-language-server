@@ -34,14 +34,12 @@ export async function installVsCodeAndRunTests(indexName: string, projectWithMod
       });
 
       if (downloadResult.status !== 0) {
-        console.error('Failed to download python extension from open-vsx.');
-        process.exit(1);
+        throw new Error('Failed to download python extension from open-vsx.');
       }
 
       const openVsxInstallResult = installExtension(cli, args, extensionFilePath, extensionsInstallPath);
       if (openVsxInstallResult.status !== 0) {
-        console.error('Failed to install python extension from open-vsx.');
-        process.exit(1);
+        throw new Error('Failed to install python extension from open-vsx.');
       }
     }
     console.log('Python extension successfully installed from marketplace');
@@ -59,8 +57,7 @@ export async function installVsCodeAndRunTests(indexName: string, projectWithMod
       },
     });
   } catch (e) {
-    console.error(`Failed to run tests. Error: ${e instanceof Error ? e.message : String(e)}`);
-    process.exit(1);
+    throw new Error(`Failed to run tests. Error: ${e instanceof Error ? e.message : String(e)}`);
   }
 }
 
