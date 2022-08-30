@@ -1,5 +1,19 @@
 # Changelog
 
+## Version 0.8.0 (30/08/2022)
+## What's Changed
+* Fix issue with underlining `qualify` keyword.
+* Show signature for keywords in uppercase and in lowercase.
+* Now features that doesn't require additional processes like autocompletions, go to definitions and so on are available quickly.
+* Refresh SQL diagnostics after active tab change.
+* Fix error message in dbt 1.2.1.
+* Add status item to show/create packages.yml file.
+* Add `dbtWizard.installDbtPackages` command and run it from status item.
+* Small bug fixes.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.7.0...v0.8.0
+---
+
 ## Version 0.7.0 (10/08/2022)
 ## What's Changed
 * [Lock](https://code.visualstudio.com/updates/v1_60#_locked-editor-groups) query preview group automatically.
