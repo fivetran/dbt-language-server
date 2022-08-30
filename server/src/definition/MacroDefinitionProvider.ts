@@ -27,7 +27,7 @@ export class MacroDefinitionProvider implements DbtNodeDefinitionProvider {
     if (wordRange) {
       const word = document.getText(getAbsoluteRange(jinja.range.start, wordRange));
       const macroMatch = word.match(MacroDefinitionProvider.MACRO_PATTERN);
-      if (macroMatch === null || macroMatch.length < 1) {
+      if (macroMatch === null || macroMatch.length === 0) {
         return undefined;
       }
 
