@@ -59,7 +59,7 @@ export class DbtCliCompileJob extends DbtCompileJob {
   protected getCompiledSql(filePath: string): string | undefined {
     try {
       return fs.readFileSync(filePath, 'utf8');
-    } catch (e) {
+    } catch {
       console.log(`Cannot get compiled sql for ${filePath}`);
       return undefined;
     }

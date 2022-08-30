@@ -25,7 +25,7 @@ export class ModelFetcher {
           },
           { factor: 1, retries: 3, minTimeout: 100 },
         );
-      } catch (e) {
+      } catch {
         // Do nothing
       }
       this.fetchCompleted = true;

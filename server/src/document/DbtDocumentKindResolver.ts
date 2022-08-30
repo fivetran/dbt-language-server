@@ -44,7 +44,7 @@ export class DbtDocumentKindResolver {
       try {
         fs.statSync(path.resolve(currentPath, DbtRepository.DBT_PROJECT_FILE_NAME));
         break;
-      } catch (e) {
+      } catch {
         // file does not exist
       }
     } while (currentPath !== workspaceFolder);

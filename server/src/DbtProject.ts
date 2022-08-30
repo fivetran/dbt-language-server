@@ -30,7 +30,7 @@ export class DbtProject {
       const dbtProject = this.getProject();
       const projectName = dbtProject[DbtRepository.DBT_PROJECT_NAME_FIELD];
       return projectName as string | undefined;
-    } catch (e) {
+    } catch {
       return undefined;
     }
   }
@@ -42,7 +42,7 @@ export class DbtProject {
       if (macroPaths !== undefined) {
         return macroPaths as string[];
       }
-    } catch (e) {
+    } catch {
       // do nothing
     }
     return DbtRepository.DEFAULT_MACRO_PATHS;
@@ -61,7 +61,7 @@ export class DbtProject {
       if (sourcePaths !== undefined) {
         return sourcePaths as string[];
       }
-    } catch (e) {
+    } catch {
       // do nothing
     }
     return DbtRepository.DEFAULT_MODEL_PATHS;
@@ -79,7 +79,7 @@ export class DbtProject {
       if (modulePath !== undefined) {
         return [modulePath as string];
       }
-    } catch (e) {
+    } catch {
       // do nothing
     }
     return DbtRepository.DEFAULT_PACKAGES_PATHS;
@@ -92,7 +92,7 @@ export class DbtProject {
       if (targetPath !== undefined) {
         return targetPath as string;
       }
-    } catch (e) {
+    } catch {
       // do nothing
     }
     return DbtRepository.DEFAULT_TARGET_PATH;

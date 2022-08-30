@@ -39,7 +39,7 @@ export class DbtCli extends Dbt {
         } else {
           this.onRpcServerFindFailed();
         }
-      } catch (e) {
+      } catch {
         this.onRpcServerFindFailed();
       }
     }

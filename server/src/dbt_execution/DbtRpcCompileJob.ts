@@ -150,7 +150,7 @@ export class DbtRpcCompileJob extends DbtCompileJob {
     try {
       const resultPath = await this.findCompiledFilePath();
       return fs.readFileSync(`${resultPath}`, 'utf8');
-    } catch (e) {
+    } catch {
       return ' ';
     }
   }

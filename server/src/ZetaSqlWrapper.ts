@@ -375,7 +375,7 @@ export class ZetaSqlWrapper {
     const compiledPath = this.dbtRepository.getModelCompiledPath(model);
     try {
       return fs.readFileSync(compiledPath, 'utf8');
-    } catch (e) {
+    } catch {
       console.log(`Cannot read ${compiledPath}`);
       return undefined;
     }

@@ -97,7 +97,7 @@ export class DbtLanguageClientManager {
           continue;
         }
         return currentUri;
-      } catch (e) {
+      } catch {
         // file does not exist
       }
     } while (currentUri.path !== outerWorkspace.uri.path);

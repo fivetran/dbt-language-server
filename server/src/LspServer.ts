@@ -427,7 +427,7 @@ export class LspServer {
     try {
       await this.dbtRepository.manifestParsed();
       return true;
-    } catch (e) {
+    } catch {
       return false;
     }
   }

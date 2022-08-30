@@ -44,7 +44,7 @@ export class DbtRpc extends Dbt {
         } else {
           this.onRpcServerFindFailed();
         }
-      } catch (e) {
+      } catch {
         this.onRpcServerFindFailed();
       }
     } else {

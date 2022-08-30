@@ -79,7 +79,7 @@ export class FeatureFinder {
           installString: `${gitHubUser}/${packageName}`,
         };
       }
-    } catch (e) {
+    } catch {
       // Do nothing
     }
     return undefined;
