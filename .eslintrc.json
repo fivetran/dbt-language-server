@@ -108,6 +108,7 @@
     "unicorn/prefer-spread": ["error"],
     "unicorn/numeric-separators-style": ["error"],
     "unicorn/text-encoding-identifier-case": ["error"],
+    "unicorn/prefer-includes": ["error"],
 
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 

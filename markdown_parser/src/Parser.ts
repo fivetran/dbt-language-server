@@ -89,7 +89,7 @@ const additionalFields = [
 async function parseAndSave(): Promise<void> {
   const MarkdownIt = await import('markdown-it');
   const md = new MarkdownIt();
-  const functionInfos = [];
+  const functionInfos: FunctionInfo[] = [];
 
   for (const [file, sections] of filesToParse) {
     const getFileResult = await axios.get<string>(file);
@@ -104,7 +104,7 @@ async function parseAndSave(): Promise<void> {
           const name = tokens[i + 1].content.toLocaleLowerCase();
           console.log(name);
 
-          if (name.indexOf(' ') !== -1 || functionInfos.findIndex(f => f.name === name) !== -1 || exceptionList.indexOf(name) !== -1) {
+          if (name.includes(' ') || functionInfos.some(f => f.name === name) || exceptionList.includes(name)) {
             i++;
             token = tokens[i];
             continue;
