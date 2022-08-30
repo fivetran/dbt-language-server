@@ -140,8 +140,8 @@ async function ensureTableWithStructExists(dataset: Dataset): Promise<void> {
 
 async function ensureUdfExists(dataset: Dataset): Promise<void> {
   const routine = dataset.routine('my_custom_sum');
-
-  if (!(await routine.exists())[0]) {
+  const existsResult = await routine.exists();
+  if (!existsResult[0]) {
     await routine.create({
       arguments: [
         {
@@ -168,7 +168,8 @@ async function ensureUdfExists(dataset: Dataset): Promise<void> {
 
 async function isTableExist(dataset: Dataset, tableName: string): Promise<boolean> {
   const table = dataset.table(tableName);
-  return (await table.exists())[0];
+  const existsResult = await table.exists();
+  return existsResult[0];
 }
 
 export async function preparePostgres(): Promise<void> {

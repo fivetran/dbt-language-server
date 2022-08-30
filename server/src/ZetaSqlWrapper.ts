@@ -354,9 +354,9 @@ export class ZetaSqlWrapper {
   }
 
   async getNewCustomFunctions(sql: string): Promise<string[][]> {
-    return (await this.zetaSqlParser.getAllFunctions(sql, (await this.getLanguageOptions())?.serialize())).filter(
-      f => !this.registeredFunctions.has(f.join()),
-    );
+    const languageOptions = await this.getLanguageOptions();
+    const allFunctions = await this.zetaSqlParser.getAllFunctions(sql, languageOptions?.serialize());
+    return allFunctions.filter(f => !this.registeredFunctions.has(f.join()));
   }
 
   async getAstOrError(compiledSql: string): Promise<Result<AnalyzeResponse__Output, string>> {
@@ -416,9 +416,10 @@ export class ZetaSqlWrapper {
   }
 
   async extractTableNamesFromStatement(sqlStatement: string): Promise<ExtractTableNamesFromStatementResponse__Output> {
+    const languageOptions = await this.getLanguageOptions();
     const response = await this.getClient().extractTableNamesFromStatement({
       sqlStatement,
-      options: (await this.getLanguageOptions())?.serialize(),
+      options: languageOptions?.serialize(),
     });
     if (!response) {
       throw new Error('Table names not found');
@@ -435,9 +436,8 @@ export class ZetaSqlWrapper {
     if (!this.languageOptions) {
       try {
         this.languageOptions = await new LanguageOptions().enableMaximumLanguageFeatures();
-        (await LanguageOptions.getLanguageFeaturesForVersion(LanguageVersion.VERSION_CURRENT)).forEach(f =>
-          this.languageOptions?.enableLanguageFeature(f),
-        );
+        const featuresForVersion = await LanguageOptions.getLanguageFeaturesForVersion(LanguageVersion.VERSION_CURRENT);
+        featuresForVersion.forEach(f => this.languageOptions?.enableLanguageFeature(f));
         // https://github.com/google/zetasql/issues/115#issuecomment-1210881670
         this.languageOptions.options.reservedKeywords = ['QUALIFY'];
       } catch (e) {

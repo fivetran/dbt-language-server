@@ -70,7 +70,8 @@ export class InstallDbtPackages implements Command {
       },
       packagesPromise.then(p => this.createPackageNameItems(p)),
       async e => {
-        const packageInfo = (await packagesPromise).find(p => p.installString === e.item.label);
+        const packages = await packagesPromise;
+        const packageInfo = packages.find(p => p.installString === e.item.label);
         if (packageInfo) {
           await env.openExternal(Uri.parse(`https://github.com/${packageInfo.gitHubUser}/${packageInfo.repositoryName}#readme`));
         }
@@ -92,9 +93,11 @@ export class InstallDbtPackages implements Command {
       },
       versionsPromise.then(v => this.createVersionItems(v)),
       async e => {
-        const packageInfo = (await packagesPromise).find(p => p.installString === packageName);
+        const packages = await packagesPromise;
+        const packageInfo = packages.find(p => p.installString === packageName);
         if (packageInfo) {
-          const actualTagName = (await versionsPromise)[e.item.label];
+          const versions = await versionsPromise;
+          const actualTagName = versions[e.item.label];
           await env.openExternal(
             Uri.parse(`https://github.com/${packageInfo.gitHubUser}/${packageInfo.repositoryName}/tree/${actualTagName}/#readme`),
           );

@@ -86,7 +86,8 @@ export class FeatureFinder {
   }
 
   async packageVersions(dbtPackage: string): Promise<DbtPackageVersions> {
-    const packageInfo = (await this.packageInfosPromise.get()).find(p => p.installString === dbtPackage);
+    const packages = await this.packageInfosPromise.get();
+    const packageInfo = packages.find(p => p.installString === dbtPackage);
     const result: DbtPackageVersions = {};
 
     if (packageInfo) {
