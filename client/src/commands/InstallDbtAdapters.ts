@@ -1,5 +1,5 @@
 import { commands, window } from 'vscode';
-import { DBT_ADAPTERS } from '../DbtAdapters';
+import { DBT_ADAPTERS } from '../Constants';
 import { DbtLanguageClientManager } from '../DbtLanguageClientManager';
 import { OutputChannelProvider } from '../OutputChannelProvider';
 import { Command } from './CommandManager';
@@ -18,10 +18,11 @@ export class InstallDbtAdapters implements Command {
       const dbtAdapter = await window.showQuickPick(DBT_ADAPTERS, {
         placeHolder: 'Select dbt adapter to install',
       });
-
-      client.sendNotification('dbtWizard/installDbtAdapter', dbtAdapter);
-      this.outputChannelProvider.getInstallDbtAdaptersChannel().show();
-      await commands.executeCommand('workbench.action.focusActiveEditorGroup');
+      if (dbtAdapter !== undefined) {
+        client.sendNotification('dbtWizard/installDbtAdapter', dbtAdapter);
+        this.outputChannelProvider.getInstallDbtAdaptersChannel().show();
+        await commands.executeCommand('workbench.action.focusActiveEditorGroup');
+      }
     }
   }
 }

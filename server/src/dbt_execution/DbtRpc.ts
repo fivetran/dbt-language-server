@@ -54,7 +54,7 @@ export class DbtRpc extends Dbt {
       } catch (e) {
         this.finishWithError(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
       }
-      this.doInitialCompile().catch(e => console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`));
+      this.doInitialCompile().catch(e => console.log(`Error while compiling project: ${e instanceof Error ? e.message : String(e)}`));
     }
   }
 
@@ -78,6 +78,15 @@ export class DbtRpc extends Dbt {
 
   getError(): string {
     return this.getInstallError('dbt-rpc', 'python3 -m pip install dbt-bigquery dbt-rpc');
+  }
+
+  async deps(): Promise<void> {
+    try {
+      await this.dbtRpcServer.ensureCompilationFinished();
+    } catch {
+      // Compilation finished with error
+    }
+    await this.dbtRpcClient.deps();
   }
 
   dispose(): void {

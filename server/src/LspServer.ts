@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { CustomInitParams, DbtCompilerType, getStringVersion } from 'dbt-language-server-common';
+import { CustomInitParams, DbtCompilerType, getStringVersion, SelectedDbtPackage } from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
 import { homedir } from 'os';
 import { performance } from 'perf_hooks';
@@ -89,6 +89,7 @@ export class LspServer {
   dbtDocumentKindResolver = new DbtDocumentKindResolver(this.dbtRepository);
   initStart = performance.now();
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
+  dbtProject = new DbtProject('.');
 
   destinationState = new DestinationState();
   dbt?: Dbt;
@@ -99,12 +100,11 @@ export class LspServer {
     this.workspaceFolder = process.cwd();
     this.filesFilter = [{ scheme: 'file', pattern: { glob: `${this.workspaceFolder}/**/*`, matches: 'file' } }];
     Logger.prepareLogger(this.workspaceFolder);
-    const dbtProject = new DbtProject('.');
 
     this.progressReporter = new ProgressReporter(this.connection);
     this.notificationSender = new NotificationSender(this.connection);
-    this.dbtProfileCreator = new DbtProfileCreator(dbtProject, path.join(homedir(), '.dbt', 'profiles.yml'));
-    this.fileChangeListener = new FileChangeListener(this.workspaceFolder, dbtProject, this.manifestParser, this.dbtRepository);
+    this.dbtProfileCreator = new DbtProfileCreator(this.dbtProject, path.join(homedir(), '.dbt', 'profiles.yml'));
+    this.fileChangeListener = new FileChangeListener(this.workspaceFolder, this.dbtProject, this.manifestParser, this.dbtRepository);
     this.sqlCompletionProvider = new SqlCompletionProvider();
     this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);
     this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
@@ -211,10 +211,14 @@ export class LspServer {
   }
 
   initializeNotifications(): void {
-    this.connection.onNotification('custom/dbtCompile', this.onDbtCompile.bind(this));
-    this.connection.onNotification('dbtWizard/installLatestDbt', this.installLatestDbt.bind(this));
-    this.connection.onNotification('dbtWizard/installDbtAdapter', this.installDbtAdapter.bind(this));
-    this.connection.onNotification('dbtWizard/resendDiagnostics', this.onDidChangeActiveTextEditor.bind(this));
+    this.connection.onNotification('custom/dbtCompile', (uri: string) => this.onDbtCompile(uri));
+    this.connection.onNotification('dbtWizard/installLatestDbt', () => this.installLatestDbt());
+    this.connection.onNotification('dbtWizard/installDbtAdapter', (dbtAdapter: string) => this.installDbtAdapter(dbtAdapter));
+    this.connection.onNotification('dbtWizard/resendDiagnostics', (uri: string) => this.onDidChangeActiveTextEditor(uri));
+
+    this.connection.onRequest('dbtWizard/getListOfPackages', () => this.featureFinder?.packageInfosPromise.get());
+    this.connection.onRequest('dbtWizard/getPackageVersions', (dbtPackage: string) => this.featureFinder?.packageVersions(dbtPackage));
+    this.connection.onRequest('dbtWizard/addNewDbtPackage', (dbtPackage: SelectedDbtPackage) => this.onAddNewDbtPackage(dbtPackage));
   }
 
   async onInitialized(): Promise<void> {
@@ -247,6 +251,10 @@ export class LspServer {
 
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime);
+
+    this.featureFinder
+      ?.runPostInitTasks()
+      .catch(e => console.log(`Error while running post init tasks: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   registerClientNotification(): void {
@@ -487,6 +495,11 @@ export class LspServer {
         textDocument.fixInformationDiagnostic(range);
       }
     }
+  }
+
+  onAddNewDbtPackage(dbtPackage: SelectedDbtPackage): void {
+    this.dbtProject.addNewDbtPackage(dbtPackage.packageName, dbtPackage.version);
+    this.dbt?.deps().catch(e => console.log(`Error while running dbt deps: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   onDidCreateFiles(_params: CreateFilesParams): void {

@@ -1,12 +1,20 @@
-import { AdapterInfo, DbtVersionInfo, getStringVersion, PythonInfo, Version } from 'dbt-language-server-common';
+import axios from 'axios';
+import { AdapterInfo, DbtPackageInfo, DbtPackageVersions, DbtVersionInfo, getStringVersion, PythonInfo, Version } from 'dbt-language-server-common';
 import { promises as fsPromises } from 'fs';
+import * as semver from 'semver';
+import * as yaml from 'yaml';
 import { DbtRepository } from './DbtRepository';
 import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
 import { Command } from './dbt_execution/commands/Command';
 import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
 import { DbtCommandFactory } from './dbt_execution/DbtCommandFactory';
+import { Lazy } from './utils/Lazy';
 import { randomNumber } from './utils/Utils';
 import findFreePortPmfy = require('find-free-port');
+
+interface HubJson {
+  [key: string]: string[];
+}
 
 export class FeatureFinder {
   private static readonly DBT_INSTALLED_VERSION_PATTERN = /installed.*:\s+(\d+)\.(\d+)\.(\d+)/;
@@ -17,6 +25,7 @@ export class FeatureFinder {
   versionInfo?: DbtVersionInfo;
   availableCommandsPromise: Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]>;
   packagesYmlExistsPromise: Promise<boolean>;
+  packageInfosPromise = new Lazy(() => this.getListOfPackages());
 
   dbtCommandFactory: DbtCommandFactory;
 
@@ -24,6 +33,10 @@ export class FeatureFinder {
     this.dbtCommandFactory = new DbtCommandFactory(pythonInfo?.path);
     this.availableCommandsPromise = this.getAvailableDbt();
     this.packagesYmlExistsPromise = this.packagesYmlExists();
+  }
+
+  runPostInitTasks(): Promise<unknown> {
+    return this.packageInfosPromise.get();
   }
 
   getPythonPath(): string | undefined {
@@ -43,6 +56,54 @@ export class FeatureFinder {
     } catch {
       return false;
     }
+  }
+
+  async getListOfPackages(): Promise<DbtPackageInfo[]> {
+    const hubResponse = await axios.get<HubJson>('https://cdn.jsdelivr.net/gh/dbt-labs/hubcap/hub.json');
+    const uriPromises = Object.entries<string[]>(hubResponse.data).flatMap(([gitHubUser, repositoryNames]) =>
+      repositoryNames.map(r => this.getPackageInfo(gitHubUser, r)),
+    );
+    const infos = await Promise.all(uriPromises);
+    return infos.filter((i): i is DbtPackageInfo => i !== undefined);
+  }
+
+  async getPackageInfo(gitHubUser: string, repositoryName: string): Promise<DbtPackageInfo | undefined> {
+    try {
+      const response = await axios.get<string>(`https://cdn.jsdelivr.net/gh/${gitHubUser}/${repositoryName}/${DbtRepository.DBT_PROJECT_FILE_NAME}`);
+      const parsedYaml = yaml.parse(response.data, { uniqueKeys: false }) as { name: string | undefined };
+      const packageName = parsedYaml.name;
+      if (packageName !== undefined) {
+        return {
+          gitHubUser,
+          repositoryName,
+          installString: `${gitHubUser}/${packageName}`,
+        };
+      }
+    } catch (e) {
+      // Do nothing
+    }
+    return undefined;
+  }
+
+  async packageVersions(dbtPackage: string): Promise<DbtPackageVersions> {
+    const packageInfo = (await this.packageInfosPromise.get()).find(p => p.installString === dbtPackage);
+    const result: DbtPackageVersions = {};
+
+    if (packageInfo) {
+      const tagsResult = await axios.get<{ ref: string }[]>(
+        `https://api.github.com/repos/${packageInfo.gitHubUser}/${packageInfo.repositoryName}/git/refs/tags?per_page=100`,
+      );
+
+      const indexOfTag = 'refs/tags/'.length;
+      for (const tagInfo of tagsResult.data) {
+        const tag = tagInfo.ref.substring(indexOfTag);
+        const validTag = semver.valid(tag);
+        if (validTag) {
+          result[validTag] = tag;
+        }
+      }
+    }
+    return result;
   }
 
   async getAvailableDbt(): Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]> {

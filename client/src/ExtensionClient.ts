@@ -5,9 +5,11 @@ import { AfterFunctionCompletion } from './commands/AfterFunctionCompletion';
 import { CommandManager } from './commands/CommandManager';
 import { Compile } from './commands/Compile';
 import { InstallDbtAdapters } from './commands/InstallDbtAdapters';
+import { InstallDbtPackages } from './commands/InstallDbtPackages';
 import { InstallLatestDbt } from './commands/InstallLatestDbt';
 import { OpenOrCreatePackagesYml } from './commands/OpenOrCreatePackagesYml';
 import { Restart } from './commands/Restart';
+import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from './Constants';
 import { DbtLanguageClientManager } from './DbtLanguageClientManager';
 import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
@@ -17,8 +19,6 @@ import { TelemetryClient } from './TelemetryClient';
 
 import path = require('path');
 import EventEmitter = require('node:events');
-
-export const SUPPORTED_LANG_IDS = ['sql', 'jinja-sql', 'sql-bigquery'];
 
 export interface PackageJson {
   name: string;
@@ -89,6 +89,7 @@ export class ExtensionClient {
     this.commandManager.register(new InstallDbtAdapters(this.dbtLanguageClientManager, this.outputChannelProvider));
     this.commandManager.register(new OpenOrCreatePackagesYml());
     this.commandManager.register(new Restart(this.dbtLanguageClientManager));
+    this.commandManager.register(new InstallDbtPackages(this.dbtLanguageClientManager));
   }
 
   registerSqlPreviewContentProvider(context: ExtensionContext): void {
@@ -120,11 +121,12 @@ export class ExtensionClient {
   }
 
   async onDidOpenTextDocument(document: TextDocument): Promise<void> {
-    if (!SUPPORTED_LANG_IDS.includes(document.languageId) || document.uri.scheme !== 'file') {
-      return;
+    if (
+      (SUPPORTED_LANG_IDS.includes(document.languageId) || document.fileName.endsWith(PACKAGES_YML) || document.fileName.endsWith(DBT_PROJECT_YML)) &&
+      document.uri.scheme === 'file'
+    ) {
+      await this.dbtLanguageClientManager.ensureClient(document);
     }
-
-    await this.dbtLanguageClientManager.ensureClient(document);
   }
 
   onDeactivate(): Thenable<void> {

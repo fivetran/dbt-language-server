@@ -33,7 +33,7 @@ export interface StatusResponse extends Response {
 
 type State = 'ready' | 'compiling' | 'error';
 
-type Method = 'status' | 'compile' | 'poll' | 'kill';
+type Method = 'status' | 'compile' | 'poll' | 'kill' | 'deps';
 
 interface PostData {
   jsonrpc: '2.0';
@@ -132,6 +132,12 @@ export class DbtRpcClient {
       task_id: requestToken,
       timeout: 1,
     };
+
+    await this.makePostRequest<never>(data);
+  }
+
+  async deps(): Promise<void> {
+    const data = this.getDefaultPostData('deps');
 
     await this.makePostRequest<never>(data);
   }

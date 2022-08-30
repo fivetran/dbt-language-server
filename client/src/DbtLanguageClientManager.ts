@@ -1,7 +1,8 @@
 import EventEmitter = require('node:events');
 import { Selection, TextDocument, Uri, window, workspace } from 'vscode';
+import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from './Constants';
 import { DbtLanguageClient } from './DbtLanguageClient';
-import { ExtensionClient, SUPPORTED_LANG_IDS } from './ExtensionClient';
+import { ExtensionClient } from './ExtensionClient';
 import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';
@@ -57,11 +58,10 @@ export class DbtLanguageClientManager {
     }
 
     const { document } = window.activeTextEditor;
-    if (!SUPPORTED_LANG_IDS.includes(document.languageId)) {
-      return undefined;
-    }
 
-    return document;
+    return SUPPORTED_LANG_IDS.includes(document.languageId) || document.fileName.endsWith(PACKAGES_YML) || document.fileName.endsWith(DBT_PROJECT_YML)
+      ? document
+      : undefined;
   }
 
   async getClientByUri(uri: Uri): Promise<DbtLanguageClient | undefined> {
@@ -91,7 +91,7 @@ export class DbtLanguageClientManager {
     do {
       currentUri = Uri.joinPath(currentUri, '..');
       try {
-        await workspace.fs.stat(currentUri.with({ path: `${currentUri.path}/dbt_project.yml` }));
+        await workspace.fs.stat(currentUri.with({ path: `${currentUri.path}/${DBT_PROJECT_YML}` }));
         const oneLevelUpPath = Uri.joinPath(currentUri, '..').path;
         if (ExtensionClient.DEFAULT_PACKAGES_PATHS.some(p => oneLevelUpPath.endsWith(p))) {
           continue;

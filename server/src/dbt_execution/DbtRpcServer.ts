@@ -34,7 +34,10 @@ export class DbtRpcServer {
           try {
             await this.ensureCompilationFinished();
           } catch (e) {
-            // The server is started here but there is some problem with project compilation
+            // The server is started here but there is some problem with project compilation. One of the possible problems is packages are not installed
+            if (e instanceof Error && e.message.includes('dbt deps')) {
+              dbtRpcClient.deps().catch(err => console.log(`Error while running dbt deps: ${err instanceof Error ? err.message : String(err)}`));
+            }
             console.log(e);
           }
           console.log('dbt-rpc started');
@@ -90,7 +93,7 @@ export class DbtRpcServer {
               break;
             case 'error':
               clearInterval(intervalId);
-              reject(status.result.error);
+              reject(new Error(status.result.error?.message));
               break;
             default:
               console.log('State is not supported');

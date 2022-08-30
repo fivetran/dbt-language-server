@@ -45,12 +45,17 @@ export class DbtCli extends Dbt {
     }
 
     this.compile().catch(e => {
-      console.log(`Error while compiling project. ${e instanceof Error ? e.message : String(e)}`);
+      console.log(`Error while compiling project: ${e instanceof Error ? e.message : String(e)}`);
     });
   }
 
   createCompileJob(modelPath: string, dbtRepository: DbtRepository): DbtCompileJob {
     return new DbtCliCompileJob(modelPath, dbtRepository, this);
+  }
+
+  async deps(): Promise<void> {
+    const depsCommand = new DbtCommand(['deps'], this.pythonPathForCli);
+    await DbtCli.DBT_COMMAND_EXECUTOR.execute(depsCommand);
   }
 
   refresh(): void {

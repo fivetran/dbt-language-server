@@ -8,6 +8,9 @@ import {
   StatusNotification,
 } from 'dbt-language-server-common';
 import { Command, LanguageStatusSeverity } from 'vscode';
+import { InstallDbtPackages } from '../commands/InstallDbtPackages';
+import { OpenOrCreatePackagesYml } from '../commands/OpenOrCreatePackagesYml';
+import { PACKAGES_YML } from '../Constants';
 import { LanguageStatusItems } from './LanguageStatusItems';
 
 interface StatusItemData {
@@ -18,8 +21,6 @@ interface StatusItemData {
 }
 
 export class ProjectStatus {
-  static readonly PACKAGES_YML = 'packages.yml';
-
   private pythonData?: StatusItemData;
   private dbtData?: StatusItemData;
   private dbtAdaptersData?: StatusItemData;
@@ -93,7 +94,12 @@ export class ProjectStatus {
     if (!this.dbtPackagesData) {
       this.items.dbtPackages.setBusy();
     } else {
-      this.items.dbtPackages.setState(this.dbtPackagesData.severity, this.dbtPackagesData.text, undefined, this.dbtPackagesData.command);
+      this.items.dbtPackages.setState(
+        this.dbtPackagesData.severity,
+        this.dbtPackagesData.text,
+        this.dbtPackagesData.detail,
+        this.dbtPackagesData.command,
+      );
     }
   }
 
@@ -170,17 +176,24 @@ export class ProjectStatus {
   }
 
   private updateDbtPackagesStatusItemData(packagesStatus: PackagesStatus): void {
+    const command = { command: InstallDbtPackages.ID, title: 'Install dbt Packages', arguments: [this.projectPath] };
     this.dbtPackagesData = packagesStatus.packagesYmlFound
       ? {
           severity: LanguageStatusSeverity.Information,
-          text: ProjectStatus.PACKAGES_YML,
-          command: { command: 'dbtWizard.openOrCreatePackagesYml', title: 'Open Packages Config', arguments: [this.projectPath] },
+          text: PACKAGES_YML,
+          detail: this.openOrCreateLink('Open'),
+          command,
         }
       : {
           severity: LanguageStatusSeverity.Information,
-          text: `No ${ProjectStatus.PACKAGES_YML}`,
-          command: { command: 'dbtWizard.openOrCreatePackagesYml', title: `Create ${ProjectStatus.PACKAGES_YML}`, arguments: [this.projectPath] },
+          text: `No ${PACKAGES_YML}`,
+          detail: this.openOrCreateLink('Create'),
+          command,
         };
+  }
+
+  openOrCreateLink(action: 'Create' | 'Open'): string {
+    return `[${action}](command:${OpenOrCreatePackagesYml.ID}?${encodeURIComponent(JSON.stringify(this.projectPath))})`;
   }
 
   installDbtCommand(title: string): Command {

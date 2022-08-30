@@ -1,6 +1,6 @@
 import { Disposable, TextEditor, window } from 'vscode';
+import { SUPPORTED_LANG_IDS } from './Constants';
 import { DbtLanguageClientManager } from './DbtLanguageClientManager';
-import { SUPPORTED_LANG_IDS } from './ExtensionClient';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 import { StatusHandler } from './status/StatusHandler';
 

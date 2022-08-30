@@ -69,11 +69,18 @@ You can jump to the definition with `Cmd+Click` or open the definition to the si
 
 When you open dbt model you can use dbt Wizard status bar items. The following actions are available:
 
-- Change path to python interpreter used by extension
-- Install latest dbt in the selected python environment
-- See the list of installed dbt adapters and install new adapters
+- Change path to python interpreter used by extension.
+- Install latest dbt in the selected python environment.
+- See the list of installed dbt adapters and install new adapters.
+- Install dbt packages.
 
 ![dbt status](images/status-items.gif)
+
+### Install dbt packages
+
+You can install dbt packages by running `dbtWizard.installDbtPackages` command or by using language status item menu. After selecting package name and version, the `packages.yml` file will be updated automatically.
+
+![install dbt packages](images/install-dbt-packages.gif)
 
 ## How to get set up
 
