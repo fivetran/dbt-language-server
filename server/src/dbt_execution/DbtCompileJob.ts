@@ -1,8 +1,8 @@
 import { Result } from 'neverthrow';
-import { EOL } from 'os';
+import { EOL } from 'node:os';
+import * as path from 'node:path';
 import { DbtRepository } from '../DbtRepository';
 import { ModelFetcher } from '../ModelFetcher';
-import path = require('path');
 
 export abstract class DbtCompileJob {
   constructor(protected modelPath: string, protected dbtRepository: DbtRepository) {}

@@ -1,5 +1,5 @@
-import * as fs from 'fs';
 import { assertThat } from 'hamjest';
+import * as fs from 'node:fs';
 import { Position } from 'vscode-languageserver';
 import { PositionConverter } from '../../PositionConverter';
 import { DiffUtils } from '../../utils/DiffUtils';

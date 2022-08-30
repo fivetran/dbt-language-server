@@ -1,4 +1,5 @@
 import { CustomInitParams, DbtCompilerType, LS_MANIFEST_PARSED_EVENT, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
+import { EventEmitter } from 'node:events';
 import { commands, Diagnostic, DiagnosticCollection, Disposable, RelativePattern, Uri, window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { ActiveTextEditorHandler } from './ActiveTextEditorHandler';
@@ -10,7 +11,6 @@ import { PythonExtension } from './python/PythonExtension';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 import { StatusHandler } from './status/StatusHandler';
 import { TelemetryClient } from './TelemetryClient';
-import EventEmitter = require('node:events');
 
 export class DbtLanguageClient implements Disposable {
   client: LanguageClient;

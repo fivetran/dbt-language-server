@@ -1,5 +1,5 @@
-import { exec, PromiseWithChild } from 'child_process';
-import { promisify } from 'util';
+import { exec, PromiseWithChild } from 'node:child_process';
+import { promisify } from 'node:util';
 import { LogLevel } from './Logger';
 
 export class ProcessExecutor {

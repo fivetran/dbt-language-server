@@ -1,4 +1,4 @@
-import path = require('path');
+import * as path from 'node:path';
 import { installVsCodeAndRunTests } from './runTestUtils';
 
 // Expected parameter: path to the folder with the extension package.json

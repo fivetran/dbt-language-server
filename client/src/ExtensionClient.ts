@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import { commands, ExtensionContext, languages, TextDocument, TextEditor, ViewColumn, window, workspace } from 'vscode';
 import { ActiveTextEditorHandler } from './ActiveTextEditorHandler';
 import { AfterFunctionCompletion } from './commands/AfterFunctionCompletion';
@@ -17,8 +17,8 @@ import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 import { StatusHandler } from './status/StatusHandler';
 import { TelemetryClient } from './TelemetryClient';
 
-import path = require('path');
-import EventEmitter = require('node:events');
+import { EventEmitter } from 'node:events';
+import * as path from 'node:path';
 
 export interface PackageJson {
   name: string;

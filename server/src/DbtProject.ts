@@ -1,5 +1,5 @@
-import path = require('path');
-import * as fs from 'fs';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import * as yaml from 'yaml';
 import { DbtRepository } from './DbtRepository';
 import { YamlParserUtils } from './YamlParserUtils';

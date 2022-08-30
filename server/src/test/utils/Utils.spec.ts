@@ -1,5 +1,6 @@
 /* eslint-disable sonarjs/no-duplicate-string */
 import { assertThat } from 'hamjest';
+import * as path from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Position, Range } from 'vscode-languageserver-types';
 import {
@@ -13,7 +14,6 @@ import {
   rangesOverlap,
 } from '../../utils/Utils';
 import { sleep } from '../helper';
-import path = require('path');
 
 describe('Utils', () => {
   it('comparePositions_shouldComparePositions', () => {

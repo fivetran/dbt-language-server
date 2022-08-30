@@ -1,5 +1,5 @@
 import { assertThat, instanceOf } from 'hamjest';
-import { EOL } from 'os';
+import { EOL } from 'node:os';
 import { commands, MarkdownString, Position, Range, SignatureHelp } from 'vscode';
 import { assertDefinitions } from './asserts';
 import { activateAndWait, activateAndWaitManifestParsed, getCustomDocUri, getPreviewText, MAX_RANGE, MIN_RANGE, POSTGRES_PATH } from './helper';

@@ -1,5 +1,6 @@
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { Result } from 'neverthrow';
+import * as path from 'node:path';
 import { Diagnostic, DiagnosticRelatedInformation, DiagnosticSeverity, Location, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
@@ -8,7 +9,6 @@ import { DbtTextDocument } from './document/DbtTextDocument';
 import { PositionConverter } from './PositionConverter';
 import { SqlRefConverter } from './SqlRefConverter';
 import { getIdentifierRangeAtPosition } from './utils/Utils';
-import path = require('path');
 
 export class DiagnosticGenerator {
   private static readonly DBT_ERROR_LINE_PATTERN = /\n\s*line (\d+)\s*\n/;

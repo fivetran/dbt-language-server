@@ -1,5 +1,5 @@
-import { readFileSync } from 'fs';
-import * as path from 'path';
+import { readFileSync } from 'node:fs';
+import * as path from 'node:path';
 import { ManifestJson, ManifestMacro, ManifestModel, ManifestSource } from './ManifestJson';
 
 interface RawNode {

@@ -1,8 +1,8 @@
 import { ExtensionApi } from 'dbt-language-server-common/src/api/ExtensionApi';
+import { EventEmitter } from 'node:events';
 import { ExtensionContext } from 'vscode';
 import { ExtensionClient } from './ExtensionClient';
 import { OutputChannelProvider } from './OutputChannelProvider';
-import EventEmitter = require('node:events');
 
 export const outputChannelProvider = new OutputChannelProvider();
 let extensionClient: ExtensionClient;

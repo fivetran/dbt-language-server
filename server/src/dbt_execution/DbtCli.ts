@@ -1,4 +1,4 @@
-import { PromiseWithChild } from 'child_process';
+import { PromiseWithChild } from 'node:child_process';
 import { _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { FeatureFinder } from '../FeatureFinder';

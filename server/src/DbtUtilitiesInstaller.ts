@@ -1,5 +1,5 @@
 import { err, ok, Result } from 'neverthrow';
-import { EOL } from 'os';
+import { EOL } from 'node:os';
 import { ProcessExecutor } from './ProcessExecutor';
 
 export class DbtUtilitiesInstaller {

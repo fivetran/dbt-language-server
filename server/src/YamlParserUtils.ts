@@ -1,5 +1,5 @@
-import * as fs from 'fs';
-import { homedir } from 'os';
+import * as fs from 'node:fs';
+import { homedir } from 'node:os';
 import * as yaml from 'yaml';
 
 export class YamlParserUtils {

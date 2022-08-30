@@ -1,8 +1,8 @@
-import { ok } from 'assert';
 import { assertThat, defined, not } from 'hamjest';
 import { err } from 'neverthrow';
-import * as path from 'path';
-import { setTimeout } from 'timers/promises';
+import { ok } from 'node:assert';
+import * as path from 'node:path';
+import { setTimeout } from 'node:timers/promises';
 import { instance, mock, when } from 'ts-mockito';
 import { CompletionItem } from 'vscode-languageserver';
 import { DbtNodeCompletionProvider } from '../completion/DbtCompletionProvider';

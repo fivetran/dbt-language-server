@@ -1,4 +1,4 @@
-import * as path from 'path';
+import * as path from 'node:path';
 import { DefinitionLink, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';

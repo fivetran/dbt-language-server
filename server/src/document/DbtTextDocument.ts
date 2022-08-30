@@ -1,4 +1,5 @@
 import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
+import * as path from 'node:path';
 import {
   CompletionItem,
   CompletionParams,
@@ -47,7 +48,6 @@ import {
 } from '../utils/Utils';
 import { ZetaSqlAst } from '../ZetaSqlAst';
 import { DbtDocumentKind } from './DbtDocumentKind';
-import path = require('path');
 
 export class DbtTextDocument {
   static DEBOUNCE_TIMEOUT = 300;

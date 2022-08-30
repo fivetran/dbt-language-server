@@ -1,5 +1,5 @@
 import axios from 'axios';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import Token = require('markdown-it/lib/token');
 
 interface FunctionInfo {

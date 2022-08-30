@@ -1,8 +1,9 @@
-import { randomUUID } from 'crypto';
 import { CustomInitParams, DbtCompilerType, getStringVersion, SelectedDbtPackage } from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
-import { homedir } from 'os';
-import { performance } from 'perf_hooks';
+import { randomUUID } from 'node:crypto';
+import { homedir } from 'node:os';
+import * as path from 'node:path';
+import { performance } from 'node:perf_hooks';
 import {
   CodeAction,
   CodeActionKind,
@@ -65,7 +66,6 @@ import { NotificationSender } from './NotificationSender';
 import { ProgressReporter } from './ProgressReporter';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
 import { StatusSender } from './StatusSender';
-import path = require('path');
 
 export class LspServer {
   static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;

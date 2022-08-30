@@ -1,6 +1,6 @@
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 import { err, ok, Result } from 'neverthrow';
-import { setTimeout } from 'timers/promises';
+import { setTimeout } from 'node:timers/promises';
 import { DbtDestinationClient } from '../DbtDestinationClient';
 import { DbtProfile, TargetConfig } from '../DbtProfile';
 import { ProcessExecutor } from '../ProcessExecutor';

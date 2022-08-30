@@ -1,4 +1,4 @@
-import { TextEncoder } from 'util';
+import { TextEncoder } from 'node:util';
 import { TextEditor, Uri, ViewColumn, window, workspace } from 'vscode';
 import { PACKAGES_YML } from '../Constants';
 import { Command } from './CommandManager';

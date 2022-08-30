@@ -1,4 +1,4 @@
-import path = require('path');
+import * as path from 'node:path';
 
 export enum LogLevel {
   Debug = '__LogLevelDebug',

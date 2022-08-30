@@ -1,5 +1,5 @@
-import { ok } from 'assert';
 import { assertThat, containsString } from 'hamjest';
+import { ok } from 'node:assert';
 import { CodeAction, commands, Diagnostic, DiagnosticSeverity, Range, workspace } from 'vscode';
 import { assertDiagnostics } from './asserts';
 import { activateAndWait, getDocUri, getMainEditorText, replaceText, waitDocumentModification } from './helper';

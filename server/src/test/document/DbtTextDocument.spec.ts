@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
 import { assertThat } from 'hamjest';
+import * as path from 'node:path';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, Range, TextDocumentSaveReason, VersionedTextDocumentIdentifier } from 'vscode-languageserver';
 import { DbtCompletionProvider } from '../../completion/DbtCompletionProvider';
@@ -16,7 +17,6 @@ import { NotificationSender } from '../../NotificationSender';
 import { ProgressReporter } from '../../ProgressReporter';
 import { SqlCompletionProvider } from '../../SqlCompletionProvider';
 import { sleep } from '../helper';
-import path = require('path');
 
 describe('DbtTextDocument', () => {
   const TEXT = 'select 1;';

@@ -1,10 +1,10 @@
-import * as fs from 'fs';
+import * as retry from 'async-retry';
 import { err, ok, Result } from 'neverthrow';
+import * as fs from 'node:fs';
 import { DbtRepository } from '../DbtRepository';
 import { wait } from '../utils/Utils';
 import { DbtCompileJob } from './DbtCompileJob';
 import { CompileResponse, DbtRpcClient, PollResponse } from './DbtRpcClient';
-import retry = require('async-retry');
 
 export class DbtRpcCompileJob extends DbtCompileJob {
   static readonly UNKNOWN_ERROR = 'Unknown dbt-rpc error';

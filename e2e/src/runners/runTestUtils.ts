@@ -1,9 +1,9 @@
 import { BigQuery, Dataset, TableField } from '@google-cloud/bigquery';
 import { downloadAndUnzipVSCode, resolveCliArgsFromVSCodeExecutablePath, runTests, SilentReporter } from '@vscode/test-electron';
-import { spawnSync, SpawnSyncReturns } from 'child_process';
-import * as fs from 'fs';
-import { homedir } from 'os';
-import * as path from 'path';
+import { spawnSync, SpawnSyncReturns } from 'node:child_process';
+import * as fs from 'node:fs';
+import { homedir } from 'node:os';
+import * as path from 'node:path';
 import { Client } from 'pg';
 
 // Expected parameter: path to the folder with the extension package.json

@@ -1,8 +1,8 @@
 import { assertThat } from 'hamjest';
+import * as path from 'node:path';
 import { DbtRepository } from '../../DbtRepository';
 import { DbtDocumentKind } from '../../document/DbtDocumentKind';
 import { DbtDocumentKindResolver } from '../../document/DbtDocumentKindResolver';
-import path = require('path');
 
 describe('DbtDocumentKindResolver', () => {
   const PROJECT_LOCATION = path.normalize('/Users/user_name/dbt_project');

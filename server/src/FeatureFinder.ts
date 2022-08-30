@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { AdapterInfo, DbtPackageInfo, DbtPackageVersions, DbtVersionInfo, getStringVersion, PythonInfo, Version } from 'dbt-language-server-common';
-import { promises as fsPromises } from 'fs';
+import { promises as fsPromises } from 'node:fs';
 import * as semver from 'semver';
 import * as yaml from 'yaml';
 import { DbtRepository } from './DbtRepository';

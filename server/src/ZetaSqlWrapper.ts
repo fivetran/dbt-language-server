@@ -12,8 +12,8 @@ import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql
 import { SimpleTableProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleTableProto';
 import { StructFieldProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/StructFieldProto';
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
-import * as fs from 'fs';
 import { err, ok, Result } from 'neverthrow';
+import * as fs from 'node:fs';
 import { BigQueryClient, Udf } from './bigquery/BigQueryClient';
 import { DbtRepository } from './DbtRepository';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';

@@ -1,6 +1,6 @@
-import { ChildProcess, ExecException } from 'child_process';
-import * as fs from 'fs';
 import { err, ok, Result } from 'neverthrow';
+import { ChildProcess, ExecException } from 'node:child_process';
+import * as fs from 'node:fs';
 import { DbtRepository } from '../DbtRepository';
 import { runWithTimeout } from '../utils/Utils';
 import { DbtCli } from './DbtCli';

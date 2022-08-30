@@ -1,5 +1,5 @@
 import { assertThat } from 'hamjest';
-import { EOL } from 'os';
+import { EOL } from 'node:os';
 import { activateAndWait, getDocUri, getPreviewText, installExtension, replaceText, setTestContent, sleep, uninstallExtension } from './helper';
 
 suite('Should compile jinja expressions', () => {

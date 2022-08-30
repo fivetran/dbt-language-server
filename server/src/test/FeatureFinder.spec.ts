@@ -1,6 +1,6 @@
-import { ok } from 'assert';
 import { AdapterInfo, DbtVersionInfo, Version } from 'dbt-language-server-common';
 import { assertThat, defined, not } from 'hamjest';
+import { ok } from 'node:assert';
 import { deepEqual, instance, mock, when } from 'ts-mockito';
 import { DbtCommand } from '../dbt_execution/commands/DbtCommand';
 import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor';

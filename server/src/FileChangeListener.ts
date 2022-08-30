@@ -1,10 +1,10 @@
+import * as path from 'node:path';
 import { DidChangeWatchedFilesParams, Emitter, Event, FileChangeType, FileEvent } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
 import { ManifestParser } from './manifest/ManifestParser';
 import { debounce } from './utils/Utils';
-import path = require('path');
 
 export class FileChangeListener {
   private static PACKAGES_UPDATE_DEBOUNCE_TIMEOUT = 1000;

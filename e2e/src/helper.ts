@@ -1,11 +1,10 @@
-import { spawnSync, SpawnSyncReturns } from 'child_process';
 import * as clipboard from 'clipboardy';
 import { deferred, DeferredResult, ExtensionApi, LS_MANIFEST_PARSED_EVENT } from 'dbt-language-server-common';
-import * as fs from 'fs';
-import { writeFileSync } from 'fs';
-import * as path from 'path';
+import { spawnSync, SpawnSyncReturns } from 'node:child_process';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { setTimeout } from 'node:timers/promises';
 import { pathEqual } from 'path-equal';
-import { setTimeout } from 'timers/promises';
 import {
   commands,
   CompletionItem,
@@ -324,7 +323,7 @@ export async function createAndOpenTempModel(workspaceName: string, waitFor: 'pr
   tempModelIndex++;
 
   console.log(`Creating new file: ${newUri.toString()}`);
-  writeFileSync(newUri.fsPath, '-- Empty');
+  fs.writeFileSync(newUri.fsPath, '-- Empty');
 
   waitFor === 'preview' ? await activateAndWait(newUri) : await activateAndWaitManifestParsed(newUri, thisWorkspaceUri.path);
   if (waitFor === 'manifest') {

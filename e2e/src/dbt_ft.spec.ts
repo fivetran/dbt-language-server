@@ -1,8 +1,8 @@
-import { writeFileSync } from 'fs';
 import * as glob from 'glob';
+import { writeFileSync } from 'node:fs';
+import * as path from 'node:path';
 import { DiagnosticSeverity, languages, Uri } from 'vscode';
 import { activateAndWait } from './helper';
-import path = require('path');
 
 suite('dbt_ft', () => {
   const EXCLUDE = ['dbt_ft_prod/models/bi_core/accounts.sql', 'dbt_ft_prod/models/bi_core/monthly_employee_metrics.sql'];

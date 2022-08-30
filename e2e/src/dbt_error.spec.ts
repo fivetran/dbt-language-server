@@ -1,8 +1,8 @@
-import { EOL } from 'os';
+import { EOL } from 'node:os';
+import * as path from 'node:path';
 import { DiagnosticSeverity, Location, Range } from 'vscode';
 import { assertAllDiagnostics } from './asserts';
 import { activateAndWait, getDocUri, replaceText } from './helper';
-import path = require('path');
 
 suite('Should show dbt error and link to it', () => {
   const DOC_WITH_ERROR = getDocUri('package_ref.sql');
