@@ -63,7 +63,7 @@ const filesToParse: Map<string, string[]> = new Map([
   ['https://raw.githubusercontent.com/google/zetasql/master/docs/aggregate_analytic_functions.md', ['Aggregate analytic functions']],
 ]);
 
-const exceptionList = [
+const EXCEPTIONS = new Set<string>([
   'safe_cast',
   'bit_cast_to_int32',
   'bit_cast_to_int64',
@@ -71,7 +71,7 @@ const exceptionList = [
   'bit_cast_to_uint64',
   'to_json',
   'to_json_string',
-];
+]);
 
 const additionalFields = [
   {
@@ -104,7 +104,7 @@ async function parseAndSave(): Promise<void> {
           const name = tokens[i + 1].content.toLocaleLowerCase();
           console.log(name);
 
-          if (name.includes(' ') || functionInfos.some(f => f.name === name) || exceptionList.includes(name)) {
+          if (name.includes(' ') || functionInfos.some(f => f.name === name) || EXCEPTIONS.has(name)) {
             i++;
             token = tokens[i];
             continue;

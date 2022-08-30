@@ -111,6 +111,7 @@
     "unicorn/prefer-includes": ["error"],
     "unicorn/prefer-string-slice": ["error"],
     "unicorn/no-process-exit": ["error"],
+    "unicorn/prefer-set-has": ["error"],
 
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 

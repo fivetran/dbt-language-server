@@ -20,7 +20,7 @@ const TESTS_WITHOUT_ZETASQL = [
   'postgres.spec.js',
   'signature_help.spec.js',
 ]; // TODO: combine ZetaSQL tests and skip them on Windows
-const ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
+const ZETASQL_SUPPORTED_PLATFORMS = new Set<string>(['darwin', 'linux']);
 
 export async function indexMain(timeout: string, globPattern: string, doNotRun: string[]): Promise<void> {
   try {
@@ -55,7 +55,7 @@ export async function indexMain(timeout: string, globPattern: string, doNotRun: 
       files
         .filter(
           f =>
-            (ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) || TESTS_WITHOUT_ZETASQL.some(t => f.endsWith(t))) &&
+            (ZETASQL_SUPPORTED_PLATFORMS.has(process.platform) || TESTS_WITHOUT_ZETASQL.some(t => f.endsWith(t))) &&
             !doNotRun.some(t => f.endsWith(t)),
         )
         .forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
