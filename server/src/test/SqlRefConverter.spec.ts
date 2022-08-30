@@ -61,8 +61,8 @@ describe('SqlRefConverter', () => {
   });
 });
 
-function createManifestNodes(count: number): ManifestModel[] {
-  return [...new Array(count).keys()].map<ManifestModel>(n => ({
+function createManifestNodes(length: number): ManifestModel[] {
+  return [...Array.from({ length }).keys()].map<ManifestModel>(n => ({
     uniqueId: `model.package.test_model${n}`,
     rootPath: '/Users/test/dbt_project',
     originalFilePath: `models/test_model${n}.sql`,

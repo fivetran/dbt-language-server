@@ -26,7 +26,8 @@
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "plugin:@typescript-eslint/recommended",
     "plugin:sonarjs/recommended",
-    "plugin:promise/recommended"
+    "plugin:promise/recommended",
+    "plugin:unicorn/recommended"
   ],
   "rules": {
     "no-param-reassign": ["error"],
@@ -95,10 +96,6 @@
 
     "promise/catch-or-return": ["error", { "allowThen": true }],
 
-    "unicorn/no-useless-promise-resolve-reject": ["error"],
-    "unicorn/no-for-loop": ["error"],
-    "unicorn/prefer-node-protocol": ["error"],
-    "unicorn/prefer-optional-catch-binding": ["error"],
     "unicorn/consistent-function-scoping": [
       "error",
       { "checkArrowFunctions": false }
@@ -109,27 +106,20 @@
         "name": "e"
       }
     ],
-    "unicorn/prefer-array-some": ["error"],
-    "unicorn/no-await-expression-member": ["error"],
-    "unicorn/prefer-spread": ["error"],
-    "unicorn/numeric-separators-style": ["error"],
-    "unicorn/text-encoding-identifier-case": ["error"],
-    "unicorn/prefer-includes": ["error"],
-    "unicorn/prefer-string-slice": ["error"],
-    "unicorn/no-process-exit": ["error"],
-    "unicorn/prefer-set-has": ["error"],
-    "unicorn/no-unreadable-array-destructuring": ["error"],
-    "unicorn/no-static-only-class": ["error"],
-    "unicorn/no-array-push-push": ["error"],
-    "unicorn/prefer-array-index-of": ["error"],
-    "unicorn/require-array-join-separator": ["error"],
-    "unicorn/no-useless-spread": ["error"],
-    "unicorn/prefer-number-properties": ["error"],
-    "unicorn/explicit-length-check": ["error"],
-    "unicorn/error-message": ["error"],
-    "unicorn/new-for-builtins": ["error"],
 
-    "sonarjs/cognitive-complexity": ["off"], // TODO: enable
+    "unicorn/no-array-reduce": ["off"],
+    "unicorn/consistent-destructuring": ["off"],
+    "unicorn/no-null": ["off"],
+    "unicorn/better-regex": ["off"],
+    "unicorn/prefer-top-level-await": ["off"],
+    "unicorn/prevent-abbreviations": ["off"],
+    "unicorn/filename-case": ["off"],
+    "unicorn/no-array-for-each": ["off"],
+    "unicorn/no-useless-undefined": ["off"],
+    "unicorn/prefer-module": ["off"],
+
+    "sonarjs/cognitive-complexity": ["off"],
+    "sonarjs/no-inverted-boolean-check": ["error"],
 
     "prettier/prettier": ["error"]
   },
