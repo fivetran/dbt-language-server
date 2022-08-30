@@ -123,6 +123,7 @@
     "unicorn/no-array-push-push": ["error"],
     "unicorn/prefer-array-index-of": ["error"],
     "unicorn/require-array-join-separator": ["error"],
+    "unicorn/no-useless-spread": ["error"],
 
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 

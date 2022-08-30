@@ -23,7 +23,7 @@ export class DbtCli extends Dbt {
   }> {
     const parameters = ['compile'];
     if (modelName) {
-      parameters.push(...['-m', modelName]);
+      parameters.push('-m', modelName);
     }
     const compileCliCommand = new DbtCommand(parameters, this.pythonPathForCli);
     return DbtCli.DBT_COMMAND_EXECUTOR.execute(compileCliCommand);
