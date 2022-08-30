@@ -93,6 +93,10 @@
     "unicorn/no-for-loop": ["error"],
     "unicorn/prefer-node-protocol": ["error"],
     "unicorn/prefer-optional-catch-binding": ["error"],
+    "unicorn/consistent-function-scoping": [
+      "error",
+      { "checkArrowFunctions": false }
+    ],
 
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 

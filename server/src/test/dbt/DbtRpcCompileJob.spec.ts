@@ -49,15 +49,6 @@ describe('DbtRpcCompileJob', () => {
     });
   }
 
-  function pollOnceCompileResultRunning(): Promise<PollResponse> {
-    return Promise.resolve({
-      result: {
-        state: 'running',
-        elapsed: 0,
-      },
-    });
-  }
-
   function pollOnceCompileResultError(): Promise<PollResponse> {
     return Promise.resolve({
       result: {
@@ -299,3 +290,12 @@ describe('DbtRpcCompileJob', () => {
     verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(DbtRpcCompileJob.POLL_MAX_RETRIES + 1);
   });
 });
+
+function pollOnceCompileResultRunning(): Promise<PollResponse> {
+  return Promise.resolve({
+    result: {
+      state: 'running',
+      elapsed: 0,
+    },
+  });
+}

@@ -8,30 +8,6 @@ import { ResolvedTable } from '../ZetaSqlAst';
 describe('SqlRefConverter', () => {
   const SQL_REF_CONVERTER = new SqlRefConverter();
 
-  function createManifestNodes(count: number): ManifestModel[] {
-    return [...Array(count).keys()].map<ManifestModel>(n => ({
-      uniqueId: `model.package.test_model${n}`,
-      rootPath: '/Users/test/dbt_project',
-      originalFilePath: `models/test_model${n}.sql`,
-      name: `test_model${n}`,
-      database: 'db',
-      schema: 'schema',
-      packageName: 'test_package',
-      dependsOn: {
-        nodes: [],
-      },
-      refs: [],
-    }));
-  }
-
-  function createResolvedTable(index: number, start: number, end: number): ResolvedTable {
-    return {
-      schema: 'schema',
-      name: `test_model${index}`,
-      location: { start, end },
-    };
-  }
-
   it('Should convert sql to ref', () => {
     const sql = 'select * from `db`.`schema`.`test_model0`';
     const doc = TextDocument.create('test', 'sql', 0, sql);
@@ -84,3 +60,27 @@ describe('SqlRefConverter', () => {
     ]);
   });
 });
+
+function createManifestNodes(count: number): ManifestModel[] {
+  return [...Array(count).keys()].map<ManifestModel>(n => ({
+    uniqueId: `model.package.test_model${n}`,
+    rootPath: '/Users/test/dbt_project',
+    originalFilePath: `models/test_model${n}.sql`,
+    name: `test_model${n}`,
+    database: 'db',
+    schema: 'schema',
+    packageName: 'test_package',
+    dependsOn: {
+      nodes: [],
+    },
+    refs: [],
+  }));
+}
+
+function createResolvedTable(index: number, start: number, end: number): ResolvedTable {
+  return {
+    schema: 'schema',
+    name: `test_model${index}`,
+    location: { start, end },
+  };
+}

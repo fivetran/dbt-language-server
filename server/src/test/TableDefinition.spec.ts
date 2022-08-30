@@ -2,18 +2,6 @@ import { assertThat } from 'hamjest';
 import { TableDefinition } from '../TableDefinition';
 
 describe('TableDefinition', () => {
-  function getProjectNameShouldReturnProjectName(namePart: string[], expectedName: string | undefined): void {
-    assertThat(new TableDefinition(namePart).getProjectName(), expectedName);
-  }
-
-  function getDataSetNameShouldReturnDataSetName(namePart: string[], expectedName: string | undefined): void {
-    assertThat(new TableDefinition(namePart).getDataSetName(), expectedName);
-  }
-
-  function geTableNameShouldReturnTableName(namePart: string[], expectedName: string): void {
-    assertThat(new TableDefinition(namePart).getTableName(), expectedName);
-  }
-
   it('getProjectName should return project name', () => {
     getProjectNameShouldReturnProjectName(['project', 'data_set', 'table'], 'project');
     getProjectNameShouldReturnProjectName(['data_set', 'table'], undefined);
@@ -40,3 +28,15 @@ describe('TableDefinition', () => {
     geTableNameShouldReturnTableName(['data_set', 'INFORMATION_SCHEMA', 'COLUMNS'], 'columns');
   });
 });
+
+function getProjectNameShouldReturnProjectName(namePart: string[], expectedName: string | undefined): void {
+  assertThat(new TableDefinition(namePart).getProjectName(), expectedName);
+}
+
+function getDataSetNameShouldReturnDataSetName(namePart: string[], expectedName: string | undefined): void {
+  assertThat(new TableDefinition(namePart).getDataSetName(), expectedName);
+}
+
+function geTableNameShouldReturnTableName(namePart: string[], expectedName: string): void {
+  assertThat(new TableDefinition(namePart).getTableName(), expectedName);
+}

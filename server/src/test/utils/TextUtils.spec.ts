@@ -103,17 +103,17 @@ describe('TextUtils', () => {
     getTextRangeBeforeBracket_shouldReturnRange('\n\na()', Position.create(2, 2), Range.create(2, 0, 2, 1));
     getTextRangeBeforeBracket_shouldReturnRange('\n\n coalesce(max())', Position.create(2, 13), Range.create(2, 1, 2, 9));
   });
-
-  function getTextRangeBeforeBracket_shouldReturnRange(text: string, position: Position, expectedRange: Range): void {
-    // act
-    const range = getTextRangeBeforeBracket(text, position);
-
-    // assert
-    assertThat(range, expectedRange);
-  }
-
-  function assertWordRangeAtPosition(position: Position, regex: RegExp, textLines: string[], wordRange: Range | undefined): void {
-    const range = getWordRangeAtPosition(position, regex, textLines);
-    assertThat(range, wordRange);
-  }
 });
+
+function getTextRangeBeforeBracket_shouldReturnRange(text: string, position: Position, expectedRange: Range): void {
+  // act
+  const range = getTextRangeBeforeBracket(text, position);
+
+  // assert
+  assertThat(range, expectedRange);
+}
+
+function assertWordRangeAtPosition(position: Position, regex: RegExp, textLines: string[], wordRange: Range | undefined): void {
+  const range = getWordRangeAtPosition(position, regex, textLines);
+  assertThat(range, wordRange);
+}

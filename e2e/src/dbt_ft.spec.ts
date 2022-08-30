@@ -38,24 +38,24 @@ suite('dbt_ft', () => {
       }
     }
   });
-
-  function isRunningOnCi(): boolean {
-    return !process.env['LOCAL_RUN'];
-  }
-
-  function getLogPath(): string {
-    return getPath('log.txt');
-  }
-
-  function getDiagnosticsPath(): string {
-    return getPath('diagnostics.txt');
-  }
-
-  function getPath(fileName: string): string {
-    return path.resolve(__dirname, fileName);
-  }
-
-  function getProjectPath(): string {
-    return isRunningOnCi() ? path.resolve(__dirname, '../../analytics/dbt_ft_prod') : path.resolve(__dirname, '../../../analytics/dbt_ft_prod');
-  }
 });
+
+function getLogPath(): string {
+  return getPath('log.txt');
+}
+
+function getDiagnosticsPath(): string {
+  return getPath('diagnostics.txt');
+}
+
+function getProjectPath(): string {
+  return isRunningOnCi() ? path.resolve(__dirname, '../../analytics/dbt_ft_prod') : path.resolve(__dirname, '../../../analytics/dbt_ft_prod');
+}
+
+function isRunningOnCi(): boolean {
+  return !process.env['LOCAL_RUN'];
+}
+
+function getPath(fileName: string): string {
+  return path.resolve(__dirname, fileName);
+}

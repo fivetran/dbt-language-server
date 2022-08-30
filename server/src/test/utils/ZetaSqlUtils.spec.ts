@@ -37,8 +37,8 @@ describe('ZetaSqlUtils.spec', () => {
     assertThat(rangesEqual(createRange(1, 3), createRange(5, 8)), false);
     assertThat(rangesEqual(createRange(5, 8), createRange(1, 3)), false);
   });
-
-  function createRange(start: number, end: number): ParseLocationRangeProto__Output {
-    return { filename: '', start, end };
-  }
 });
+
+function createRange(start: number, end: number): ParseLocationRangeProto__Output {
+  return { filename: '', start, end };
+}

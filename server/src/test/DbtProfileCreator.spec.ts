@@ -72,20 +72,20 @@ describe('Profiles Validation', () => {
     assert.ok(profile.isErr());
     assertThat(profile.error.message, matchesPattern(errorPattern));
   });
-
-  function shouldReturnError(config: string, profileName: string, errorPattern: RegExp): void {
-    // arrange
-    const mockDbtProject = mock(DbtProject);
-    when(mockDbtProject.findProfileName()).thenReturn(profileName);
-    const dbtProject = instance(mockDbtProject);
-
-    const profileCreator = new DbtProfileCreator(dbtProject, getConfigPath(config));
-
-    // act
-    const profile = profileCreator.createDbtProfile();
-
-    // assert
-    assert.ok(profile.isErr());
-    assertThat(profile.error.message, matchesPattern(errorPattern));
-  }
 });
+
+function shouldReturnError(config: string, profileName: string, errorPattern: RegExp): void {
+  // arrange
+  const mockDbtProject = mock(DbtProject);
+  when(mockDbtProject.findProfileName()).thenReturn(profileName);
+  const dbtProject = instance(mockDbtProject);
+
+  const profileCreator = new DbtProfileCreator(dbtProject, getConfigPath(config));
+
+  // act
+  const profile = profileCreator.createDbtProfile();
+
+  // assert
+  assert.ok(profile.isErr());
+  assertThat(profile.error.message, matchesPattern(errorPattern));
+}

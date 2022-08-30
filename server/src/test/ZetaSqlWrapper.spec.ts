@@ -72,20 +72,6 @@ describe('ZetaSqlWrapper table/udf registration', () => {
     assertThat(columns, expectedColumns);
   }
 
-  function assertProject(rootCatalog: SimpleCatalogProto, expectedProjectId?: string): void {
-    if (expectedProjectId) {
-      const projects = rootCatalog.catalog;
-      assertThat(projects, hasExactlyOneItem(hasProperty('name', expectedProjectId)));
-    }
-  }
-
-  function assertDataSet(datasets?: SimpleCatalogProto[], expectedDataSet?: string): void {
-    if (expectedDataSet) {
-      assert.ok(datasets);
-      assertThat(datasets, hasExactlyOneItem(hasProperty('name', expectedDataSet)));
-    }
-  }
-
   function registerTable(zetaWrapper: ZetaSqlWrapper, tableDefinitions: TableDefinition): SimpleCatalogProto {
     zetaWrapper.registerTable(tableDefinitions);
     return zetaWrapper['catalog'];
@@ -251,3 +237,17 @@ describe('ZetaSqlWrapper table/udf registration', () => {
     assertThat(func.signature[0].returnType?.type, { typeKind: TypeKind.TYPE_INT64 });
   });
 });
+
+function assertProject(rootCatalog: SimpleCatalogProto, expectedProjectId?: string): void {
+  if (expectedProjectId) {
+    const projects = rootCatalog.catalog;
+    assertThat(projects, hasExactlyOneItem(hasProperty('name', expectedProjectId)));
+  }
+}
+
+function assertDataSet(datasets?: SimpleCatalogProto[], expectedDataSet?: string): void {
+  if (expectedDataSet) {
+    assert.ok(datasets);
+    assertThat(datasets, hasExactlyOneItem(hasProperty('name', expectedDataSet)));
+  }
+}

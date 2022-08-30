@@ -104,16 +104,16 @@ describe('FeatureFinder', () => {
       ]);
     }
   });
-
-  function assertVersion(
-    versionInfo: DbtVersionInfo | undefined,
-    expectedInstalledVersion: Version,
-    expectedLatestVersion: Version,
-    expectedAdapters: AdapterInfo[],
-  ): void {
-    ok(versionInfo);
-    assertThat(versionInfo.installedVersion, expectedInstalledVersion);
-    assertThat(versionInfo.latestVersion, expectedLatestVersion);
-    assertThat(versionInfo.installedAdapters, expectedAdapters);
-  }
 });
+
+function assertVersion(
+  versionInfo: DbtVersionInfo | undefined,
+  expectedInstalledVersion: Version,
+  expectedLatestVersion: Version,
+  expectedAdapters: AdapterInfo[],
+): void {
+  ok(versionInfo);
+  assertThat(versionInfo.installedVersion, expectedInstalledVersion);
+  assertThat(versionInfo.latestVersion, expectedLatestVersion);
+  assertThat(versionInfo.installedAdapters, expectedAdapters);
+}

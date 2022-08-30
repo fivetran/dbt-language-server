@@ -16,13 +16,13 @@ suite('Multi-project', () => {
       'select * from `singular-vector-135519`.dbt_ls_e2e_dataset.test_table1',
     );
   }).timeout('100s');
-
-  async function testOneProject(docUri: Uri, expectedPreview: string): Promise<void> {
-    await activateAndWait(docUri);
-
-    assertThat(getPreviewText(), expectedPreview);
-    await sleep(100);
-    assertThat(languages.getDiagnostics(docUri).length, 0);
-    assertThat(languages.getDiagnostics(Uri.parse(PREVIEW_URI)).length, 0);
-  }
 });
+
+async function testOneProject(docUri: Uri, expectedPreview: string): Promise<void> {
+  await activateAndWait(docUri);
+
+  assertThat(getPreviewText(), expectedPreview);
+  await sleep(100);
+  assertThat(languages.getDiagnostics(docUri).length, 0);
+  assertThat(languages.getDiagnostics(Uri.parse(PREVIEW_URI)).length, 0);
+}

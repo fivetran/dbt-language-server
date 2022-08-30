@@ -33,10 +33,6 @@ describe('ZetaSqlAst', () => {
     shouldReturnLocationsOfTableNameInQuery(fileName, cursorOffset, [createParseLocationRange(start, end)]);
   }
 
-  function createParseLocationRange(start: number, end: number): ParseLocationRangeProto {
-    return { start, end, filename: '' };
-  }
-
   it('simple.json', () => {
     shouldReturnLocationOfTableNameInQuery('simple', 0, 14, 41);
     shouldReturnLocationOfTableNameInQuery('simple', 8, 14, 41);
@@ -71,17 +67,6 @@ describe('ZetaSqlAst', () => {
   });
 
   describe('resolvedSetOperationScanNode.json', () => {
-    function shouldReturnTablesForResolvedSetOperationScanNode(cursorOffset: number): void {
-      shouldReturnLocationsOfTableNameInQuery('resolvedSetOperationScanNode', cursorOffset, [
-        createParseLocationRange(96, 141),
-        createParseLocationRange(255, 300),
-        createParseLocationRange(414, 459),
-        createParseLocationRange(572, 617),
-        createParseLocationRange(744, 800),
-        createParseLocationRange(918, 967),
-      ]);
-    }
-
     it('shouldReturnTablesForResolvedSetOperationScanNode', () => {
       shouldReturnTablesForResolvedSetOperationScanNode(37);
       shouldReturnTablesForResolvedSetOperationScanNode(218);
@@ -89,4 +74,19 @@ describe('ZetaSqlAst', () => {
       shouldReturnTablesForResolvedSetOperationScanNode(875);
     });
   });
+
+  function shouldReturnTablesForResolvedSetOperationScanNode(cursorOffset: number): void {
+    shouldReturnLocationsOfTableNameInQuery('resolvedSetOperationScanNode', cursorOffset, [
+      createParseLocationRange(96, 141),
+      createParseLocationRange(255, 300),
+      createParseLocationRange(414, 459),
+      createParseLocationRange(572, 617),
+      createParseLocationRange(744, 800),
+      createParseLocationRange(918, 967),
+    ]);
+  }
 });
+
+function createParseLocationRange(start: number, end: number): ParseLocationRangeProto {
+  return { start, end, filename: '' };
+}
