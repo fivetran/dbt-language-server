@@ -234,7 +234,7 @@ export function installExtension(extensionId: string): void {
     const extensionFilePath = path.resolve(DOWNLOADS_PATH, `${extensionId}.vsix`);
 
     const downloadResult = spawnSync('npx', ['ovsx', 'get', extensionId, '-o', extensionFilePath], {
-      encoding: 'utf-8',
+      encoding: 'utf8',
       stdio: 'inherit',
     });
 
@@ -253,7 +253,7 @@ export function installExtension(extensionId: string): void {
 
 export function getLatestDbtVersion(): string {
   const commandResult = spawnSync('dbt', ['--version'], {
-    encoding: 'utf-8',
+    encoding: 'utf8',
   });
 
   const match = /latest.*:\s+(\d+\.\d+\.\d+)/.exec(commandResult.stderr);
@@ -283,7 +283,7 @@ function runCliCommand(args: string[]): SpawnSyncReturns<string> {
   }
 
   return spawnSync(cliPath, args, {
-    encoding: 'utf-8',
+    encoding: 'utf8',
     stdio: 'inherit',
   });
 }

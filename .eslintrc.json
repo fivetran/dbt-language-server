@@ -107,6 +107,7 @@
     "unicorn/no-await-expression-member": ["error"],
     "unicorn/prefer-spread": ["error"],
     "unicorn/numeric-separators-style": ["error"],
+    "unicorn/text-encoding-identifier-case": ["error"],
 
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 

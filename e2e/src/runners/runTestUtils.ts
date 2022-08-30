@@ -29,7 +29,7 @@ export async function installVsCodeAndRunTests(indexName: string, projectWithMod
 
       const extensionFilePath = path.resolve(extensionsInstallPath, 'ms-python.python.vsix');
       const downloadResult = spawnSync('npx', ['ovsx', 'get', '-t', 'latest', '-o', extensionFilePath, 'ms-python.python'], {
-        encoding: 'utf-8',
+        encoding: 'utf8',
         stdio: 'inherit',
       });
 
@@ -215,7 +215,7 @@ export async function preparePostgres(): Promise<void> {
 
 function installExtension(cli: string, args: string[], idOrPath: string, installPath: string): SpawnSyncReturns<string> {
   return spawnSync(cli, [...args, `--install-extension=${idOrPath}`, `--extensions-dir=${installPath}`], {
-    encoding: 'utf-8',
+    encoding: 'utf8',
     stdio: 'inherit',
   });
 }
