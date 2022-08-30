@@ -10,7 +10,7 @@ import { Client } from 'pg';
 export async function installVsCodeAndRunTests(indexName: string, projectWithModelsPath: string): Promise<void> {
   try {
     const testsPath = path.resolve(__dirname, indexName);
-    const [, , extensionDevelopmentPath] = process.argv;
+    const extensionDevelopmentPath = process.argv[2];
     console.log(`Running tests for path: ${extensionDevelopmentPath}`);
     console.log(`Project path: ${projectWithModelsPath}`);
 

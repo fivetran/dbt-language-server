@@ -48,7 +48,13 @@
     "no-path-concat": ["error"],
     "no-else-return": ["error"],
     "no-useless-constructor": ["off"],
-    "prefer-destructuring": ["error"],
+    "prefer-destructuring": [
+      "error",
+      {
+        "object": true,
+        "array": false
+      }
+    ],
     "eqeqeq": ["error"],
     "no-redeclare": ["error"],
     "no-lonely-if": ["error"],
@@ -112,6 +118,7 @@
     "unicorn/prefer-string-slice": ["error"],
     "unicorn/no-process-exit": ["error"],
     "unicorn/prefer-set-has": ["error"],
+    "unicorn/no-unreadable-array-destructuring": ["error"],
 
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 
