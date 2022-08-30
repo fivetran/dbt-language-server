@@ -54,7 +54,7 @@ export class InstallDbtPackages implements Command {
         // https://github.com/microsoft/vscode/issues/7532#issuecomment-460158858
         await commands.executeCommand('workbench.action.files.revert');
 
-        const offset = textEditor.document.getText().indexOf(packageName);
+        const offset = textEditor.document.getText().indexOf(`package: ${packageName}`);
         const { line } = textEditor.document.positionAt(offset);
         textEditor.selection = new Selection(line, 0, line + 2, 0);
       }
