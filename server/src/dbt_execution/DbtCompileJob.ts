@@ -18,7 +18,7 @@ export abstract class DbtCompileJob {
     const index = message.indexOf('Compilation Error');
 
     if (index > -1) {
-      const error = message.substring(index);
+      const error = message.slice(index);
       const errorLines = error.split(EOL);
       return (errorLines.length > 3 ? errorLines.slice(0, 4).join(EOL) : message).trim();
     }

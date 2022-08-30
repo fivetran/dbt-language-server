@@ -103,7 +103,7 @@ export function getWordAtText(
     } else {
       textOffset += start;
     }
-    text = text.substring(start, column + config.maxLen / 2);
+    text = text.slice(start, column + config.maxLen / 2);
     return getWordAtText(column, wordDefinition, text, textOffset, config);
   }
 
@@ -210,7 +210,7 @@ export function getTextRangeBeforeBracket(text: string, cursorPosition: Position
   }
   const line = Math.min(lines.length - 1, Math.max(0, cursorPosition.line));
   const lineText = lines[line];
-  const textBeforeCursor = lineText.substring(0, cursorPosition.character);
+  const textBeforeCursor = lineText.slice(0, cursorPosition.character);
   let openBracketIndex = -1;
   let closedBracketCount = 0;
   let index = textBeforeCursor.length - 1;

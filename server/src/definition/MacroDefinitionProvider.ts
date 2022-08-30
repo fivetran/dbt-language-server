@@ -35,8 +35,8 @@ export class MacroDefinitionProvider implements DbtNodeDefinitionProvider {
 
       const pointIndex = macro.indexOf('.');
       const packageIsSpecified = pointIndex !== -1;
-      const packageName = packageIsSpecified ? macro.substring(0, pointIndex) : undefined;
-      const macroName = packageIsSpecified ? macro.substring(pointIndex + 1) : macro;
+      const packageName = packageIsSpecified ? macro.slice(0, pointIndex) : undefined;
+      const macroName = packageIsSpecified ? macro.slice(pointIndex + 1) : macro;
 
       return this.dbtRepository.macros
         .filter(m => m.name === macroName && (!packageIsSpecified || m.packageName === packageName))

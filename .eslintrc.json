@@ -109,6 +109,7 @@
     "unicorn/numeric-separators-style": ["error"],
     "unicorn/text-encoding-identifier-case": ["error"],
     "unicorn/prefer-includes": ["error"],
+    "unicorn/prefer-string-slice": ["error"],
 
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 

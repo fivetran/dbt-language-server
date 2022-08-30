@@ -97,7 +97,7 @@ export class FeatureFinder {
 
       const indexOfTag = 'refs/tags/'.length;
       for (const tagInfo of tagsResult.data) {
-        const tag = tagInfo.ref.substring(indexOfTag);
+        const tag = tagInfo.ref.slice(indexOfTag);
         const validTag = semver.valid(tag);
         if (validTag) {
           result[validTag] = tag;
@@ -211,7 +211,7 @@ export class FeatureFinder {
 
     const installedVersion = FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_INSTALLED_VERSION_PATTERN);
     const latestVersion = FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_LATEST_VERSION_PATTERN);
-    const installedAdapters = FeatureFinder.getInstalledAdapters(stderr.substring(stderr.indexOf('Plugins:')));
+    const installedAdapters = FeatureFinder.getInstalledAdapters(stderr.slice(stderr.indexOf('Plugins:')));
 
     return {
       installedVersion,

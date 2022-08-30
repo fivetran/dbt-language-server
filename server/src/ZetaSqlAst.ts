@@ -257,7 +257,7 @@ export class ZetaSqlAst {
             const parseLocationRange = this.requireParseLocationRange(typedNode.parent?.parent?.parseLocationRange);
             if (name && parseLocationRange) {
               try {
-                const dataset = extractDatasetFromFullName(text.substring(parseLocationRange.start, parseLocationRange.end), name);
+                const dataset = extractDatasetFromFullName(text.slice(parseLocationRange.start, parseLocationRange.end), name);
                 result.push({
                   schema: dataset,
                   name,

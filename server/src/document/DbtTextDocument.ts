@@ -294,9 +294,7 @@ export class DbtTextDocument {
     let compiledDocDiagnostics: Diagnostic[] = [];
 
     if (this.destinationState.bigQueryContext && this.dbtDocumentKind === DbtDocumentKind.MODEL) {
-      const originalFilePath = this.rawDocument.uri.substring(
-        this.rawDocument.uri.lastIndexOf(this.workspaceFolder) + this.workspaceFolder.length + 1,
-      );
+      const originalFilePath = this.rawDocument.uri.slice(this.rawDocument.uri.lastIndexOf(this.workspaceFolder) + this.workspaceFolder.length + 1);
       const astResult = await this.destinationState.bigQueryContext.analyzeTable(originalFilePath, compiledSql);
       if (astResult.isOk()) {
         console.log(`AST was successfully received for ${originalFilePath}`, LogLevel.Debug);
@@ -406,7 +404,7 @@ export class DbtTextDocument {
 
   dispose(): void {
     const { uri } = this.rawDocument;
-    const fileName = uri.substring(uri.lastIndexOf(path.sep));
+    const fileName = uri.slice(uri.lastIndexOf(path.sep));
 
     if (this.currentDbtError?.includes(fileName)) {
       this.fixGlobalDbtError();

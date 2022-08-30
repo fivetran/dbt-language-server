@@ -6,7 +6,7 @@ export enum LogLevel {
 
 export class Logger {
   static prepareLogger(workspaceFolder: string): void {
-    const id = workspaceFolder.substring(workspaceFolder.lastIndexOf(path.sep) + 1);
+    const id = workspaceFolder.slice(workspaceFolder.lastIndexOf(path.sep) + 1);
 
     const old = console.log;
     console.log = (...args): void => {

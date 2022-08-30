@@ -335,7 +335,7 @@ export async function createAndOpenTempModel(workspaceName: string, waitFor: 'pr
 
 export async function renameCurrentFile(newName: string): Promise<Uri> {
   const { uri } = doc;
-  const newUri = uri.with({ path: uri.path.substring(0, uri.path.lastIndexOf('/') + 1) + newName });
+  const newUri = uri.with({ path: uri.path.slice(0, uri.path.lastIndexOf('/') + 1) + newName });
 
   const renameFinished = createChangePromise('preview');
 
