@@ -1,6 +1,6 @@
 import { deferred } from 'dbt-language-server-common';
+import * as path from 'node:path';
 import { ManifestMacro, ManifestModel, ManifestSource } from './manifest/ManifestJson';
-import path = require('path');
 
 export class DbtRepository {
   static readonly DBT_PROJECT_FILE_NAME = 'dbt_project.yml';

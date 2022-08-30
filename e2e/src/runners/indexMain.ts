@@ -1,7 +1,7 @@
 import * as glob from 'glob';
 import * as Mocha from 'mocha';
-import * as path from 'path';
-import { performance } from 'perf_hooks';
+import * as path from 'node:path';
+import { performance } from 'node:perf_hooks';
 import { languages, Uri } from 'vscode';
 import { closeAllEditors, doc, getPreviewText, initializeExtension, PREVIEW_URI } from '../helper';
 
@@ -20,7 +20,7 @@ const TESTS_WITHOUT_ZETASQL = [
   'postgres.spec.js',
   'signature_help.spec.js',
 ]; // TODO: combine ZetaSQL tests and skip them on Windows
-const ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
+const ZETASQL_SUPPORTED_PLATFORMS = new Set<string>(['darwin', 'linux']);
 
 export async function indexMain(timeout: string, globPattern: string, doNotRun: string[]): Promise<void> {
   try {
@@ -38,7 +38,7 @@ export async function indexMain(timeout: string, globPattern: string, doNotRun: 
     color: true,
     bail: true,
     timeout,
-    slow: 15000,
+    slow: 15_000,
   });
 
   const testsRoot = __dirname;
@@ -55,8 +55,8 @@ export async function indexMain(timeout: string, globPattern: string, doNotRun: 
       files
         .filter(
           f =>
-            (ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) || TESTS_WITHOUT_ZETASQL.find(t => f.endsWith(t))) &&
-            !doNotRun.find(t => f.endsWith(t)),
+            (ZETASQL_SUPPORTED_PLATFORMS.has(process.platform) || TESTS_WITHOUT_ZETASQL.some(t => f.endsWith(t))) &&
+            !doNotRun.some(t => f.endsWith(t)),
         )
         .forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
 
@@ -72,17 +72,17 @@ export async function indexMain(timeout: string, globPattern: string, doNotRun: 
               console.log(`Content of document when test failed:\n|${doc.getText()}|\n`);
               console.log(`Preview content:\n|${getPreviewText()}|\n`);
               console.log(`Preview diagnostics:\n|${JSON.stringify(languages.getDiagnostics(Uri.parse(PREVIEW_URI)))}|\n`);
-            } catch (err) {
-              console.log(`Error in fail stage: ${err instanceof Error ? err.message : String(err)}`);
+            } catch (e_) {
+              console.log(`Error in fail stage: ${e_ instanceof Error ? e_.message : String(e_)}`);
             }
             reject(new Error(`${failures} tests failed.`));
           } else {
             resolve();
           }
         });
-      } catch (err) {
-        console.error(err);
-        reject(err);
+      } catch (e_) {
+        console.error(e_);
+        reject(e_);
       }
     });
   });

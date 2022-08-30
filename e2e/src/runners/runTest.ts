@@ -1,4 +1,4 @@
-import path = require('path');
+import * as path from 'node:path';
 import { installVsCodeAndRunTests, prepareBigQuery, preparePostgres } from './runTestUtils';
 
 // Expected parameter: path to the folder with the extension package.json
@@ -8,9 +8,8 @@ async function main(): Promise<void> {
     console.log('bigquery prepared successfully');
     await preparePostgres();
     console.log('postgres prepared successfully');
-  } catch (err) {
-    console.error(`Failed to prepare destination. Error: ${err instanceof Error ? err.message : String(err)}`);
-    process.exit(1);
+  } catch (e) {
+    throw new Error(`Failed to prepare destination. Error: ${e instanceof Error ? e.message : String(e)}`);
   }
 
   await installVsCodeAndRunTests('index', path.resolve(__dirname, '../../projects/test-workspace.code-workspace'));

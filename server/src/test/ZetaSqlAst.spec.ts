@@ -1,7 +1,7 @@
 import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ParseLocationRangeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
-import * as fs from 'fs';
 import { assertThat } from 'hamjest';
+import * as fs from 'node:fs';
 import { ZetaSqlAst } from '../ZetaSqlAst';
 
 describe('ZetaSqlAst', () => {
@@ -31,10 +31,6 @@ describe('ZetaSqlAst', () => {
 
   function shouldReturnLocationOfTableNameInQuery(fileName: string, cursorOffset: number, start: number, end: number): void {
     shouldReturnLocationsOfTableNameInQuery(fileName, cursorOffset, [createParseLocationRange(start, end)]);
-  }
-
-  function createParseLocationRange(start: number, end: number): ParseLocationRangeProto {
-    return { start, end, filename: '' };
   }
 
   it('simple.json', () => {
@@ -71,17 +67,6 @@ describe('ZetaSqlAst', () => {
   });
 
   describe('resolvedSetOperationScanNode.json', () => {
-    function shouldReturnTablesForResolvedSetOperationScanNode(cursorOffset: number): void {
-      shouldReturnLocationsOfTableNameInQuery('resolvedSetOperationScanNode', cursorOffset, [
-        createParseLocationRange(96, 141),
-        createParseLocationRange(255, 300),
-        createParseLocationRange(414, 459),
-        createParseLocationRange(572, 617),
-        createParseLocationRange(744, 800),
-        createParseLocationRange(918, 967),
-      ]);
-    }
-
     it('shouldReturnTablesForResolvedSetOperationScanNode', () => {
       shouldReturnTablesForResolvedSetOperationScanNode(37);
       shouldReturnTablesForResolvedSetOperationScanNode(218);
@@ -89,4 +74,19 @@ describe('ZetaSqlAst', () => {
       shouldReturnTablesForResolvedSetOperationScanNode(875);
     });
   });
+
+  function shouldReturnTablesForResolvedSetOperationScanNode(cursorOffset: number): void {
+    shouldReturnLocationsOfTableNameInQuery('resolvedSetOperationScanNode', cursorOffset, [
+      createParseLocationRange(96, 141),
+      createParseLocationRange(255, 300),
+      createParseLocationRange(414, 459),
+      createParseLocationRange(572, 617),
+      createParseLocationRange(744, 800),
+      createParseLocationRange(918, 967),
+    ]);
+  }
 });
+
+function createParseLocationRange(start: number, end: number): ParseLocationRangeProto {
+  return { start, end, filename: '' };
+}

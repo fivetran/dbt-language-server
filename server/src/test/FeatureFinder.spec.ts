@@ -1,6 +1,6 @@
-import { ok } from 'assert';
 import { AdapterInfo, DbtVersionInfo, Version } from 'dbt-language-server-common';
 import { assertThat, defined, not } from 'hamjest';
+import { ok } from 'node:assert';
 import { deepEqual, instance, mock, when } from 'ts-mockito';
 import { DbtCommand } from '../dbt_execution/commands/DbtCommand';
 import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor';
@@ -104,16 +104,16 @@ describe('FeatureFinder', () => {
       ]);
     }
   });
-
-  function assertVersion(
-    versionInfo: DbtVersionInfo | undefined,
-    expectedInstalledVersion: Version,
-    expectedLatestVersion: Version,
-    expectedAdapters: AdapterInfo[],
-  ): void {
-    ok(versionInfo);
-    assertThat(versionInfo.installedVersion, expectedInstalledVersion);
-    assertThat(versionInfo.latestVersion, expectedLatestVersion);
-    assertThat(versionInfo.installedAdapters, expectedAdapters);
-  }
 });
+
+function assertVersion(
+  versionInfo: DbtVersionInfo | undefined,
+  expectedInstalledVersion: Version,
+  expectedLatestVersion: Version,
+  expectedAdapters: AdapterInfo[],
+): void {
+  ok(versionInfo);
+  assertThat(versionInfo.installedVersion, expectedInstalledVersion);
+  assertThat(versionInfo.latestVersion, expectedLatestVersion);
+  assertThat(versionInfo.installedAdapters, expectedAdapters);
+}

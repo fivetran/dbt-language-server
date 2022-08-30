@@ -1,5 +1,5 @@
-import * as fs from 'fs';
 import { assertThat } from 'hamjest';
+import * as fs from 'node:fs';
 import { Position } from 'vscode-languageserver';
 import { PositionConverter } from '../../PositionConverter';
 import { DiffUtils } from '../../utils/DiffUtils';
@@ -118,21 +118,6 @@ describe('DiffUtils', () => {
     );
   });
 
-  function shouldReturnCorrespondingCharacterFor(oldLine: string, newLine: string, params: number[][]): void {
-    for (const param of params) {
-      const [newCharacter, expectedOldCharacter] = param;
-      shouldReturnCorrespondingCharacterForOldText(oldLine, newLine, newCharacter, expectedOldCharacter);
-    }
-  }
-
-  function shouldReturnCorrespondingCharacterForOldText(oldLine: string, newLine: string, newCharacter: number, expectedOldCharacter: number): void {
-    // act
-    const actualOldCharacter = new PositionConverter(oldLine, newLine).convertPositionBackward(Position.create(0, newCharacter)).character;
-
-    // assert
-    assertThat(actualOldCharacter, expectedOldCharacter);
-  }
-
   function shouldReturnCorrespondingLineNumber(fileName: string, compiledRawArray: number[][]): void {
     for (const compiledRaw of compiledRawArray) {
       shouldReturnCorrespondingLineNumberForOldText(fileName, compiledRaw[0], compiledRaw[1]);
@@ -176,3 +161,18 @@ describe('DiffUtils', () => {
     return fileContent;
   }
 });
+
+function shouldReturnCorrespondingCharacterForOldText(oldLine: string, newLine: string, newCharacter: number, expectedOldCharacter: number): void {
+  // act
+  const actualOldCharacter = new PositionConverter(oldLine, newLine).convertPositionBackward(Position.create(0, newCharacter)).character;
+
+  // assert
+  assertThat(actualOldCharacter, expectedOldCharacter);
+}
+
+function shouldReturnCorrespondingCharacterFor(oldLine: string, newLine: string, params: number[][]): void {
+  for (const param of params) {
+    const [newCharacter, expectedOldCharacter] = param;
+    shouldReturnCorrespondingCharacterForOldText(oldLine, newLine, newCharacter, expectedOldCharacter);
+  }
+}

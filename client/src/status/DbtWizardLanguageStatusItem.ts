@@ -5,9 +5,10 @@ export class DbtWizardLanguageStatusItem {
   item: LanguageStatusItem;
 
   constructor(id: string, private defaultText: string) {
-    const filters = SUPPORTED_LANG_IDS.map<DocumentFilter>(language => ({ language })).concat(
-      [`**/${PACKAGES_YML}`, `**/${DBT_PROJECT_YML}`].map(pattern => ({ pattern })),
-    );
+    const filters = [
+      ...SUPPORTED_LANG_IDS.map<DocumentFilter>(language => ({ language })),
+      ...[`**/${PACKAGES_YML}`, `**/${DBT_PROJECT_YML}`].map<DocumentFilter>(pattern => ({ pattern })),
+    ];
     this.item = languages.createLanguageStatusItem(id, filters);
     this.setBusy();
   }

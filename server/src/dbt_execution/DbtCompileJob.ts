@@ -1,8 +1,8 @@
 import { Result } from 'neverthrow';
-import { EOL } from 'os';
+import { EOL } from 'node:os';
+import * as path from 'node:path';
 import { DbtRepository } from '../DbtRepository';
 import { ModelFetcher } from '../ModelFetcher';
-import path = require('path');
 
 export abstract class DbtCompileJob {
   constructor(protected modelPath: string, protected dbtRepository: DbtRepository) {}
@@ -18,7 +18,7 @@ export abstract class DbtCompileJob {
     const index = message.indexOf('Compilation Error');
 
     if (index > -1) {
-      const error = message.substring(index);
+      const error = message.slice(index);
       const errorLines = error.split(EOL);
       return (errorLines.length > 3 ? errorLines.slice(0, 4).join(EOL) : message).trim();
     }

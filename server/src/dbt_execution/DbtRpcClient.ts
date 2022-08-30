@@ -72,7 +72,7 @@ interface Response {
 }
 
 export class DbtRpcClient {
-  static DEFAULT_POST_REQUEST_TIMEOUT = 10000;
+  static DEFAULT_POST_REQUEST_TIMEOUT = 10_000;
 
   private port?: number;
   private postRequestTimeout: number;
@@ -83,8 +83,8 @@ export class DbtRpcClient {
 
   initPostRequestTimeout(): number {
     if (process.env['DBT_LS_POST_REQUEST_TIMEOUT']) {
-      const timeout = parseInt(process.env['DBT_LS_POST_REQUEST_TIMEOUT']);
-      return isNaN(timeout) ? DbtRpcClient.DEFAULT_POST_REQUEST_TIMEOUT : timeout;
+      const timeout = Number.parseInt(process.env['DBT_LS_POST_REQUEST_TIMEOUT']);
+      return Number.isNaN(timeout) ? DbtRpcClient.DEFAULT_POST_REQUEST_TIMEOUT : timeout;
     }
     return DbtRpcClient.DEFAULT_POST_REQUEST_TIMEOUT;
   }

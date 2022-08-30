@@ -55,7 +55,7 @@ export class DbtProfileCreator {
 
     const { method } = outputsTarget;
     const authMethods = PROFILE_METHODS.get(type);
-    if (authMethods && (!method || authMethods.indexOf(method) === -1)) {
+    if (authMethods && (!method || !authMethods.includes(method))) {
       return err({ message: `Unknown authentication method of '${type}' profile. Check your '${this.profilesPath}' file.`, type, method });
     }
 

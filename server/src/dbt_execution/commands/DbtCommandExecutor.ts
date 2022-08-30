@@ -1,4 +1,4 @@
-import { PromiseWithChild } from 'child_process';
+import { PromiseWithChild } from 'node:child_process';
 import { ProcessExecutor } from '../../ProcessExecutor';
 import { Command } from './Command';
 

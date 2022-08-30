@@ -1,8 +1,8 @@
 import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { SimpleCatalogProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleCatalogProto';
 import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
-import * as assert from 'assert';
 import { assertThat, greaterThan, hasExactlyOneItem, hasProperty, hasSize } from 'hamjest';
+import * as assert from 'node:assert';
 import { mock } from 'ts-mockito';
 import { BigQueryClient, Udf } from '../bigquery/BigQueryClient';
 import { DbtRepository } from '../DbtRepository';
@@ -70,20 +70,6 @@ describe('ZetaSqlWrapper table/udf registration', () => {
     assertThat(columns.length, expectedColumns.length);
 
     assertThat(columns, expectedColumns);
-  }
-
-  function assertProject(rootCatalog: SimpleCatalogProto, expectedProjectId?: string): void {
-    if (expectedProjectId) {
-      const projects = rootCatalog.catalog;
-      assertThat(projects, hasExactlyOneItem(hasProperty('name', expectedProjectId)));
-    }
-  }
-
-  function assertDataSet(datasets?: SimpleCatalogProto[], expectedDataSet?: string): void {
-    if (expectedDataSet) {
-      assert.ok(datasets);
-      assertThat(datasets, hasExactlyOneItem(hasProperty('name', expectedDataSet)));
-    }
   }
 
   function registerTable(zetaWrapper: ZetaSqlWrapper, tableDefinitions: TableDefinition): SimpleCatalogProto {
@@ -251,3 +237,17 @@ describe('ZetaSqlWrapper table/udf registration', () => {
     assertThat(func.signature[0].returnType?.type, { typeKind: TypeKind.TYPE_INT64 });
   });
 });
+
+function assertProject(rootCatalog: SimpleCatalogProto, expectedProjectId?: string): void {
+  if (expectedProjectId) {
+    const projects = rootCatalog.catalog;
+    assertThat(projects, hasExactlyOneItem(hasProperty('name', expectedProjectId)));
+  }
+}
+
+function assertDataSet(datasets?: SimpleCatalogProto[], expectedDataSet?: string): void {
+  if (expectedDataSet) {
+    assert.ok(datasets);
+    assertThat(datasets, hasExactlyOneItem(hasProperty('name', expectedDataSet)));
+  }
+}

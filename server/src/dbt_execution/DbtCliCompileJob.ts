@@ -1,13 +1,13 @@
-import { ChildProcess, ExecException } from 'child_process';
-import * as fs from 'fs';
 import { err, ok, Result } from 'neverthrow';
+import { ChildProcess, ExecException } from 'node:child_process';
+import * as fs from 'node:fs';
 import { DbtRepository } from '../DbtRepository';
 import { runWithTimeout } from '../utils/Utils';
 import { DbtCli } from './DbtCli';
 import { DbtCompileJob } from './DbtCompileJob';
 
 export class DbtCliCompileJob extends DbtCompileJob {
-  static COMPILE_MODEL_TIMEOUT_MS = 20000;
+  static COMPILE_MODEL_TIMEOUT_MS = 20_000;
   static COMPILE_MODEL_TIMEOUT_EXCEEDED = 'dbt compile timeout exceeded';
 
   private process?: ChildProcess;
@@ -59,7 +59,7 @@ export class DbtCliCompileJob extends DbtCompileJob {
   protected getCompiledSql(filePath: string): string | undefined {
     try {
       return fs.readFileSync(filePath, 'utf8');
-    } catch (e) {
+    } catch {
       console.log(`Cannot get compiled sql for ${filePath}`);
       return undefined;
     }

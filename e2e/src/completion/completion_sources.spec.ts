@@ -22,13 +22,13 @@ suite('Should suggest sources completions', () => {
     await activateAndWaitManifestParsed(docUri, POSTGRES_PATH);
     await assertCompletions(docUri, new Position(1, 32), getSourcesCompletionList(TABLES_COMPLETIONS, false, 'Table'));
   });
-
-  function getSourcesCompletionList(completions: [string, string][], withQuotes: boolean, detail: 'Source' | 'Table'): CompletionItem[] {
-    return completions.map<CompletionItem>(c => ({
-      label: c[0],
-      insertText: getTextInQuotesIfNeeded(c[1], withQuotes),
-      kind: CompletionItemKind.Value,
-      detail,
-    }));
-  }
 });
+
+function getSourcesCompletionList(completions: [string, string][], withQuotes: boolean, detail: 'Source' | 'Table'): CompletionItem[] {
+  return completions.map<CompletionItem>(c => ({
+    label: c[0],
+    insertText: getTextInQuotesIfNeeded(c[1], withQuotes),
+    kind: CompletionItemKind.Value,
+    detail,
+  }));
+}

@@ -1,5 +1,5 @@
-import assert = require('assert');
 import { assertThat, greaterThanOrEqualTo, hasItem, hasProperties, hasSize } from 'hamjest';
+import { ok } from 'node:assert';
 import { CompletionItem, DefinitionLink, Diagnostic, DiagnosticRelatedInformation, languages, Location, Position, Range, Uri } from 'vscode';
 import { PREVIEW_URI, sleep, triggerCompletion, triggerDefinition } from './helper';
 
@@ -30,7 +30,7 @@ function assertDiagnostic(actual: Diagnostic, expected: Diagnostic): void {
   assertRange(actual.range, expected.range);
 
   if (expected.relatedInformation && expected.relatedInformation.length > 0) {
-    assert.ok(actual.relatedInformation);
+    ok(actual.relatedInformation);
     assertRelatedInformation(actual.relatedInformation[0], expected.relatedInformation[0]);
   }
 }

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import Token = require('markdown-it/lib/token');
 
 interface FunctionInfo {
@@ -63,7 +63,7 @@ const filesToParse: Map<string, string[]> = new Map([
   ['https://raw.githubusercontent.com/google/zetasql/master/docs/aggregate_analytic_functions.md', ['Aggregate analytic functions']],
 ]);
 
-const exceptionList = [
+const EXCEPTIONS = new Set<string>([
   'safe_cast',
   'bit_cast_to_int32',
   'bit_cast_to_int64',
@@ -71,7 +71,7 @@ const exceptionList = [
   'bit_cast_to_uint64',
   'to_json',
   'to_json_string',
-];
+]);
 
 const additionalFields = [
   {
@@ -89,10 +89,11 @@ const additionalFields = [
 async function parseAndSave(): Promise<void> {
   const MarkdownIt = await import('markdown-it');
   const md = new MarkdownIt();
-  const functionInfos = [];
+  const functionInfos: FunctionInfo[] = [];
 
   for (const [file, sections] of filesToParse) {
-    const content = (await axios.get<string>(file)).data;
+    const getFileResult = await axios.get<string>(file);
+    const content = getFileResult.data;
     const tokens = md.parse(content, {});
 
     for (const section of sections) {
@@ -103,7 +104,7 @@ async function parseAndSave(): Promise<void> {
           const name = tokens[i + 1].content.toLocaleLowerCase();
           console.log(name);
 
-          if (name.indexOf(' ') !== -1 || functionInfos.findIndex(f => f.name === name) !== -1 || exceptionList.indexOf(name) !== -1) {
+          if (name.includes(' ') || functionInfos.some(f => f.name === name) || EXCEPTIONS.has(name)) {
             i++;
             token = tokens[i];
             continue;
@@ -119,7 +120,7 @@ async function parseAndSave(): Promise<void> {
             if (token.content.startsWith('1.')) {
               const signatures = token.content.split('\n');
               for (const signature of signatures) {
-                functionInfo.signatures.push({ signature: signature.substring(3), description: '' });
+                functionInfo.signatures.push({ signature: signature.slice(3), description: '' });
               }
             } else {
               functionInfo.signatures.push({ signature: token.content, description: '' });

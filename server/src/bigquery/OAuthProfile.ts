@@ -1,6 +1,6 @@
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 import { err, ok, Result } from 'neverthrow';
-import { setTimeout } from 'timers/promises';
+import { setTimeout } from 'node:timers/promises';
 import { DbtDestinationClient } from '../DbtDestinationClient';
 import { DbtProfile, TargetConfig } from '../DbtProfile';
 import { ProcessExecutor } from '../ProcessExecutor';
@@ -13,7 +13,7 @@ export class OAuthProfile implements DbtProfile {
     'Extension requires the gcloud SDK to be installed to authenticate with BigQuery.\
     Please [download and install the SDK](https://cloud.google.com/sdk), or use a Service Account instead.';
   static readonly GCLOUD_AUTHENTICATION_ERROR = 'Got an error when attempting to authenticate with default credentials.';
-  static readonly GCLOUD_AUTHENTICATION_TIMEOUT = 30000;
+  static readonly GCLOUD_AUTHENTICATION_TIMEOUT = 30_000;
   static readonly GCLOUD_AUTHENTICATION_TIMEOUT_ERROR = 'Failed to authenticate within the given period.';
 
   static processExecutor = new ProcessExecutor();
@@ -71,9 +71,9 @@ export class OAuthProfile implements DbtProfile {
         console.log('Default Credentials found');
         return ok(undefined);
       })
-      .catch((error: string) => {
+      .catch((e: string) => {
         console.log('Default Credentials not found');
-        return err(error);
+        return err(e);
       });
   }
 

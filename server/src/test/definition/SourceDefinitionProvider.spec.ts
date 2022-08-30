@@ -1,5 +1,5 @@
-import * as fs from 'fs';
 import { assertThat } from 'hamjest';
+import * as fs from 'node:fs';
 import { Range } from 'vscode-languageserver';
 import { DbtRepository } from '../../DbtRepository';
 import { SourceDefinitionProvider } from '../../definition/SourceDefinitionProvider';

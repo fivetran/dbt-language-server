@@ -1,5 +1,5 @@
-import * as assert from 'assert';
 import { assertThat, defined, matchesPattern, not } from 'hamjest';
+import * as assert from 'node:assert';
 import { instance, mock, when } from 'ts-mockito';
 import { DbtProfileCreator } from '../DbtProfileCreator';
 import { DbtProject } from '../DbtProject';
@@ -59,7 +59,7 @@ describe('Profiles Validation', () => {
   it('Should require dbt project config', () => {
     // arrange
     const mockDbtProject = mock(DbtProject);
-    when(mockDbtProject.findProfileName()).thenThrow(new Error());
+    when(mockDbtProject.findProfileName()).thenThrow(new Error('Error while finding profile name'));
     const dbtProject = instance(mockDbtProject);
 
     const profileCreator = new DbtProfileCreator(dbtProject, getConfigPath(OTHERS_CONFIG));
@@ -72,20 +72,20 @@ describe('Profiles Validation', () => {
     assert.ok(profile.isErr());
     assertThat(profile.error.message, matchesPattern(errorPattern));
   });
-
-  function shouldReturnError(config: string, profileName: string, errorPattern: RegExp): void {
-    // arrange
-    const mockDbtProject = mock(DbtProject);
-    when(mockDbtProject.findProfileName()).thenReturn(profileName);
-    const dbtProject = instance(mockDbtProject);
-
-    const profileCreator = new DbtProfileCreator(dbtProject, getConfigPath(config));
-
-    // act
-    const profile = profileCreator.createDbtProfile();
-
-    // assert
-    assert.ok(profile.isErr());
-    assertThat(profile.error.message, matchesPattern(errorPattern));
-  }
 });
+
+function shouldReturnError(config: string, profileName: string, errorPattern: RegExp): void {
+  // arrange
+  const mockDbtProject = mock(DbtProject);
+  when(mockDbtProject.findProfileName()).thenReturn(profileName);
+  const dbtProject = instance(mockDbtProject);
+
+  const profileCreator = new DbtProfileCreator(dbtProject, getConfigPath(config));
+
+  // act
+  const profile = profileCreator.createDbtProfile();
+
+  // assert
+  assert.ok(profile.isErr());
+  assertThat(profile.error.message, matchesPattern(errorPattern));
+}

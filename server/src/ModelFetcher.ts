@@ -1,7 +1,7 @@
+import * as retry from 'async-retry';
 import { pathEqual } from 'path-equal';
 import { DbtRepository } from './DbtRepository';
 import { ManifestModel } from './manifest/ManifestJson';
-import retry = require('async-retry');
 
 export class ModelFetcher {
   model: ManifestModel | undefined;
@@ -25,7 +25,7 @@ export class ModelFetcher {
           },
           { factor: 1, retries: 3, minTimeout: 100 },
         );
-      } catch (e) {
+      } catch {
         // Do nothing
       }
       this.fetchCompleted = true;

@@ -1,16 +1,16 @@
 import { BigQuery, Dataset, TableField } from '@google-cloud/bigquery';
 import { downloadAndUnzipVSCode, resolveCliArgsFromVSCodeExecutablePath, runTests, SilentReporter } from '@vscode/test-electron';
-import { spawnSync, SpawnSyncReturns } from 'child_process';
-import * as fs from 'fs';
-import { homedir } from 'os';
-import * as path from 'path';
+import { spawnSync, SpawnSyncReturns } from 'node:child_process';
+import * as fs from 'node:fs';
+import { homedir } from 'node:os';
+import * as path from 'node:path';
 import { Client } from 'pg';
 
 // Expected parameter: path to the folder with the extension package.json
 export async function installVsCodeAndRunTests(indexName: string, projectWithModelsPath: string): Promise<void> {
   try {
     const testsPath = path.resolve(__dirname, indexName);
-    const [, , extensionDevelopmentPath] = process.argv;
+    const extensionDevelopmentPath = process.argv[2];
     console.log(`Running tests for path: ${extensionDevelopmentPath}`);
     console.log(`Project path: ${projectWithModelsPath}`);
 
@@ -29,19 +29,17 @@ export async function installVsCodeAndRunTests(indexName: string, projectWithMod
 
       const extensionFilePath = path.resolve(extensionsInstallPath, 'ms-python.python.vsix');
       const downloadResult = spawnSync('npx', ['ovsx', 'get', '-t', 'latest', '-o', extensionFilePath, 'ms-python.python'], {
-        encoding: 'utf-8',
+        encoding: 'utf8',
         stdio: 'inherit',
       });
 
       if (downloadResult.status !== 0) {
-        console.error('Failed to download python extension from open-vsx.');
-        process.exit(1);
+        throw new Error('Failed to download python extension from open-vsx.');
       }
 
       const openVsxInstallResult = installExtension(cli, args, extensionFilePath, extensionsInstallPath);
       if (openVsxInstallResult.status !== 0) {
-        console.error('Failed to install python extension from open-vsx.');
-        process.exit(1);
+        throw new Error('Failed to install python extension from open-vsx.');
       }
     }
     console.log('Python extension successfully installed from marketplace');
@@ -58,9 +56,8 @@ export async function installVsCodeAndRunTests(indexName: string, projectWithMod
         DBT_LS_POST_REQUEST_TIMEOUT: '20000',
       },
     });
-  } catch (err) {
-    console.error(`Failed to run tests. Error: ${err instanceof Error ? err.message : String(err)}`);
-    process.exit(1);
+  } catch (e) {
+    throw new Error(`Failed to run tests. Error: ${e instanceof Error ? e.message : String(e)}`);
   }
 }
 
@@ -140,8 +137,8 @@ async function ensureTableWithStructExists(dataset: Dataset): Promise<void> {
 
 async function ensureUdfExists(dataset: Dataset): Promise<void> {
   const routine = dataset.routine('my_custom_sum');
-
-  if (!(await routine.exists())[0]) {
+  const existsResult = await routine.exists();
+  if (!existsResult[0]) {
     await routine.create({
       arguments: [
         {
@@ -168,7 +165,8 @@ async function ensureUdfExists(dataset: Dataset): Promise<void> {
 
 async function isTableExist(dataset: Dataset, tableName: string): Promise<boolean> {
   const table = dataset.table(tableName);
-  return (await table.exists())[0];
+  const existsResult = await table.exists();
+  return existsResult[0];
 }
 
 export async function preparePostgres(): Promise<void> {
@@ -214,7 +212,7 @@ export async function preparePostgres(): Promise<void> {
 
 function installExtension(cli: string, args: string[], idOrPath: string, installPath: string): SpawnSyncReturns<string> {
   return spawnSync(cli, [...args, `--install-extension=${idOrPath}`, `--extensions-dir=${installPath}`], {
-    encoding: 'utf-8',
+    encoding: 'utf8',
     stdio: 'inherit',
   });
 }

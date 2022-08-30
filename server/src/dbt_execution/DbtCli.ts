@@ -1,4 +1,4 @@
-import { PromiseWithChild } from 'child_process';
+import { PromiseWithChild } from 'node:child_process';
 import { _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { FeatureFinder } from '../FeatureFinder';
@@ -23,7 +23,7 @@ export class DbtCli extends Dbt {
   }> {
     const parameters = ['compile'];
     if (modelName) {
-      parameters.push(...['-m', modelName]);
+      parameters.push('-m', modelName);
     }
     const compileCliCommand = new DbtCommand(parameters, this.pythonPathForCli);
     return DbtCli.DBT_COMMAND_EXECUTOR.execute(compileCliCommand);
@@ -39,7 +39,7 @@ export class DbtCli extends Dbt {
         } else {
           this.onRpcServerFindFailed();
         }
-      } catch (e) {
+      } catch {
         this.onRpcServerFindFailed();
       }
     }

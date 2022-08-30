@@ -1,5 +1,6 @@
 /* eslint-disable sonarjs/no-duplicate-string */
 import { assertThat } from 'hamjest';
+import * as path from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Position, Range } from 'vscode-languageserver-types';
 import {
@@ -13,7 +14,6 @@ import {
   rangesOverlap,
 } from '../../utils/Utils';
 import { sleep } from '../helper';
-import path = require('path');
 
 describe('Utils', () => {
   it('comparePositions_shouldComparePositions', () => {
@@ -74,10 +74,6 @@ describe('Utils', () => {
       shouldReturnJinjaContentOffset('{##}', 2, 2);
       shouldReturnJinjaContentOffset('{%%}', 2, 2);
     });
-
-    function shouldReturnJinjaContentOffset(docContent: string, cursorCharPos: number, expected: number): void {
-      assertThat(getJinjaContentOffset(TextDocument.create('test', 'sql', 0, docContent), Position.create(0, cursorCharPos)), expected);
-    }
   });
   it('extractDatasetFromFullName should extract dataset', () => {
     assertThat(extractDatasetFromFullName('`project`.`dataset`.`table`', 'table'), 'dataset');
@@ -147,8 +143,12 @@ describe('Utils', () => {
       path.normalize('models/simple_select_dbt.sql'),
     );
   });
-
-  function getIdentifierRangeAtPositionShouldReturnRange(position: Position, text: string, expectedRange: Range): void {
-    assertThat(getIdentifierRangeAtPosition(position, text), expectedRange);
-  }
 });
+
+function shouldReturnJinjaContentOffset(docContent: string, cursorCharPos: number, expected: number): void {
+  assertThat(getJinjaContentOffset(TextDocument.create('test', 'sql', 0, docContent), Position.create(0, cursorCharPos)), expected);
+}
+
+function getIdentifierRangeAtPositionShouldReturnRange(position: Position, text: string, expectedRange: Range): void {
+  assertThat(getIdentifierRangeAtPosition(position, text), expectedRange);
+}

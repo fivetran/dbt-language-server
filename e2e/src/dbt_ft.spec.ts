@@ -1,8 +1,8 @@
-import { writeFileSync } from 'fs';
 import * as glob from 'glob';
+import { writeFileSync } from 'node:fs';
+import * as path from 'node:path';
 import { DiagnosticSeverity, languages, Uri } from 'vscode';
 import { activateAndWait } from './helper';
-import path = require('path');
 
 suite('dbt_ft', () => {
   const EXCLUDE = ['dbt_ft_prod/models/bi_core/accounts.sql', 'dbt_ft_prod/models/bi_core/monthly_employee_metrics.sql'];
@@ -16,7 +16,7 @@ suite('dbt_ft', () => {
       const file = files[i];
       console.log(`File: ${file}`);
 
-      if (EXCLUDE.find(e => file.endsWith(e))) {
+      if (EXCLUDE.some(e => file.endsWith(e))) {
         console.log(`Skipping: ${file}`);
         continue;
       }
@@ -28,7 +28,7 @@ suite('dbt_ft', () => {
       writeFileSync(getLogPath(), `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n`, {
         flag: 'a+',
       });
-      if (diagnostics.filter(d => d.severity === DiagnosticSeverity.Error).length > 0) {
+      if (diagnostics.some(d => d.severity === DiagnosticSeverity.Error)) {
         writeFileSync(getDiagnosticsPath(), `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n${JSON.stringify(diagnostics)}\n\n`, {
           flag: 'a+',
         });
@@ -38,24 +38,24 @@ suite('dbt_ft', () => {
       }
     }
   });
-
-  function isRunningOnCi(): boolean {
-    return !process.env['LOCAL_RUN'];
-  }
-
-  function getLogPath(): string {
-    return getPath('log.txt');
-  }
-
-  function getDiagnosticsPath(): string {
-    return getPath('diagnostics.txt');
-  }
-
-  function getPath(fileName: string): string {
-    return path.resolve(__dirname, fileName);
-  }
-
-  function getProjectPath(): string {
-    return isRunningOnCi() ? path.resolve(__dirname, '../../analytics/dbt_ft_prod') : path.resolve(__dirname, '../../../analytics/dbt_ft_prod');
-  }
 });
+
+function getLogPath(): string {
+  return getPath('log.txt');
+}
+
+function getDiagnosticsPath(): string {
+  return getPath('diagnostics.txt');
+}
+
+function getProjectPath(): string {
+  return isRunningOnCi() ? path.resolve(__dirname, '../../analytics/dbt_ft_prod') : path.resolve(__dirname, '../../../analytics/dbt_ft_prod');
+}
+
+function isRunningOnCi(): boolean {
+  return !process.env['LOCAL_RUN'];
+}
+
+function getPath(fileName: string): string {
+  return path.resolve(__dirname, fileName);
+}

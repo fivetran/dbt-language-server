@@ -1,5 +1,5 @@
 import { assertThat } from 'hamjest';
-import { EOL } from 'os';
+import { EOL } from 'node:os';
 import { activateAndWait, getDocUri, getPreviewText, installExtension, replaceText, setTestContent, sleep, uninstallExtension } from './helper';
 
 suite('Should compile jinja expressions', () => {
@@ -57,5 +57,5 @@ suite('Should compile jinja expressions', () => {
     assertThat(getPreviewText(), 'select * from `singular-vector-135519`.dbt_ls_e2e_dataset.test_table1');
 
     uninstallExtension('samuelcolvin.jinjahtml');
-  }).timeout(300000);
+  }).timeout(300_000);
 });

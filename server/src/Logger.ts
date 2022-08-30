@@ -1,12 +1,12 @@
-import path = require('path');
+import * as path from 'node:path';
 
 export enum LogLevel {
   Debug = '__LogLevelDebug',
 }
 
-export class Logger {
-  static prepareLogger(workspaceFolder: string): void {
-    const id = workspaceFolder.substring(workspaceFolder.lastIndexOf(path.sep) + 1);
+export const Logger = {
+  prepareLogger(workspaceFolder: string): void {
+    const id = workspaceFolder.slice(workspaceFolder.lastIndexOf(path.sep) + 1);
 
     const old = console.log;
     console.log = (...args): void => {
@@ -20,5 +20,5 @@ export class Logger {
       }
       old.apply(console, args);
     };
-  }
-}
+  },
+};

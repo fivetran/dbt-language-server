@@ -1,7 +1,7 @@
 import { ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { ASTFunctionCallProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTFunctionCallProto';
 import { LanguageOptionsProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/LanguageOptionsProto';
-import { promisify } from 'util';
+import { promisify } from 'node:util';
 import { arraysAreEqual } from './utils/Utils';
 
 interface Node {

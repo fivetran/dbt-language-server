@@ -1,11 +1,10 @@
-import { spawnSync, SpawnSyncReturns } from 'child_process';
 import * as clipboard from 'clipboardy';
 import { deferred, DeferredResult, ExtensionApi, LS_MANIFEST_PARSED_EVENT } from 'dbt-language-server-common';
-import * as fs from 'fs';
-import { writeFileSync } from 'fs';
-import * as path from 'path';
+import { spawnSync, SpawnSyncReturns } from 'node:child_process';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { setTimeout } from 'node:timers/promises';
 import { pathEqual } from 'path-equal';
-import { setTimeout } from 'timers/promises';
 import {
   commands,
   CompletionItem,
@@ -36,7 +35,7 @@ export const POSTGRES_PATH = path.resolve(PROJECTS_PATH, 'postgres');
 export const COMPLETION_JINJA_PATH = path.resolve(PROJECTS_PATH, 'completion-jinja');
 export const PREVIEW_URI = 'query-preview:Preview?dbt-language-server';
 
-export const MAX_VSCODE_INTEGER = 2147483647;
+export const MAX_VSCODE_INTEGER = 2_147_483_647;
 export const MAX_RANGE = new Range(0, 0, MAX_VSCODE_INTEGER, MAX_VSCODE_INTEGER);
 export const MIN_RANGE = new Range(0, 0, 0, 0);
 
@@ -235,26 +234,24 @@ export function installExtension(extensionId: string): void {
     const extensionFilePath = path.resolve(DOWNLOADS_PATH, `${extensionId}.vsix`);
 
     const downloadResult = spawnSync('npx', ['ovsx', 'get', extensionId, '-o', extensionFilePath], {
-      encoding: 'utf-8',
+      encoding: 'utf8',
       stdio: 'inherit',
     });
 
     if (downloadResult.status !== 0) {
-      console.error(`Failed to download '${extensionId}' extension from open-vsx.`);
-      process.exit(1);
+      throw new Error(`Failed to download '${extensionId}' extension from open-vsx.`);
     }
 
     const openVsxInstallResult = installUninstallExtension('install', extensionFilePath);
     if (openVsxInstallResult.status !== 0) {
-      console.log(`Failed to install '${extensionId}' extension from open-vsx.`);
-      process.exit(1);
+      throw new Error(`Failed to install '${extensionId}' extension from open-vsx.`);
     }
   }
 }
 
 export function getLatestDbtVersion(): string {
   const commandResult = spawnSync('dbt', ['--version'], {
-    encoding: 'utf-8',
+    encoding: 'utf8',
   });
 
   const match = /latest.*:\s+(\d+\.\d+\.\d+)/.exec(commandResult.stderr);
@@ -284,7 +281,7 @@ function runCliCommand(args: string[]): SpawnSyncReturns<string> {
   }
 
   return spawnSync(cliPath, args, {
-    encoding: 'utf-8',
+    encoding: 'utf8',
     stdio: 'inherit',
   });
 }
@@ -324,7 +321,7 @@ export async function createAndOpenTempModel(workspaceName: string, waitFor: 'pr
   tempModelIndex++;
 
   console.log(`Creating new file: ${newUri.toString()}`);
-  writeFileSync(newUri.fsPath, '-- Empty');
+  fs.writeFileSync(newUri.fsPath, '-- Empty');
 
   waitFor === 'preview' ? await activateAndWait(newUri) : await activateAndWaitManifestParsed(newUri, thisWorkspaceUri.path);
   if (waitFor === 'manifest') {
@@ -336,7 +333,7 @@ export async function createAndOpenTempModel(workspaceName: string, waitFor: 'pr
 
 export async function renameCurrentFile(newName: string): Promise<Uri> {
   const { uri } = doc;
-  const newUri = uri.with({ path: uri.path.substring(0, uri.path.lastIndexOf('/') + 1) + newName });
+  const newUri = uri.with({ path: uri.path.slice(0, uri.path.lastIndexOf('/') + 1) + newName });
 
   const renameFinished = createChangePromise('preview');
 

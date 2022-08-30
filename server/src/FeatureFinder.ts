@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { AdapterInfo, DbtPackageInfo, DbtPackageVersions, DbtVersionInfo, getStringVersion, PythonInfo, Version } from 'dbt-language-server-common';
-import { promises as fsPromises } from 'fs';
+import { promises as fsPromises } from 'node:fs';
 import * as semver from 'semver';
 import * as yaml from 'yaml';
 import { DbtRepository } from './DbtRepository';
@@ -79,14 +79,15 @@ export class FeatureFinder {
           installString: `${gitHubUser}/${packageName}`,
         };
       }
-    } catch (e) {
+    } catch {
       // Do nothing
     }
     return undefined;
   }
 
   async packageVersions(dbtPackage: string): Promise<DbtPackageVersions> {
-    const packageInfo = (await this.packageInfosPromise.get()).find(p => p.installString === dbtPackage);
+    const packages = await this.packageInfosPromise.get();
+    const packageInfo = packages.find(p => p.installString === dbtPackage);
     const result: DbtPackageVersions = {};
 
     if (packageInfo) {
@@ -96,7 +97,7 @@ export class FeatureFinder {
 
       const indexOfTag = 'refs/tags/'.length;
       for (const tagInfo of tagsResult.data) {
-        const tag = tagInfo.ref.substring(indexOfTag);
+        const tag = tagInfo.ref.slice(indexOfTag);
         const validTag = semver.valid(tag);
         if (validTag) {
           result[validTag] = tag;
@@ -172,7 +173,7 @@ export class FeatureFinder {
   }
 
   findFreePort(): Promise<number> {
-    return findFreePortPmfy(randomNumber(1024, 65535));
+    return findFreePortPmfy(randomNumber(1024, 65_535));
   }
 
   private async installAndFindCommandForV1(dbtProfileType?: string): Promise<Command | undefined> {
@@ -210,7 +211,7 @@ export class FeatureFinder {
 
     const installedVersion = FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_INSTALLED_VERSION_PATTERN);
     const latestVersion = FeatureFinder.readVersionByPattern(stderr, FeatureFinder.DBT_LATEST_VERSION_PATTERN);
-    const installedAdapters = FeatureFinder.getInstalledAdapters(stderr.substring(stderr.indexOf('Plugins:')));
+    const installedAdapters = FeatureFinder.getInstalledAdapters(stderr.slice(stderr.indexOf('Plugins:')));
 
     return {
       installedVersion,

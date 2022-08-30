@@ -1,4 +1,4 @@
-import EventEmitter = require('node:events');
+import { EventEmitter } from 'node:events';
 import { Selection, TextDocument, Uri, window, workspace } from 'vscode';
 import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from './Constants';
 import { DbtLanguageClient } from './DbtLanguageClient';
@@ -97,7 +97,7 @@ export class DbtLanguageClientManager {
           continue;
         }
         return currentUri;
-      } catch (e) {
+      } catch {
         // file does not exist
       }
     } while (currentUri.path !== outerWorkspace.uri.path);

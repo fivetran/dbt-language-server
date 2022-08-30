@@ -1,5 +1,5 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { DefinitionLink, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
@@ -27,7 +27,7 @@ export class MacroDefinitionProvider implements DbtNodeDefinitionProvider {
     if (wordRange) {
       const word = document.getText(getAbsoluteRange(jinja.range.start, wordRange));
       const macroMatch = word.match(MacroDefinitionProvider.MACRO_PATTERN);
-      if (macroMatch === null || macroMatch.length < 1) {
+      if (macroMatch === null || macroMatch.length === 0) {
         return undefined;
       }
 
@@ -35,8 +35,8 @@ export class MacroDefinitionProvider implements DbtNodeDefinitionProvider {
 
       const pointIndex = macro.indexOf('.');
       const packageIsSpecified = pointIndex !== -1;
-      const packageName = packageIsSpecified ? macro.substring(0, pointIndex) : undefined;
-      const macroName = packageIsSpecified ? macro.substring(pointIndex + 1) : macro;
+      const packageName = packageIsSpecified ? macro.slice(0, pointIndex) : undefined;
+      const macroName = packageIsSpecified ? macro.slice(pointIndex + 1) : macro;
 
       return this.dbtRepository.macros
         .filter(m => m.name === macroName && (!packageIsSpecified || m.packageName === packageName))

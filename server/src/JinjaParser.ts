@@ -99,7 +99,7 @@ export class JinjaParser {
 
     const blockRanges = this.findJinjaBlockRanges(jinjaBlocks);
     if (blockRanges) {
-      return jinjaRanges.concat(blockRanges);
+      return [...jinjaRanges, ...blockRanges];
     }
 
     return undefined;
@@ -211,7 +211,7 @@ export class JinjaParser {
   }
 
   hasJinjas(text: string): boolean {
-    return text.indexOf('{') > -1 || text.indexOf('}') > -1 || JinjaParser.JINJA_PATTERN.exec(text) !== null;
+    return text.includes('{') || text.includes('}') || JinjaParser.JINJA_PATTERN.exec(text) !== null;
   }
 
   isJinjaModified(jinjas: Range[], changes: TextDocumentContentChangeEvent[]): boolean {

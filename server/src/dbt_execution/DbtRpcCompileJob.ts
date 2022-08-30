@@ -1,10 +1,10 @@
-import * as fs from 'fs';
+import * as retry from 'async-retry';
 import { err, ok, Result } from 'neverthrow';
+import * as fs from 'node:fs';
 import { DbtRepository } from '../DbtRepository';
 import { wait } from '../utils/Utils';
 import { DbtCompileJob } from './DbtCompileJob';
 import { CompileResponse, DbtRpcClient, PollResponse } from './DbtRpcClient';
-import retry = require('async-retry');
 
 export class DbtRpcCompileJob extends DbtCompileJob {
   static readonly UNKNOWN_ERROR = 'Unknown dbt-rpc error';
@@ -12,7 +12,7 @@ export class DbtRpcCompileJob extends DbtCompileJob {
   static readonly NETWORK_ERROR = 'Network error';
   static readonly JOB_IS_NOT_COMPLETED = 'Job is still not completed';
 
-  static readonly DBT_COMPILATION_ERROR_CODE = 10011;
+  static readonly DBT_COMPILATION_ERROR_CODE = 10_011;
 
   static COMPILE_MODEL_MAX_RETRIES = 6;
   static COMPILE_MODEL_TIMEOUT_MS = 100;
@@ -150,7 +150,7 @@ export class DbtRpcCompileJob extends DbtCompileJob {
     try {
       const resultPath = await this.findCompiledFilePath();
       return fs.readFileSync(`${resultPath}`, 'utf8');
-    } catch (e) {
+    } catch {
       return ' ';
     }
   }

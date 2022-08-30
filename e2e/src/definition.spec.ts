@@ -1,8 +1,8 @@
-import * as fs from 'fs';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { Position, Range } from 'vscode';
 import { assertDefinitions } from './asserts';
 import { activateAndWaitManifestParsed, getCustomDocUri, getDocUri, MAX_RANGE, MIN_RANGE, TEST_FIXTURE_PATH } from './helper';
-import path = require('path');
 
 const REF_SQL_DOC_URI = getDocUri('ref_sql.sql');
 const PACKAGE_REF_DOC_URI = getDocUri('package_ref.sql');

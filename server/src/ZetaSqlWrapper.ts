@@ -12,8 +12,8 @@ import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql
 import { SimpleTableProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleTableProto';
 import { StructFieldProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/StructFieldProto';
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
-import * as fs from 'fs';
 import { err, ok, Result } from 'neverthrow';
+import * as fs from 'node:fs';
 import { BigQueryClient, Udf } from './bigquery/BigQueryClient';
 import { DbtRepository } from './DbtRepository';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
@@ -29,7 +29,7 @@ export class ZetaSqlWrapper {
   static readonly PARTITION_DATE = '_PARTITIONDATE';
 
   private static readonly MIN_PORT = 1024;
-  private static readonly MAX_PORT = 65535;
+  private static readonly MAX_PORT = 65_535;
 
   private readonly catalog: SimpleCatalogProto = {
     name: 'catalog',
@@ -59,7 +59,7 @@ export class ZetaSqlWrapper {
   }
 
   getTableRef(model: ManifestModel, name: string): string[] | undefined {
-    return model.refs.find(ref => ref.findIndex(r => r === name) === ref.length - 1);
+    return model.refs.find(ref => ref.indexOf(name) === ref.length - 1);
   }
 
   static addChildCatalog(parent: SimpleCatalogProto, name: string): SimpleCatalogProto {
@@ -141,9 +141,9 @@ export class ZetaSqlWrapper {
     const func = this.createFunction(udf);
 
     udfOwner.customFunction = udfOwner.customFunction ?? [];
-    if (!udfOwner.customFunction.some(c => c.namePath?.join() === func.namePath?.join())) {
+    if (!udfOwner.customFunction.some(c => c.namePath?.join(',') === func.namePath?.join(','))) {
       udfOwner.customFunction.push(func);
-      this.registeredFunctions.add(udf.nameParts.join());
+      this.registeredFunctions.add(udf.nameParts.join(','));
     }
   }
 
@@ -354,9 +354,9 @@ export class ZetaSqlWrapper {
   }
 
   async getNewCustomFunctions(sql: string): Promise<string[][]> {
-    return (await this.zetaSqlParser.getAllFunctions(sql, (await this.getLanguageOptions())?.serialize())).filter(
-      f => !this.registeredFunctions.has(f.join()),
-    );
+    const languageOptions = await this.getLanguageOptions();
+    const allFunctions = await this.zetaSqlParser.getAllFunctions(sql, languageOptions?.serialize());
+    return allFunctions.filter(f => !this.registeredFunctions.has(f.join(',')));
   }
 
   async getAstOrError(compiledSql: string): Promise<Result<AnalyzeResponse__Output, string>> {
@@ -375,7 +375,7 @@ export class ZetaSqlWrapper {
     const compiledPath = this.dbtRepository.getModelCompiledPath(model);
     try {
       return fs.readFileSync(compiledPath, 'utf8');
-    } catch (e) {
+    } catch {
       console.log(`Cannot read ${compiledPath}`);
       return undefined;
     }
@@ -416,9 +416,10 @@ export class ZetaSqlWrapper {
   }
 
   async extractTableNamesFromStatement(sqlStatement: string): Promise<ExtractTableNamesFromStatementResponse__Output> {
+    const languageOptions = await this.getLanguageOptions();
     const response = await this.getClient().extractTableNamesFromStatement({
       sqlStatement,
-      options: (await this.getLanguageOptions())?.serialize(),
+      options: languageOptions?.serialize(),
     });
     if (!response) {
       throw new Error('Table names not found');
@@ -435,9 +436,8 @@ export class ZetaSqlWrapper {
     if (!this.languageOptions) {
       try {
         this.languageOptions = await new LanguageOptions().enableMaximumLanguageFeatures();
-        (await LanguageOptions.getLanguageFeaturesForVersion(LanguageVersion.VERSION_CURRENT)).forEach(f =>
-          this.languageOptions?.enableLanguageFeature(f),
-        );
+        const featuresForVersion = await LanguageOptions.getLanguageFeaturesForVersion(LanguageVersion.VERSION_CURRENT);
+        featuresForVersion.forEach(f => this.languageOptions?.enableLanguageFeature(f));
         // https://github.com/google/zetasql/issues/115#issuecomment-1210881670
         this.languageOptions.options.reservedKeywords = ['QUALIFY'];
       } catch (e) {
