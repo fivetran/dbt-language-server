@@ -99,7 +99,7 @@ export class JinjaParser {
 
     const blockRanges = this.findJinjaBlockRanges(jinjaBlocks);
     if (blockRanges) {
-      return jinjaRanges.concat(blockRanges);
+      return [...jinjaRanges, ...blockRanges];
     }
 
     return undefined;

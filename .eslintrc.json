@@ -105,6 +105,7 @@
     ],
     "unicorn/prefer-array-some": ["error"],
     "unicorn/no-await-expression-member": ["error"],
+    "unicorn/prefer-spread": ["error"],
 
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 
