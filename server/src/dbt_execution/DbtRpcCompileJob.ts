@@ -12,7 +12,7 @@ export class DbtRpcCompileJob extends DbtCompileJob {
   static readonly NETWORK_ERROR = 'Network error';
   static readonly JOB_IS_NOT_COMPLETED = 'Job is still not completed';
 
-  static readonly DBT_COMPILATION_ERROR_CODE = 10011;
+  static readonly DBT_COMPILATION_ERROR_CODE = 10_011;
 
   static COMPILE_MODEL_MAX_RETRIES = 6;
   static COMPILE_MODEL_TIMEOUT_MS = 100;

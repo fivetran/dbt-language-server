@@ -29,7 +29,7 @@ export class ZetaSqlWrapper {
   static readonly PARTITION_DATE = '_PARTITIONDATE';
 
   private static readonly MIN_PORT = 1024;
-  private static readonly MAX_PORT = 65535;
+  private static readonly MAX_PORT = 65_535;
 
   private readonly catalog: SimpleCatalogProto = {
     name: 'catalog',

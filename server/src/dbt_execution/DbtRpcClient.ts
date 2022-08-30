@@ -72,7 +72,7 @@ interface Response {
 }
 
 export class DbtRpcClient {
-  static DEFAULT_POST_REQUEST_TIMEOUT = 10000;
+  static DEFAULT_POST_REQUEST_TIMEOUT = 10_000;
 
   private port?: number;
   private postRequestTimeout: number;

@@ -106,6 +106,7 @@
     "unicorn/prefer-array-some": ["error"],
     "unicorn/no-await-expression-member": ["error"],
     "unicorn/prefer-spread": ["error"],
+    "unicorn/numeric-separators-style": ["error"],
 
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 

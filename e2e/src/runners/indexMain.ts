@@ -38,7 +38,7 @@ export async function indexMain(timeout: string, globPattern: string, doNotRun: 
     color: true,
     bail: true,
     timeout,
-    slow: 15000,
+    slow: 15_000,
   });
 
   const testsRoot = __dirname;

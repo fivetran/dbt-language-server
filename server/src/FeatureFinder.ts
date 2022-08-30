@@ -173,7 +173,7 @@ export class FeatureFinder {
   }
 
   findFreePort(): Promise<number> {
-    return findFreePortPmfy(randomNumber(1024, 65535));
+    return findFreePortPmfy(randomNumber(1024, 65_535));
   }
 
   private async installAndFindCommandForV1(dbtProfileType?: string): Promise<Command | undefined> {
