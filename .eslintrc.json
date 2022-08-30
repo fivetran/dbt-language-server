@@ -126,6 +126,7 @@
     "unicorn/no-useless-spread": ["error"],
     "unicorn/prefer-number-properties": ["error"],
     "unicorn/explicit-length-check": ["error"],
+    "unicorn/error-message": ["error"],
 
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 

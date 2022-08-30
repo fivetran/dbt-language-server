@@ -59,7 +59,7 @@ describe('Profiles Validation', () => {
   it('Should require dbt project config', () => {
     // arrange
     const mockDbtProject = mock(DbtProject);
-    when(mockDbtProject.findProfileName()).thenThrow(new Error());
+    when(mockDbtProject.findProfileName()).thenThrow(new Error('Error while finding profile name'));
     const dbtProject = instance(mockDbtProject);
 
     const profileCreator = new DbtProfileCreator(dbtProject, getConfigPath(OTHERS_CONFIG));
