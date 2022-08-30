@@ -124,6 +124,7 @@
     "unicorn/prefer-array-index-of": ["error"],
     "unicorn/require-array-join-separator": ["error"],
     "unicorn/no-useless-spread": ["error"],
+    "unicorn/prefer-number-properties": ["error"],
 
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 
