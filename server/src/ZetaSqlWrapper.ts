@@ -141,9 +141,9 @@ export class ZetaSqlWrapper {
     const func = this.createFunction(udf);
 
     udfOwner.customFunction = udfOwner.customFunction ?? [];
-    if (!udfOwner.customFunction.some(c => c.namePath?.join() === func.namePath?.join())) {
+    if (!udfOwner.customFunction.some(c => c.namePath?.join(',') === func.namePath?.join(','))) {
       udfOwner.customFunction.push(func);
-      this.registeredFunctions.add(udf.nameParts.join());
+      this.registeredFunctions.add(udf.nameParts.join(','));
     }
   }
 
@@ -356,7 +356,7 @@ export class ZetaSqlWrapper {
   async getNewCustomFunctions(sql: string): Promise<string[][]> {
     const languageOptions = await this.getLanguageOptions();
     const allFunctions = await this.zetaSqlParser.getAllFunctions(sql, languageOptions?.serialize());
-    return allFunctions.filter(f => !this.registeredFunctions.has(f.join()));
+    return allFunctions.filter(f => !this.registeredFunctions.has(f.join(',')));
   }
 
   async getAstOrError(compiledSql: string): Promise<Result<AnalyzeResponse__Output, string>> {
