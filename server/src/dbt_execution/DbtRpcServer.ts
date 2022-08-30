@@ -36,7 +36,7 @@ export class DbtRpcServer {
           } catch (e) {
             // The server is started here but there is some problem with project compilation. One of the possible problems is packages are not installed
             if (e instanceof Error && e.message.includes('dbt deps')) {
-              dbtRpcClient.deps().catch(err => console.log(`Error while running dbt deps: ${err instanceof Error ? err.message : String(err)}`));
+              dbtRpcClient.deps().catch(e_ => console.log(`Error while running dbt deps: ${e_ instanceof Error ? e_.message : String(e_)}`));
             }
             console.log(e);
           }

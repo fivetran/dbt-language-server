@@ -170,7 +170,7 @@ export class DbtLanguageClient implements Disposable {
   async restart(): Promise<void> {
     await this.initPythonParams();
     this.statusHandler.onRestart(this.dbtProjectUri.fsPath);
-    this.client.restart().catch(error => this.client.error(`Restarting client failed`, error, 'force'));
+    this.client.restart().catch(e => this.client.error(`Restarting client failed`, e, 'force'));
   }
 
   stop(): Promise<void> {

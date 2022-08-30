@@ -72,17 +72,17 @@ export async function indexMain(timeout: string, globPattern: string, doNotRun: 
               console.log(`Content of document when test failed:\n|${doc.getText()}|\n`);
               console.log(`Preview content:\n|${getPreviewText()}|\n`);
               console.log(`Preview diagnostics:\n|${JSON.stringify(languages.getDiagnostics(Uri.parse(PREVIEW_URI)))}|\n`);
-            } catch (err) {
-              console.log(`Error in fail stage: ${err instanceof Error ? err.message : String(err)}`);
+            } catch (e_) {
+              console.log(`Error in fail stage: ${e_ instanceof Error ? e_.message : String(e_)}`);
             }
             reject(new Error(`${failures} tests failed.`));
           } else {
             resolve();
           }
         });
-      } catch (err) {
-        console.error(err);
-        reject(err);
+      } catch (e_) {
+        console.error(e_);
+        reject(e_);
       }
     });
   });

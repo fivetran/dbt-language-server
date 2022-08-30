@@ -8,8 +8,8 @@ async function main(): Promise<void> {
     console.log('bigquery prepared successfully');
     await preparePostgres();
     console.log('postgres prepared successfully');
-  } catch (err) {
-    console.error(`Failed to prepare destination. Error: ${err instanceof Error ? err.message : String(err)}`);
+  } catch (e) {
+    console.error(`Failed to prepare destination. Error: ${e instanceof Error ? e.message : String(e)}`);
     process.exit(1);
   }
 

@@ -97,6 +97,12 @@
       "error",
       { "checkArrowFunctions": false }
     ],
+    "unicorn/catch-error-name": [
+      "error",
+      {
+        "name": "e"
+      }
+    ],
 
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 

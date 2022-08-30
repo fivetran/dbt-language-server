@@ -58,8 +58,8 @@ export async function installVsCodeAndRunTests(indexName: string, projectWithMod
         DBT_LS_POST_REQUEST_TIMEOUT: '20000',
       },
     });
-  } catch (err) {
-    console.error(`Failed to run tests. Error: ${err instanceof Error ? err.message : String(err)}`);
+  } catch (e) {
+    console.error(`Failed to run tests. Error: ${e instanceof Error ? e.message : String(e)}`);
     process.exit(1);
   }
 }
