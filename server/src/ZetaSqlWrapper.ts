@@ -59,7 +59,7 @@ export class ZetaSqlWrapper {
   }
 
   getTableRef(model: ManifestModel, name: string): string[] | undefined {
-    return model.refs.find(ref => ref.findIndex(r => r === name) === ref.length - 1);
+    return model.refs.find(ref => ref.indexOf(name) === ref.length - 1);
   }
 
   static addChildCatalog(parent: SimpleCatalogProto, name: string): SimpleCatalogProto {

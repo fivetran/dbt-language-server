@@ -121,6 +121,7 @@
     "unicorn/no-unreadable-array-destructuring": ["error"],
     "unicorn/no-static-only-class": ["error"],
     "unicorn/no-array-push-push": ["error"],
+    "unicorn/prefer-array-index-of": ["error"],
 
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 
