@@ -2,8 +2,8 @@ import { Disposable, env, QuickInputButtons, QuickPick, QuickPickItem, QuickPick
 import { InstallDbtPackages } from './commands/InstallDbtPackages';
 import { log } from './Logger';
 
-export class DbtWizardQuickPick {
-  static async showQuickPick(
+export const DbtWizardQuickPick = {
+  async showQuickPick(
     options: Pick<QuickPick<QuickPickItem>, 'buttons' | 'title' | 'placeholder'>,
     itemsPromise: Promise<QuickPickItem[]>,
     onDidTriggerItemButton: (e: QuickPickItemButtonEvent<QuickPickItem>) => void,
@@ -58,5 +58,5 @@ export class DbtWizardQuickPick {
         d.dispose();
       });
     }
-  }
-}
+  },
+};

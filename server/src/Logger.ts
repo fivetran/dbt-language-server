@@ -4,8 +4,8 @@ export enum LogLevel {
   Debug = '__LogLevelDebug',
 }
 
-export class Logger {
-  static prepareLogger(workspaceFolder: string): void {
+export const Logger = {
+  prepareLogger(workspaceFolder: string): void {
     const id = workspaceFolder.slice(workspaceFolder.lastIndexOf(path.sep) + 1);
 
     const old = console.log;
@@ -20,5 +20,5 @@ export class Logger {
       }
       old.apply(console, args);
     };
-  }
-}
+  },
+};

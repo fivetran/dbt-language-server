@@ -119,6 +119,7 @@
     "unicorn/no-process-exit": ["error"],
     "unicorn/prefer-set-has": ["error"],
     "unicorn/no-unreadable-array-destructuring": ["error"],
+    "unicorn/no-static-only-class": ["error"],
 
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 
