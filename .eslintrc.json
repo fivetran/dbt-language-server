@@ -120,6 +120,7 @@
     "unicorn/prefer-set-has": ["error"],
     "unicorn/no-unreadable-array-destructuring": ["error"],
     "unicorn/no-static-only-class": ["error"],
+    "unicorn/no-array-push-push": ["error"],
 
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 

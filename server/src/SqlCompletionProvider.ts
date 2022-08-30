@@ -261,8 +261,7 @@ export class SqlCompletionProvider {
     if (completionParams.context?.triggerKind === CompletionTriggerKind.TriggerCharacter) {
       result.push(...(await this.getTableSuggestions(text, destinationDefinition)));
     } else {
-      result.push(...this.getKeywords());
-      result.push(...this.getFunctions());
+      result.push(...this.getKeywords(), ...this.getFunctions());
     }
 
     return result;
