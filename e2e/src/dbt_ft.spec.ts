@@ -16,7 +16,7 @@ suite('dbt_ft', () => {
       const file = files[i];
       console.log(`File: ${file}`);
 
-      if (EXCLUDE.find(e => file.endsWith(e))) {
+      if (EXCLUDE.some(e => file.endsWith(e))) {
         console.log(`Skipping: ${file}`);
         continue;
       }
@@ -28,7 +28,7 @@ suite('dbt_ft', () => {
       writeFileSync(getLogPath(), `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n`, {
         flag: 'a+',
       });
-      if (diagnostics.filter(d => d.severity === DiagnosticSeverity.Error).length > 0) {
+      if (diagnostics.some(d => d.severity === DiagnosticSeverity.Error)) {
         writeFileSync(getDiagnosticsPath(), `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n${JSON.stringify(diagnostics)}\n\n`, {
           flag: 'a+',
         });

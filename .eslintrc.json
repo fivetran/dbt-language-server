@@ -103,6 +103,7 @@
         "name": "e"
       }
     ],
+    "unicorn/prefer-array-some": ["error"],
 
     "sonarjs/cognitive-complexity": ["off"], // TODO: enable
 

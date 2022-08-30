@@ -55,8 +55,8 @@ export async function indexMain(timeout: string, globPattern: string, doNotRun: 
       files
         .filter(
           f =>
-            (ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) || TESTS_WITHOUT_ZETASQL.find(t => f.endsWith(t))) &&
-            !doNotRun.find(t => f.endsWith(t)),
+            (ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) || TESTS_WITHOUT_ZETASQL.some(t => f.endsWith(t))) &&
+            !doNotRun.some(t => f.endsWith(t)),
         )
         .forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
 
