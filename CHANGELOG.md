@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.8.0 (01/01/1970)
+## Version 0.8.0 (30/08/2022)
 ## What's Changed
 * Fix issue with underlining `qualify` keyword.
 * Show signature for keywords in uppercase and in lowercase.
