@@ -107,6 +107,7 @@
         "avoidEscape": true
       }
     ],
+    "func-names": ["error"],
 
     "@typescript-eslint/no-shadow": ["error"],
     "@typescript-eslint/explicit-function-return-type": ["error"],
