@@ -194,10 +194,9 @@ export function ensureValidWordDefinition(wordDefinition?: RegExp | null): RegEx
 function createWordRegExp(allowInWords = ''): RegExp {
   let source = '(-?\\d*\\.\\d\\w*)|([^';
   for (const sep of USUAL_WORD_SEPARATORS) {
-    if (allowInWords.includes(sep)) {
-      continue;
+    if (!allowInWords.includes(sep)) {
+      source = `${source}\\${sep}`;
     }
-    source = `${source}\\${sep}`;
   }
   source += '\\s]+)';
   return new RegExp(source, 'g');

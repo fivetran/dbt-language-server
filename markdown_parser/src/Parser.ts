@@ -107,6 +107,7 @@ async function parseAndSave(): Promise<void> {
           if (name.includes(' ') || functionInfos.some(f => f.name === name) || EXCEPTIONS.has(name)) {
             i++;
             token = tokens[i];
+            /* eslint-disable-next-line no-continue */
             continue;
           }
           const functionInfo: FunctionInfo = {

@@ -273,19 +273,17 @@ export class ZetaSqlWrapper {
     tables = settledResult.filter((v): v is PromiseFulfilledResult<TableDefinition> => v.status === 'fulfilled').map(v => v.value);
 
     for (const table of tables) {
-      if (this.isTableRegistered(table)) {
-        continue;
-      }
-
-      const schemaIsFilled = table.schemaIsFilled();
-      if (schemaIsFilled) {
-        this.registerTable(table);
-      } else {
-        const model = await modelFetcher.getModel();
-        if (!model) {
-          return err(this.createUnknownError(`Model not found for table ${table.tableName ?? 'undefined'}`));
+      if (!this.isTableRegistered(table)) {
+        const schemaIsFilled = table.schemaIsFilled();
+        if (schemaIsFilled) {
+          this.registerTable(table);
+        } else {
+          const model = await modelFetcher.getModel();
+          if (!model) {
+            return err(this.createUnknownError(`Model not found for table ${table.tableName ?? 'undefined'}`));
+          }
+          await this.analyzeRef(table, model);
         }
-        await this.analyzeRef(table, model);
       }
     }
 
