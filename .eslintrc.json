@@ -74,7 +74,6 @@
     "no-return-assign": ["error", "always"],
     "no-continue": ["error"],
     "no-void": ["error"],
-    "quotes": ["error", "single", { "avoidEscape": true }],
     "@typescript-eslint/naming-convention": [
       "error",
       {
@@ -101,6 +100,13 @@
     "@typescript-eslint/no-unused-expressions": ["error"],
     "no-useless-return": ["error"],
     "prefer-arrow-callback": ["error"],
+    "@typescript-eslint/quotes": [
+      "error",
+      "single",
+      {
+        "avoidEscape": true
+      }
+    ],
 
     "@typescript-eslint/no-shadow": ["error"],
     "@typescript-eslint/explicit-function-return-type": ["error"],
