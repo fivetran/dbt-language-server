@@ -18,7 +18,7 @@ describe('TextUtils', () => {
     assertThat(() => getWordRangeAtPosition(Position.create(0, 2), /.*/, textLines), throws(instanceOf(Error)));
   });
 
-  it('getWordRangeAtPosition should properly use regex', function () {
+  it('getWordRangeAtPosition should properly use regex', () => {
     const textLines = ['some text here', '/** foo bar */', 'function() {', '	"far boo"', '}'];
     assertWordRangeAtPosition(Position.create(0, 0), /\/\*.+\*\//, textLines, undefined);
     assertWordRangeAtPosition(Position.create(1, 0), /\/\*.+\*\//, textLines, Range.create(1, 0, 1, 14));
@@ -26,13 +26,13 @@ describe('TextUtils', () => {
     assertWordRangeAtPosition(Position.create(3, 1), /("|').*\1/, textLines, Range.create(3, 1, 3, 10));
   });
 
-  it('getWordRangeAtPosition should find word', function () {
+  it('getWordRangeAtPosition should find word', () => {
     const regex = /(-?\d*\.\d\w*)|([^`~!@#$%^&*()\-=+[{\]}\\|;:'",.<>/?\s]+)/g;
     const line = 'int abcdefhijklmnopqwvrstxyz;';
     assertWordRangeAtPosition(Position.create(0, 27), regex, [line], Range.create(0, 4, 0, 28));
   });
 
-  it('getWordRangeAtPosition should find ref expressions', function () {
+  it('getWordRangeAtPosition should find ref expressions', () => {
     assertWordRangeAtPosition(
       Position.create(0, 8),
       ModelDefinitionProvider.REF_PATTERN,
@@ -47,7 +47,7 @@ describe('TextUtils', () => {
     );
   });
 
-  it('getWordRangeAtPosition should find macro expressions', function () {
+  it('getWordRangeAtPosition should find macro expressions', () => {
     assertWordRangeAtPosition(
       Position.create(0, 21),
       MacroDefinitionProvider.MACRO_PATTERN,
@@ -62,7 +62,7 @@ describe('TextUtils', () => {
     );
   });
 
-  it('getWordRangeAtPosition should find source expressions', function () {
+  it('getWordRangeAtPosition should find source expressions', () => {
     assertWordRangeAtPosition(
       Position.create(0, 11),
       SourceDefinitionProvider.SOURCE_PATTERN,
@@ -77,7 +77,7 @@ describe('TextUtils', () => {
     );
   });
 
-  it('getTextRangeBeforeBracket should return cursor position if no range found', function () {
+  it('getTextRangeBeforeBracket should return cursor position if no range found', () => {
     getTextRangeBeforeBracketShouldReturnRange('a()', Position.create(0, 0), Range.create(0, 0, 0, 0));
     getTextRangeBeforeBracketShouldReturnRange('a()', Position.create(0, 1), Range.create(0, 1, 0, 1));
     getTextRangeBeforeBracketShouldReturnRange('a()', Position.create(0, 3), Range.create(0, 3, 0, 3));
@@ -86,7 +86,7 @@ describe('TextUtils', () => {
     getTextRangeBeforeBracketShouldReturnRange('a)(', Position.create(0, 2), Range.create(0, 2, 0, 2));
   });
 
-  it('getTextRangeBeforeBracket should return range', function () {
+  it('getTextRangeBeforeBracket should return range', () => {
     getTextRangeBeforeBracketShouldReturnRange('a()', Position.create(0, 2), Range.create(0, 0, 0, 1));
     getTextRangeBeforeBracketShouldReturnRange('  a()', Position.create(0, 4), Range.create(0, 2, 0, 3));
     getTextRangeBeforeBracketShouldReturnRange('a(b)', Position.create(0, 3), Range.create(0, 0, 0, 1));
@@ -99,7 +99,7 @@ describe('TextUtils', () => {
     getTextRangeBeforeBracketShouldReturnRange(' coalesce(min())', Position.create(0, 14), Range.create(0, 10, 0, 13));
   });
 
-  it('getTextRangeBeforeBracket should return range for multiline text', function () {
+  it('getTextRangeBeforeBracket should return range for multiline text', () => {
     getTextRangeBeforeBracketShouldReturnRange('\n\na()', Position.create(2, 2), Range.create(2, 0, 2, 1));
     getTextRangeBeforeBracketShouldReturnRange('\n\n coalesce(max())', Position.create(2, 13), Range.create(2, 1, 2, 9));
   });
