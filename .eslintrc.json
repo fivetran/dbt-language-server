@@ -64,6 +64,7 @@
     "spaced-comment": ["error"],
     "no-implicit-coercion": ["error"],
     "prefer-promise-reject-errors": ["error"],
+    "no-return-assign": ["error", "always"],
 
     "@typescript-eslint/no-shadow": ["error"],
     "@typescript-eslint/explicit-function-return-type": ["error"],

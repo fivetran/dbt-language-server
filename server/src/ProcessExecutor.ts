@@ -18,7 +18,9 @@ export class ProcessExecutor {
 
     const { env } = process;
     if (envVars) {
-      Object.keys(envVars).forEach(k => (env[k] = envVars[k]));
+      Object.keys(envVars).forEach(k => {
+        env[k] = envVars[k];
+      });
     }
     const promiseWithChild = promisifiedExec(command, envVars ? { env } : {});
     const childProcess = promiseWithChild.child;
