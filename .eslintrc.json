@@ -99,6 +99,7 @@
     ],
     "import/newline-after-import": ["error"],
     "@typescript-eslint/no-unused-expressions": ["error"],
+    "no-useless-return": ["error"],
 
     "@typescript-eslint/no-shadow": ["error"],
     "@typescript-eslint/explicit-function-return-type": ["error"],
