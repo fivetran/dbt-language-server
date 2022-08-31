@@ -172,7 +172,7 @@ export async function setTestContent(content: string, waitForPreview = true): Pr
   const all = new Range(doc.positionAt(0), doc.positionAt(doc.getText().length));
 
   const editCallback = (eb: TextEditorEdit): void => eb.replace(all, content);
-  waitForPreview ? await edit(editCallback) : await editor.edit(editCallback);
+  await (waitForPreview ? edit(editCallback) : editor.edit(editCallback));
 
   const lastPos = doc.positionAt(doc.getText().length);
   editor.selection = new Selection(lastPos, lastPos);
@@ -324,7 +324,7 @@ export async function createAndOpenTempModel(workspaceName: string, waitFor: 'pr
   console.log(`Creating new file: ${newUri.toString()}`);
   fs.writeFileSync(newUri.fsPath, '-- Empty');
 
-  waitFor === 'preview' ? await activateAndWait(newUri) : await activateAndWaitManifestParsed(newUri, thisWorkspaceUri.path);
+  await (waitFor === 'preview' ? activateAndWait(newUri) : activateAndWaitManifestParsed(newUri, thisWorkspaceUri.path));
   if (waitFor === 'manifest') {
     console.log(`createAndOpenTempModel: wait for manifest parsed in '${thisWorkspaceUri.path}'`);
   }
