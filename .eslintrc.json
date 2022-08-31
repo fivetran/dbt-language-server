@@ -27,7 +27,8 @@
     "plugin:@typescript-eslint/recommended",
     "plugin:sonarjs/recommended",
     "plugin:promise/recommended",
-    "plugin:unicorn/recommended"
+    "plugin:unicorn/recommended",
+    "plugin:prettier/recommended"
   ],
   "rules": {
     "no-param-reassign": ["error"],
@@ -122,9 +123,7 @@
     "unicorn/prefer-module": ["off"],
 
     "sonarjs/cognitive-complexity": ["off"],
-    "sonarjs/no-inverted-boolean-check": ["error"],
-
-    "prettier/prettier": ["error"]
+    "sonarjs/no-inverted-boolean-check": ["error"]
   },
   "ignorePatterns": ["**/*.d.ts"]
 }
