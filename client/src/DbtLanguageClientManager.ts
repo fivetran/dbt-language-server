@@ -43,7 +43,7 @@ export class DbtLanguageClientManager {
   async getClientForActiveDocument(): Promise<DbtLanguageClient | undefined> {
     const document = this.getActiveDocument();
     if (document === undefined) {
-      log(`Can't find active document`);
+      log("Can't find active document");
       return undefined;
     }
 
@@ -93,10 +93,9 @@ export class DbtLanguageClientManager {
       try {
         await workspace.fs.stat(currentUri.with({ path: `${currentUri.path}/${DBT_PROJECT_YML}` }));
         const oneLevelUpPath = Uri.joinPath(currentUri, '..').path;
-        if (ExtensionClient.DEFAULT_PACKAGES_PATHS.some(p => oneLevelUpPath.endsWith(p))) {
-          continue;
+        if (!ExtensionClient.DEFAULT_PACKAGES_PATHS.some(p => oneLevelUpPath.endsWith(p))) {
+          return currentUri;
         }
-        return currentUri;
       } catch {
         // file does not exist
       }
@@ -125,7 +124,7 @@ export class DbtLanguageClientManager {
 
       await client.initialize();
 
-      void this.progressHandler.begin();
+      this.progressHandler.begin();
 
       client.start();
     }

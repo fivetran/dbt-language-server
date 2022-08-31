@@ -86,55 +86,55 @@ describe('ModelCompletionProvider', () => {
   });
 
   it('Should provide completions from all packages after pressing (', () => {
-    shouldProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ ref(`, [
-      { label: labelModel1, insertText: `'model_1'` },
-      { label: labelModel2, insertText: `'model_2'` },
-      { label: installedPackageModel1, insertText: `'installed_package', 'installed_package_model_1'` },
-      { label: installedPackageModel2, insertText: `'installed_package', 'installed_package_model_2'` },
+    shouldProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, 'select * from {{ ref(', [
+      { label: labelModel1, insertText: "'model_1'" },
+      { label: labelModel2, insertText: "'model_2'" },
+      { label: installedPackageModel1, insertText: "'installed_package', 'installed_package_model_1'" },
+      { label: installedPackageModel2, insertText: "'installed_package', 'installed_package_model_2'" },
     ]);
   });
 
-  it(`Should provide completions from all packages after pressing '`, () => {
-    shouldProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ ref('`, [
+  it("Should provide completions from all packages after pressing '", () => {
+    shouldProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, "select * from {{ ref('", [
       { label: labelModel1, insertText: 'model_1' },
       { label: labelModel2, insertText: 'model_2' },
-      { label: installedPackageModel1, insertText: `installed_package', 'installed_package_model_1` },
-      { label: installedPackageModel2, insertText: `installed_package', 'installed_package_model_2` },
+      { label: installedPackageModel1, insertText: "installed_package', 'installed_package_model_1" },
+      { label: installedPackageModel2, insertText: "installed_package', 'installed_package_model_2" },
     ]);
   });
 
-  it(`Should provide completions from all packages after pressing "`, () => {
-    shouldProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ ref("`, [
+  it('Should provide completions from all packages after pressing "', () => {
+    shouldProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, 'select * from {{ ref("', [
       { label: labelModel1, insertText: 'model_1' },
       { label: labelModel2, insertText: 'model_2' },
-      { label: installedPackageModel1, insertText: `installed_package", "installed_package_model_1` },
-      { label: installedPackageModel2, insertText: `installed_package", "installed_package_model_2` },
+      { label: installedPackageModel1, insertText: 'installed_package", "installed_package_model_1' },
+      { label: installedPackageModel2, insertText: 'installed_package", "installed_package_model_2' },
     ]);
   });
 
-  it(`Shouldn't provide completions for unknown package`, () => {
-    shouldNotProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ ref('unknown_package', '`);
+  it("Shouldn't provide completions for unknown package", () => {
+    shouldNotProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, "select * from {{ ref('unknown_package', '");
   });
 
-  it(`Shouldn't provide completions for empty strings`, () => {
+  it("Shouldn't provide completions for empty strings", () => {
     shouldNotProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, 'select {{ ');
   });
 
-  it(`Shouldn't provide completions after ref`, () => {
+  it("Shouldn't provide completions after ref", () => {
     shouldNotProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, 'select {{ ref');
   });
 
   it('Should provide completions after typing model name after quote', () => {
-    shouldProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, `select {{ ref('model_`, [
-      { label: labelModel1, insertText: `model_1` },
-      { label: labelModel2, insertText: `model_2` },
-      { label: installedPackageModel1, insertText: `installed_package', 'installed_package_model_1` },
-      { label: installedPackageModel2, insertText: `installed_package', 'installed_package_model_2` },
+    shouldProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, "select {{ ref('model_", [
+      { label: labelModel1, insertText: 'model_1' },
+      { label: labelModel2, insertText: 'model_2' },
+      { label: installedPackageModel1, insertText: "installed_package', 'installed_package_model_1" },
+      { label: installedPackageModel2, insertText: "installed_package', 'installed_package_model_2" },
     ]);
   });
 
   it('Should provide completions after typing package name after quote', () => {
-    shouldProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, `select {{ ref('installed_package', 'model_`, [
+    shouldProvideCompletions(modelCompletionProvider, JinjaPartType.EXPRESSION_START, "select {{ ref('installed_package', 'model_", [
       { label: 'installed_package_model_1', insertText: 'installed_package_model_1' },
       { label: 'installed_package_model_2', insertText: 'installed_package_model_2' },
     ]);

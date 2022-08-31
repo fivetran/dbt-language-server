@@ -44,10 +44,10 @@ export class StatusSender {
     switch (e) {
       case FileChangeType.Created:
         this.sendPackagesStatus(true);
-        return;
+        break;
       case FileChangeType.Deleted:
         this.sendPackagesStatus(false);
-        return;
+        break;
       default: {
         // do nothing
       }

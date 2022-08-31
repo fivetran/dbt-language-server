@@ -158,7 +158,8 @@ function findRegexMatchEnclosingPosition(wordDefinition: RegExp, text: string, p
     const matchIndex = match.index || 0;
     if (matchIndex <= pos && wordDefinition.lastIndex >= pos) {
       return match;
-    } else if (stopPos > 0 && matchIndex > stopPos) {
+    }
+    if (stopPos > 0 && matchIndex > stopPos) {
       return null;
     }
   }
@@ -194,10 +195,9 @@ export function ensureValidWordDefinition(wordDefinition?: RegExp | null): RegEx
 function createWordRegExp(allowInWords = ''): RegExp {
   let source = '(-?\\d*\\.\\d\\w*)|([^';
   for (const sep of USUAL_WORD_SEPARATORS) {
-    if (allowInWords.includes(sep)) {
-      continue;
+    if (!allowInWords.includes(sep)) {
+      source = `${source}\\${sep}`;
     }
-    source = `${source}\\${sep}`;
   }
   source += '\\s]+)';
   return new RegExp(source, 'g');
@@ -240,5 +240,5 @@ export function getTextRangeBeforeBracket(text: string, cursorPosition: Position
 }
 
 export function isQuote(text: string): boolean {
-  return text === `'` || text === `"`;
+  return text === "'" || text === '"';
 }

@@ -58,7 +58,7 @@ export class ModelCompletionProvider implements DbtNodeCompletionProvider {
 
   private getModelInsertText(packageName: string, name: string, quoteSymbolParam: string | undefined): string {
     const isQuoteProvided = quoteSymbolParam !== undefined;
-    const quoteSymbol = isQuoteProvided ? quoteSymbolParam : `'`;
+    const quoteSymbol = isQuoteProvided ? quoteSymbolParam : "'";
 
     if (this.dbtRepository.projectName === packageName) {
       return new StringBuilder().append(name).wrapIf(!isQuoteProvided, quoteSymbol).toString();

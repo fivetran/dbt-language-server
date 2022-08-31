@@ -114,9 +114,9 @@ export class FeatureFinder {
       this.findDbtRpcGlobalInfo(),
       this.findDbtGlobalInfo(),
     ]);
-    const [dbtRpcPythonVersion, dbtPythonVersion, dbtRpcGlobalVersion, dbtGlobalVersion] = settledResults.map(v => {
-      return v.status === 'fulfilled' ? v.value : undefined;
-    });
+    const [dbtRpcPythonVersion, dbtPythonVersion, dbtRpcGlobalVersion, dbtGlobalVersion] = settledResults.map(v =>
+      v.status === 'fulfilled' ? v.value : undefined,
+    );
 
     console.log(
       this.getLogString('dbtRpcGlobalVersion', dbtRpcGlobalVersion) +

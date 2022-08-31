@@ -38,7 +38,7 @@ suite('Should suggest model completions', () => {
   test("Should suggest models for ref function by pressing ' ", async () => {
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
     await activateAndWaitManifestParsed(docUri, COMPLETION_JINJA_PATH);
-    await setTestContent(`select * from {{ref('`, false);
+    await setTestContent("select * from {{ref('", false);
     await assertCompletions(docUri, new vscode.Position(0, 21), getCompletionList(false), "'");
   });
 
@@ -46,7 +46,7 @@ suite('Should suggest model completions', () => {
     // arrange
     const docUri = getCustomDocUri(PROJECT_FILE_NAME);
     await activateAndWaitManifestParsed(docUri, COMPLETION_JINJA_PATH);
-    await setTestContent(`select * from {{}}ref('`, false);
+    await setTestContent("select * from {{}}ref('", false);
 
     // act
     const actualCompletionList = await triggerCompletion(docUri, new vscode.Position(0, 22));

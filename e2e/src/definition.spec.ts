@@ -26,14 +26,12 @@ suite('ref definitions', () => {
     await assertDefinitions(
       PACKAGE_REF_DOC_URI,
       new Position(5, 24),
-      getTestFixtureModels().map(m => {
-        return {
-          originSelectionRange: new Range(5, 19, 5, 33),
-          targetUri: getDocUri(m),
-          targetRange: MAX_RANGE,
-          targetSelectionRange: MAX_RANGE,
-        };
-      }),
+      getTestFixtureModels().map(m => ({
+        originSelectionRange: new Range(5, 19, 5, 33),
+        targetUri: getDocUri(m),
+        targetRange: MAX_RANGE,
+        targetSelectionRange: MAX_RANGE,
+      })),
     );
 
     await assertDefinitions(PACKAGE_REF_DOC_URI, new Position(5, 42), [

@@ -112,7 +112,7 @@ describe('Utils', () => {
     );
   });
 
-  it(`debounce should use different Timeout's for every call`, async () => {
+  it("debounce should use different Timeout's for every call", async () => {
     // arrange
     let firstDebounceCounter = 0;
     let secondDebounceCounter = 0;

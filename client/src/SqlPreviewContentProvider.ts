@@ -39,7 +39,9 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
 
   updateDiagnostics(uri: string, diagnostics: Diagnostic[]): void {
     // We need to recreate Diagnostic due to its client and server inconsistency
-    diagnostics.forEach(d => (d.severity = DiagnosticSeverity.Error));
+    diagnostics.forEach(d => {
+      d.severity = DiagnosticSeverity.Error;
+    });
     const currentValue = this.previewInfos.get(uri);
     this.previewInfos.set(uri, {
       previewText: currentValue?.previewText ?? '',

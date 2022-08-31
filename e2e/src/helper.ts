@@ -23,10 +23,11 @@ import {
   window,
   workspace,
 } from 'vscode';
+
 export let doc: TextDocument;
 export let editor: TextEditor;
 
-type voidFunc = () => void;
+type VoidFunc = () => void;
 
 const PROJECTS_PATH = path.resolve(__dirname, '../projects');
 const DOWNLOADS_PATH = path.resolve(__dirname, '../.downloads');
@@ -47,8 +48,8 @@ window.onDidChangeActiveTextEditor(e => {
   console.log(`Active document changed: ${e?.document.uri.toString() ?? 'undefined'}`);
 });
 
-let previewPromiseResolve: voidFunc | undefined;
-let documentPromiseResolve: voidFunc | undefined;
+let previewPromiseResolve: VoidFunc | undefined;
+let documentPromiseResolve: VoidFunc | undefined;
 
 let extensionApi: ExtensionApi | undefined = undefined;
 const languageServerReady = new Array<[string, DeferredResult<void>]>();
@@ -145,21 +146,21 @@ export function sleep(ms: number): Promise<unknown> {
   return setTimeout(ms);
 }
 
-export const getDocPath = (p: string): string => {
+export function getDocPath(p: string): string {
   return path.resolve(TEST_FIXTURE_PATH, 'models', p);
-};
+}
 
-export const getDocUri = (docName: string): Uri => {
+export function getDocUri(docName: string): Uri {
   return Uri.file(getDocPath(docName));
-};
+}
 
-export const getAbsolutePath = (pathRelativeToProject: string): string => {
+export function getAbsolutePath(pathRelativeToProject: string): string {
   return path.resolve(PROJECTS_PATH, pathRelativeToProject);
-};
+}
 
-export const getCustomDocUri = (p: string): Uri => {
+export function getCustomDocUri(p: string): Uri {
   return Uri.file(getAbsolutePath(p));
-};
+}
 
 export async function setTestContent(content: string, waitForPreview = true): Promise<void> {
   await showPreview();
@@ -171,7 +172,7 @@ export async function setTestContent(content: string, waitForPreview = true): Pr
   const all = new Range(doc.positionAt(0), doc.positionAt(doc.getText().length));
 
   const editCallback = (eb: TextEditorEdit): void => eb.replace(all, content);
-  waitForPreview ? await edit(editCallback) : await editor.edit(editCallback);
+  await (waitForPreview ? edit(editCallback) : editor.edit(editCallback));
 
   const lastPos = doc.positionAt(doc.getText().length);
   editor.selection = new Selection(lastPos, lastPos);
@@ -323,7 +324,7 @@ export async function createAndOpenTempModel(workspaceName: string, waitFor: 'pr
   console.log(`Creating new file: ${newUri.toString()}`);
   fs.writeFileSync(newUri.fsPath, '-- Empty');
 
-  waitFor === 'preview' ? await activateAndWait(newUri) : await activateAndWaitManifestParsed(newUri, thisWorkspaceUri.path);
+  await (waitFor === 'preview' ? activateAndWait(newUri) : activateAndWaitManifestParsed(newUri, thisWorkspaceUri.path));
   if (waitFor === 'manifest') {
     console.log(`createAndOpenTempModel: wait for manifest parsed in '${thisWorkspaceUri.path}'`);
   }

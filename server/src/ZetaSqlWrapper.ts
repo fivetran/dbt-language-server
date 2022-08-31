@@ -273,19 +273,17 @@ export class ZetaSqlWrapper {
     tables = settledResult.filter((v): v is PromiseFulfilledResult<TableDefinition> => v.status === 'fulfilled').map(v => v.value);
 
     for (const table of tables) {
-      if (this.isTableRegistered(table)) {
-        continue;
-      }
-
-      const schemaIsFilled = table.schemaIsFilled();
-      if (schemaIsFilled) {
-        this.registerTable(table);
-      } else {
-        const model = await modelFetcher.getModel();
-        if (!model) {
-          return err(this.createUnknownError(`Model not found for table ${table.tableName ?? 'undefined'}`));
+      if (!this.isTableRegistered(table)) {
+        const schemaIsFilled = table.schemaIsFilled();
+        if (schemaIsFilled) {
+          this.registerTable(table);
+        } else {
+          const model = await modelFetcher.getModel();
+          if (!model) {
+            return err(this.createUnknownError(`Model not found for table ${table.tableName ?? 'undefined'}`));
+          }
+          await this.analyzeRef(table, model);
         }
-        await this.analyzeRef(table, model);
       }
     }
 
@@ -311,10 +309,10 @@ export class ZetaSqlWrapper {
       if (refModel) {
         await this.analyzeTableInternal(refModel.originalFilePath);
       } else {
-        console.log(`Can't find ref model`);
+        console.log("Can't find ref model");
       }
     } else {
-      console.log(`Can't find ref`);
+      console.log("Can't find ref");
     }
   }
 
@@ -328,7 +326,7 @@ export class ZetaSqlWrapper {
     const uniqueId = model.dependsOn.nodes.find(n => n.endsWith(ref.join('.')));
     const refModel = this.dbtRepository.models.find(m => m.uniqueId === uniqueId);
     if (!refModel) {
-      console.log(`Can't find ref model`);
+      console.log("Can't find ref model");
     }
     return refModel;
   }
@@ -347,7 +345,8 @@ export class ZetaSqlWrapper {
   async createUdfFromNamePath(namePath: string[]): Promise<Udf | undefined> {
     if (namePath.length === 2) {
       return this.bigQueryClient.getUdf(undefined, namePath[0], namePath[1]);
-    } else if (namePath.length === 3) {
+    }
+    if (namePath.length === 3) {
       return this.bigQueryClient.getUdf(namePath[0], namePath[1], namePath[2]);
     }
     return undefined;

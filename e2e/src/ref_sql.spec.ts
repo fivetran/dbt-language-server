@@ -7,7 +7,7 @@ import { activateAndWait, getDocUri, getMainEditorText, replaceText, waitDocumen
 suite('SQL to ref', () => {
   const DOC_URI = getDocUri('ref_sql.sql');
   const DIAGNOSTIC_MESSAGE = 'Reference to dbt model is not a ref';
-  const REF = `{{ ref('table_exists') }}`;
+  const REF = "{{ ref('table_exists') }}";
 
   test('Should convert SQL to ref', async () => {
     await activateAndWait(DOC_URI);

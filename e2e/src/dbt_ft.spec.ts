@@ -16,25 +16,24 @@ suite('dbt_ft', () => {
       const file = files[i];
       console.log(`File: ${file}`);
 
-      if (EXCLUDE.some(e => file.endsWith(e))) {
-        console.log(`Skipping: ${file}`);
-        continue;
-      }
+      if (!EXCLUDE.some(e => file.endsWith(e))) {
+        const uri = Uri.file(file);
+        await activateAndWait(uri);
 
-      const uri = Uri.file(file);
-      await activateAndWait(uri);
-
-      const diagnostics = languages.getDiagnostics(uri);
-      writeFileSync(getLogPath(), `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n`, {
-        flag: 'a+',
-      });
-      if (diagnostics.some(d => d.severity === DiagnosticSeverity.Error)) {
-        writeFileSync(getDiagnosticsPath(), `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n${JSON.stringify(diagnostics)}\n\n`, {
+        const diagnostics = languages.getDiagnostics(uri);
+        writeFileSync(getLogPath(), `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n`, {
           flag: 'a+',
         });
-      }
-      if (diagnostics.length > 0) {
-        console.log(`${new Date().toISOString()}: diagnostics: ${JSON.stringify(diagnostics)}`);
+        if (diagnostics.some(d => d.severity === DiagnosticSeverity.Error)) {
+          writeFileSync(getDiagnosticsPath(), `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n${JSON.stringify(diagnostics)}\n\n`, {
+            flag: 'a+',
+          });
+        }
+        if (diagnostics.length > 0) {
+          console.log(`${new Date().toISOString()}: diagnostics: ${JSON.stringify(diagnostics)}`);
+        }
+      } else {
+        console.log(`Skipping: ${file}`);
       }
     }
   });

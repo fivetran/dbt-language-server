@@ -61,47 +61,47 @@ describe('SourceCompletionProvider', () => {
   });
 
   it('Should provide sources by pressing (', () => {
-    shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ source(`, [
-      { label: '(project_package) source_1', insertText: `'source_1'` },
-      { label: '(installed_package) package_source_1', insertText: `'package_source_1'` },
+    shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, 'select * from {{ source(', [
+      { label: '(project_package) source_1', insertText: "'source_1'" },
+      { label: '(installed_package) package_source_1', insertText: "'package_source_1'" },
     ]);
   });
 
-  it(`Should provide sources by pressing '`, () => {
-    shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ source('`, [
-      { label: projectPackageSource1, insertText: `source_1` },
-      { label: installedPackageSource1, insertText: `package_source_1` },
+  it("Should provide sources by pressing '", () => {
+    shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, "select * from {{ source('", [
+      { label: projectPackageSource1, insertText: 'source_1' },
+      { label: installedPackageSource1, insertText: 'package_source_1' },
     ]);
   });
 
   it('Should provide source tables', () => {
-    shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ source('source_1', '`, [
-      { label: 'table_1', insertText: `table_1` },
-      { label: 'table_2', insertText: `table_2` },
+    shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, "select * from {{ source('source_1', '", [
+      { label: 'table_1', insertText: 'table_1' },
+      { label: 'table_2', insertText: 'table_2' },
     ]);
   });
 
-  it(`Shouldn't provide completions for unknown source`, () => {
-    shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, `select * from {{ source('unknown_source', '`, []);
+  it("Shouldn't provide completions for unknown source", () => {
+    shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, "select * from {{ source('unknown_source', '", []);
   });
 
-  it(`Shouldn't provide completions for empty strings`, () => {
+  it("Shouldn't provide completions for empty strings", () => {
     shouldNotProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, 'select {{ ');
   });
 
-  it(`Shouldn't provide completions after source`, () => {
+  it("Shouldn't provide completions after source", () => {
     shouldNotProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, 'select {{ source');
   });
 
   it('Should provide completions after typing source name after quote', () => {
-    shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, `select {{ source('source_`, [
-      { label: projectPackageSource1, insertText: `source_1` },
-      { label: installedPackageSource1, insertText: `package_source_1` },
+    shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, "select {{ source('source_", [
+      { label: projectPackageSource1, insertText: 'source_1' },
+      { label: installedPackageSource1, insertText: 'package_source_1' },
     ]);
   });
 
   it('Should provide completions after typing table name after quote', () => {
-    shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, `select {{ source('package_source_1', 'source_`, [
+    shouldProvideCompletions(sourceCompletionProvider, JinjaPartType.EXPRESSION_START, "select {{ source('package_source_1', 'source_", [
       { label: '(installed_package) installed_package_source_table_1', insertText: 'installed_package_source_table_1' },
       { label: '(installed_package) installed_package_source_table_2', insertText: 'installed_package_source_table_2' },
     ]);
