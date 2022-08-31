@@ -78,34 +78,34 @@ describe('TextUtils', () => {
   });
 
   it('getTextRangeBeforeBracket should return cursor position if no range found', function () {
-    getTextRangeBeforeBracket_shouldReturnRange('a()', Position.create(0, 0), Range.create(0, 0, 0, 0));
-    getTextRangeBeforeBracket_shouldReturnRange('a()', Position.create(0, 1), Range.create(0, 1, 0, 1));
-    getTextRangeBeforeBracket_shouldReturnRange('a()', Position.create(0, 3), Range.create(0, 3, 0, 3));
-    getTextRangeBeforeBracket_shouldReturnRange('a(b)', Position.create(0, 4), Range.create(0, 4, 0, 4));
-    getTextRangeBeforeBracket_shouldReturnRange('a)(', Position.create(0, 1), Range.create(0, 1, 0, 1));
-    getTextRangeBeforeBracket_shouldReturnRange('a)(', Position.create(0, 2), Range.create(0, 2, 0, 2));
+    getTextRangeBeforeBracketShouldReturnRange('a()', Position.create(0, 0), Range.create(0, 0, 0, 0));
+    getTextRangeBeforeBracketShouldReturnRange('a()', Position.create(0, 1), Range.create(0, 1, 0, 1));
+    getTextRangeBeforeBracketShouldReturnRange('a()', Position.create(0, 3), Range.create(0, 3, 0, 3));
+    getTextRangeBeforeBracketShouldReturnRange('a(b)', Position.create(0, 4), Range.create(0, 4, 0, 4));
+    getTextRangeBeforeBracketShouldReturnRange('a)(', Position.create(0, 1), Range.create(0, 1, 0, 1));
+    getTextRangeBeforeBracketShouldReturnRange('a)(', Position.create(0, 2), Range.create(0, 2, 0, 2));
   });
 
   it('getTextRangeBeforeBracket should return range', function () {
-    getTextRangeBeforeBracket_shouldReturnRange('a()', Position.create(0, 2), Range.create(0, 0, 0, 1));
-    getTextRangeBeforeBracket_shouldReturnRange('  a()', Position.create(0, 4), Range.create(0, 2, 0, 3));
-    getTextRangeBeforeBracket_shouldReturnRange('a(b)', Position.create(0, 3), Range.create(0, 0, 0, 1));
-    getTextRangeBeforeBracket_shouldReturnRange('a(b())', Position.create(0, 3), Range.create(0, 0, 0, 1));
-    getTextRangeBeforeBracket_shouldReturnRange('a(b())', Position.create(0, 5), Range.create(0, 0, 0, 1));
-    getTextRangeBeforeBracket_shouldReturnRange('a(  b())', Position.create(0, 5), Range.create(0, 0, 0, 1));
-    getTextRangeBeforeBracket_shouldReturnRange('a(b())', Position.create(0, 4), Range.create(0, 2, 0, 3));
-    getTextRangeBeforeBracket_shouldReturnRange('a(b(c()))', Position.create(0, 6), Range.create(0, 4, 0, 5));
-    getTextRangeBeforeBracket_shouldReturnRange(' coalesce(max())', Position.create(0, 13), Range.create(0, 1, 0, 9));
-    getTextRangeBeforeBracket_shouldReturnRange(' coalesce(min())', Position.create(0, 14), Range.create(0, 10, 0, 13));
+    getTextRangeBeforeBracketShouldReturnRange('a()', Position.create(0, 2), Range.create(0, 0, 0, 1));
+    getTextRangeBeforeBracketShouldReturnRange('  a()', Position.create(0, 4), Range.create(0, 2, 0, 3));
+    getTextRangeBeforeBracketShouldReturnRange('a(b)', Position.create(0, 3), Range.create(0, 0, 0, 1));
+    getTextRangeBeforeBracketShouldReturnRange('a(b())', Position.create(0, 3), Range.create(0, 0, 0, 1));
+    getTextRangeBeforeBracketShouldReturnRange('a(b())', Position.create(0, 5), Range.create(0, 0, 0, 1));
+    getTextRangeBeforeBracketShouldReturnRange('a(  b())', Position.create(0, 5), Range.create(0, 0, 0, 1));
+    getTextRangeBeforeBracketShouldReturnRange('a(b())', Position.create(0, 4), Range.create(0, 2, 0, 3));
+    getTextRangeBeforeBracketShouldReturnRange('a(b(c()))', Position.create(0, 6), Range.create(0, 4, 0, 5));
+    getTextRangeBeforeBracketShouldReturnRange(' coalesce(max())', Position.create(0, 13), Range.create(0, 1, 0, 9));
+    getTextRangeBeforeBracketShouldReturnRange(' coalesce(min())', Position.create(0, 14), Range.create(0, 10, 0, 13));
   });
 
   it('getTextRangeBeforeBracket should return range for multiline text', function () {
-    getTextRangeBeforeBracket_shouldReturnRange('\n\na()', Position.create(2, 2), Range.create(2, 0, 2, 1));
-    getTextRangeBeforeBracket_shouldReturnRange('\n\n coalesce(max())', Position.create(2, 13), Range.create(2, 1, 2, 9));
+    getTextRangeBeforeBracketShouldReturnRange('\n\na()', Position.create(2, 2), Range.create(2, 0, 2, 1));
+    getTextRangeBeforeBracketShouldReturnRange('\n\n coalesce(max())', Position.create(2, 13), Range.create(2, 1, 2, 9));
   });
 });
 
-function getTextRangeBeforeBracket_shouldReturnRange(text: string, position: Position, expectedRange: Range): void {
+function getTextRangeBeforeBracketShouldReturnRange(text: string, position: Position, expectedRange: Range): void {
   // act
   const range = getTextRangeBeforeBracket(text, position);
 

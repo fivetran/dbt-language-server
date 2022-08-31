@@ -5,8 +5,8 @@ import { PositionConverter } from '../../PositionConverter';
 import { DiffUtils } from '../../utils/DiffUtils';
 
 describe('DiffUtils', () => {
-  type content = { raw: string; compiled: string };
-  const FILES = new Map<string, content>();
+  type Content = { raw: string; compiled: string };
+  const FILES = new Map<string, Content>();
 
   it('config_at_the_beginning', () => {
     shouldReturnCorrespondingLineNumber('config_at_the_beginning', [
@@ -149,7 +149,7 @@ describe('DiffUtils', () => {
     assertThat(number, lineNumberInCompiled);
   }
 
-  function getFilesContent(fileName: string): content {
+  function getFilesContent(fileName: string): Content {
     let fileContent = FILES.get(fileName);
     if (!fileContent) {
       const filesRootPath = './server/src/test/diff/';

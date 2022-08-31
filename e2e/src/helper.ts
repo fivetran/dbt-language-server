@@ -26,7 +26,7 @@ import {
 export let doc: TextDocument;
 export let editor: TextEditor;
 
-type voidFunc = () => void;
+type VoidFunc = () => void;
 
 const PROJECTS_PATH = path.resolve(__dirname, '../projects');
 const DOWNLOADS_PATH = path.resolve(__dirname, '../.downloads');
@@ -47,8 +47,8 @@ window.onDidChangeActiveTextEditor(e => {
   console.log(`Active document changed: ${e?.document.uri.toString() ?? 'undefined'}`);
 });
 
-let previewPromiseResolve: voidFunc | undefined;
-let documentPromiseResolve: voidFunc | undefined;
+let previewPromiseResolve: VoidFunc | undefined;
+let documentPromiseResolve: VoidFunc | undefined;
 
 let extensionApi: ExtensionApi | undefined = undefined;
 const languageServerReady = new Array<[string, DeferredResult<void>]>();

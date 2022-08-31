@@ -132,8 +132,8 @@ export class ProjectStatus {
 
       const compareResult = compareVersions(status.versionInfo.installedVersion, status.versionInfo.latestVersion);
       // For v1.0.0 dbt CLI returns that latest version is 1.0.0, in later versions looks like it is fixed
-      const versionGreaterThan1_0_0 = compareVersions(status.versionInfo.installedVersion, { major: 1, minor: 0, patch: 0 }) > 0;
-      if (compareResult === 0 && versionGreaterThan1_0_0) {
+      const versionGreaterThanOne = compareVersions(status.versionInfo.installedVersion, { major: 1, minor: 0, patch: 0 }) > 0;
+      if (compareResult === 0 && versionGreaterThanOne) {
         this.dbtData = {
           severity: LanguageStatusSeverity.Information,
           text: `dbt ${getStringVersion(status.versionInfo.installedVersion)}`,
