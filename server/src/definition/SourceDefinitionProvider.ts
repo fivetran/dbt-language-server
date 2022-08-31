@@ -58,7 +58,8 @@ export class SourceDefinitionProvider implements DbtNodeDefinitionProvider {
           this.dbtRepository.sources,
           sourceSelectionRange,
         );
-      } else if (positionInRange(position, tableSelectionRange)) {
+      }
+      if (positionInRange(position, tableSelectionRange)) {
         return this.getTableDefinitions(
           truncateAtBothSides(source.text),
           truncateAtBothSides(table.text),

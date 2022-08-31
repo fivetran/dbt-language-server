@@ -345,7 +345,8 @@ export class ZetaSqlWrapper {
   async createUdfFromNamePath(namePath: string[]): Promise<Udf | undefined> {
     if (namePath.length === 2) {
       return this.bigQueryClient.getUdf(undefined, namePath[0], namePath[1]);
-    } else if (namePath.length === 3) {
+    }
+    if (namePath.length === 3) {
       return this.bigQueryClient.getUdf(namePath[0], namePath[1], namePath[2]);
     }
     return undefined;

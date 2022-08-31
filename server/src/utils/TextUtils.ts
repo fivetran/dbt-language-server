@@ -158,7 +158,8 @@ function findRegexMatchEnclosingPosition(wordDefinition: RegExp, text: string, p
     const matchIndex = match.index || 0;
     if (matchIndex <= pos && wordDefinition.lastIndex >= pos) {
       return match;
-    } else if (stopPos > 0 && matchIndex > stopPos) {
+    }
+    if (stopPos > 0 && matchIndex > stopPos) {
       return null;
     }
   }

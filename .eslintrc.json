@@ -48,7 +48,12 @@
     "no-promise-executor-return": ["error"],
     "object-shorthand": ["error"],
     "no-path-concat": ["error"],
-    "no-else-return": ["error"],
+    "no-else-return": [
+      "error",
+      {
+        "allowElseIf": false
+      }
+    ],
     "no-useless-constructor": ["off"],
     "prefer-destructuring": [
       "error",
