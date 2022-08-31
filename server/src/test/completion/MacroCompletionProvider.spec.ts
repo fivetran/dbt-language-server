@@ -57,7 +57,7 @@ describe('MacroCompletionProvider', () => {
   });
 
   it('Should provide completions from all packages', () => {
-    shouldProvideCompletions(macroCompletionProvider, JinjaPartType.EXPRESSION_START, `select {{ macro`, [
+    shouldProvideCompletions(macroCompletionProvider, JinjaPartType.EXPRESSION_START, 'select {{ macro', [
       { label: 'macro_1', insertText: 'macro_1' },
       { label: 'macro_2', insertText: 'macro_2' },
       { label: '(installed_package) installed_package_macro_1', insertText: 'installed_package.installed_package_macro_1' },
@@ -65,11 +65,11 @@ describe('MacroCompletionProvider', () => {
     ]);
   });
 
-  it(`Shouldn't provide completions for unknown package`, () => {
+  it("Shouldn't provide completions for unknown package", () => {
     shouldNotProvideCompletions(macroCompletionProvider, JinjaPartType.EXPRESSION_START, 'select {{ unknown_package.');
   });
 
-  it(`Shouldn't provide completions for empty strings`, () => {
+  it("Shouldn't provide completions for empty strings", () => {
     shouldNotProvideCompletions(macroCompletionProvider, JinjaPartType.EXPRESSION_START, 'select {{ ');
   });
 });

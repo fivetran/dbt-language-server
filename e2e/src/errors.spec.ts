@@ -49,7 +49,7 @@ suite('Errors', () => {
     await assertAllDiagnostics(COMPLEX_QUERY_URI, []);
   });
 
-  test(`Should show no errors for queries with materialized='ephemeral'`, async () => {
+  test("Should show no errors for queries with materialized='ephemeral'", async () => {
     // act
     await activateAndWait(EPHEMERAL_URI);
 

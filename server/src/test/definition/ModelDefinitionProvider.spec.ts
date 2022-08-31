@@ -7,7 +7,7 @@ import { ModelDefinitionProvider } from '../../definition/ModelDefinitionProvide
 
 describe('ModelDefinitionProvider', () => {
   const PATH_TO_PROJECT = '/Users/user_name/project';
-  const FILE_NAME = `model_with_refs.sql`;
+  const FILE_NAME = 'model_with_refs.sql';
 
   const PACKAGE_NAME = 'package';
   const PACKAGE_MODEL = 'package_model';

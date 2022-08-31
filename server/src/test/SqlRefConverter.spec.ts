@@ -17,7 +17,7 @@ describe('SqlRefConverter', () => {
       [createResolvedTable(0, 14, 41)],
       [
         {
-          uniqueId: `model.package.test_model0`,
+          uniqueId: 'model.package.test_model0',
           rootPath: '/Users/test/dbt_project',
           originalFilePath: 'test_model0.sql',
           name: 'test_model0',

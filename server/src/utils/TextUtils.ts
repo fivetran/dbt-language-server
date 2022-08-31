@@ -239,5 +239,5 @@ export function getTextRangeBeforeBracket(text: string, cursorPosition: Position
 }
 
 export function isQuote(text: string): boolean {
-  return text === `'` || text === `"`;
+  return text === "'" || text === '"';
 }

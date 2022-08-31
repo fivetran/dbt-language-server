@@ -59,7 +59,7 @@ export class SourceCompletionProvider implements DbtNodeCompletionProvider {
 
   private getSourceInsertText(sourceName: string, quoteSymbolParam: string | undefined): string {
     const isQuoteProvided = quoteSymbolParam !== undefined;
-    const quoteSymbol = isQuoteProvided ? quoteSymbolParam : `'`;
+    const quoteSymbol = isQuoteProvided ? quoteSymbolParam : "'";
     return new StringBuilder().append(sourceName).wrapIf(!isQuoteProvided, quoteSymbol).toString();
   }
 }

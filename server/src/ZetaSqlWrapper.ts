@@ -309,10 +309,10 @@ export class ZetaSqlWrapper {
       if (refModel) {
         await this.analyzeTableInternal(refModel.originalFilePath);
       } else {
-        console.log(`Can't find ref model`);
+        console.log("Can't find ref model");
       }
     } else {
-      console.log(`Can't find ref`);
+      console.log("Can't find ref");
     }
   }
 
@@ -326,7 +326,7 @@ export class ZetaSqlWrapper {
     const uniqueId = model.dependsOn.nodes.find(n => n.endsWith(ref.join('.')));
     const refModel = this.dbtRepository.models.find(m => m.uniqueId === uniqueId);
     if (!refModel) {
-      console.log(`Can't find ref model`);
+      console.log("Can't find ref model");
     }
     return refModel;
   }

@@ -45,12 +45,12 @@ describe('DbtDocumentKindResolver', () => {
     shouldReturnCorrectDocumentKind(PROJECT_LOCATION, secondDocumentUri, DbtDocumentKind.MODEL);
   });
 
-  it(`Shouldn't determine document kind in root folder`, () => {
+  it("Shouldn't determine document kind in root folder", () => {
     const rootDocumentUri = 'file:///Users/user_name/dbt_project/model.sql';
     shouldReturnCorrectDocumentKind(PROJECT_LOCATION, rootDocumentUri, DbtDocumentKind.UNKNOWN);
   });
 
-  it(`Should determine document kind for documents located inside package`, () => {
+  it('Should determine document kind for documents located inside package', () => {
     const packageMacroDocumentUri = 'file:///Users/user_name/dbt_project/dbt_packages/package_name/macros/macro.sql';
     const packageModelDocumentUri = 'file:///Users/user_name/dbt_project/dbt_packages/package_name/models/model.sql';
 

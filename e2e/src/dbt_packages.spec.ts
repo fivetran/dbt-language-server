@@ -37,7 +37,7 @@ suite('Extension should work inside dbt package', () => {
 
   test('Should compile model inside package in intermediate folder', async () => {
     // arrange
-    const docUri = findDocUriInPackage(`salesforce/models/intermediate/salesforce__opportunity_aggregation_by_owner.sql`);
+    const docUri = findDocUriInPackage('salesforce/models/intermediate/salesforce__opportunity_aggregation_by_owner.sql');
 
     // act
     await activateAndWait(docUri);

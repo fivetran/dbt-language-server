@@ -101,18 +101,18 @@ describe('DiffUtils', () => {
 
     shouldReturnCorrespondingCharacterFor(
       'from `project-abcde-400`.`transforms`.`table_volume_filled` t',
-      `from {{ref('table_volume_filled')}} t`,
+      "from {{ref('table_volume_filled')}} t",
       params,
     );
   });
 
   it('Should return char for not compiled line when jinja located at the beginning', () => {
-    shouldReturnCorrespondingCharacterFor(' `project-abcde-400`.`transforms`.`table_volume_filled` t', ` {{ref('table_volume_filled')}} t`, [[0, 0]]);
+    shouldReturnCorrespondingCharacterFor(' `project-abcde-400`.`transforms`.`table_volume_filled` t', " {{ref('table_volume_filled')}} t", [[0, 0]]);
   });
 
-  it(`Should find word 'hour' in old text`, () => {
+  it("Should find word 'hour' in old text", () => {
     shouldReturnCorrespondingCharacterFor(
-      `  inner join {{ ref('current_time') }} as ct on td.hour = ct.hour;`,
+      "  inner join {{ ref('current_time') }} as ct on td.hour = ct.hour;",
       '  inner join `singular-vector-135519`.`dbt_ls_e2e_dataset`.`current_time` as ct on td.hour = ct.hour;',
       [[96, 61]],
     );

@@ -124,7 +124,7 @@ export class ProjectStatus {
         this.dbtData = {
           severity: LanguageStatusSeverity.Warning,
           text: `dbt ${getStringVersion(status.versionInfo.installedVersion)}`,
-          detail: `installed version`,
+          detail: 'installed version',
           command: this.installDbtCommand('Update To Latest Version'),
         };
         return;
@@ -137,7 +137,7 @@ export class ProjectStatus {
         this.dbtData = {
           severity: LanguageStatusSeverity.Information,
           text: `dbt ${getStringVersion(status.versionInfo.installedVersion)}`,
-          detail: `latest version installed`,
+          detail: 'latest version installed',
           command: undefined,
         };
         return;

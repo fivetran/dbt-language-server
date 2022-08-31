@@ -43,7 +43,7 @@ export class DbtLanguageClientManager {
   async getClientForActiveDocument(): Promise<DbtLanguageClient | undefined> {
     const document = this.getActiveDocument();
     if (document === undefined) {
-      log(`Can't find active document`);
+      log("Can't find active document");
       return undefined;
     }
 

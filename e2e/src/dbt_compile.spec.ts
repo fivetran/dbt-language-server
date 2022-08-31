@@ -27,7 +27,7 @@ suite('Should compile jinja expressions', () => {
   });
 
   test('Should compile every change if compilation not finished', async () => {
-    const users = `{{ var('table_2') }}`;
+    const users = "{{ var('table_2') }}";
     const moreThanDebounceTimeout = 400;
     const docUri = getDocUri('sql_after_jinja.sql');
 
