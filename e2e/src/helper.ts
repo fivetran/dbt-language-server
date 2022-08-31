@@ -23,6 +23,7 @@ import {
   window,
   workspace,
 } from 'vscode';
+
 export let doc: TextDocument;
 export let editor: TextEditor;
 
