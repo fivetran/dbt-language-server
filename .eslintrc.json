@@ -89,6 +89,13 @@
         "format": ["PascalCase"]
       }
     ],
+    "arrow-body-style": [
+      "error",
+      "as-needed",
+      {
+        "requireReturnForObjectLiteral": false
+      }
+    ],
 
     "@typescript-eslint/no-shadow": ["error"],
     "@typescript-eslint/explicit-function-return-type": ["error"],

@@ -145,21 +145,21 @@ export function sleep(ms: number): Promise<unknown> {
   return setTimeout(ms);
 }
 
-export const getDocPath = (p: string): string => {
+export function getDocPath(p: string): string {
   return path.resolve(TEST_FIXTURE_PATH, 'models', p);
-};
+}
 
-export const getDocUri = (docName: string): Uri => {
+export function getDocUri(docName: string): Uri {
   return Uri.file(getDocPath(docName));
-};
+}
 
-export const getAbsolutePath = (pathRelativeToProject: string): string => {
+export function getAbsolutePath(pathRelativeToProject: string): string {
   return path.resolve(PROJECTS_PATH, pathRelativeToProject);
-};
+}
 
-export const getCustomDocUri = (p: string): Uri => {
+export function getCustomDocUri(p: string): Uri {
   return Uri.file(getAbsolutePath(p));
-};
+}
 
 export async function setTestContent(content: string, waitForPreview = true): Promise<void> {
   await showPreview();
