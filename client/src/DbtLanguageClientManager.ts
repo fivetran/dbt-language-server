@@ -25,13 +25,15 @@ export class DbtLanguageClientManager {
     previewContentProvider.onDidChange(() => this.applyPreviewDiagnostics());
   }
 
-  async applyPreviewDiagnostics(): Promise<void> {
+  applyPreviewDiagnostics(): void {
     const previewDiagnostics = this.previewContentProvider.getPreviewDiagnostics();
-    const activeClient = await this.getClientForActiveDocument();
 
     for (const client of this.clients.values()) {
       const clientDiagnostics = client.getDiagnostics();
-      clientDiagnostics?.set(SqlPreviewContentProvider.URI, client.getProjectUri() === activeClient?.getProjectUri() ? previewDiagnostics : []);
+      clientDiagnostics?.set(
+        SqlPreviewContentProvider.URI,
+        this.previewContentProvider.activeDocUri.fsPath.startsWith(client.getProjectUri().fsPath) ? previewDiagnostics : [],
+      );
     }
 
     const editor = window.visibleTextEditors.find(e => e.document.uri.toString() === SqlPreviewContentProvider.URI.toString());
