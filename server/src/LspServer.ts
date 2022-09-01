@@ -18,7 +18,6 @@ import {
   DidChangeConfigurationNotification,
   DidChangeTextDocumentParams,
   DidChangeWatchedFilesParams,
-  DidCloseTextDocumentParams,
   DidCreateFilesNotification,
   DidDeleteFilesNotification,
   DidOpenTextDocumentParams,
@@ -68,8 +67,6 @@ import { SqlCompletionProvider } from './SqlCompletionProvider';
 import { StatusSender } from './StatusSender';
 
 export class LspServer {
-  static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
-
   sqlToRefCommandName = randomUUID();
   filesFilter: FileOperationFilter[];
   workspaceFolder: string;
@@ -93,8 +90,6 @@ export class LspServer {
 
   destinationState = new DestinationState();
   dbt?: Dbt;
-
-  openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
 
   constructor(private connection: _Connection) {
     this.workspaceFolder = process.cwd();
@@ -361,24 +356,6 @@ export class LspServer {
     await document?.didSaveTextDocument(true);
   }
 
-  onDidOpenTextDocumentDelayed(params: DidOpenTextDocumentParams): Promise<void> {
-    this.openTextDocumentRequests.set(params.textDocument.uri, params);
-    return new Promise((resolve, reject) => {
-      setTimeout(async () => {
-        try {
-          const openRequest = this.openTextDocumentRequests.get(params.textDocument.uri);
-          if (openRequest) {
-            this.openTextDocumentRequests.delete(params.textDocument.uri);
-            await this.onDidOpenTextDocument(openRequest);
-          }
-          resolve();
-        } catch (e) {
-          reject(e instanceof Error ? e : new Error('Failed to open document'));
-        }
-      }, LspServer.OPEN_CLOSE_DEBOUNCE_PERIOD);
-    });
-  }
-
   async onDidOpenTextDocument(params: DidOpenTextDocumentParams): Promise<void> {
     const { uri } = params.textDocument;
     let document = this.openedDocuments.get(uri);
@@ -429,12 +406,6 @@ export class LspServer {
       return true;
     } catch {
       return false;
-    }
-  }
-
-  onDidCloseTextDocumentDelayed(params: DidCloseTextDocumentParams): void {
-    if (this.openTextDocumentRequests.has(params.textDocument.uri)) {
-      this.openTextDocumentRequests.delete(params.textDocument.uri);
     }
   }
 
