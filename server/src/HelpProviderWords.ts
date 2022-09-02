@@ -5,7 +5,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'any_value',
     signatures: [
       {
-        signature: 'ANY_VALUE(\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
+        signature:
+          'ANY_VALUE(\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
         description:
           'Returns `expression` for some row chosen from the group. Which row is chosen is\nnondeterministic, not random. Returns `NULL` when the input produces no\nrows. Returns `NULL` when `expression` is `NULL` for all rows in the group.',
       },
@@ -16,7 +17,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature:
-          'ARRAY_AGG(\n  [DISTINCT]\n  expression\n  [{IGNORE|RESPECT} NULLS]\n  [HAVING {MAX | MIN} expression2]\n  [ORDER BY key [{ASC|DESC}] [, ... ]]\n  [LIMIT n]\n)\n[OVER (...)]\n',
+          'ARRAY_AGG(\n  [ DISTINCT ]\n  expression\n  [ { IGNORE | RESPECT } NULLS ]\n  [ HAVING { MAX | MIN } expression2 ]\n  [ ORDER BY key [ { ASC | DESC } ] [, ... ] ]\n  [ LIMIT n ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
         description: 'Returns an ARRAY of `expression` values.',
       },
     ],
@@ -25,7 +26,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'array_concat_agg',
     signatures: [
       {
-        signature: 'ARRAY_CONCAT_AGG(\n  expression\n  [HAVING {MAX | MIN} expression2]\n  [ORDER BY key [{ASC|DESC}] [, ... ]]\n  [LIMIT n]\n)\n',
+        signature:
+          'ARRAY_CONCAT_AGG(\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n  [ ORDER BY key [ { ASC | DESC } ] [, ... ] ]\n  [ LIMIT n ]\n)\n',
         description:
           'Concatenates elements from `expression` of type\nARRAY, returning a single\nARRAY as a result. This function ignores NULL input\narrays, but respects the NULL elements in non-NULL input arrays.',
       },
@@ -35,7 +37,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'avg',
     signatures: [
       {
-        signature: 'AVG(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
+        signature:
+          'AVG(\n  [ DISTINCT ]\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
         description: 'Returns the average of non-`NULL` input values, or `NaN` if the input contains a\n`NaN`.',
       },
     ],
@@ -44,7 +47,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'bit_and',
     signatures: [
       {
-        signature: 'BIT_AND(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n',
+        signature: 'BIT_AND(\n  [ DISTINCT ]\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n',
         description: 'Performs a bitwise AND operation on `expression` and returns the result.',
       },
     ],
@@ -53,7 +56,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'bit_or',
     signatures: [
       {
-        signature: 'BIT_OR(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n',
+        signature: 'BIT_OR(\n  [ DISTINCT ]\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n',
         description: 'Performs a bitwise OR operation on `expression` and returns the result.',
       },
     ],
@@ -62,7 +65,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'bit_xor',
     signatures: [
       {
-        signature: 'BIT_XOR(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n',
+        signature: 'BIT_XOR(\n  [ DISTINCT ]\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n',
         description: 'Performs a bitwise XOR operation on `expression` and returns the result.',
       },
     ],
@@ -70,9 +73,10 @@ export const HelpProviderWords: FunctionInfo[] = [
   {
     name: 'count',
     signatures: [
-      { signature: 'COUNT(*)  [OVER (...)]\n', description: 'Returns the number of rows in the input.' },
+      { signature: 'COUNT(*)\n[OVER over_clause]\n', description: 'Returns the number of rows in the input.' },
       {
-        signature: 'COUNT(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
+        signature:
+          'COUNT(\n  [ DISTINCT ]\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
         description: 'Returns the number of rows with `expression` evaluated to any value other\nthan `NULL`.',
       },
     ],
@@ -81,7 +85,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'countif',
     signatures: [
       {
-        signature: 'COUNTIF(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
+        signature:
+          'COUNTIF(\n  [ DISTINCT ]\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
         description:
           'Returns the count of `TRUE` values for `expression`. Returns `0` if there are\nzero input rows, or if `expression` evaluates to `FALSE` or `NULL` for all rows.',
       },
@@ -91,7 +96,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'logical_and',
     signatures: [
       {
-        signature: 'LOGICAL_AND(\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
+        signature:
+          'LOGICAL_AND(\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
         description:
           'Returns the logical AND of all non-`NULL` expressions. Returns `NULL` if there\nare zero input rows or `expression` evaluates to `NULL` for all rows.',
       },
@@ -101,7 +107,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'logical_or',
     signatures: [
       {
-        signature: 'LOGICAL_OR(\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
+        signature:
+          'LOGICAL_OR(\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
         description:
           'Returns the logical OR of all non-`NULL` expressions. Returns `NULL` if there\nare zero input rows or `expression` evaluates to `NULL` for all rows.',
       },
@@ -111,7 +118,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'max',
     signatures: [
       {
-        signature: 'MAX(\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
+        signature:
+          'MAX(\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
         description:
           'Returns the maximum value of non-`NULL` expressions. Returns `NULL` if there\nare zero input rows or `expression` evaluates to `NULL` for all rows.\nReturns `NaN` if the input contains a `NaN`.',
       },
@@ -121,7 +129,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'min',
     signatures: [
       {
-        signature: 'MIN(\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
+        signature:
+          'MIN(\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
         description:
           'Returns the minimum value of non-`NULL` expressions. Returns `NULL` if there\nare zero input rows or `expression` evaluates to `NULL` for all rows.\nReturns `NaN` if the input contains a `NaN`.',
       },
@@ -132,9 +141,9 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature:
-          'STRING_AGG(\n  [DISTINCT]\n  expression [, delimiter]\n  [HAVING {MAX | MIN} expression2]\n  [ORDER BY key [{ASC|DESC}] [, ... ]]\n  [LIMIT n]\n)\n[OVER (...)]\n',
+          'STRING_AGG(\n  [ DISTINCT ]\n  expression [, delimiter]\n  [ HAVING { MAX | MIN } expression2 ]\n  [ ORDER BY key [ { ASC | DESC } ] [, ... ] ]\n  [ LIMIT n ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
         description:
-          'Returns a value (either STRING or\nBYTES) obtained by concatenating non-null values.\nReturns `NULL` if there are zero input rows or `expression` evaluates to\n`NULL` for all rows.',
+          'Returns a value (either `STRING` or `BYTES`) obtained by concatenating\nnon-`NULL` values. Returns `NULL` if there are zero input rows or `expression`\nevaluates to `NULL` for all rows.',
       },
     ],
   },
@@ -142,7 +151,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'sum',
     signatures: [
       {
-        signature: 'SUM(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
+        signature:
+          'SUM(\n  [ DISTINCT ]\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
         description: 'Returns the sum of non-null values.',
       },
     ],
@@ -151,7 +161,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'corr',
     signatures: [
       {
-        signature: 'CORR(\n  X1, X2\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
+        signature:
+          'CORR(\n  X1, X2\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
         description:
           'Returns the Pearson coefficient\nof correlation of a set of number pairs. For each number pair, the first number\nis the dependent variable and the second number is the independent variable.\nThe return result is between `-1` and `1`. A result of `0` indicates no\ncorrelation.',
       },
@@ -161,7 +172,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'covar_pop',
     signatures: [
       {
-        signature: 'COVAR_POP(\n  X1, X2\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
+        signature:
+          'COVAR_POP(\n  X1, X2\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
         description:
           'Returns the population covariance of\na set of number pairs. The first number is the dependent variable; the second\nnumber is the independent variable. The return result is between `-Inf` and\n`+Inf`.',
       },
@@ -171,7 +183,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'covar_samp',
     signatures: [
       {
-        signature: 'COVAR_SAMP(\n  X1, X2\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
+        signature:
+          'COVAR_SAMP(\n  X1, X2\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
         description:
           'Returns the sample covariance of a\nset of number pairs. The first number is the dependent variable; the second\nnumber is the independent variable. The return result is between `-Inf` and\n`+Inf`.',
       },
@@ -181,7 +194,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'stddev_pop',
     signatures: [
       {
-        signature: 'STDDEV_POP(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
+        signature:
+          'STDDEV_POP(\n  [ DISTINCT ]\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
         description: 'Returns the population (biased) standard deviation of the values. The return\nresult is between `0` and `+Inf`.',
       },
     ],
@@ -190,7 +204,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'stddev_samp',
     signatures: [
       {
-        signature: 'STDDEV_SAMP(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
+        signature:
+          'STDDEV_SAMP(\n  [ DISTINCT ]\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
         description: 'Returns the sample (unbiased) standard deviation of the values. The return\nresult is between `0` and `+Inf`.',
       },
     ],
@@ -199,7 +214,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'stddev',
     signatures: [
       {
-        signature: 'STDDEV(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
+        signature:
+          'STDDEV(\n  [ DISTINCT ]\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
         description: 'An alias of STDDEV_SAMP.',
       },
     ],
@@ -208,7 +224,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'var_pop',
     signatures: [
       {
-        signature: 'VAR_POP(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
+        signature:
+          'VAR_POP(\n  [ DISTINCT ]\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
         description: 'Returns the population (biased) variance of the values. The return result is\nbetween `0` and `+Inf`.',
       },
     ],
@@ -217,7 +234,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'var_samp',
     signatures: [
       {
-        signature: 'VAR_SAMP(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
+        signature:
+          'VAR_SAMP(\n  [ DISTINCT ]\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
         description: 'Returns the sample (unbiased) variance of the values. The return result is\nbetween `0` and `+Inf`.',
       },
     ],
@@ -226,7 +244,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'variance',
     signatures: [
       {
-        signature: 'VARIANCE(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n',
+        signature:
+          'VARIANCE(\n  [ DISTINCT ]\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
         description: 'An alias of VAR_SAMP.',
       },
     ],
@@ -245,7 +264,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'approx_quantiles',
     signatures: [
       {
-        signature: 'APPROX_QUANTILES(\n  [DISTINCT]\n  expression, number\n  [{IGNORE|RESPECT} NULLS]\n  [HAVING {MAX | MIN} expression2]\n)\n',
+        signature:
+          'APPROX_QUANTILES(\n  [ DISTINCT ]\n  expression, number\n  [ { IGNORE | RESPECT } NULLS ]\n  [ HAVING { MAX | MIN } expression2 ]\n)\n',
         description:
           'Returns the approximate boundaries for a group of `expression` values, where\n`number` represents the number of quantiles to create. This function returns\nan array of `number` + 1 elements, where the first element is the approximate\nminimum and the last element is the approximate maximum.',
       },
@@ -255,7 +275,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'approx_top_count',
     signatures: [
       {
-        signature: 'APPROX_TOP_COUNT(\n  expression, number\n  [HAVING {MAX | MIN} expression2]\n)\n',
+        signature: 'APPROX_TOP_COUNT(\n  expression, number\n  [ HAVING { MAX | MIN } expression2 ]\n)\n',
         description: 'Returns the approximate top elements of `expression`. The `number` parameter\nspecifies the number of elements returned.',
       },
     ],
@@ -264,7 +284,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'approx_top_sum',
     signatures: [
       {
-        signature: 'APPROX_TOP_SUM(\n  expression, weight, number\n  [HAVING {MAX | MIN} expression2]\n)\n',
+        signature: 'APPROX_TOP_SUM(\n  expression, weight, number\n  [ HAVING { MAX | MIN } expression2 ]\n)\n',
         description:
           'Returns the approximate top elements of `expression`, based on the sum of an\nassigned `weight`. The `number` parameter specifies the number of elements\nreturned.',
       },
@@ -310,7 +330,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'KLL_QUANTILES.INIT_INT64(input[, precision[, weight => input_weight]])\n',
         description:
-          'Takes one or more `input` values and aggregates them into a\nKLL16 sketch. This function represents the output sketch\nusing the `BYTES` data type. This is an\naggregate function.',
+          'Takes one or more `input` values and aggregates them into a\nKLL sketch. This function represents the output sketch\nusing the `BYTES` data type. This is an\naggregate function.',
       },
     ],
   },
@@ -319,7 +339,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature: 'KLL_QUANTILES.INIT_UINT64(input[, precision[, weight => input_weight]])\n',
-        description: 'Like `KLL_QUANTILES.INIT_INT64`, but accepts\n`input` of type `UINT64`.',
+        description: 'Like `KLL_QUANTILES.INIT_INT64`,\nbut accepts `input` of type `UINT64`.',
       },
     ],
   },
@@ -328,7 +348,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature: 'KLL_QUANTILES.INIT_DOUBLE(input[, precision[, weight => input_weight]])\n',
-        description: 'Like `KLL_QUANTILES.INIT_INT64`, but accepts\n`input` of type `DOUBLE`.',
+        description: 'Like `KLL_QUANTILES.INIT_INT64`,\nbut accepts `input` of type `DOUBLE`.',
       },
     ],
   },
@@ -338,7 +358,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'KLL_QUANTILES.MERGE_PARTIAL(sketch)\n',
         description:
-          'Takes KLL16 sketches of the same underlying type and merges them to return a new\nsketch of the same underlying type. This is an aggregate function.',
+          'Takes KLL sketches of the same underlying type and merges them to return a new\nsketch of the same underlying type. This is an aggregate function.',
       },
     ],
   },
@@ -348,7 +368,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'KLL_QUANTILES.MERGE_INT64(sketch, number)\n',
         description:
-          'Takes KLL16 sketches as `BYTES` and merges them into\na new sketch, then\nreturns the quantiles that divide the input into `number` equal-sized\ngroups, along with the minimum and maximum values of the input. The output is\nan `ARRAY` containing the exact minimum value from\nthe input data that you used\nto initialize the sketches, each approximate quantile, and the exact maximum\nvalue from the initial input data. This is an aggregate function.',
+          'Takes KLL sketches as `BYTES` and merges them into\na new sketch, then returns the quantiles that divide the input into\n`number` equal-sized groups, along with the minimum and maximum values of the\ninput. The output is an `ARRAY` containing the exact minimum value from\nthe input data that you used to initialize the sketches, each\napproximate quantile, and the exact maximum value from the initial input data.\nThis is an aggregate function.',
       },
     ],
   },
@@ -357,7 +377,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature: 'KLL_QUANTILES.MERGE_UINT64(sketch, number)\n',
-        description: 'Like `KLL_QUANTILES.MERGE_INT64`, but accepts\n`input` of type `UINT64`.',
+        description: 'Like `KLL_QUANTILES.MERGE_INT64`,\nbut accepts KLL sketches initialized on data of type `UINT64`.',
       },
     ],
   },
@@ -366,7 +386,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature: 'KLL_QUANTILES.MERGE_DOUBLE(sketch, number)\n',
-        description: 'Like `KLL_QUANTILES.MERGE_INT64`, but accepts\n`input` of type `DOUBLE`.',
+        description: 'Like `KLL_QUANTILES.MERGE_INT64`,\nbut accepts KLL sketches initialized on data of type\n`DOUBLE`.',
       },
     ],
   },
@@ -376,7 +396,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'KLL_QUANTILES.MERGE_POINT_INT64(sketch, phi)\n',
         description:
-          'Takes KLL16 sketches as `BYTES` and merges them, then\nextracts a single\nquantile from the merged sketch. The `phi` argument specifies the quantile\nto return as a fraction of the total number of rows in the input, normalized\nbetween 0 and 1. This means that the function will return a value v such that\napproximately Φ * n inputs are less than or equal to v, and a (1-Φ) / n\ninputs are greater than or equal to v. This is an aggregate function.',
+          'Takes KLL sketches as `BYTES` and merges them, then extracts a single\nquantile from the merged sketch. The `phi` argument specifies the quantile\nto return as a fraction of the total number of rows in the input, normalized\nbetween 0 and 1. This means that the function will return a value v such that\napproximately Φ * n inputs are less than or equal to v, and a (1-Φ) / n\ninputs are greater than or equal to v. This is an aggregate function.',
       },
     ],
   },
@@ -385,7 +405,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature: 'KLL_QUANTILES.MERGE_POINT_UINT64(sketch, phi)\n',
-        description: 'Like `KLL_QUANTILES.MERGE_POINT_INT64`, but\naccepts `input` of type `UINT64`.',
+        description: 'Like `KLL_QUANTILES.MERGE_POINT_INT64`,\nbut accepts KLL sketches initialized on data of type `UINT64`.',
       },
     ],
   },
@@ -394,7 +414,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature: 'KLL_QUANTILES.MERGE_POINT_DOUBLE(sketch, phi)\n',
-        description: 'Like `KLL_QUANTILES.MERGE_POINT_INT64`, but\naccepts `input` of type `DOUBLE`.',
+        description: 'Like `KLL_QUANTILES.MERGE_POINT_INT64`,\nbut accepts KLL sketches initialized on data of type\n`DOUBLE`.',
       },
     ],
   },
@@ -404,7 +424,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'KLL_QUANTILES.EXTRACT_INT64(sketch, number)\n',
         description:
-          'Takes a single KLL16 sketch as `BYTES` and returns a\nselected `number`\nof quantiles. The output is an `ARRAY` containing the\nexact minimum value from\nthe input data that you used to initialize the sketch, each approximate\nquantile, and the exact maximum value from the initial input data. This is a\nscalar function, similar to `KLL_QUANTILES.MERGE_INT64`, but scalar rather than\naggregate.',
+          'Takes a single KLL sketch as `BYTES` and returns a selected `number` of\nquantiles. The output is an `ARRAY` containing the exact minimum value from\nthe input data that you used to initialize the sketch, each approximate\nquantile, and the exact maximum value from the initial input data. This is a\nscalar function, similar to `KLL_QUANTILES.MERGE_INT64`, but scalar rather than\naggregate.',
       },
     ],
   },
@@ -413,7 +433,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature: 'KLL_QUANTILES.EXTRACT_UINT64(sketch, number)\n',
-        description: 'Like `KLL_QUANTILES.EXTRACT_INT64`, but accepts\nsketches initialized on data of type of type `UINT64`.',
+        description: 'Like `KLL_QUANTILES.EXTRACT_INT64`,\nbut accepts KLL sketches initialized on data of type `UINT64`.',
       },
     ],
   },
@@ -422,7 +442,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature: 'KLL_QUANTILES.EXTRACT_DOUBLE(sketch, number)\n',
-        description: 'Like `KLL_QUANTILES.EXTRACT_INT64`, but accepts\nsketches initialized on data of type of type `DOUBLE`.',
+        description: 'Like `KLL_QUANTILES.EXTRACT_INT64`,\nbut accepts KLL sketches initialized on data of type\n`DOUBLE`.',
       },
     ],
   },
@@ -432,7 +452,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'KLL_QUANTILES.EXTRACT_POINT_INT64(sketch, phi)\n',
         description:
-          'Takes a single KLL16 sketch as `BYTES` and returns a\nsingle quantile.\nThe `phi` argument specifies the quantile to return as a fraction of the total\nnumber of rows in the input, normalized between 0 and 1. This means that the\nfunction will return a value v such that approximately Φ * n inputs are less\nthan or equal to v, and a (1-Φ) / n inputs are greater than or equal to v.\nThis is a scalar function.',
+          'Takes a single KLL sketch as `BYTES` and returns a single quantile.\nThe `phi` argument specifies the quantile to return as a fraction of the total\nnumber of rows in the input, normalized between 0 and 1. This means that the\nfunction will return a value v such that approximately Φ * n inputs are less\nthan or equal to v, and a (1-Φ) / n inputs are greater than or equal to v.\nThis is a scalar function.',
       },
     ],
   },
@@ -441,7 +461,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature: 'KLL_QUANTILES.EXTRACT_POINT_UINT64(sketch, phi)\n',
-        description: 'Like `KLL_QUANTILES.EXTRACT_POINT_INT64`,\nbut accepts sketches initialized on data of type of type\n`UINT64`.',
+        description: 'Like `KLL_QUANTILES.EXTRACT_POINT_INT64`,\nbut accepts KLL sketches initialized on data of type `UINT64`.',
       },
     ],
   },
@@ -450,7 +470,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature: 'KLL_QUANTILES.EXTRACT_POINT_DOUBLE(sketch, phi)\n',
-        description: 'Like `KLL_QUANTILES.EXTRACT_POINT_INT64`,\nbut accepts sketches initialized on data of type of type\n`DOUBLE`.',
+        description: 'Like `KLL_QUANTILES.EXTRACT_POINT_INT64`,\nbut accepts KLL sketches initialized on data of type\n`DOUBLE`.',
       },
     ],
   },
@@ -458,7 +478,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'rank',
     signatures: [
       {
-        signature: 'RANK()\n',
+        signature:
+          'RANK()\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  ORDER BY expression [ { ASC | DESC }  ] [, ...]\n\n',
         description:
           'Returns the ordinal (1-based) rank of each row within the ordered partition.\nAll peer rows receive the same rank value. The next row or set of peer rows\nreceives a rank value which increments by the number of peers with the previous\nrank value, instead of `DENSE_RANK`, which always increments by 1.',
       },
@@ -468,7 +489,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'dense_rank',
     signatures: [
       {
-        signature: 'DENSE_RANK()\n',
+        signature:
+          'DENSE_RANK()\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  ORDER BY expression [ { ASC | DESC }  ] [, ...]\n\n',
         description:
           'Returns the ordinal (1-based) rank of each row within the window partition.\nAll peer rows receive the same rank value, and the subsequent rank value is\nincremented by one.',
       },
@@ -478,7 +500,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'percent_rank',
     signatures: [
       {
-        signature: 'PERCENT_RANK()\n',
+        signature:
+          'PERCENT_RANK()\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  ORDER BY expression [ { ASC | DESC }  ] [, ...]\n\n',
         description:
           'Return the percentile rank of a row defined as (RK-1)/(NR-1), where RK is\nthe `RANK` of the row and NR is the number of rows in the partition.\nReturns 0 if NR=1.',
       },
@@ -488,7 +511,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'cume_dist',
     signatures: [
       {
-        signature: 'CUME_DIST()\n',
+        signature:
+          'CUME_DIST()\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  ORDER BY expression [ { ASC | DESC }  ] [, ...]\n\n',
         description:
           'Return the relative rank of a row defined as NP/NR. NP is defined to be the\nnumber of rows that either precede or are peers with the current row. NR is the\nnumber of rows in the partition.',
       },
@@ -498,7 +522,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'ntile',
     signatures: [
       {
-        signature: 'NTILE(constant_integer_expression)\n',
+        signature:
+          'NTILE(constant_integer_expression)\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  ORDER BY expression [ { ASC | DESC }  ] [, ...]\n\n',
         description:
           'This function divides the rows into `constant_integer_expression`\nbuckets based on row ordering and returns the 1-based bucket number that is\nassigned to each row. The number of rows in the buckets can differ by at most 1.\nThe remainder values (the remainder of number of rows divided by buckets) are\ndistributed one for each bucket, starting with bucket 1. If\n`constant_integer_expression` evaluates to NULL, 0 or negative, an\nerror is provided.',
       },
@@ -508,7 +533,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'row_number',
     signatures: [
       {
-        signature: 'ROW_NUMBER()\n',
+        signature:
+          'ROW_NUMBER()\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n\n',
         description:
           'Does not require the `ORDER BY` clause. Returns the sequential\nrow ordinal (1-based) of each row for each ordered partition. If the\n`ORDER BY` clause is unspecified then the result is\nnon-deterministic.',
       },
@@ -732,6 +758,66 @@ export const HelpProviderWords: FunctionInfo[] = [
       { signature: 'ACOSH(X)\n', description: 'Computes the inverse hyperbolic cosine of X. Generates an error if X is a value\nless than 1.' },
     ],
   },
+  {
+    name: 'cot',
+    signatures: [
+      {
+        signature: 'COT(X)\n',
+        description:
+          'Computes the cotangent for the angle of `X`, where `X` is specified in radians.\n`X` can be any data type\nthat coerces to `DOUBLE`.\nSupports the `SAFE.` prefix.',
+      },
+    ],
+  },
+  {
+    name: 'coth',
+    signatures: [
+      {
+        signature: 'COTH(X)\n',
+        description:
+          'Computes the hyperbolic cotangent for the angle of `X`, where `X` is specified\nin radians. `X` can be any data type\nthat coerces to `DOUBLE`.\nSupports the `SAFE.` prefix.',
+      },
+    ],
+  },
+  {
+    name: 'csc',
+    signatures: [
+      {
+        signature: 'CSC(X)\n',
+        description:
+          'Computes the cosecant of the input angle, which is in radians.\n`X` can be any data type\nthat coerces to `DOUBLE`.\nSupports the `SAFE.` prefix.',
+      },
+    ],
+  },
+  {
+    name: 'csch',
+    signatures: [
+      {
+        signature: 'CSCH(X)\n',
+        description:
+          'Computes the hyperbolic cosecant of the input angle, which is in radians.\n`X` can be any data type\nthat coerces to `DOUBLE`.\nSupports the `SAFE.` prefix.',
+      },
+    ],
+  },
+  {
+    name: 'sec',
+    signatures: [
+      {
+        signature: 'SEC(X)\n',
+        description:
+          'Computes the secant for the angle of `X`, where `X` is specified in radians.\n`X` can be any data type\nthat coerces to `DOUBLE`.',
+      },
+    ],
+  },
+  {
+    name: 'sech',
+    signatures: [
+      {
+        signature: 'SECH(X)\n',
+        description:
+          'Computes the hyperbolic secant for the angle of `X`, where `X` is specified\nin radians. `X` can be any data type\nthat coerces to `DOUBLE`.\nNever produces an error.',
+      },
+    ],
+  },
   { name: 'sin', signatures: [{ signature: 'SIN(X)\n', description: 'Computes the sine of X where X is specified in radians. Never fails.' }] },
   {
     name: 'sinh',
@@ -792,10 +878,20 @@ export const HelpProviderWords: FunctionInfo[] = [
     ],
   },
   {
+    name: 'cbrt',
+    signatures: [
+      {
+        signature: 'CBRT(X)\n',
+        description: 'Computes the cube root of `X`. `X` can be any data type\nthat coerces to `DOUBLE`.\nSupports the `SAFE.` prefix.',
+      },
+    ],
+  },
+  {
     name: 'first_value',
     signatures: [
       {
-        signature: 'FIRST_VALUE (value_expression [{RESPECT | IGNORE} NULLS])\n',
+        signature:
+          'FIRST_VALUE (value_expression [{RESPECT | IGNORE} NULLS])\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  ORDER BY expression [ { ASC | DESC }  ] [, ...]\n  [ window_frame_clause ]\n\n',
         description: 'Returns the value of the `value_expression` for the first row in the current\nwindow frame.',
       },
     ],
@@ -804,7 +900,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'last_value',
     signatures: [
       {
-        signature: 'LAST_VALUE (value_expression [{RESPECT | IGNORE} NULLS])\n',
+        signature:
+          'LAST_VALUE (value_expression [{RESPECT | IGNORE} NULLS])\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  ORDER BY expression [ { ASC | DESC }  ] [, ...]\n  [ window_frame_clause ]\n\n',
         description: 'Returns the value of the `value_expression` for the last row in the current\nwindow frame.',
       },
     ],
@@ -813,7 +910,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'nth_value',
     signatures: [
       {
-        signature: 'NTH_VALUE (value_expression, constant_integer_expression [{RESPECT | IGNORE} NULLS])\n',
+        signature:
+          'NTH_VALUE (value_expression, constant_integer_expression [{RESPECT | IGNORE} NULLS])\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  ORDER BY expression [ { ASC | DESC }  ] [, ...]\n  [ window_frame_clause ]\n\n',
         description:
           'Returns the value of `value_expression` at the Nth row of the current window\nframe, where Nth is defined by `constant_integer_expression`. Returns NULL if\nthere is no such row.',
       },
@@ -823,7 +921,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'lead',
     signatures: [
       {
-        signature: 'LEAD (value_expression[, offset [, default_expression]])\n',
+        signature:
+          'LEAD (value_expression[, offset [, default_expression]])\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  ORDER BY expression [ { ASC | DESC }  ] [, ...]\n\n',
         description:
           'Returns the value of the `value_expression` on a subsequent row. Changing the\n`offset` value changes which subsequent row is returned; the default value is\n`1`, indicating the next row in the window frame. An error occurs if `offset` is\nNULL or a negative value.',
       },
@@ -833,7 +932,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'lag',
     signatures: [
       {
-        signature: 'LAG (value_expression[, offset [, default_expression]])\n',
+        signature:
+          'LAG (value_expression[, offset [, default_expression]])\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  ORDER BY expression [ { ASC | DESC }  ] [, ...]\n\n',
         description:
           'Returns the value of the `value_expression` on a preceding row. Changing the\n`offset` value changes which preceding row is returned; the default value is\n`1`, indicating the previous row in the window frame. An error occurs if\n`offset` is NULL or a negative value.',
       },
@@ -843,7 +943,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'percentile_cont',
     signatures: [
       {
-        signature: 'PERCENTILE_CONT (value_expression, percentile [{RESPECT | IGNORE} NULLS])\n',
+        signature:
+          'PERCENTILE_CONT (value_expression, percentile [{RESPECT | IGNORE} NULLS])\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n\n',
         description: 'Computes the specified percentile value for the value_expression, with linear\ninterpolation.',
       },
     ],
@@ -852,7 +953,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'percentile_disc',
     signatures: [
       {
-        signature: 'PERCENTILE_DISC (value_expression, percentile [{RESPECT | IGNORE} NULLS])\n',
+        signature:
+          'PERCENTILE_DISC (value_expression, percentile [{RESPECT | IGNORE} NULLS])\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n\n',
         description:
           'Computes the specified percentile value for a discrete `value_expression`. The\nreturned value is the first sorted value of `value_expression` with cumulative\ndistribution greater than or equal to the given `percentile` value.',
       },
@@ -963,10 +1065,10 @@ export const HelpProviderWords: FunctionInfo[] = [
     ],
   },
   {
-    name: 'concat',
+    name: 'collate',
     signatures: [
       {
-        signature: 'CONCAT(value1[, ...])\n',
+        signature: 'COLLATE(value, collate_specification)\n',
         description: 'Concatenates one or more values into a single result. All values must be\n`BYTES` or data types that can be cast to `STRING`.',
       },
     ],
@@ -1341,7 +1443,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'JSON_VALUE_ARRAY(json_string_expr[, json_path])\n',
         description:
-          'Extracts an array of scalar values and returns an array of string-formatted\nscalar values. A scalar value can represent a string, number, or boolean. If a\nJSON key uses invalid JSONPath characters, you can escape\nthose characters using double quotes.',
+          'Extracts an array of scalar values and returns an array of string-formatted\nscalar values. A scalar value can represent a string, number, or boolean.\nIf a JSON key uses invalid JSONPath characters, you can\nescape those characters using double quotes.',
       },
     ],
   },
@@ -1349,7 +1451,7 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'parse_json',
     signatures: [
       {
-        signature: "PARSE_JSON(json_string_expr[, wide_number_mode=>{ 'exact' | 'round' } ])\n",
+        signature: "PARSE_JSON(json_string_expr[, wide_number_mode=>{ 'exact' | 'round' }])\n",
         description: 'Takes a SQL `STRING` value and returns a SQL `JSON` value.\nThe `STRING` value represents a string-formatted JSON value.',
       },
     ],
@@ -1405,8 +1507,10 @@ export const HelpProviderWords: FunctionInfo[] = [
     ],
   },
   {
-    name: 'jsonpath',
-    signatures: [{ signature: '', description: 'The `ARRAY` function returns an `ARRAY` with one element for each row in a\nsubquery.' }],
+    name: 'array',
+    signatures: [
+      { signature: 'ARRAY(subquery)\n', description: 'The `ARRAY` function returns an `ARRAY` with one element for each row in a\nsubquery.' },
+    ],
   },
   {
     name: 'array_concat',
@@ -1426,6 +1530,10 @@ export const HelpProviderWords: FunctionInfo[] = [
         description: 'Takes an array, filters out unwanted elements, and returns the results in a new\narray.',
       },
     ],
+  },
+  {
+    name: 'array_first',
+    signatures: [{ signature: 'ARRAY_FIRST(array_expression)\n', description: 'Takes an array and returns the first element in the array.' }],
   },
   {
     name: 'array_includes',
@@ -1452,6 +1560,10 @@ export const HelpProviderWords: FunctionInfo[] = [
           'Takes an array to search and an array of search values. Returns `TRUE` if all\nsearch values are in the array to search, otherwise returns `FALSE`.',
       },
     ],
+  },
+  {
+    name: 'array_last',
+    signatures: [{ signature: 'ARRAY_LAST(array_expression)\n', description: 'Takes an array and returns the last element in the array.' }],
   },
   {
     name: 'array_length',
@@ -1536,12 +1648,6 @@ export const HelpProviderWords: FunctionInfo[] = [
     ],
   },
   {
-    name: 'array',
-    signatures: [
-      { signature: 'ARRAY(subquery)\n', description: 'The `ARRAY` function returns an `ARRAY` with one element for each row in a\nsubquery.' },
-    ],
-  },
-  {
     name: 'current_date',
     signatures: [
       {
@@ -1599,7 +1705,13 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'date_trunc',
-    signatures: [{ signature: 'DATE_TRUNC(date_expression, date_part)\n', description: 'Truncates the date to the specified granularity.' }],
+    signatures: [
+      {
+        signature: 'DATE_TRUNC(date_expression, date_part)\n',
+        description:
+          'Truncates a `DATE` value to the granularity of `date_part`. The `DATE` value\nis always rounded to the beginning of `date_part`, which can be one of the\nfollowing:',
+      },
+    ],
   },
   {
     name: 'date_from_unix_date',
@@ -1688,7 +1800,11 @@ export const HelpProviderWords: FunctionInfo[] = [
   {
     name: 'datetime_trunc',
     signatures: [
-      { signature: 'DATETIME_TRUNC(datetime_expression, part)\n', description: 'Truncates a `DATETIME` object to the granularity of `part`.' },
+      {
+        signature: 'DATETIME_TRUNC(datetime_expression, date_time_part)\n',
+        description:
+          'Truncates a `DATETIME` value to the granularity of `date_time_part`.\nThe `DATETIME` value is always rounded to the beginning of `date_time_part`,\nwhich can be one of the following:',
+      },
     ],
   },
   {
@@ -1765,7 +1881,13 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'time_trunc',
-    signatures: [{ signature: 'TIME_TRUNC(time_expression, part)\n', description: 'Truncates a `TIME` object to the granularity of `part`.' }],
+    signatures: [
+      {
+        signature: 'TIME_TRUNC(time_expression, time_part)\n',
+        description:
+          'Truncates a `TIME` value to the granularity of `time_part`. The `TIME` value\nis always rounded to the beginning of `time_part`, which can be one of the\nfollowing:',
+      },
+    ],
   },
   {
     name: 'format_time',
@@ -1825,8 +1947,9 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'timestamp_trunc',
     signatures: [
       {
-        signature: 'TIMESTAMP_TRUNC(timestamp_expression, date_part[, time_zone])\n',
-        description: 'Truncates a timestamp to the granularity of `date_part`.',
+        signature: 'TIMESTAMP_TRUNC(timestamp_expression, date_time_part[, time_zone])\n',
+        description:
+          'Truncates a `TIMESTAMP` value to the granularity of `date_time_part`.\nThe `TIMESTAMP` value is always rounded to the beginning of `date_time_part`,\nwhich can be one of the following:',
       },
     ],
   },
@@ -2117,6 +2240,15 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [{ signature: 'ERROR(error_message)\n', description: 'Returns an error. The `error_message` argument is a `STRING`.' }],
   },
   {
+    name: 'concat',
+    signatures: [
+      {
+        signature: 'CONCAT(value1[, ...])\n',
+        description: 'Concatenates one or more values into a single result. All values must be\n`BYTES` or data types that can be cast to `STRING`.',
+      },
+    ],
+  },
+  {
     name: 'regexp_contains',
     signatures: [
       {
@@ -2182,6 +2314,16 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'ANON_PERCENTILE_CONT(expression, percentile [CLAMPED BETWEEN lower AND upper])\n',
         description:
           'Takes an expression and computes a percentile for it. The final result is an\naggregation across anonymization IDs. The percentile must be a literal in the\nrange [0, 1]. You can clamp the input values explicitly,\notherwise input values are clamped implicitly. Clamping is performed per\nanonymization ID.',
+      },
+    ],
+  },
+  {
+    name: 'anon_quantiles',
+    signatures: [
+      {
+        signature: 'ANON_QUANTILES(expression, number CLAMPED BETWEEN lower AND upper)\n',
+        description:
+          'Returns an array of anonymized quantile boundaries for values in `expression`.\n`number` represents the number of quantiles to create and must be an\n`INT64`. The first element in the return value is the\nminimum quantile boundary and the last element is the maximum quantile boundary.\n`lower` and `upper` are the explicit bounds wherein the\ninput values are clamped. The returned results are aggregations\nacross anonymization IDs.',
       },
     ],
   },
