@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 0.9.0 (02/09/2022)
+## What's Changed
+* Update ZetaSQL version.
+* Update function signatures descriptions.
+* Fix wrong diagnostics issues.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.8.0...v0.9.0
+---
+
 ## Version 0.8.0 (30/08/2022)
 ## What's Changed
 * Fix issue with underlining `qualify` keyword.
