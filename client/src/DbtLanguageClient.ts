@@ -28,7 +28,7 @@ export class DbtLanguageClient implements Disposable {
     private statusHandler: StatusHandler,
   ) {
     this.client = new LanguageClient(
-      'dbtLanguageServer',
+      'dbtWizard',
       'dbt Wizard',
       DbtLanguageClient.createServerOptions(port, serverAbsolutePath),
       DbtLanguageClient.createClientOptions(port, dbtProjectUri, outputChannelProvider, this.disposables),
@@ -59,6 +59,7 @@ export class DbtLanguageClient implements Disposable {
       diagnosticCollectionName: 'dbtWizard',
       synchronize: { fileEvents },
       outputChannel: outputChannelProvider.getMainLogChannel(),
+      traceOutputChannel: outputChannelProvider.getTraceChannel(),
       workspaceFolder: { uri: dbtProjectUri, name: dbtProjectUri.path, index: port },
       middleware: {
         didOpen: async (data: TextDocument, next: (data: TextDocument) => Promise<void>): Promise<void> =>
