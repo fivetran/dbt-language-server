@@ -27,8 +27,6 @@ export interface PackageJson {
 }
 
 export class ExtensionClient {
-  static readonly DEFAULT_PACKAGES_PATHS = ['dbt_packages', 'dbt_modules'];
-
   previewContentProvider = new SqlPreviewContentProvider();
   statusHandler = new StatusHandler();
   dbtLanguageClientManager: DbtLanguageClientManager;

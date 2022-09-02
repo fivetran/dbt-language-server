@@ -1,8 +1,7 @@
 import { EventEmitter } from 'node:events';
 import { Selection, TextDocument, Uri, window, workspace } from 'vscode';
-import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from './Constants';
+import { DBT_PROJECT_YML, DEFAULT_PACKAGES_PATHS, INTEGRATION_TEST_PROJECT_NAME, PACKAGES_YML, SUPPORTED_LANG_IDS } from './Constants';
 import { DbtLanguageClient } from './DbtLanguageClient';
-import { ExtensionClient } from './ExtensionClient';
 import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';
@@ -95,8 +94,8 @@ export class DbtLanguageClientManager {
         await workspace.fs.stat(currentUri.with({ path: `${currentUri.path}/${DBT_PROJECT_YML}` }));
         const oneLevelUpPath = Uri.joinPath(currentUri, '..').path;
         if (
-          !ExtensionClient.DEFAULT_PACKAGES_PATHS.some(p => oneLevelUpPath.toLocaleLowerCase().endsWith(p)) &&
-          !currentUri.fsPath.toLocaleLowerCase().endsWith('integration_tests')
+          !DEFAULT_PACKAGES_PATHS.some(p => oneLevelUpPath.toLocaleLowerCase().endsWith(p)) &&
+          !currentUri.fsPath.toLocaleLowerCase().endsWith(INTEGRATION_TEST_PROJECT_NAME)
         ) {
           return currentUri;
         }
