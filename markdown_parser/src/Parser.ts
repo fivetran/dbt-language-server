@@ -20,13 +20,12 @@ const filesToParse: Map<string, string[]> = new Map([
       'Statistical aggregate functions',
       'Approximate aggregate functions',
       'HyperLogLog++ functions',
-      'KLL16 quantile functions',
+      'KLL quantile functions',
       'Numbering functions',
       'Bit functions',
       'Conversion functions',
       'Mathematical functions',
       'Navigation functions',
-      'Aggregate analytic functions',
       'Hash functions',
       'String functions',
       'JSON functions',
@@ -60,7 +59,6 @@ const filesToParse: Map<string, string[]> = new Map([
   ['https://raw.githubusercontent.com/google/zetasql/master/docs/approximate_aggregate_functions.md', ['Approximate aggregate functions']],
   ['https://raw.githubusercontent.com/google/zetasql/master/docs/aggregate_functions.md', ['Aggregate functions']],
   ['https://raw.githubusercontent.com/google/zetasql/master/docs/aggregate_anonymization_functions.md', ['Anonymization aggregate functions']],
-  ['https://raw.githubusercontent.com/google/zetasql/master/docs/aggregate_analytic_functions.md', ['Aggregate analytic functions']],
 ]);
 
 const EXCEPTIONS = new Set<string>([
@@ -97,79 +95,84 @@ async function parseAndSave(): Promise<void> {
     const tokens = md.parse(content, {});
 
     for (const section of sections) {
-      let i = tokens.findIndex(t => t.content === section);
-      let token = tokens[i];
-      while (i < tokens.length && !(token.markup === '##' && token.type === 'heading_open')) {
-        if (token.type === 'heading_open' && token.markup === '###') {
-          const name = tokens[i + 1].content.toLocaleLowerCase();
-          console.log(name);
+      try {
+        let i = tokens.findIndex(t => t.content === section);
+        let token = tokens[i];
+        while (i < tokens.length && !(token.markup === '##' && token.type === 'heading_open')) {
+          if (token.type === 'heading_open' && token.markup === '###') {
+            const name = tokens[i + 1].content.toLocaleLowerCase();
+            console.log(name);
 
-          if (name.includes(' ') || functionInfos.some(f => f.name === name) || EXCEPTIONS.has(name)) {
-            i++;
+            if (name.includes(' ') || functionInfos.some(f => f.name === name) || EXCEPTIONS.has(name)) {
+              i++;
+              token = tokens[i];
+              /* eslint-disable-next-line no-continue */
+              continue;
+            }
+            const functionInfo: FunctionInfo = {
+              name,
+              signatures: [],
+            };
+            i += 3;
             token = tokens[i];
-            /* eslint-disable-next-line no-continue */
-            continue;
-          }
-          const functionInfo: FunctionInfo = {
-            name,
-            signatures: [],
-          };
-          i += 3;
-          token = tokens[i];
 
-          if (token.type === 'fence') {
-            if (token.content.startsWith('1.')) {
-              const signatures = token.content.split('\n');
-              for (const signature of signatures) {
-                functionInfo.signatures.push({ signature: signature.slice(3), description: '' });
+            if (token.type === 'fence') {
+              if (token.content.startsWith('1.')) {
+                const signatures = token.content.split('\n');
+                for (const signature of signatures) {
+                  functionInfo.signatures.push({ signature: signature.slice(3), description: '' });
+                }
+              } else {
+                functionInfo.signatures.push({ signature: token.content, description: '' });
               }
             } else {
-              functionInfo.signatures.push({ signature: token.content, description: '' });
-            }
-          } else {
-            while (token.type !== 'paragraph_open') {
-              if (token.type === 'fence') {
-                functionInfo.signatures.push({
-                  signature: token.content,
-                  description: '',
-                });
+              while (token.type !== 'paragraph_open') {
+                if (token.type === 'fence') {
+                  functionInfo.signatures.push({
+                    signature: token.content,
+                    description: '',
+                  });
+                }
+                i++;
+                token = tokens[i];
               }
+            }
+
+            while (token.content !== '**Description**') {
               i++;
               token = tokens[i];
             }
-          }
 
-          while (token.content !== '**Description**') {
-            i++;
+            i += 2;
             token = tokens[i];
-          }
 
-          i += 2;
-          token = tokens[i];
+            if (token.type === 'ordered_list_open') {
+              let j = 0;
+              while (token.type !== 'ordered_list_close') {
+                if (token.type === 'inline') {
+                  functionInfo.signatures[j].description = parseText(token);
+                  j++;
+                }
 
-          if (token.type === 'ordered_list_open') {
-            let j = 0;
-            while (token.type !== 'ordered_list_close') {
-              if (token.type === 'inline') {
-                functionInfo.signatures[j].description = parseText(token);
-                j++;
+                i++;
+                token = tokens[i];
               }
-
-              i++;
-              token = tokens[i];
+            } else {
+              const description = parseText(tokens[i + 1]);
+              if (functionInfo.signatures.length === 0) {
+                // There is no signature in md file for the function
+                functionInfo.signatures.push({ signature: '', description });
+              }
+              functionInfo.signatures[0].description = description;
             }
-          } else {
-            const description = parseText(tokens[i + 1]);
-            if (functionInfo.signatures.length === 0) {
-              // There is no signature in md file for the function
-              functionInfo.signatures.push({ signature: '', description });
-            }
-            functionInfo.signatures[0].description = description;
+            functionInfos.push(functionInfo);
           }
-          functionInfos.push(functionInfo);
+          i++;
+          token = tokens[i];
         }
-        i++;
-        token = tokens[i];
+      } catch (e) {
+        console.log(`Error while handling file ${file}, section: ${section}`);
+        throw e;
       }
     }
   }
@@ -185,6 +188,7 @@ async function parseAndSave(): Promise<void> {
   if (options === null) {
     throw new Error("Can't find options from ./.prettierrc");
   }
+  options.parser = 'typescript';
   const formatted = prettier.format(code, options);
   fs.writeFileSync(`${__dirname}/../../server/src/HelpProviderWords.ts`, formatted);
 }
