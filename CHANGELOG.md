@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.9.0 (01/01/1970)
+## Version 0.9.0 (02/09/2022)
 ## What's Changed
 * Update ZetaSQL version.
 * Update function signatures descriptions.
