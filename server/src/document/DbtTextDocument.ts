@@ -201,7 +201,13 @@ export class DbtTextDocument {
   }
 
   async resendDiagnostics(): Promise<void> {
-    if (this.destinationState.contextInitialized && this.dbt.dbtReady && !this.currentDbtError && !this.modelCompiler.compilationInProgress) {
+    if (
+      this.destinationState.contextInitialized &&
+      this.dbt.dbtReady &&
+      !this.currentDbtError &&
+      !this.modelCompiler.compilationInProgress &&
+      this.compiledDocument.getText() !== this.rawDocument.getText()
+    ) {
       await this.updateDiagnostics();
     }
   }

@@ -209,7 +209,7 @@ export class LspServer {
     this.connection.onNotification('custom/dbtCompile', (uri: string) => this.onDbtCompile(uri));
     this.connection.onNotification('dbtWizard/installLatestDbt', () => this.installLatestDbt());
     this.connection.onNotification('dbtWizard/installDbtAdapter', (dbtAdapter: string) => this.installDbtAdapter(dbtAdapter));
-    this.connection.onNotification('dbtWizard/resendDiagnostics', (uri: string) => this.onDidChangeActiveTextEditor(uri));
+    this.connection.onNotification('dbtWizard/resendDiagnostics', (uri: string) => this.onResendDiagnostics(uri));
 
     this.connection.onRequest('dbtWizard/getListOfPackages', () => this.featureFinder?.packageInfosPromise.get());
     this.connection.onRequest('dbtWizard/getPackageVersions', (dbtPackage: string) => this.featureFinder?.packageVersions(dbtPackage));
@@ -338,7 +338,7 @@ export class LspServer {
     }
   }
 
-  async onDidChangeActiveTextEditor(uri: string): Promise<void> {
+  async onResendDiagnostics(uri: string): Promise<void> {
     const document = this.openedDocuments.get(uri);
     await document?.resendDiagnostics();
   }
