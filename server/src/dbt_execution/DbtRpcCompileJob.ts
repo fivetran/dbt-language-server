@@ -12,6 +12,8 @@ export class DbtRpcCompileJob extends DbtCompileJob {
   static readonly NETWORK_ERROR = 'Network error';
   static readonly JOB_IS_NOT_COMPLETED = 'Job is still not completed';
 
+  static readonly NO_RESULT_FROM_COMPILER = ' ';
+
   static readonly DBT_COMPILATION_ERROR_CODE = 10_011;
 
   static COMPILE_MODEL_MAX_RETRIES = 6;
@@ -26,7 +28,13 @@ export class DbtRpcCompileJob extends DbtCompileJob {
 
   result?: Result<string, string>;
 
-  constructor(modelPath: string, dbtRepository: DbtRepository, private dbtRpcClient: DbtRpcClient) {
+  constructor(
+    modelPath: string,
+    dbtRepository: DbtRepository,
+    private dbtRpcClient: DbtRpcClient,
+    // For empty models we don't use fallback
+    private allowFallback: boolean,
+  ) {
     super(modelPath, dbtRepository);
   }
 
@@ -128,8 +136,11 @@ export class DbtRpcCompileJob extends DbtCompileJob {
       return compiledNodes[0].node.compiled_sql;
     }
     if (pollResponse.result.state === 'success') {
-      // For some reason rpc server don't return compilation result for models with materialized='ephemeral'
-      return this.fallbackForEphemeralModel();
+      if (this.allowFallback) {
+        // For some reason rpc server don't return compilation result for models with materialized='ephemeral'
+        return this.fallbackForEphemeralModel();
+      }
+      return DbtRpcCompileJob.NO_RESULT_FROM_COMPILER;
     }
     return undefined;
   }
@@ -151,7 +162,7 @@ export class DbtRpcCompileJob extends DbtCompileJob {
       const resultPath = await this.findCompiledFilePath();
       return fs.readFileSync(`${resultPath}`, 'utf8');
     } catch {
-      return ' ';
+      return DbtRpcCompileJob.NO_RESULT_FROM_COMPILER;
     }
   }
 }

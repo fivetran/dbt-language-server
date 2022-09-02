@@ -1,6 +1,6 @@
 import { CustomInitParams, DbtCompilerType, LS_MANIFEST_PARSED_EVENT, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
 import { EventEmitter } from 'node:events';
-import { commands, Diagnostic, DiagnosticCollection, Disposable, RelativePattern, Uri, window, workspace } from 'vscode';
+import { commands, Diagnostic, DiagnosticCollection, Disposable, RelativePattern, TextDocument, Uri, window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { ActiveTextEditorHandler } from './ActiveTextEditorHandler';
 import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from './Constants';
@@ -60,6 +60,10 @@ export class DbtLanguageClient implements Disposable {
       synchronize: { fileEvents },
       outputChannel: outputChannelProvider.getMainLogChannel(),
       workspaceFolder: { uri: dbtProjectUri, name: dbtProjectUri.path, index: port },
+      middleware: {
+        didOpen: async (data: TextDocument, next: (data: TextDocument) => Promise<void>): Promise<void> =>
+          window.tabGroups.all.some(g => g.tabs.some(t => data.uri.fsPath.endsWith(t.label))) ? next(data) : undefined,
+      },
     };
     disposables.push(...fileEvents);
     return clientOptions;
@@ -80,8 +84,8 @@ export class DbtLanguageClient implements Disposable {
       }),
 
       this.client.onNotification('custom/updateQueryPreviewDiagnostics', ({ uri, diagnostics }) => {
-        if (window.activeTextEditor !== undefined && uri !== window.activeTextEditor.document.uri.toString()) {
-          this.resendDiagnostics(window.activeTextEditor.document.uri.toString());
+        if (uri !== this.previewContentProvider.activeDocUri.toString()) {
+          this.resendDiagnostics(this.previewContentProvider.activeDocUri.toString());
         }
 
         this.previewContentProvider.updateDiagnostics(uri as string, diagnostics as Diagnostic[]);

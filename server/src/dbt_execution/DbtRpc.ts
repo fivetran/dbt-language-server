@@ -26,8 +26,8 @@ export class DbtRpc extends Dbt {
     this.fileChangeListener.onDbtPackagesChanged(() => this.refresh());
   }
 
-  createCompileJob(modelPath: string, dbtRepository: DbtRepository): DbtCompileJob {
-    return new DbtRpcCompileJob(modelPath, dbtRepository, this.dbtRpcClient);
+  createCompileJob(modelPath: string, dbtRepository: DbtRepository, allowFallback: boolean): DbtCompileJob {
+    return new DbtRpcCompileJob(modelPath, dbtRepository, this.dbtRpcClient, allowFallback);
   }
 
   refresh(): void {

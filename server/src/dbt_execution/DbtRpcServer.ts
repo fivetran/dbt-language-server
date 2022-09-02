@@ -1,5 +1,6 @@
 import { deferred } from 'dbt-language-server-common';
 import { ExecException } from 'node:child_process';
+import { LogLevel } from '../Logger';
 import { Command } from './commands/Command';
 import { DbtCommandExecutor } from './commands/DbtCommandExecutor';
 import { DbtRpcClient } from './DbtRpcClient';
@@ -106,6 +107,7 @@ export class DbtRpcServer {
 
   refresh(): void {
     if (this.rpcPid) {
+      console.log('SIGHUP', LogLevel.Debug);
       process.kill(this.rpcPid, 'SIGHUP');
     }
   }

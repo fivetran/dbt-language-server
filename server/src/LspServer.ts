@@ -18,7 +18,6 @@ import {
   DidChangeConfigurationNotification,
   DidChangeTextDocumentParams,
   DidChangeWatchedFilesParams,
-  DidCloseTextDocumentParams,
   DidCreateFilesNotification,
   DidDeleteFilesNotification,
   DidOpenTextDocumentParams,
@@ -68,8 +67,6 @@ import { SqlCompletionProvider } from './SqlCompletionProvider';
 import { StatusSender } from './StatusSender';
 
 export class LspServer {
-  static OPEN_CLOSE_DEBOUNCE_PERIOD = 1000;
-
   sqlToRefCommandName = randomUUID();
   filesFilter: FileOperationFilter[];
   workspaceFolder: string;
@@ -93,8 +90,6 @@ export class LspServer {
 
   destinationState = new DestinationState();
   dbt?: Dbt;
-
-  openTextDocumentRequests = new Map<string, DidOpenTextDocumentParams>();
 
   constructor(private connection: _Connection) {
     this.workspaceFolder = process.cwd();
@@ -214,7 +209,7 @@ export class LspServer {
     this.connection.onNotification('custom/dbtCompile', (uri: string) => this.onDbtCompile(uri));
     this.connection.onNotification('dbtWizard/installLatestDbt', () => this.installLatestDbt());
     this.connection.onNotification('dbtWizard/installDbtAdapter', (dbtAdapter: string) => this.installDbtAdapter(dbtAdapter));
-    this.connection.onNotification('dbtWizard/resendDiagnostics', (uri: string) => this.onDidChangeActiveTextEditor(uri));
+    this.connection.onNotification('dbtWizard/resendDiagnostics', (uri: string) => this.onResendDiagnostics(uri));
 
     this.connection.onRequest('dbtWizard/getListOfPackages', () => this.featureFinder?.packageInfosPromise.get());
     this.connection.onRequest('dbtWizard/getPackageVersions', (dbtPackage: string) => this.featureFinder?.packageVersions(dbtPackage));
@@ -343,7 +338,7 @@ export class LspServer {
     }
   }
 
-  async onDidChangeActiveTextEditor(uri: string): Promise<void> {
+  async onResendDiagnostics(uri: string): Promise<void> {
     const document = this.openedDocuments.get(uri);
     await document?.resendDiagnostics();
   }
@@ -359,24 +354,6 @@ export class LspServer {
 
     const document = this.openedDocuments.get(params.textDocument.uri);
     await document?.didSaveTextDocument(true);
-  }
-
-  onDidOpenTextDocumentDelayed(params: DidOpenTextDocumentParams): Promise<void> {
-    this.openTextDocumentRequests.set(params.textDocument.uri, params);
-    return new Promise((resolve, reject) => {
-      setTimeout(async () => {
-        try {
-          const openRequest = this.openTextDocumentRequests.get(params.textDocument.uri);
-          if (openRequest) {
-            this.openTextDocumentRequests.delete(params.textDocument.uri);
-            await this.onDidOpenTextDocument(openRequest);
-          }
-          resolve();
-        } catch (e) {
-          reject(e instanceof Error ? e : new Error('Failed to open document'));
-        }
-      }, LspServer.OPEN_CLOSE_DEBOUNCE_PERIOD);
-    });
   }
 
   async onDidOpenTextDocument(params: DidOpenTextDocumentParams): Promise<void> {
@@ -429,12 +406,6 @@ export class LspServer {
       return true;
     } catch {
       return false;
-    }
-  }
-
-  onDidCloseTextDocumentDelayed(params: DidCloseTextDocumentParams): void {
-    if (this.openTextDocumentRequests.has(params.textDocument.uri)) {
-      this.openTextDocumentRequests.delete(params.textDocument.uri);
     }
   }
 

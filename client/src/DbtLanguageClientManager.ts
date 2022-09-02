@@ -1,8 +1,7 @@
 import { EventEmitter } from 'node:events';
 import { Selection, TextDocument, Uri, window, workspace } from 'vscode';
-import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from './Constants';
+import { DBT_PROJECT_YML, DEFAULT_PACKAGES_PATHS, INTEGRATION_TEST_PROJECT_NAME, PACKAGES_YML, SUPPORTED_LANG_IDS } from './Constants';
 import { DbtLanguageClient } from './DbtLanguageClient';
-import { ExtensionClient } from './ExtensionClient';
 import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';
@@ -25,13 +24,15 @@ export class DbtLanguageClientManager {
     previewContentProvider.onDidChange(() => this.applyPreviewDiagnostics());
   }
 
-  async applyPreviewDiagnostics(): Promise<void> {
+  applyPreviewDiagnostics(): void {
     const previewDiagnostics = this.previewContentProvider.getPreviewDiagnostics();
-    const activeClient = await this.getClientForActiveDocument();
 
     for (const client of this.clients.values()) {
       const clientDiagnostics = client.getDiagnostics();
-      clientDiagnostics?.set(SqlPreviewContentProvider.URI, client.getProjectUri() === activeClient?.getProjectUri() ? previewDiagnostics : []);
+      clientDiagnostics?.set(
+        SqlPreviewContentProvider.URI,
+        this.previewContentProvider.activeDocUri.fsPath.startsWith(client.getProjectUri().fsPath) ? previewDiagnostics : [],
+      );
     }
 
     const editor = window.visibleTextEditors.find(e => e.document.uri.toString() === SqlPreviewContentProvider.URI.toString());
@@ -43,7 +44,6 @@ export class DbtLanguageClientManager {
   async getClientForActiveDocument(): Promise<DbtLanguageClient | undefined> {
     const document = this.getActiveDocument();
     if (document === undefined) {
-      log("Can't find active document");
       return undefined;
     }
 
@@ -93,7 +93,10 @@ export class DbtLanguageClientManager {
       try {
         await workspace.fs.stat(currentUri.with({ path: `${currentUri.path}/${DBT_PROJECT_YML}` }));
         const oneLevelUpPath = Uri.joinPath(currentUri, '..').path;
-        if (!ExtensionClient.DEFAULT_PACKAGES_PATHS.some(p => oneLevelUpPath.endsWith(p))) {
+        if (
+          !DEFAULT_PACKAGES_PATHS.some(p => oneLevelUpPath.toLocaleLowerCase().endsWith(p)) &&
+          !currentUri.fsPath.toLocaleLowerCase().endsWith(INTEGRATION_TEST_PROJECT_NAME)
+        ) {
           return currentUri;
         }
       } catch {
