@@ -64,7 +64,7 @@
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/markdown_parser/src/Parser.ts",
-      "preLaunchTask": "npm: compile",
+      "preLaunchTask": "npm: build",
       "outFiles": ["${workspaceFolder}/markdown_parser/out/**/*.js"]
     },
     {
