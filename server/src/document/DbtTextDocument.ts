@@ -214,8 +214,12 @@ export class DbtTextDocument {
 
   debouncedCompile = debounce(async () => {
     this.progressReporter.sendStart(this.rawDocument.uri);
-    await this.modelCompiler.compile(this.getModelPathOrFullyQualifiedName(), this.rawDocument.getText().trim().length > 0);
+    await this.modelCompiler.compile(this.getModelPathOrFullyQualifiedName(), this.modelIsNotBlank());
   }, DbtTextDocument.DEBOUNCE_TIMEOUT);
+
+  modelIsNotBlank(): boolean {
+    return this.rawDocument.getText().trim().length > 0;
+  }
 
   getModelPathOrFullyQualifiedName(): string {
     return DbtTextDocument.getModelPathOrFullyQualifiedName(this.rawDocument.uri, this.workspaceFolder, this.dbtRepository);
