@@ -62,9 +62,7 @@ export class DbtLanguageClient implements Disposable {
       workspaceFolder: { uri: dbtProjectUri, name: dbtProjectUri.path, index: port },
       middleware: {
         didOpen: async (data: TextDocument, next: (data: TextDocument) => Promise<void>): Promise<void> =>
-          window.tabGroups.activeTabGroup.activeTab && data.uri.fsPath.endsWith(window.tabGroups.activeTabGroup.activeTab.label)
-            ? next(data)
-            : undefined,
+          window.tabGroups.all.some(g => g.tabs.some(t => data.uri.fsPath.endsWith(t.label))) ? next(data) : undefined,
       },
     };
     disposables.push(...fileEvents);
