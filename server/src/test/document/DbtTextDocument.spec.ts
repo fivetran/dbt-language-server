@@ -74,7 +74,7 @@ describe('DbtTextDocument', () => {
 
       // assert
       await sleepMoreThanDebounceTime();
-      verify(mockModelCompiler.compile(anything())).once();
+      verify(mockModelCompiler.compile(anything(), true)).once();
     });
 
     it('Should compile twice if debounce timeout exceeded between compile calls', async () => {
@@ -85,7 +85,7 @@ describe('DbtTextDocument', () => {
 
       // assert
       await sleepMoreThanDebounceTime();
-      verify(mockModelCompiler.compile(anything())).twice();
+      verify(mockModelCompiler.compile(anything(), true)).twice();
     });
   });
 
@@ -103,7 +103,7 @@ describe('DbtTextDocument', () => {
 
     // assert
     verify(mockDbt.refresh()).once();
-    verify(mockModelCompiler.compile(anything())).twice();
+    verify(mockModelCompiler.compile(anything(), true)).twice();
   });
 
   it('Should not compile for first save in Auto save mode', async () => {
@@ -122,7 +122,7 @@ describe('DbtTextDocument', () => {
 
     // assert
     assertThat(count, 0);
-    verify(mockModelCompiler.compile(anything())).once();
+    verify(mockModelCompiler.compile(anything(), true)).once();
   });
 
   it('Should not compile once when opening', async () => {
@@ -134,7 +134,7 @@ describe('DbtTextDocument', () => {
     await sleepMoreThanDebounceTime();
 
     // assert
-    verify(mockModelCompiler.compile(anything())).once();
+    verify(mockModelCompiler.compile(anything(), true)).once();
   });
 
   it('Should not compile query without jinja', async () => {
@@ -147,7 +147,7 @@ describe('DbtTextDocument', () => {
     await sleepMoreThanDebounceTime();
 
     // assert
-    verify(mockModelCompiler.compile(anything())).never();
+    verify(mockModelCompiler.compile(anything(), true)).never();
   });
 
   it('didSaveTextDocument should start compilation if previous compile stuck (document contains jinjas and raw document text is the same as compiled)', async () => {
@@ -162,7 +162,7 @@ describe('DbtTextDocument', () => {
     await sleepMoreThanDebounceTime();
 
     // assert
-    verify(mockModelCompiler.compile(anything())).once();
+    verify(mockModelCompiler.compile(anything(), true)).once();
   });
 
   it('Should set hasDbtError flag on dbt compilation error', () => {

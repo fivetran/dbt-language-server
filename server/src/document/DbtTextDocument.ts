@@ -208,7 +208,7 @@ export class DbtTextDocument {
 
   debouncedCompile = debounce(async () => {
     this.progressReporter.sendStart(this.rawDocument.uri);
-    await this.modelCompiler.compile(this.getModelPathOrFullyQualifiedName());
+    await this.modelCompiler.compile(this.getModelPathOrFullyQualifiedName(), this.rawDocument.getText().trim().length > 0);
   }, DbtTextDocument.DEBOUNCE_TIMEOUT);
 
   getModelPathOrFullyQualifiedName(): string {

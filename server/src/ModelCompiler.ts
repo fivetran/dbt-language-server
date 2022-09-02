@@ -29,20 +29,20 @@ export class ModelCompiler {
 
   constructor(private dbt: Dbt, private dbtRepository: DbtRepository) {}
 
-  async compile(modelPath: string): Promise<void> {
+  async compile(modelPath: string, allowFallback: boolean): Promise<void> {
     this.compilationInProgress = true;
 
     if (this.dbtCompileJobQueue.length > 3) {
       const jobToStop = this.dbtCompileJobQueue.shift();
       jobToStop?.forceStop().catch(e => console.log(`Failed to stop job: ${e instanceof Error ? e.message : String(e)}`));
     }
-    this.startNewJob(modelPath);
+    this.startNewJob(modelPath, allowFallback);
 
     await this.pollResults();
   }
 
-  startNewJob(modelPath: string): void {
-    const job = this.dbt.createCompileJob(modelPath, this.dbtRepository);
+  startNewJob(modelPath: string, allowFallback: boolean): void {
+    const job = this.dbt.createCompileJob(modelPath, this.dbtRepository, allowFallback);
     this.dbtCompileJobQueue.push(job);
     job.start().catch(e => console.log(`Failed to start job: ${e instanceof Error ? e.message : String(e)}`));
   }
