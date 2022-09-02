@@ -1,6 +1,17 @@
 import { assertThat } from 'hamjest';
 import { EOL } from 'node:os';
-import { activateAndWait, getDocUri, getPreviewText, installExtension, replaceText, setTestContent, sleep, uninstallExtension } from './helper';
+import { assertAllDiagnostics } from './asserts';
+import {
+  activateAndWait,
+  createAndOpenTempModel,
+  getDocUri,
+  getPreviewText,
+  installExtension,
+  replaceText,
+  setTestContent,
+  sleep,
+  uninstallExtension,
+} from './helper';
 
 suite('Should compile jinja expressions', () => {
   test('Should recompile jinja expression changed', async () => {
@@ -40,6 +51,17 @@ suite('Should compile jinja expressions', () => {
     await replaceText(`${EOL}s`, `${EOL}select 1;`);
 
     assertThat(getPreviewText(), `users${EOL}${EOL}${EOL}select 1;`);
+  });
+
+  test('Compilation result for empty models should be empty', async () => {
+    const uri = await createAndOpenTempModel('test-fixture', 'preview');
+
+    await setTestContent("select u.id from {{ source('new_project', 'users') }} u");
+    assertThat(getPreviewText(), 'select u.id from `singular-vector-135519`.`dbt_ls_e2e_dataset`.`users` u');
+    await assertAllDiagnostics(uri, []);
+
+    await setTestContent('');
+    assertThat(getPreviewText(), ' ');
   });
 
   // Sometimes 'samuelcolvin.jinjahtml' extension cannot be installed - server responded with 503.
