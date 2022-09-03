@@ -57,7 +57,9 @@ export async function installVsCodeAndRunTests(indexName: string, projectWithMod
       },
     });
   } catch (e) {
-    throw new Error(`Failed to run tests. Error: ${e instanceof Error ? e.message : String(e)}`);
+    console.log(`Failed to run tests. Error: ${e instanceof Error ? e.message : String(e)}`);
+    /* eslint-disable-next-line unicorn/no-process-exit */
+    process.exit(1);
   }
 }
 
