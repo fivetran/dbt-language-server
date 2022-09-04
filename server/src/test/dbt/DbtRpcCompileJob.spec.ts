@@ -64,7 +64,7 @@ describe('DbtRpcCompileJob', () => {
   }
 
   function createDbtRpcCompileJob(mockDbtRpcClient: DbtRpcClient): DbtRpcCompileJob {
-    return new DbtRpcCompileJob(MODEL, mock(DbtRepository), instance(mockDbtRpcClient), true);
+    return new DbtRpcCompileJob(MODEL, mock(DbtRepository), true, instance(mockDbtRpcClient));
   }
 
   beforeEach(() => {

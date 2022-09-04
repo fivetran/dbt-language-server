@@ -49,8 +49,8 @@ export class DbtCli extends Dbt {
     });
   }
 
-  createCompileJob(modelPath: string, dbtRepository: DbtRepository, _allowFallback: boolean): DbtCompileJob {
-    return new DbtCliCompileJob(modelPath, dbtRepository, this);
+  createCompileJob(modelPath: string, dbtRepository: DbtRepository, allowFallback: boolean): DbtCompileJob {
+    return new DbtCliCompileJob(modelPath, dbtRepository, allowFallback, this);
   }
 
   async deps(): Promise<void> {

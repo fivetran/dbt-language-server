@@ -13,11 +13,16 @@ export class DbtCliCompileJob extends DbtCompileJob {
   private process?: ChildProcess;
   result?: Result<string, string>;
 
-  constructor(modelPath: string, dbtRepository: DbtRepository, private dbtCli: DbtCli) {
-    super(modelPath, dbtRepository);
+  constructor(modelPath: string, dbtRepository: DbtRepository, allowFallback: boolean, private dbtCli: DbtCli) {
+    super(modelPath, dbtRepository, allowFallback);
   }
 
   async start(): Promise<void> {
+    if (!this.allowFallback) {
+      this.result = ok(DbtCompileJob.NO_RESULT_FROM_COMPILER);
+      return;
+    }
+
     const promise = this.dbtCli.compile(this.modelPath);
     this.process = promise.child;
 
