@@ -80,7 +80,6 @@
         "${workspaceRoot}/e2e/projects/test-workspace.code-workspace"
       ],
       "env": {
-        "DBT_LS_ENABLE_DEBUG_LOGS": "true",
         "CLI_PATH": "code",
         "LOCAL_RUN": "true"
       },

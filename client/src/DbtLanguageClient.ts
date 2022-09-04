@@ -1,15 +1,7 @@
 import { CustomInitParams, DbtCompilerType, LS_MANIFEST_PARSED_EVENT, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
 import { EventEmitter } from 'node:events';
-import { commands, Diagnostic, DiagnosticCollection, Disposable, RelativePattern, TextDocument, Uri, workspace } from 'vscode';
-import {
-  DidOpenTextDocumentNotification,
-  LanguageClient,
-  LanguageClientOptions,
-  ServerOptions,
-  State,
-  TransportKind,
-  WorkDoneProgress,
-} from 'vscode-languageclient/node';
+import { commands, Diagnostic, DiagnosticCollection, Disposable, RelativePattern, TextDocument, Uri, window, workspace } from 'vscode';
+import { LanguageClient, LanguageClientOptions, ServerOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { ActiveTextEditorHandler } from './ActiveTextEditorHandler';
 import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from './Constants';
 import { log } from './Logger';
@@ -24,7 +16,6 @@ export class DbtLanguageClient implements Disposable {
   client: LanguageClient;
   disposables: Disposable[] = [];
   pythonExtension = new PythonExtension();
-  isOpen = new Set<string>();
 
   constructor(
     port: number,
@@ -40,7 +31,7 @@ export class DbtLanguageClient implements Disposable {
       'dbtWizard',
       'dbt Wizard',
       DbtLanguageClient.createServerOptions(port, serverAbsolutePath),
-      DbtLanguageClient.createClientOptions(port, dbtProjectUri, outputChannelProvider, this.disposables, this.isOpen),
+      DbtLanguageClient.createClientOptions(port, dbtProjectUri, outputChannelProvider, this.disposables),
     );
   }
 
@@ -57,7 +48,6 @@ export class DbtLanguageClient implements Disposable {
     dbtProjectUri: Uri,
     outputChannelProvider: OutputChannelProvider,
     disposables: Disposable[],
-    isOpen: Set<string>,
   ): LanguageClientOptions {
     const fileEvents = [
       workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, `**/${DBT_PROJECT_YML}`), false, false, true),
@@ -72,12 +62,8 @@ export class DbtLanguageClient implements Disposable {
       traceOutputChannel: outputChannelProvider.getTraceChannel(),
       workspaceFolder: { uri: dbtProjectUri, name: dbtProjectUri.path, index: port },
       middleware: {
-        didOpen: (): Promise<void> => Promise.resolve(),
-        didClose: async (document: TextDocument, next: (data: TextDocument) => Promise<void>): Promise<void> => {
-          if (isOpen.delete(document.uri.toString())) {
-            await next(document);
-          }
-        },
+        didOpen: async (data: TextDocument, next: (data: TextDocument) => Promise<void>): Promise<void> =>
+          window.tabGroups.all.some(g => g.tabs.some(t => data.uri.fsPath.endsWith(t.label))) ? next(data) : undefined,
       },
     };
     disposables.push(...fileEvents);
@@ -186,27 +172,7 @@ export class DbtLanguageClient implements Disposable {
     return this.client.diagnostics;
   }
 
-  open(document: TextDocument): void {
-    const uri = document.uri.toString();
-    if (this.isOpen.has(uri)) {
-      return;
-    }
-
-    this.isOpen.add(uri);
-    this.client
-      .sendNotification(DidOpenTextDocumentNotification.type, {
-        textDocument: {
-          uri,
-          languageId: document.languageId,
-          version: 1,
-          text: document.getText(),
-        },
-      })
-      .catch(e => log(`Error while sending Open notification: ${e instanceof Error ? e.message : String(e)}`));
-  }
-
   async restart(): Promise<void> {
-    this.isOpen.clear();
     await this.initPythonParams();
     this.statusHandler.onRestart(this.dbtProjectUri.fsPath);
     this.client.restart().catch(e => this.client.error('Restarting client failed', e, 'force'));
