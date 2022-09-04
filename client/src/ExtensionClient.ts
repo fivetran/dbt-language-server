@@ -49,7 +49,8 @@ export class ExtensionClient {
 
   public onActivate(): void {
     this.context.subscriptions.push(
-      workspace.onDidOpenTextDocument(this.onDidOpenTextDocument.bind(this)),
+      window.onDidChangeVisibleTextEditors(editors => editors.forEach(e => this.openDocument(e.document))),
+
       workspace.onDidChangeWorkspaceFolders(event => {
         for (const folder of event.removed) {
           this.dbtLanguageClientManager.stopClient(folder.uri.path);
@@ -63,7 +64,7 @@ export class ExtensionClient {
       }),
     );
     workspace.textDocuments.forEach(t =>
-      this.onDidOpenTextDocument(t).catch(e => log(`Error while opening text document ${e instanceof Error ? e.message : String(e)}`)),
+      this.openDocument(t).catch(e => log(`Error while opening text document ${e instanceof Error ? e.message : String(e)}`)),
     );
     this.registerSqlPreviewContentProvider(this.context);
 
@@ -118,12 +119,13 @@ export class ExtensionClient {
     context.subscriptions.push(this.previewContentProvider, commandRegistration, providerRegistrations);
   }
 
-  async onDidOpenTextDocument(document: TextDocument): Promise<void> {
+  async openDocument(document: TextDocument): Promise<void> {
     if (
       (SUPPORTED_LANG_IDS.includes(document.languageId) || document.fileName.endsWith(PACKAGES_YML) || document.fileName.endsWith(DBT_PROJECT_YML)) &&
       document.uri.scheme === 'file'
     ) {
-      await this.dbtLanguageClientManager.ensureClient(document);
+      const client = await this.dbtLanguageClientManager.ensureClient(document);
+      client?.open(document);
     }
   }
 

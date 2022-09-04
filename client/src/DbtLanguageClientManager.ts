@@ -106,14 +106,15 @@ export class DbtLanguageClientManager {
     return undefined;
   }
 
-  async ensureClient(document: TextDocument): Promise<void> {
+  async ensureClient(document: TextDocument): Promise<DbtLanguageClient | undefined> {
     const projectUri = await this.getDbtProjectUri(document.uri);
     if (!projectUri) {
-      return;
+      return undefined;
     }
 
-    if (!this.clients.has(projectUri.path)) {
-      const client = new DbtLanguageClient(
+    let client = this.clients.get(projectUri.path);
+    if (!client) {
+      client = new DbtLanguageClient(
         6009 + this.clients.size,
         this.outputChannelProvider,
         this.serverAbsolutePath,
@@ -131,6 +132,7 @@ export class DbtLanguageClientManager {
 
       client.start();
     }
+    return client;
   }
 
   stopClient(projectPath: string): void {
