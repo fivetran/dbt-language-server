@@ -1,6 +1,6 @@
 import { CustomInitParams, DbtCompilerType, LS_MANIFEST_PARSED_EVENT, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
 import { EventEmitter } from 'node:events';
-import { commands, Diagnostic, DiagnosticCollection, Disposable, RelativePattern, TextDocument, Uri, window, workspace } from 'vscode';
+import { commands, Diagnostic, DiagnosticCollection, Disposable, RelativePattern, TextDocument, TextEditor, Uri, window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { ActiveTextEditorHandler } from './ActiveTextEditorHandler';
 import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from './Constants';
@@ -16,6 +16,7 @@ export class DbtLanguageClient implements Disposable {
   client: LanguageClient;
   disposables: Disposable[] = [];
   pythonExtension = new PythonExtension();
+  awaitingOpenRequests = new Map<string, (data: TextDocument) => Promise<void>>();
 
   constructor(
     port: number,
@@ -31,8 +32,20 @@ export class DbtLanguageClient implements Disposable {
       'dbtWizard',
       'dbt Wizard',
       DbtLanguageClient.createServerOptions(port, serverAbsolutePath),
-      DbtLanguageClient.createClientOptions(port, dbtProjectUri, outputChannelProvider, this.disposables),
+      DbtLanguageClient.createClientOptions(port, dbtProjectUri, outputChannelProvider, this.disposables, this.awaitingOpenRequests),
     );
+    window.onDidChangeVisibleTextEditors((e: readonly TextEditor[]) => this.onDidChangeVisibleTextEditors(e));
+  }
+  onDidChangeVisibleTextEditors(editors: readonly TextEditor[]): void {
+    if (this.awaitingOpenRequests.size > 0) {
+      for (const editor of editors) {
+        const openFunc = this.awaitingOpenRequests.get(editor.document.uri.fsPath);
+        if (openFunc) {
+          openFunc(editor.document).catch(e => log(`Error while opening document: ${e instanceof Error ? e.message : String(e)}`));
+          this.awaitingOpenRequests.delete(editor.document.uri.fsPath);
+        }
+      }
+    }
   }
 
   static createServerOptions(port: number, module: string): ServerOptions {
@@ -48,6 +61,7 @@ export class DbtLanguageClient implements Disposable {
     dbtProjectUri: Uri,
     outputChannelProvider: OutputChannelProvider,
     disposables: Disposable[],
+    awaitingOpenRequests: Map<string, (data: TextDocument) => Promise<void>>,
   ): LanguageClientOptions {
     const fileEvents = [
       workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, `**/${DBT_PROJECT_YML}`), false, false, true),
@@ -62,8 +76,15 @@ export class DbtLanguageClient implements Disposable {
       traceOutputChannel: outputChannelProvider.getTraceChannel(),
       workspaceFolder: { uri: dbtProjectUri, name: dbtProjectUri.path, index: port },
       middleware: {
-        didOpen: async (data: TextDocument, next: (data: TextDocument) => Promise<void>): Promise<void> =>
-          window.tabGroups.all.some(g => g.tabs.some(t => data.uri.fsPath.endsWith(t.label))) ? next(data) : undefined,
+        didOpen: (data: TextDocument, next: (data: TextDocument) => Promise<void>): Promise<void> => {
+          if (window.visibleTextEditors.some(v => v.document.uri.fsPath === data.uri.fsPath)) {
+            return next(data);
+          }
+
+          awaitingOpenRequests.set(data.uri.fsPath, next);
+          setTimeout(() => awaitingOpenRequests.delete(data.uri.fsPath), 3000);
+          return Promise.resolve();
+        },
       },
     };
     disposables.push(...fileEvents);
