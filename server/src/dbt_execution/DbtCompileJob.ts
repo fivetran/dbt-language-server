@@ -5,7 +5,14 @@ import { DbtRepository } from '../DbtRepository';
 import { ModelFetcher } from '../ModelFetcher';
 
 export abstract class DbtCompileJob {
-  constructor(protected modelPath: string, protected dbtRepository: DbtRepository) {}
+  static readonly NO_RESULT_FROM_COMPILER = ' ';
+
+  constructor(
+    protected modelPath: string,
+    protected dbtRepository: DbtRepository,
+    // For empty models we don't use fallback
+    protected allowFallback: boolean,
+  ) {}
 
   abstract start(): Promise<void>;
 

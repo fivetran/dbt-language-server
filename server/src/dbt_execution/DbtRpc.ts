@@ -27,7 +27,7 @@ export class DbtRpc extends Dbt {
   }
 
   createCompileJob(modelPath: string, dbtRepository: DbtRepository, allowFallback: boolean): DbtCompileJob {
-    return new DbtRpcCompileJob(modelPath, dbtRepository, this.dbtRpcClient, allowFallback);
+    return new DbtRpcCompileJob(modelPath, dbtRepository, allowFallback, this.dbtRpcClient);
   }
 
   refresh(): void {

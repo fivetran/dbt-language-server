@@ -23,6 +23,7 @@ const TESTS_WITHOUT_ZETASQL = [
 const ZETASQL_SUPPORTED_PLATFORMS = new Set<string>(['darwin', 'linux']);
 
 export async function indexMain(timeout: string, globPattern: string, doNotRun: string[]): Promise<void> {
+  console.log(`Platform: ${process.platform}`);
   try {
     await initializeExtension();
   } catch (e) {
@@ -51,6 +52,7 @@ export async function indexMain(timeout: string, globPattern: string, doNotRun: 
         reject(e);
       }
 
+      console.log(`${files.length} test files found`);
       // Add files to the test suite
       files
         .filter(

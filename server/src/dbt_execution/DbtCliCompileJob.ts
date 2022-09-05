@@ -1,5 +1,5 @@
 import { err, ok, Result } from 'neverthrow';
-import { ChildProcess, ExecException } from 'node:child_process';
+import { ChildProcess, ExecException, PromiseWithChild } from 'node:child_process';
 import * as fs from 'node:fs';
 import { DbtRepository } from '../DbtRepository';
 import { runWithTimeout } from '../utils/Utils';
@@ -13,13 +13,23 @@ export class DbtCliCompileJob extends DbtCompileJob {
   private process?: ChildProcess;
   result?: Result<string, string>;
 
-  constructor(modelPath: string, dbtRepository: DbtRepository, private dbtCli: DbtCli) {
-    super(modelPath, dbtRepository);
+  constructor(modelPath: string, dbtRepository: DbtRepository, allowFallback: boolean, private dbtCli: DbtCli) {
+    super(modelPath, dbtRepository, allowFallback);
   }
 
   async start(): Promise<void> {
+    if (!this.allowFallback) {
+      this.result = ok(DbtCompileJob.NO_RESULT_FROM_COMPILER);
+      return;
+    }
+
     const promise = this.dbtCli.compile(this.modelPath);
-    this.process = promise.child;
+    this.process = (
+      promise as PromiseWithChild<{
+        stdout: string;
+        stderr: string;
+      }>
+    ).child;
 
     try {
       await runWithTimeout(promise, DbtCliCompileJob.COMPILE_MODEL_TIMEOUT_MS, DbtCliCompileJob.COMPILE_MODEL_TIMEOUT_EXCEEDED);

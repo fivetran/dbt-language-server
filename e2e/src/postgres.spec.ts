@@ -1,8 +1,17 @@
 import { assertThat, instanceOf } from 'hamjest';
 import { EOL } from 'node:os';
-import { commands, MarkdownString, Position, Range, SignatureHelp } from 'vscode';
+import { MarkdownString, Position, Range } from 'vscode';
 import { assertDefinitions } from './asserts';
-import { activateAndWait, activateAndWaitManifestParsed, getCustomDocUri, getPreviewText, MAX_RANGE, MIN_RANGE, POSTGRES_PATH } from './helper';
+import {
+  activateAndWait,
+  activateAndWaitManifestParsed,
+  executeSignatureHelpProvider,
+  getCustomDocUri,
+  getPreviewText,
+  MAX_RANGE,
+  MIN_RANGE,
+  POSTGRES_PATH,
+} from './helper';
 
 const ACTIVE_USERS_URI = getCustomDocUri('postgres/models/active_users.sql');
 const ORDERS_COUNT_DOC_URI = getCustomDocUri('postgres/models/active_users_orders_count.sql');
@@ -75,16 +84,19 @@ suite('Postgres destination', () => {
     await activateAndWaitManifestParsed(ORDERS_COUNT_DOC_URI, POSTGRES_PATH);
 
     // act
-    const help = await commands.executeCommand<SignatureHelp>('vscode.executeSignatureHelpProvider', ORDERS_COUNT_DOC_URI, new Position(0, 145), '(');
+    const help = await executeSignatureHelpProvider(ORDERS_COUNT_DOC_URI, new Position(0, 145), '(');
 
     // assert
     assertThat(help.signatures.length, 2);
 
-    assertThat(help.signatures[0].label, 'COUNT(*)  [OVER (...)]\n');
+    assertThat(help.signatures[0].label, 'COUNT(*)\n[OVER over_clause]\n');
     assertThat(help.signatures[0].documentation, instanceOf(MarkdownString));
     assertThat((help.signatures[0].documentation as MarkdownString).value, 'Returns the number of rows in the input.');
 
-    assertThat(help.signatures[1].label, 'COUNT(\n  [DISTINCT]\n  expression\n  [HAVING {MAX | MIN} expression2]\n)\n[OVER (...)]\n');
+    assertThat(
+      help.signatures[1].label,
+      'COUNT(\n  [ DISTINCT ]\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
+    );
     assertThat(help.signatures[1].documentation, instanceOf(MarkdownString));
     assertThat(
       (help.signatures[1].documentation as MarkdownString).value,
