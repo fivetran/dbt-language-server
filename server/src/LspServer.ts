@@ -416,7 +416,6 @@ export class LspServer {
 
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
     const document = this.openedDocuments.get(completionParams.textDocument.uri);
-    console.log(`onCompletion: ${document ? 'found' : 'not found'}`, LogLevel.Debug);
     return document?.onCompletion(completionParams);
   }
 
