@@ -1,4 +1,3 @@
-import { PromiseWithChild } from 'node:child_process';
 import { _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { FeatureFinder } from '../FeatureFinder';
@@ -17,13 +16,14 @@ export class DbtCli extends Dbt {
     super(connection, progressReporter);
   }
 
-  compile(modelName?: string): PromiseWithChild<{
+  async compile(modelName?: string): Promise<{
     stdout: string;
     stderr: string;
   }> {
     const parameters = ['compile'];
     if (modelName) {
-      parameters.push('-m', modelName);
+      const slash = await import('slash');
+      parameters.push('-m', slash.default(modelName));
     }
     const compileCliCommand = new DbtCommand(parameters, this.pythonPathForCli);
     return DbtCli.DBT_COMMAND_EXECUTOR.execute(compileCliCommand);
