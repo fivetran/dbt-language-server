@@ -1,9 +1,9 @@
 # Changelog
 
-## Version 0.9.1 (01/01/1970)
+## Version 0.9.1 (05/09/2022)
 ## What's Changed
-* Fix issue with handling new tabs created using VS Code Api
-* Fix compilation issue on Windows
+* Fix issue with handling new tabs created using VS Code API.
+* Fix compilation issue on Windows.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.9.0...v0.9.1
 ---
