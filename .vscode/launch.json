@@ -81,7 +81,6 @@
       ],
       "env": {
         "DBT_LS_ENABLE_DEBUG_LOGS": "true",
-        "USE_DBT_CLI": "true",
         "CLI_PATH": "code",
         "LOCAL_RUN": "true"
       },
