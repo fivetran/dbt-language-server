@@ -16,7 +16,7 @@ export class DbtLanguageClient implements Disposable {
   client: LanguageClient;
   disposables: Disposable[] = [];
   pythonExtension = new PythonExtension();
-  awaitingOpenRequests = new Map<string, (data: TextDocument) => Promise<void>>();
+  pendingOpenRequests = new Map<string, (data: TextDocument) => Promise<void>>();
 
   constructor(
     port: number,
@@ -32,17 +32,17 @@ export class DbtLanguageClient implements Disposable {
       'dbtWizard',
       'dbt Wizard',
       DbtLanguageClient.createServerOptions(port, serverAbsolutePath),
-      DbtLanguageClient.createClientOptions(port, dbtProjectUri, outputChannelProvider, this.disposables, this.awaitingOpenRequests),
+      DbtLanguageClient.createClientOptions(port, dbtProjectUri, outputChannelProvider, this.disposables, this.pendingOpenRequests),
     );
     window.onDidChangeVisibleTextEditors((e: readonly TextEditor[]) => this.onDidChangeVisibleTextEditors(e));
   }
   onDidChangeVisibleTextEditors(editors: readonly TextEditor[]): void {
-    if (this.awaitingOpenRequests.size > 0) {
+    if (this.pendingOpenRequests.size > 0) {
       for (const editor of editors) {
-        const openFunc = this.awaitingOpenRequests.get(editor.document.uri.fsPath);
+        const openFunc = this.pendingOpenRequests.get(editor.document.uri.fsPath);
         if (openFunc) {
           openFunc(editor.document).catch(e => log(`Error while opening document: ${e instanceof Error ? e.message : String(e)}`));
-          this.awaitingOpenRequests.delete(editor.document.uri.fsPath);
+          this.pendingOpenRequests.delete(editor.document.uri.fsPath);
         }
       }
     }
@@ -61,7 +61,7 @@ export class DbtLanguageClient implements Disposable {
     dbtProjectUri: Uri,
     outputChannelProvider: OutputChannelProvider,
     disposables: Disposable[],
-    awaitingOpenRequests: Map<string, (data: TextDocument) => Promise<void>>,
+    pendingOpenRequests: Map<string, (data: TextDocument) => Promise<void>>,
   ): LanguageClientOptions {
     const fileEvents = [
       workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, `**/${DBT_PROJECT_YML}`), false, false, true),
@@ -81,9 +81,9 @@ export class DbtLanguageClient implements Disposable {
             return next(data);
           }
 
-          awaitingOpenRequests.set(data.uri.fsPath, next);
+          pendingOpenRequests.set(data.uri.fsPath, next);
           setTimeout(() => {
-            awaitingOpenRequests.delete(data.uri.fsPath);
+            pendingOpenRequests.delete(data.uri.fsPath);
             log('Open request cancelled');
           }, 1000);
           return Promise.resolve();
