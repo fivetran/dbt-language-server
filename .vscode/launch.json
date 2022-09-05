@@ -11,9 +11,9 @@
       "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
       "outFiles": ["${workspaceFolder}/client/out/**/*.js"],
       "env": {
-        "DBT_LS_DISABLE_TELEMETRY": "true"
+        "DBT_LS_DISABLE_TELEMETRY": "true",
+        "DBT_LS_ENABLE_DEBUG_LOGS": "true"
         // "USE_DBT_CLI": "true"
-        // "DBT_LS_ENABLE_DEBUG_LOGS": "true"
         // "DBT_LS_POST_REQUEST_TIMEOUT": "20000"
         // "NODE_OPTIONS": "--unhandled-rejections=warn"
         // "NODE_OPTIONS": "--trace-warnings"
@@ -81,6 +81,7 @@
       ],
       "env": {
         "DBT_LS_ENABLE_DEBUG_LOGS": "true",
+        "USE_DBT_CLI": "true",
         "CLI_PATH": "code",
         "LOCAL_RUN": "true"
       },
