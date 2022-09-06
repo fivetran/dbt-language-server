@@ -40,10 +40,13 @@ export class JinjaParser {
   static readonly EFFECTIVE_JINJA_PATTERN = new RegExp(`${JinjaParser.JINJA_EXPRESSION_PATTERN}|${JinjaParser.JINJA_STATEMENT_PATTERN}`, 'g');
 
   static readonly JINJA_REF_PATTERN = /{{\s*ref\s*\(\s*(?<start_quote>['|"])(.*?)\k<start_quote>\s*\)\s*}}/g;
-  static readonly JINJA_BLOCK_PATTERN = /{%\s*(docs|if|for|macro)\s+.*%}|{%\s*(enddocs|endif|endfor|endmacro)\s*%}/;
 
-  static readonly JINJA_OPEN_BLOCKS = ['docs', 'if', 'for', 'macro'];
-  static readonly JINJA_CLOSE_BLOCKS = ['enddocs', 'endif', 'endfor', 'endmacro'];
+  static readonly JINJA_OPEN_BLOCKS = ['docs', 'if', 'for', 'macro', 'call'];
+  static readonly JINJA_CLOSE_BLOCKS = ['enddocs', 'endif', 'endfor', 'endmacro', 'endcall'];
+
+  static readonly JINJA_BLOCK_PATTERN = new RegExp(
+    `{%\\s*(${JinjaParser.JINJA_OPEN_BLOCKS.join('|')})\\s+.*%}|{%-?\\s*(${JinjaParser.JINJA_CLOSE_BLOCKS.join('|')})\\s*%}`,
+  );
 
   static readonly JINJA_PART_PATTERN = /{\s*{|{\s*%|{\s*#|}\s*}|%\s*}|#\s*}/g;
 
