@@ -184,14 +184,15 @@ export async function insertText(position: Position, value: string): Promise<voi
   return edit(eb => eb.insert(position, value));
 }
 
-export async function replaceText(oldText: string, newText: string): Promise<void> {
-  return edit(prepareReplaceTextCallback(oldText, newText));
+export async function replaceText(oldText: string, newText: string, waitForPreview = true): Promise<void> {
+  const callback = prepareReplaceTextCallback(oldText, newText);
+  await (waitForPreview ? edit(callback) : editor.edit(callback));
 }
 
 function prepareReplaceTextCallback(oldText: string, newText: string): (editBuilder: TextEditorEdit) => void {
   const offsetStart = editor.document.getText().indexOf(oldText);
   if (offsetStart === -1) {
-    throw new Error(`text "${oldText}"" not found in "${editor.document.getText()}"`);
+    throw new Error(`Text "${oldText}"" not found in "${editor.document.getText()}"`);
   }
 
   const positionStart = editor.document.positionAt(offsetStart);

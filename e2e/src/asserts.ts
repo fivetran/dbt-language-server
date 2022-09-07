@@ -3,9 +3,9 @@ import { ok } from 'node:assert';
 import { CompletionItem, DefinitionLink, Diagnostic, DiagnosticRelatedInformation, languages, Location, Position, Range, Uri } from 'vscode';
 import { PREVIEW_URI, sleep, triggerCompletion, triggerDefinition } from './helper';
 
-export async function assertAllDiagnostics(uri: Uri, diagnostics: Diagnostic[]): Promise<void> {
-  await assertDiagnostics(uri, diagnostics);
-  await assertDiagnostics(Uri.parse(PREVIEW_URI), diagnostics);
+export async function assertAllDiagnostics(uri: Uri, rawDiagnostics: Diagnostic[], compiledDiagnostics?: Diagnostic[]): Promise<void> {
+  await assertDiagnostics(uri, rawDiagnostics);
+  await assertDiagnostics(Uri.parse(PREVIEW_URI), compiledDiagnostics ?? rawDiagnostics);
 }
 
 export async function assertDiagnostics(uri: Uri, diagnostics: Diagnostic[]): Promise<void> {
