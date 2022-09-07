@@ -5,6 +5,10 @@ import { activateAndWait, appendText, createAndOpenTempModel, getDocUri, replace
 suite('User defined function', () => {
   const DOC_URI = getDocUri('udf.sql');
 
+  const FUNC_NOT_FOUND = 'Function not found: AddFourAndDivide';
+  const ARGS_DOES_NOT_MATCH =
+    'Number of arguments does not match for function :ADDFOURANDDIVIDE. Supported signature: ADDFOURANDDIVIDE(STRING, INT64, ARRAY<STRING>, STRUCT<headers STRING, body STRING>)';
+
   test('Should compile sql with persistent UDF', async () => {
     await activateAndWait(DOC_URI);
 
@@ -42,43 +46,42 @@ FROM
       [
         {
           severity: DiagnosticSeverity.Error,
-          message: 'Function not found: AddFourAndDivide',
+          message: FUNC_NOT_FOUND,
           range: new Range(new Position(10, 7), new Position(10, 23)),
         },
       ],
       [
         {
           severity: DiagnosticSeverity.Error,
-          message: 'Function not found: AddFourAndDivide',
+          message: FUNC_NOT_FOUND,
           range: new Range(new Position(4, 7), new Position(4, 23)),
         },
       ],
     );
 
-    await replaceText('sting', 'string', false);
+    await replaceText('x sting, y INT64', 'x string, y INT64, arr ARRAY<string>, s STRUCT<headers STRING, body STRING>', false);
     await replaceText('AS val;', 'AS val; --'); // To change preview content
     await assertAllDiagnostics(
       uri,
       [
         {
           severity: DiagnosticSeverity.Error,
-          message:
-            'No matching signature for function :ADDFOURANDDIVIDE for argument types: INT64, INT64. Supported signature: ADDFOURANDDIVIDE(STRING, INT64)',
+          message: ARGS_DOES_NOT_MATCH,
           range: new Range(new Position(10, 7), new Position(10, 23)),
         },
       ],
       [
         {
           severity: DiagnosticSeverity.Error,
-          message:
-            'No matching signature for function :ADDFOURANDDIVIDE for argument types: INT64, INT64. Supported signature: ADDFOURANDDIVIDE(STRING, INT64)',
+          message: ARGS_DOES_NOT_MATCH,
           range: new Range(new Position(4, 7), new Position(4, 23)),
         },
       ],
     );
 
     await replaceText('x string', 'x int64', false);
-    await replaceText('AS val; --', 'AS val; ----'); // To change preview content
+    await replaceText('val, 2', "val, 2, ['a'], STRUCT('h', 'b')");
+
     await assertAllDiagnostics(uri, []);
   });
 });
