@@ -1,4 +1,4 @@
-import { runServer, terminateServer, TypeFactory, TypeKind, ZetaSQLClient } from '@fivetrandevelopers/zetasql';
+import { runServer, terminateServer, TypeKind, ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { FunctionProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/FunctionProto';
@@ -10,7 +10,6 @@ import { ResolvedOutputColumnProto } from '@fivetrandevelopers/zetasql/lib/types
 import { SimpleCatalogProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleCatalogProto';
 import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
 import { SimpleTableProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleTableProto';
-import { StructFieldProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/StructFieldProto';
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
 import { err, ok, Result } from 'neverthrow';
 import * as fs from 'node:fs';
@@ -19,8 +18,9 @@ import { DbtRepository } from './DbtRepository';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
 import { ManifestModel } from './manifest/ManifestJson';
 import { ModelFetcher } from './ModelFetcher';
-import { ColumnDefinition, TableDefinition } from './TableDefinition';
+import { TableDefinition } from './TableDefinition';
 import { arraysAreEqual, randomNumber } from './utils/Utils';
+import { createType } from './utils/ZetaSqlUtils';
 import { ZetaSqlParser } from './ZetaSqlParser';
 import findFreePortPmfy = require('find-free-port');
 
@@ -201,7 +201,7 @@ export class ZetaSqlWrapper {
   }
 
   static addPartitioningColumn(existingTable: SimpleTableProto, name: string, type: string): void {
-    ZetaSqlWrapper.addColumn(existingTable, ZetaSqlWrapper.createSimpleColumn(name, ZetaSqlWrapper.createType({ name, type })));
+    ZetaSqlWrapper.addColumn(existingTable, ZetaSqlWrapper.createSimpleColumn(name, createType({ name, type })));
   }
 
   static deleteColumn(table: SimpleTableProto, column: SimpleColumnProto): void {
@@ -219,42 +219,6 @@ export class ZetaSqlWrapper {
       table.column = table.column ?? [];
       table.column.push(newColumn);
     }
-  }
-
-  // TODO move to utils
-  static createType(newColumn: ColumnDefinition): TypeProto {
-    const bigQueryType = newColumn.type.toLowerCase();
-    const typeKind = TypeFactory.SIMPLE_TYPE_KIND_NAMES.get(bigQueryType);
-    let resultType: TypeProto;
-    if (typeKind) {
-      resultType = {
-        typeKind,
-      };
-    } else if (bigQueryType === 'record') {
-      resultType = {
-        typeKind: TypeKind.TYPE_STRUCT,
-        structType: {
-          field: newColumn.fields?.map<StructFieldProto>(f => ({
-            fieldName: f.name,
-            fieldType: this.createType(f),
-          })),
-        },
-      };
-    } else {
-      console.log(`Cannot find TypeKind for ${newColumn.type}`); // TODO: fix all these issues
-      resultType = {
-        typeKind: TypeKind.TYPE_STRING,
-      };
-    }
-    if (newColumn.mode?.toLocaleLowerCase() === 'repeated') {
-      resultType = {
-        typeKind: TypeKind.TYPE_ARRAY,
-        arrayType: {
-          elementType: resultType,
-        },
-      };
-    }
-    return resultType;
   }
 
   async analyze(sqlStatement: string, simpleCatalog: SimpleCatalogProto): Promise<AnalyzeResponse__Output> {
@@ -415,9 +379,7 @@ export class ZetaSqlWrapper {
     if (dataSetName && tableName) {
       const metadata = await this.bigQueryClient.getTableMetadata(dataSetName, tableName);
       if (metadata) {
-        table.columns = metadata.schema.fields.map<ResolvedOutputColumnProto>(f =>
-          ZetaSqlWrapper.createSimpleColumn(f.name, ZetaSqlWrapper.createType(f)),
-        );
+        table.columns = metadata.schema.fields.map<ResolvedOutputColumnProto>(f => ZetaSqlWrapper.createSimpleColumn(f.name, createType(f)));
         table.timePartitioning = metadata.timePartitioning;
       }
     }
