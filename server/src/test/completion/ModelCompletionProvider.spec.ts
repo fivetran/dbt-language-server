@@ -1,6 +1,7 @@
 import { ModelCompletionProvider } from '../../completion/ModelCompletionProvider';
 import { DbtRepository } from '../../DbtRepository';
 import { JinjaPartType } from '../../JinjaParser';
+import { ManifestModel } from '../../manifest/ManifestJson';
 import { shouldNotProvideCompletions, shouldProvideCompletions } from '../helper';
 
 describe('ModelCompletionProvider', () => {
@@ -19,7 +20,7 @@ describe('ModelCompletionProvider', () => {
     dbtRepository = new DbtRepository();
 
     dbtRepository.projectName = PROJECT_PACKAGE;
-    const models = [
+    const models: ManifestModel[] = [
       {
         uniqueId: 'model_1_id',
         rootPath: '/models/model_1.sql',

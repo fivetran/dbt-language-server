@@ -48,7 +48,7 @@ describe('ZetaSqlWrapper analyzeTable', () => {
     zetaSqlWrapper = new ZetaSqlWrapper(instance(mockDbtRepository), instance(mockBigQueryClient), instance(mockZetaSqlParser));
     zetaSqlWrapper['languageOptions'] = new LanguageOptions();
 
-    when(mockZetaSqlParser.getAllFunctions(COMPILED_SQL, anything())).thenReturn(Promise.resolve([UDF_NAME_PATH]));
+    when(mockZetaSqlParser.getAllFunctionCalls(COMPILED_SQL, anything())).thenReturn(Promise.resolve([UDF_NAME_PATH]));
     when(mockZetaSQLClient.extractTableNamesFromStatement(anything())).thenReturn(
       Promise.resolve({ tableName: [{ tableNameSegment: INTERNAL_TABLE_NAME_PATH }] }),
     );
@@ -67,7 +67,7 @@ describe('ZetaSqlWrapper analyzeTable', () => {
       }),
     );
 
-    when(mockZetaSqlParser.getAllFunctions(COMPILED_SQL)).thenReturn(Promise.resolve([UDF_NAME_PATH]));
+    when(mockZetaSqlParser.getAllFunctionCalls(COMPILED_SQL)).thenReturn(Promise.resolve([UDF_NAME_PATH]));
     when(mockBigQueryClient.getUdf(undefined, 'dataset', 'udf')).thenReturn(
       Promise.resolve({
         nameParts: UDF_NAME_PATH,

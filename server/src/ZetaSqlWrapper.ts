@@ -121,7 +121,7 @@ export class ZetaSqlWrapper {
     }
   }
 
-  async registerUdfs(compiledSql: string): Promise<void> {
+  async registerPersistentUdfs(compiledSql: string): Promise<void> {
     const namePaths = await this.getNewCustomFunctions(compiledSql);
     for (const namePath of namePaths) {
       const udf = await this.createUdfFromNamePath(namePath);
@@ -129,6 +129,27 @@ export class ZetaSqlWrapper {
         this.registerUdf(udf);
       }
     }
+  }
+
+  async getTempUdfs(modelFetcher: ModelFetcher): Promise<FunctionProto[]> {
+    const model = await modelFetcher.getModel();
+    if (model?.config?.sqlHeader) {
+      const languageOptions = await this.getLanguageOptions();
+      const functions = await this.zetaSqlParser.getAllFunctionDeclarations(model.config.sqlHeader, languageOptions?.serialize());
+      return functions.map(f => this.createFunction(f));
+    }
+    return [];
+  }
+
+  addTempUdfsToCatalog(catalog: SimpleCatalogProto, udfs: FunctionProto[]): SimpleCatalogProto {
+    const clonedCatalog = { ...catalog };
+    clonedCatalog.customFunction = clonedCatalog.customFunction ?? [];
+    for (const udf of udfs) {
+      if (!clonedCatalog.customFunction.some(f => f.namePath?.join(',') === udf.namePath?.join(','))) {
+        clonedCatalog.customFunction.push(udf);
+      }
+    }
+    return clonedCatalog;
   }
 
   registerUdf(udf: Udf): void {
@@ -200,6 +221,7 @@ export class ZetaSqlWrapper {
     }
   }
 
+  // TODO move to utils
   static createType(newColumn: ColumnDefinition): TypeProto {
     const bigQueryType = newColumn.type.toLowerCase();
     const typeKind = TypeFactory.SIMPLE_TYPE_KIND_NAMES.get(bigQueryType);
@@ -235,16 +257,16 @@ export class ZetaSqlWrapper {
     return resultType;
   }
 
-  async analyze(sql: string, catalog: SimpleCatalogProto): Promise<AnalyzeResponse__Output> {
+  async analyze(sqlStatement: string, simpleCatalog: SimpleCatalogProto): Promise<AnalyzeResponse__Output> {
     const response = await this.getClient().analyze({
-      sqlStatement: sql,
-      simpleCatalog: catalog,
+      sqlStatement,
+      simpleCatalog,
 
       options: {
         parseLocationRecordType: ParseLocationRecordType.PARSE_LOCATION_RECORD_CODE_SEARCH,
 
         errorMessageMode: ErrorMessageMode.ERROR_MESSAGE_ONE_LINE,
-        languageOptions: this.catalog.builtinFunctionOptions?.languageOptions,
+        languageOptions: simpleCatalog.builtinFunctionOptions?.languageOptions,
       },
     });
 
@@ -287,9 +309,11 @@ export class ZetaSqlWrapper {
       }
     }
 
-    await this.registerUdfs(compiledSql);
+    await this.registerPersistentUdfs(compiledSql);
+    const tempUdfs = await this.getTempUdfs(modelFetcher);
+    const catalogWithTempUdfs = this.addTempUdfsToCatalog(this.catalog, tempUdfs);
 
-    const ast = await this.getAstOrError(compiledSql);
+    const ast = await this.getAstOrError(compiledSql, catalogWithTempUdfs);
     if (ast.isOk()) {
       const model = await modelFetcher.getModel();
       if (model) {
@@ -354,13 +378,13 @@ export class ZetaSqlWrapper {
 
   async getNewCustomFunctions(sql: string): Promise<string[][]> {
     const languageOptions = await this.getLanguageOptions();
-    const allFunctions = await this.zetaSqlParser.getAllFunctions(sql, languageOptions?.serialize());
+    const allFunctions = await this.zetaSqlParser.getAllFunctionCalls(sql, languageOptions?.serialize());
     return allFunctions.filter(f => !this.registeredFunctions.has(f.join(',')));
   }
 
-  async getAstOrError(compiledSql: string): Promise<Result<AnalyzeResponse__Output, string>> {
+  async getAstOrError(compiledSql: string, catalog: SimpleCatalogProto): Promise<Result<AnalyzeResponse__Output, string>> {
     try {
-      const ast = await this.analyze(compiledSql, this.catalog);
+      const ast = await this.analyze(compiledSql, catalog);
       return ok(ast);
     } catch (e) {
       return err((e as Partial<Record<string, string>>)['details'] ?? this.createUnknownError('Unknown parser error'));
