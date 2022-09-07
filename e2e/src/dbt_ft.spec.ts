@@ -5,7 +5,11 @@ import { DiagnosticSeverity, languages, Uri } from 'vscode';
 import { activateAndWait } from './helper';
 
 suite('dbt_ft', () => {
-  const EXCLUDE = ['dbt_ft_prod/models/bi_core/accounts.sql', 'dbt_ft_prod/models/bi_core/monthly_employee_metrics.sql'];
+  const EXCLUDE = [
+    'dbt_ft_prod/models/bi_core/accounts.sql',
+    'dbt_ft_prod/models/bi_core/monthly_employee_metrics.sql',
+    'dbt_ft_prod/models/bi_core/dbt_projects_timeline.sql',
+  ];
 
   test('Should compile all models in analytics repo', async () => {
     const files = glob.sync(path.resolve(getProjectPath(), 'models/**/*.sql'), { nodir: true });
