@@ -1,14 +1,13 @@
-import { TypeFactory, TypeKind, ZetaSQLClient } from '@fivetrandevelopers/zetasql';
-import { AnyASTTypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/AnyASTTypeProto';
+import { ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { ASTCreateFunctionStatementProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTCreateFunctionStatementProto';
 import { ASTFunctionCallProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTFunctionCallProto';
 import { LanguageOptionsProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/LanguageOptionsProto';
 import { ParseResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ParseResponse';
-import { StructFieldProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/StructFieldProto';
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
 import { promisify } from 'node:util';
 import { Udf } from './bigquery/BigQueryClient';
 import { arraysAreEqual } from './utils/Utils';
+import { toTypeProto } from './utils/ZetaSqlUtils';
 
 interface Node {
   node: 'astFunctionCallNode';
@@ -39,9 +38,9 @@ export class ZetaSqlParser {
         const nameParts = functionDeclaration?.name?.names.map(n => n.idString);
         const args = functionDeclaration?.parameters?.parameterEntries.map(e => ({
           name: e.name?.idString,
-          type: e.type ? ZetaSqlParser.toTypeProto(e.type) : undefined,
+          type: e.type ? toTypeProto(e.type) : undefined,
         }));
-        const returnType = node.returnType ? ZetaSqlParser.toTypeProto(node.returnType) : undefined;
+        const returnType = node.returnType ? toTypeProto(node.returnType) : undefined;
         if (nameParts && args && args.every(a => a.name && a.type?.typeKind) && returnType?.typeKind) {
           udfs.push({
             nameParts,
@@ -79,63 +78,5 @@ export class ZetaSqlParser {
         this.traverse(nodeType, child, action);
       }
     }
-  }
-
-  static toTypeProto(astType: AnyASTTypeProto): TypeProto | undefined {
-    switch (astType.node) {
-      case 'astSimpleTypeNode': {
-        const simpleType = astType[astType.node];
-        const names = simpleType?.typeName?.names;
-        if (names?.length && names.length > 0) {
-          const type = names[0].idString?.toLowerCase();
-          if (type) {
-            const typeKind = TypeFactory.SIMPLE_TYPE_KIND_NAMES.get(type);
-            if (typeKind) {
-              return { typeKind };
-            }
-          }
-        }
-        break;
-      }
-
-      case 'astArrayTypeNode': {
-        const arrayType = astType[astType.node];
-        if (arrayType?.elementType) {
-          const elementType = this.toTypeProto(arrayType.elementType);
-          if (elementType) {
-            return {
-              typeKind: TypeKind.TYPE_ARRAY,
-              arrayType: {
-                elementType,
-              },
-            };
-          }
-        }
-        break;
-      }
-
-      case 'astStructTypeNode': {
-        const structType = astType[astType.node];
-        if (structType?.structFields) {
-          const field = structType.structFields.map<StructFieldProto>(f => ({
-            fieldName: f.name?.idString,
-            fieldType: f.type ? this.toTypeProto(f.type) : undefined,
-          }));
-          if (field.every(f => f.fieldName && f.fieldType)) {
-            return {
-              typeKind: TypeKind.TYPE_STRUCT,
-              structType: {
-                field,
-              },
-            };
-          }
-        }
-        break;
-      }
-
-      default:
-        break;
-    }
-    return undefined;
   }
 }
