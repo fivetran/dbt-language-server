@@ -10,6 +10,7 @@ suite('dbt_ft', () => {
     'dbt_ft_prod/models/bi_core/monthly_employee_metrics.sql',
     'dbt_ft_prod/models/bi_core/dbt_projects_timeline.sql',
     'dbt_ft_prod/models/bi_core/transformations_timeline.sql',
+    'dbt_ft_prod/models/dbt_root/model_wh/fivetran_transformations/dbt_job_runs_by_step.sql',
   ];
 
   test('Should compile all models in analytics repo', async () => {
