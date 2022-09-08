@@ -18,13 +18,17 @@ suite('dbt_ft', () => {
     files.forEach(f => console.log(f));
 
     for (let i = 0; i < files.length; i++) {
-      fileProcessingTimeout = setTimeout();
       const file = files[i];
       console.log(`File: ${file}`);
+      const fileProcessingTimeout = new Promise<void>((_resolve, reject) => {
+        setTimeout(() => {
+          reject(new Error(`Something went wrong when opening model ${file}`));
+        }, 1000 * 60 * 5);
+      });
 
       if (!EXCLUDE.some(e => file.endsWith(e))) {
         const uri = Uri.file(file);
-        await activateAndWait(uri);
+        await Promise.race([activateAndWait(uri), fileProcessingTimeout]);
 
         const diagnostics = languages.getDiagnostics(uri);
         writeFileSync(getLogPath(), `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n`, {
