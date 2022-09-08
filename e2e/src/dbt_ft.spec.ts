@@ -21,13 +21,14 @@ suite('dbt_ft', () => {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       console.log(`File: ${file}`);
-      const fileProcessingTimeout = new Promise<void>((_resolve, reject) => {
-        setTimeout(() => {
-          reject(new Error(`Something went wrong when opening model ${file}`));
-        }, 1000 * 60 * 5);
-      });
 
       if (!EXCLUDE.some(e => file.endsWith(e))) {
+        const fileProcessingTimeout = new Promise<void>((_resolve, reject) => {
+          setTimeout(() => {
+            reject(new Error(`Something went wrong when opening model ${file}`));
+          }, 1000 * 60 * 5);
+        });
+
         const uri = Uri.file(file);
         await Promise.race([activateAndWait(uri), fileProcessingTimeout]);
 
