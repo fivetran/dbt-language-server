@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import { Selection, TextDocument, Uri, window, workspace } from 'vscode';
+import { FileType, Selection, TextDocument, Uri, window, workspace } from 'vscode';
 import { DBT_PROJECT_YML, DEFAULT_PACKAGES_PATHS, INTEGRATION_TEST_PROJECT_NAME, PACKAGES_YML, SUPPORTED_LANG_IDS } from './Constants';
 import { DbtLanguageClient } from './DbtLanguageClient';
 import { log } from './Logger';
@@ -91,13 +91,15 @@ export class DbtLanguageClientManager {
     do {
       currentUri = Uri.joinPath(currentUri, '..');
       try {
-        await workspace.fs.stat(currentUri.with({ path: `${currentUri.path}/${DBT_PROJECT_YML}` }));
-        const oneLevelUpPath = Uri.joinPath(currentUri, '..').path;
-        if (
-          !DEFAULT_PACKAGES_PATHS.some(p => oneLevelUpPath.toLocaleLowerCase().endsWith(p)) &&
-          !currentUri.fsPath.toLocaleLowerCase().endsWith(INTEGRATION_TEST_PROJECT_NAME)
-        ) {
-          return currentUri;
+        const stat = await workspace.fs.stat(currentUri.with({ path: `${currentUri.path}/${DBT_PROJECT_YML}` }));
+        if (stat.type !== FileType.Directory) {
+          const oneLevelUpPath = Uri.joinPath(currentUri, '..').path;
+          if (
+            !DEFAULT_PACKAGES_PATHS.some(p => oneLevelUpPath.toLocaleLowerCase().endsWith(p)) &&
+            !currentUri.fsPath.toLocaleLowerCase().endsWith(INTEGRATION_TEST_PROJECT_NAME)
+          ) {
+            return currentUri;
+          }
         }
       } catch {
         // file does not exist
