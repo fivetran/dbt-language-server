@@ -27,7 +27,3 @@ export interface ManifestJson {
   macros: ManifestMacro[];
   sources: ManifestSource[];
 }
-
-export function getFromClauseString(model: ManifestModel): string {
-  return `\`${model.database}\`.\`${model.schema}\`.\`${model.name}\``;
-}
