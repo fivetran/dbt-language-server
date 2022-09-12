@@ -83,8 +83,9 @@ export class DbtLanguageClient implements Disposable {
 
           pendingOpenRequests.set(data.uri.fsPath, next);
           setTimeout(() => {
-            pendingOpenRequests.delete(data.uri.fsPath);
-            log('Open request cancelled');
+            if (pendingOpenRequests.delete(data.uri.fsPath)) {
+              log('Open request cancelled');
+            }
           }, 1000);
           return Promise.resolve();
         },
