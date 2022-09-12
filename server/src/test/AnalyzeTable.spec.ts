@@ -6,6 +6,7 @@ import { assertThat, contains, hasProperty, hasSize } from 'hamjest';
 import { anything, instance, mock, objectContaining, spy, verify, when } from 'ts-mockito';
 import { BigQueryClient } from '../bigquery/BigQueryClient';
 import { DbtRepository } from '../DbtRepository';
+import { SqlHeaderAnalyzer } from '../SqlHeaderAnalyzer';
 import { ZetaSqlParser } from '../ZetaSqlParser';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 
@@ -45,7 +46,12 @@ describe('ZetaSqlWrapper analyzeTable', () => {
       },
     ]);
 
-    zetaSqlWrapper = new ZetaSqlWrapper(instance(mockDbtRepository), instance(mockBigQueryClient), instance(mockZetaSqlParser));
+    zetaSqlWrapper = new ZetaSqlWrapper(
+      instance(mockDbtRepository),
+      instance(mockBigQueryClient),
+      instance(mockZetaSqlParser),
+      mock(SqlHeaderAnalyzer),
+    );
     zetaSqlWrapper['languageOptions'] = new LanguageOptions();
 
     when(mockZetaSqlParser.getAllFunctionCalls(COMPILED_SQL, anything())).thenReturn(Promise.resolve([UDF_NAME_PATH]));

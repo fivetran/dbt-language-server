@@ -3,6 +3,7 @@ import { err, ok, Result } from 'neverthrow';
 import { DbtProfile, TargetConfig } from '../DbtProfile';
 import { DbtRepository } from '../DbtRepository';
 import { DestinationDefinition } from '../DestinationDefinition';
+import { SqlHeaderAnalyzer } from '../SqlHeaderAnalyzer';
 import { ZetaSqlParser } from '../ZetaSqlParser';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 import { BigQueryClient } from './BigQueryClient';
@@ -25,7 +26,7 @@ export class BigQueryContext {
       const bigQueryClient = clientResult.value as BigQueryClient;
       const destinationDefinition = new DestinationDefinition(bigQueryClient);
 
-      const zetaSqlWrapper = new ZetaSqlWrapper(dbtRepository, bigQueryClient, new ZetaSqlParser());
+      const zetaSqlWrapper = new ZetaSqlWrapper(dbtRepository, bigQueryClient, new ZetaSqlParser(), new SqlHeaderAnalyzer());
       await zetaSqlWrapper.initializeZetaSql();
 
       return ok(new BigQueryContext(destinationDefinition, zetaSqlWrapper));

@@ -33,7 +33,7 @@ suite('User defined function', () => {
 CREATE TEMP FUNCTION Foo(x sting, y INT64) -- typo here, should be 'stRing'
 RETURNS FLOAT64
 AS (
-  (x + 4) / y
+  (cast(x as int64) + 4) / y
 );
 {%- endcall %}
 

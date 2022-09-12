@@ -18,6 +18,7 @@ import { DbtRepository } from './DbtRepository';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
 import { ManifestModel } from './manifest/ManifestJson';
 import { ModelFetcher } from './ModelFetcher';
+import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
 import { TableDefinition } from './TableDefinition';
 import { arraysAreEqual, randomNumber } from './utils/Utils';
 import { createType } from './utils/ZetaSqlUtils';
@@ -40,7 +41,12 @@ export class ZetaSqlWrapper {
   private registeredFunctions = new Set<string>();
   private informationSchemaConfigurator = new InformationSchemaConfigurator();
 
-  constructor(private dbtRepository: DbtRepository, private bigQueryClient: BigQueryClient, private zetaSqlParser: ZetaSqlParser) {}
+  constructor(
+    private dbtRepository: DbtRepository,
+    private bigQueryClient: BigQueryClient,
+    private zetaSqlParser: ZetaSqlParser,
+    private sqlHeaderAnalyzer: SqlHeaderAnalyzer,
+  ) {}
 
   getClient(): ZetaSQLClient {
     return ZetaSQLClient.getInstance();
@@ -135,8 +141,11 @@ export class ZetaSqlWrapper {
     const model = await modelFetcher.getModel();
     if (model?.config?.sqlHeader) {
       const languageOptions = await this.getLanguageOptions();
-      const functions = await this.zetaSqlParser.getAllFunctionDeclarations(model.config.sqlHeader, languageOptions?.serialize());
-      return functions.map(f => this.createFunction(f));
+      return this.sqlHeaderAnalyzer.getAllFunctionDeclarations(
+        model.config.sqlHeader,
+        languageOptions?.serialize(),
+        this.catalog.builtinFunctionOptions,
+      );
     }
     return [];
   }

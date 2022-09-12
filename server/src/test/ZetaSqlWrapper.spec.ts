@@ -7,6 +7,7 @@ import { mock } from 'ts-mockito';
 import { BigQueryClient, Udf } from '../bigquery/BigQueryClient';
 import { DbtRepository } from '../DbtRepository';
 import { InformationSchemaConfigurator } from '../InformationSchemaConfigurator';
+import { SqlHeaderAnalyzer } from '../SqlHeaderAnalyzer';
 import { TableDefinition } from '../TableDefinition';
 import { arraysAreEqual } from '../utils/Utils';
 import { ZetaSqlParser } from '../ZetaSqlParser';
@@ -42,7 +43,7 @@ describe('ZetaSqlWrapper table/udf registration', () => {
   let zetaSqlWrapper: ZetaSqlWrapper;
 
   before(() => {
-    zetaSqlWrapper = new ZetaSqlWrapper(mock(DbtRepository), mock(BigQueryClient), mock(ZetaSqlParser));
+    zetaSqlWrapper = new ZetaSqlWrapper(mock(DbtRepository), mock(BigQueryClient), mock(ZetaSqlParser), mock(SqlHeaderAnalyzer));
   });
 
   function shouldRegisterTable(
@@ -89,7 +90,7 @@ describe('ZetaSqlWrapper table/udf registration', () => {
     expectedProjectId?: string,
   ): void {
     // arrange, act
-    zetaSqlWrapper = new ZetaSqlWrapper(mock(DbtRepository), mock(BigQueryClient), mock(ZetaSqlParser));
+    zetaSqlWrapper = new ZetaSqlWrapper(mock(DbtRepository), mock(BigQueryClient), mock(ZetaSqlParser), mock(SqlHeaderAnalyzer));
     const rootCatalog = registerTable(zetaSqlWrapper, tableDefinition);
 
     // assert
