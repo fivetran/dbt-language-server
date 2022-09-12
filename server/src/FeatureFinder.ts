@@ -59,7 +59,7 @@ export class FeatureFinder {
   }
 
   async getListOfPackages(): Promise<DbtPackageInfo[]> {
-    const hubResponse = await axios.get<HubJson>('https://cdn.jsdelivr.net/gh/dbt-labs/hubcap/hub.json');
+    const hubResponse = await axios.get<HubJson>('https://cdn.jsdelivr.net/gh/dbt-labs/hubcap@HEAD/hub.json');
     const uriPromises = Object.entries<string[]>(hubResponse.data).flatMap(([gitHubUser, repositoryNames]) =>
       repositoryNames.map(r => this.getPackageInfo(gitHubUser, r)),
     );
@@ -69,7 +69,9 @@ export class FeatureFinder {
 
   async getPackageInfo(gitHubUser: string, repositoryName: string): Promise<DbtPackageInfo | undefined> {
     try {
-      const response = await axios.get<string>(`https://cdn.jsdelivr.net/gh/${gitHubUser}/${repositoryName}/${DbtRepository.DBT_PROJECT_FILE_NAME}`);
+      const response = await axios.get<string>(
+        `https://cdn.jsdelivr.net/gh/${gitHubUser}/${repositoryName}@HEAD/${DbtRepository.DBT_PROJECT_FILE_NAME}`,
+      );
       const parsedYaml = yaml.parse(response.data, { uniqueKeys: false }) as { name: string | undefined };
       const packageName = parsedYaml.name;
       if (packageName !== undefined) {
