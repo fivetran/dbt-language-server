@@ -1,16 +1,12 @@
 import { ZetaSQLClient } from '@fivetrandevelopers/zetasql';
-import { ASTCreateFunctionStatementProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTCreateFunctionStatementProto';
 import { ASTFunctionCallProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTFunctionCallProto';
 import { LanguageOptionsProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/LanguageOptionsProto';
 import { ParseResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ParseResponse';
-import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
 import { promisify } from 'node:util';
-import { Udf } from './bigquery/BigQueryClient';
 import { arraysAreEqual } from './utils/Utils';
-import { toTypeProto } from './utils/ZetaSqlUtils';
 
 interface Node {
-  node: 'astFunctionCallNode';
+  node: string;
   [key: string]: unknown;
 }
 
@@ -27,30 +23,6 @@ export class ZetaSqlParser {
       });
     }
     return functions;
-  }
-
-  async getAllFunctionDeclarations(sqlStatement: string, options?: LanguageOptionsProto): Promise<Udf[]> {
-    const udfs: Udf[] = [];
-    const parseResult = await this.parse(sqlStatement, options);
-    if (parseResult) {
-      this.traverse('astCreateFunctionStatementNode', parseResult.parsedStatement, (node: ASTCreateFunctionStatementProto__Output) => {
-        const functionDeclaration = node.parent?.functionDeclaration;
-        const nameParts = functionDeclaration?.name?.names.map(n => n.idString);
-        const args = functionDeclaration?.parameters?.parameterEntries.map(e => ({
-          name: e.name?.idString,
-          type: e.type ? toTypeProto(e.type) : undefined,
-        }));
-        const returnType = node.returnType ? toTypeProto(node.returnType) : undefined;
-        if (nameParts && args && args.every(a => a.name && a.type?.typeKind) && returnType?.typeKind) {
-          udfs.push({
-            nameParts,
-            arguments: args.filter((a): a is { name: string | undefined; type: TypeProto } => a.type !== undefined),
-            returnType,
-          });
-        }
-      });
-    }
-    return udfs;
   }
 
   async parse(sqlStatement: string, options?: LanguageOptionsProto): Promise<ParseResponse__Output | undefined> {
