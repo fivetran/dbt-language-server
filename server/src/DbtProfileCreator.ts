@@ -1,4 +1,5 @@
 import { Err, err, ok, Result } from 'neverthrow';
+import { URI } from 'vscode-uri';
 import { DbtProfile, DbtProfileType, ProfileYaml, TargetConfig } from './DbtProfile';
 import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtProfileType';
 import { DbtProject } from './DbtProject';
@@ -30,7 +31,11 @@ export class DbtProfileCreator {
   validateProfilesFile(profiles: unknown, profileName: string): Result<ProfileYamlValidated, DbtProfileError> {
     const profile = (profiles as Record<string, unknown>)[profileName] as ProfileYaml | undefined;
     if (!profile) {
-      return err({ message: `Couldn't find credentials for profile '${profileName}'. Check your '${this.profilesPath}' file.` });
+      return err({
+        message: `Couldn't find credentials for profile '${profileName}'. Check your [${this.profilesPath}](${URI.file(
+          this.profilesPath,
+        ).toString()}) file.`,
+      });
     }
 
     const { target } = profile;
@@ -56,7 +61,13 @@ export class DbtProfileCreator {
     const { method } = outputsTarget;
     const authMethods = PROFILE_METHODS.get(type);
     if (authMethods && (!method || !authMethods.includes(method))) {
-      return err({ message: `Unknown authentication method of '${type}' profile. Check your '${this.profilesPath}' file.`, type, method });
+      return err({
+        message: `Unknown authentication method of '${type}' profile. Check your [${this.profilesPath}](${URI.file(
+          this.profilesPath,
+        ).toString()}) file.`,
+        type,
+        method,
+      });
     }
 
     return ok(profile as ProfileYamlValidated);
@@ -119,7 +130,9 @@ export class DbtProfileCreator {
   }
 
   cantFindSectionError(profileName: string, section: string, docsUrl?: string, type?: string, method?: string): Err<never, DbtProfileError> {
-    const message = `Couldn't find section '${section}' for profile '${profileName}'. Check your '${this.profilesPath}' file. ${docsUrl ?? ''}`;
+    const message = `Couldn't find section '${section}' for profile '${profileName}'. Check your [${this.profilesPath}](${URI.file(
+      this.profilesPath,
+    ).toString()}) file. ${docsUrl ?? ''}`;
     console.log(message);
     return this.parseProfileError(message, type, method);
   }
