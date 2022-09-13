@@ -153,9 +153,23 @@ export class DbtTextDocument {
         }
         const converter = new PositionConverter(this.rawDocument.getText(), this.compiledDocument.getText());
 
+        const start = converter.convertPositionStraight(change.range.start);
+        const end = converter.convertPositionStraight(change.range.end);
+        let range = undefined;
+        try {
+          range = Range.create(start, end);
+        } catch {
+          throw new Error(
+            `Invalid state: ${this.rawDocument.getText().length}, ${this.compiledDocument.getText().length}; ${converter.firstLines?.length ?? -1}, ${
+              converter.secondLines?.length ?? -1
+            }; ${change.range.start.line}, ${change.range.start.character}, ${change.range.end.line}, ${change.range.end.character}; ${start.line}, ${
+              start.character
+            }, ${end.line}, ${start.character}`,
+          );
+        }
         return {
           text: change.text,
-          range: Range.create(converter.convertPositionStraight(change.range.start), converter.convertPositionStraight(change.range.end)),
+          range,
         };
       });
 

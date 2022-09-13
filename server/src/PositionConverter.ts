@@ -56,7 +56,7 @@ export class PositionConverter {
     }
     if (lineInSecond >= secondLines.length || lineInSecond < 0) {
       throw new Error(
-        `Invalid sate for 2nd lines: ${firstLines.length}, ${this.first.length}, ${positionInFirst.line} ${secondLines.length}, ${this.second.length}, ${positionInFirst.character}`,
+        `Invalid sate for 2nd lines: ${lineInSecond} ${firstLines.length}, ${this.first.length}, ${positionInFirst.line} ${secondLines.length}, ${this.second.length}, ${positionInFirst.character}`,
       );
     }
 
