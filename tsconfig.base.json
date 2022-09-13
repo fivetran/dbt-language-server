@@ -1,9 +1,8 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    // TODO: move to es2022 when https://github.com/terser/terser/issues/1093 is fixed
-    "target": "es2021",
-    "lib": ["es2021"],
+    "target": "es2022",
+    "lib": ["es2022"],
     "moduleResolution": "node",
     "forceConsistentCasingInFileNames": true,
     "allowUnreachableCode": false,
