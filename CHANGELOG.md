@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 0.10.0 (01/01/1970)
+## What's Changed
+* Fix the issue with showing not all available dbt packages.
+* Support linux-arm64 platform.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.9.1...v0.10.0
+---
+
 ## Version 0.9.1 (05/09/2022)
 ## What's Changed
 * Fix issue with handling new tabs created using VS Code API.
