@@ -23,6 +23,10 @@ jobs:
             target: linux-x64
             zetasql-lib: libremote_server.so
 
+          - os: ubuntu-latest
+            target: linux-arm64
+            zetasql-lib: libremote_server_arm.so
+
           - os: windows-latest
             target: win32-x64
 
@@ -320,13 +324,13 @@ jobs:
             ./e2e/projects/project-with-packages/logs/*
 
   publish:
-    if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }} # main branch or have any tag started with 'v'
+    if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/linux-arm-support' }} # main branch or have any tag started with 'v'
     needs: [test-and-package, run-e2e-tests]
 
     runs-on: macos-latest
     steps:
       - name: load darwin-x64 vsix from cache
-        id: darwin-cache
+        id: darwin-x64-cache
         uses: actions/cache@v3
         with:
           path: ./${{ env.VSIX_NAME }}
@@ -344,13 +348,22 @@ jobs:
           VSIX_NAME: ${{ github.sha }}-darwin-arm64.vsix
 
       - name: load linux-x64 vsix from cache
-        id: linux-cache
+        id: linux-x64-cache
         uses: actions/cache@v3
         with:
           path: ./${{ env.VSIX_NAME }}
           key: ${{ env.VSIX_NAME }}
         env:
           VSIX_NAME: ${{ github.sha }}-linux-x64.vsix
+
+      - name: load linux-arm64 vsix from cache
+        id: linux-arm64-cache
+        uses: actions/cache@v3
+        with:
+          path: ./${{ env.VSIX_NAME }}
+          key: ${{ env.VSIX_NAME }}
+        env:
+          VSIX_NAME: ${{ github.sha }}-linux-arm64.vsix
 
       - name: load win32-x64 vsix from cache
         id: windows-cache
@@ -362,7 +375,7 @@ jobs:
           VSIX_NAME: ${{ github.sha }}-win32-x64.vsix
 
       - name: fail if cache not hit
-        if: steps.darwin-cache.outputs.cache-hit != 'true' || steps.darwin-arm64-cache.outputs.cache-hit != 'true' || steps.linux-cache.outputs.cache-hit != 'true' || steps.windows-cache.outputs.cache-hit != 'true'
+        if: steps.darwin-x64-cache.outputs.cache-hit != 'true' || steps.darwin-arm64-cache.outputs.cache-hit != 'true' || steps.linux-x64-cache.outputs.cache-hit != 'true' || steps.linux-arm64-cache.outputs.cache-hit != 'true' || steps.windows-cache.outputs.cache-hit != 'true'
         run: exit 1
 
       - name: 'google auth using service account json'
