@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.10.0 (01/01/1970)
+## Version 0.10.0 (14/09/2022)
 ## What's Changed
 * Fix the issue with showing not all available dbt packages.
 * Support linux-arm64 platform.
