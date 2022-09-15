@@ -10,6 +10,7 @@ import { promisify } from 'node:util';
 import { traverse } from './utils/ZetaSqlUtils';
 
 export class SqlHeaderAnalyzer {
+  static readonly FUNCTIONS_COUNT_LIMIT = 100;
   async getAllFunctionDeclarations(
     sqlStatement: string,
     options?: LanguageOptionsProto,
@@ -47,6 +48,7 @@ export class SqlHeaderAnalyzer {
     try {
       let bytePosition = 0;
       let result = undefined;
+      let count = 0;
       do {
         result = await analyze({
           parseResumeLocation: {
@@ -68,7 +70,8 @@ export class SqlHeaderAnalyzer {
           asts.push(result);
           bytePosition = result.resumeBytePosition;
         }
-      } while (result !== undefined);
+        count++;
+      } while (result !== undefined && count < SqlHeaderAnalyzer.FUNCTIONS_COUNT_LIMIT);
     } catch (e) {
       console.log(e);
     }
