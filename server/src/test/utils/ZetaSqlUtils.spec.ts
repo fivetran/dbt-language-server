@@ -2,7 +2,7 @@ import { ParseLocationRangeProto__Output } from '@fivetrandevelopers/zetasql/lib
 import { assertThat } from 'hamjest';
 import { positionInRange, rangeContainsRange, rangesEqual } from '../../utils/ZetaSqlUtils';
 
-describe('ZetaSqlUtils.spec', () => {
+describe('ZetaSqlUtils', () => {
   it('positionInRange should return whether the range contains specified position', () => {
     assertThat(positionInRange(5, createRange(5, 8)), true);
     assertThat(positionInRange(7, createRange(5, 8)), true);

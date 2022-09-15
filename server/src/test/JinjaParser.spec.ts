@@ -21,11 +21,14 @@ describe('JinjaParser', () => {
     ]);
     shouldFindAllJinjaRanges('five', [
       Range.create(0, 0, 0, 73),
-      Range.create(4, 4, 4, 47),
-      Range.create(5, 36, 5, 54),
-      Range.create(5, 76, 5, 94),
-      Range.create(6, 4, 6, 16),
-      Range.create(4, 4, 6, 16),
+      Range.create(2, 0, 2, 33),
+      Range.create(8, 0, 8, 14),
+      Range.create(12, 4, 12, 47),
+      Range.create(13, 36, 13, 54),
+      Range.create(13, 76, 13, 94),
+      Range.create(14, 4, 14, 16),
+      Range.create(2, 0, 8, 14),
+      Range.create(12, 4, 14, 16),
     ]);
   });
 

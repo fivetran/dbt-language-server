@@ -17,6 +17,9 @@ interface RawNode {
     nodes: string[];
   };
   refs: string[][];
+  config?: {
+    sql_header?: string;
+  };
 }
 
 interface RawManifest {
@@ -59,6 +62,9 @@ export class ManifestParser {
           schema: n.schema,
           dependsOn: n.depends_on,
           refs: n.refs,
+          config: {
+            sqlHeader: n.config?.sql_header,
+          },
         }));
     }
     return [];

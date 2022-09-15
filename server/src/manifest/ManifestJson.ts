@@ -13,6 +13,9 @@ export interface ManifestModel extends ManifestNode {
     nodes: string[];
   };
   refs: string[][];
+  config?: {
+    sqlHeader?: string;
+  };
 }
 
 export type ManifestMacro = ManifestNode;

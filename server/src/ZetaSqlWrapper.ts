@@ -1,4 +1,4 @@
-import { runServer, terminateServer, TypeFactory, TypeKind, ZetaSQLClient } from '@fivetrandevelopers/zetasql';
+import { runServer, terminateServer, TypeKind, ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { FunctionProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/FunctionProto';
@@ -10,7 +10,6 @@ import { ResolvedOutputColumnProto } from '@fivetrandevelopers/zetasql/lib/types
 import { SimpleCatalogProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleCatalogProto';
 import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
 import { SimpleTableProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleTableProto';
-import { StructFieldProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/StructFieldProto';
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
 import { err, ok, Result } from 'neverthrow';
 import * as fs from 'node:fs';
@@ -19,8 +18,10 @@ import { DbtRepository } from './DbtRepository';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
 import { ManifestModel } from './manifest/ManifestJson';
 import { ModelFetcher } from './ModelFetcher';
-import { ColumnDefinition, TableDefinition } from './TableDefinition';
+import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
+import { TableDefinition } from './TableDefinition';
 import { arraysAreEqual, randomNumber } from './utils/Utils';
+import { createType } from './utils/ZetaSqlUtils';
 import { ZetaSqlParser } from './ZetaSqlParser';
 import findFreePortPmfy = require('find-free-port');
 
@@ -40,7 +41,12 @@ export class ZetaSqlWrapper {
   private registeredFunctions = new Set<string>();
   private informationSchemaConfigurator = new InformationSchemaConfigurator();
 
-  constructor(private dbtRepository: DbtRepository, private bigQueryClient: BigQueryClient, private zetaSqlParser: ZetaSqlParser) {}
+  constructor(
+    private dbtRepository: DbtRepository,
+    private bigQueryClient: BigQueryClient,
+    private zetaSqlParser: ZetaSqlParser,
+    private sqlHeaderAnalyzer: SqlHeaderAnalyzer,
+  ) {}
 
   getClient(): ZetaSQLClient {
     return ZetaSQLClient.getInstance();
@@ -121,7 +127,7 @@ export class ZetaSqlWrapper {
     }
   }
 
-  async registerUdfs(compiledSql: string): Promise<void> {
+  async registerPersistentUdfs(compiledSql: string): Promise<void> {
     const namePaths = await this.getNewCustomFunctions(compiledSql);
     for (const namePath of namePaths) {
       const udf = await this.createUdfFromNamePath(namePath);
@@ -129,6 +135,30 @@ export class ZetaSqlWrapper {
         this.registerUdf(udf);
       }
     }
+  }
+
+  async getTempUdfs(modelFetcher: ModelFetcher): Promise<FunctionProto[]> {
+    const model = await modelFetcher.getModel();
+    if (model?.config?.sqlHeader) {
+      const languageOptions = await this.getLanguageOptions();
+      return this.sqlHeaderAnalyzer.getAllFunctionDeclarations(
+        model.config.sqlHeader,
+        languageOptions?.serialize(),
+        this.catalog.builtinFunctionOptions,
+      );
+    }
+    return [];
+  }
+
+  addTempUdfsToCatalog(catalog: SimpleCatalogProto, udfs: FunctionProto[]): SimpleCatalogProto {
+    const clonedCatalog = { ...catalog };
+    clonedCatalog.customFunction = clonedCatalog.customFunction ?? [];
+    for (const udf of udfs) {
+      if (!clonedCatalog.customFunction.some(f => f.namePath?.join(',') === udf.namePath?.join(','))) {
+        clonedCatalog.customFunction.push(udf);
+      }
+    }
+    return clonedCatalog;
   }
 
   registerUdf(udf: Udf): void {
@@ -180,7 +210,7 @@ export class ZetaSqlWrapper {
   }
 
   static addPartitioningColumn(existingTable: SimpleTableProto, name: string, type: string): void {
-    ZetaSqlWrapper.addColumn(existingTable, ZetaSqlWrapper.createSimpleColumn(name, ZetaSqlWrapper.createType({ name, type })));
+    ZetaSqlWrapper.addColumn(existingTable, ZetaSqlWrapper.createSimpleColumn(name, createType({ name, type })));
   }
 
   static deleteColumn(table: SimpleTableProto, column: SimpleColumnProto): void {
@@ -200,51 +230,16 @@ export class ZetaSqlWrapper {
     }
   }
 
-  static createType(newColumn: ColumnDefinition): TypeProto {
-    const bigQueryType = newColumn.type.toLowerCase();
-    const typeKind = TypeFactory.SIMPLE_TYPE_KIND_NAMES.get(bigQueryType);
-    let resultType: TypeProto;
-    if (typeKind) {
-      resultType = {
-        typeKind,
-      };
-    } else if (bigQueryType === 'record') {
-      resultType = {
-        typeKind: TypeKind.TYPE_STRUCT,
-        structType: {
-          field: newColumn.fields?.map<StructFieldProto>(f => ({
-            fieldName: f.name,
-            fieldType: this.createType(f),
-          })),
-        },
-      };
-    } else {
-      console.log(`Cannot find TypeKind for ${newColumn.type}`); // TODO: fix all these issues
-      resultType = {
-        typeKind: TypeKind.TYPE_STRING,
-      };
-    }
-    if (newColumn.mode?.toLocaleLowerCase() === 'repeated') {
-      resultType = {
-        typeKind: TypeKind.TYPE_ARRAY,
-        arrayType: {
-          elementType: resultType,
-        },
-      };
-    }
-    return resultType;
-  }
-
-  async analyze(sql: string, catalog: SimpleCatalogProto): Promise<AnalyzeResponse__Output> {
+  async analyze(sqlStatement: string, simpleCatalog: SimpleCatalogProto): Promise<AnalyzeResponse__Output> {
     const response = await this.getClient().analyze({
-      sqlStatement: sql,
-      simpleCatalog: catalog,
+      sqlStatement,
+      simpleCatalog,
 
       options: {
         parseLocationRecordType: ParseLocationRecordType.PARSE_LOCATION_RECORD_CODE_SEARCH,
 
         errorMessageMode: ErrorMessageMode.ERROR_MESSAGE_ONE_LINE,
-        languageOptions: this.catalog.builtinFunctionOptions?.languageOptions,
+        languageOptions: simpleCatalog.builtinFunctionOptions?.languageOptions,
       },
     });
 
@@ -287,9 +282,11 @@ export class ZetaSqlWrapper {
       }
     }
 
-    await this.registerUdfs(compiledSql);
+    await this.registerPersistentUdfs(compiledSql);
+    const tempUdfs = await this.getTempUdfs(modelFetcher);
+    const catalogWithTempUdfs = this.addTempUdfsToCatalog(this.catalog, tempUdfs);
 
-    const ast = await this.getAstOrError(compiledSql);
+    const ast = await this.getAstOrError(compiledSql, catalogWithTempUdfs);
     if (ast.isOk()) {
       const model = await modelFetcher.getModel();
       if (model) {
@@ -354,13 +351,13 @@ export class ZetaSqlWrapper {
 
   async getNewCustomFunctions(sql: string): Promise<string[][]> {
     const languageOptions = await this.getLanguageOptions();
-    const allFunctions = await this.zetaSqlParser.getAllFunctions(sql, languageOptions?.serialize());
+    const allFunctions = await this.zetaSqlParser.getAllFunctionCalls(sql, languageOptions?.serialize());
     return allFunctions.filter(f => !this.registeredFunctions.has(f.join(',')));
   }
 
-  async getAstOrError(compiledSql: string): Promise<Result<AnalyzeResponse__Output, string>> {
+  async getAstOrError(compiledSql: string, catalog: SimpleCatalogProto): Promise<Result<AnalyzeResponse__Output, string>> {
     try {
-      const ast = await this.analyze(compiledSql, this.catalog);
+      const ast = await this.analyze(compiledSql, catalog);
       return ok(ast);
     } catch (e) {
       return err((e as Partial<Record<string, string>>)['details'] ?? this.createUnknownError('Unknown parser error'));
@@ -391,9 +388,7 @@ export class ZetaSqlWrapper {
     if (dataSetName && tableName) {
       const metadata = await this.bigQueryClient.getTableMetadata(dataSetName, tableName);
       if (metadata) {
-        table.columns = metadata.schema.fields.map<ResolvedOutputColumnProto>(f =>
-          ZetaSqlWrapper.createSimpleColumn(f.name, ZetaSqlWrapper.createType(f)),
-        );
+        table.columns = metadata.schema.fields.map<ResolvedOutputColumnProto>(f => ZetaSqlWrapper.createSimpleColumn(f.name, createType(f)));
         table.timePartitioning = metadata.timePartitioning;
       }
     }
