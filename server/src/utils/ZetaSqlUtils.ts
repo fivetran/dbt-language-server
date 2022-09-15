@@ -4,6 +4,11 @@ import { StructFieldProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
 import { ColumnDefinition } from '../TableDefinition';
 
+interface Node {
+  node: string;
+  [key: string]: unknown;
+}
+
 export function positionInRange(position: number, range: ParseLocationRangeProto__Output): boolean {
   return range.start <= position && position <= range.end;
 }
@@ -50,4 +55,18 @@ export function createType(newColumn: ColumnDefinition): TypeProto {
     };
   }
   return resultType;
+}
+
+export function traverse<T>(nodeType: string, unknownNode: unknown, action: (node: T) => void): void {
+  const node = unknownNode as Node;
+  if (node.node === nodeType) {
+    const typedNode = node[node.node] as T;
+    action(typedNode);
+  }
+  for (const key of Object.keys(node)) {
+    const child = node[key];
+    if (typeof child === 'object' && child !== null) {
+      traverse(nodeType, child, action);
+    }
+  }
 }

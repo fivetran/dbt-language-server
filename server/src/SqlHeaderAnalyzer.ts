@@ -7,11 +7,7 @@ import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/z
 import { ResolvedCreateFunctionStmtProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedCreateFunctionStmtProto';
 import { ZetaSQLBuiltinFunctionOptionsProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ZetaSQLBuiltinFunctionOptionsProto';
 import { promisify } from 'node:util';
-
-interface Node {
-  node: string;
-  [key: string]: unknown;
-}
+import { traverse } from './utils/ZetaSqlUtils';
 
 export class SqlHeaderAnalyzer {
   async getAllFunctionDeclarations(
@@ -22,7 +18,7 @@ export class SqlHeaderAnalyzer {
     const functions: FunctionProto[] = [];
     const asts = await this.analyze(sqlStatement, options, builtinFunctionOptions);
     for (const ast of asts) {
-      this.traverse('resolvedCreateFunctionStmtNode', ast.resolvedStatement, (node: ResolvedCreateFunctionStmtProto__Output) => {
+      traverse('resolvedCreateFunctionStmtNode', ast.resolvedStatement, (node: ResolvedCreateFunctionStmtProto__Output) => {
         functions.push({
           namePath: node.parent?.namePath,
           signature: [
@@ -77,19 +73,5 @@ export class SqlHeaderAnalyzer {
       console.log(e);
     }
     return asts;
-  }
-
-  traverse<T>(nodeType: string, unknownNode: unknown, action: (node: T) => void): void {
-    const node = unknownNode as Node;
-    if (node.node === nodeType) {
-      const typedNode = node[node.node] as T;
-      action(typedNode);
-    }
-    for (const key of Object.keys(node)) {
-      const child = node[key];
-      if (typeof child === 'object' && child !== null) {
-        this.traverse(nodeType, child, action);
-      }
-    }
   }
 }
