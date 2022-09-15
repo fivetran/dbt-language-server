@@ -5,13 +5,7 @@ import { DiagnosticSeverity, languages, Uri } from 'vscode';
 import { activateAndWait } from './helper';
 
 suite('dbt_ft', () => {
-  const EXCLUDE = [
-    'dbt_ft_prod/models/bi_core/accounts.sql',
-    'dbt_ft_prod/models/bi_core/monthly_employee_metrics.sql',
-    'dbt_ft_prod/models/bi_core/dbt_projects_timeline.sql',
-    'dbt_ft_prod/models/bi_core/transformations_timeline.sql',
-    'dbt_ft_prod/models/dbt_root/model_wh/fivetran_transformations/dbt_job_runs_by_step.sql',
-  ];
+  const EXCLUDE = ['Add here the file paths to exclude from testing'];
 
   test('Should compile all models in analytics repo', async () => {
     const files = glob.sync(path.resolve(getProjectPath(), 'models/**/*.sql'), { nodir: true });
