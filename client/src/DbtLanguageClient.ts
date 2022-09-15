@@ -41,8 +41,8 @@ export class DbtLanguageClient implements Disposable {
       for (const editor of editors) {
         const openFunc = this.pendingOpenRequests.get(editor.document.uri.fsPath);
         if (openFunc) {
-          openFunc(editor.document).catch(e => log(`Error while opening document: ${e instanceof Error ? e.message : String(e)}`));
           this.pendingOpenRequests.delete(editor.document.uri.fsPath);
+          openFunc(editor.document).catch(e => log(`Error while opening document: ${e instanceof Error ? e.message : String(e)}`));
         }
       }
     }
@@ -84,9 +84,9 @@ export class DbtLanguageClient implements Disposable {
           pendingOpenRequests.set(data.uri.fsPath, next);
           setTimeout(() => {
             if (pendingOpenRequests.delete(data.uri.fsPath)) {
-              log('Open request cancelled');
+              log(`Open request cancelled for ${data.uri.fsPath}`);
             }
-          }, 1000);
+          }, 3000);
           return Promise.resolve();
         },
       },

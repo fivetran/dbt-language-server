@@ -5,7 +5,7 @@ import { DiagnosticSeverity, languages, Uri } from 'vscode';
 import { activateAndWait } from './helper';
 
 suite('dbt_ft', () => {
-  const EXCLUDE = ['dbt_ft_prod/models/bi_core/accounts.sql', 'dbt_ft_prod/models/bi_core/monthly_employee_metrics.sql'];
+  const EXCLUDE = ['Add here the file paths to exclude from testing'];
 
   test('Should compile all models in analytics repo', async () => {
     const files = glob.sync(path.resolve(getProjectPath(), 'models/**/*.sql'), { nodir: true });
@@ -17,8 +17,14 @@ suite('dbt_ft', () => {
       console.log(`File: ${file}`);
 
       if (!EXCLUDE.some(e => file.endsWith(e))) {
+        const fileProcessingTimeout = new Promise<void>((_resolve, reject) => {
+          setTimeout(() => {
+            reject(new Error(`Something went wrong when opening model ${file}`));
+          }, 1000 * 60 * 5);
+        });
+
         const uri = Uri.file(file);
-        await activateAndWait(uri);
+        await Promise.race([activateAndWait(uri), fileProcessingTimeout]);
 
         const diagnostics = languages.getDiagnostics(uri);
         writeFileSync(getLogPath(), `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n`, {
