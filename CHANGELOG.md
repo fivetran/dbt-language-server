@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 0.11.0 (16/10/2022)
+## What's Changed
+* Add support for temporary UDFs.
+* Decrease VSIX package size.
+* Fix extension restart issue for big dbt models.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.10.0...v0.11.0
+---
+
 ## Version 0.10.0 (14/09/2022)
 ## What's Changed
 * Fix the issue with showing not all available dbt packages.
