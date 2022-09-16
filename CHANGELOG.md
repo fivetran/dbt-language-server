@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.11.0 (01/01/1970)
+## Version 0.11.0 (16/10/2022)
 ## What's Changed
 * Add support for temporary UDFs.
 * Decrease VSIX package size.
