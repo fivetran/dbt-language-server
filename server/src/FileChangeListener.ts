@@ -3,6 +3,7 @@ import { DidChangeWatchedFilesParams, Emitter, Event, FileChangeType, FileEvent 
 import { URI } from 'vscode-uri';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
+import { LogLevel } from './Logger';
 import { ManifestParser } from './manifest/ManifestParser';
 import { debounce } from './utils/Utils';
 
@@ -90,6 +91,7 @@ export class FileChangeListener {
 
   updateManifestNodes(): void {
     try {
+      console.log('Start parsing manifest', LogLevel.Debug);
       const { models, macros, sources } = this.manifestParser.parse(this.dbtProject.findTargetPath());
       console.log(`${ManifestParser.MANIFEST_FILE_NAME} was successfully parsed`);
       this.dbtRepository.updateDbtNodes(models, macros, sources);
