@@ -28,7 +28,7 @@
     "vscode": "^1.61.0"
   },
   "activationEvents": [
-    "workspaceContains:**/dbt_project.yml"
+    "onStartupFinished"
   ],
   "main": "./client/out/extension",
   "contributes": {
