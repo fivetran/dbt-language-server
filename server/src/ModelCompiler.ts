@@ -3,6 +3,7 @@ import { DbtRepository } from './DbtRepository';
 import { Dbt } from './dbt_execution/Dbt';
 import { DbtCompileJob } from './dbt_execution/DbtCompileJob';
 import { DbtRpcCompileJob } from './dbt_execution/DbtRpcCompileJob';
+import { LogLevel } from './Logger';
 import { wait } from './utils/Utils';
 
 export class ModelCompiler {
@@ -30,6 +31,7 @@ export class ModelCompiler {
   constructor(private dbt: Dbt, private dbtRepository: DbtRepository) {}
 
   async compile(modelPath: string, allowFallback: boolean): Promise<void> {
+    console.log(`Start compiling ${modelPath}`, LogLevel.Debug);
     this.compilationInProgress = true;
 
     if (this.dbtCompileJobQueue.length > 3) {
