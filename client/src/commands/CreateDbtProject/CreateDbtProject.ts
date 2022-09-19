@@ -54,6 +54,9 @@ export class CreateDbtProject implements Command {
         if (dbtInitState === DbtInitState.ExpectProjectName) {
           projectName = data;
         }
+        if (data.includes(DbtInitTerminal.CONTROL_CODES.ctrlC)) {
+          initProcess.kill('SIGTERM');
+        }
         initProcess.stdin?.write(`${data}${EOL}`);
       });
 

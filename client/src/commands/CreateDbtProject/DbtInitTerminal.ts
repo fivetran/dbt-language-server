@@ -2,6 +2,14 @@ import { EOL } from 'node:os';
 import { Event, EventEmitter, Pseudoterminal, TerminalDimensions } from 'vscode';
 
 export class DbtInitTerminal implements Pseudoterminal {
+  static readonly CONTROL_CODES = {
+    ctrlC: '\u0003',
+    enter: '\r',
+    backspace: '\u007F',
+    moveCursorBack: '\u001B[D',
+    deleteCharacter: '\u001B[P',
+  };
+
   private writeEmitter = new EventEmitter<string>();
   private dataSubmittedEventEmitter = new EventEmitter<string>();
 
@@ -14,32 +22,31 @@ export class DbtInitTerminal implements Pseudoterminal {
     this.writeRed(this.startMessage);
   }
   close(): void {
-    console.log('close');
+    // TODO: close process?
   }
   handleInput(data: string): void {
-    // Enter
-    if (data === '\r') {
+    if (data === DbtInitTerminal.CONTROL_CODES.enter) {
       this.writeEmitter.fire('\r\n');
       this.dataSubmittedEventEmitter.fire(this.line);
       this.line = '';
       return;
     }
-    // Backspace
-    if (data === '\u007F') {
+    if (data === DbtInitTerminal.CONTROL_CODES.backspace) {
       if (this.line.length === 0) {
         return;
       }
       this.line = this.line.slice(0, -1);
-      // Move cursor backward
-      this.writeEmitter.fire('\u001B[D');
-      // Delete character
-      this.writeEmitter.fire('\u001B[P');
+      this.writeEmitter.fire(DbtInitTerminal.CONTROL_CODES.moveCursorBack);
+      this.writeEmitter.fire(DbtInitTerminal.CONTROL_CODES.deleteCharacter);
       return;
     }
-    if (data.includes('\r')) {
-      const lines = data.split('\r');
+    if (data.includes(DbtInitTerminal.CONTROL_CODES.ctrlC)) {
+      this.dataSubmittedEventEmitter.fire(DbtInitTerminal.CONTROL_CODES.ctrlC);
+    }
+    if (data.includes(DbtInitTerminal.CONTROL_CODES.enter)) {
+      const lines = data.split(DbtInitTerminal.CONTROL_CODES.enter);
       this.line = lines[lines.length - 1];
-      this.writeEmitter.fire(data.replaceAll('\r', '\n\r'));
+      this.writeEmitter.fire(data.replaceAll(DbtInitTerminal.CONTROL_CODES.enter, '\n\r'));
     } else {
       this.line += data;
       this.writeEmitter.fire(data);
