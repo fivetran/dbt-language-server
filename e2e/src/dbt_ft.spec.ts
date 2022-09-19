@@ -17,26 +17,35 @@ suite('dbt_ft', () => {
       console.log(`File: ${file}`);
 
       if (!EXCLUDE.some(e => file.endsWith(e))) {
-        const fileProcessingTimeout = new Promise<void>((_resolve, reject) => {
+        const fileProcessingTimeout = new Promise<string>((resolve, _reject) => {
           setTimeout(() => {
-            reject(new Error(`Something went wrong when opening model ${file}`));
-          }, 1000 * 60 * 5);
+            resolve(`Something went wrong when opening model ${file}`);
+          }, 1000 * 60 * 2);
         });
 
         const uri = Uri.file(file);
-        await Promise.race([activateAndWait(uri), fileProcessingTimeout]);
+        const result = await Promise.race([activateAndWait(uri), fileProcessingTimeout]);
 
-        const diagnostics = languages.getDiagnostics(uri);
-        writeFileSync(getLogPath(), `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n`, {
-          flag: 'a+',
-        });
-        if (diagnostics.some(d => d.severity === DiagnosticSeverity.Error)) {
-          writeFileSync(getDiagnosticsPath(), `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n${JSON.stringify(diagnostics)}\n\n`, {
+        if (typeof result === 'string') {
+          writeFileSync(getLogPath(), `${new Date().toISOString()}: ${result}\n`, {
             flag: 'a+',
           });
-        }
-        if (diagnostics.length > 0) {
-          console.log(`${new Date().toISOString()}: diagnostics: ${JSON.stringify(diagnostics)}`);
+          writeFileSync(getDiagnosticsPath(), `${new Date().toISOString()}: ${result}\n\n`, {
+            flag: 'a+',
+          });
+        } else {
+          const diagnostics = languages.getDiagnostics(uri);
+          writeFileSync(getLogPath(), `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n`, {
+            flag: 'a+',
+          });
+          if (diagnostics.some(d => d.severity === DiagnosticSeverity.Error)) {
+            writeFileSync(getDiagnosticsPath(), `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n${JSON.stringify(diagnostics)}\n\n`, {
+              flag: 'a+',
+            });
+          }
+          if (diagnostics.length > 0) {
+            console.log(`${new Date().toISOString()}: diagnostics: ${JSON.stringify(diagnostics)}`);
+          }
         }
       } else {
         console.log(`Skipping: ${file}`);
