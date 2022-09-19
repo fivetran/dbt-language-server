@@ -1,0 +1,106 @@
+import { exec } from 'node:child_process';
+import { EOL } from 'node:os';
+import { promisify } from 'node:util';
+import { commands, OpenDialogOptions, Uri, window } from 'vscode';
+import { log } from '../../Logger';
+import { PythonExtension } from '../../python/PythonExtension';
+import { Command } from '../CommandManager';
+import { DbtInitTerminal } from './DbtInitTerminal';
+
+enum DbtInitState {
+  Default,
+  ExpectProjectName,
+  ProjectAlreadyExists,
+}
+
+export class CreateDbtProject implements Command {
+  readonly id = 'dbtWizard.createDbtProject';
+
+  async execute(): Promise<void> {
+    const dbtInitCommandPromise = this.getDbtInitCommand();
+
+    const projectFolder = await CreateDbtProject.openDialogForFolder();
+    if (projectFolder) {
+      const pty = new DbtInitTerminal(`Creating dbt project in "${projectFolder.fsPath}" folder.\n\rPlease answer all questions.\n\r`);
+      const terminal = window.createTerminal({
+        name: 'Create dbt project',
+        pty,
+      });
+      terminal.show();
+
+      const dbtInitCommand = await dbtInitCommandPromise;
+      if (!dbtInitCommand) {
+        window
+          .showWarningMessage('dbt not found, please choose Python that is used to run dbt.')
+          .then(undefined, e => log(`Error while showing warning: ${e instanceof Error ? e.message : String(e)}`));
+        await commands.executeCommand('python.setInterpreter');
+        return;
+      }
+
+      const initProcess = exec(dbtInitCommand, { cwd: projectFolder.fsPath });
+
+      let dbtInitState = DbtInitState.Default;
+      let projectName: string | undefined;
+      initProcess.on('exit', async (code: number | null) => {
+        if (code === 0 && dbtInitState !== DbtInitState.ProjectAlreadyExists) {
+          const openUri = projectName ? Uri.joinPath(projectFolder, projectName) : projectFolder;
+          await commands.executeCommand('vscode.openFolder', openUri);
+        } else {
+          pty.writeRed('Command failed, please try again.\n\r');
+        }
+      });
+
+      pty.onDataSubmitted((data: string) => {
+        if (dbtInitState === DbtInitState.ExpectProjectName) {
+          projectName = data;
+        }
+        initProcess.stdin?.write(`${data}${EOL}`);
+      });
+
+      initProcess.stdout?.on('data', (data: string) => {
+        if (data.includes('name for your project')) {
+          dbtInitState = DbtInitState.ExpectProjectName;
+        } else if (data.includes('already exists here')) {
+          dbtInitState = DbtInitState.ProjectAlreadyExists;
+        } else {
+          dbtInitState = DbtInitState.Default;
+        }
+
+        pty.write(data);
+      });
+    }
+  }
+
+  async getDbtInitCommand(): Promise<string | undefined> {
+    const pythonInfo = await new PythonExtension().getPythonInfo();
+    if (!pythonInfo) {
+      return undefined;
+    }
+
+    const promisifiedExec = promisify(exec);
+    const pythonCommand = `${pythonInfo.path} -c "import dbt.main; dbt.main.main(['--version'])"`;
+    const cliCommand = 'dbt --version';
+
+    const settledResults = await Promise.allSettled([promisifiedExec(pythonCommand), promisifiedExec(cliCommand)]);
+    const [pythonVersion, cliVersion] = settledResults.map(v => (v.status === 'fulfilled' ? v.value : undefined));
+    if (pythonVersion && pythonVersion.stderr.length > 0) {
+      return `${pythonInfo.path} -c "import dbt.main; dbt.main.main(['init'])"`;
+    }
+    if (cliVersion && cliVersion.stderr.length > 0) {
+      return 'dbt init';
+    }
+    return undefined;
+  }
+
+  static async openDialogForFolder(): Promise<Uri | undefined> {
+    const options: OpenDialogOptions = {
+      title: 'Choose Folder For dbt Project',
+      openLabel: 'Open',
+      canSelectFiles: false,
+      canSelectFolders: true,
+      canSelectMany: false,
+    };
+    const result = await window.showOpenDialog(options);
+    return result && result.length > 0 ? result[0] : undefined;
+  }
+}

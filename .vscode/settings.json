@@ -9,9 +9,9 @@
 
   "files.eol": "\n",
 
-  "mochaExplorer.files": "server/out/test/**/*.js",
+  "mochaExplorer.files": ["server/out/test/**/*.js", "client/out/test/**/*.js"],
   "mochaExplorer.require": "source-map-support/register",
-  "mochaExplorer.watch": "server/out/**/*.js",
+  "mochaExplorer.watch": ["server/out/**/*.js", "client/out/**/*.js"],
 
   "cSpell.words": [
     "bigdecimal",
@@ -72,6 +72,7 @@
     "Pmfy",
     "promisified",
     "protos",
+    "Pseudoterminal",
     "publicsuffix",
     "pyenv",
     "rockset",

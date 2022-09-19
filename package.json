@@ -74,6 +74,11 @@
         "category": "dbtWizard"
       },
       {
+        "command": "dbtWizard.createDbtProject",
+        "title": "Create dbt Project",
+        "category": "dbtWizard"
+      },
+      {
         "command": "dbtWizard.installLatestDbt",
         "title": "Install Latest dbt",
         "category": "dbtWizard"
