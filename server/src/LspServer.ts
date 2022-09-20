@@ -1,9 +1,11 @@
 import { CustomInitParams, DbtCompilerType, getStringVersion, SelectedDbtPackage } from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
 import { randomUUID } from 'node:crypto';
+import * as fs from 'node:fs';
 import { homedir } from 'node:os';
 import * as path from 'node:path';
 import { performance } from 'node:perf_hooks';
+
 import {
   CodeAction,
   CodeActionKind,
@@ -17,6 +19,7 @@ import {
   DeleteFilesParams,
   DidChangeConfigurationNotification,
   DidChangeTextDocumentParams,
+  DidChangeWatchedFilesNotification,
   DidChangeWatchedFilesParams,
   DidCreateFilesNotification,
   DidDeleteFilesNotification,
@@ -41,6 +44,7 @@ import {
   _Connection,
 } from 'vscode-languageserver';
 import { FileOperationFilter } from 'vscode-languageserver-protocol/lib/common/protocol.fileOperations';
+import { URI } from 'vscode-uri';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
 import { DbtProfileCreator, DbtProfileInfo } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
@@ -71,6 +75,7 @@ export class LspServer {
   filesFilter: FileOperationFilter[];
   workspaceFolder: string;
   hasConfigurationCapability = false;
+  hasDidChangeWatchedFilesCapability = false;
   featureFinder?: FeatureFinder;
   statusSender?: StatusSender;
   openedDocuments = new Map<string, DbtTextDocument>();
@@ -123,10 +128,9 @@ export class LspServer {
     this.dbt = this.createDbt(this.featureFinder, customInitParams.dbtCompiler);
 
     const { capabilities } = params;
-    // Does the client support the `workspace/configuration` request?
-    // If not, we fall back using global settings.
-    this.hasConfigurationCapability = Boolean(capabilities.workspace?.configuration);
 
+    this.hasConfigurationCapability = Boolean(capabilities.workspace?.configuration);
+    this.hasDidChangeWatchedFilesCapability = Boolean(capabilities.workspace?.didChangeWatchedFiles?.dynamicRegistration);
     return {
       capabilities: {
         textDocumentSync: {
@@ -253,6 +257,16 @@ export class LspServer {
   }
 
   registerClientNotification(): void {
+    this.registerManifestWatcher();
+
+    this.connection.client
+      .register(DidChangeWatchedFilesNotification.type, {
+        watchers: [{ globPattern: { baseUri: URI.file(this.dbtProject.findTargetPath()).toString(), pattern: 'manifest.json' } }],
+      })
+      .catch(e =>
+        console.log(`Error while registering DidChangeWatchedFilesNotification notification: ${e instanceof Error ? e.message : String(e)}`),
+      );
+
     if (this.hasConfigurationCapability) {
       this.connection.client
         .register(DidChangeConfigurationNotification.type, undefined)
@@ -271,6 +285,23 @@ export class LspServer {
     this.connection.client
       .register(DidDeleteFilesNotification.type, { filters })
       .catch(e => console.log(`Error while registering DidDeleteFiles notification: ${e instanceof Error ? e.message : String(e)}`));
+  }
+
+  registerManifestWatcher(): void {
+    if (this.hasDidChangeWatchedFilesCapability) {
+      const targetPath = this.dbtProject.findTargetPath();
+      if (!fs.existsSync(targetPath)) {
+        fs.mkdirSync(targetPath, { recursive: true });
+      }
+
+      this.connection.client
+        .register(DidChangeWatchedFilesNotification.type, {
+          watchers: [{ globPattern: { baseUri: URI.file(targetPath).toString(), pattern: './manifest.json' } }],
+        })
+        .catch(e =>
+          console.log(`Error while registering DidChangeWatchedFilesNotification notification: ${e instanceof Error ? e.message : String(e)}`),
+        );
+    }
   }
 
   showProfileCreationWarning(error: string): void {
