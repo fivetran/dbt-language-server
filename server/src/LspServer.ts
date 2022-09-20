@@ -259,14 +259,6 @@ export class LspServer {
   registerClientNotification(): void {
     this.registerManifestWatcher();
 
-    this.connection.client
-      .register(DidChangeWatchedFilesNotification.type, {
-        watchers: [{ globPattern: { baseUri: URI.file(this.dbtProject.findTargetPath()).toString(), pattern: 'manifest.json' } }],
-      })
-      .catch(e =>
-        console.log(`Error while registering DidChangeWatchedFilesNotification notification: ${e instanceof Error ? e.message : String(e)}`),
-      );
-
     if (this.hasConfigurationCapability) {
       this.connection.client
         .register(DidChangeConfigurationNotification.type, undefined)
@@ -296,7 +288,7 @@ export class LspServer {
 
       this.connection.client
         .register(DidChangeWatchedFilesNotification.type, {
-          watchers: [{ globPattern: { baseUri: URI.file(targetPath).toString(), pattern: './manifest.json' } }],
+          watchers: [{ globPattern: { baseUri: URI.file(targetPath).toString(), pattern: 'manifest.json' } }],
         })
         .catch(e =>
           console.log(`Error while registering DidChangeWatchedFilesNotification notification: ${e instanceof Error ? e.message : String(e)}`),
