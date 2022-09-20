@@ -36,8 +36,8 @@ export class ManifestParser {
   static readonly PROJECT_PATH = './';
 
   parse(targetPath: string): ManifestJson {
-    const manifestLocation = path.join(ManifestParser.PROJECT_PATH, targetPath, ManifestParser.MANIFEST_FILE_NAME);
-    const content = readFileSync(manifestLocation, 'utf8');
+    const manifestPath = ManifestParser.getManifestPath(targetPath);
+    const content = readFileSync(manifestPath, 'utf8');
     const manifest = JSON.parse(content) as RawManifest;
     const { nodes, macros, sources } = manifest;
 
@@ -46,6 +46,10 @@ export class ManifestParser {
       macros: this.parseMacroDefinitions(macros),
       sources: this.parseSourceDefinitions(sources),
     };
+  }
+
+  static getManifestPath(targetPath: string): string {
+    return path.join(path.isAbsolute(targetPath) ? '' : ManifestParser.PROJECT_PATH, targetPath, ManifestParser.MANIFEST_FILE_NAME);
   }
 
   private parseModelDefinitions(rawNodes: RawNode[] | undefined): ManifestModel[] {
