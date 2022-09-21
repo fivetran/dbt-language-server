@@ -82,6 +82,8 @@ describe('Utils', () => {
     assertThat(extractDatasetFromFullName('project.`dataset`.table', 'table'), 'dataset');
     assertThat(extractDatasetFromFullName('project.dataset.table', 'table'), 'dataset');
     assertThat(extractDatasetFromFullName('`project.dataset.table`', 'table'), 'dataset');
+
+    assertThat(extractDatasetFromFullName('"region-us.INFORMATION_SCHEMA.TABLES"', 'table'), undefined);
   });
 
   it('getIdentifierRangeAtPosition should return range', () => {
