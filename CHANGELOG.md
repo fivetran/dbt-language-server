@@ -1,6 +1,13 @@
 # Changelog
 
-## Version 0.11.0 (16/10/2022)
+## Version 0.11.1 (21/09/2022)
+## What's Changed
+* Support absolute target path.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.11.0...v0.11.1
+---
+
+## Version 0.11.0 (16/09/2022)
 ## What's Changed
 * Add support for temporary UDFs.
 * Decrease VSIX package size.
