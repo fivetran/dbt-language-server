@@ -103,15 +103,11 @@ export function randomNumber(min: number, max: number): number {
 
 /**
  *  @returns extracted dataset from full name
- *  @throws error otherwise
  */
-export function extractDatasetFromFullName(fullName: string, tableName: string): string {
+export function extractDatasetFromFullName(fullName: string, tableName: string): string | undefined {
   const zeroOrOneQuote = '`?';
   const m = fullName.match(new RegExp(`${zeroOrOneQuote}([^.]*?)${zeroOrOneQuote}.${zeroOrOneQuote}${tableName}`));
-  if (m && m.length > 1) {
-    return m[1];
-  }
-  throw new Error("Can't extract dataset");
+  return m && m.length > 1 ? m[1] : undefined;
 }
 
 export function getFilePathRelatedToWorkspace(docUri: string, workspaceFolder: string): string {
