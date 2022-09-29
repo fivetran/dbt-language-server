@@ -65,7 +65,12 @@ export class ZetaSqlWrapper {
   }
 
   getTableRef(model: ManifestModel, name: string): string[] | undefined {
-    return model.refs.find(ref => ref.indexOf(name) === ref.length - 1);
+    const tableRef = model.refs.find(ref => ref.indexOf(name) === ref.length - 1);
+    if (tableRef) {
+      return tableRef;
+    }
+    const aliasedModel = this.dbtRepository.models.find(m => m.alias === name);
+    return aliasedModel && model.refs.some(ref => ref.indexOf(aliasedModel.name) === ref.length - 1) ? [aliasedModel.name] : undefined;
   }
 
   static addChildCatalog(parent: SimpleCatalogProto, name: string): SimpleCatalogProto {
@@ -290,7 +295,7 @@ export class ZetaSqlWrapper {
     if (ast.isOk()) {
       const model = await modelFetcher.getModel();
       if (model) {
-        const table = new TableDefinition([model.database, model.schema, model.name]);
+        const table = new TableDefinition([model.database, model.schema, model.alias ?? model.name]);
         this.fillTableWithAnalyzeResponse(table, ast.value);
         this.registerTable(table);
       }

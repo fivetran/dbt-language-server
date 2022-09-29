@@ -13,6 +13,7 @@ export interface ManifestModel extends ManifestNode {
     nodes: string[];
   };
   refs: string[][];
+  alias?: string;
   config?: {
     sqlHeader?: string;
   };
