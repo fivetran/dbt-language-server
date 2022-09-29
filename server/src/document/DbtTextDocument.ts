@@ -301,13 +301,17 @@ export class DbtTextDocument {
 
   async updateDiagnostics(dbtCompilationError?: string): Promise<void> {
     if (dbtCompilationError) {
-      const diagnostics = this.diagnosticGenerator.getDbtErrorDiagnostics(
+      const diagnosticsInfo = this.diagnosticGenerator.getDbtErrorDiagnostics(
         dbtCompilationError,
         this.getModelPathOrFullyQualifiedName(),
         this.workspaceFolder,
       );
-      this.rawDocDiagnostics = diagnostics;
-      this.compiledDocDiagnostics = diagnostics;
+      const otherFileUri = diagnosticsInfo[1];
+      this.rawDocDiagnostics = this.compiledDocDiagnostics = otherFileUri === undefined ? diagnosticsInfo[0] : [];
+      if (otherFileUri !== undefined) {
+        const diagnostics = diagnosticsInfo[0];
+        this.notificationSender.sendDiagnostics(otherFileUri, diagnostics, diagnostics);
+      }
     } else {
       [this.rawDocDiagnostics, this.compiledDocDiagnostics] = await this.createDiagnostics(this.compiledDocument.getText());
     }
