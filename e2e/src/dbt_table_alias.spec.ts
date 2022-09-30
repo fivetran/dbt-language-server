@@ -1,13 +1,5 @@
 import { assertDiagnostics } from './asserts';
-import {
-  activateAndWait,
-  activateAndWaitManifestParsed,
-  COMPLETION_JINJA_PATH,
-  getCustomDocUri,
-  getMainEditorText,
-  replaceText,
-  setTestContent,
-} from './helper';
+import { activateAndWait, COMPLETION_JINJA_PATH, getCustomDocUri, getMainEditorText, openDocument, replaceText, setTestContent } from './helper';
 
 suite('Should resolve tables with specified alias', () => {
   const USERS_FILE_NAME = `${COMPLETION_JINJA_PATH}/models/users.sql`;
@@ -16,14 +8,14 @@ suite('Should resolve tables with specified alias', () => {
   const JOIN_REF_DOC_URI = getCustomDocUri(JOIN_REF_FILE_NAME);
 
   test('Should resolve table introduced by model with specified alias', async () => {
-    await activateAndWait(USERS_DOC_URI);
+    await openDocument(USERS_DOC_URI);
     const initialContent = getMainEditorText();
+    await replaceText("materialized='table'\n  )\n}}", "materialized='table', alias='super_users'\n  )\n}}\n--Comment", false);
 
-    await replaceText("materialized='table'\n  )\n}}", "materialized='table', alias='super_users'\n  )\n}}\n--Comment");
     await activateAndWait(JOIN_REF_DOC_URI);
     await assertDiagnostics(JOIN_REF_DOC_URI, []);
 
-    await activateAndWaitManifestParsed(USERS_DOC_URI, COMPLETION_JINJA_PATH);
-    await setTestContent(initialContent);
+    await openDocument(USERS_DOC_URI);
+    await setTestContent(initialContent, false);
   });
 });

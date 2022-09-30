@@ -54,6 +54,11 @@ const languageServerReady = new Array<[string, DeferredResult<void>]>();
 
 let tempModelIndex = 0;
 
+export async function openDocument(docUri: Uri): Promise<void> {
+  doc = await workspace.openTextDocument(docUri);
+  editor = await window.showTextDocument(doc);
+}
+
 export async function activateAndWait(docUri: Uri): Promise<void> {
   const existingEditor = findExistingEditor(docUri);
   const doNotWaitChanges = existingEditor && existingEditor.document.getText() === window.activeTextEditor?.document.getText() && getPreviewEditor();
