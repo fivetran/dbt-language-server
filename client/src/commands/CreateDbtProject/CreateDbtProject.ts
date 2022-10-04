@@ -37,6 +37,8 @@ export class CreateDbtProject implements Command {
         return;
       }
 
+      log(`Running init command: ${dbtInitCommand}`);
+
       const initProcess = exec(dbtInitCommand, { cwd: projectFolder.fsPath });
 
       let dbtInitState = DbtInitState.Default;
