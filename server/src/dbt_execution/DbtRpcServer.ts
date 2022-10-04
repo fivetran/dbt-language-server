@@ -86,19 +86,23 @@ export class DbtRpcServer {
         const status = await this.dbtRpcClient?.getStatus();
         if (status) {
           switch (status.result.state) {
-            case 'compiling':
+            case 'compiling': {
               break;
-            case 'ready':
+            }
+            case 'ready': {
               clearInterval(intervalId);
               resolve();
               break;
-            case 'error':
+            }
+            case 'error': {
               clearInterval(intervalId);
               reject(new Error(status.result.error?.message));
               break;
-            default:
+            }
+            default: {
               console.log('State is not supported');
               break;
+            }
           }
         }
       }, 300);

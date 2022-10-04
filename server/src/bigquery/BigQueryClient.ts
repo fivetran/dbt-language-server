@@ -118,42 +118,60 @@ export class BigQueryClient implements DbtDestinationClient {
 
   static toTypeKind(bigQueryTypeKind?: BigQueryTypeKind): TypeKind {
     switch (bigQueryTypeKind) {
-      case 'TYPE_KIND_UNSPECIFIED':
+      case 'TYPE_KIND_UNSPECIFIED': {
         return TypeKind.TYPE_UNKNOWN;
-      case 'INT64':
+      }
+      case 'INT64': {
         return TypeKind.TYPE_INT64;
-      case 'BOOL':
+      }
+      case 'BOOL': {
         return TypeKind.TYPE_BOOL;
-      case 'FLOAT64':
+      }
+      case 'FLOAT64': {
         return TypeKind.TYPE_FLOAT;
-      case 'STRING':
+      }
+      case 'STRING': {
         return TypeKind.TYPE_STRING;
-      case 'BYTES':
+      }
+      case 'BYTES': {
         return TypeKind.TYPE_BYTES;
-      case 'TIMESTAMP':
+      }
+      case 'TIMESTAMP': {
         return TypeKind.TYPE_TIMESTAMP;
-      case 'DATE':
+      }
+      case 'DATE': {
         return TypeKind.TYPE_DATE;
-      case 'TIME':
+      }
+      case 'TIME': {
         return TypeKind.TYPE_TIME;
-      case 'DATETIME':
+      }
+      case 'DATETIME': {
         return TypeKind.TYPE_DATETIME;
-      case 'INTERVAL':
+      }
+      case 'INTERVAL': {
         return TypeKind.TYPE_INTERVAL;
-      case 'GEOGRAPHY':
+      }
+      case 'GEOGRAPHY': {
         return TypeKind.TYPE_GEOGRAPHY;
-      case 'NUMERIC':
+      }
+      case 'NUMERIC': {
         return TypeKind.TYPE_NUMERIC;
-      case 'BIGNUMERIC':
+      }
+      case 'BIGNUMERIC': {
         return TypeKind.TYPE_BIGNUMERIC;
-      case 'JSON':
+      }
+      case 'JSON': {
         return TypeKind.TYPE_JSON;
-      case 'ARRAY':
+      }
+      case 'ARRAY': {
         return TypeKind.TYPE_ARRAY;
-      case 'STRUCT':
+      }
+      case 'STRUCT': {
         return TypeKind.TYPE_STRUCT;
-      default:
+      }
+      default: {
         return TypeKind.TYPE_UNKNOWN;
+      }
     }
   }
 }

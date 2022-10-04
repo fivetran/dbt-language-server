@@ -8,16 +8,19 @@ export class ProgressHandler {
 
   onProgress(value: WorkDoneProgressBegin | WorkDoneProgressReport | WorkDoneProgressEnd): void {
     switch (value.kind) {
-      case 'begin':
+      case 'begin': {
         this.begin();
         break;
-      case 'end':
+      }
+      case 'end': {
         this.progressDeferred?.resolve();
         this.progressDeferred = undefined;
         break;
-      default:
+      }
+      default: {
         log('Received event that is not supported');
         break;
+      }
     }
   }
 
