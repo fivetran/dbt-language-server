@@ -42,15 +42,16 @@ export class StatusSender {
 
   onDbtPackagesYmlChanged(e: FileChangeType): void {
     switch (e) {
-      case FileChangeType.Created:
+      case FileChangeType.Created: {
         this.sendPackagesStatus(true);
         break;
-      case FileChangeType.Deleted:
+      }
+      case FileChangeType.Deleted: {
         this.sendPackagesStatus(false);
         break;
-      default: {
-        // do nothing
       }
+      default:
+      // do nothing
     }
   }
 }
