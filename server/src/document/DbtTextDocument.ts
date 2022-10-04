@@ -317,7 +317,7 @@ export class DbtTextDocument {
     let rawDocDiagnostics: Diagnostic[] = [];
     let compiledDocDiagnostics: Diagnostic[] = [];
 
-    if (this.destinationState.bigQueryContext && this.dbtDocumentKind === DbtDocumentKind.MODEL) {
+    if (this.destinationState.bigQueryContext && this.dbtDocumentKind === DbtDocumentKind.MODEL && compiledSql !== '') {
       const originalFilePath = this.rawDocument.uri.slice(this.rawDocument.uri.lastIndexOf(this.workspaceFolder) + this.workspaceFolder.length + 1);
       const astResult = await this.destinationState.bigQueryContext.analyzeTable(originalFilePath, compiledSql);
       if (astResult.isOk()) {
