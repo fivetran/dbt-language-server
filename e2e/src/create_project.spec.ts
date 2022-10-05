@@ -1,4 +1,4 @@
-import { assertThat, containsString } from 'hamjest';
+import { anyOf, assertThat, containsString } from 'hamjest';
 import * as fs from 'node:fs';
 import { homedir } from 'node:os';
 import { Pseudoterminal } from 'vscode';
@@ -27,14 +27,30 @@ suite('Create project', () => {
     const profilesYml = fs.readFileSync(`${homedir()}/.dbt/profiles.yml`, 'utf8');
     assertThat(
       profilesYml,
-      containsString(`
+      anyOf(
+        containsString(`
+test_project:
+  outputs:
+    dev:
+      dataset: transforms_dbt_default
+      fixed_retries: 1
+      keyfile: ${KEY_FILE_PATH}
+      location: US
+      method: service-account
+      priority: interactive
+      project: singular-vector-135519
+      threads: 4
+      timeout_seconds: 300
+      type: bigquery
+  target: dev`),
+        containsString(`
 test_project:
   outputs:
     dev:
       dataset: transforms_dbt_default
       job_execution_timeout_seconds: 300
       job_retries: 1
-      keyfile: /Users/pavel/.dbt/bq-test-project.json
+      keyfile: ${KEY_FILE_PATH}
       location: US
       method: service-account
       priority: interactive
@@ -42,6 +58,7 @@ test_project:
       threads: 4
       type: bigquery
   target: dev`),
+      ),
     );
   });
 });
