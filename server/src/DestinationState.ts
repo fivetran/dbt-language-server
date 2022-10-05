@@ -5,7 +5,7 @@ import { DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtRepository } from './DbtRepository';
 
 export class DestinationState {
-  private static readonly ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux'];
+  private static readonly ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux', 'win32'];
 
   contextInitialized = false;
   onContextInitializedEmitter = new Emitter<void>();
