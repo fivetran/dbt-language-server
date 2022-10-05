@@ -16,14 +16,16 @@ enum DbtInitState {
 export class CreateDbtProject implements Command {
   readonly id = 'dbtWizard.createDbtProject';
 
-  async execute(): Promise<void> {
+  static readonly TERMINAL_NAME = 'Create dbt project';
+
+  async execute(projectFolder?: string): Promise<void> {
     const dbtInitCommandPromise = this.getDbtInitCommand();
 
-    const projectFolder = await CreateDbtProject.openDialogForFolder();
-    if (projectFolder) {
-      const pty = new DbtInitTerminal(`Creating dbt project in "${projectFolder.fsPath}" folder.\n\rPlease answer all questions.\n\r`);
+    const projectFolderUri = projectFolder ? Uri.file(projectFolder) : await CreateDbtProject.openDialogForFolder();
+    if (projectFolderUri) {
+      const pty = new DbtInitTerminal(`Creating dbt project in "${projectFolderUri.fsPath}" folder.\n\rPlease answer all questions.\n\r`);
       const terminal = window.createTerminal({
-        name: 'Create dbt project',
+        name: CreateDbtProject.TERMINAL_NAME,
         pty,
       });
       terminal.show();
@@ -39,14 +41,14 @@ export class CreateDbtProject implements Command {
 
       log(`Running init command: ${dbtInitCommand}`);
 
-      const initProcess = exec(dbtInitCommand, { cwd: projectFolder.fsPath });
+      const initProcess = exec(dbtInitCommand, { cwd: projectFolderUri.fsPath });
 
       let dbtInitState = DbtInitState.Default;
       let projectName: string | undefined;
       initProcess.on('exit', async (code: number | null) => {
         if (code === 0 && dbtInitState !== DbtInitState.ProjectAlreadyExists) {
-          const openUri = projectName ? Uri.joinPath(projectFolder, projectName) : projectFolder;
-          await commands.executeCommand('vscode.openFolder', openUri);
+          const openUri = projectName ? Uri.joinPath(projectFolderUri, projectName) : projectFolderUri;
+          await commands.executeCommand('vscode.openFolder', openUri, { forceNewWindow: true });
         } else {
           pty.writeRed('Command failed, please try again.\n\r');
         }
