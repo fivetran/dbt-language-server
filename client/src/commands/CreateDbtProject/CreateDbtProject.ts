@@ -50,13 +50,15 @@ export class CreateDbtProject implements Command {
           const openUri = projectName ? Uri.joinPath(projectFolderUri, projectName) : projectFolderUri;
           await commands.executeCommand('vscode.openFolder', openUri, { forceNewWindow: true });
         } else {
-          pty.writeRed('Command failed, please try again.\n\r');
+          pty.writeRed(`${EOL}Command failed, please try again.${EOL}`);
+          dbtInitState = DbtInitState.Default;
         }
       });
 
       pty.onDataSubmitted((data: string) => {
         if (dbtInitState === DbtInitState.ExpectProjectName) {
           projectName = data;
+          dbtInitState = DbtInitState.Default;
         }
         if (data.includes(DbtInitTerminal.CONTROL_CODES.ctrlC)) {
           initProcess.kill('SIGTERM');
@@ -69,8 +71,6 @@ export class CreateDbtProject implements Command {
           dbtInitState = DbtInitState.ExpectProjectName;
         } else if (data.includes('already exists here')) {
           dbtInitState = DbtInitState.ProjectAlreadyExists;
-        } else {
-          dbtInitState = DbtInitState.Default;
         }
 
         pty.write(data);
