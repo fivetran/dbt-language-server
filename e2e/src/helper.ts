@@ -306,7 +306,7 @@ export async function executeInstallLatestDbt(): Promise<void> {
 }
 
 export async function executeCreateDbtProject(fsPath: string): Promise<void> {
-  return commands.executeCommand('dbtWizard.createDbtProject', fsPath);
+  return commands.executeCommand('dbtWizard.createDbtProject', fsPath, true);
 }
 
 export async function moveCursorLeft(): Promise<unknown> {

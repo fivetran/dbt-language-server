@@ -18,7 +18,7 @@ export class CreateDbtProject implements Command {
 
   static readonly TERMINAL_NAME = 'Create dbt project';
 
-  async execute(projectFolder?: string): Promise<void> {
+  async execute(projectFolder?: string, skipOpen?: boolean): Promise<void> {
     const dbtInitCommandPromise = this.getDbtInitCommand();
 
     const projectFolderUri = projectFolder ? Uri.file(projectFolder) : await CreateDbtProject.openDialogForFolder();
@@ -48,7 +48,9 @@ export class CreateDbtProject implements Command {
       initProcess.on('exit', async (code: number | null) => {
         if (code === 0 && dbtInitState !== DbtInitState.ProjectAlreadyExists) {
           const openUri = projectName ? Uri.joinPath(projectFolderUri, projectName) : projectFolderUri;
-          await commands.executeCommand('vscode.openFolder', openUri, { forceNewWindow: true });
+          if (!skipOpen) {
+            await commands.executeCommand('vscode.openFolder', openUri, { forceNewWindow: true });
+          }
         } else {
           pty.writeRed(`${EOL}Command failed, please try again.${EOL}`);
           dbtInitState = DbtInitState.Default;
