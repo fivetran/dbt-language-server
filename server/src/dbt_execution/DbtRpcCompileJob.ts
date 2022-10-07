@@ -31,8 +31,11 @@ export class DbtRpcCompileJob extends DbtCompileJob {
   }
 
   async start(): Promise<void> {
+    console.log('start');
     const pollTokenResult = await this.getPollToken();
     if (pollTokenResult.isErr()) {
+      console.log('pollTokenResult.isErr()');
+      console.log(pollTokenResult.error);
       this.result = pollTokenResult;
       return;
     }
@@ -40,6 +43,7 @@ export class DbtRpcCompileJob extends DbtCompileJob {
     this.pollRequestToken = pollTokenResult.value;
 
     await wait(DbtRpcCompileJob.POLL_TIMEOUT_MS);
+    console.log('after wait');
 
     this.result = await this.getPollResponse(pollTokenResult.value);
   }
@@ -52,21 +56,24 @@ export class DbtRpcCompileJob extends DbtCompileJob {
     try {
       const startCompileResponse = await retry(
         async bail => {
+          console.log('getPollToken attempt');
           // Here dbt-rpc can be in compilation state after HUP signal and return an error
           const compileResponseAttempt = await this.dbtRpcClient.compile(this.modelPath);
 
           if (this.stopRequired) {
+            console.log('this.stopRequired');
             bail(new Error(DbtRpcCompileJob.STOP_ERROR));
             return {} as unknown as CompileResponse; // We should explicitly return from here to avoid unnecessary retries: https://github.com/vercel/async-retry/issues/69
           }
 
           if (!compileResponseAttempt || compileResponseAttempt.error) {
+            console.log('!compileResponseAttempt || compileResponseAttempt.error');
             if (compileResponseAttempt?.error?.code === DbtRpcCompileJob.DBT_COMPILATION_ERROR_CODE) {
               // Do not retry dbt compile errors
               bail(new Error(compileResponseAttempt.error.data?.message));
               return {} as unknown as CompileResponse; // We should explicitly return from here to avoid unnecessary retries: https://github.com/vercel/async-retry/issues/69
             }
-
+            console.log(compileResponseAttempt?.error?.data?.message);
             throw new Error(compileResponseAttempt?.error?.data?.message ?? DbtRpcCompileJob.NETWORK_ERROR);
           }
           return compileResponseAttempt;
@@ -86,6 +93,7 @@ export class DbtRpcCompileJob extends DbtCompileJob {
       const pollResponse = await retry(
         async bail => {
           const pollAttempt = await this.dbtRpcClient.pollOnceCompileResult(pollRequestToken);
+          console.log('pollAttempt');
 
           if (this.stopRequired) {
             bail(new Error(DbtRpcCompileJob.STOP_ERROR));
