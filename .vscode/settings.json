@@ -100,5 +100,6 @@
     "Xvfb",
     "zetasql"
   ],
-  "cSpell.language": "en,en-GB"
+  "cSpell.language": "en,en-GB",
+  "files.autoSave": "afterDelay"
 }
