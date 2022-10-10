@@ -17,6 +17,10 @@ export class CreateDbtProject implements Command {
   readonly id = 'dbtWizard.createDbtProject';
 
   static readonly TERMINAL_NAME = 'Create dbt project';
+  static readonly SETTINGS_JSON_CONTENT = `{
+  "files.autoSave": "afterDelay"
+}
+`;
 
   async execute(projectFolder?: string, skipOpen?: boolean): Promise<void> {
     const dbtInitCommandPromise = this.getDbtInitCommand();
@@ -50,13 +54,7 @@ export class CreateDbtProject implements Command {
           const projectUri = projectName ? Uri.joinPath(projectFolderUri, projectName) : projectFolderUri;
           const vscodeUri = Uri.joinPath(projectUri, '.vscode');
           await workspace.fs.createDirectory(vscodeUri);
-          await workspace.fs.writeFile(
-            Uri.joinPath(vscodeUri, 'settings.json'),
-            new TextEncoder().encode(`{
-  "files.autoSave": "afterDelay"
-}
-`),
-          );
+          await workspace.fs.writeFile(Uri.joinPath(vscodeUri, 'settings.json'), new TextEncoder().encode(CreateDbtProject.SETTINGS_JSON_CONTENT));
           if (!skipOpen) {
             await commands.executeCommand('vscode.openFolder', projectUri, { forceNewWindow: true });
           }
