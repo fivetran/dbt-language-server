@@ -2,7 +2,7 @@ import { anyOf, assertThat, containsString } from 'hamjest';
 import * as fs from 'node:fs';
 import { homedir } from 'node:os';
 import { Pseudoterminal } from 'vscode';
-import { executeCreateDbtProject, getCreateProjectPseudoterminal, sleep } from './helper';
+import { executeCreateDbtProject, getCreateProjectPseudoterminal, sleep } from '../helper';
 
 suite('Create project', () => {
   const KEY_FILE_PATH = `${homedir()}/.dbt/bq-test-project.json`;
