@@ -21,9 +21,11 @@ export class DbtInitTerminal implements Pseudoterminal {
   open(_initialDimensions: TerminalDimensions | undefined): void {
     this.writeRed(this.startMessage);
   }
+
   close(): void {
     this.dataSubmittedEventEmitter.fire(DbtInitTerminal.CONTROL_CODES.ctrlC);
   }
+
   handleInput(data: string): void {
     if (data === DbtInitTerminal.CONTROL_CODES.enter) {
       this.writeEmitter.fire('\r\n');
