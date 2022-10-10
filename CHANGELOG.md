@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 0.12.0 (10/10/2022)
+## What's Changed
+* We now don't show errors for empty models.
+* Add support dbt aliases.
+* Add command to create dbt project from VS Code.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.11.1...v0.12.0
+---
+
 ## Version 0.11.1 (21/09/2022)
 ## What's Changed
 * Support absolute target path.
