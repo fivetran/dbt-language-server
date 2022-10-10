@@ -65,12 +65,16 @@ export class ZetaSqlWrapper {
   }
 
   getTableRef(model: ManifestModel, name: string): string[] | undefined {
-    const tableRef = model.refs.find(ref => ref.indexOf(name) === ref.length - 1);
+    const tableRef = ZetaSqlWrapper.findModelRef(model, name);
     if (tableRef) {
       return tableRef;
     }
     const aliasedModel = this.dbtRepository.models.find(m => m.alias === name);
-    return aliasedModel && model.refs.some(ref => ref.indexOf(aliasedModel.name) === ref.length - 1) ? [aliasedModel.name] : undefined;
+    return aliasedModel && ZetaSqlWrapper.findModelRef(model, aliasedModel.name) ? [aliasedModel.name] : undefined;
+  }
+
+  static findModelRef(model: ManifestModel, name: string): string[] | undefined {
+    return model.refs.find(ref => ref.indexOf(name) === ref.length - 1);
   }
 
   static addChildCatalog(parent: SimpleCatalogProto, name: string): SimpleCatalogProto {
