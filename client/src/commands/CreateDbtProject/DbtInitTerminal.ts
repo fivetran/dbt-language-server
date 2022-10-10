@@ -22,7 +22,7 @@ export class DbtInitTerminal implements Pseudoterminal {
     this.writeRed(this.startMessage);
   }
   close(): void {
-    // TODO: close process?
+    this.dataSubmittedEventEmitter.fire(DbtInitTerminal.CONTROL_CODES.ctrlC);
   }
   handleInput(data: string): void {
     if (data === DbtInitTerminal.CONTROL_CODES.enter) {
