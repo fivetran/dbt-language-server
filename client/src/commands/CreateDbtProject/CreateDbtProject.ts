@@ -1,7 +1,7 @@
 import { exec } from 'node:child_process';
 import { EOL } from 'node:os';
-import { promisify } from 'node:util';
-import { commands, OpenDialogOptions, Uri, window } from 'vscode';
+import { promisify, TextEncoder } from 'node:util';
+import { commands, OpenDialogOptions, Uri, window, workspace } from 'vscode';
 import { log } from '../../Logger';
 import { PythonExtension } from '../../python/PythonExtension';
 import { Command } from '../CommandManager';
@@ -47,9 +47,18 @@ export class CreateDbtProject implements Command {
       let projectName: string | undefined;
       initProcess.on('exit', async (code: number | null) => {
         if (code === 0 && dbtInitState !== DbtInitState.ProjectAlreadyExists) {
-          const openUri = projectName ? Uri.joinPath(projectFolderUri, projectName) : projectFolderUri;
+          const projectUri = projectName ? Uri.joinPath(projectFolderUri, projectName) : projectFolderUri;
+          const vscodeUri = Uri.joinPath(projectUri, '.vscode');
+          await workspace.fs.createDirectory(vscodeUri);
+          await workspace.fs.writeFile(
+            Uri.joinPath(vscodeUri, 'settings.json'),
+            new TextEncoder().encode(`{
+  "files.autoSave": "afterDelay"
+}
+`),
+          );
           if (!skipOpen) {
-            await commands.executeCommand('vscode.openFolder', openUri, { forceNewWindow: true });
+            await commands.executeCommand('vscode.openFolder', projectUri, { forceNewWindow: true });
           }
         } else {
           pty.writeRed(`${EOL}Command failed, please try again.${EOL}`);
