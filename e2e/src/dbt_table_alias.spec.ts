@@ -10,7 +10,7 @@ suite('Should resolve tables with specified alias', () => {
   test('Should resolve table introduced by model with specified alias', async () => {
     await openDocument(USERS_DOC_URI);
     const initialContent = getMainEditorText();
-    await replaceText("materialized='table'\n  )\n}}", "materialized='table', alias='super_users'\n  )\n}}\n--Comment", false);
+    await replaceText("materialized='table'\n  )\n}}", "materialized='table', alias='super_users'\n  )\n}}", false);
 
     await activateAndWait(JOIN_REF_DOC_URI);
     await assertDiagnostics(JOIN_REF_DOC_URI, []);
