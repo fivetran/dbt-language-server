@@ -76,6 +76,10 @@ When you open dbt model you can use dbt Wizard status bar items. The following a
 
 ![dbt status](images/status-items.gif)
 
+### Create a new dbt project from scratch
+
+You can create a new dbt project using Command Palette. Press <kbd>F1</kbd> (or <kbd>⇧</kbd><kbd>⌘</kbd><kbd>P</kbd>) to run Command Palette, type `dbtWizard: Create dbt Project` and press Enter. You should choose new project location and then answer all questions. This will open the new project in a separate VS Code window.
+
 ### Install dbt packages
 
 You can install dbt packages by running `dbtWizard.installDbtPackages` command or by using language status item menu. After selecting package name and version, the `packages.yml` file will be updated automatically.
