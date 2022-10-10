@@ -64,16 +64,14 @@ export async function activateAndWait(docUri: Uri): Promise<void> {
   const doNotWaitChanges = existingEditor && existingEditor.document.getText() === window.activeTextEditor?.document.getText() && getPreviewEditor();
   const activateFinished = doNotWaitChanges ? Promise.resolve() : createChangePromise('preview');
 
-  doc = await workspace.openTextDocument(docUri);
-  editor = await window.showTextDocument(doc);
+  await openDocument(docUri);
   await showPreview();
   await activateFinished;
 }
 
 export async function activateAndWaitManifestParsed(docUri: Uri, projectFolderName: string): Promise<void> {
   const existingEditor = findExistingEditor(docUri);
-  doc = await workspace.openTextDocument(docUri);
-  editor = await window.showTextDocument(doc);
+  await openDocument(docUri);
   await (existingEditor ? Promise.resolve() : waitForManifestParsed(projectFolderName));
 }
 
@@ -352,8 +350,7 @@ export async function renameCurrentFile(newName: string): Promise<Uri> {
 
   await renameFinished;
 
-  doc = await workspace.openTextDocument(newUri);
-  editor = await window.showTextDocument(doc);
+  await openDocument(newUri);
 
   return newUri;
 }
