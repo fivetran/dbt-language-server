@@ -14,7 +14,7 @@ import {
 } from './helper';
 
 suite('Should compile jinja expressions', () => {
-  test('Should recompile jinja expression changed', async () => {
+  test('Should recompile when jinja expression changed', async () => {
     const selectFromTestTable1 = 'select * from dbt_ls_e2e_dataset.test_table1';
     const selectFromUsers = 'select * from dbt_ls_e2e_dataset.users';
     const docUri = getDocUri('dbt_compile.sql');

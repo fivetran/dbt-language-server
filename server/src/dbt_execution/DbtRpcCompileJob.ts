@@ -15,7 +15,7 @@ export class DbtRpcCompileJob extends DbtCompileJob {
   static readonly DBT_COMPILATION_ERROR_CODE = 10_011;
 
   static COMPILE_MODEL_MAX_RETRIES = 6;
-  static COMPILE_MODEL_TIMEOUT_MS = 100;
+  static COMPILE_MODEL_TIMEOUT_MS = 200;
 
   static POLL_MAX_RETRIES = 15;
   static POLL_TIMEOUT_MS = 1200;

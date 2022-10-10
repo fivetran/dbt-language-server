@@ -112,6 +112,7 @@ jobs:
               export DISPLAY=:99
             activate-venv: source ~/dbt_1_0_8_env/bin/activate
             python-version: '3.9.12'
+            SKIP_TESTS: 'create_project.spec.js'
 
           - install-dbt: 'python -m pip install dbt-bigquery dbt-postgres'
             os: windows-latest

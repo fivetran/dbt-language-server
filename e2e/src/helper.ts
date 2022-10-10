@@ -11,7 +11,9 @@ import {
   CompletionList,
   DefinitionLink,
   extensions,
+  ExtensionTerminalOptions,
   Position,
+  Pseudoterminal,
   Range,
   Selection,
   SignatureHelp,
@@ -306,6 +308,10 @@ export async function executeInstallLatestDbt(): Promise<void> {
   return commands.executeCommand('dbtWizard.installLatestDbt', undefined, true);
 }
 
+export async function executeCreateDbtProject(fsPath: string): Promise<void> {
+  return commands.executeCommand('dbtWizard.createDbtProject', fsPath, true);
+}
+
 export async function moveCursorLeft(): Promise<unknown> {
   return commands.executeCommand('cursorMove', {
     to: 'left',
@@ -413,4 +419,8 @@ function trimPath(rawPath: string): string {
     .trim()
     .replace(/^[\\/]+/, '')
     .replace(/[\\/]+$/, '');
+}
+
+export function getCreateProjectPseudoterminal(): Pseudoterminal {
+  return (window.terminals.find(t => t.name === 'Create dbt project')?.creationOptions as ExtensionTerminalOptions).pty;
 }

@@ -2,6 +2,6 @@
   "package": "./package.json",
   "slow": "75ms",
   "timeout": "1s",
-  "spec": "./server/out/test/**/*.spec.js",
+  "spec": ["./server/out/test/**/*.spec.js", "./client/out/test/**/*.spec.js"],
   "fail-zero": true
 }

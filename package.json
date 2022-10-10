@@ -28,7 +28,7 @@
     "vscode": "^1.61.0"
   },
   "activationEvents": [
-    "workspaceContains:**/dbt_project.yml"
+    "onStartupFinished"
   ],
   "main": "./client/out/extension",
   "contributes": {
@@ -71,6 +71,11 @@
       {
         "command": "dbtWizard.compile",
         "title": "dbt compile",
+        "category": "dbtWizard"
+      },
+      {
+        "command": "dbtWizard.createDbtProject",
+        "title": "Create dbt Project",
         "category": "dbtWizard"
       },
       {
@@ -166,6 +171,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-promise": "^6.0.1",
     "eslint-plugin-sonarjs": "^0.15.0",
+    "hamjest": "^3.7.3",
     "eslint-plugin-unicorn": "^44.0.2",
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",

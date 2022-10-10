@@ -19,6 +19,7 @@ import { TelemetryClient } from './TelemetryClient';
 
 import { EventEmitter } from 'node:events';
 import * as path from 'node:path';
+import { CreateDbtProject } from './commands/CreateDbtProject/CreateDbtProject';
 
 export interface PackageJson {
   name: string;
@@ -83,6 +84,7 @@ export class ExtensionClient {
   registerCommands(): void {
     this.commandManager.register(new Compile(this.dbtLanguageClientManager));
     this.commandManager.register(new AfterFunctionCompletion());
+    this.commandManager.register(new CreateDbtProject());
     this.commandManager.register(new InstallLatestDbt(this.dbtLanguageClientManager, this.outputChannelProvider));
     this.commandManager.register(new InstallDbtAdapters(this.dbtLanguageClientManager, this.outputChannelProvider));
     this.commandManager.register(new OpenOrCreatePackagesYml());
