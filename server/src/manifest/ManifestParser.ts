@@ -17,6 +17,7 @@ interface RawNode {
     nodes: string[];
   };
   refs: string[][];
+  alias?: string;
   config?: {
     sql_header?: string;
   };
@@ -66,6 +67,7 @@ export class ManifestParser {
           schema: n.schema,
           dependsOn: n.depends_on,
           refs: n.refs,
+          alias: n.alias,
           config: {
             sqlHeader: n.config?.sql_header,
           },
