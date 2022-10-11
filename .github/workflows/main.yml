@@ -158,7 +158,6 @@ jobs:
       - name: check WSL
         if: matrix.os == 'windows-latest'
         run: |
-          wsl --version
           wsl --list -o
           wsl --list
           wsl --install -d Ubuntu
