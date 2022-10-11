@@ -22,7 +22,7 @@ export class DbtCli extends Dbt {
   }> {
     const parameters = ['compile'];
     if (modelName) {
-      const { default: slash } = await (eval(`import('slash')`) as Promise<{ default: (path: string) => string }>);
+      const { default: slash } = await (eval("import('slash')") as Promise<{ default: (path: string) => string }>);
       parameters.push('-m', slash(modelName));
     }
     const compileCliCommand = new DbtCommand(parameters, this.pythonPathForCli);
