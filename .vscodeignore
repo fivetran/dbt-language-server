@@ -18,3 +18,5 @@
 !server/out/zetasql/*
 !server/out/protos/**/*.proto
 !server/node_modules/**/*
+
+!server/remote_server_executable
