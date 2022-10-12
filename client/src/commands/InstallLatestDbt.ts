@@ -5,7 +5,7 @@ import { OutputChannelProvider } from '../OutputChannelProvider';
 import { Command } from './CommandManager';
 
 export class InstallLatestDbt implements Command {
-  readonly id = 'dbtWizard.installLatestDbt';
+  readonly id = 'WizardForDbtCore(TM).installLatestDbt';
 
   constructor(private dbtLanguageClientManager: DbtLanguageClientManager, private outputChannelProvider: OutputChannelProvider) {}
 
@@ -20,7 +20,7 @@ export class InstallLatestDbt implements Command {
           ? await window.showInformationMessage('Are you sure you want to install the latest version of dbt?', { modal: true }, 'Yes', 'No')
           : 'Yes';
       if (answer === 'Yes') {
-        client.sendNotification('dbtWizard/installLatestDbt');
+        client.sendNotification('WizardForDbtCore(TM)/installLatestDbt');
         this.outputChannelProvider.getInstallLatestDbtChannel().show();
         await commands.executeCommand('workbench.action.focusActiveEditorGroup');
       }

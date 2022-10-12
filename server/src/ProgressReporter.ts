@@ -13,7 +13,7 @@ export class ProgressReporter {
     this.connection
       .sendProgress(WorkDoneProgress.type, ProgressReporter.token, {
         kind: 'begin',
-        title: 'dbt Wizard',
+        title: 'Wizard for dbt Core (TM)',
       })
       .catch(e => console.log(`Failed to send progress: ${e instanceof Error ? e.message : String(e)}`));
   }

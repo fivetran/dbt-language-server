@@ -314,7 +314,7 @@ jobs:
         with:
           name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.python-version }} ${{ matrix.use-dbt-cli }}
           path: |
-            ./.vscode-test/user-data/logs/**/*dbt Wizard.log
+            ./.vscode-test/user-data/logs/**/*Wizard for dbt Core (TM).log
             ./.vscode-test/user-data/logs/**/*Install Latest dbt.log
             ./e2e/projects/completion-jinja/logs/*
             ./e2e/projects/test-fixture/logs/*

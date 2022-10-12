@@ -2,7 +2,7 @@ import { DbtLanguageClientManager } from '../DbtLanguageClientManager';
 import { Command } from './CommandManager';
 
 export class Restart implements Command {
-  readonly id = 'dbtWizard.restart';
+  readonly id = 'WizardForDbtCore(TM).restart';
 
   constructor(private dbtLanguageClientManager: DbtLanguageClientManager) {}
 

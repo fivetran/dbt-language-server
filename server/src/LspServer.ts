@@ -211,13 +211,13 @@ export class LspServer {
 
   initializeNotifications(): void {
     this.connection.onNotification('custom/dbtCompile', (uri: string) => this.onDbtCompile(uri));
-    this.connection.onNotification('dbtWizard/installLatestDbt', () => this.installLatestDbt());
-    this.connection.onNotification('dbtWizard/installDbtAdapter', (dbtAdapter: string) => this.installDbtAdapter(dbtAdapter));
-    this.connection.onNotification('dbtWizard/resendDiagnostics', (uri: string) => this.onResendDiagnostics(uri));
+    this.connection.onNotification('WizardForDbtCore(TM)/installLatestDbt', () => this.installLatestDbt());
+    this.connection.onNotification('WizardForDbtCore(TM)/installDbtAdapter', (dbtAdapter: string) => this.installDbtAdapter(dbtAdapter));
+    this.connection.onNotification('WizardForDbtCore(TM)/resendDiagnostics', (uri: string) => this.onResendDiagnostics(uri));
 
-    this.connection.onRequest('dbtWizard/getListOfPackages', () => this.featureFinder?.packageInfosPromise.get());
-    this.connection.onRequest('dbtWizard/getPackageVersions', (dbtPackage: string) => this.featureFinder?.packageVersions(dbtPackage));
-    this.connection.onRequest('dbtWizard/addNewDbtPackage', (dbtPackage: SelectedDbtPackage) => this.onAddNewDbtPackage(dbtPackage));
+    this.connection.onRequest('WizardForDbtCore(TM)/getListOfPackages', () => this.featureFinder?.packageInfosPromise.get());
+    this.connection.onRequest('WizardForDbtCore(TM)/getPackageVersions', (dbtPackage: string) => this.featureFinder?.packageVersions(dbtPackage));
+    this.connection.onRequest('WizardForDbtCore(TM)/addNewDbtPackage', (dbtPackage: SelectedDbtPackage) => this.onAddNewDbtPackage(dbtPackage));
   }
 
   async onInitialized(): Promise<void> {
@@ -328,7 +328,7 @@ export class LspServer {
     if (pythonPath) {
       const sendInstallLatestDbtLog = (data: string): void => {
         this.connection
-          .sendNotification('dbtWizard/installLatestDbtLog', data)
+          .sendNotification('WizardForDbtCore(TM)/installLatestDbtLog', data)
           .catch(e => console.log(`Failed to send installLatestDbtLog notification: ${e instanceof Error ? e.message : String(e)}`));
       };
 
@@ -336,7 +336,7 @@ export class LspServer {
 
       if (installResult.isOk()) {
         this.connection
-          .sendNotification('dbtWizard/restart')
+          .sendNotification('WizardForDbtCore(TM)/restart')
           .catch(e => console.log(`Failed to send restart notification: ${e instanceof Error ? e.message : String(e)}`));
       }
     }
@@ -347,7 +347,7 @@ export class LspServer {
     if (pythonPath) {
       const sendInstallDbtAdapterLog = (data: string): void => {
         this.connection
-          .sendNotification('dbtWizard/installDbtAdapterLog', data)
+          .sendNotification('WizardForDbtCore(TM)/installDbtAdapterLog', data)
           .catch(e => console.log(`Failed to send installDbtAdapterLog notification: ${e instanceof Error ? e.message : String(e)}`));
       };
 
@@ -355,7 +355,7 @@ export class LspServer {
 
       if (installResult.isOk()) {
         this.connection
-          .sendNotification('dbtWizard/restart')
+          .sendNotification('WizardForDbtCore(TM)/restart')
           .catch(e => console.log(`Failed to send restart notification: ${e instanceof Error ? e.message : String(e)}`));
       }
     }
@@ -466,7 +466,7 @@ export class LspServer {
   onCodeAction(params: CodeActionParams): CodeAction[] {
     const title = 'Change to ref';
     return params.context.diagnostics
-      .filter(d => d.source === 'dbt Wizard' && (d.data as { replaceText: string } | undefined)?.replaceText)
+      .filter(d => d.source === 'Wizard for dbt Core (TM)' && (d.data as { replaceText: string } | undefined)?.replaceText)
       .map<CodeAction>(d => ({
         title,
         diagnostics: [d],

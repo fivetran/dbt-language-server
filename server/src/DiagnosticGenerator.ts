@@ -108,7 +108,7 @@ export class DiagnosticGenerator {
       range,
       message: 'Reference to dbt model is not a ref',
       data: { replaceText: newText },
-      source: 'dbt Wizard',
+      source: 'Wizard for dbt Core (TM)',
     };
   }
 

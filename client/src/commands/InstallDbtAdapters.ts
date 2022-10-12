@@ -5,7 +5,7 @@ import { OutputChannelProvider } from '../OutputChannelProvider';
 import { Command } from './CommandManager';
 
 export class InstallDbtAdapters implements Command {
-  readonly id = 'dbtWizard.installDbtAdapters';
+  readonly id = 'WizardForDbtCore(TM).installDbtAdapters';
 
   constructor(private dbtLanguageClientManager: DbtLanguageClientManager, private outputChannelProvider: OutputChannelProvider) {}
 
@@ -19,7 +19,7 @@ export class InstallDbtAdapters implements Command {
         placeHolder: 'Select dbt adapter to install',
       });
       if (dbtAdapter !== undefined) {
-        client.sendNotification('dbtWizard/installDbtAdapter', dbtAdapter);
+        client.sendNotification('WizardForDbtCore(TM)/installDbtAdapter', dbtAdapter);
         this.outputChannelProvider.getInstallDbtAdaptersChannel().show();
         await commands.executeCommand('workbench.action.focusActiveEditorGroup');
       }

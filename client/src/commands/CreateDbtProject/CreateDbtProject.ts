@@ -14,7 +14,7 @@ enum DbtInitState {
 }
 
 export class CreateDbtProject implements Command {
-  readonly id = 'dbtWizard.createDbtProject';
+  readonly id = 'WizardForDbtCore(TM).createDbtProject';
 
   static readonly TERMINAL_NAME = 'Create dbt project';
   static readonly SETTINGS_JSON_CONTENT = `{

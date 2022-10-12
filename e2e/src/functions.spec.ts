@@ -41,7 +41,7 @@ suite('Functions', () => {
     await setTestContent('select Avg()', false);
 
     // act
-    await commands.executeCommand('dbtWizard.afterFunctionCompletion');
+    await commands.executeCommand('WizardForDbtCore(TM).afterFunctionCompletion');
 
     // assert
     await sleep(300);

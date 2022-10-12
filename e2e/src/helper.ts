@@ -121,7 +121,7 @@ export function getMainEditorText(): string {
 }
 
 export async function showPreview(): Promise<void> {
-  await commands.executeCommand('dbtWizard.showQueryPreview');
+  await commands.executeCommand('WizardForDbtCore(TM).showQueryPreview');
 }
 
 export async function closeAllEditors(): Promise<void> {
@@ -129,7 +129,7 @@ export async function closeAllEditors(): Promise<void> {
 }
 
 export async function compileDocument(): Promise<void> {
-  await commands.executeCommand('dbtWizard.compile');
+  await commands.executeCommand('WizardForDbtCore(TM).compile');
 }
 
 export function getPreviewText(): string {
@@ -305,11 +305,11 @@ export async function executeSignatureHelpProvider(docUri: Uri, position: Positi
 }
 
 export async function executeInstallLatestDbt(): Promise<void> {
-  return commands.executeCommand('dbtWizard.installLatestDbt', undefined, true);
+  return commands.executeCommand('WizardForDbtCore(TM).installLatestDbt', undefined, true);
 }
 
 export async function executeCreateDbtProject(fsPath: string): Promise<void> {
-  return commands.executeCommand('dbtWizard.createDbtProject', fsPath, true);
+  return commands.executeCommand('WizardForDbtCore(TM).createDbtProject', fsPath, true);
 }
 
 export async function moveCursorLeft(): Promise<unknown> {
