@@ -78,7 +78,7 @@ export class ExtensionClient {
   parseVersion(): void {
     const extensionPath = path.join(this.context.extensionPath, 'package.json');
     this.packageJson = JSON.parse(fs.readFileSync(extensionPath, 'utf8')) as PackageJson;
-    log(`dbt Wizard version: ${this.packageJson.version}`);
+    log(`Wizard for dbt Core (TM) version: ${this.packageJson.version}`);
   }
 
   registerCommands(): void {
@@ -94,7 +94,7 @@ export class ExtensionClient {
 
   registerSqlPreviewContentProvider(context: ExtensionContext): void {
     const providerRegistrations = workspace.registerTextDocumentContentProvider(SqlPreviewContentProvider.SCHEME, this.previewContentProvider);
-    const commandRegistration = commands.registerTextEditorCommand('dbtWizard.showQueryPreview', async (editor: TextEditor) => {
+    const commandRegistration = commands.registerTextEditorCommand('WizardForDbtCore(TM).showQueryPreview', async (editor: TextEditor) => {
       if (editor.document.uri.path === SqlPreviewContentProvider.URI.path) {
         return;
       }

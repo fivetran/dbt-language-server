@@ -2,7 +2,7 @@ import { commands } from 'vscode';
 import { Command } from './CommandManager';
 
 export class AfterFunctionCompletion implements Command {
-  readonly id = 'dbtWizard.afterFunctionCompletion';
+  readonly id = 'WizardForDbtCore(TM).afterFunctionCompletion';
 
   async execute(): Promise<void> {
     await commands.executeCommand('cursorMove', {

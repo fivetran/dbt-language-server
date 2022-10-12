@@ -40,7 +40,7 @@ export class NotificationSender {
 
   sendStatus(statusNotification: StatusNotification): void {
     this.connection
-      .sendNotification('dbtWizard/status', statusNotification)
+      .sendNotification('WizardForDbtCore(TM)/status', statusNotification)
       .catch(e => console.log(`Failed to send status notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 }

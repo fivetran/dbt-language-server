@@ -3,7 +3,7 @@ import { DbtLanguageClientManager } from '../DbtLanguageClientManager';
 import { Command } from './CommandManager';
 
 export class Compile implements Command {
-  readonly id = 'dbtWizard.compile';
+  readonly id = 'WizardForDbtCore(TM).compile';
 
   constructor(private dbtLanguageClientManager: DbtLanguageClientManager) {}
 
@@ -11,7 +11,7 @@ export class Compile implements Command {
     const client = await this.dbtLanguageClientManager.getClientForActiveDocument();
     if (client) {
       client.sendNotification('custom/dbtCompile', window.activeTextEditor?.document.uri.toString());
-      await commands.executeCommand('dbtWizard.showQueryPreview');
+      await commands.executeCommand('WizardForDbtCore(TM).showQueryPreview');
     }
   }
 }

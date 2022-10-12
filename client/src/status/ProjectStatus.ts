@@ -83,7 +83,7 @@ export class ProjectStatus {
       this.items.dbtAdapters.setBusy();
     } else {
       this.items.dbtAdapters.setState(this.dbtAdaptersData.severity, this.dbtAdaptersData.text, this.dbtAdaptersData.detail, {
-        command: 'dbtWizard.installDbtAdapters',
+        command: 'WizardForDbtCore(TM).installDbtAdapters',
         title: 'Install dbt Adapters',
         arguments: [this.projectPath],
       });
@@ -197,6 +197,6 @@ export class ProjectStatus {
   }
 
   installDbtCommand(title: string): Command {
-    return { command: 'dbtWizard.installLatestDbt', title, arguments: [this.projectPath] };
+    return { command: 'WizardForDbtCore(TM).installLatestDbt', title, arguments: [this.projectPath] };
   }
 }

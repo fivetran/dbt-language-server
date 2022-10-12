@@ -30,7 +30,7 @@ export class DbtLanguageClient implements Disposable {
   ) {
     this.client = new LanguageClient(
       'dbtWizard',
-      'dbt Wizard',
+      'Wizard for dbt Core (TM)',
       DbtLanguageClient.createServerOptions(port, serverAbsolutePath),
       DbtLanguageClient.createClientOptions(port, dbtProjectUri, outputChannelProvider, this.disposables, this.pendingOpenRequests),
     );
@@ -121,24 +121,24 @@ export class DbtLanguageClient implements Disposable {
         this.manifestParsedEventEmitter.emit(LS_MANIFEST_PARSED_EVENT, this.dbtProjectUri.fsPath);
       }),
 
-      this.client.onNotification('dbtWizard/status', (statusNotification: StatusNotification) => {
+      this.client.onNotification('WizardForDbtCore(TM)/status', (statusNotification: StatusNotification) => {
         const { lastActiveEditor } = ActiveTextEditorHandler;
         const currentStatusChanged =
           lastActiveEditor === undefined || lastActiveEditor.document.uri.fsPath.startsWith(statusNotification.projectPath);
         this.statusHandler.changeStatus(statusNotification, currentStatusChanged);
       }),
 
-      this.client.onNotification('dbtWizard/installLatestDbtLog', async (data: string) => {
+      this.client.onNotification('WizardForDbtCore(TM)/installLatestDbtLog', async (data: string) => {
         this.outputChannelProvider.getInstallLatestDbtChannel().append(data);
         await commands.executeCommand('workbench.action.focusActiveEditorGroup');
       }),
 
-      this.client.onNotification('dbtWizard/installDbtAdapterLog', async (data: string) => {
+      this.client.onNotification('WizardForDbtCore(TM)/installDbtAdapterLog', async (data: string) => {
         this.outputChannelProvider.getInstallDbtAdaptersChannel().append(data);
         await commands.executeCommand('workbench.action.focusActiveEditorGroup');
       }),
 
-      this.client.onNotification('dbtWizard/restart', async () => {
+      this.client.onNotification('WizardForDbtCore(TM)/restart', async () => {
         await this.restart();
       }),
     );
@@ -169,14 +169,14 @@ export class DbtLanguageClient implements Disposable {
   async initPythonParams(): Promise<void> {
     const customInitParams: CustomInitParams = {
       pythonInfo: await this.pythonExtension.getPythonInfo(this.client.clientOptions.workspaceFolder),
-      dbtCompiler: workspace.getConfiguration('dbtWizard').get('dbtCompiler', 'Auto') as DbtCompilerType,
+      dbtCompiler: workspace.getConfiguration('WizardForDbtCore(TM)').get('dbtCompiler', 'Auto') as DbtCompilerType,
     };
 
     this.client.clientOptions.initializationOptions = customInitParams;
   }
 
   resendDiagnostics(uri: string): void {
-    this.sendNotification('dbtWizard/resendDiagnostics', uri);
+    this.sendNotification('WizardForDbtCore(TM)/resendDiagnostics', uri);
   }
 
   sendNotification(method: string, params?: unknown): void {

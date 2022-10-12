@@ -4,7 +4,7 @@ import { PACKAGES_YML } from '../Constants';
 import { Command } from './CommandManager';
 
 export class OpenOrCreatePackagesYml implements Command {
-  static readonly ID = 'dbtWizard.openOrCreatePackagesYml';
+  static readonly ID = 'WizardForDbtCore(TM).openOrCreatePackagesYml';
   readonly id = OpenOrCreatePackagesYml.ID;
 
   async execute(projectPath: string): Promise<TextEditor> {

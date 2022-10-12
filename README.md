@@ -1,8 +1,10 @@
-# dbt Wizard
+# Wizard for dbt Core (TM)\*
 
-Working with [dbt Core](https://www.getdbt.com/) in Visual Studio Code using the Fivetran dbt Wizard extension accelerates your first-time environment setup with dbt Core, and optimizes your continual development of transformation pipelines. This extension is designed primarily for BigQuery destinations, but support for other warehouses is in development.
+Working with [dbt Core](https://www.getdbt.com/) in Visual Studio Code using the Fivetran Wizard for dbt Core (TM) extension accelerates your first-time environment setup with dbt Core, and optimizes your continual development of transformation pipelines. This extension is designed primarily for BigQuery destinations, but support for other warehouses is in development.
 
-Note: Turning on [Auto Save](https://code.visualstudio.com/docs/editor/codebasics#_save-auto-save) is strongly recommended. This feature enables near real-time query preview, auto-completion, and error highlighting with dbt Wizard.
+Note: Turning on [Auto Save](https://code.visualstudio.com/docs/editor/codebasics#_save-auto-save) is strongly recommended. This feature enables near real-time query preview, auto-completion, and error highlighting with Wizard for dbt Core (TM).
+
+> \*dbt Core is a trademark of dbt Labs, Inc. All rights therein are reserved to dbt Labs, Inc. Fivetran Transformations is not a product or service of or endorsed by dbt Labs, Inc.
 
 ## Table of Contents
 
@@ -26,7 +28,7 @@ Note: error highlighting, auto-completion of columns, tables, and function signa
 There are two ways to display a compiled query preview.
 
 1. Click the Preview icon in the top right corner of your tab
-1. `Right click > dbt Wizard > Show preview`
+1. `Right click > Wizard for dbt Core (TM) > Show preview`
 
 Both methods open the compiled query in a new tab.
 
@@ -67,7 +69,7 @@ You can jump to the definition with `Cmd+Click` or open the definition to the si
 
 ### dbt status
 
-When you open dbt model you can use dbt Wizard status bar items. The following actions are available:
+When you open dbt model you can use status bar items. The following actions are available:
 
 - Change path to python interpreter used by extension.
 - Install latest dbt in the selected python environment.
@@ -78,11 +80,11 @@ When you open dbt model you can use dbt Wizard status bar items. The following a
 
 ### Create a new dbt project from scratch
 
-You can create a new dbt project using Command Palette. Press <kbd>F1</kbd> (or <kbd>⇧</kbd><kbd>⌘</kbd><kbd>P</kbd>) to run Command Palette, type `dbtWizard: Create dbt Project` and press Enter. You should choose new project location and then answer all questions. This will open the new project in a separate VS Code window.
+You can create a new dbt project using Command Palette. Press <kbd>F1</kbd> (or <kbd>⇧</kbd><kbd>⌘</kbd><kbd>P</kbd>) to run Command Palette, type `WizardForDbtCore(TM): Create dbt Project` and press Enter. You should choose new project location and then answer all questions. This will open the new project in a separate VS Code window.
 
 ### Install dbt packages
 
-You can install dbt packages by running `dbtWizard.installDbtPackages` command or by using language status item menu. After selecting package name and version, the `packages.yml` file will be updated automatically.
+You can install dbt packages by running `WizardForDbtCore(TM).installDbtPackages` command or by using language status item menu. After selecting package name and version, the `packages.yml` file will be updated automatically.
 
 ![install dbt packages](images/install-dbt-packages.gif)
 
@@ -101,7 +103,7 @@ Prior to using the extension, you need to perform the following steps in the VS 
    - `touch ~/.dbt/profiles.yml`
    - See dbt Labs’ [BigQuery profile](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) documentation for more guidance on how to populate this file.
 1. Open your dbt project in a new VS Code window.
-1. Check that the extension is operating by right-clicking in any .sql model file, and selecting `dbt Wizard > Show query preview`.
+1. Check that the extension is operating by right-clicking in any .sql model file, and selecting `Wizard for dbt Core (TM) > Show query preview`.
 
 ## Issues
 

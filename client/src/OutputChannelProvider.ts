@@ -1,8 +1,8 @@
 import { OutputChannel, window } from 'vscode';
 
 export class OutputChannelProvider {
-  private mainLogChannel = window.createOutputChannel('dbt Wizard');
-  private traceChannel = window.createOutputChannel('dbt Wizard Trace');
+  private mainLogChannel = window.createOutputChannel('Wizard for dbt Core (TM)');
+  private traceChannel = window.createOutputChannel('Wizard for dbt Core (TM) Trace');
   private installLatestDbtChannel?: OutputChannel;
   private installDbtAdaptersChannel?: OutputChannel;
 

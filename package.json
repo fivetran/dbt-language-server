@@ -1,6 +1,6 @@
 {
   "name": "dbt-language-server",
-  "displayName": "dbt Wizard",
+  "displayName": "Wizard for dbt Core (TM)",
   "description": "This extension will help you work with dbt",
   "icon": "images/Icon.png",
   "version": "0.12.0",
@@ -10,7 +10,8 @@
   "keywords": [
     "dbt",
     "bigquery",
-    "sql"
+    "sql",
+    "dbt-wizard"
   ],
   "homepage": "https://github.com/fivetran/dbt-language-server/blob/main/README.md",
   "repository": {
@@ -34,9 +35,9 @@
   "contributes": {
     "configuration": {
       "type": "object",
-      "title": "dbt Wizard",
+      "title": "Wizard for dbt Core (TM)",
       "properties": {
-        "dbtWizard.dbtCompiler": {
+        "WizardForDbtCore(TM).dbtCompiler": {
           "type": "string",
           "order": 1,
           "enum": [
@@ -47,7 +48,7 @@
           "default": "Auto",
           "description": "Command used to compile models."
         },
-        "dbtWizard.trace.server": {
+        "WizardForDbtCore(TM).trace.server": {
           "scope": "window",
           "type": "string",
           "order": 2,
@@ -63,57 +64,57 @@
     },
     "commands": [
       {
-        "command": "dbtWizard.showQueryPreview",
+        "command": "WizardForDbtCore(TM).showQueryPreview",
         "title": "Show query preview",
-        "category": "dbtWizard",
+        "category": "WizardForDbtCore(TM)",
         "icon": "$(book)"
       },
       {
-        "command": "dbtWizard.compile",
+        "command": "WizardForDbtCore(TM).compile",
         "title": "dbt compile",
-        "category": "dbtWizard"
+        "category": "WizardForDbtCore(TM)"
       },
       {
-        "command": "dbtWizard.createDbtProject",
+        "command": "WizardForDbtCore(TM).createDbtProject",
         "title": "Create dbt Project",
-        "category": "dbtWizard"
+        "category": "WizardForDbtCore(TM)"
       },
       {
-        "command": "dbtWizard.installLatestDbt",
+        "command": "WizardForDbtCore(TM).installLatestDbt",
         "title": "Install Latest dbt",
-        "category": "dbtWizard"
+        "category": "WizardForDbtCore(TM)"
       },
       {
-        "command": "dbtWizard.installDbtAdapters",
+        "command": "WizardForDbtCore(TM).installDbtAdapters",
         "title": "Install dbt Adapters",
-        "category": "dbtWizard"
+        "category": "WizardForDbtCore(TM)"
       },
       {
-        "command": "dbtWizard.installDbtPackages",
+        "command": "WizardForDbtCore(TM).installDbtPackages",
         "title": "Install dbt Packages",
-        "category": "dbtWizard"
+        "category": "WizardForDbtCore(TM)"
       },
       {
-        "command": "dbtWizard.restart",
-        "title": "Restart dbtWizard",
-        "category": "dbtWizard"
+        "command": "WizardForDbtCore(TM).restart",
+        "title": "Restart Wizard for dbt Core (TM)",
+        "category": "WizardForDbtCore(TM)"
       }
     ],
     "menus": {
       "editor/title": [
         {
-          "command": "dbtWizard.showQueryPreview",
+          "command": "WizardForDbtCore(TM).showQueryPreview",
           "group": "navigation",
           "when": "editorLangId =~ /^sql$|^jinja-sql$|^sql-bigquery$/ && !editorReadonly"
         }
       ],
       "dbt": [
         {
-          "command": "dbtWizard.compile",
+          "command": "WizardForDbtCore(TM).compile",
           "group": "1_common"
         },
         {
-          "command": "dbtWizard.showQueryPreview",
+          "command": "WizardForDbtCore(TM).showQueryPreview",
           "group": "1_common"
         }
       ],
@@ -128,7 +129,7 @@
     "submenus": [
       {
         "id": "dbt",
-        "label": "dbt Wizard"
+        "label": "Wizard for dbt Core (TM)"
       }
     ]
   },

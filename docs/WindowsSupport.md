@@ -1,6 +1,6 @@
 # Windows support
 
-By default dbt Wizard can work on Windows but with limited list of features (without support of error highlighting, function signature help, SQL to ref conversion).
+By default extension can work on Windows but with limited list of features (without support of error highlighting, function signature help, SQL to ref conversion).
 
 Using all features of extension on Windows requires additional setup steps. You can use one of two approaches:
 

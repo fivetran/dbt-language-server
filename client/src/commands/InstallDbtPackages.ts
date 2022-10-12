@@ -6,7 +6,7 @@ import { Command } from './CommandManager';
 import { OpenOrCreatePackagesYml } from './OpenOrCreatePackagesYml';
 
 export class InstallDbtPackages implements Command {
-  static readonly ID = 'dbtWizard.installDbtPackages';
+  static readonly ID = 'WizardForDbtCore(TM).installDbtPackages';
   readonly id = InstallDbtPackages.ID;
 
   static readonly SEPARATOR = { label: '', kind: QuickPickItemKind.Separator };
@@ -26,7 +26,7 @@ export class InstallDbtPackages implements Command {
         : this.dbtLanguageClientManager.getClientByPath(projectPath);
 
     if (client) {
-      const packagesPromise = client.sendRequest<DbtPackageInfo[]>('dbtWizard/getListOfPackages');
+      const packagesPromise = client.sendRequest<DbtPackageInfo[]>('WizardForDbtCore(TM)/getListOfPackages');
 
       let version = undefined;
       let packageName = undefined;
@@ -37,7 +37,7 @@ export class InstallDbtPackages implements Command {
         this.selectedPackage = packageName;
 
         if (packageName !== undefined) {
-          const versionsPromise = client.sendRequest<DbtPackageVersions>('dbtWizard/getPackageVersions', packageName);
+          const versionsPromise = client.sendRequest<DbtPackageVersions>('WizardForDbtCore(TM)/getPackageVersions', packageName);
           try {
             version = await this.getVersion(packagesPromise, packageName, versionsPromise);
           } catch (e) {
@@ -47,7 +47,7 @@ export class InstallDbtPackages implements Command {
       } while (backPressed);
 
       if (packageName && version) {
-        await client.sendRequest<number>('dbtWizard/addNewDbtPackage', { packageName, version });
+        await client.sendRequest<number>('WizardForDbtCore(TM)/addNewDbtPackage', { packageName, version });
         const textEditor = await OpenOrCreatePackagesYml.openOrCreateConfig(client.getProjectUri().fsPath);
 
         // Sometimes document is not in refreshed state and we should ensure that it contains changes made on LS side
