@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches:
+    tags:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: setup WSL
+        uses: Vampire/setup-wsl@v1
+        with:
+          distribution: Ubuntu-22.04
+          # wsl-shell-command: |
+          #   ls -la
+          #   pwd
+          #   cd server
+          #   ls -la
+          #   ./remote_server_executable 43212
+
+      - name: check WSL
+        run: |
+          pwd
+          ls -la
+          wsl --list && wsl -d Ubuntu-22.04 uname -a && cd server && wsl -d Ubuntu-22.04 ./remote_server_executable 33542
