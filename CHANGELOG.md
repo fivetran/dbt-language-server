@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 0.12.2 (01/01/1970)
+## What's Changed
+* Update dependencies.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.12.1...v0.12.2
+---
+
 ## Version 0.12.1 (13/10/2022)
 ## What's Changed
 * Rename extension to `Wizard for dbt Core (TM)`.
