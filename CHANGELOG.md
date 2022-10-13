@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.12.1 (01/01/1970)
+## Version 0.12.1 (13/10/2022)
 ## What's Changed
 * Rename extension to `Wizard for dbt Core (TM)`.
 * Change extension logo.
