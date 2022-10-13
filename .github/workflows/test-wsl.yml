@@ -1,10 +1,10 @@
 name: CI
 
-# on:
-#   push:
-#     branches:
-#     tags:
-#   workflow_dispatch:
+on:
+  push:
+    branches:
+    tags:
+  workflow_dispatch:
 
 jobs:
   test:
@@ -20,7 +20,7 @@ jobs:
       - name: setup WSL
         uses: Vampire/setup-wsl@v1
         with:
-          distribution: Ubuntu-22.04
+          distribution: Ubuntu-20.04
           # wsl-shell-command: |
           #   ls -la
           #   pwd
@@ -32,4 +32,4 @@ jobs:
         run: |
           pwd
           ls -la
-          wsl --list && wsl -d Ubuntu-22.04 uname -a && cd server && wsl -d Ubuntu-22.04 ./remote_server_executable 33542
+          wsl --list && wsl -d Ubuntu-20.04 uname -a && cd server && wsl -d Ubuntu-20.04 ./remote_server_executable 33542
