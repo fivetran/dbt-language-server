@@ -11,9 +11,9 @@ jobs:
     strategy:
       matrix:
         include:
-          # - os: macos-latest
-          #   target: darwin-x64
-          #   zetasql-lib: libremote_server.dylib
+          - os: macos-latest
+            target: darwin-x64
+            zetasql-lib: libremote_server.dylib
 
           # - os: macos-latest # TODO: use M1 runner when possible
           #   target: darwin-arm64
@@ -91,11 +91,11 @@ jobs:
           #   activate-venv: source ~/dbt_1_2_2_env/bin/activate
           #   python-version: '3.9.12'
 
-          # - install-dbt: 'python -m pip install dbt-bigquery dbt-postgres dbt-rpc'
-          #   os: macos-latest
-          #   target: darwin-x64
-          #   activate-venv: source ~/dbt_1_2_2_env/bin/activate
-          #   python-version: '3.9.12'
+          - install-dbt: 'python -m pip install dbt-bigquery dbt-postgres dbt-rpc'
+            os: macos-latest
+            target: darwin-x64
+            activate-venv: source ~/dbt_1_2_2_env/bin/activate
+            python-version: '3.9.12'
 
           # - install-dbt: 'python -m pip install dbt-bigquery dbt-postgres'
           #   os: macos-latest
