@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.12.2 (01/01/1970)
+## Version 0.12.2 (13/10/2022)
 ## What's Changed
 * Update dependencies.
 
