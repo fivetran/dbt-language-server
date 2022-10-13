@@ -114,7 +114,7 @@ export class DbtLanguageClientManager {
       return;
     }
 
-    if (!this.clients.has(projectUri.path)) {
+    if (!this.clients.has(projectUri.fsPath)) {
       const client = new DbtLanguageClient(
         6009 + this.clients.size,
         this.outputChannelProvider,
@@ -125,7 +125,7 @@ export class DbtLanguageClientManager {
         this.manifestParsedEventEmitter,
         this.statusHandler,
       );
-      this.clients.set(projectUri.path, client);
+      this.clients.set(projectUri.fsPath, client);
 
       await client.initialize();
 
