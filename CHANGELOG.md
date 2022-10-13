@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 0.12.1 (01/01/1970)
+## What's Changed
+* Rename extension to `Wizard for dbt Core (TM)`.
+* Change extension logo.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.12.0...v0.12.1
+---
+
 ## Version 0.12.0 (10/10/2022)
 ## What's Changed
 * We now don't show errors for empty models.
