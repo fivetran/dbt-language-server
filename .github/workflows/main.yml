@@ -128,7 +128,7 @@ jobs:
             activate-venv: |
               cd ~/dbt_1_2_2_env/Scripts
               . activate
-            python-version: '3.9.12'
+            python-version: '3.10.7'
 
     name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.python-version }} ${{ matrix.use-dbt-cli }}
 
