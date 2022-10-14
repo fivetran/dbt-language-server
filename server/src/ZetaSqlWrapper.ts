@@ -68,7 +68,7 @@ export class ZetaSqlWrapper {
       const stdHandler = (data: string): void => {
         console.log(data);
       };
-      new ProcessExecutor().execProcess(`wsl -d Ubuntu ${wslPath} ${port}`, stdHandler, stdHandler).catch(e => console.log(e));
+      new ProcessExecutor().execProcess(`wsl -d Ubuntu-22.04 "${wslPath}" ${port}`, stdHandler, stdHandler).catch(e => console.log(e));
     } else {
       runServer(port).catch(e => console.log(e));
     }
