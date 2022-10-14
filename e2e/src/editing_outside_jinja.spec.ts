@@ -3,12 +3,13 @@ import { EOL } from 'node:os';
 import { DiagnosticSeverity, Range } from 'vscode';
 import { assertAllDiagnostics } from './asserts';
 import { activateAndWait, getCustomDocUri, getMainEditorText, getPreviewText, replaceText, setTestContent } from './helper';
+import path = require('node:path');
 
 suite('Editing outside jinja without recompilation', () => {
   const DOC_URI = getCustomDocUri('completion-jinja/models/join_ref.sql');
   const DIAGNOSTICS = [
     {
-      message: `Compilation Error in model join_ref (models/join_ref.sql)${EOL}  unexpected '}', expected ')'${EOL}    line 6${EOL}      }}`,
+      message: `Compilation Error in model join_ref (models${path.sep}join_ref.sql)${EOL}  unexpected '}', expected ')'${EOL}    line 6${EOL}      }}`,
       range: new Range(5, 0, 5, 100),
       severity: DiagnosticSeverity.Error,
     },
