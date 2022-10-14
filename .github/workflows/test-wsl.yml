@@ -32,4 +32,4 @@ jobs:
         run: |
           pwd
           ls -la
-          wsl --list && wsl -d Ubuntu-20.04 uname -a && cd server && wsl -d Ubuntu-20.04 ./remote_server_executable 33542
+          wsl --list && wsl -d Ubuntu uname -a && cd server && wsl -d Ubuntu ./remote_server_executable 33542

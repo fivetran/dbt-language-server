@@ -65,7 +65,7 @@ export class ZetaSqlWrapper {
       const fsPath = slash(path.normalize(`${__dirname}/../remote_server_executable`));
       const wslPath = `/mnt/${fsPath.replace(':', '')}`;
       console.log(`Calculated path in WSL: ${wslPath}`);
-      new ProcessExecutor().execProcess(`wsl -d Ubuntu-20.04 ${wslPath} ${port}`).catch(e => console.log(e));
+      new ProcessExecutor().execProcess(`wsl -d Ubuntu ${wslPath} ${port}`).catch(e => console.log(e));
     } else {
       runServer(port).catch(e => console.log(e));
     }
