@@ -82,7 +82,7 @@ export class DbtLanguageClientManager {
 
     const projectFolder = [...this.clients.keys()].find(k => fileUri.fsPath.startsWith(k));
     if (projectFolder) {
-      return Uri.parse(projectFolder);
+      return Uri.file(projectFolder);
     }
 
     const outerWorkspace = this.workspaceHelper.getOuterMostWorkspaceFolder(folder);
