@@ -25,6 +25,10 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
 
   private onDidChangeEmitter = new EventEmitter<Uri>();
 
+  static isPreviewDocument(uri: Uri): boolean {
+    return uri.path === SqlPreviewContentProvider.URI.path;
+  }
+
   updateText(uri: string, previewText: string): void {
     const currentValue = this.previewInfos.get(uri);
     this.previewInfos.set(uri, {

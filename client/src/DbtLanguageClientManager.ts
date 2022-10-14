@@ -47,7 +47,7 @@ export class DbtLanguageClientManager {
       return undefined;
     }
 
-    const uri = document.uri.path === SqlPreviewContentProvider.URI.path ? this.previewContentProvider.activeDocUri : document.uri;
+    const uri = SqlPreviewContentProvider.isPreviewDocument(document.uri) ? this.previewContentProvider.activeDocUri : document.uri;
 
     return this.getClientByUri(uri);
   }
@@ -66,7 +66,7 @@ export class DbtLanguageClientManager {
 
   async getClientByUri(uri: Uri): Promise<DbtLanguageClient | undefined> {
     const projectUri = await this.getDbtProjectUri(uri);
-    return projectUri ? this.getClientByPath(projectUri.path) : undefined;
+    return projectUri ? this.getClientByPath(projectUri.fsPath) : undefined;
   }
 
   getClientByPath(projectPath: string): DbtLanguageClient | undefined {
@@ -80,7 +80,7 @@ export class DbtLanguageClientManager {
       return undefined;
     }
 
-    const projectFolder = [...this.clients.keys()].find(k => fileUri.path.startsWith(k));
+    const projectFolder = [...this.clients.keys()].find(k => fileUri.fsPath.startsWith(k));
     if (projectFolder) {
       return Uri.parse(projectFolder);
     }
