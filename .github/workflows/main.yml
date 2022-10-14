@@ -305,6 +305,12 @@ jobs:
 
       - run: unzip ${{ env.FILE_NAME }} -d e2e-tests
 
+      - name: check WSL
+        shell: powershell
+        if: matrix.os == 'windows-latest'
+        run: |
+          wsl -d Ubuntu-22.04 "/mnt/d/a/dbt-language-server/dbt-language-server/e2e-tests/extension/server/remote_server_executable" 47971
+
       - name: run e2e tests
         run: |
           ${{ matrix.prepare-for-tests }}
