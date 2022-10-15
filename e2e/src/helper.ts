@@ -278,6 +278,14 @@ export function uninstallExtension(extensionId: string): void {
   console.log(`Uninstallation extension ${extensionId} finished successfully.`);
 }
 
+export function disableExtension(extensionId: string): SpawnSyncReturns<string> {
+  console.log(`Disabling extension ${extensionId}`);
+  const extensionsInstallPathParam = `--extensions-dir=${process.env['EXTENSIONS_INSTALL_PATH'] ?? ''}`;
+  const result = runCliCommand([`--disable-extension=${extensionId}`, extensionsInstallPathParam]);
+  console.log(`Disabling extension ${extensionId} finished successfully.`);
+  return result;
+}
+
 function installUninstallExtension(command: 'install' | 'uninstall', extensionId: string): SpawnSyncReturns<string> {
   const extensionsInstallPathParam = `--extensions-dir=${process.env['EXTENSIONS_INSTALL_PATH'] ?? ''}`;
   return runCliCommand([`--${command}-extension=${extensionId}`, extensionsInstallPathParam]);
