@@ -53,7 +53,7 @@ suite('Should compile jinja expressions', () => {
     assertThat(getPreviewText(), `users${EOL}${EOL}${EOL}select 1;`);
   });
 
-  test('Compilation result for empty models should be empty', async () => {
+  test.skip('Compilation result for empty models should be empty', async () => {
     const uri = await createAndOpenTempModel('test-fixture', 'preview');
 
     await setTestContent("select u.id from {{ source('new_project', 'users') }} u");
