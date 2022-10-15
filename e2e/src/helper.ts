@@ -231,6 +231,7 @@ export function installDbtPackages(projectFolder: string): void {
 }
 
 export function installExtension(extensionId: string): void {
+  console.log(`Installing extension ${extensionId}`);
   const installResult = installUninstallExtension('install', extensionId);
   if (installResult.status !== 0) {
     console.log(`Failed to install '${extensionId}' extension from marketplace.`);
@@ -252,6 +253,7 @@ export function installExtension(extensionId: string): void {
       throw new Error(`Failed to install '${extensionId}' extension from open-vsx.`);
     }
   }
+  console.log(`Installation extension ${extensionId} finished successfully.`);
 }
 
 export function getLatestDbtVersion(): string {
