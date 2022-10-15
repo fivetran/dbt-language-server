@@ -273,7 +273,9 @@ export function getLatestDbtVersion(): string {
 }
 
 export function uninstallExtension(extensionId: string): void {
+  console.log(`Uninstalling extension ${extensionId}`);
   installUninstallExtension('uninstall', extensionId);
+  console.log(`Uninstallation extension ${extensionId} finished successfully.`);
 }
 
 function installUninstallExtension(command: 'install' | 'uninstall', extensionId: string): SpawnSyncReturns<string> {
