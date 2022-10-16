@@ -95,21 +95,23 @@ export class ExtensionClient {
   registerSqlPreviewContentProvider(context: ExtensionContext): void {
     const providerRegistrations = workspace.registerTextDocumentContentProvider(SqlPreviewContentProvider.SCHEME, this.previewContentProvider);
     const commandRegistration = commands.registerTextEditorCommand('WizardForDbtCore(TM).showQueryPreview', async (editor: TextEditor) => {
+      if (SqlPreviewContentProvider.isPreviewDocument(editor.document.uri)) {
+        return;
+      }
+
       const projectUri = await this.dbtLanguageClientManager.getDbtProjectUri(editor.document.uri);
       if (!projectUri) {
         return;
       }
       this.previewContentProvider.changeActiveDocument(editor.document.uri);
 
-      if (window.visibleTextEditors.some(e => SqlPreviewContentProvider.isPreviewDocument(e.document.uri))) {
-        return;
-      }
-      log('Opening Query Preview');
-
       const doc = await workspace.openTextDocument(SqlPreviewContentProvider.URI);
-      await window.showTextDocument(doc, ViewColumn.Beside, false);
-      await commands.executeCommand('workbench.action.lockEditorGroup');
-      await commands.executeCommand('workbench.action.focusPreviousGroup');
+      const preserveFocus = window.visibleTextEditors.some(e => SqlPreviewContentProvider.isPreviewDocument(e.document.uri));
+      await window.showTextDocument(doc, ViewColumn.Beside, preserveFocus);
+      if (!preserveFocus) {
+        await commands.executeCommand('workbench.action.lockEditorGroup');
+        await commands.executeCommand('workbench.action.focusPreviousGroup');
+      }
       await languages.setTextDocumentLanguage(doc, 'sql');
       this.dbtLanguageClientManager.applyPreviewDiagnostics();
     });
