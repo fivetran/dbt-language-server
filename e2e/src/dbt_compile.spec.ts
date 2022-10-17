@@ -61,6 +61,7 @@ suite('Should compile jinja expressions', () => {
 
     await setTestContent('');
     assertThat(getPreviewText(), ' ');
+    await assertAllDiagnostics(uri, []);
   });
 
   // Sometimes 'samuelcolvin.jinjahtml' extension cannot be installed - server responded with 503.
