@@ -28,6 +28,7 @@
     },
 
     "files.autoSave": "afterDelay",
+    "files.eol": "\n",
 
     "python.defaultInterpreterPath": "${env:PYTHON_INSTALL_LOC}"
   }
