@@ -10,18 +10,4 @@ suite('Certain version', () => {
 
     assertThat(getPreviewText(), VENV_VERSION);
   }).timeout('100s');
-
-  // test
-  //   .skip('Should install latest dbt, restart language server and compile model with new dbt version', async () => {
-  //     const latestVersion = getLatestDbtVersion();
-  //     await activateAndWait(DOC_URI);
-
-  //     assertThat(getPreviewText(), VENV_VERSION);
-  //     await executeInstallLatestDbt();
-
-  //     await waitPreviewModification();
-
-  //     assertThat(getPreviewText(), latestVersion);
-  //   })
-  //   .timeout('100s');
 });
