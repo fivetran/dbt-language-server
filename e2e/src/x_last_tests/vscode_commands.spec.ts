@@ -59,7 +59,7 @@ suite('VS Code Commands', () => {
     console.log(JSON.stringify(profilesYml));
     console.log(JSON.stringify(expected));
     assertThat(
-      profilesYml,
+      profilesYml.replaceAll('\r\n', '\n'),
       anyOf(
         containsString(`
 test_project:
