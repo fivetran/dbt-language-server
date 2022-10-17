@@ -41,27 +41,10 @@ suite('VS Code Commands', () => {
     await typeText(terminal, '1'); // Desired location option
 
     const profilesYml = fs.readFileSync(`${homedir()}/.dbt/profiles.yml`, 'utf8');
-    const expected = `test_project:
-  outputs:
-    dev:
-      dataset: transforms_dbt_default
-      job_execution_timeout_seconds: 300
-      job_retries: 1
-      keyfile: ${KEY_FILE_PATH}
-      location: US
-      method: service-account
-      priority: interactive
-      project: singular-vector-135519
-      threads: 4
-      type: bigquery
-  target: dev`;
-    console.log(JSON.stringify(profilesYml));
-    console.log(JSON.stringify(expected));
     assertThat(
       profilesYml.replaceAll('\r\n', '\n'),
       anyOf(
-        containsString(`
-test_project:
+        containsString(`test_project:
   outputs:
     dev:
       dataset: transforms_dbt_default
@@ -75,7 +58,20 @@ test_project:
       timeout_seconds: 300
       type: bigquery
   target: dev`),
-        containsString(expected),
+        containsString(`test_project:
+  outputs:
+    dev:
+      dataset: transforms_dbt_default
+      job_execution_timeout_seconds: 300
+      job_retries: 1
+      keyfile: ${KEY_FILE_PATH}
+      location: US
+      method: service-account
+      priority: interactive
+      project: singular-vector-135519
+      threads: 4
+      type: bigquery
+  target: dev`),
       ),
     );
   });
