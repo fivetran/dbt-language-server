@@ -11,15 +11,17 @@ suite('Certain version', () => {
     assertThat(getPreviewText(), VENV_VERSION);
   }).timeout('100s');
 
-  test('Should install latest dbt, restart language server and compile model with new dbt version', async () => {
-    const latestVersion = getLatestDbtVersion();
-    await activateAndWait(DOC_URI);
+  test
+    .skip('Should install latest dbt, restart language server and compile model with new dbt version', async () => {
+      const latestVersion = getLatestDbtVersion();
+      await activateAndWait(DOC_URI);
 
-    assertThat(getPreviewText(), VENV_VERSION);
-    await executeInstallLatestDbt();
+      assertThat(getPreviewText(), VENV_VERSION);
+      await executeInstallLatestDbt();
 
-    await waitPreviewModification();
+      await waitPreviewModification();
 
-    assertThat(getPreviewText(), latestVersion);
-  }).timeout('100s');
+      assertThat(getPreviewText(), latestVersion);
+    })
+    .timeout('100s');
 });
