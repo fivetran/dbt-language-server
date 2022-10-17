@@ -56,6 +56,8 @@ export async function installVsCodeAndRunTests(indexName: string, projectWithMod
         DBT_LS_POST_REQUEST_TIMEOUT: '20000',
       },
     });
+    /* eslint-disable-next-line unicorn/no-process-exit */
+    process.exit(0);
   } catch (e) {
     console.log(`Failed to run tests. Error: ${e instanceof Error ? e.message : String(e)}`);
     /* eslint-disable-next-line unicorn/no-process-exit */
