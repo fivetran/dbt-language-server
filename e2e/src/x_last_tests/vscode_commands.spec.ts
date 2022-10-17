@@ -2,38 +2,29 @@ import { anyOf, assertThat, containsString } from 'hamjest';
 import * as fs from 'node:fs';
 import { homedir } from 'node:os';
 import { Pseudoterminal } from 'vscode';
-import {
-  activateAndWait,
-  executeCreateDbtProject,
-  executeInstallLatestDbt,
-  getCreateProjectPseudoterminal,
-  getCustomDocUri,
-  getLatestDbtVersion,
-  getPreviewText,
-  sleep,
-  waitPreviewModification,
-} from '../helper';
+import { executeCreateDbtProject, getCreateProjectPseudoterminal, sleep } from '../helper';
+import path = require('node:path');
 
 suite('VS Code Commands', () => {
-  const KEY_FILE_PATH = `${homedir()}/.dbt/bq-test-project.json`;
-  const VERSION_DOC_URI = getCustomDocUri('special-python-settings/models/version.sql');
+  const KEY_FILE_PATH = path.normalize(`${homedir()}/.dbt/bq-test-project.json`);
+  // const VERSION_DOC_URI = getCustomDocUri('special-python-settings/models/version.sql');
 
-  const VENV_VERSION = '1.2.2';
+  // const VENV_VERSION = '1.2.2';
 
-  test('Should install latest dbt, restart language server and compile model with new dbt version', async () => {
-    const latestVersion = getLatestDbtVersion();
-    await activateAndWait(VERSION_DOC_URI);
+  // test('Should install latest dbt, restart language server and compile model with new dbt version', async () => {
+  //   const latestVersion = getLatestDbtVersion();
+  //   await activateAndWait(VERSION_DOC_URI);
 
-    assertThat(getPreviewText(), VENV_VERSION);
-    await executeInstallLatestDbt();
+  //   assertThat(getPreviewText(), VENV_VERSION);
+  //   await executeInstallLatestDbt();
 
-    await waitPreviewModification();
+  //   await waitPreviewModification();
 
-    assertThat(getPreviewText(), latestVersion);
-  }).timeout('100s');
+  //   assertThat(getPreviewText(), latestVersion);
+  // }).timeout('100s');
 
   test('Should create new dbt project', async () => {
-    await executeCreateDbtProject('/tmp');
+    await executeCreateDbtProject(homedir());
 
     await sleep(12_000);
 
@@ -50,6 +41,23 @@ suite('VS Code Commands', () => {
     await typeText(terminal, '1'); // Desired location option
 
     const profilesYml = fs.readFileSync(`${homedir()}/.dbt/profiles.yml`, 'utf8');
+    const expected = `
+    test_project:
+      outputs:
+        dev:
+          dataset: transforms_dbt_default
+          job_execution_timeout_seconds: 300
+          job_retries: 1
+          keyfile: ${KEY_FILE_PATH}
+          location: US
+          method: service-account
+          priority: interactive
+          project: singular-vector-135519
+          threads: 4
+          type: bigquery
+      target: dev`;
+    console.log(JSON.stringify(profilesYml));
+    console.log(JSON.stringify(expected));
     assertThat(
       profilesYml,
       anyOf(
@@ -68,21 +76,7 @@ test_project:
       timeout_seconds: 300
       type: bigquery
   target: dev`),
-        containsString(`
-test_project:
-  outputs:
-    dev:
-      dataset: transforms_dbt_default
-      job_execution_timeout_seconds: 300
-      job_retries: 1
-      keyfile: ${KEY_FILE_PATH}
-      location: US
-      method: service-account
-      priority: interactive
-      project: singular-vector-135519
-      threads: 4
-      type: bigquery
-  target: dev`),
+        containsString(expected),
       ),
     );
   });
