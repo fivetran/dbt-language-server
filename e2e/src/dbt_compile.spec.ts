@@ -1,5 +1,4 @@
 import { assertThat } from 'hamjest';
-import { EOL } from 'node:os';
 import { assertAllDiagnostics } from './asserts';
 import {
   activateAndWait,
@@ -45,12 +44,12 @@ suite('Should compile jinja expressions', () => {
     await activateAndWait(docUri);
     await setTestContent(users);
 
-    await replaceText('}}', `}}${EOL}${EOL}${EOL}s`);
+    await replaceText('}}', '}}\n\n\ns');
     await sleep(moreThanDebounceTimeout);
 
-    await replaceText(`${EOL}s`, `${EOL}select 1;`);
+    await replaceText('\ns', '\nselect 1;');
 
-    assertThat(getPreviewText(), `users${EOL}${EOL}${EOL}select 1;`);
+    assertThat(getPreviewText(), 'users\n\n\nselect 1;');
   });
 
   test('Compilation result for empty models should be empty', async () => {
