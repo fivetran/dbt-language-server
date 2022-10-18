@@ -361,8 +361,8 @@ export async function renameCurrentFile(newName: string): Promise<Uri> {
 
   clipboard.writeSync(newName);
 
-  console.log(`Active doc: ${window.activeTextEditor?.document.uri.toString() ?? 'undefined'}`);
   await commands.executeCommand('workbench.files.action.showActiveFileInExplorer');
+  await sleep(300);
   await commands.executeCommand('renameFile');
   await commands.executeCommand('editor.action.selectAll');
   await commands.executeCommand('editor.action.clipboardPasteAction');
