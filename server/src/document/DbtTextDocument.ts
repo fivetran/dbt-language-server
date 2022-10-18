@@ -25,6 +25,7 @@ import { URI } from 'vscode-uri';
 import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
 import { DbtRepository } from '../DbtRepository';
 import { Dbt } from '../dbt_execution/Dbt';
+import { DbtCompileJob } from '../dbt_execution/DbtCompileJob';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
 import { DestinationState } from '../DestinationState';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
@@ -318,7 +319,12 @@ export class DbtTextDocument {
     let rawDocDiagnostics: Diagnostic[] = [];
     let compiledDocDiagnostics: Diagnostic[] = [];
 
-    if (this.destinationState.bigQueryContext && this.dbtDocumentKind === DbtDocumentKind.MODEL && compiledSql !== '') {
+    if (
+      this.destinationState.bigQueryContext &&
+      this.dbtDocumentKind === DbtDocumentKind.MODEL &&
+      compiledSql !== '' &&
+      compiledSql !== DbtCompileJob.NO_RESULT_FROM_COMPILER
+    ) {
       const { fsPath } = URI.parse(this.rawDocument.uri);
       const originalFilePath = fsPath.slice(fsPath.lastIndexOf(this.workspaceFolder) + this.workspaceFolder.length + 1);
       const astResult = await this.destinationState.bigQueryContext.analyzeTable(originalFilePath, compiledSql);
