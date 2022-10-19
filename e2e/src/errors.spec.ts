@@ -58,7 +58,7 @@ suite('Errors', () => {
     await assertAllDiagnostics(EPHEMERAL_URI, []);
   });
 
-  test('Should clear diagnostic for deleted file', async () => {
+  test.skip('Should clear diagnostic for deleted file', async () => {
     const uri = await createAndOpenTempModel('test-fixture');
     const query = '\nselect * from dbt_ls_e2e_dataset.test_table10';
 
