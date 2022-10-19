@@ -15,6 +15,7 @@ import { err, ok, Result } from 'neverthrow';
 import * as fs from 'node:fs';
 import { BigQueryClient, Udf } from './bigquery/BigQueryClient';
 import { DbtRepository } from './DbtRepository';
+import { FeatureFinder } from './FeatureFinder';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
 import { ManifestModel } from './manifest/ManifestJson';
 import { ModelFetcher } from './ModelFetcher';
@@ -68,7 +69,9 @@ export class ZetaSqlWrapper {
       const stdHandler = (data: string): void => {
         console.log(data);
       };
-      new ProcessExecutor().execProcess(`wsl -d Ubuntu-22.04 "${wslPath}" ${port}`, stdHandler, stdHandler).catch(e => console.log(e));
+      new ProcessExecutor()
+        .execProcess(`wsl -d ${FeatureFinder.WSL_UBUNTU_VERSION} "${wslPath}" ${port}`, stdHandler, stdHandler)
+        .catch(e => console.log(e));
     } else {
       runServer(port).catch(e => console.log(e));
     }

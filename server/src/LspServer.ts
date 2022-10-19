@@ -49,7 +49,7 @@ import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
 import { DbtProfileCreator, DbtProfileInfo } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
-import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
+import { DbtUtilitiesInstaller as InstallUtils } from './DbtUtilitiesInstaller';
 import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
 import { Dbt, DbtMode } from './dbt_execution/Dbt';
 import { DbtCli } from './dbt_execution/DbtCli';
@@ -234,10 +234,15 @@ export class LspServer {
       this.showProfileCreationWarning(profileResult.error.message);
     }
 
+    const ubuntuInWslWorks = Boolean(await this.featureFinder?.ubuntuInWslWorks);
+    if (!ubuntuInWslWorks) {
+      this.showWslWarning();
+    }
+
     const prepareDestination = profileResult.isErr()
       ? this.destinationState.prepareDestinationStub()
       : this.destinationState
-          .prepareBigQueryDestination(profileResult.value, this.dbtRepository)
+          .prepareBigQueryDestination(profileResult.value, this.dbtRepository, ubuntuInWslWorks)
           .then((prepareResult: Result<void, string>) => (prepareResult.isErr() ? this.showCreateContextWarning(prepareResult.error) : undefined));
     const prepareDbt = this.dbt?.prepare(dbtProfileType).then(_ => this.statusSender?.sendStatus());
 
@@ -296,16 +301,23 @@ export class LspServer {
     }
   }
 
-  showProfileCreationWarning(error: string): void {
-    const message = `Dbt profile was not properly configured. ${error}`;
+  showWarning(message: string): void {
     console.log(message);
     this.connection.window.showWarningMessage(message);
   }
 
+  showProfileCreationWarning(error: string): void {
+    this.showWarning(`Dbt profile was not properly configured. ${error}`);
+  }
+
+  showWslWarning(): void {
+    this.showWarning(
+      `Extension requires WSL and ${FeatureFinder.WSL_UBUNTU_VERSION} to be installed.\nPlease run the following command from Administrator and then restart your computer:\nwsl --install -d ${FeatureFinder.WSL_UBUNTU_VERSION}`,
+    );
+  }
+
   showCreateContextWarning(error: string): void {
-    const message = `Unable to initialize BigQuery. ${error}`;
-    console.log(message);
-    this.connection.window.showWarningMessage(message);
+    this.showWarning(`Unable to initialize BigQuery. ${error}`);
   }
 
   logStartupInfo(contextInfo: DbtProfileInfo, initTime: number): void {
@@ -332,7 +344,7 @@ export class LspServer {
           .catch(e => console.log(`Failed to send installLatestDbtLog notification: ${e instanceof Error ? e.message : String(e)}`));
       };
 
-      const installResult = await DbtUtilitiesInstaller.installDbt(pythonPath, 'bigquery', sendInstallLatestDbtLog, sendInstallLatestDbtLog);
+      const installResult = await InstallUtils.installDbt(pythonPath, 'bigquery', sendInstallLatestDbtLog, sendInstallLatestDbtLog);
 
       if (installResult.isOk()) {
         this.connection
@@ -351,7 +363,7 @@ export class LspServer {
           .catch(e => console.log(`Failed to send installDbtAdapterLog notification: ${e instanceof Error ? e.message : String(e)}`));
       };
 
-      const installResult = await DbtUtilitiesInstaller.installDbtAdapter(pythonPath, dbtAdapter, sendInstallDbtAdapterLog, sendInstallDbtAdapterLog);
+      const installResult = await InstallUtils.installDbtAdapter(pythonPath, dbtAdapter, sendInstallDbtAdapterLog, sendInstallDbtAdapterLog);
 
       if (installResult.isOk()) {
         this.connection
