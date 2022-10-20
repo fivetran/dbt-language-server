@@ -59,6 +59,10 @@ jobs:
           cd server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql/
           find . ! -name '${{ matrix.zetasql-lib }}' -type f -exec rm -f {} +
 
+      - name: delete executable for Ubuntu in WSL
+        if: matrix.os != 'windows-latest'
+        run: rm server/remote_server_executable
+
       - name: set variable for prepare_node_modules.sh script
         run: echo ${{ matrix.target }} > target_os
 
