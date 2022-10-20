@@ -312,7 +312,7 @@ export class LspServer {
 
   showWslWarning(): void {
     this.showWarning(
-      `Extension requires WSL and ${FeatureFinder.WSL_UBUNTU_VERSION} to be installed. Please run the following command as Administrator and then restart your computer: wsl --install -d ${FeatureFinder.WSL_UBUNTU_VERSION}`,
+      `Extension requires WSL and ${FeatureFinder.getWslUbuntuName()} to be installed. Please run the following command as Administrator and then restart your computer: wsl --install -d ${FeatureFinder.getWslUbuntuName()}`,
     );
   }
 

@@ -313,7 +313,7 @@ jobs:
         shell: powershell
         if: matrix.os == 'windows-latest'
         run: |
-          wsl --list && wsl -d Ubuntu-20.04 ls "/mnt/d/a/dbt-language-server/dbt-language-server/e2e-tests/extension/server/"
+          wsl -d Ubuntu ls "/mnt/d/a/dbt-language-server/dbt-language-server/e2e-tests/extension/server/"
 
       - name: run e2e tests
         run: |
@@ -323,6 +323,7 @@ jobs:
           USE_DBT_CLI: ${{ matrix.use-dbt-cli }}
           SKIP_TESTS: ${{ matrix.SKIP_TESTS }}
           PYTHON_INSTALL_LOC: '${{ steps.setup-python.outputs.python-path }}'
+          WIZARD_FOR_DBT_WSL_UBUNTU_NAME: 'Ubuntu'
 
       - name: upload logs
         if: always()

@@ -68,7 +68,7 @@ export class ZetaSqlWrapper {
         console.log(data);
       };
       new ProcessExecutor()
-        .execProcess(`wsl -d ${FeatureFinder.WSL_UBUNTU_VERSION} "${wslPath}" ${port}`, stdHandler, stdHandler)
+        .execProcess(`wsl -d ${FeatureFinder.getWslUbuntuName()} "${wslPath}" ${port}`, stdHandler, stdHandler)
         .catch(e => console.log(e));
     } else {
       runServer(port).catch(e => console.log(e));

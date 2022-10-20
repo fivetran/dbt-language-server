@@ -23,7 +23,16 @@ export class FeatureFinder {
   private static readonly DBT_ADAPTER_PATTERN = /- (\w+):.*/g;
   private static readonly DBT_ADAPTER_VERSION_PATTERN = /:\s+(\d+)\.(\d+)\.(\d+)/;
 
-  static readonly WSL_UBUNTU_VERSION = 'Ubuntu-20.04';
+  private static readonly WSL_UBUNTU_DEFAULT_NAME = 'Ubuntu-20.04';
+  private static readonly WSL_UBUNTU_ENV_NAME = 'WIZARD_FOR_DBT_WSL_UBUNTU_NAME';
+
+  static getWslUbuntuName(): string {
+    const valueFromEnv = process.env[FeatureFinder.WSL_UBUNTU_ENV_NAME];
+    if (valueFromEnv) {
+      return valueFromEnv;
+    }
+    return FeatureFinder.WSL_UBUNTU_DEFAULT_NAME;
+  }
 
   versionInfo?: DbtVersionInfo;
   availableCommandsPromise: Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]>;
@@ -118,7 +127,7 @@ export class FeatureFinder {
     if (process.platform === 'win32') {
       try {
         const text = 'Wizard for dbt Core (TM)';
-        const result = await new ProcessExecutor().execProcess(`wsl -d ${FeatureFinder.WSL_UBUNTU_VERSION} echo "${text}"`);
+        const result = await new ProcessExecutor().execProcess(`wsl -d ${FeatureFinder.getWslUbuntuName()} echo "${text}"`);
         return result.stdout.includes(text);
       } catch {
         console.log('Error while running wsl');
