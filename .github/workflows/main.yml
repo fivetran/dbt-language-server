@@ -163,7 +163,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         uses: Vampire/setup-wsl@v1
         with:
-          distribution: Ubuntu-22.04
+          distribution: Ubuntu-20.04
 
       - uses: actions/setup-node@v3
         with:
@@ -309,7 +309,7 @@ jobs:
         shell: powershell
         if: matrix.os == 'windows-latest'
         run: |
-          wsl -d Ubuntu-22.04 ls "/mnt/d/a/dbt-language-server/dbt-language-server/e2e-tests/extension/server/"
+          wsl -d Ubuntu-20.04 ls "/mnt/d/a/dbt-language-server/dbt-language-server/e2e-tests/extension/server/"
 
       - name: run e2e tests
         run: |
