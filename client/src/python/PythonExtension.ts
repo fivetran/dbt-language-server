@@ -1,7 +1,7 @@
 import { PythonInfo } from 'dbt-language-server-common';
 import { Event, Extension, extensions, Uri, WorkspaceFolder } from 'vscode';
 import { log } from '../Logger';
-import { IExtensionApi, IProposedExtensionAPI } from './PythonApi';
+import { IExtensionApi, ProposedExtensionAPI } from './PythonApi';
 
 export class PythonExtension {
   extension: Extension<unknown>;
@@ -25,7 +25,7 @@ export class PythonExtension {
   async getPythonInfo(workspaceFolder?: WorkspaceFolder): Promise<PythonInfo | undefined> {
     await this.activate();
 
-    const api = this.extension.exports as IExtensionApi & IProposedExtensionAPI;
+    const api = this.extension.exports as IExtensionApi & ProposedExtensionAPI;
 
     const details = api.settings.getExecutionDetails(workspaceFolder?.uri);
     if (!details.execCommand) {
@@ -38,9 +38,12 @@ export class PythonExtension {
       return this.pythonNotFound();
     }
 
-    const envDetails = await api.environment.getEnvironmentDetails(path);
+    const envDetails = api.environments.known.find(e => e.path === path);
+    const major = String(envDetails?.version.major ?? 3);
+    const minor = String(envDetails?.version.minor ?? 10);
+    const micro = String(envDetails?.version.micro ?? 0);
 
-    return { path, version: envDetails?.version };
+    return { path, version: [major, minor, micro] };
   }
 
   async activate(): Promise<void> {
