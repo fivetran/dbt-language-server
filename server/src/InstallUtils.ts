@@ -2,7 +2,7 @@ import { err, ok, Result } from 'neverthrow';
 import { EOL } from 'node:os';
 import { ProcessExecutor } from './ProcessExecutor';
 
-export class DbtUtilitiesInstaller {
+export class InstallUtils {
   static readonly DBT_CORE = 'dbt-core';
   static readonly DBT_RPC = 'dbt-rpc';
   static readonly DBT_PREFIX = 'dbt';
@@ -12,9 +12,9 @@ export class DbtUtilitiesInstaller {
   static readonly PROCESS_EXECUTOR = new ProcessExecutor();
 
   static getFullDbtInstallationPackages(dbtProfileType: string): string[] {
-    const packages = [DbtUtilitiesInstaller.DBT_CORE, DbtUtilitiesInstaller.buildAdapterPackageName(dbtProfileType)];
+    const packages = [InstallUtils.DBT_CORE, InstallUtils.buildAdapterPackageName(dbtProfileType)];
     if (process.platform !== 'win32') {
-      packages.push(DbtUtilitiesInstaller.DBT_RPC);
+      packages.push(InstallUtils.DBT_RPC);
     }
     return packages;
   }
@@ -25,8 +25,8 @@ export class DbtUtilitiesInstaller {
     onStdoutData?: (data: string) => void,
     onStderrData?: (data: string) => void,
   ): Promise<Result<string, string>> {
-    const packagesToInstall = DbtUtilitiesInstaller.getFullDbtInstallationPackages(dbtProfileType);
-    return DbtUtilitiesInstaller.installPythonPackages(python, packagesToInstall, true, onStdoutData, onStderrData);
+    const packagesToInstall = InstallUtils.getFullDbtInstallationPackages(dbtProfileType);
+    return InstallUtils.installPythonPackages(python, packagesToInstall, true, onStdoutData, onStderrData);
   }
 
   static async installDbtAdapter(
@@ -35,15 +35,15 @@ export class DbtUtilitiesInstaller {
     onStdoutData?: (data: string) => void,
     onStderrData?: (data: string) => void,
   ): Promise<Result<string, string>> {
-    return DbtUtilitiesInstaller.installPythonPackages(python, [dbtAdapter], true, onStdoutData, onStderrData);
+    return InstallUtils.installPythonPackages(python, [dbtAdapter], true, onStdoutData, onStderrData);
   }
 
   static async installLatestDbtRpc(python: string, dbtProfileType?: string): Promise<Result<string, string>> {
-    const packages = [DbtUtilitiesInstaller.DBT_RPC];
+    const packages = [InstallUtils.DBT_RPC];
     if (dbtProfileType) {
-      packages.push(DbtUtilitiesInstaller.buildAdapterPackageName(dbtProfileType));
+      packages.push(InstallUtils.buildAdapterPackageName(dbtProfileType));
     }
-    return DbtUtilitiesInstaller.installPythonPackages(python, packages);
+    return InstallUtils.installPythonPackages(python, packages);
   }
 
   static async installPythonPackages(
@@ -53,12 +53,12 @@ export class DbtUtilitiesInstaller {
     onStdoutData?: (data: string) => void,
     onStderrData?: (data: string) => void,
   ): Promise<Result<string, string>> {
-    const installCommand = `${python} -m pip install ${upgrade ? DbtUtilitiesInstaller.UPGRADE_PARAM : ''} ${packages.join(' ')}`;
+    const installCommand = `${python} -m pip install ${upgrade ? InstallUtils.UPGRADE_PARAM : ''} ${packages.join(' ')}`;
     if (onStdoutData) {
       onStdoutData(`${EOL}${EOL}${installCommand}${EOL}`);
     }
     try {
-      await DbtUtilitiesInstaller.PROCESS_EXECUTOR.execProcess(installCommand, onStdoutData, onStderrData);
+      await InstallUtils.PROCESS_EXECUTOR.execProcess(installCommand, onStdoutData, onStderrData);
       const successMessage = `Packages successfully installed ('${installCommand}')`;
       console.log(successMessage);
       return ok(successMessage);
@@ -70,6 +70,6 @@ export class DbtUtilitiesInstaller {
   }
 
   static buildAdapterPackageName(dbtProfileType: string): string {
-    return `${DbtUtilitiesInstaller.DBT_PREFIX}-${dbtProfileType}`;
+    return `${InstallUtils.DBT_PREFIX}-${dbtProfileType}`;
   }
 }

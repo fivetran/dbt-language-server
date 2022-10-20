@@ -1,6 +1,6 @@
 import { Emitter, Event, _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
-import { DbtUtilitiesInstaller } from '../DbtUtilitiesInstaller';
+import { InstallUtils } from '../InstallUtils';
 import { ProgressReporter } from '../ProgressReporter';
 import { DbtCompileJob } from './DbtCompileJob';
 
@@ -45,7 +45,7 @@ export abstract class Dbt {
 
     if (errorMessageResult?.id === 'install') {
       console.log(`Trying to install dbt, dbt-rpc and ${dbtProfileType} adapter`);
-      const installResult = await DbtUtilitiesInstaller.installDbt(python, dbtProfileType);
+      const installResult = await InstallUtils.installDbt(python, dbtProfileType);
       if (installResult.isOk()) {
         this.connection.window.showInformationMessage(installResult.value);
         await this.prepare(dbtProfileType);

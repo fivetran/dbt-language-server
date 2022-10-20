@@ -4,10 +4,10 @@ import { promises as fsPromises } from 'node:fs';
 import * as semver from 'semver';
 import * as yaml from 'yaml';
 import { DbtRepository } from './DbtRepository';
-import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
 import { Command } from './dbt_execution/commands/Command';
 import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
 import { DbtCommandFactory } from './dbt_execution/DbtCommandFactory';
+import { InstallUtils } from './InstallUtils';
 import { ProcessExecutor } from './ProcessExecutor';
 import { Lazy } from './utils/Lazy';
 import { randomNumber } from './utils/Utils';
@@ -199,7 +199,7 @@ export class FeatureFinder {
 
   private async installAndFindCommandForV1(dbtProfileType?: string): Promise<Command | undefined> {
     if (this.pythonInfo) {
-      const installResult = await DbtUtilitiesInstaller.installLatestDbtRpc(this.pythonInfo.path, dbtProfileType);
+      const installResult = await InstallUtils.installLatestDbtRpc(this.pythonInfo.path, dbtProfileType);
       if (installResult.isOk()) {
         return this.dbtCommandFactory.getDbtRpcRun();
       }
