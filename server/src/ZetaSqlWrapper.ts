@@ -61,11 +61,9 @@ export class ZetaSqlWrapper {
     console.log(`Starting zetasql on port ${port}`);
     if (process.platform === 'win32') {
       const { default: slash } = await (eval("import('slash')") as Promise<{ default: (path: string) => string }>);
-      console.log(`dirname: ${__dirname}`);
-      console.log(slash(path.normalize(`${__dirname}/../remote_server_executable`)));
       const fsPath = slash(path.normalize(`${__dirname}/../remote_server_executable`));
       const wslPath = `/mnt/${fsPath.replace(':', '')}`;
-      console.log(`Calculated path in WSL: ${wslPath}`);
+      console.log(`Path in WSL: ${wslPath}`);
       const stdHandler = (data: string): void => {
         console.log(data);
       };
