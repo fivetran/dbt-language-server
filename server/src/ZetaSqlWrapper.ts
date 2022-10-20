@@ -22,7 +22,7 @@ import { ModelFetcher } from './ModelFetcher';
 import { ProcessExecutor } from './ProcessExecutor';
 import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
 import { TableDefinition } from './TableDefinition';
-import { arraysAreEqual, randomNumber } from './utils/Utils';
+import { arraysAreEqual, getSlash, randomNumber } from './utils/Utils';
 import { createType } from './utils/ZetaSqlUtils';
 import { ZetaSqlParser } from './ZetaSqlParser';
 import findFreePortPmfy = require('find-free-port');
@@ -60,7 +60,7 @@ export class ZetaSqlWrapper {
 
     console.log(`Starting zetasql on port ${port}`);
     if (process.platform === 'win32') {
-      const { default: slash } = await (eval("import('slash')") as Promise<{ default: (path: string) => string }>);
+      const slash = await getSlash();
       const fsPath = slash(path.normalize(`${__dirname}/../remote_server_executable`));
       const wslPath = `/mnt/${fsPath.replace(':', '')}`;
       console.log(`Path in WSL: ${wslPath}`);
