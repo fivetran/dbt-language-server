@@ -273,12 +273,6 @@ export function getLatestDbtVersion(): string {
   return match[1];
 }
 
-export function uninstallExtension(extensionId: string): void {
-  console.log(`Uninstalling extension ${extensionId}`);
-  installUninstallExtension('uninstall', extensionId);
-  console.log(`Uninstallation extension ${extensionId} finished successfully.`);
-}
-
 export function disableExtension(extensionId: string): SpawnSyncReturns<string> {
   console.log(`Disabling extension ${extensionId}`);
   const extensionsInstallPathParam = `--extensions-dir=${process.env['EXTENSIONS_INSTALL_PATH'] ?? ''}`;
