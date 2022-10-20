@@ -138,8 +138,7 @@ export function getPreviewText(): string {
     throw new Error('Preview editor not found');
   }
 
-  const text = previewEditor.document.getText();
-  return process.platform === 'win32' ? text.replaceAll('\r\n', '\n') : text;
+  return previewEditor.document.getText();
 }
 
 function getPreviewEditor(): TextEditor | undefined {
