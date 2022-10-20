@@ -313,7 +313,7 @@ jobs:
         shell: powershell
         if: matrix.os == 'windows-latest'
         run: |
-          wsl -d Ubuntu-20.04 ls "/mnt/d/a/dbt-language-server/dbt-language-server/e2e-tests/extension/server/"
+          wsl --list && wsl -d Ubuntu-20.04 ls "/mnt/d/a/dbt-language-server/dbt-language-server/e2e-tests/extension/server/"
 
       - name: run e2e tests
         run: |
