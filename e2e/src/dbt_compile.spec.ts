@@ -1,16 +1,15 @@
 import { assertThat } from 'hamjest';
-import { EOL } from 'node:os';
 import { assertAllDiagnostics } from './asserts';
 import {
   activateAndWait,
   createAndOpenTempModel,
+  disableExtension,
   getDocUri,
   getPreviewText,
   installExtension,
   replaceText,
   setTestContent,
   sleep,
-  uninstallExtension,
 } from './helper';
 
 suite('Should compile jinja expressions', () => {
@@ -45,12 +44,12 @@ suite('Should compile jinja expressions', () => {
     await activateAndWait(docUri);
     await setTestContent(users);
 
-    await replaceText('}}', `}}${EOL}${EOL}${EOL}s`);
+    await replaceText('}}', '}}\n\n\ns');
     await sleep(moreThanDebounceTimeout);
 
-    await replaceText(`${EOL}s`, `${EOL}select 1;`);
+    await replaceText('\ns', '\nselect 1;');
 
-    assertThat(getPreviewText(), `users${EOL}${EOL}${EOL}select 1;`);
+    assertThat(getPreviewText(), 'users\n\n\nselect 1;');
   });
 
   test('Compilation result for empty models should be empty', async () => {
@@ -62,6 +61,7 @@ suite('Should compile jinja expressions', () => {
 
     await setTestContent('');
     assertThat(getPreviewText(), ' ');
+    await assertAllDiagnostics(uri, []);
   });
 
   // Sometimes 'samuelcolvin.jinjahtml' extension cannot be installed - server responded with 503.
@@ -78,6 +78,6 @@ suite('Should compile jinja expressions', () => {
     // assert
     assertThat(getPreviewText(), 'select * from `singular-vector-135519`.dbt_ls_e2e_dataset.test_table1');
 
-    uninstallExtension('samuelcolvin.jinjahtml');
+    disableExtension('samuelcolvin.jinjahtml');
   }).timeout(300_000);
 });

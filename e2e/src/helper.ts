@@ -231,6 +231,7 @@ export function installDbtPackages(projectFolder: string): void {
 }
 
 export function installExtension(extensionId: string): void {
+  console.log(`Installing extension ${extensionId}`);
   const installResult = installUninstallExtension('install', extensionId);
   if (installResult.status !== 0) {
     console.log(`Failed to install '${extensionId}' extension from marketplace.`);
@@ -252,6 +253,7 @@ export function installExtension(extensionId: string): void {
       throw new Error(`Failed to install '${extensionId}' extension from open-vsx.`);
     }
   }
+  console.log(`Installation extension ${extensionId} finished successfully.`);
 }
 
 export function getLatestDbtVersion(): string {
@@ -270,8 +272,12 @@ export function getLatestDbtVersion(): string {
   return match[1];
 }
 
-export function uninstallExtension(extensionId: string): void {
-  installUninstallExtension('uninstall', extensionId);
+export function disableExtension(extensionId: string): SpawnSyncReturns<string> {
+  console.log(`Disabling extension ${extensionId}`);
+  const extensionsInstallPathParam = `--extensions-dir=${process.env['EXTENSIONS_INSTALL_PATH'] ?? ''}`;
+  const result = runCliCommand([`--disable-extension=${extensionId}`, extensionsInstallPathParam]);
+  console.log(`Disabling extension ${extensionId} finished successfully.`);
+  return result;
 }
 
 function installUninstallExtension(command: 'install' | 'uninstall', extensionId: string): SpawnSyncReturns<string> {

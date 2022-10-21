@@ -1,5 +1,4 @@
 import { assertThat, instanceOf } from 'hamjest';
-import { EOL } from 'node:os';
 import { MarkdownString, Position, Range } from 'vscode';
 import { assertDefinitions } from './asserts';
 import {
@@ -22,7 +21,7 @@ suite('Postgres destination', () => {
 
     assertThat(
       getPreviewText(),
-      `select *${EOL}from "postgres"."users_orders"."users" u${EOL}where exists (select * from "postgres"."users_orders"."orders" o where o.user_id = u.id)`,
+      'select *\nfrom "postgres"."users_orders"."users" u\nwhere exists (select * from "postgres"."users_orders"."orders" o where o.user_id = u.id)',
     );
   });
 

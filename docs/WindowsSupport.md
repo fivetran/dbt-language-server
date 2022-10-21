@@ -1,8 +1,13 @@
 # Windows support
 
-By default extension can work on Windows but with limited list of features (without support of error highlighting, function signature help, SQL to ref conversion).
+By default extension works on Windows but it requires requires WSL and Ubuntu 20.04 to be installed. Ubuntu is used to run [ZetaSQL](https://github.com/google/zetasql) analyzer.
+If it is not installed you will see the following warning:  
+<img src="https://github.com/fivetran/dbt-language-server/raw/windows-wsl/images/wsl-warning.png" width=50% height=50%>  
+To install WSL and Ubuntu 20.04 run the following command as **Administrator** (this requires a computer restart):<br/> `wsl --install -d Ubuntu-20.04`
 
-Using all features of extension on Windows requires additional setup steps. You can use one of two approaches:
+---
+
+You can also run extension fully inside WSL or Docker Container:
 
 - [Run VS Code in Windows Subsystem for Linux](#wsl)
 - [Run VS Code in a Docker Container](#docker)

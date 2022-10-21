@@ -5,23 +5,6 @@ import { performance } from 'node:perf_hooks';
 import { languages, Uri } from 'vscode';
 import { closeAllEditors, doc, getPreviewText, initializeExtension, PREVIEW_URI } from '../helper';
 
-const TESTS_WITHOUT_ZETASQL = [
-  'completion_macros.spec.js',
-  'completion_models.spec.js',
-  'completion_sources.spec.js',
-  'certain_version.spec.js',
-  'dbt_compile.spec.js',
-  'dbt_error.spec.js',
-  'dbt_packages.spec',
-  'definition.spec',
-  'editing_outside_jinja.spec',
-  'functions.spec',
-  'multi-project.spec.js',
-  'postgres.spec.js',
-  'signature_help.spec.js',
-]; // TODO: combine ZetaSQL tests and skip them on Windows
-const ZETASQL_SUPPORTED_PLATFORMS = new Set<string>(['darwin', 'linux']);
-
 export async function indexMain(timeout: string, globPattern: string, doNotRun: string[]): Promise<void> {
   console.log(`Platform: ${process.platform}`);
   try {
@@ -54,13 +37,7 @@ export async function indexMain(timeout: string, globPattern: string, doNotRun: 
 
       console.log(`${files.length} test files found`);
       // Add files to the test suite
-      files
-        .filter(
-          f =>
-            (ZETASQL_SUPPORTED_PLATFORMS.has(process.platform) || TESTS_WITHOUT_ZETASQL.some(t => f.endsWith(t))) &&
-            !doNotRun.some(t => f.endsWith(t)),
-        )
-        .forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
+      files.filter(f => !doNotRun.some(t => f.endsWith(t))).forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
 
       console.log(`List of tests (${mocha.files.length}):`);
       console.log(JSON.stringify(mocha.files));

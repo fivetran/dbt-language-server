@@ -1,4 +1,4 @@
-import { assertThat, endsWith, hasSize } from 'hamjest';
+import { assertThat, containsString, endsWith, hasSize } from 'hamjest';
 import { Diagnostic, DiagnosticSeverity, languages, Position, Range } from 'vscode';
 import { assertAllDiagnostics } from './asserts';
 import {
@@ -58,14 +58,16 @@ suite('Errors', () => {
     await assertAllDiagnostics(EPHEMERAL_URI, []);
   });
 
-  test('Should clear diagnostic for deleted file', async () => {
+  test.skip('Should clear diagnostic for deleted file', async () => {
     const uri = await createAndOpenTempModel('test-fixture');
     const query = '\nselect * from dbt_ls_e2e_dataset.test_table10';
 
     await setTestContent(`{{ config(materialized='view') }}${query}`);
 
     // Diagnostic should exist for query with error
-    assertThat(languages.getDiagnostics(uri), hasSize(1));
+    const diagnostics = languages.getDiagnostics(uri);
+    assertThat(diagnostics, hasSize(1));
+    assertThat(diagnostics[0].message, containsString('Table not found: dbt_ls_e2e_dataset.test_table10'));
     assertThat(getPreviewText(), query);
 
     const newUri = await renameCurrentFile('temp_model_renamed.sql');

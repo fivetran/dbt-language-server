@@ -4,10 +4,11 @@ import { promises as fsPromises } from 'node:fs';
 import * as semver from 'semver';
 import * as yaml from 'yaml';
 import { DbtRepository } from './DbtRepository';
-import { DbtUtilitiesInstaller } from './DbtUtilitiesInstaller';
 import { Command } from './dbt_execution/commands/Command';
 import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
 import { DbtCommandFactory } from './dbt_execution/DbtCommandFactory';
+import { InstallUtils } from './InstallUtils';
+import { ProcessExecutor } from './ProcessExecutor';
 import { Lazy } from './utils/Lazy';
 import { randomNumber } from './utils/Utils';
 import findFreePortPmfy = require('find-free-port');
@@ -22,10 +23,22 @@ export class FeatureFinder {
   private static readonly DBT_ADAPTER_PATTERN = /- (\w+):.*/g;
   private static readonly DBT_ADAPTER_VERSION_PATTERN = /:\s+(\d+)\.(\d+)\.(\d+)/;
 
+  private static readonly WSL_UBUNTU_DEFAULT_NAME = 'Ubuntu-20.04';
+  private static readonly WSL_UBUNTU_ENV_NAME = 'WIZARD_FOR_DBT_WSL_UBUNTU_NAME';
+
+  static getWslUbuntuName(): string {
+    const valueFromEnv = process.env[FeatureFinder.WSL_UBUNTU_ENV_NAME];
+    if (valueFromEnv) {
+      return valueFromEnv;
+    }
+    return FeatureFinder.WSL_UBUNTU_DEFAULT_NAME;
+  }
+
   versionInfo?: DbtVersionInfo;
   availableCommandsPromise: Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]>;
   packagesYmlExistsPromise: Promise<boolean>;
   packageInfosPromise = new Lazy(() => this.getListOfPackages());
+  ubuntuInWslWorks: Promise<boolean>;
 
   dbtCommandFactory: DbtCommandFactory;
 
@@ -33,6 +46,7 @@ export class FeatureFinder {
     this.dbtCommandFactory = new DbtCommandFactory(pythonInfo?.path);
     this.availableCommandsPromise = this.getAvailableDbt();
     this.packagesYmlExistsPromise = this.packagesYmlExists();
+    this.ubuntuInWslWorks = this.checkUbuntuInWslWorks();
   }
 
   runPostInitTasks(): Promise<unknown> {
@@ -109,6 +123,20 @@ export class FeatureFinder {
     return result;
   }
 
+  async checkUbuntuInWslWorks(): Promise<boolean> {
+    if (process.platform === 'win32') {
+      try {
+        const text = 'Wizard for dbt Core (TM)';
+        const result = await new ProcessExecutor().execProcess(`wsl -d ${FeatureFinder.getWslUbuntuName()} echo "${text}"`);
+        return result.stdout.includes(text);
+      } catch {
+        console.log('Error while running wsl');
+        return false;
+      }
+    }
+    return true;
+  }
+
   async getAvailableDbt(): Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]> {
     const settledResults = await Promise.allSettled([
       this.findDbtRpcPythonInfo(),
@@ -180,7 +208,7 @@ export class FeatureFinder {
 
   private async installAndFindCommandForV1(dbtProfileType?: string): Promise<Command | undefined> {
     if (this.pythonInfo) {
-      const installResult = await DbtUtilitiesInstaller.installLatestDbtRpc(this.pythonInfo.path, dbtProfileType);
+      const installResult = await InstallUtils.installLatestDbtRpc(this.pythonInfo.path, dbtProfileType);
       if (installResult.isOk()) {
         return this.dbtCommandFactory.getDbtRpcRun();
       }

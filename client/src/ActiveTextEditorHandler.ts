@@ -22,7 +22,7 @@ export class ActiveTextEditorHandler {
   async onDidChangeActiveTextEditor(activeEditor: TextEditor | undefined): Promise<void> {
     if (
       !activeEditor ||
-      activeEditor.document.uri.path === SqlPreviewContentProvider.URI.path ||
+      SqlPreviewContentProvider.isPreviewDocument(activeEditor.document.uri) ||
       !this.isValidLanguageId(activeEditor) ||
       ActiveTextEditorHandler.lastActiveEditor?.document.uri.path === activeEditor.document.uri.path
     ) {

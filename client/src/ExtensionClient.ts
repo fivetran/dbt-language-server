@@ -53,12 +53,12 @@ export class ExtensionClient {
       workspace.onDidOpenTextDocument(this.onDidOpenTextDocument.bind(this)),
       workspace.onDidChangeWorkspaceFolders(event => {
         for (const folder of event.removed) {
-          this.dbtLanguageClientManager.stopClient(folder.uri.path);
+          this.dbtLanguageClientManager.stopClient(folder.uri.fsPath);
         }
       }),
 
       workspace.onDidChangeTextDocument(e => {
-        if (e.document.uri.path === SqlPreviewContentProvider.URI.path) {
+        if (SqlPreviewContentProvider.isPreviewDocument(e.document.uri)) {
           this.dbtLanguageClientManager.applyPreviewDiagnostics();
         }
       }),
@@ -95,24 +95,21 @@ export class ExtensionClient {
   registerSqlPreviewContentProvider(context: ExtensionContext): void {
     const providerRegistrations = workspace.registerTextDocumentContentProvider(SqlPreviewContentProvider.SCHEME, this.previewContentProvider);
     const commandRegistration = commands.registerTextEditorCommand('WizardForDbtCore(TM).showQueryPreview', async (editor: TextEditor) => {
-      if (editor.document.uri.path === SqlPreviewContentProvider.URI.path) {
-        return;
-      }
-
       const projectUri = await this.dbtLanguageClientManager.getDbtProjectUri(editor.document.uri);
       if (!projectUri) {
         return;
       }
-
       this.previewContentProvider.changeActiveDocument(editor.document.uri);
 
-      const doc = await workspace.openTextDocument(SqlPreviewContentProvider.URI);
-      const preserveFocus = window.visibleTextEditors.some(e => e.document.uri.path === SqlPreviewContentProvider.URI.path);
-      await window.showTextDocument(doc, ViewColumn.Beside, preserveFocus);
-      if (!preserveFocus) {
-        await commands.executeCommand('workbench.action.lockEditorGroup');
-        await commands.executeCommand('workbench.action.focusPreviousGroup');
+      if (window.visibleTextEditors.some(e => SqlPreviewContentProvider.isPreviewDocument(e.document.uri))) {
+        return;
       }
+      log('Opening Query Preview');
+
+      const doc = await workspace.openTextDocument(SqlPreviewContentProvider.URI);
+      await window.showTextDocument(doc, ViewColumn.Beside, false);
+      await commands.executeCommand('workbench.action.lockEditorGroup');
+      await commands.executeCommand('workbench.action.focusPreviousGroup');
       await languages.setTextDocumentLanguage(doc, 'sql');
       this.dbtLanguageClientManager.applyPreviewDiagnostics();
     });

@@ -2,6 +2,7 @@ import { _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { FeatureFinder } from '../FeatureFinder';
 import { ProgressReporter } from '../ProgressReporter';
+import { getSlash } from '../utils/Utils';
 import { DbtCommand } from './commands/DbtCommand';
 import { DbtCommandExecutor } from './commands/DbtCommandExecutor';
 import { Dbt } from './Dbt';
@@ -22,8 +23,8 @@ export class DbtCli extends Dbt {
   }> {
     const parameters = ['compile'];
     if (modelName) {
-      const slash = await import('slash');
-      parameters.push('-m', slash.default(modelName));
+      const slash = await getSlash();
+      parameters.push('-m', slash(modelName));
     }
     const compileCliCommand = new DbtCommand(parameters, this.pythonPathForCli);
     return DbtCli.DBT_COMMAND_EXECUTOR.execute(compileCliCommand);

@@ -90,7 +90,7 @@ You can install dbt packages by running `WizardForDbtCore(TM).installDbtPackages
 
 ## How to get set up
 
-The extension works on MacOS, Linux, and Windows (for Windows, see the additional steps in the [Windows Support](docs/WindowsSupport.md) article). It supports the default locations for `profiles.yml` and `dbt_project.yml` files.
+The extension works on MacOS, Linux, and Windows (for Windows, see the additional information in the [Windows Support](docs/WindowsSupport.md) article). It supports the default locations for `profiles.yml` and `dbt_project.yml` files.
 
 Prior to using the extension, you need to perform the following steps in the VS Code Terminal:
 
@@ -99,6 +99,8 @@ Prior to using the extension, you need to perform the following steps in the VS 
      Note: `dbt-rpc` is compatible with Python versions less than 3.10
 1. Test that dbt-rpc works
    - `dbt-rpc --version`
+1. For Windows, install WSL and Ubuntu 20.04 as **Administrator** (this requires a computer restart)
+   - `wsl --install -d Ubuntu-20.04`
 1. Create your [dbt profile](https://docs.getdbt.com/dbt-cli/configure-your-profile) and add your credentials.
    - `touch ~/.dbt/profiles.yml`
    - See dbt Labs’ [BigQuery profile](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) documentation for more guidance on how to populate this file.

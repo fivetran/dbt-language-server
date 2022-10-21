@@ -142,3 +142,9 @@ export async function wait(ms: number): Promise<void> {
     setTimeout(resolve, ms);
   });
 }
+
+export async function getSlash(): Promise<(path: string) => string> {
+  /* eslint-disable-next-line @typescript-eslint/no-implied-eval */
+  const slash = await (new Function('return import("slash")')() as Promise<typeof import('slash')>);
+  return slash.default;
+}

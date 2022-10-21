@@ -15,15 +15,18 @@ import { err, ok, Result } from 'neverthrow';
 import * as fs from 'node:fs';
 import { BigQueryClient, Udf } from './bigquery/BigQueryClient';
 import { DbtRepository } from './DbtRepository';
+import { FeatureFinder } from './FeatureFinder';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
 import { ManifestModel } from './manifest/ManifestJson';
 import { ModelFetcher } from './ModelFetcher';
+import { ProcessExecutor } from './ProcessExecutor';
 import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
 import { TableDefinition } from './TableDefinition';
-import { arraysAreEqual, randomNumber } from './utils/Utils';
+import { arraysAreEqual, getSlash, randomNumber } from './utils/Utils';
 import { createType } from './utils/ZetaSqlUtils';
 import { ZetaSqlParser } from './ZetaSqlParser';
 import findFreePortPmfy = require('find-free-port');
+import path = require('node:path');
 
 export class ZetaSqlWrapper {
   static readonly PARTITION_TIME = '_PARTITIONTIME';
@@ -54,8 +57,23 @@ export class ZetaSqlWrapper {
 
   async initializeZetaSql(): Promise<void> {
     const port = await findFreePortPmfy(randomNumber(ZetaSqlWrapper.MIN_PORT, ZetaSqlWrapper.MAX_PORT));
+
     console.log(`Starting zetasql on port ${port}`);
-    runServer(port).catch(e => console.log(e));
+    if (process.platform === 'win32') {
+      const slash = await getSlash();
+      const fsPath = slash(path.normalize(`${__dirname}/../remote_server_executable`));
+      const wslPath = `/mnt/${fsPath.replace(':', '')}`;
+      console.log(`Path in WSL: ${wslPath}`);
+      const stdHandler = (data: string): void => {
+        console.log(data);
+      };
+      new ProcessExecutor()
+        .execProcess(`wsl -d ${FeatureFinder.getWslUbuntuName()} "${wslPath}" ${port}`, stdHandler, stdHandler)
+        .catch(e => console.log(e));
+    } else {
+      runServer(port).catch(e => console.log(e));
+    }
+
     ZetaSQLClient.init(port);
     await this.getClient().testConnection();
   }
