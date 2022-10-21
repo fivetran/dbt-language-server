@@ -43,4 +43,10 @@ export class NotificationSender {
       .sendNotification('WizardForDbtCore(TM)/status', statusNotification)
       .catch(e => console.log(`Failed to send status notification: ${e instanceof Error ? e.message : String(e)}`));
   }
+
+  sendRestart(): void {
+    this.connection
+      .sendNotification('WizardForDbtCore(TM)/restart')
+      .catch(e => console.log(`Failed to send restart notification: ${e instanceof Error ? e.message : String(e)}`));
+  }
 }

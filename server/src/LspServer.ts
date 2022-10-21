@@ -168,8 +168,8 @@ export class LspServer {
     console.log(`ModelCompiler mode: ${DbtMode[dbtMode]}.`);
 
     return dbtMode === DbtMode.DBT_RPC
-      ? new DbtRpc(featureFinder, this.connection, this.progressReporter, this.fileChangeListener)
-      : new DbtCli(featureFinder, this.connection, this.progressReporter);
+      ? new DbtRpc(featureFinder, this.connection, this.progressReporter, this.fileChangeListener, this.notificationSender)
+      : new DbtCli(featureFinder, this.connection, this.progressReporter, this.notificationSender);
   }
 
   getDbtMode(featureFinder: FeatureFinder, dbtCompiler: DbtCompilerType): DbtMode {
@@ -347,9 +347,7 @@ export class LspServer {
       const installResult = await InstallUtils.installDbt(pythonPath, 'bigquery', sendInstallLatestDbtLog, sendInstallLatestDbtLog);
 
       if (installResult.isOk()) {
-        this.connection
-          .sendNotification('WizardForDbtCore(TM)/restart')
-          .catch(e => console.log(`Failed to send restart notification: ${e instanceof Error ? e.message : String(e)}`));
+        this.notificationSender.sendRestart();
       }
     }
   }
@@ -366,9 +364,7 @@ export class LspServer {
       const installResult = await InstallUtils.installDbtAdapter(pythonPath, dbtAdapter, sendInstallDbtAdapterLog, sendInstallDbtAdapterLog);
 
       if (installResult.isOk()) {
-        this.connection
-          .sendNotification('WizardForDbtCore(TM)/restart')
-          .catch(e => console.log(`Failed to send restart notification: ${e instanceof Error ? e.message : String(e)}`));
+        this.notificationSender.sendRestart();
       }
     }
   }

@@ -1,6 +1,7 @@
 import { Emitter, Event, _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { InstallUtils } from '../InstallUtils';
+import { NotificationSender } from '../NotificationSender';
 import { ProgressReporter } from '../ProgressReporter';
 import { DbtCompileJob } from './DbtCompileJob';
 
@@ -13,7 +14,7 @@ export abstract class Dbt {
   dbtReady: boolean;
   onDbtReadyEmitter: Emitter<void>;
 
-  constructor(private connection: _Connection, protected progressReporter: ProgressReporter) {
+  constructor(private connection: _Connection, protected progressReporter: ProgressReporter, private notificationSender: NotificationSender) {
     this.dbtReady = false;
     this.onDbtReadyEmitter = new Emitter<void>();
   }
@@ -47,8 +48,7 @@ export abstract class Dbt {
       console.log(`Trying to install dbt, dbt-rpc and ${dbtProfileType} adapter`);
       const installResult = await InstallUtils.installDbt(python, dbtProfileType);
       if (installResult.isOk()) {
-        this.connection.window.showInformationMessage(installResult.value);
-        await this.prepare(dbtProfileType);
+        this.notificationSender.sendRestart();
       } else {
         this.finishWithError(installResult.error);
       }

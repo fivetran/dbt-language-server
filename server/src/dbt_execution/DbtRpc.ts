@@ -2,6 +2,7 @@ import { _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { FeatureFinder } from '../FeatureFinder';
 import { FileChangeListener } from '../FileChangeListener';
+import { NotificationSender } from '../NotificationSender';
 import { ProgressReporter } from '../ProgressReporter';
 import { DbtCommand } from './commands/DbtCommand';
 import { Dbt } from './Dbt';
@@ -19,8 +20,9 @@ export class DbtRpc extends Dbt {
     connection: _Connection,
     progressReporter: ProgressReporter,
     private fileChangeListener: FileChangeListener,
+    notificationSender: NotificationSender,
   ) {
-    super(connection, progressReporter);
+    super(connection, progressReporter, notificationSender);
     this.fileChangeListener.onDbtProjectYmlChanged(() => this.refresh());
     this.fileChangeListener.onDbtPackagesYmlChanged(() => this.refresh());
     this.fileChangeListener.onDbtPackagesChanged(() => this.refresh());
