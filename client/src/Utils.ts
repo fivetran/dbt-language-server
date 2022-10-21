@@ -1,3 +1,5 @@
+import { TextDocument } from 'vscode';
+
 export const SUPPORTED_LANG_IDS = ['sql', 'jinja-sql', 'sql-bigquery'];
 export const PACKAGES_YML = 'packages.yml';
 export const DBT_PROJECT_YML = 'dbt_project.yml';
@@ -36,3 +38,10 @@ export const DBT_ADAPTERS = [
   'dbt-mysql',
   'dbt-ibmdb2',
 ];
+
+export function isDocumentSupported(document: TextDocument): boolean {
+  return (
+    (SUPPORTED_LANG_IDS.includes(document.languageId) || document.fileName.endsWith(PACKAGES_YML) || document.fileName.endsWith(DBT_PROJECT_YML)) &&
+    document.uri.scheme === 'file'
+  );
+}

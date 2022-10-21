@@ -73,7 +73,6 @@ export class DbtRpc extends Dbt {
   async startDbtRpc(command: DbtCommand, port: number): Promise<void> {
     this.dbtRpcClient.setPort(port);
     await this.dbtRpcServer.startDbtRpc(command, this.dbtRpcClient);
-    this.progressReporter.sendFinish();
   }
 
   getError(): string {

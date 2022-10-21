@@ -3,7 +3,6 @@ import { EventEmitter } from 'node:events';
 import { commands, Diagnostic, DiagnosticCollection, Disposable, RelativePattern, TextDocument, TextEditor, Uri, window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
 import { ActiveTextEditorHandler } from './ActiveTextEditorHandler';
-import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from './Constants';
 import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';
@@ -11,6 +10,7 @@ import { PythonExtension } from './python/PythonExtension';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 import { StatusHandler } from './status/StatusHandler';
 import { TelemetryClient } from './TelemetryClient';
+import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from './Utils';
 
 export class DbtLanguageClient implements Disposable {
   client: LanguageClient;

@@ -1,7 +1,7 @@
 import { commands, window } from 'vscode';
-import { DBT_ADAPTERS } from '../Constants';
 import { DbtLanguageClientManager } from '../DbtLanguageClientManager';
 import { OutputChannelProvider } from '../OutputChannelProvider';
+import { DBT_ADAPTERS } from '../Utils';
 import { Command } from './CommandManager';
 
 export class InstallDbtAdapters implements Command {
