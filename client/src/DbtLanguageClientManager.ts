@@ -1,12 +1,12 @@
 import { EventEmitter } from 'node:events';
 import { FileType, Selection, TextDocument, Uri, window, workspace } from 'vscode';
-import { DBT_PROJECT_YML, DEFAULT_PACKAGES_PATHS, INTEGRATION_TEST_PROJECT_NAME, PACKAGES_YML, SUPPORTED_LANG_IDS } from './Constants';
 import { DbtLanguageClient } from './DbtLanguageClient';
 import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 import { StatusHandler } from './status/StatusHandler';
+import { DBT_PROJECT_YML, DEFAULT_PACKAGES_PATHS, INTEGRATION_TEST_PROJECT_NAME, isDocumentSupported } from './Utils';
 import { WorkspaceHelper } from './WorkspaceHelper';
 
 export class DbtLanguageClientManager {
@@ -59,9 +59,7 @@ export class DbtLanguageClientManager {
 
     const { document } = window.activeTextEditor;
 
-    return SUPPORTED_LANG_IDS.includes(document.languageId) || document.fileName.endsWith(PACKAGES_YML) || document.fileName.endsWith(DBT_PROJECT_YML)
-      ? document
-      : undefined;
+    return isDocumentSupported(document) ? document : undefined;
   }
 
   async getClientByUri(uri: Uri): Promise<DbtLanguageClient | undefined> {

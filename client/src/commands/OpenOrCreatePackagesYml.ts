@@ -1,6 +1,6 @@
 import { TextEncoder } from 'node:util';
 import { TextEditor, Uri, ViewColumn, window, workspace } from 'vscode';
-import { PACKAGES_YML } from '../Constants';
+import { PACKAGES_YML } from '../Utils';
 import { Command } from './CommandManager';
 
 export class OpenOrCreatePackagesYml implements Command {

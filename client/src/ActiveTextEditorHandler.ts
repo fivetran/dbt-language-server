@@ -1,8 +1,8 @@
 import { Disposable, TextEditor, window } from 'vscode';
-import { SUPPORTED_LANG_IDS } from './Constants';
 import { DbtLanguageClientManager } from './DbtLanguageClientManager';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 import { StatusHandler } from './status/StatusHandler';
+import { isDocumentSupported } from './Utils';
 
 export class ActiveTextEditorHandler {
   handler: Disposable;
@@ -14,7 +14,7 @@ export class ActiveTextEditorHandler {
     private statusHandler: StatusHandler,
   ) {
     this.handler = window.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditor.bind(this));
-    if (this.isValidLanguageId(window.activeTextEditor)) {
+    if (window.activeTextEditor && isDocumentSupported(window.activeTextEditor.document)) {
       ActiveTextEditorHandler.lastActiveEditor = window.activeTextEditor;
     }
   }
@@ -23,7 +23,7 @@ export class ActiveTextEditorHandler {
     if (
       !activeEditor ||
       SqlPreviewContentProvider.isPreviewDocument(activeEditor.document.uri) ||
-      !this.isValidLanguageId(activeEditor) ||
+      !isDocumentSupported(activeEditor.document) ||
       ActiveTextEditorHandler.lastActiveEditor?.document.uri.path === activeEditor.document.uri.path
     ) {
       return;
@@ -39,10 +39,6 @@ export class ActiveTextEditorHandler {
       this.statusHandler.updateLanguageItems(client.getProjectUri().fsPath);
     }
     client?.resendDiagnostics(activeEditor.document.uri.toString());
-  }
-
-  isValidLanguageId(activeEditor: TextEditor | undefined): boolean {
-    return activeEditor !== undefined && SUPPORTED_LANG_IDS.includes(activeEditor.document.languageId);
   }
 
   dispose(): void {
