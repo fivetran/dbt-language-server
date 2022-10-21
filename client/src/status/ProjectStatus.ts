@@ -7,11 +7,11 @@ import {
   PythonStatus,
   StatusNotification,
 } from 'dbt-language-server-common';
-import { Command, LanguageStatusSeverity } from 'vscode';
+import { Command, LanguageStatusSeverity, Uri } from 'vscode';
 import { InstallDbtPackages } from '../commands/InstallDbtPackages';
-import { OpenOrCreatePackagesYml } from '../commands/OpenOrCreatePackagesYml';
-import { PACKAGES_YML } from '../Constants';
+import { PACKAGES_YML } from '../Utils';
 import { LanguageStatusItems } from './LanguageStatusItems';
+import path = require('node:path');
 
 interface StatusItemData {
   severity: LanguageStatusSeverity;
@@ -181,19 +181,15 @@ export class ProjectStatus {
       ? {
           severity: LanguageStatusSeverity.Information,
           text: PACKAGES_YML,
-          detail: this.openOrCreateLink('Open'),
+          detail: `[Open](${Uri.file(path.join(this.projectPath, 'packages.yml')).toString()})`,
           command,
         }
       : {
           severity: LanguageStatusSeverity.Information,
           text: `No ${PACKAGES_YML}`,
-          detail: this.openOrCreateLink('Create'),
+          detail: '',
           command,
         };
-  }
-
-  openOrCreateLink(action: 'Create' | 'Open'): string {
-    return `[${action}](command:${OpenOrCreatePackagesYml.ID}?${encodeURIComponent(JSON.stringify(this.projectPath))})`;
   }
 
   installDbtCommand(title: string): Command {
