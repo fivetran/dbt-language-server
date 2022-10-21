@@ -127,8 +127,6 @@ export class DbtLanguageClientManager {
 
       await client.initialize();
 
-      this.progressHandler.begin();
-
       client.start();
     }
   }
