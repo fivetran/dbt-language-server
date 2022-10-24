@@ -13,7 +13,7 @@ export class NotificationSender {
     this.sendDiagnosticsInternal({ uri, diagnostics: [] });
   }
 
-  logLanguageServerManifestParsed(): void {
+  sendLanguageServerManifestParsed(): void {
     this.sendNotification('custom/manifestParsed');
   }
 

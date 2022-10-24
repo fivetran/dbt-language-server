@@ -248,7 +248,7 @@ export class LspServer {
 
     this.dbtRepository
       .manifestParsed()
-      .then(() => this.notificationSender.logLanguageServerManifestParsed())
+      .then(() => this.notificationSender.sendLanguageServerManifestParsed())
       .catch(e => console.log(`Manifest was not parsed: ${e instanceof Error ? e.message : String(e)}`));
 
     await Promise.allSettled([prepareDbt, prepareDestination]);
