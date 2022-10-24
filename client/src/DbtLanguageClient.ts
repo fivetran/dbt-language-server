@@ -129,6 +129,7 @@ export class DbtLanguageClient implements Disposable {
       }),
 
       this.client.onNotification('WizardForDbtCore(TM)/installLatestDbtLog', async (data: string) => {
+        this.outputChannelProvider.getInstallLatestDbtChannel().show();
         this.outputChannelProvider.getInstallLatestDbtChannel().append(data);
         await commands.executeCommand('workbench.action.focusActiveEditorGroup');
       }),

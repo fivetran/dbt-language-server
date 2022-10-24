@@ -49,4 +49,16 @@ export class NotificationSender {
       .sendNotification('WizardForDbtCore(TM)/restart')
       .catch(e => console.log(`Failed to send restart notification: ${e instanceof Error ? e.message : String(e)}`));
   }
+
+  sendInstallDbtAdapterLog(data: string): void {
+    this.connection
+      .sendNotification('WizardForDbtCore(TM)/installDbtAdapterLog', data)
+      .catch(e => console.log(`Failed to send installDbtAdapterLog notification: ${e instanceof Error ? e.message : String(e)}`));
+  }
+
+  sendInstallLatestDbtLog(data: string): void {
+    this.connection
+      .sendNotification('WizardForDbtCore(TM)/installLatestDbtLog', data)
+      .catch(e => console.log(`Failed to send installLatestDbtLog notification: ${e instanceof Error ? e.message : String(e)}`));
+  }
 }
