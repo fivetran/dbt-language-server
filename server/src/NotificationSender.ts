@@ -1,13 +1,20 @@
 import { StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
-import { Diagnostic, TelemetryEventNotification, _Connection } from 'vscode-languageserver';
+import { Diagnostic, PublishDiagnosticsParams, TelemetryEventNotification, _Connection } from 'vscode-languageserver';
 
 export class NotificationSender {
   constructor(private connection: _Connection) {}
 
+  sendDiagnostics(uri: string, rawDiagnostics: Diagnostic[], compiledDiagnostics: Diagnostic[]): void {
+    this.sendDiagnosticsInternal({ uri, diagnostics: rawDiagnostics });
+    this.sendNotification('custom/updateQueryPreviewDiagnostics', { uri, diagnostics: compiledDiagnostics });
+  }
+
+  clearDiagnostics(uri: string): void {
+    this.sendDiagnosticsInternal({ uri, diagnostics: [] });
+  }
+
   logLanguageServerManifestParsed(): void {
-    this.connection
-      .sendNotification('custom/manifestParsed')
-      .catch(e => console.log(`Failed to send language server manifest parsed notification: ${e instanceof Error ? e.message : String(e)}`));
+    this.sendNotification('custom/manifestParsed');
   }
 
   sendTelemetry(name: string, properties?: { [key: string]: string }): void {
@@ -18,47 +25,32 @@ export class NotificationSender {
   }
 
   sendUpdateQueryPreview(uri: string, previewText: string): void {
-    this.connection
-      .sendNotification('custom/updateQueryPreview', { uri, previewText })
-      .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
-  }
-
-  sendDiagnostics(uri: string, rawDiagnostics: Diagnostic[], compiledDiagnostics: Diagnostic[]): void {
-    this.connection
-      .sendDiagnostics({ uri, diagnostics: rawDiagnostics })
-      .catch(e => console.log(`Failed to send diagnostics: ${e instanceof Error ? e.message : String(e)}`));
-    this.connection
-      .sendNotification('custom/updateQueryPreviewDiagnostics', { uri, diagnostics: compiledDiagnostics })
-      .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
-  }
-
-  clearDiagnostics(uri: string): void {
-    this.connection
-      .sendDiagnostics({ uri, diagnostics: [] })
-      .catch(e => console.log(`Failed to send diagnostics while closing document: ${e instanceof Error ? e.message : String(e)}`));
+    this.sendNotification('custom/updateQueryPreview', { uri, previewText });
   }
 
   sendStatus(statusNotification: StatusNotification): void {
-    this.connection
-      .sendNotification('WizardForDbtCore(TM)/status', statusNotification)
-      .catch(e => console.log(`Failed to send status notification: ${e instanceof Error ? e.message : String(e)}`));
+    this.sendNotification('WizardForDbtCore(TM)/status', statusNotification);
   }
 
   sendRestart(): void {
-    this.connection
-      .sendNotification('WizardForDbtCore(TM)/restart')
-      .catch(e => console.log(`Failed to send restart notification: ${e instanceof Error ? e.message : String(e)}`));
+    this.sendNotification('WizardForDbtCore(TM)/restart');
   }
 
   sendInstallDbtAdapterLog(data: string): void {
-    this.connection
-      .sendNotification('WizardForDbtCore(TM)/installDbtAdapterLog', data)
-      .catch(e => console.log(`Failed to send installDbtAdapterLog notification: ${e instanceof Error ? e.message : String(e)}`));
+    this.sendNotification('WizardForDbtCore(TM)/installDbtAdapterLog', data);
   }
 
   sendInstallLatestDbtLog(data: string): void {
+    this.sendNotification('WizardForDbtCore(TM)/installLatestDbtLog', data);
+  }
+
+  private sendNotification(method: string, params?: unknown): void {
     this.connection
-      .sendNotification('WizardForDbtCore(TM)/installLatestDbtLog', data)
-      .catch(e => console.log(`Failed to send installLatestDbtLog notification: ${e instanceof Error ? e.message : String(e)}`));
+      .sendNotification(method, params)
+      .catch(e => console.log(`Failed to send ${method} notification: ${e instanceof Error ? e.message : String(e)}`));
+  }
+
+  private sendDiagnosticsInternal(params: PublishDiagnosticsParams): void {
+    this.connection.sendDiagnostics(params).catch(e => console.log(`Failed to send diagnostics: ${e instanceof Error ? e.message : String(e)}`));
   }
 }
