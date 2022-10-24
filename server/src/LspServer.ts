@@ -168,8 +168,8 @@ export class LspServer {
     console.log(`ModelCompiler mode: ${DbtMode[dbtMode]}.`);
 
     return dbtMode === DbtMode.DBT_RPC
-      ? new DbtRpc(featureFinder, this.connection, this.progressReporter, this.fileChangeListener)
-      : new DbtCli(featureFinder, this.connection, this.progressReporter);
+      ? new DbtRpc(featureFinder, this.connection, this.progressReporter, this.fileChangeListener, this.notificationSender)
+      : new DbtCli(featureFinder, this.connection, this.progressReporter, this.notificationSender);
   }
 
   getDbtMode(featureFinder: FeatureFinder, dbtCompiler: DbtCompilerType): DbtMode {
@@ -248,7 +248,7 @@ export class LspServer {
 
     this.dbtRepository
       .manifestParsed()
-      .then(() => this.notificationSender.logLanguageServerManifestParsed())
+      .then(() => this.notificationSender.sendLanguageServerManifestParsed())
       .catch(e => console.log(`Manifest was not parsed: ${e instanceof Error ? e.message : String(e)}`));
 
     await Promise.allSettled([prepareDbt, prepareDestination]);
@@ -338,18 +338,11 @@ export class LspServer {
   async installLatestDbt(): Promise<void> {
     const pythonPath = this.featureFinder?.getPythonPath();
     if (pythonPath) {
-      const sendInstallLatestDbtLog = (data: string): void => {
-        this.connection
-          .sendNotification('WizardForDbtCore(TM)/installLatestDbtLog', data)
-          .catch(e => console.log(`Failed to send installLatestDbtLog notification: ${e instanceof Error ? e.message : String(e)}`));
-      };
-
-      const installResult = await InstallUtils.installDbt(pythonPath, 'bigquery', sendInstallLatestDbtLog, sendInstallLatestDbtLog);
+      const sendLog = (data: string): void => this.notificationSender.sendInstallLatestDbtLog(data);
+      const installResult = await InstallUtils.installDbt(pythonPath, 'bigquery', sendLog, sendLog);
 
       if (installResult.isOk()) {
-        this.connection
-          .sendNotification('WizardForDbtCore(TM)/restart')
-          .catch(e => console.log(`Failed to send restart notification: ${e instanceof Error ? e.message : String(e)}`));
+        this.notificationSender.sendRestart();
       }
     }
   }
@@ -357,18 +350,11 @@ export class LspServer {
   async installDbtAdapter(dbtAdapter: string): Promise<void> {
     const pythonPath = this.featureFinder?.getPythonPath();
     if (pythonPath) {
-      const sendInstallDbtAdapterLog = (data: string): void => {
-        this.connection
-          .sendNotification('WizardForDbtCore(TM)/installDbtAdapterLog', data)
-          .catch(e => console.log(`Failed to send installDbtAdapterLog notification: ${e instanceof Error ? e.message : String(e)}`));
-      };
-
-      const installResult = await InstallUtils.installDbtAdapter(pythonPath, dbtAdapter, sendInstallDbtAdapterLog, sendInstallDbtAdapterLog);
+      const sendLog = (data: string): void => this.notificationSender.sendInstallDbtAdapterLog(data);
+      const installResult = await InstallUtils.installDbtAdapter(pythonPath, dbtAdapter, sendLog, sendLog);
 
       if (installResult.isOk()) {
-        this.connection
-          .sendNotification('WizardForDbtCore(TM)/restart')
-          .catch(e => console.log(`Failed to send restart notification: ${e instanceof Error ? e.message : String(e)}`));
+        this.notificationSender.sendRestart();
       }
     }
   }

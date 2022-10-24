@@ -32,11 +32,13 @@ export class PythonExtension {
       return this.pythonNotFound();
     }
 
-    const [path] = details.execCommand;
+    let [path] = details.execCommand;
 
     if (path === '') {
       return this.pythonNotFound();
     }
+
+    path = `"${path}"`;
 
     const envDetails = api.environments.known.find(e => e.path === path);
     const major = String(envDetails?.version.major ?? 3);
