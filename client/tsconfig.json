@@ -3,6 +3,5 @@
     "outDir": "out"
   },
   "extends": "../tsconfig.base.json",
-  "include": ["src/**/*"],
-  "exclude": ["node_modules/**/*"]
+  "include": ["src/**/*"]
 }
