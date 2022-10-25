@@ -1,5 +1,15 @@
 # Changelog
 
+## Version 0.13.0 (25/10/2022)
+## What's Changed
+* Run ZetaSql in WSL on Windows ([see docs](https://github.com/fivetran/dbt-language-server/blob/main/docs/WindowsSupport.md#windows-support)).
+* Fix wrong text in packages Language Status Item.
+* Fix issue with space in python path (https://github.com/fivetran/dbt-language-server/issues/489).
+* Fix minor issues on Windows.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.12.2...v0.13.0
+---
+
 ## Version 0.12.2 (13/10/2022)
 ## What's Changed
 * Update dependencies.
