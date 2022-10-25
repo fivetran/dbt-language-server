@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.13.0 (01/01/1970)
+## Version 0.13.0 (25/10/2022)
 ## What's Changed
 * Run ZetaSql in WSL on Windows ([see docs](https://github.com/fivetran/dbt-language-server/blob/main/docs/WindowsSupport.md#windows-support)).
 * Fix wrong text in packages Language Status Item.
