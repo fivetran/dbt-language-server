@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { AdapterInfo, DbtPackageInfo, DbtPackageVersions, DbtVersionInfo, getStringVersion, PythonInfo, Version } from 'dbt-language-server-common';
 import { promises as fsPromises } from 'node:fs';
 import * as semver from 'semver';
@@ -73,7 +72,8 @@ export class FeatureFinder {
   }
 
   async getListOfPackages(): Promise<DbtPackageInfo[]> {
-    const hubResponse = await axios.get<HubJson>('https://cdn.jsdelivr.net/gh/dbt-labs/hubcap@HEAD/hub.json');
+    const axios = await import('axios');
+    const hubResponse = await axios.default.get<HubJson>('https://cdn.jsdelivr.net/gh/dbt-labs/hubcap@HEAD/hub.json');
     const uriPromises = Object.entries<string[]>(hubResponse.data).flatMap(([gitHubUser, repositoryNames]) =>
       repositoryNames.map(r => this.getPackageInfo(gitHubUser, r)),
     );
@@ -83,7 +83,8 @@ export class FeatureFinder {
 
   async getPackageInfo(gitHubUser: string, repositoryName: string): Promise<DbtPackageInfo | undefined> {
     try {
-      const response = await axios.get<string>(
+      const axios = await import('axios');
+      const response = await axios.default.get<string>(
         `https://cdn.jsdelivr.net/gh/${gitHubUser}/${repositoryName}@HEAD/${DbtRepository.DBT_PROJECT_FILE_NAME}`,
       );
       const parsedYaml = yaml.parse(response.data, { uniqueKeys: false }) as { name: string | undefined };
@@ -107,7 +108,8 @@ export class FeatureFinder {
     const result: DbtPackageVersions = {};
 
     if (packageInfo) {
-      const tagsResult = await axios.get<{ ref: string }[]>(
+      const axios = await import('axios');
+      const tagsResult = await axios.default.get<{ ref: string }[]>(
         `https://api.github.com/repos/${packageInfo.gitHubUser}/${packageInfo.repositoryName}/git/refs/tags?per_page=100`,
       );
 
