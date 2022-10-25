@@ -1,4 +1,3 @@
-import axios from 'axios';
 import * as fs from 'node:fs';
 import Token = require('markdown-it/lib/token');
 
@@ -88,9 +87,10 @@ async function parseAndSave(): Promise<void> {
   const MarkdownIt = await import('markdown-it');
   const md = new MarkdownIt();
   const functionInfos: FunctionInfo[] = [];
+  const axios = await import('axios');
 
   for (const [file, sections] of filesToParse) {
-    const getFileResult = await axios.get<string>(file);
+    const getFileResult = await axios.default.get<string>(file);
     const content = getFileResult.data;
     const tokens = md.parse(content, {});
 

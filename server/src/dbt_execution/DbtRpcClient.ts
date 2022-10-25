@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { v4 as uuid } from 'uuid';
 
 export interface PollResponse extends Response {
@@ -144,7 +143,8 @@ export class DbtRpcClient {
 
   async makePostRequest<T extends Response>(postData: PostData): Promise<T | undefined> {
     try {
-      const response = await axios.post<T>(`http://localhost:${String(this.port)}/jsonrpc`, postData, {
+      const axios = await import('axios');
+      const response = await axios.default.post<T>(`http://localhost:${String(this.port)}/jsonrpc`, postData, {
         timeout: this.postRequestTimeout,
         headers: { 'Content-Type': 'application/json' },
       });

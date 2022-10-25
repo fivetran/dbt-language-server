@@ -3,7 +3,7 @@
     "module": "commonjs",
     "target": "es2022",
     "lib": ["es2022"],
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "forceConsistentCasingInFileNames": true,
     "allowUnreachableCode": false,
     "noFallthroughCasesInSwitch": true,
@@ -12,6 +12,7 @@
     "noPropertyAccessFromIndexSignature": true,
     "noUnusedLocals": true,
     "sourceMap": true,
-    "strict": true
+    "strict": true,
+    "skipLibCheck": true
   }
 }
