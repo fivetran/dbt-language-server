@@ -32,20 +32,18 @@ export class PythonExtension {
       return this.pythonNotFound();
     }
 
-    let [path] = details.execCommand;
+    const [path] = details.execCommand;
 
     if (path === '') {
       return this.pythonNotFound();
     }
-
-    path = `"${path}"`;
 
     const envDetails = api.environments.known.find(e => e.path === path);
     const major = String(envDetails?.version.major ?? 3);
     const minor = String(envDetails?.version.minor ?? 10);
     const micro = String(envDetails?.version.micro ?? 0);
 
-    return { path, version: [major, minor, micro] };
+    return { path: `"${path}"`, version: [major, minor, micro] };
   }
 
   async activate(): Promise<void> {
