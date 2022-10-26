@@ -29,6 +29,10 @@ export class InstallUtils {
     return InstallUtils.installPythonPackages(python, packagesToInstall, true, onStdoutData, onStderrData);
   }
 
+  static async updateDbtRpc(python: string, onData?: (data: string) => void): Promise<Result<string, string>> {
+    return InstallUtils.installPythonPackages(python, [InstallUtils.DBT_RPC], true, onData, onData);
+  }
+
   static async installDbtAdapter(
     python: string,
     dbtAdapter: string,

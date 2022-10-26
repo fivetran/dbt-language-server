@@ -58,6 +58,24 @@ export abstract class Dbt {
     }
   }
 
+  async suggestToUpdateDbtRpc(message: string, python: string): Promise<void> {
+    const actions = { title: 'Upgrade dbt-rpc', id: 'upgrade' };
+    const errorMessageResult = await this.connection.window.showErrorMessage(`${message}. Would you like to upgrade dbt-rpc?`, actions);
+
+    if (errorMessageResult?.id === 'upgrade') {
+      console.log('Trying to upgrade dbt-rpc');
+      const sendLog = (data: string): void => this.notificationSender.sendInstallLatestDbtLog(data);
+      const installResult = await InstallUtils.updateDbtRpc(python, sendLog);
+      if (installResult.isOk()) {
+        this.notificationSender.sendRestart();
+      } else {
+        this.finishWithError(installResult.error);
+      }
+    } else {
+      this.finishWithError(message);
+    }
+  }
+
   finishWithError(message: string): void {
     this.progressReporter.sendFinish();
     this.connection.window.showErrorMessage(message);

@@ -1,4 +1,3 @@
-import { deferred } from 'dbt-language-server-common';
 import { ExecException } from 'node:child_process';
 import { LogLevel } from '../Logger';
 import { Command } from './commands/Command';
@@ -11,8 +10,6 @@ export class DbtRpcServer {
   static readonly MESSAGE_PATTERN = /"message": "(.*?)"/g;
   static readonly DATE_PATTERN = /\d\d:\d\d:\d\d/g;
 
-  startDeferred = deferred<void>();
-
   private dbtRpcClient?: DbtRpcClient;
   private rpcPid?: number;
   private disposed = false;
@@ -22,67 +19,72 @@ export class DbtRpcServer {
 
     let started = false;
     console.log(`Starting dbt-rpc: ${command.toString()}`);
-    const promiseWithChild = DbtRpcServer.DBT_COMMAND_EXECUTOR.execute(command, async (data: string) => {
-      if (!started) {
-        if (!this.rpcPid) {
-          const matchResults = data.match(/"process": (\d*)/);
-          if (matchResults?.length === 2) {
-            this.rpcPid = Number(matchResults[1]);
-          }
-        }
-
-        if (data.includes('Serving RPC server')) {
-          try {
-            await this.ensureCompilationFinished();
-          } catch (e) {
-            // The server is started here but there is some problem with project compilation. One of the possible problems is packages are not installed
-            if (e instanceof Error && e.message.includes('dbt deps')) {
-              dbtRpcClient.deps().catch(e_ => console.log(`Error while running dbt deps: ${e_ instanceof Error ? e_.message : String(e_)}`));
-            }
-            console.log(e);
-          }
-          console.log('dbt-rpc started');
+    return new Promise((resolve, reject) => {
+      const promiseWithChild = DbtRpcServer.DBT_COMMAND_EXECUTOR.execute(command, async (data: string) => {
+        if (!started) {
           if (!this.rpcPid) {
-            this.startDeferred.reject(new Error("Couldn't find dbt-rpc process id"));
+            const matchResults = data.match(/"process": (\d*)/);
+            if (matchResults?.length === 2) {
+              this.rpcPid = Number(matchResults[1]);
+            }
           }
-          started = true;
-          this.startDeferred.resolve();
-        }
-      }
-    });
 
-    promiseWithChild.catch((e: ExecException & { stdout?: string; stderr?: string }) => {
-      let m: RegExpExecArray | null;
-      let error = '';
-
-      if (e.stdout) {
-        while ((m = DbtRpcServer.MESSAGE_PATTERN.exec(e.stdout))) {
-          if (m.length === 2) {
-            const message = m[1].replaceAll('\\n', '').replaceAll(DbtRpcServer.DATE_PATTERN, '');
-            error += `${message} `;
+          if (data.includes('Serving RPC server')) {
+            try {
+              await this.ensureCompilationFinished();
+            } catch (e) {
+              // The server is started here but there is some problem with project compilation. One of the possible problems is packages are not installed
+              if (e instanceof Error && e.message.includes('dbt deps')) {
+                dbtRpcClient.deps().catch(e_ => console.log(`Error while running dbt deps: ${e_ instanceof Error ? e_.message : String(e_)}`));
+              }
+              console.log(e);
+            }
+            console.log('dbt-rpc started');
+            if (!this.rpcPid) {
+              reject(new Error("Couldn't find dbt-rpc process id"));
+            }
+            started = true;
+            resolve();
           }
         }
-      } else {
-        error = 'Unknown dbt-rpc error';
-      }
+      });
 
-      this.startDeferred.reject(new Error(error));
+      promiseWithChild.catch((e: ExecException & { stdout?: string; stderr?: string }) => {
+        let m: RegExpExecArray | null;
+        let error = '';
+
+        if (e.stdout) {
+          while ((m = DbtRpcServer.MESSAGE_PATTERN.exec(e.stdout))) {
+            if (m.length === 2) {
+              const message = m[1].replaceAll('\\n', '').replaceAll(DbtRpcServer.DATE_PATTERN, '');
+              error += `${message} `;
+            }
+          }
+        } else if (e.stderr) {
+          error = e.stderr;
+        } else {
+          error = 'Unknown dbt-rpc error';
+        }
+
+        reject(new Error(error));
+      });
+
+      promiseWithChild.child.on('exit', async code => {
+        if (!this.disposed && code !== 1) {
+          console.log(`dbt-rpc unexpectedly exited with code ${code ?? 'null'} and will be restarted`);
+          await this.startDbtRpc(command, dbtRpcClient);
+        }
+      });
     });
-
-    promiseWithChild.child.on('exit', async code => {
-      if (!this.disposed) {
-        console.log(`dbt-rpc unexpectedly exited with code ${code ?? 'null'} and will be restarted`);
-        await this.startDbtRpc(command, dbtRpcClient);
-      }
-    });
-
-    return this.startDeferred.promise;
   }
 
   /** Compilation can be started after server received SIGHUP signal */
   async ensureCompilationFinished(): Promise<void> {
     return new Promise((resolve, reject) => {
+      const maxCheckCount = 30;
+      let checkCount = 0;
       const intervalId = setInterval(async () => {
+        checkCount++;
         const status = await this.dbtRpcClient?.getStatus();
         if (status) {
           switch (status.result.state) {
@@ -104,6 +106,10 @@ export class DbtRpcServer {
               break;
             }
           }
+        }
+        if (checkCount >= maxCheckCount) {
+          clearInterval(intervalId);
+          reject(new Error('Status timeout exceeded'));
         }
       }, 300);
     });
