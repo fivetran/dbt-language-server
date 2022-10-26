@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 0.13.1 (01/01/1970)
+## What's Changed
+* Add button to upgrade `dbt-rpc` in case of error. 
+   If your `dbt-rpc` version is outdated and don't compatible with installed dbt you may see the error. You can upgrade `dbt-rpc` to latest version with using button "Upgrade dbt-rpc" to resolve this issue. Another way is to change default compiler to `dbt` in `Preferences -> Settings -> Extensions -> Wizard for dbt Core (TM) -> Wizard For Dbt Core(TM): Dbt Compiler`.
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.13.0...v0.13.1
+---
+
 ## Version 0.13.0 (25/10/2022)
 ## What's Changed
 * Run ZetaSql in WSL on Windows ([see docs](https://github.com/fivetran/dbt-language-server/blob/main/docs/WindowsSupport.md#windows-support)).
