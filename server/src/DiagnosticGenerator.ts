@@ -1,7 +1,7 @@
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { Result } from 'neverthrow';
 import * as path from 'node:path';
-import { Diagnostic, DiagnosticRelatedInformation, DiagnosticSeverity, Location, Position, Range } from 'vscode-languageserver';
+import { Diagnostic, DiagnosticSeverity, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { DbtRepository } from './DbtRepository';
@@ -15,30 +15,32 @@ export class DiagnosticGenerator {
   private static readonly DBT_COMPILATION_ERROR_PATTERN = /(Compilation Error in model \w+ \((.*)\)(?:\r\n?|\n).*)(?:\r\n?|\n)/;
   private static readonly SQL_COMPILATION_ERROR_PATTERN = /(.*?) \[at (\d+):(\d+)\]/;
 
-  static readonly ERROR_IN_OTHER_FILE = 'Error in other file';
-
+  static readonly DIAGNOSTIC_SOURCE = 'Wizard for dbt Core (TM)';
   static readonly DBT_ERROR_HIGHLIGHT_LAST_CHAR = 100;
 
   private sqlRefConverter = new SqlRefConverter();
 
   constructor(private dbtRepository: DbtRepository) {}
 
-  getDbtErrorDiagnostics(dbtCompilationError: string, currentModelPath: string, workspaceFolder: string): Diagnostic[] {
+  getDbtErrorDiagnostics(dbtCompilationError: string, currentModelPath: string, workspaceFolder: string): [Diagnostic[], string | undefined] {
     let errorLine = 0;
     const lineMatch = dbtCompilationError.match(DiagnosticGenerator.DBT_ERROR_LINE_PATTERN);
     if (lineMatch && lineMatch.length > 1) {
       errorLine = Number(lineMatch[1]) - 1;
     }
 
-    const relatedInformation = this.getDbtRelatedInformation(dbtCompilationError, currentModelPath, workspaceFolder, errorLine);
+    const otherFileUri = this.getOtherFileUri(dbtCompilationError, currentModelPath, workspaceFolder);
 
     return [
-      {
-        severity: DiagnosticSeverity.Error,
-        range: this.getDbtErrorRange(relatedInformation.length > 0 ? 0 : errorLine),
-        message: relatedInformation.length > 0 ? DiagnosticGenerator.ERROR_IN_OTHER_FILE : dbtCompilationError,
-        relatedInformation,
-      },
+      [
+        {
+          severity: DiagnosticSeverity.Error,
+          range: this.getDbtErrorRange(errorLine),
+          message: dbtCompilationError,
+          source: DiagnosticGenerator.DIAGNOSTIC_SOURCE,
+        },
+      ],
+      otherFileUri,
     ];
   }
 
@@ -108,29 +110,19 @@ export class DiagnosticGenerator {
       range,
       message: 'Reference to dbt model is not a ref',
       data: { replaceText: newText },
-      source: 'Wizard for dbt Core (TM)',
+      source: DiagnosticGenerator.DIAGNOSTIC_SOURCE,
     };
   }
 
-  private getDbtRelatedInformation(
-    dbtCompilationError: string,
-    currentModelPath: string,
-    workspaceFolder: string,
-    errorLine: number,
-  ): DiagnosticRelatedInformation[] {
+  private getOtherFileUri(dbtCompilationError: string, currentModelPath: string, workspaceFolder: string): string | undefined {
     if (!dbtCompilationError.includes(currentModelPath)) {
       const match = dbtCompilationError.match(DiagnosticGenerator.DBT_COMPILATION_ERROR_PATTERN);
       if (match && match.length > 2) {
-        const [, error, modelPath] = match;
-        return [
-          {
-            location: Location.create(URI.file(path.join(workspaceFolder, modelPath)).toString(), this.getDbtErrorRange(errorLine)),
-            message: error,
-          },
-        ];
+        const modelPath = match[2];
+        return URI.file(path.join(workspaceFolder, modelPath)).toString();
       }
     }
-    return [];
+    return undefined;
   }
 
   private createErrorDiagnostic(docText: string, position: Position, message: string): Diagnostic {
@@ -139,6 +131,7 @@ export class DiagnosticGenerator {
       severity: DiagnosticSeverity.Error,
       range,
       message,
+      source: DiagnosticGenerator.DIAGNOSTIC_SOURCE,
     };
   }
 
