@@ -60,6 +60,8 @@ export class DbtRpcServer {
               error += `${message} `;
             }
           }
+        } else if (e.stderr) {
+          error = e.stderr;
         } else {
           error = 'Unknown dbt-rpc error';
         }

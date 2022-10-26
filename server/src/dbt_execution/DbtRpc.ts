@@ -4,7 +4,6 @@ import { FeatureFinder } from '../FeatureFinder';
 import { FileChangeListener } from '../FileChangeListener';
 import { NotificationSender } from '../NotificationSender';
 import { ProgressReporter } from '../ProgressReporter';
-import { DbtCommand } from './commands/DbtCommand';
 import { Dbt } from './Dbt';
 import { DbtCompileJob } from './DbtCompileJob';
 import { DbtRpcClient } from './DbtRpcClient';
@@ -51,10 +50,16 @@ export class DbtRpc extends Dbt {
       }
     } else {
       command.addParameter(dbtPort.toString());
+      this.dbtRpcClient.setPort(dbtPort);
       try {
-        await this.startDbtRpc(command, dbtPort);
+        await this.dbtRpcServer.startDbtRpc(command, this.dbtRpcClient);
       } catch (e) {
-        this.finishWithError(e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`);
+        if (this.featureFinder.pythonInfo) {
+          await this.suggestToUpdateDbtRpc(
+            e instanceof Error ? e.message : `Failed to start dbt-rpc. ${String(e)}`,
+            this.featureFinder.pythonInfo.path,
+          );
+        }
       }
       this.doInitialCompile().catch(e => console.log(`Error while compiling project: ${e instanceof Error ? e.message : String(e)}`));
     }
@@ -70,11 +75,6 @@ export class DbtRpc extends Dbt {
         ? 'Initial compilation started successfully'
         : `There was an error while starting the compilation: ${result?.error?.data?.message ?? 'undefined'}`,
     );
-  }
-
-  async startDbtRpc(command: DbtCommand, port: number): Promise<void> {
-    this.dbtRpcClient.setPort(port);
-    await this.dbtRpcServer.startDbtRpc(command, this.dbtRpcClient);
   }
 
   getError(): string {
