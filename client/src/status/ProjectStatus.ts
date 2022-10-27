@@ -7,9 +7,10 @@ import {
   PythonStatus,
   StatusNotification,
 } from 'dbt-language-server-common';
+import { homedir } from 'node:os';
 import { Command, LanguageStatusSeverity, Uri } from 'vscode';
 import { InstallDbtPackages } from '../commands/InstallDbtPackages';
-import { PACKAGES_YML } from '../Utils';
+import { PACKAGES_YML, PROFILES_YML } from '../Utils';
 import { LanguageStatusItems } from './LanguageStatusItems';
 import path = require('node:path');
 
@@ -25,6 +26,11 @@ export class ProjectStatus {
   private dbtData?: StatusItemData;
   private dbtAdaptersData?: StatusItemData;
   private dbtPackagesData?: StatusItemData;
+  private profilesYmlData: StatusItemData = {
+    severity: LanguageStatusSeverity.Information,
+    text: PROFILES_YML,
+    detail: `[Open](${Uri.file(path.join(homedir(), '.dbt', PROFILES_YML)).toString()})`,
+  };
 
   constructor(private projectPath: string, private items: LanguageStatusItems) {
     this.updateStatusUi();
@@ -35,6 +41,7 @@ export class ProjectStatus {
     this.items.dbt.setBusy();
     this.items.dbtAdapters.setBusy();
     this.items.dbtPackages.setBusy();
+    this.items.profilesYml.setBusy();
   }
 
   updateStatusUi(): void {
@@ -42,6 +49,7 @@ export class ProjectStatus {
     this.updateDbtUi();
     this.updateDbtAdaptersUi();
     this.updateDbtPackagesUi();
+    this.updateProfilesYmlUi();
   }
 
   updateStatusData(status: StatusNotification): void {
@@ -101,6 +109,10 @@ export class ProjectStatus {
         this.dbtPackagesData.command,
       );
     }
+  }
+
+  private updateProfilesYmlUi(): void {
+    this.items.profilesYml.setState(this.profilesYmlData.severity, this.profilesYmlData.text, this.profilesYmlData.detail);
   }
 
   private updatePythonStatusItemData(status: PythonStatus): void {
