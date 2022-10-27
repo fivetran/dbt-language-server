@@ -15,7 +15,7 @@ import { OutputChannelProvider } from './OutputChannelProvider';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 import { StatusHandler } from './status/StatusHandler';
 import { TelemetryClient } from './TelemetryClient';
-import { isDocumentSupported } from './Utils';
+import { DBT_PROJECT_YML, isDocumentSupported } from './Utils';
 
 import { EventEmitter } from 'node:events';
 import * as path from 'node:path';
@@ -48,7 +48,7 @@ export class ExtensionClient {
     this.context.subscriptions.push(this.dbtLanguageClientManager, this.commandManager, this.activeTextEditorHandler);
   }
 
-  public onActivate(): void {
+  public async onActivate(): Promise<void> {
     this.context.subscriptions.push(
       workspace.onDidOpenTextDocument(this.onDidOpenTextDocument.bind(this)),
       workspace.onDidChangeWorkspaceFolders(event => {
@@ -71,8 +71,23 @@ export class ExtensionClient {
     this.registerCommands();
 
     this.parseVersion();
+
+    await this.activateDefaultProject();
+
     TelemetryClient.activate(this.context, this.packageJson);
     TelemetryClient.sendEvent('activate');
+  }
+
+  async activateDefaultProject(): Promise<void> {
+    let currentWorkspace = undefined;
+    if (workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
+      currentWorkspace = workspace.workspaceFolders.find(f => f.name === workspace.name);
+    }
+
+    if (currentWorkspace) {
+      const possibleProjectYmlUri = currentWorkspace.uri.with({ path: `${currentWorkspace.uri.path}/${DBT_PROJECT_YML}` });
+      await this.dbtLanguageClientManager.ensureClient(possibleProjectYmlUri);
+    }
   }
 
   parseVersion(): void {
@@ -119,7 +134,7 @@ export class ExtensionClient {
 
   async onDidOpenTextDocument(document: TextDocument): Promise<void> {
     if (isDocumentSupported(document)) {
-      await this.dbtLanguageClientManager.ensureClient(document);
+      await this.dbtLanguageClientManager.ensureClient(document.uri);
     }
   }
 

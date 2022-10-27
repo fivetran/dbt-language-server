@@ -106,8 +106,8 @@ export class DbtLanguageClientManager {
     return undefined;
   }
 
-  async ensureClient(document: TextDocument): Promise<void> {
-    const projectUri = await this.getDbtProjectUri(document.uri);
+  async ensureClient(documentUri: Uri): Promise<void> {
+    const projectUri = await this.getDbtProjectUri(documentUri);
     if (!projectUri) {
       return;
     }
