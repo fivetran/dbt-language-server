@@ -14,7 +14,7 @@
     "fast-diff": "^1.2.0",
     "find-free-port": "^2.0.0",
     "neverthrow": "^5.1.0",
-    "path-equal": "^1.2.2",
+    "path-equal": "^1.2.4",
     "request": "^2.88.2",
     "semver": "^7.3.8",
     "slash": "^5.0.0",
