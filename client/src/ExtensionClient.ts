@@ -1,5 +1,5 @@
 import * as fs from 'node:fs';
-import { commands, ExtensionContext, languages, TextDocument, TextEditor, ViewColumn, window, workspace } from 'vscode';
+import { commands, ExtensionContext, languages, TextDocument, TextEditor, Uri, ViewColumn, window, workspace } from 'vscode';
 import { ActiveTextEditorHandler } from './ActiveTextEditorHandler';
 import { AfterFunctionCompletion } from './commands/AfterFunctionCompletion';
 import { CommandManager } from './commands/CommandManager';
@@ -85,8 +85,13 @@ export class ExtensionClient {
     }
 
     if (currentWorkspace) {
-      const possibleProjectYmlUri = currentWorkspace.uri.with({ path: `${currentWorkspace.uri.path}/${DBT_PROJECT_YML}` });
+      const dbtProjectYmlPath = path.join(currentWorkspace.uri.fsPath, DBT_PROJECT_YML);
+      const possibleProjectYmlUri = currentWorkspace.uri.with({ path: dbtProjectYmlPath });
       await this.dbtLanguageClientManager.ensureClient(possibleProjectYmlUri);
+      if (this.context.globalState.get<boolean>(dbtProjectYmlPath)) {
+        await this.context.globalState.update(dbtProjectYmlPath, false);
+        await commands.executeCommand('vscode.open', Uri.file(dbtProjectYmlPath));
+      }
     }
   }
 
@@ -99,7 +104,7 @@ export class ExtensionClient {
   registerCommands(): void {
     this.commandManager.register(new Compile(this.dbtLanguageClientManager));
     this.commandManager.register(new AfterFunctionCompletion());
-    this.commandManager.register(new CreateDbtProject());
+    this.commandManager.register(new CreateDbtProject(this.context.globalState));
     this.commandManager.register(new InstallLatestDbt(this.dbtLanguageClientManager, this.outputChannelProvider));
     this.commandManager.register(new InstallDbtAdapters(this.dbtLanguageClientManager, this.outputChannelProvider));
     this.commandManager.register(new OpenOrCreatePackagesYml());
