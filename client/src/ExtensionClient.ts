@@ -1,5 +1,5 @@
 import * as fs from 'node:fs';
-import { commands, ExtensionContext, languages, TextDocument, TextEditor, ViewColumn, window, workspace } from 'vscode';
+import { commands, ExtensionContext, languages, TextDocument, TextEditor, Uri, ViewColumn, window, workspace } from 'vscode';
 import { ActiveTextEditorHandler } from './ActiveTextEditorHandler';
 import { AfterFunctionCompletion } from './commands/AfterFunctionCompletion';
 import { CommandManager } from './commands/CommandManager';
@@ -15,7 +15,7 @@ import { OutputChannelProvider } from './OutputChannelProvider';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 import { StatusHandler } from './status/StatusHandler';
 import { TelemetryClient } from './TelemetryClient';
-import { isDocumentSupported } from './Utils';
+import { DBT_PROJECT_YML, isDocumentSupported } from './Utils';
 
 import { EventEmitter } from 'node:events';
 import * as path from 'node:path';
@@ -48,7 +48,7 @@ export class ExtensionClient {
     this.context.subscriptions.push(this.dbtLanguageClientManager, this.commandManager, this.activeTextEditorHandler);
   }
 
-  public onActivate(): void {
+  public async onActivate(): Promise<void> {
     this.context.subscriptions.push(
       workspace.onDidOpenTextDocument(this.onDidOpenTextDocument.bind(this)),
       workspace.onDidChangeWorkspaceFolders(event => {
@@ -71,8 +71,29 @@ export class ExtensionClient {
     this.registerCommands();
 
     this.parseVersion();
+
+    await this.activateDefaultProject();
+
     TelemetryClient.activate(this.context, this.packageJson);
     TelemetryClient.sendEvent('activate');
+  }
+
+  async activateDefaultProject(): Promise<void> {
+    let currentWorkspace = undefined;
+    if (workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
+      currentWorkspace = workspace.workspaceFolders.find(f => f.name === workspace.name);
+    }
+
+    if (currentWorkspace) {
+      const dbtProjectYmlPath = path.join(currentWorkspace.uri.fsPath, DBT_PROJECT_YML);
+      const possibleProjectYmlUri = currentWorkspace.uri.with({ path: dbtProjectYmlPath });
+      await this.dbtLanguageClientManager.ensureClient(possibleProjectYmlUri);
+      if (this.context.globalState.get<boolean>(dbtProjectYmlPath)) {
+        await this.context.globalState.update(dbtProjectYmlPath, false);
+        await commands.executeCommand('vscode.open', Uri.file(dbtProjectYmlPath));
+        await commands.executeCommand('workbench.action.keepEditor');
+      }
+    }
   }
 
   parseVersion(): void {
@@ -84,7 +105,7 @@ export class ExtensionClient {
   registerCommands(): void {
     this.commandManager.register(new Compile(this.dbtLanguageClientManager));
     this.commandManager.register(new AfterFunctionCompletion());
-    this.commandManager.register(new CreateDbtProject());
+    this.commandManager.register(new CreateDbtProject(this.context.globalState));
     this.commandManager.register(new InstallLatestDbt(this.dbtLanguageClientManager, this.outputChannelProvider));
     this.commandManager.register(new InstallDbtAdapters(this.dbtLanguageClientManager, this.outputChannelProvider));
     this.commandManager.register(new OpenOrCreatePackagesYml());
@@ -119,7 +140,7 @@ export class ExtensionClient {
 
   async onDidOpenTextDocument(document: TextDocument): Promise<void> {
     if (isDocumentSupported(document)) {
-      await this.dbtLanguageClientManager.ensureClient(document);
+      await this.dbtLanguageClientManager.ensureClient(document.uri);
     }
   }
 

@@ -1,15 +1,13 @@
 import { Command, DocumentFilter, languages, LanguageStatusItem, LanguageStatusSeverity } from 'vscode';
-import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from '../Utils';
+import { PROFILES_YML_DEFAULT_URI } from '../Utils';
 
 export class DbtWizardLanguageStatusItem {
+  static readonly PROFILES_YML_FILTER = { pattern: PROFILES_YML_DEFAULT_URI.fsPath };
+
   item: LanguageStatusItem;
 
   constructor(id: string, private defaultText: string) {
-    const filters = [
-      ...SUPPORTED_LANG_IDS.map<DocumentFilter>(language => ({ language })),
-      ...[`**/${PACKAGES_YML}`, `**/${DBT_PROJECT_YML}`].map<DocumentFilter>(pattern => ({ pattern })),
-    ];
-    this.item = languages.createLanguageStatusItem(id, filters);
+    this.item = languages.createLanguageStatusItem(id, []);
     this.setBusy();
   }
 
@@ -27,5 +25,21 @@ export class DbtWizardLanguageStatusItem {
     this.item.text = text;
     this.item.detail = detail;
     this.item.command = command;
+  }
+
+  setDocumentFilter(filter: DocumentFilter): void {
+    const filters = this.item.selector as DocumentFilter[];
+    if (!filters.includes(filter)) {
+      filters.push(filter);
+    }
+    if (filters.length === 1) {
+      filters.push(DbtWizardLanguageStatusItem.PROFILES_YML_FILTER);
+    } else {
+      const index = filters.indexOf(DbtWizardLanguageStatusItem.PROFILES_YML_FILTER);
+      // We don't know what to show if there are more than one active projects
+      if (index !== -1) {
+        filters.splice(index, 1);
+      }
+    }
   }
 }

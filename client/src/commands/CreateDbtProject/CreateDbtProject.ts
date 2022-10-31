@@ -1,11 +1,13 @@
 import { exec } from 'node:child_process';
 import { EOL } from 'node:os';
 import { promisify, TextEncoder } from 'node:util';
-import { commands, OpenDialogOptions, Uri, window, workspace } from 'vscode';
+import { commands, Memento, OpenDialogOptions, Uri, window, workspace } from 'vscode';
 import { log } from '../../Logger';
 import { PythonExtension } from '../../python/PythonExtension';
+import { DBT_PROJECT_YML } from '../../Utils';
 import { Command } from '../CommandManager';
 import { DbtInitTerminal } from './DbtInitTerminal';
+import path = require('node:path');
 
 enum DbtInitState {
   Default,
@@ -21,6 +23,8 @@ export class CreateDbtProject implements Command {
   "files.autoSave": "afterDelay"
 }
 `;
+
+  constructor(private extensionGlobalState: Memento) {}
 
   async execute(projectFolder?: string, skipOpen?: boolean): Promise<void> {
     const dbtInitCommandPromise = this.getDbtInitCommand();
@@ -57,6 +61,7 @@ export class CreateDbtProject implements Command {
           await workspace.fs.writeFile(Uri.joinPath(vscodeUri, 'settings.json'), new TextEncoder().encode(CreateDbtProject.SETTINGS_JSON_CONTENT));
           if (!skipOpen) {
             await commands.executeCommand('vscode.openFolder', projectUri, { forceNewWindow: true });
+            await this.extensionGlobalState.update(path.join(projectUri.fsPath, DBT_PROJECT_YML), true);
           }
         } else {
           pty.writeRed(`${EOL}Command failed, please try again.${EOL}`);
