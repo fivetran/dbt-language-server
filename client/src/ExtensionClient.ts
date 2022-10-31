@@ -91,7 +91,7 @@ export class ExtensionClient {
       if (this.context.globalState.get<boolean>(dbtProjectYmlPath)) {
         await this.context.globalState.update(dbtProjectYmlPath, false);
         await commands.executeCommand('vscode.open', Uri.file(dbtProjectYmlPath));
-        await commands.executeCommand('workbench.action.keepEditor', Uri.file(dbtProjectYmlPath));
+        await commands.executeCommand('workbench.action.keepEditor');
       }
     }
   }
