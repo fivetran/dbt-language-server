@@ -1,15 +1,10 @@
 import { Command, DocumentFilter, languages, LanguageStatusItem, LanguageStatusSeverity } from 'vscode';
-import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from '../Utils';
 
 export class DbtWizardLanguageStatusItem {
   item: LanguageStatusItem;
 
   constructor(id: string, private defaultText: string) {
-    const filters = [
-      ...SUPPORTED_LANG_IDS.map<DocumentFilter>(language => ({ language })),
-      ...[`**/${PACKAGES_YML}`, `**/${DBT_PROJECT_YML}`].map<DocumentFilter>(pattern => ({ pattern })),
-    ];
-    this.item = languages.createLanguageStatusItem(id, filters);
+    this.item = languages.createLanguageStatusItem(id, []);
     this.setBusy();
   }
 
@@ -27,5 +22,12 @@ export class DbtWizardLanguageStatusItem {
     this.item.text = text;
     this.item.detail = detail;
     this.item.command = command;
+  }
+
+  setDocumentFilter(filter: DocumentFilter): void {
+    const filters = this.item.selector as DocumentFilter[];
+    if (!filters.includes(filter)) {
+      filters.push(filter);
+    }
   }
 }

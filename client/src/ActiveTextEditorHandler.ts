@@ -23,7 +23,6 @@ export class ActiveTextEditorHandler {
     if (
       !activeEditor ||
       SqlPreviewContentProvider.isPreviewDocument(activeEditor.document.uri) ||
-      !isDocumentSupported(activeEditor.document) ||
       ActiveTextEditorHandler.lastActiveEditor?.document.uri.path === activeEditor.document.uri.path
     ) {
       return;
@@ -31,14 +30,16 @@ export class ActiveTextEditorHandler {
 
     ActiveTextEditorHandler.lastActiveEditor = activeEditor;
 
-    this.previewContentProvider.changeActiveDocument(activeEditor.document.uri);
-
     const client = await this.dbtLanguageClientManager.getClientByUri(activeEditor.document.uri);
 
     if (client?.getProjectUri()) {
       this.statusHandler.updateLanguageItems(client.getProjectUri().fsPath);
     }
-    client?.resendDiagnostics(activeEditor.document.uri.toString());
+
+    if (isDocumentSupported(activeEditor.document)) {
+      this.previewContentProvider.changeActiveDocument(activeEditor.document.uri);
+      client?.resendDiagnostics(activeEditor.document.uri.toString());
+    }
   }
 
   dispose(): void {

@@ -8,7 +8,7 @@ import {
   StatusNotification,
 } from 'dbt-language-server-common';
 import { homedir } from 'node:os';
-import { Command, LanguageStatusSeverity, Uri } from 'vscode';
+import { Command, LanguageStatusSeverity, RelativePattern, Uri } from 'vscode';
 import { InstallDbtPackages } from '../commands/InstallDbtPackages';
 import { PACKAGES_YML, PROFILES_YML } from '../Utils';
 import { LanguageStatusItems } from './LanguageStatusItems';
@@ -33,7 +33,17 @@ export class ProjectStatus {
   };
 
   constructor(private projectPath: string, private items: LanguageStatusItems) {
+    this.setDocumentFilter();
     this.updateStatusUi();
+  }
+
+  setDocumentFilter(): void {
+    const documentFilter = { pattern: new RelativePattern(Uri.file(this.projectPath), '**/*') };
+    this.items.python.setDocumentFilter(documentFilter);
+    this.items.dbt.setDocumentFilter(documentFilter);
+    this.items.dbtAdapters.setDocumentFilter(documentFilter);
+    this.items.dbtPackages.setDocumentFilter(documentFilter);
+    this.items.profilesYml.setDocumentFilter(documentFilter);
   }
 
   setBusy(): void {
