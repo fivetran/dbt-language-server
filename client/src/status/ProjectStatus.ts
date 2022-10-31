@@ -7,10 +7,9 @@ import {
   PythonStatus,
   StatusNotification,
 } from 'dbt-language-server-common';
-import { homedir } from 'node:os';
 import { Command, LanguageStatusSeverity, RelativePattern, Uri } from 'vscode';
 import { InstallDbtPackages } from '../commands/InstallDbtPackages';
-import { PACKAGES_YML, PROFILES_YML } from '../Utils';
+import { PACKAGES_YML, PROFILES_YML, PROFILES_YML_DEFAULT_URI } from '../Utils';
 import { LanguageStatusItems } from './LanguageStatusItems';
 import path = require('node:path');
 
@@ -29,7 +28,7 @@ export class ProjectStatus {
   private profilesYmlData: StatusItemData = {
     severity: LanguageStatusSeverity.Information,
     text: PROFILES_YML,
-    detail: `[Open](${Uri.file(path.join(homedir(), '.dbt', PROFILES_YML)).toString()})`,
+    detail: `[Open](${PROFILES_YML_DEFAULT_URI.toString()})`,
   };
 
   constructor(private projectPath: string, private items: LanguageStatusItems) {
