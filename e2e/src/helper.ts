@@ -298,7 +298,6 @@ function runCliCommand(args: string[]): SpawnSyncReturns<string> {
 }
 
 export async function triggerCompletion(docUri: Uri, position: Position, triggerChar?: string): Promise<CompletionList<CompletionItem>> {
-  // Simulate triggering completion
   return commands.executeCommand<CompletionList>('vscode.executeCompletionItemProvider', docUri, position, triggerChar);
 }
 

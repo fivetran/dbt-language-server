@@ -1,4 +1,4 @@
-import { Command, CompletionItem, CompletionItemKind, CompletionParams, CompletionTriggerKind } from 'vscode-languageserver';
+import { Command, CompletionItem, CompletionItemKind, CompletionParams, CompletionTriggerKind, InsertTextFormat } from 'vscode-languageserver';
 import { DestinationDefinition } from './DestinationDefinition';
 import { HelpProviderWords } from './HelpProviderWords';
 import { ActiveTableInfo, CompletionInfo } from './ZetaSqlAst';
@@ -268,13 +268,7 @@ export class SqlCompletionProvider {
   }
 
   onCompletionResolve(item: CompletionItem): CompletionItem {
-    if (item.kind === CompletionItemKind.Keyword) {
-      item.label += ' ';
-    }
-    if (item.kind === CompletionItemKind.Function) {
-      item.label += '()';
-      item.command = Command.create('additional', 'WizardForDbtCore(TM).afterFunctionCompletion');
-    }
+    // TODO: delete this method
     return item;
   }
 
@@ -353,6 +347,7 @@ export class SqlCompletionProvider {
     return SqlCompletionProvider.BQ_KEYWORDS.map<CompletionItem>(k => ({
       label: k,
       kind: CompletionItemKind.Keyword,
+      insertText: `${k} `,
       detail: '',
     }));
   }
@@ -363,6 +358,9 @@ export class SqlCompletionProvider {
       kind: CompletionItemKind.Function,
       detail: w.signatures[0].signature,
       documentation: w.signatures[0].description,
+      insertTextFormat: InsertTextFormat.Snippet,
+      insertText: `${w.name}($0)`,
+      command: Command.create('triggerParameterHints', 'editor.action.triggerParameterHints'),
     }));
   }
 

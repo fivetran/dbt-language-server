@@ -5,6 +5,7 @@ import {
   executeSignatureHelpProvider,
   getCursorPosition,
   getDocUri,
+  getMainEditorText,
   setTestContent,
   sleep,
   TEST_FIXTURE_PATH,
@@ -38,13 +39,16 @@ suite('Functions', () => {
     // arrange
     await activateAndWaitManifestParsed(DOC_URI, TEST_FIXTURE_PATH);
 
-    await setTestContent('select Avg()', false);
+    await setTestContent('select Av', false);
 
     // act
-    await commands.executeCommand('WizardForDbtCore(TM).afterFunctionCompletion');
+    await commands.executeCommand('editor.action.triggerSuggest');
+    await sleep(300);
+    await commands.executeCommand('acceptSelectedSuggestion');
+    await sleep(300);
 
     // assert
-    await sleep(300);
+    assertThat(getMainEditorText(), 'select avg()');
     assertThat(getCursorPosition(), new Position(0, 11));
   });
 
