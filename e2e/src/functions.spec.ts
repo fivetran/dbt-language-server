@@ -39,11 +39,11 @@ suite('Functions', () => {
     // arrange
     await activateAndWaitManifestParsed(DOC_URI, TEST_FIXTURE_PATH);
 
-    await setTestContent('select Av', false);
+    await setTestContent('select Avg', false);
 
     // act
     await commands.executeCommand('editor.action.triggerSuggest');
-    await sleep(300);
+    await sleep(400);
     await commands.executeCommand('acceptSelectedSuggestion');
     await sleep(300);
 
