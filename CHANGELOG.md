@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 0.14.0 (01/11/2022)
+## What's Changed
+* For the global dbt error, now only one error is displayed for the problem model.
+* Show language status items for all files in active dbt project.
+* Show link for `profiles.yml` file in language status item.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.13.1...v0.14.0
+---
+
 ## Version 0.13.1 (26/10/2022)
 ## What's Changed
 * Add button to upgrade `dbt-rpc` in case of error. 
