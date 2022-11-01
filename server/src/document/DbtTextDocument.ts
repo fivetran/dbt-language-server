@@ -37,6 +37,7 @@ import { NotificationSender } from '../NotificationSender';
 import { PositionConverter } from '../PositionConverter';
 import { ProgressReporter } from '../ProgressReporter';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
+import { SnippetsCompletionProvider } from '../SnippetsCompletionProvider';
 import { SqlCompletionProvider } from '../SqlCompletionProvider';
 import { DiffUtils } from '../utils/DiffUtils';
 import { getTextRangeBeforeBracket } from '../utils/TextUtils';
@@ -62,6 +63,8 @@ export class DbtTextDocument {
 
   ast?: AnalyzeResponse;
   signatureHelpProvider = new SignatureHelpProvider();
+  snippetsCompletionProvider = new SnippetsCompletionProvider();
+
   diagnosticGenerator: DiagnosticGenerator;
   hoverProvider = new HoverProvider();
 
@@ -413,12 +416,14 @@ export class DbtTextDocument {
       const offset = this.compiledDocument.offsetAt(Position.create(line, completionParams.position.character));
       completionInfo = DbtTextDocument.ZETA_SQL_AST.getCompletionInfo(this.ast, offset);
     }
-    return this.sqlCompletionProvider.onSqlCompletion(
+    const snippetItems = this.snippetsCompletionProvider.provideSnippets(text);
+    const sqlItems = await this.sqlCompletionProvider.onSqlCompletion(
       text,
       completionParams,
       this.destinationState.bigQueryContext.destinationDefinition,
       completionInfo,
     );
+    return [...snippetItems, ...sqlItems];
   }
 
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
