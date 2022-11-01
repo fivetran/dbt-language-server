@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.14.0 (01/01/1970)
+## Version 0.14.0 (01/11/2022)
 ## What's Changed
 * For the global dbt error, now only one error is displayed for the problem model.
 * Show language status items for all files in active dbt project.
