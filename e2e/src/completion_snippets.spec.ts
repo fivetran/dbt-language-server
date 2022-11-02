@@ -1,6 +1,12 @@
 import { assertThat } from 'hamjest';
-import { commands, Position } from 'vscode';
-import { createAndOpenTempModel, getCursorPosition, getMainEditorText, setTestContent, sleep } from './helper';
+import { Position } from 'vscode';
+import {
+  acceptFirstSuggestion as triggerAndAcceptFirstSuggestion,
+  createAndOpenTempModel,
+  getCursorPosition,
+  getMainEditorText,
+  setTestContent,
+} from './helper';
 
 suite('Should do completion for snippets', () => {
   suiteSetup(async () => {
@@ -25,10 +31,7 @@ async function shouldPasteTextAndMoveCursor(initialText: string, expectedText: s
   await setTestContent(initialText, false);
 
   // act
-  await commands.executeCommand('editor.action.triggerSuggest');
-  await sleep(400);
-  await commands.executeCommand('acceptSelectedSuggestion');
-  await sleep(300);
+  await triggerAndAcceptFirstSuggestion();
 
   // assert
   assertThat(getMainEditorText(), expectedText);

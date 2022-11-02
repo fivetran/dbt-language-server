@@ -132,6 +132,13 @@ export async function compileDocument(): Promise<void> {
   await commands.executeCommand('WizardForDbtCore(TM).compile');
 }
 
+export async function acceptFirstSuggestion(): Promise<void> {
+  await commands.executeCommand('editor.action.triggerSuggest');
+  await sleep(400);
+  await commands.executeCommand('acceptSelectedSuggestion');
+  await sleep(300);
+}
+
 export function getPreviewText(): string {
   const previewEditor = getPreviewEditor();
   if (!previewEditor) {
