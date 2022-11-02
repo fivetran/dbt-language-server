@@ -45,7 +45,6 @@ import {
 } from 'vscode-languageserver';
 import { FileOperationFilter } from 'vscode-languageserver-protocol/lib/common/protocol.fileOperations';
 import { URI } from 'vscode-uri';
-import { CompletionProvider } from './CompletionProvider';
 import { DbtProfileCreator, DbtProfileInfo } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
@@ -81,7 +80,6 @@ export class LspServer {
   progressReporter: ProgressReporter;
   notificationSender: NotificationSender;
   fileChangeListener: FileChangeListener;
-  completionProvider: CompletionProvider;
   dbtDefinitionProvider: DbtDefinitionProvider;
   dbtProfileCreator: DbtProfileCreator;
   manifestParser = new ManifestParser();
@@ -103,7 +101,6 @@ export class LspServer {
     this.notificationSender = new NotificationSender(this.connection);
     this.dbtProfileCreator = new DbtProfileCreator(this.dbtProject, path.join(homedir(), '.dbt', 'profiles.yml'));
     this.fileChangeListener = new FileChangeListener(this.workspaceFolder, this.dbtProject, this.manifestParser, this.dbtRepository);
-    this.completionProvider = new CompletionProvider(this.dbtRepository);
     this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
   }
 
@@ -395,7 +392,6 @@ export class LspServer {
         this.workspaceFolder,
         this.notificationSender,
         this.progressReporter,
-        this.completionProvider,
         this.dbtDefinitionProvider,
         new ModelCompiler(this.dbt, this.dbtRepository),
         new JinjaParser(),

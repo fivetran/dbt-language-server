@@ -14,10 +14,10 @@ export class DbtCompletionProvider {
   modelCompletionProvider: ModelCompletionProvider;
   sourceCompletionProvider: SourceCompletionProvider;
 
-  constructor(private dbtRepository: DbtRepository) {
-    this.macroCompletionProvider = new MacroCompletionProvider(this.dbtRepository);
-    this.modelCompletionProvider = new ModelCompletionProvider(this.dbtRepository);
-    this.sourceCompletionProvider = new SourceCompletionProvider(this.dbtRepository);
+  constructor(dbtRepository: DbtRepository) {
+    this.macroCompletionProvider = new MacroCompletionProvider(dbtRepository);
+    this.modelCompletionProvider = new ModelCompletionProvider(dbtRepository);
+    this.sourceCompletionProvider = new SourceCompletionProvider(dbtRepository);
   }
 
   provideCompletions(jinjaPartType: JinjaPartType, jinjaBeforePositionText: string): CompletionItem[] | undefined {

@@ -4,7 +4,6 @@ import { assertThat } from 'hamjest';
 import * as path from 'node:path';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, Range, TextDocumentSaveReason, VersionedTextDocumentIdentifier } from 'vscode-languageserver';
-import { CompletionProvider } from '../../CompletionProvider';
 import { DbtRepository } from '../../DbtRepository';
 import { Dbt } from '../../dbt_execution/Dbt';
 import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
@@ -51,7 +50,6 @@ describe('DbtTextDocument', () => {
       '',
       mock(NotificationSender),
       mock(ProgressReporter),
-      mock(CompletionProvider),
       mock(DbtDefinitionProvider),
       instance(mockModelCompiler),
       instance(mockJinjaParser),
