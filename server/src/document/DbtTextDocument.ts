@@ -21,7 +21,7 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import { CompletionProvider } from '../CompletionProvider';
+import { CompletionProvider } from '../completion/CompletionProvider';
 import { DbtRepository } from '../DbtRepository';
 import { Dbt } from '../dbt_execution/Dbt';
 import { DbtCompileJob } from '../dbt_execution/DbtCompileJob';

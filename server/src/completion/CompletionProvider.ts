@@ -1,16 +1,16 @@
 import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { CompletionItem, CompletionParams, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
-import { DbtRepository } from './DbtRepository';
-import { DestinationState } from './DestinationState';
-import { DbtTextDocument } from './document/DbtTextDocument';
-import { JinjaParser, JinjaPartType } from './JinjaParser';
-import { LogLevel } from './Logger';
-import { SnippetsCompletionProvider } from './SnippetsCompletionProvider';
+import { DbtRepository } from '../DbtRepository';
+import { DestinationState } from '../DestinationState';
+import { DbtTextDocument } from '../document/DbtTextDocument';
+import { JinjaParser, JinjaPartType } from '../JinjaParser';
+import { LogLevel } from '../Logger';
+import { SnippetsCompletionProvider } from '../SnippetsCompletionProvider';
+import { DiffUtils } from '../utils/DiffUtils';
+import { comparePositions, getIdentifierRangeAtPosition } from '../utils/Utils';
+import { DbtCompletionProvider } from './DbtCompletionProvider';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
-import { DiffUtils } from './utils/DiffUtils';
-import { comparePositions, getIdentifierRangeAtPosition } from './utils/Utils';
 
 export class CompletionProvider {
   sqlCompletionProvider = new SqlCompletionProvider();

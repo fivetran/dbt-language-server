@@ -1,7 +1,7 @@
 import { Command, CompletionItem, CompletionItemKind, CompletionParams, CompletionTriggerKind, InsertTextFormat } from 'vscode-languageserver';
-import { DestinationDefinition } from './DestinationDefinition';
-import { HelpProviderWords } from './HelpProviderWords';
-import { ActiveTableInfo, CompletionInfo } from './ZetaSqlAst';
+import { DestinationDefinition } from '../DestinationDefinition';
+import { HelpProviderWords } from '../HelpProviderWords';
+import { ActiveTableInfo, CompletionInfo } from '../ZetaSqlAst';
 
 export class SqlCompletionProvider {
   static readonly BQ_KEYWORDS = [
