@@ -45,7 +45,7 @@ import {
 } from 'vscode-languageserver';
 import { FileOperationFilter } from 'vscode-languageserver-protocol/lib/common/protocol.fileOperations';
 import { URI } from 'vscode-uri';
-import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
+import { CompletionProvider } from './CompletionProvider';
 import { DbtProfileCreator, DbtProfileInfo } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
@@ -67,7 +67,6 @@ import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { NotificationSender } from './NotificationSender';
 import { ProgressReporter } from './ProgressReporter';
-import { SqlCompletionProvider } from './SqlCompletionProvider';
 import { StatusSender } from './StatusSender';
 
 export class LspServer {
@@ -82,8 +81,7 @@ export class LspServer {
   progressReporter: ProgressReporter;
   notificationSender: NotificationSender;
   fileChangeListener: FileChangeListener;
-  sqlCompletionProvider: SqlCompletionProvider;
-  dbtCompletionProvider: DbtCompletionProvider;
+  completionProvider: CompletionProvider;
   dbtDefinitionProvider: DbtDefinitionProvider;
   dbtProfileCreator: DbtProfileCreator;
   manifestParser = new ManifestParser();
@@ -105,8 +103,7 @@ export class LspServer {
     this.notificationSender = new NotificationSender(this.connection);
     this.dbtProfileCreator = new DbtProfileCreator(this.dbtProject, path.join(homedir(), '.dbt', 'profiles.yml'));
     this.fileChangeListener = new FileChangeListener(this.workspaceFolder, this.dbtProject, this.manifestParser, this.dbtRepository);
-    this.sqlCompletionProvider = new SqlCompletionProvider();
-    this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);
+    this.completionProvider = new CompletionProvider(this.dbtRepository);
     this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
   }
 
@@ -398,8 +395,7 @@ export class LspServer {
         this.workspaceFolder,
         this.notificationSender,
         this.progressReporter,
-        this.sqlCompletionProvider,
-        this.dbtCompletionProvider,
+        this.completionProvider,
         this.dbtDefinitionProvider,
         new ModelCompiler(this.dbt, this.dbtRepository),
         new JinjaParser(),
@@ -438,10 +434,6 @@ export class LspServer {
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
     const document = this.openedDocuments.get(completionParams.textDocument.uri);
     return document?.onCompletion(completionParams);
-  }
-
-  onCompletionResolve(item: CompletionItem): CompletionItem {
-    return this.sqlCompletionProvider.onCompletionResolve(item);
   }
 
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {

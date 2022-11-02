@@ -267,11 +267,6 @@ export class SqlCompletionProvider {
     return result;
   }
 
-  onCompletionResolve(item: CompletionItem): CompletionItem {
-    // TODO: delete this method
-    return item;
-  }
-
   getWithNames(withNames: Set<string>): CompletionItem[] {
     return [...withNames].map<CompletionItem>(w => ({
       label: w,

@@ -14,7 +14,6 @@ connection.onInitialize(server.onInitialize.bind(server));
 connection.onInitialized(server.onInitialized.bind(server));
 connection.onHover(server.onHover.bind(server));
 connection.onCompletion(server.onCompletion.bind(server));
-connection.onCompletionResolve(server.onCompletionResolve.bind(server));
 connection.onSignatureHelp(server.onSignatureHelp.bind(server));
 connection.onDefinition(server.onDefinition.bind(server));
 

@@ -22,7 +22,7 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
+import { CompletionProvider } from '../CompletionProvider';
 import { DbtRepository } from '../DbtRepository';
 import { Dbt } from '../dbt_execution/Dbt';
 import { DbtCompileJob } from '../dbt_execution/DbtCompileJob';
@@ -37,8 +37,6 @@ import { NotificationSender } from '../NotificationSender';
 import { PositionConverter } from '../PositionConverter';
 import { ProgressReporter } from '../ProgressReporter';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
-import { SnippetsCompletionProvider } from '../SnippetsCompletionProvider';
-import { SqlCompletionProvider } from '../SqlCompletionProvider';
 import { DiffUtils } from '../utils/DiffUtils';
 import { getTextRangeBeforeBracket } from '../utils/TextUtils';
 import {
@@ -63,7 +61,6 @@ export class DbtTextDocument {
 
   ast?: AnalyzeResponse;
   signatureHelpProvider = new SignatureHelpProvider();
-  snippetsCompletionProvider = new SnippetsCompletionProvider();
 
   diagnosticGenerator: DiagnosticGenerator;
   hoverProvider = new HoverProvider();
@@ -80,8 +77,7 @@ export class DbtTextDocument {
     private workspaceFolder: string,
     private notificationSender: NotificationSender,
     private progressReporter: ProgressReporter,
-    private sqlCompletionProvider: SqlCompletionProvider,
-    private dbtCompletionProvider: DbtCompletionProvider,
+    private completionProvider: CompletionProvider,
     private dbtDefinitionProvider: DbtDefinitionProvider,
     private modelCompiler: ModelCompiler,
     private jinjaParser: JinjaParser,
@@ -392,7 +388,7 @@ export class DbtTextDocument {
       const jinjaPartType = this.jinjaParser.getJinjaPartType(closestJinjaPart.value);
       if ([JinjaPartType.EXPRESSION_START, JinjaPartType.BLOCK_START].includes(jinjaPartType)) {
         const jinjaBeforePositionText = this.rawDocument.getText(Range.create(closestJinjaPart.range.start, completionParams.position));
-        return this.dbtCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText);
+        return this.completionProvider.dbtCompletionProvider.provideCompletions(jinjaPartType, jinjaBeforePositionText);
       }
     }
 
@@ -416,8 +412,8 @@ export class DbtTextDocument {
       const offset = this.compiledDocument.offsetAt(Position.create(line, completionParams.position.character));
       completionInfo = DbtTextDocument.ZETA_SQL_AST.getCompletionInfo(this.ast, offset);
     }
-    const snippetItems = this.snippetsCompletionProvider.provideSnippets(text);
-    const sqlItems = await this.sqlCompletionProvider.onSqlCompletion(
+    const snippetItems = this.completionProvider.snippetsCompletionProvider.provideSnippets(text);
+    const sqlItems = await this.completionProvider.sqlCompletionProvider.onSqlCompletion(
       text,
       completionParams,
       this.destinationState.bigQueryContext.destinationDefinition,
