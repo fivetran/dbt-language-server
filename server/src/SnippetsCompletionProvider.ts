@@ -14,7 +14,7 @@ export class SnippetsCompletionProvider {
       'config',
       '{{ config }}',
       '1config',
-      `{{${EOL}  config(${EOL}    materialized='` + '${1|table,view,incremental,ephemeral|}' + `'${EOL}  )${EOL}}}${EOL}`,
+      `{{${EOL}  config(${EOL}    materialized='$\{1|table,view,incremental,ephemeral|}'${EOL}  )${EOL}}}${EOL}`,
     ),
   ];
 

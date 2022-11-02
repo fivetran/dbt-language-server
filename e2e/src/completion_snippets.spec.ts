@@ -1,4 +1,5 @@
 import { assertThat } from 'hamjest';
+import { EOL } from 'node:os';
 import { Position } from 'vscode';
 import {
   acceptFirstSuggestion as triggerAndAcceptFirstSuggestion,
@@ -19,6 +20,10 @@ suite('Should do completion for snippets', () => {
 
   test('Should paste ref', async () => {
     await shouldPasteTextAndMoveCursor('ref', "{{ ref('') }}", new Position(0, 8));
+  });
+
+  test('Should paste config', async () => {
+    await shouldPasteTextAndMoveCursor('conf', `{{${EOL}  config(${EOL}    materialized='table'${EOL}  )${EOL}}}${EOL}`, new Position(2, 23));
   });
 
   suiteTeardown(async () => {
