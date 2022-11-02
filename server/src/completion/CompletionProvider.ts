@@ -33,10 +33,13 @@ export class CompletionProvider {
       console.log(`dbtCompletionItems: ${dbtCompletionItems.map(i => i.insertText).join('|')}`, LogLevel.Debug);
       return dbtCompletionItems;
     }
-    return this.getSqlCompletions(completionParams, ast);
+    const text = this.getCompletionText(completionParams);
+    const snippetItems = this.snippetsCompletionProvider.provideSnippets(text);
+    const sqlItems = await this.provideSqlCompletions(completionParams, text, ast);
+    return [...snippetItems, ...sqlItems];
   }
 
-  provideDbtCompletions(completionParams: CompletionParams): CompletionItem[] | undefined {
+  private provideDbtCompletions(completionParams: CompletionParams): CompletionItem[] | undefined {
     const jinjaParts = this.jinjaParser.findAllJinjaParts(this.rawDocument);
     const jinjasBeforePosition = jinjaParts.filter(p => comparePositions(p.range.start, completionParams.position) < 0);
     const closestJinjaPart =
@@ -55,16 +58,10 @@ export class CompletionProvider {
     return undefined;
   }
 
-  async getSqlCompletions(completionParams: CompletionParams, ast?: AnalyzeResponse): Promise<CompletionItem[]> {
+  private async provideSqlCompletions(completionParams: CompletionParams, text: string, ast?: AnalyzeResponse): Promise<CompletionItem[]> {
     if (!this.destinationState.contextInitialized || !this.destinationState.bigQueryContext) {
       return [];
     }
-
-    const previousPosition = Position.create(
-      completionParams.position.line,
-      completionParams.position.character > 0 ? completionParams.position.character - 1 : 0,
-    );
-    const text = this.rawDocument.getText(getIdentifierRangeAtPosition(previousPosition, this.rawDocument.getText()));
 
     let completionInfo = undefined;
     if (ast) {
@@ -72,13 +69,19 @@ export class CompletionProvider {
       const offset = this.compiledDocument.offsetAt(Position.create(line, completionParams.position.character));
       completionInfo = DbtTextDocument.ZETA_SQL_AST.getCompletionInfo(ast, offset);
     }
-    const snippetItems = this.snippetsCompletionProvider.provideSnippets(text);
-    const sqlItems = await this.sqlCompletionProvider.onSqlCompletion(
+    return this.sqlCompletionProvider.onSqlCompletion(
       text,
       completionParams,
       this.destinationState.bigQueryContext.destinationDefinition,
       completionInfo,
     );
-    return [...snippetItems, ...sqlItems];
+  }
+
+  private getCompletionText(completionParams: CompletionParams): string {
+    const previousPosition = Position.create(
+      completionParams.position.line,
+      completionParams.position.character > 0 ? completionParams.position.character - 1 : 0,
+    );
+    return this.rawDocument.getText(getIdentifierRangeAtPosition(previousPosition, this.rawDocument.getText()));
   }
 }
