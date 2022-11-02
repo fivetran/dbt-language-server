@@ -135,7 +135,6 @@ export class LspServer {
         },
         hoverProvider: true,
         completionProvider: {
-          resolveProvider: true,
           triggerCharacters: ['.', '(', '"', "'"],
         },
         signatureHelpProvider: {
