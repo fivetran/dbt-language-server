@@ -3,7 +3,7 @@
 By default extension works on Windows but it requires requires WSL and Ubuntu 20.04 to be installed. Ubuntu is used to run [ZetaSQL](https://github.com/google/zetasql) analyzer.
 If it is not installed you will see the following warning:  
 <img src="https://raw.githubusercontent.com/fivetran/dbt-language-server/main/images/wsl-warning.png" width=50% height=50%>  
-To install WSL and Ubuntu 20.04 run the following command as **Administrator** (this requires a computer restart):<br/> `wsl --install -d Ubuntu-20.04`
+To install WSL and Ubuntu 20.04 click **Run command** button or run the following command as **Administrator** (this requires a computer restart):<br/> `wsl --install -d Ubuntu-20.04`
 
 ---
 

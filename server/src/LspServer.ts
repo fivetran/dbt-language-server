@@ -66,6 +66,7 @@ import { Logger, LogLevel } from './Logger';
 import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { NotificationSender } from './NotificationSender';
+import { ProcessExecutor } from './ProcessExecutor';
 import { ProgressReporter } from './ProgressReporter';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
 import { StatusSender } from './StatusSender';
@@ -236,7 +237,7 @@ export class LspServer {
 
     const ubuntuInWslWorks = Boolean(await this.featureFinder?.ubuntuInWslWorks);
     if (!ubuntuInWslWorks) {
-      this.showWslWarning();
+      await this.showWslWarning();
     }
 
     const prepareDestination = profileResult.isErr()
@@ -254,7 +255,7 @@ export class LspServer {
     await Promise.allSettled([prepareDbt, prepareDestination]);
 
     const initTime = performance.now() - this.initStart;
-    this.logStartupInfo(contextInfo, initTime);
+    this.logStartupInfo(contextInfo, initTime, ubuntuInWslWorks);
 
     this.featureFinder
       ?.runPostInitTasks()
@@ -310,17 +311,24 @@ export class LspServer {
     this.showWarning(`Dbt profile was not properly configured. ${error}`);
   }
 
-  showWslWarning(): void {
-    this.showWarning(
-      `Extension requires WSL and ${FeatureFinder.getWslUbuntuName()} to be installed. Please run the following command as Administrator and then restart your computer: wsl --install -d ${FeatureFinder.getWslUbuntuName()}`,
+  async showWslWarning(): Promise<void> {
+    const command = `wsl --install -d ${FeatureFinder.getWslUbuntuName()}`;
+    const result = await this.connection.window.showWarningMessage(
+      `Extension requires WSL and ${FeatureFinder.getWslUbuntuName()} to be installed. Please run the following command as Administrator and then restart your computer ([see docs](https://learn.microsoft.com/en-us/windows/wsl/install)): ${command}`,
+      { title: 'Run command', id: 'run' },
     );
+    if (result?.id === 'run') {
+      new ProcessExecutor()
+        .execProcess(`powershell -Command "Start-Process cmd -Verb RunAs -ArgumentList '/k ${command}'"`)
+        .catch(e => console.log(`Error while installing WSL and Ubuntu: ${e instanceof Error ? e.message : String(e)}`));
+    }
   }
 
   showCreateContextWarning(error: string): void {
     this.showWarning(`Unable to initialize BigQuery. ${error}`);
   }
 
-  logStartupInfo(contextInfo: DbtProfileInfo, initTime: number): void {
+  logStartupInfo(contextInfo: DbtProfileInfo, initTime: number, ubuntuInWslWorks: boolean): void {
     this.notificationSender.sendTelemetry('log', {
       dbtVersion: getStringVersion(this.featureFinder?.versionInfo?.installedVersion),
       pythonPath: this.featureFinder?.pythonInfo?.path ?? 'undefined',
@@ -328,6 +336,7 @@ export class LspServer {
       initTime: initTime.toString(),
       type: contextInfo.type ?? 'unknown type',
       method: contextInfo.method ?? 'unknown method',
+      winWsl: String(process.platform === 'win32' && ubuntuInWslWorks),
     });
   }
 
