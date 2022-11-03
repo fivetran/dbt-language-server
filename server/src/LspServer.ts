@@ -254,7 +254,7 @@ export class LspServer {
     await Promise.allSettled([prepareDbt, prepareDestination]);
 
     const initTime = performance.now() - this.initStart;
-    this.logStartupInfo(contextInfo, initTime);
+    this.logStartupInfo(contextInfo, initTime, ubuntuInWslWorks);
 
     this.featureFinder
       ?.runPostInitTasks()
@@ -320,7 +320,7 @@ export class LspServer {
     this.showWarning(`Unable to initialize BigQuery. ${error}`);
   }
 
-  logStartupInfo(contextInfo: DbtProfileInfo, initTime: number): void {
+  logStartupInfo(contextInfo: DbtProfileInfo, initTime: number, ubuntuInWslWorks: boolean): void {
     this.notificationSender.sendTelemetry('log', {
       dbtVersion: getStringVersion(this.featureFinder?.versionInfo?.installedVersion),
       pythonPath: this.featureFinder?.pythonInfo?.path ?? 'undefined',
@@ -328,6 +328,7 @@ export class LspServer {
       initTime: initTime.toString(),
       type: contextInfo.type ?? 'unknown type',
       method: contextInfo.method ?? 'unknown method',
+      winWsl: String(process.platform === 'win32' && ubuntuInWslWorks),
     });
   }
 
