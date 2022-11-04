@@ -1,41 +1,37 @@
-import { CustomInitParams, DbtCompilerType, LS_MANIFEST_PARSED_EVENT, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
+import { LspModeType, LS_MANIFEST_PARSED_EVENT, TelemetryEvent } from 'dbt-language-server-common';
 import { EventEmitter } from 'node:events';
 import { commands, Diagnostic, DiagnosticCollection, Disposable, RelativePattern, TextDocument, TextEditor, Uri, window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
-import { ActiveTextEditorHandler } from './ActiveTextEditorHandler';
+import { DbtWizardLanguageClient } from './DbtWizardLanguageClient';
 import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';
-import { PythonExtension } from './python/PythonExtension';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 import { StatusHandler } from './status/StatusHandler';
 import { TelemetryClient } from './TelemetryClient';
 import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from './Utils';
 
-export class DbtLanguageClient implements Disposable {
-  client: LanguageClient;
-  disposables: Disposable[] = [];
-  pythonExtension = new PythonExtension();
+export class DbtLanguageClient extends DbtWizardLanguageClient {
   pendingOpenRequests = new Map<string, (data: TextDocument) => Promise<void>>();
 
   constructor(
-    port: number,
+    private port: number,
     private outputChannelProvider: OutputChannelProvider,
-    serverAbsolutePath: string,
-    private dbtProjectUri: Uri,
+    private serverAbsolutePath: string,
+    dbtProjectUri: Uri,
     private previewContentProvider: SqlPreviewContentProvider,
     private progressHandler: ProgressHandler,
     private manifestParsedEventEmitter: EventEmitter,
-    private statusHandler: StatusHandler,
+    statusHandler: StatusHandler,
   ) {
-    this.client = new LanguageClient(
-      'dbtWizard',
-      'Wizard for dbt Core (TM)',
-      DbtLanguageClient.createServerOptions(port, serverAbsolutePath),
-      DbtLanguageClient.createClientOptions(port, dbtProjectUri, outputChannelProvider, this.disposables, this.pendingOpenRequests),
-    );
+    super(statusHandler, dbtProjectUri);
     window.onDidChangeVisibleTextEditors((e: readonly TextEditor[]) => this.onDidChangeVisibleTextEditors(e));
   }
+
+  getLspMode(): LspModeType {
+    return 'dbtProject';
+  }
+
   onDidChangeVisibleTextEditors(editors: readonly TextEditor[]): void {
     if (this.pendingOpenRequests.size > 0) {
       for (const editor of editors) {
@@ -95,15 +91,23 @@ export class DbtLanguageClient implements Disposable {
     return clientOptions;
   }
 
-  async initialize(): Promise<void> {
-    await this.initCustomParams();
-    (await this.pythonExtension.onDidChangeExecutionDetails())(() => this.restart());
+  override async initialize(): Promise<void> {
+    await super.initialize();
 
-    this.initializeNotifications();
     this.initializeEvents();
   }
 
-  initializeNotifications(): void {
+  initializeClient(): LanguageClient {
+    return new LanguageClient(
+      'dbtWizard',
+      'Wizard for dbt Core (TM)',
+      DbtLanguageClient.createServerOptions(this.port, this.serverAbsolutePath),
+      DbtLanguageClient.createClientOptions(this.port, this.dbtProjectUri, this.outputChannelProvider, this.disposables, this.pendingOpenRequests),
+    );
+  }
+
+  override initializeNotifications(): void {
+    super.initializeNotifications();
     this.disposables.push(
       this.client.onNotification('custom/updateQueryPreview', ({ uri, previewText }) => {
         this.previewContentProvider.updateText(uri as string, previewText as string);
@@ -119,13 +123,6 @@ export class DbtLanguageClient implements Disposable {
 
       this.client.onNotification('custom/manifestParsed', () => {
         this.manifestParsedEventEmitter.emit(LS_MANIFEST_PARSED_EVENT, this.dbtProjectUri.fsPath);
-      }),
-
-      this.client.onNotification('WizardForDbtCore(TM)/status', (statusNotification: StatusNotification) => {
-        const { lastActiveEditor } = ActiveTextEditorHandler;
-        const currentStatusChanged =
-          lastActiveEditor === undefined || lastActiveEditor.document.uri.fsPath.startsWith(statusNotification.projectPath);
-        this.statusHandler.changeStatus(statusNotification, currentStatusChanged);
       }),
 
       this.client.onNotification('WizardForDbtCore(TM)/installLatestDbtLog', async (data: string) => {
@@ -167,16 +164,6 @@ export class DbtLanguageClient implements Disposable {
     return this.dbtProjectUri;
   }
 
-  async initCustomParams(): Promise<void> {
-    const customInitParams: CustomInitParams = {
-      pythonInfo: await this.pythonExtension.getPythonInfo(this.client.clientOptions.workspaceFolder),
-      dbtCompiler: workspace.getConfiguration('WizardForDbtCore(TM)').get('dbtCompiler', 'Auto') as DbtCompilerType,
-      lspMode: 'dbtProject',
-    };
-
-    this.client.clientOptions.initializationOptions = customInitParams;
-  }
-
   resendDiagnostics(uri: string): void {
     this.sendNotification('WizardForDbtCore(TM)/resendDiagnostics', uri);
   }
@@ -191,27 +178,7 @@ export class DbtLanguageClient implements Disposable {
     return this.client.sendRequest(method, param);
   }
 
-  start(): void {
-    this.client.start().catch(e => log(`Error while starting server: ${e instanceof Error ? e.message : String(e)}`));
-  }
-
   getDiagnostics(): DiagnosticCollection | undefined {
     return this.client.diagnostics;
-  }
-
-  async restart(): Promise<void> {
-    await this.initCustomParams();
-    this.statusHandler.onRestart(this.dbtProjectUri.fsPath);
-    this.client.restart().catch(e => this.client.error('Restarting client failed', e, 'force'));
-  }
-
-  stop(): Promise<void> {
-    return this.client.stop();
-  }
-
-  dispose(): void {
-    this.disposables.forEach(disposable => {
-      disposable.dispose();
-    });
   }
 }
