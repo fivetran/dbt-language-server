@@ -96,7 +96,7 @@ export class DbtLanguageClient implements Disposable {
   }
 
   async initialize(): Promise<void> {
-    await this.initPythonParams();
+    await this.initCustomParams();
     (await this.pythonExtension.onDidChangeExecutionDetails())(() => this.restart());
 
     this.initializeNotifications();
@@ -167,7 +167,7 @@ export class DbtLanguageClient implements Disposable {
     return this.dbtProjectUri;
   }
 
-  async initPythonParams(): Promise<void> {
+  async initCustomParams(): Promise<void> {
     const customInitParams: CustomInitParams = {
       pythonInfo: await this.pythonExtension.getPythonInfo(this.client.clientOptions.workspaceFolder),
       dbtCompiler: workspace.getConfiguration('WizardForDbtCore(TM)').get('dbtCompiler', 'Auto') as DbtCompilerType,
@@ -200,7 +200,7 @@ export class DbtLanguageClient implements Disposable {
   }
 
   async restart(): Promise<void> {
-    await this.initPythonParams();
+    await this.initCustomParams();
     this.statusHandler.onRestart(this.dbtProjectUri.fsPath);
     this.client.restart().catch(e => this.client.error('Restarting client failed', e, 'force'));
   }
