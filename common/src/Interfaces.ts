@@ -13,4 +13,5 @@ export type DbtCompilerType = 'Auto' | 'dbt-rpc' | 'dbt';
 export interface CustomInitParams {
   pythonInfo?: PythonInfo;
   dbtCompiler: DbtCompilerType;
+  lspMode: 'dbtProject' | 'noProject';
 }

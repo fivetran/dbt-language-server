@@ -171,6 +171,7 @@ export class DbtLanguageClient implements Disposable {
     const customInitParams: CustomInitParams = {
       pythonInfo: await this.pythonExtension.getPythonInfo(this.client.clientOptions.workspaceFolder),
       dbtCompiler: workspace.getConfiguration('WizardForDbtCore(TM)').get('dbtCompiler', 'Auto') as DbtCompilerType,
+      lspMode: 'dbtProject',
     };
 
     this.client.clientOptions.initializationOptions = customInitParams;
