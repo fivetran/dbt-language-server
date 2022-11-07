@@ -1,7 +1,7 @@
 import { InitializeError, InitializeParams, InitializeResult, ResponseError, _Connection } from 'vscode-languageserver';
-import { FeatureFinder } from './FeatureFinder';
-import { InstallUtils } from './InstallUtils';
-import { NotificationSender } from './NotificationSender';
+import { FeatureFinder } from '../FeatureFinder';
+import { InstallUtils } from '../InstallUtils';
+import { NotificationSender } from '../NotificationSender';
 
 export abstract class LspServerBase {
   notificationSender: NotificationSender;

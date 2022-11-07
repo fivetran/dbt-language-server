@@ -1,9 +1,9 @@
 import { EventEmitter } from 'node:events';
 import { FileType, Selection, TextDocument, Uri, window, workspace } from 'vscode';
-import { DbtLanguageClient } from './DbtLanguageClient';
-import { DbtWizardLanguageClient } from './DbtWizardLanguageClient';
 import { log } from './Logger';
-import { NoProjectLanguageClient } from './NoProjectLanguageClient';
+import { DbtLanguageClient } from './lsp_client/DbtLanguageClient';
+import { DbtWizardLanguageClient } from './lsp_client/DbtWizardLanguageClient';
+import { NoProjectLanguageClient } from './lsp_client/NoProjectLanguageClient';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';

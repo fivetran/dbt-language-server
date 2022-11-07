@@ -1,9 +1,9 @@
 import { AdapterInfo, compareVersions, DbtStatus, getStringVersion, PythonStatus, StatusNotification } from 'dbt-language-server-common';
 import { Command, LanguageStatusSeverity, RelativePattern, Uri } from 'vscode';
-import { LanguageStatusItems } from './LanguageStatusItems';
-import { StatusItemData } from './StatusItemData';
+import { LanguageStatusItems } from '../LanguageStatusItems';
+import { StatusItemData } from '../StatusItemData';
 
-export class NoProjectStatus {
+export class NoProjectStatusGroup {
   private pythonData?: StatusItemData;
   private dbtData?: StatusItemData;
   private dbtAdaptersData?: StatusItemData;

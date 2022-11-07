@@ -2,10 +2,10 @@ import { CustomInitParams, DbtCompilerType, LspModeType, StatusNotification } fr
 import { commands, Uri, workspace } from 'vscode';
 import { Disposable, State } from 'vscode-languageclient';
 import { LanguageClient, ServerOptions, TransportKind } from 'vscode-languageclient/node';
-import { log } from './Logger';
-import { OutputChannelProvider } from './OutputChannelProvider';
-import { PythonExtension } from './python/PythonExtension';
-import { StatusHandler } from './status/StatusHandler';
+import { log } from '../Logger';
+import { OutputChannelProvider } from '../OutputChannelProvider';
+import { PythonExtension } from '../python/PythonExtension';
+import { StatusHandler } from '../status/StatusHandler';
 
 export abstract class DbtWizardLanguageClient implements Disposable {
   static readonly CLIENT_ID = 'dbtWizard';

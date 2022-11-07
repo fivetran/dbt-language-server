@@ -1,7 +1,7 @@
 import { InitializeError, InitializeResult, ResponseError, _Connection } from 'vscode-languageserver';
-import { FeatureFinder } from './FeatureFinder';
+import { FeatureFinder } from '../FeatureFinder';
+import { NoProjectStatusSender } from '../status_bar/NoProjectStatusSender';
 import { LspServerBase } from './LspServerBase';
-import { NoProjectStatusSender } from './NoProjectStatusSender';
 
 export class NoProjectLspServer extends LspServerBase {
   statusSender: NoProjectStatusSender;

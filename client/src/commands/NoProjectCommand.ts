@@ -1,6 +1,6 @@
 import { NO_PROJECT_PATH } from 'dbt-language-server-common';
 import { DbtLanguageClientManager } from '../DbtLanguageClientManager';
-import { DbtWizardLanguageClient } from '../DbtWizardLanguageClient';
+import { DbtWizardLanguageClient } from '../lsp_client/DbtWizardLanguageClient';
 
 export abstract class NoProjectCommand {
   constructor(private dbtLanguageClientManager: DbtLanguageClientManager) {}

@@ -4,8 +4,8 @@ import { createConnection, InitializeError, InitializeParams, InitializeResult, 
 import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
 import { FeatureFinder } from './FeatureFinder';
 import { Logger } from './Logger';
-import { LspServer } from './LspServer';
-import { NoProjectLspServer } from './NoProjectLspServer';
+import { LspServer } from './lsp_server/LspServer';
+import { NoProjectLspServer } from './lsp_server/NoProjectLspServer';
 
 sourceMapSupport.install({ handleUncaughtExceptions: false });
 

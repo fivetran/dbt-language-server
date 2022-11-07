@@ -1,13 +1,13 @@
 import { PackagesStatus, StatusNotification } from 'dbt-language-server-common';
 import { LanguageStatusSeverity, RelativePattern, Uri } from 'vscode';
-import { InstallDbtPackages } from '../commands/InstallDbtPackages';
-import { PACKAGES_YML, PROFILES_YML, PROFILES_YML_DEFAULT_URI } from '../Utils';
-import { LanguageStatusItems } from './LanguageStatusItems';
-import { NoProjectStatus } from './NoProjectStatus';
-import { StatusItemData } from './StatusItemData';
+import { InstallDbtPackages } from '../../commands/InstallDbtPackages';
+import { PACKAGES_YML, PROFILES_YML, PROFILES_YML_DEFAULT_URI } from '../../Utils';
+import { LanguageStatusItems } from '../LanguageStatusItems';
+import { StatusItemData } from '../StatusItemData';
+import { NoProjectStatusGroup } from './NoProjectStatusGroup';
 import path = require('node:path');
 
-export class ProjectStatus extends NoProjectStatus {
+export class ProjectStatusGroup extends NoProjectStatusGroup {
   private dbtPackagesData?: StatusItemData;
   private profilesYmlData: StatusItemData = {
     severity: LanguageStatusSeverity.Information,

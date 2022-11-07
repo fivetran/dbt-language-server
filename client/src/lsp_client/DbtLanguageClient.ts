@@ -2,14 +2,14 @@ import { LspModeType, LS_MANIFEST_PARSED_EVENT, TelemetryEvent } from 'dbt-langu
 import { EventEmitter } from 'node:events';
 import { Diagnostic, DiagnosticCollection, Disposable, RelativePattern, TextDocument, TextEditor, Uri, window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, State, WorkDoneProgress } from 'vscode-languageclient/node';
+import { log } from '../Logger';
+import { OutputChannelProvider } from '../OutputChannelProvider';
+import { ProgressHandler } from '../ProgressHandler';
+import SqlPreviewContentProvider from '../SqlPreviewContentProvider';
+import { StatusHandler } from '../status/StatusHandler';
+import { TelemetryClient } from '../TelemetryClient';
+import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from '../Utils';
 import { DbtWizardLanguageClient } from './DbtWizardLanguageClient';
-import { log } from './Logger';
-import { OutputChannelProvider } from './OutputChannelProvider';
-import { ProgressHandler } from './ProgressHandler';
-import SqlPreviewContentProvider from './SqlPreviewContentProvider';
-import { StatusHandler } from './status/StatusHandler';
-import { TelemetryClient } from './TelemetryClient';
-import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from './Utils';
 
 export class DbtLanguageClient extends DbtWizardLanguageClient {
   pendingOpenRequests = new Map<string, (data: TextDocument) => Promise<void>>();
