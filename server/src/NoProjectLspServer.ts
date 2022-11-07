@@ -23,7 +23,7 @@ export class NoProjectLspServer {
   }
 
   async onInitialized(): Promise<void> {
-    await this.featureFinder.findDbtRpcCommand();
+    await this.featureFinder.findDbtForNoProjectStatus();
     this.statusSender.sendStatus();
   }
 

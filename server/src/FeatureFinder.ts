@@ -164,6 +164,15 @@ export class FeatureFinder {
     return dbtVersionInfo ? `${name} = ${getStringVersion(dbtVersionInfo.installedVersion)} ` : '';
   }
 
+  async findDbtForNoProjectStatus(): Promise<void> {
+    const [dbtRpcPythonVersion, dbtPythonVersion] = await this.availableCommandsPromise;
+    if (dbtRpcPythonVersion) {
+      this.versionInfo = dbtRpcPythonVersion;
+    } else if (dbtPythonVersion) {
+      this.versionInfo = dbtPythonVersion;
+    }
+  }
+
   /** Tries to find a suitable command to start the server first in the current Python environment and then in the global scope.
    * Installs dbt-rpc for dbt version > 1.0.0.
    * @returns {Command} or `undefined` if nothing is found
