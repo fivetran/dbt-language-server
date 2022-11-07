@@ -1,9 +1,10 @@
 import { CustomInitParams, DbtCompilerType, LspModeType, StatusNotification } from 'dbt-language-server-common';
-import { Uri, workspace } from 'vscode';
-import { Disposable } from 'vscode-languageclient';
+import { commands, Uri, workspace } from 'vscode';
+import { Disposable, State } from 'vscode-languageclient';
 import { LanguageClient, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 import { ActiveTextEditorHandler } from './ActiveTextEditorHandler';
 import { log } from './Logger';
+import { OutputChannelProvider } from './OutputChannelProvider';
 import { PythonExtension } from './python/PythonExtension';
 import { StatusHandler } from './status/StatusHandler';
 
@@ -23,7 +24,7 @@ export abstract class DbtWizardLanguageClient implements Disposable {
   protected pythonExtension = new PythonExtension();
   protected client!: LanguageClient;
 
-  constructor(protected statusHandler: StatusHandler, protected dbtProjectUri: Uri) {}
+  constructor(protected outputChannelProvider: OutputChannelProvider, protected statusHandler: StatusHandler, protected dbtProjectUri: Uri) {}
 
   abstract getLspMode(): LspModeType;
   abstract initializeClient(): LanguageClient;
@@ -42,6 +43,21 @@ export abstract class DbtWizardLanguageClient implements Disposable {
         const currentStatusChanged =
           lastActiveEditor === undefined || lastActiveEditor.document.uri.fsPath.startsWith(statusNotification.projectPath);
         this.statusHandler.changeStatus(statusNotification, currentStatusChanged);
+      }),
+
+      this.client.onNotification('WizardForDbtCore(TM)/installLatestDbtLog', async (data: string) => {
+        this.outputChannelProvider.getInstallLatestDbtChannel().show();
+        this.outputChannelProvider.getInstallLatestDbtChannel().append(data);
+        await commands.executeCommand('workbench.action.focusActiveEditorGroup');
+      }),
+
+      this.client.onNotification('WizardForDbtCore(TM)/installDbtAdapterLog', async (data: string) => {
+        this.outputChannelProvider.getInstallDbtAdaptersChannel().append(data);
+        await commands.executeCommand('workbench.action.focusActiveEditorGroup');
+      }),
+
+      this.client.onNotification('WizardForDbtCore(TM)/restart', async () => {
+        await this.restart();
       }),
     );
   }
@@ -62,6 +78,12 @@ export abstract class DbtWizardLanguageClient implements Disposable {
 
   stop(): Promise<void> {
     return this.client.stop();
+  }
+
+  sendNotification(method: string, params?: unknown): void {
+    if (this.client.state === State.Running) {
+      this.client.sendNotification(method, params).catch(e => log(`Error while sending notification: ${e instanceof Error ? e.message : String(e)}`));
+    }
   }
 
   async restart(): Promise<void> {

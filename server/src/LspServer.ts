@@ -60,17 +60,16 @@ import { DbtDocumentKindResolver } from './document/DbtDocumentKindResolver';
 import { DbtTextDocument } from './document/DbtTextDocument';
 import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
-import { InstallUtils } from './InstallUtils';
 import { JinjaParser } from './JinjaParser';
 import { LogLevel } from './Logger';
+import { LspServerBase } from './LspServerBase';
 import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
-import { NotificationSender } from './NotificationSender';
 import { ProcessExecutor } from './ProcessExecutor';
 import { ProgressReporter } from './ProgressReporter';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
 
-export class LspServer {
+export class LspServer extends LspServerBase {
   sqlToRefCommandName = randomUUID();
   filesFilter: FileOperationFilter[];
   hasConfigurationCapability = false;
@@ -78,7 +77,6 @@ export class LspServer {
   statusSender: DbtProjectStatusSender;
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
-  notificationSender: NotificationSender;
   fileChangeListener: FileChangeListener;
   sqlCompletionProvider: SqlCompletionProvider;
   dbtCompletionProvider: DbtCompletionProvider;
@@ -94,11 +92,11 @@ export class LspServer {
   destinationState = new DestinationState();
   dbt?: Dbt;
 
-  constructor(private connection: _Connection, private featureFinder: FeatureFinder, private workspaceFolder: string) {
+  constructor(connection: _Connection, featureFinder: FeatureFinder, private workspaceFolder: string) {
+    super(connection, featureFinder);
     this.filesFilter = [{ scheme: 'file', pattern: { glob: `${this.workspaceFolder}/**/*`, matches: 'file' } }];
 
     this.progressReporter = new ProgressReporter(this.connection);
-    this.notificationSender = new NotificationSender(this.connection);
     this.dbtProfileCreator = new DbtProfileCreator(this.dbtProject, path.join(homedir(), '.dbt', 'profiles.yml'));
     this.fileChangeListener = new FileChangeListener(this.workspaceFolder, this.dbtProject, this.manifestParser, this.dbtRepository);
     this.sqlCompletionProvider = new SqlCompletionProvider();
@@ -216,22 +214,10 @@ export class LspServer {
     }
   }
 
-  onUncaughtException(error: Error, _origin: 'uncaughtException' | 'unhandledRejection'): void {
-    console.log(error.stack);
+  override initializeNotifications(): void {
+    super.initializeNotifications();
 
-    this.notificationSender.sendTelemetry('error', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack ?? '',
-    });
-
-    throw new Error('Uncaught exception. Server will be restarted.');
-  }
-
-  initializeNotifications(): void {
     this.connection.onNotification('custom/dbtCompile', (uri: string) => this.onDbtCompile(uri));
-    this.connection.onNotification('WizardForDbtCore(TM)/installLatestDbt', () => this.installLatestDbt());
-    this.connection.onNotification('WizardForDbtCore(TM)/installDbtAdapter', (dbtAdapter: string) => this.installDbtAdapter(dbtAdapter));
     this.connection.onNotification('WizardForDbtCore(TM)/resendDiagnostics', (uri: string) => this.onResendDiagnostics(uri));
 
     this.connection.onRequest('WizardForDbtCore(TM)/getListOfPackages', () => this.featureFinder.packageInfosPromise.get());
@@ -360,30 +346,6 @@ export class LspServer {
 
   onDbtCompile(uri: string): void {
     this.openedDocuments.get(uri)?.forceRecompile();
-  }
-
-  async installLatestDbt(): Promise<void> {
-    const pythonPath = this.featureFinder.getPythonPath();
-    if (pythonPath) {
-      const sendLog = (data: string): void => this.notificationSender.sendInstallLatestDbtLog(data);
-      const installResult = await InstallUtils.installDbt(pythonPath, 'bigquery', sendLog, sendLog);
-
-      if (installResult.isOk()) {
-        this.notificationSender.sendRestart();
-      }
-    }
-  }
-
-  async installDbtAdapter(dbtAdapter: string): Promise<void> {
-    const pythonPath = this.featureFinder.getPythonPath();
-    if (pythonPath) {
-      const sendLog = (data: string): void => this.notificationSender.sendInstallDbtAdapterLog(data);
-      const installResult = await InstallUtils.installDbtAdapter(pythonPath, dbtAdapter, sendLog, sendLog);
-
-      if (installResult.isOk()) {
-        this.notificationSender.sendRestart();
-      }
-    }
   }
 
   async onResendDiagnostics(uri: string): Promise<void> {

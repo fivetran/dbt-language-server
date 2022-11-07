@@ -3,17 +3,17 @@ import { DbtLanguageClientManager } from '../DbtLanguageClientManager';
 import { log } from '../Logger';
 import { OutputChannelProvider } from '../OutputChannelProvider';
 import { Command } from './CommandManager';
+import { NoProjectCommand } from './NoProjectCommand';
 
-export class InstallLatestDbt implements Command {
+export class InstallLatestDbt extends NoProjectCommand implements Command {
   readonly id = 'WizardForDbtCore(TM).installLatestDbt';
 
-  constructor(private dbtLanguageClientManager: DbtLanguageClientManager, private outputChannelProvider: OutputChannelProvider) {}
+  constructor(dbtLanguageClientManager: DbtLanguageClientManager, private outputChannelProvider: OutputChannelProvider) {
+    super(dbtLanguageClientManager);
+  }
 
   async execute(projectPath?: string, skipDialog?: boolean): Promise<void> {
-    const client =
-      projectPath === undefined
-        ? await this.dbtLanguageClientManager.getClientForActiveDocument()
-        : this.dbtLanguageClientManager.getClientByPath(projectPath);
+    const client = await this.getClient(projectPath);
     if (client) {
       const answer =
         skipDialog === undefined

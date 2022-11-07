@@ -1,6 +1,6 @@
 import { LspModeType, LS_MANIFEST_PARSED_EVENT, TelemetryEvent } from 'dbt-language-server-common';
 import { EventEmitter } from 'node:events';
-import { commands, Diagnostic, DiagnosticCollection, Disposable, RelativePattern, TextDocument, TextEditor, Uri, window, workspace } from 'vscode';
+import { Diagnostic, DiagnosticCollection, Disposable, RelativePattern, TextDocument, TextEditor, Uri, window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, State, WorkDoneProgress } from 'vscode-languageclient/node';
 import { DbtWizardLanguageClient } from './DbtWizardLanguageClient';
 import { log } from './Logger';
@@ -16,7 +16,7 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
 
   constructor(
     private port: number,
-    private outputChannelProvider: OutputChannelProvider,
+    outputChannelProvider: OutputChannelProvider,
     private serverAbsolutePath: string,
     dbtProjectUri: Uri,
     private previewContentProvider: SqlPreviewContentProvider,
@@ -24,7 +24,7 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
     private manifestParsedEventEmitter: EventEmitter,
     statusHandler: StatusHandler,
   ) {
-    super(statusHandler, dbtProjectUri);
+    super(outputChannelProvider, statusHandler, dbtProjectUri);
     window.onDidChangeVisibleTextEditors((e: readonly TextEditor[]) => this.onDidChangeVisibleTextEditors(e));
   }
 
@@ -100,6 +100,7 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
 
   override initializeNotifications(): void {
     super.initializeNotifications();
+
     this.disposables.push(
       this.client.onNotification('custom/updateQueryPreview', ({ uri, previewText }) => {
         this.previewContentProvider.updateText(uri as string, previewText as string);
@@ -115,21 +116,6 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
 
       this.client.onNotification('custom/manifestParsed', () => {
         this.manifestParsedEventEmitter.emit(LS_MANIFEST_PARSED_EVENT, this.dbtProjectUri.fsPath);
-      }),
-
-      this.client.onNotification('WizardForDbtCore(TM)/installLatestDbtLog', async (data: string) => {
-        this.outputChannelProvider.getInstallLatestDbtChannel().show();
-        this.outputChannelProvider.getInstallLatestDbtChannel().append(data);
-        await commands.executeCommand('workbench.action.focusActiveEditorGroup');
-      }),
-
-      this.client.onNotification('WizardForDbtCore(TM)/installDbtAdapterLog', async (data: string) => {
-        this.outputChannelProvider.getInstallDbtAdaptersChannel().append(data);
-        await commands.executeCommand('workbench.action.focusActiveEditorGroup');
-      }),
-
-      this.client.onNotification('WizardForDbtCore(TM)/restart', async () => {
-        await this.restart();
       }),
     );
   }
@@ -158,12 +144,6 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
 
   resendDiagnostics(uri: string): void {
     this.sendNotification('WizardForDbtCore(TM)/resendDiagnostics', uri);
-  }
-
-  sendNotification(method: string, params?: unknown): void {
-    if (this.client.state === State.Running) {
-      this.client.sendNotification(method, params).catch(e => log(`Error while sending notification: ${e instanceof Error ? e.message : String(e)}`));
-    }
   }
 
   sendRequest<R>(method: string, param?: unknown): Promise<R> {

@@ -1,14 +1,13 @@
 import { InitializeError, InitializeResult, ResponseError, _Connection } from 'vscode-languageserver';
 import { FeatureFinder } from './FeatureFinder';
+import { LspServerBase } from './LspServerBase';
 import { NoProjectStatusSender } from './NoProjectStatusSender';
-import { NotificationSender } from './NotificationSender';
 
-export class NoProjectLspServer {
-  notificationSender: NotificationSender;
+export class NoProjectLspServer extends LspServerBase {
   statusSender: NoProjectStatusSender;
 
-  constructor(private connection: _Connection, private featureFinder: FeatureFinder) {
-    this.notificationSender = new NotificationSender(this.connection);
+  constructor(connection: _Connection, featureFinder: FeatureFinder) {
+    super(connection, featureFinder);
     this.statusSender = new NoProjectStatusSender(this.notificationSender, this.featureFinder);
   }
 
@@ -16,6 +15,7 @@ export class NoProjectLspServer {
     console.log('Starting server without project');
 
     this.connection.onInitialized(this.onInitialized.bind(this));
+    this.initializeNotifications();
 
     process.on('uncaughtException', this.onUncaughtException.bind(this));
 
@@ -25,17 +25,5 @@ export class NoProjectLspServer {
   async onInitialized(): Promise<void> {
     await this.featureFinder.findDbtForNoProjectStatus();
     this.statusSender.sendStatus();
-  }
-
-  onUncaughtException(error: Error, _origin: 'uncaughtException' | 'unhandledRejection'): void {
-    console.log(error.stack);
-
-    this.notificationSender.sendTelemetry('error', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack ?? '',
-    });
-
-    throw new Error('Uncaught exception. Server will be restarted.');
   }
 }

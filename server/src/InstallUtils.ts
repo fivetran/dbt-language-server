@@ -11,8 +11,11 @@ export class InstallUtils {
 
   static readonly PROCESS_EXECUTOR = new ProcessExecutor();
 
-  static getFullDbtInstallationPackages(dbtProfileType: string): string[] {
-    const packages = [InstallUtils.DBT_CORE, InstallUtils.buildAdapterPackageName(dbtProfileType)];
+  static getFullDbtInstallationPackages(dbtProfileType?: string): string[] {
+    const packages = [InstallUtils.DBT_CORE];
+    if (dbtProfileType) {
+      packages.push(InstallUtils.buildAdapterPackageName(dbtProfileType));
+    }
     if (process.platform !== 'win32') {
       packages.push(InstallUtils.DBT_RPC);
     }
@@ -21,7 +24,7 @@ export class InstallUtils {
 
   static async installDbt(
     python: string,
-    dbtProfileType: string,
+    dbtProfileType?: string,
     onStdoutData?: (data: string) => void,
     onStderrData?: (data: string) => void,
   ): Promise<Result<string, string>> {
