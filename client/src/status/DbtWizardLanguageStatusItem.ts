@@ -27,18 +27,16 @@ export class DbtWizardLanguageStatusItem {
     this.item.command = command;
   }
 
-  setDocumentFilter(filter: DocumentFilter): void {
-    const filters = this.item.selector as DocumentFilter[];
-    if (!filters.includes(filter)) {
-      filters.push(filter);
-    }
-    if (filters.length === 1) {
-      filters.push(DbtWizardLanguageStatusItem.PROFILES_YML_FILTER);
+  setDocumentFilter(filters: DocumentFilter[]): void {
+    const existingFilters = this.item.selector as DocumentFilter[];
+    filters.filter(f => !existingFilters.includes(f)).forEach(f => existingFilters.push(f));
+    if (existingFilters.length === 1) {
+      existingFilters.push(DbtWizardLanguageStatusItem.PROFILES_YML_FILTER);
     } else {
-      const index = filters.indexOf(DbtWizardLanguageStatusItem.PROFILES_YML_FILTER);
+      const index = existingFilters.indexOf(DbtWizardLanguageStatusItem.PROFILES_YML_FILTER);
       // We don't know what to show if there are more than one active projects
       if (index !== -1) {
-        filters.splice(index, 1);
+        existingFilters.splice(index, 1);
       }
     }
   }

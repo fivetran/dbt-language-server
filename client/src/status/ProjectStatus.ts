@@ -18,9 +18,9 @@ export class ProjectStatus extends NoProjectStatus {
   constructor(projectPath: string, items: LanguageStatusItems) {
     super(projectPath, items);
 
-    const documentFilter = { pattern: new RelativePattern(Uri.file(projectPath), '**/*') };
-    this.items.dbtPackages.setDocumentFilter(documentFilter);
-    this.items.profilesYml.setDocumentFilter(documentFilter);
+    const documentFilters = [{ pattern: new RelativePattern(Uri.file(projectPath), '**/*') }];
+    this.items.dbtPackages.setDocumentFilter(documentFilters);
+    this.items.profilesYml.setDocumentFilter(documentFilters);
   }
 
   override setBusy(): void {

@@ -9,10 +9,10 @@ export class NoProjectStatus {
   private dbtAdaptersData?: StatusItemData;
 
   constructor(protected projectPath: string, protected items: LanguageStatusItems) {
-    const documentFilter = { pattern: new RelativePattern(Uri.file(projectPath), '**/*') };
-    this.items.python.setDocumentFilter(documentFilter);
-    this.items.dbt.setDocumentFilter(documentFilter);
-    this.items.dbtAdapters.setDocumentFilter(documentFilter);
+    const documentFilters = [{ pattern: new RelativePattern(Uri.file(projectPath), '**/*') }, { scheme: 'untitled' }];
+    this.items.python.setDocumentFilter(documentFilters);
+    this.items.dbt.setDocumentFilter(documentFilters);
+    this.items.dbtAdapters.setDocumentFilter(documentFilters);
   }
 
   setBusy(): void {
