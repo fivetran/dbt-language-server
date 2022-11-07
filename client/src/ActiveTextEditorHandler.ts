@@ -7,7 +7,7 @@ import { isDocumentSupported } from './Utils';
 
 export class ActiveTextEditorHandler {
   handler: Disposable;
-  static lastActiveEditor?: TextEditor;
+  lastActiveEditor?: TextEditor;
 
   constructor(
     private previewContentProvider: SqlPreviewContentProvider,
@@ -16,7 +16,7 @@ export class ActiveTextEditorHandler {
   ) {
     this.handler = window.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditor.bind(this));
     if (window.activeTextEditor && isDocumentSupported(window.activeTextEditor.document)) {
-      ActiveTextEditorHandler.lastActiveEditor = window.activeTextEditor;
+      this.lastActiveEditor = window.activeTextEditor;
     }
   }
 
@@ -25,16 +25,16 @@ export class ActiveTextEditorHandler {
       !activeEditor ||
       (activeEditor.document.uri.scheme !== 'file' && activeEditor.document.uri.scheme !== 'untitled') ||
       SqlPreviewContentProvider.isPreviewDocument(activeEditor.document.uri) ||
-      ActiveTextEditorHandler.lastActiveEditor?.document.uri.path === activeEditor.document.uri.path
+      this.lastActiveEditor?.document.uri.path === activeEditor.document.uri.path
     ) {
       return;
     }
 
-    ActiveTextEditorHandler.lastActiveEditor = activeEditor;
+    this.lastActiveEditor = activeEditor;
 
     const client = await this.dbtLanguageClientManager.getClientByUri(activeEditor.document.uri);
 
-    this.statusHandler.updateLanguageItems(client?.getProjectUri().fsPath ?? NO_PROJECT_PATH);
+    this.statusHandler.changeActiveProject(client?.getProjectUri().fsPath ?? NO_PROJECT_PATH);
 
     if (isDocumentSupported(activeEditor.document)) {
       this.previewContentProvider.changeActiveDocument(activeEditor.document.uri);

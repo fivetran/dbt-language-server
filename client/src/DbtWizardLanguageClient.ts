@@ -2,7 +2,6 @@ import { CustomInitParams, DbtCompilerType, LspModeType, StatusNotification } fr
 import { commands, Uri, workspace } from 'vscode';
 import { Disposable, State } from 'vscode-languageclient';
 import { LanguageClient, ServerOptions, TransportKind } from 'vscode-languageclient/node';
-import { ActiveTextEditorHandler } from './ActiveTextEditorHandler';
 import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import { PythonExtension } from './python/PythonExtension';
@@ -39,10 +38,7 @@ export abstract class DbtWizardLanguageClient implements Disposable {
   initializeNotifications(): void {
     this.disposables.push(
       this.client.onNotification('WizardForDbtCore(TM)/status', (statusNotification: StatusNotification) => {
-        const { lastActiveEditor } = ActiveTextEditorHandler;
-        const currentStatusChanged =
-          lastActiveEditor === undefined || lastActiveEditor.document.uri.fsPath.startsWith(statusNotification.projectPath);
-        this.statusHandler.changeStatus(statusNotification, currentStatusChanged);
+        this.statusHandler.changeStatus(statusNotification);
       }),
 
       this.client.onNotification('WizardForDbtCore(TM)/installLatestDbtLog', async (data: string) => {

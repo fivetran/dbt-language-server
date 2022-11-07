@@ -6,19 +6,23 @@ import { ProjectStatus } from './ProjectStatus';
 export class StatusHandler {
   private projectStatuses: Map<string, NoProjectStatus> = new Map();
   private statusItems = new LanguageStatusItems();
+  private activeProjectPath?: string;
 
   onRestart(projectPath: string): void {
     this.getProjectStatus(projectPath).setBusy();
   }
 
-  updateLanguageItems(projectPath: string): void {
+  changeActiveProject(projectPath: string): void {
     this.getProjectStatus(projectPath).updateStatusUi();
+    this.activeProjectPath = projectPath;
   }
 
-  changeStatus(statusNotification: StatusNotification, forCurrentProject: boolean): void {
-    this.getProjectStatus(statusNotification.projectPath).updateStatusData(statusNotification);
-    if (forCurrentProject) {
-      this.updateLanguageItems(statusNotification.projectPath);
+  changeStatus(statusNotification: StatusNotification): void {
+    const status = this.getProjectStatus(statusNotification.projectPath);
+    status.updateStatusData(statusNotification);
+
+    if (!this.activeProjectPath || this.activeProjectPath === statusNotification.projectPath) {
+      status.updateStatusUi();
     }
   }
 
@@ -28,7 +32,6 @@ export class StatusHandler {
       projectStatus =
         projectPath === NO_PROJECT_PATH ? new NoProjectStatus(NO_PROJECT_PATH, this.statusItems) : new ProjectStatus(projectPath, this.statusItems);
       this.projectStatuses.set(projectPath, projectStatus);
-      projectStatus.updateStatusUi();
     }
     return projectStatus;
   }
