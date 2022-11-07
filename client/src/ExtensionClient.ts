@@ -94,6 +94,7 @@ export class ExtensionClient {
         await commands.executeCommand('workbench.action.keepEditor');
       }
     }
+    await this.dbtLanguageClientManager.ensureNoProjectClient();
   }
 
   parseVersion(): void {

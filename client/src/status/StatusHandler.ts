@@ -1,9 +1,10 @@
-import { StatusNotification } from 'dbt-language-server-common';
+import { NO_PROJECT_PATH, StatusNotification } from 'dbt-language-server-common';
 import { LanguageStatusItems } from './LanguageStatusItems';
+import { NoProjectStatus } from './NoProjectStatus';
 import { ProjectStatus } from './ProjectStatus';
 
 export class StatusHandler {
-  private projectStatuses: Map<string, ProjectStatus> = new Map();
+  private projectStatuses: Map<string, NoProjectStatus> = new Map();
   private statusItems = new LanguageStatusItems();
 
   onRestart(projectPath: string): void {
@@ -21,11 +22,13 @@ export class StatusHandler {
     }
   }
 
-  private getProjectStatus(projectPath: string): ProjectStatus {
+  private getProjectStatus(projectPath: string): NoProjectStatus {
     let projectStatus = this.projectStatuses.get(projectPath);
     if (projectStatus === undefined) {
-      projectStatus = new ProjectStatus(projectPath, this.statusItems);
+      projectStatus =
+        projectPath === NO_PROJECT_PATH ? new NoProjectStatus(NO_PROJECT_PATH, this.statusItems) : new ProjectStatus(projectPath, this.statusItems);
       this.projectStatuses.set(projectPath, projectStatus);
+      projectStatus.updateStatusUi();
     }
     return projectStatus;
   }

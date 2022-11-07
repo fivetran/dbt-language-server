@@ -1,3 +1,4 @@
+import { NO_PROJECT_PATH } from 'dbt-language-server-common';
 import { Disposable, TextEditor, window } from 'vscode';
 import { DbtLanguageClientManager } from './DbtLanguageClientManager';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
@@ -32,9 +33,7 @@ export class ActiveTextEditorHandler {
 
     const client = await this.dbtLanguageClientManager.getClientByUri(activeEditor.document.uri);
 
-    if (client?.getProjectUri()) {
-      this.statusHandler.updateLanguageItems(client.getProjectUri().fsPath);
-    }
+    this.statusHandler.updateLanguageItems(client?.getProjectUri().fsPath ?? NO_PROJECT_PATH);
 
     if (isDocumentSupported(activeEditor.document)) {
       this.previewContentProvider.changeActiveDocument(activeEditor.document.uri);

@@ -1,7 +1,7 @@
 import { LspModeType, LS_MANIFEST_PARSED_EVENT, TelemetryEvent } from 'dbt-language-server-common';
 import { EventEmitter } from 'node:events';
 import { commands, Diagnostic, DiagnosticCollection, Disposable, RelativePattern, TextDocument, TextEditor, Uri, window, workspace } from 'vscode';
-import { LanguageClient, LanguageClientOptions, ServerOptions, State, TransportKind, WorkDoneProgress } from 'vscode-languageclient/node';
+import { LanguageClient, LanguageClientOptions, State, WorkDoneProgress } from 'vscode-languageclient/node';
 import { DbtWizardLanguageClient } from './DbtWizardLanguageClient';
 import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
@@ -42,14 +42,6 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
         }
       }
     }
-  }
-
-  static createServerOptions(port: number, module: string): ServerOptions {
-    const debugOptions = { execArgv: ['--nolazy', `--inspect=${port}`] };
-    return {
-      run: { module, transport: TransportKind.ipc },
-      debug: { module, transport: TransportKind.ipc, options: debugOptions },
-    };
   }
 
   static createClientOptions(
@@ -99,9 +91,9 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
 
   initializeClient(): LanguageClient {
     return new LanguageClient(
-      'dbtWizard',
-      'Wizard for dbt Core (TM)',
-      DbtLanguageClient.createServerOptions(this.port, this.serverAbsolutePath),
+      DbtWizardLanguageClient.CLIENT_ID,
+      DbtWizardLanguageClient.CLIENT_NAME,
+      DbtWizardLanguageClient.createServerOptions(this.port, this.serverAbsolutePath),
       DbtLanguageClient.createClientOptions(this.port, this.dbtProjectUri, this.outputChannelProvider, this.disposables, this.pendingOpenRequests),
     );
   }

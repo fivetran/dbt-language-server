@@ -48,6 +48,7 @@ import { URI } from 'vscode-uri';
 import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
 import { DbtProfileCreator, DbtProfileInfo } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
+import { DbtProjectStatusSender } from './DbtProjectStatusSender';
 import { DbtRepository } from './DbtRepository';
 import { Dbt, DbtMode } from './dbt_execution/Dbt';
 import { DbtCli } from './dbt_execution/DbtCli';
@@ -61,22 +62,20 @@ import { FeatureFinder } from './FeatureFinder';
 import { FileChangeListener } from './FileChangeListener';
 import { InstallUtils } from './InstallUtils';
 import { JinjaParser } from './JinjaParser';
-import { Logger, LogLevel } from './Logger';
+import { LogLevel } from './Logger';
 import { ManifestParser } from './manifest/ManifestParser';
 import { ModelCompiler } from './ModelCompiler';
 import { NotificationSender } from './NotificationSender';
 import { ProcessExecutor } from './ProcessExecutor';
 import { ProgressReporter } from './ProgressReporter';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
-import { StatusSender } from './StatusSender';
 
 export class LspServer {
   sqlToRefCommandName = randomUUID();
   filesFilter: FileOperationFilter[];
-  workspaceFolder: string;
   hasConfigurationCapability = false;
   hasDidChangeWatchedFilesCapability = false;
-  statusSender?: StatusSender;
+  statusSender: DbtProjectStatusSender;
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
   notificationSender: NotificationSender;
@@ -95,10 +94,8 @@ export class LspServer {
   destinationState = new DestinationState();
   dbt?: Dbt;
 
-  constructor(private connection: _Connection, private featureFinder: FeatureFinder) {
-    this.workspaceFolder = process.cwd();
+  constructor(private connection: _Connection, private featureFinder: FeatureFinder, private workspaceFolder: string) {
     this.filesFilter = [{ scheme: 'file', pattern: { glob: `${this.workspaceFolder}/**/*`, matches: 'file' } }];
-    Logger.prepareLogger(this.workspaceFolder);
 
     this.progressReporter = new ProgressReporter(this.connection);
     this.notificationSender = new NotificationSender(this.connection);
@@ -107,7 +104,7 @@ export class LspServer {
     this.sqlCompletionProvider = new SqlCompletionProvider();
     this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);
     this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
-    this.statusSender = new StatusSender(this.notificationSender, this.workspaceFolder, this.featureFinder, this.fileChangeListener);
+    this.statusSender = new DbtProjectStatusSender(this.notificationSender, this.workspaceFolder, this.featureFinder, this.fileChangeListener);
   }
 
   onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> {
@@ -118,7 +115,6 @@ export class LspServer {
     process.on('uncaughtException', this.onUncaughtException.bind(this));
     process.on('SIGTERM', () => this.onShutdown());
     process.on('SIGINT', () => this.onShutdown());
-    this.statusSender = new StatusSender(this.notificationSender, this.workspaceFolder, this.featureFinder, this.fileChangeListener);
 
     this.fileChangeListener.onInit();
 
@@ -267,7 +263,7 @@ export class LspServer {
       : this.destinationState
           .prepareBigQueryDestination(profileResult.value, this.dbtRepository, ubuntuInWslWorks)
           .then((prepareResult: Result<void, string>) => (prepareResult.isErr() ? this.showCreateContextWarning(prepareResult.error) : undefined));
-    const prepareDbt = this.dbt?.prepare(dbtProfileType).then(_ => this.statusSender?.sendStatus());
+    const prepareDbt = this.dbt?.prepare(dbtProfileType).then(_ => this.statusSender.sendStatus());
 
     this.dbtRepository
       .manifestParsed()

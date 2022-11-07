@@ -1,7 +1,9 @@
 import { EventEmitter } from 'node:events';
 import { FileType, Selection, TextDocument, Uri, window, workspace } from 'vscode';
 import { DbtLanguageClient } from './DbtLanguageClient';
+import { DbtWizardLanguageClient } from './DbtWizardLanguageClient';
 import { log } from './Logger';
+import { NoProjectLanguageClient } from './NoProjectLanguageClient';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
@@ -13,6 +15,7 @@ export class DbtLanguageClientManager {
   workspaceHelper = new WorkspaceHelper();
   clients: Map<string, DbtLanguageClient> = new Map();
   progressHandler = new ProgressHandler();
+  noProjectClient?: NoProjectLanguageClient;
 
   constructor(
     private previewContentProvider: SqlPreviewContentProvider,
@@ -124,10 +127,19 @@ export class DbtLanguageClientManager {
         this.statusHandler,
       );
       this.clients.set(projectUri.fsPath, client);
+      await this.initAndStartClient(client);
+    }
+  }
 
-      await client.initialize();
+  async initAndStartClient(client: DbtWizardLanguageClient): Promise<void> {
+    await client.initialize();
+    client.start();
+  }
 
-      client.start();
+  async ensureNoProjectClient(): Promise<void> {
+    if (!this.noProjectClient) {
+      this.noProjectClient = new NoProjectLanguageClient(6008, this.outputChannelProvider, this.statusHandler, this.serverAbsolutePath);
+      await this.initAndStartClient(this.noProjectClient);
     }
   }
 

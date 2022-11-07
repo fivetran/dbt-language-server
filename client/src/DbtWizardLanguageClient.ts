@@ -1,13 +1,24 @@
 import { CustomInitParams, DbtCompilerType, LspModeType, StatusNotification } from 'dbt-language-server-common';
 import { Uri, workspace } from 'vscode';
 import { Disposable } from 'vscode-languageclient';
-import { LanguageClient } from 'vscode-languageclient/node';
+import { LanguageClient, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 import { ActiveTextEditorHandler } from './ActiveTextEditorHandler';
 import { log } from './Logger';
 import { PythonExtension } from './python/PythonExtension';
 import { StatusHandler } from './status/StatusHandler';
 
 export abstract class DbtWizardLanguageClient implements Disposable {
+  static readonly CLIENT_ID = 'dbtWizard';
+  static readonly CLIENT_NAME = 'Wizard for dbt Core (TM)';
+
+  static createServerOptions(port: number, module: string): ServerOptions {
+    const debugOptions = { execArgv: ['--nolazy', `--inspect=${port}`] };
+    return {
+      run: { module, transport: TransportKind.ipc },
+      debug: { module, transport: TransportKind.ipc, options: debugOptions },
+    };
+  }
+
   protected disposables: Disposable[] = [];
   protected pythonExtension = new PythonExtension();
   protected client!: LanguageClient;
