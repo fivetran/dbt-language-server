@@ -1,5 +1,5 @@
 import { InitializeError, InitializeParams, InitializeResult, ResponseError, _Connection } from 'vscode-languageserver';
-import { FeatureFinderBase } from '../FeatureFinderBase';
+import { FeatureFinderBase } from '../feature_finder/FeatureFinderBase';
 import { InstallUtils } from '../InstallUtils';
 import { NotificationSender } from '../NotificationSender';
 

@@ -2,13 +2,13 @@ import { CustomInitParams, NO_PROJECT_PATH } from 'dbt-language-server-common';
 import * as sourceMapSupport from 'source-map-support';
 import { createConnection, InitializeError, InitializeParams, InitializeResult, ProposedFeatures, ResponseError } from 'vscode-languageserver/node';
 import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
-import { FeatureFinder } from './FeatureFinder';
-import { FeatureFinderBase } from './FeatureFinderBase';
+import { FeatureFinder } from './feature_finder/FeatureFinder';
+import { FeatureFinderBase } from './feature_finder/FeatureFinderBase';
+import { NoProjectFeatureFinder } from './feature_finder/NoProjectFeatureFinder';
 import { Logger } from './Logger';
 import { LspServer } from './lsp_server/LspServer';
 import { LspServerBase } from './lsp_server/LspServerBase';
 import { NoProjectLspServer } from './lsp_server/NoProjectLspServer';
-import { NoProjectFeatureFinder } from './NoProjectFeatureFinder';
 
 sourceMapSupport.install({ handleUncaughtExceptions: false });
 

@@ -1,5 +1,5 @@
 import { DbtVersionInfo, PythonInfo } from 'dbt-language-server-common';
-import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
+import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor';
 import { FeatureFinderBase } from './FeatureFinderBase';
 
 export class NoProjectFeatureFinder extends FeatureFinderBase {

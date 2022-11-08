@@ -1,6 +1,6 @@
 import { StatusNotification } from 'dbt-language-server-common';
 import { FileChangeType } from 'vscode-languageserver';
-import { FeatureFinder } from '../FeatureFinder';
+import { FeatureFinder } from '../feature_finder/FeatureFinder';
 import { FileChangeListener } from '../FileChangeListener';
 import { NotificationSender } from '../NotificationSender';
 import { NoProjectStatusSender } from './NoProjectStatusSender';

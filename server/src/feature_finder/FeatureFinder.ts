@@ -2,15 +2,15 @@ import { DbtPackageInfo, DbtPackageVersions, DbtVersionInfo, PythonInfo } from '
 import { promises as fsPromises } from 'node:fs';
 import * as semver from 'semver';
 import * as yaml from 'yaml';
-import { DbtRepository } from './DbtRepository';
-import { Command } from './dbt_execution/commands/Command';
-import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
-import { DbtCommandFactory } from './dbt_execution/DbtCommandFactory';
+import { DbtRepository } from '../DbtRepository';
+import { Command } from '../dbt_execution/commands/Command';
+import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor';
+import { DbtCommandFactory } from '../dbt_execution/DbtCommandFactory';
+import { InstallUtils } from '../InstallUtils';
+import { ProcessExecutor } from '../ProcessExecutor';
+import { Lazy } from '../utils/Lazy';
+import { randomNumber } from '../utils/Utils';
 import { FeatureFinderBase } from './FeatureFinderBase';
-import { InstallUtils } from './InstallUtils';
-import { ProcessExecutor } from './ProcessExecutor';
-import { Lazy } from './utils/Lazy';
-import { randomNumber } from './utils/Utils';
 import findFreePortPmfy = require('find-free-port');
 
 interface HubJson {

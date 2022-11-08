@@ -57,7 +57,7 @@ import { DestinationState } from '../DestinationState';
 import { DbtDocumentKind } from '../document/DbtDocumentKind';
 import { DbtDocumentKindResolver } from '../document/DbtDocumentKindResolver';
 import { DbtTextDocument } from '../document/DbtTextDocument';
-import { FeatureFinder } from '../FeatureFinder';
+import { FeatureFinder } from '../feature_finder/FeatureFinder';
 import { FileChangeListener } from '../FileChangeListener';
 import { JinjaParser } from '../JinjaParser';
 import { LogLevel } from '../Logger';

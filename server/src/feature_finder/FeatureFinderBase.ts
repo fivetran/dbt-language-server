@@ -1,7 +1,7 @@
 import { AdapterInfo, DbtVersionInfo, getStringVersion, PythonInfo, Version } from 'dbt-language-server-common';
-import { Command } from './dbt_execution/commands/Command';
-import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
-import { DbtCommandFactory } from './dbt_execution/DbtCommandFactory';
+import { Command } from '../dbt_execution/commands/Command';
+import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor';
+import { DbtCommandFactory } from '../dbt_execution/DbtCommandFactory';
 
 export class FeatureFinderBase {
   private static readonly DBT_INSTALLED_VERSION_PATTERN = /installed.*:\s+(\d+)\.(\d+)\.(\d+)/;
