@@ -3,9 +3,12 @@ import * as sourceMapSupport from 'source-map-support';
 import { createConnection, InitializeError, InitializeParams, InitializeResult, ProposedFeatures, ResponseError } from 'vscode-languageserver/node';
 import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
 import { FeatureFinder } from './FeatureFinder';
+import { FeatureFinderBase } from './FeatureFinderBase';
 import { Logger } from './Logger';
 import { LspServer } from './lsp_server/LspServer';
+import { LspServerBase } from './lsp_server/LspServerBase';
 import { NoProjectLspServer } from './lsp_server/NoProjectLspServer';
+import { NoProjectFeatureFinder } from './NoProjectFeatureFinder';
 
 sourceMapSupport.install({ handleUncaughtExceptions: false });
 
@@ -19,13 +22,18 @@ connection.onInitialize((params: InitializeParams): InitializeResult<unknown> | 
   const customInitParams = params.initializationOptions as CustomInitParams;
   Logger.prepareLogger(customInitParams.lspMode === 'dbtProject' ? workspaceFolder : NO_PROJECT_PATH);
 
-  const featureFinder = new FeatureFinder(customInitParams.pythonInfo, new DbtCommandExecutor());
-
-  const server =
-    customInitParams.lspMode === 'dbtProject'
-      ? new LspServer(connection, featureFinder, workspaceFolder)
-      : new NoProjectLspServer(connection, featureFinder);
+  const server = createLspServer(customInitParams, workspaceFolder);
   return server.onInitialize(params);
 });
+
+function createLspServer(customInitParams: CustomInitParams, workspaceFolder: string): LspServerBase<FeatureFinderBase> {
+  if (customInitParams.lspMode === 'noProject') {
+    const noProjectFeatureFinder = new NoProjectFeatureFinder(customInitParams.pythonInfo, new DbtCommandExecutor());
+    return new NoProjectLspServer(connection, noProjectFeatureFinder);
+  }
+
+  const featureFinder = new FeatureFinder(customInitParams.pythonInfo, new DbtCommandExecutor());
+  return new LspServer(connection, featureFinder, workspaceFolder);
+}
 
 connection.listen();

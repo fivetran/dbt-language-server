@@ -1,9 +1,9 @@
 import { NO_PROJECT_PATH, StatusNotification } from 'dbt-language-server-common';
-import { FeatureFinder } from '../FeatureFinder';
+import { FeatureFinderBase } from '../FeatureFinderBase';
 import { NotificationSender } from '../NotificationSender';
 
 export class NoProjectStatusSender {
-  constructor(protected notificationSender: NotificationSender, protected featureFinder: FeatureFinder) {}
+  constructor(protected notificationSender: NotificationSender, protected featureFinder: FeatureFinderBase) {}
 
   getProjectPath(): string {
     return NO_PROJECT_PATH;

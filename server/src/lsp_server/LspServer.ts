@@ -69,7 +69,7 @@ import { SqlCompletionProvider } from '../SqlCompletionProvider';
 import { DbtProjectStatusSender } from '../status_bar/DbtProjectStatusSender';
 import { LspServerBase } from './LspServerBase';
 
-export class LspServer extends LspServerBase {
+export class LspServer extends LspServerBase<FeatureFinder> {
   sqlToRefCommandName = randomUUID();
   filesFilter: FileOperationFilter[];
   hasConfigurationCapability = false;
