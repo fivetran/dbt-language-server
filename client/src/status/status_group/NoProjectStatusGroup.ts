@@ -1,27 +1,53 @@
-import { AdapterInfo, compareVersions, DbtStatus, getStringVersion, PythonStatus, StatusNotification } from 'dbt-language-server-common';
+import {
+  AdapterInfo,
+  compareVersions,
+  DbtStatus,
+  getStringVersion,
+  NO_PROJECT_PATH,
+  PythonStatus,
+  StatusNotification,
+} from 'dbt-language-server-common';
 import { Command, LanguageStatusSeverity, RelativePattern, Uri } from 'vscode';
 import { LanguageStatusItems } from '../LanguageStatusItems';
 import { StatusItemData } from '../StatusItemData';
 
 export class NoProjectStatusGroup {
+  private activeDbtProjectData: StatusItemData;
   private pythonData?: StatusItemData;
   private dbtData?: StatusItemData;
   private dbtAdaptersData?: StatusItemData;
 
   constructor(protected projectPath: string, protected items: LanguageStatusItems) {
     const documentFilters = [{ pattern: new RelativePattern(Uri.file(projectPath), '**/*') }, { scheme: 'untitled' }];
+
+    this.activeDbtProjectData =
+      projectPath === NO_PROJECT_PATH
+        ? {
+            severity: LanguageStatusSeverity.Information,
+            text: 'No active dbt project',
+            detail: '',
+          }
+        : {
+            severity: LanguageStatusSeverity.Information,
+            text: 'dbt project',
+            detail: this.projectPath,
+          };
+
+    this.items.activeDbtProject.setDocumentFilter(documentFilters);
     this.items.python.setDocumentFilter(documentFilters);
     this.items.dbt.setDocumentFilter(documentFilters);
     this.items.dbtAdapters.setDocumentFilter(documentFilters);
   }
 
   setBusy(): void {
+    this.items.activeDbtProject.setBusy();
     this.items.python.setBusy();
     this.items.dbt.setBusy();
     this.items.dbtAdapters.setBusy();
   }
 
   updateStatusUi(): void {
+    this.updateActiveDbtProjectUi();
     this.updatePythonUi();
     this.updateDbtUi();
     this.updateDbtAdaptersUi();
@@ -36,6 +62,13 @@ export class NoProjectStatusGroup {
       this.updateDbtStatusItemData(status.dbtStatus);
       this.updateDbtAdaptersStatusItemData(status.dbtStatus.versionInfo?.installedAdapters ?? []);
     }
+  }
+
+  private updateActiveDbtProjectUi(): void {
+    this.items.activeDbtProject.setState(this.activeDbtProjectData.severity, this.activeDbtProjectData.text, this.activeDbtProjectData.detail, {
+      command: 'WizardForDbtCore(TM).createDbtProject',
+      title: 'Create New dbt Project',
+    });
   }
 
   private updatePythonUi(): void {
