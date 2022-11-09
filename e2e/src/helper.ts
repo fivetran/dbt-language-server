@@ -1,5 +1,5 @@
 import * as clipboard from 'clipboardy';
-import { deferred, DeferredResult, ExtensionApi, LS_MANIFEST_PARSED_EVENT } from 'dbt-language-server-common';
+import { deferred, DeferredResult } from 'dbt-language-server-common';
 import { spawnSync, SpawnSyncReturns } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -12,6 +12,7 @@ import {
   DefinitionLink,
   extensions,
   ExtensionTerminalOptions,
+  LanguageStatusItem,
   Position,
   Pseudoterminal,
   Range,
@@ -25,6 +26,22 @@ import {
   window,
   workspace,
 } from 'vscode';
+import EventEmitter = require('node:events');
+
+interface ExtensionApi {
+  manifestParsedEventEmitter: EventEmitter;
+  statusHandler: unknown;
+}
+const LS_MANIFEST_PARSED_EVENT = 'manifestParsedEvent';
+
+type LanguageStatusItemsType = {
+  activeDbtProject: LanguageStatusItem;
+  python: LanguageStatusItem;
+  dbt: LanguageStatusItem;
+  dbtAdapters: LanguageStatusItem;
+  dbtPackages: LanguageStatusItem;
+  profilesYml: LanguageStatusItem;
+};
 
 export let doc: TextDocument;
 export let editor: TextEditor;
@@ -36,6 +53,7 @@ const DOWNLOADS_PATH = path.resolve(__dirname, '../.downloads');
 export const TEST_FIXTURE_PATH = path.resolve(PROJECTS_PATH, 'test-fixture');
 export const POSTGRES_PATH = path.resolve(PROJECTS_PATH, 'postgres');
 export const COMPLETION_JINJA_PATH = path.resolve(PROJECTS_PATH, 'completion-jinja');
+export const SPECIAL_PYTHON_SETTINGS_PATH = path.resolve(PROJECTS_PATH, 'special-python-settings');
 export const PREVIEW_URI = 'query-preview:Preview?dbt-language-server';
 
 export const MAX_VSCODE_INTEGER = 2_147_483_647;
@@ -295,6 +313,27 @@ function runCliCommand(args: string[]): SpawnSyncReturns<string> {
     encoding: 'utf8',
     stdio: 'inherit',
   });
+}
+
+export function getLanguageStatusItems(): LanguageStatusItemsType {
+  type ItemsType = {
+    activeDbtProject: { item: LanguageStatusItem };
+    python: { item: LanguageStatusItem };
+    dbt: { item: LanguageStatusItem };
+    dbtAdapters: { item: LanguageStatusItem };
+    dbtPackages: { item: LanguageStatusItem };
+    profilesYml: { item: LanguageStatusItem };
+  };
+  const items = (extensionApi?.statusHandler as { statusItems: unknown }).statusItems as ItemsType;
+
+  return {
+    activeDbtProject: items.activeDbtProject.item,
+    python: items.python.item,
+    dbt: items.dbt.item,
+    dbtAdapters: items.dbtAdapters.item,
+    dbtPackages: items.dbtPackages.item,
+    profilesYml: items.profilesYml.item,
+  };
 }
 
 export async function triggerCompletion(docUri: Uri, position: Position, triggerChar?: string): Promise<CompletionList<CompletionItem>> {

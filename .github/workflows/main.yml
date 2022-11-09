@@ -176,9 +176,7 @@ jobs:
       - name: build tests
         run: | # ignore postinstall script and install dependencies for e2e
           npm install --ignore-scripts
-          cd common
-          npx tsc --sourceMap false --project tsconfig.json
-          cd ../e2e
+          cd e2e
           npm install
           npx tsc --sourceMap false --project tsconfig.json
 

@@ -1,7 +1,8 @@
-import { LspModeType, LS_MANIFEST_PARSED_EVENT, TelemetryEvent } from 'dbt-language-server-common';
+import { LspModeType, TelemetryEvent } from 'dbt-language-server-common';
 import { EventEmitter } from 'node:events';
 import { Diagnostic, DiagnosticCollection, Disposable, RelativePattern, TextDocument, TextEditor, Uri, window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, State, WorkDoneProgress } from 'vscode-languageclient/node';
+import { LS_MANIFEST_PARSED_EVENT } from '../ExtensionApi';
 import { log } from '../Logger';
 import { OutputChannelProvider } from '../OutputChannelProvider';
 import { ProgressHandler } from '../ProgressHandler';
