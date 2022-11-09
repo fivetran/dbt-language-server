@@ -66,3 +66,5 @@ export interface SelectedDbtPackage {
   packageName: string;
   version: string;
 }
+
+export const NO_PROJECT_PATH = '/';

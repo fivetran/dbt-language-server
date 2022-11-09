@@ -1,34 +1,26 @@
 import { StatusNotification } from 'dbt-language-server-common';
 import { FileChangeType } from 'vscode-languageserver';
-import { FeatureFinder } from './FeatureFinder';
-import { FileChangeListener } from './FileChangeListener';
-import { NotificationSender } from './NotificationSender';
+import { FeatureFinder } from '../feature_finder/FeatureFinder';
+import { FileChangeListener } from '../FileChangeListener';
+import { NotificationSender } from '../NotificationSender';
+import { NoProjectStatusSender } from './NoProjectStatusSender';
 
-export class StatusSender {
+export class DbtProjectStatusSender extends NoProjectStatusSender {
   constructor(
-    private notificationSender: NotificationSender,
+    notificationSender: NotificationSender,
     private projectPath: string,
-    private featureFinder: FeatureFinder,
+    featureFinder: FeatureFinder,
     private fileChangeListener: FileChangeListener,
   ) {
+    super(notificationSender, featureFinder);
     this.fileChangeListener.onDbtPackagesYmlChanged(e => this.onDbtPackagesYmlChanged(e));
-    this.featureFinder.packagesYmlExistsPromise
+    featureFinder.packagesYmlExistsPromise
       .then(packagesYmlFound => this.sendPackagesStatus(packagesYmlFound))
       .catch(e => console.log(`Error while finding packages.yml: ${e instanceof Error ? e.message : String(e)}`));
   }
 
-  sendStatus(): void {
-    const statusNotification: StatusNotification = {
-      projectPath: this.projectPath,
-      pythonStatus: {
-        path: this.featureFinder.getPythonPath(),
-      },
-      dbtStatus: {
-        versionInfo: this.featureFinder.versionInfo,
-      },
-    };
-
-    this.notificationSender.sendStatus(statusNotification);
+  override getProjectPath(): string {
+    return this.projectPath;
   }
 
   sendPackagesStatus(packagesYmlFound: boolean): void {

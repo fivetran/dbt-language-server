@@ -6,7 +6,7 @@ import { DbtCommand } from '../dbt_execution/commands/DbtCommand';
 import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor';
 import { DbtRpcCommand } from '../dbt_execution/commands/DbtRpcCommand';
 import { DbtCommandFactory } from '../dbt_execution/DbtCommandFactory';
-import { FeatureFinder } from '../FeatureFinder';
+import { FeatureFinder } from '../feature_finder/FeatureFinder';
 
 describe('FeatureFinder', () => {
   const PYTHON_PATH = 'path/to/python';

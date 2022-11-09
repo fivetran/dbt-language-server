@@ -45,43 +45,38 @@ import {
 } from 'vscode-languageserver';
 import { FileOperationFilter } from 'vscode-languageserver-protocol/lib/common/protocol.fileOperations';
 import { URI } from 'vscode-uri';
-import { DbtCompletionProvider } from './completion/DbtCompletionProvider';
-import { DbtProfileCreator, DbtProfileInfo } from './DbtProfileCreator';
-import { DbtProject } from './DbtProject';
-import { DbtRepository } from './DbtRepository';
-import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
-import { Dbt, DbtMode } from './dbt_execution/Dbt';
-import { DbtCli } from './dbt_execution/DbtCli';
-import { DbtRpc } from './dbt_execution/DbtRpc';
-import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
-import { DestinationState } from './DestinationState';
-import { DbtDocumentKind } from './document/DbtDocumentKind';
-import { DbtDocumentKindResolver } from './document/DbtDocumentKindResolver';
-import { DbtTextDocument } from './document/DbtTextDocument';
-import { FeatureFinder } from './FeatureFinder';
-import { FileChangeListener } from './FileChangeListener';
-import { InstallUtils } from './InstallUtils';
-import { JinjaParser } from './JinjaParser';
-import { Logger, LogLevel } from './Logger';
-import { ManifestParser } from './manifest/ManifestParser';
-import { ModelCompiler } from './ModelCompiler';
-import { NotificationSender } from './NotificationSender';
-import { ProcessExecutor } from './ProcessExecutor';
-import { ProgressReporter } from './ProgressReporter';
-import { SqlCompletionProvider } from './SqlCompletionProvider';
-import { StatusSender } from './StatusSender';
+import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
+import { DbtProfileCreator, DbtProfileInfo } from '../DbtProfileCreator';
+import { DbtProject } from '../DbtProject';
+import { DbtRepository } from '../DbtRepository';
+import { Dbt, DbtMode } from '../dbt_execution/Dbt';
+import { DbtCli } from '../dbt_execution/DbtCli';
+import { DbtRpc } from '../dbt_execution/DbtRpc';
+import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
+import { DestinationState } from '../DestinationState';
+import { DbtDocumentKind } from '../document/DbtDocumentKind';
+import { DbtDocumentKindResolver } from '../document/DbtDocumentKindResolver';
+import { DbtTextDocument } from '../document/DbtTextDocument';
+import { FeatureFinder } from '../feature_finder/FeatureFinder';
+import { FileChangeListener } from '../FileChangeListener';
+import { JinjaParser } from '../JinjaParser';
+import { LogLevel } from '../Logger';
+import { ManifestParser } from '../manifest/ManifestParser';
+import { ModelCompiler } from '../ModelCompiler';
+import { ProcessExecutor } from '../ProcessExecutor';
+import { ProgressReporter } from '../ProgressReporter';
+import { SqlCompletionProvider } from '../SqlCompletionProvider';
+import { DbtProjectStatusSender } from '../status_bar/DbtProjectStatusSender';
+import { LspServerBase } from './LspServerBase';
 
-export class LspServer {
+export class LspServer extends LspServerBase<FeatureFinder> {
   sqlToRefCommandName = randomUUID();
   filesFilter: FileOperationFilter[];
-  workspaceFolder: string;
   hasConfigurationCapability = false;
   hasDidChangeWatchedFilesCapability = false;
-  featureFinder?: FeatureFinder;
-  statusSender?: StatusSender;
+  statusSender: DbtProjectStatusSender;
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
-  notificationSender: NotificationSender;
   fileChangeListener: FileChangeListener;
   sqlCompletionProvider: SqlCompletionProvider;
   dbtCompletionProvider: DbtCompletionProvider;
@@ -97,36 +92,33 @@ export class LspServer {
   destinationState = new DestinationState();
   dbt?: Dbt;
 
-  constructor(private connection: _Connection) {
-    this.workspaceFolder = process.cwd();
+  constructor(connection: _Connection, featureFinder: FeatureFinder, private workspaceFolder: string) {
+    super(connection, featureFinder);
     this.filesFilter = [{ scheme: 'file', pattern: { glob: `${this.workspaceFolder}/**/*`, matches: 'file' } }];
-    Logger.prepareLogger(this.workspaceFolder);
 
     this.progressReporter = new ProgressReporter(this.connection);
-    this.notificationSender = new NotificationSender(this.connection);
     this.dbtProfileCreator = new DbtProfileCreator(this.dbtProject, path.join(homedir(), '.dbt', 'profiles.yml'));
     this.fileChangeListener = new FileChangeListener(this.workspaceFolder, this.dbtProject, this.manifestParser, this.dbtRepository);
     this.sqlCompletionProvider = new SqlCompletionProvider();
     this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);
     this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
+    this.statusSender = new DbtProjectStatusSender(this.notificationSender, this.workspaceFolder, this.featureFinder, this.fileChangeListener);
   }
 
   onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> {
     console.log(`Starting server for folder ${this.workspaceFolder}.`);
 
-    const customInitParams = params.initializationOptions as CustomInitParams;
-    this.featureFinder = new FeatureFinder(customInitParams.pythonInfo, new DbtCommandExecutor());
+    this.initializeEvents();
 
     process.on('uncaughtException', this.onUncaughtException.bind(this));
     process.on('SIGTERM', () => this.onShutdown());
     process.on('SIGINT', () => this.onShutdown());
-    this.statusSender = new StatusSender(this.notificationSender, this.workspaceFolder, this.featureFinder, this.fileChangeListener);
 
     this.fileChangeListener.onInit();
 
     this.initializeNotifications();
 
-    this.dbt = this.createDbt(this.featureFinder, customInitParams.dbtCompiler);
+    this.dbt = this.createDbt((params.initializationOptions as CustomInitParams).dbtCompiler);
 
     const { capabilities } = params;
 
@@ -164,22 +156,46 @@ export class LspServer {
     };
   }
 
-  createDbt(featureFinder: FeatureFinder, dbtCompiler: DbtCompilerType): Dbt {
-    const dbtMode = this.getDbtMode(featureFinder, dbtCompiler);
+  initializeEvents(): void {
+    this.connection.onInitialized(this.onInitialized.bind(this));
+    this.connection.onHover(this.onHover.bind(this));
+    this.connection.onCompletion(this.onCompletion.bind(this));
+    this.connection.onCompletionResolve(this.onCompletionResolve.bind(this));
+    this.connection.onSignatureHelp(this.onSignatureHelp.bind(this));
+    this.connection.onDefinition(this.onDefinition.bind(this));
+
+    this.connection.onWillSaveTextDocument(this.onWillSaveTextDocument.bind(this));
+    this.connection.onDidSaveTextDocument(this.onDidSaveTextDocument.bind(this));
+    this.connection.onDidOpenTextDocument(this.onDidOpenTextDocument.bind(this));
+    this.connection.onDidChangeTextDocument(this.onDidChangeTextDocument.bind(this));
+
+    this.connection.onCodeAction(this.onCodeAction.bind(this));
+    this.connection.onExecuteCommand(this.onExecuteCommand.bind(this));
+    this.connection.onDidChangeWatchedFiles(this.onDidChangeWatchedFiles.bind(this));
+
+    this.connection.onShutdown(this.onShutdown.bind(this));
+
+    this.connection.workspace.onDidCreateFiles(this.onDidCreateFiles.bind(this));
+    this.connection.workspace.onDidRenameFiles(this.onDidRenameFiles.bind(this));
+    this.connection.workspace.onDidDeleteFiles(this.onDidDeleteFiles.bind(this));
+  }
+
+  createDbt(dbtCompiler: DbtCompilerType): Dbt {
+    const dbtMode = this.getDbtMode(dbtCompiler);
     console.log(`ModelCompiler mode: ${DbtMode[dbtMode]}.`);
 
     return dbtMode === DbtMode.DBT_RPC
-      ? new DbtRpc(featureFinder, this.connection, this.progressReporter, this.fileChangeListener, this.notificationSender)
-      : new DbtCli(featureFinder, this.connection, this.progressReporter, this.notificationSender);
+      ? new DbtRpc(this.featureFinder, this.connection, this.progressReporter, this.fileChangeListener, this.notificationSender)
+      : new DbtCli(this.featureFinder, this.connection, this.progressReporter, this.notificationSender);
   }
 
-  getDbtMode(featureFinder: FeatureFinder, dbtCompiler: DbtCompilerType): DbtMode {
+  getDbtMode(dbtCompiler: DbtCompilerType): DbtMode {
     switch (dbtCompiler) {
       case 'Auto': {
         if (process.platform === 'win32') {
           return DbtMode.CLI;
         }
-        const pythonVersion = featureFinder.getPythonVersion();
+        const pythonVersion = this.featureFinder.getPythonVersion();
         // https://github.com/dbt-labs/dbt-rpc/issues/85
         if (pythonVersion !== undefined && pythonVersion[0] >= 3 && pythonVersion[1] >= 10) {
           return DbtMode.CLI;
@@ -198,26 +214,14 @@ export class LspServer {
     }
   }
 
-  onUncaughtException(error: Error, _origin: 'uncaughtException' | 'unhandledRejection'): void {
-    console.log(error.stack);
+  override initializeNotifications(): void {
+    super.initializeNotifications();
 
-    this.notificationSender.sendTelemetry('error', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack ?? '',
-    });
-
-    throw new Error('Uncaught exception. Server will be restarted.');
-  }
-
-  initializeNotifications(): void {
     this.connection.onNotification('custom/dbtCompile', (uri: string) => this.onDbtCompile(uri));
-    this.connection.onNotification('WizardForDbtCore(TM)/installLatestDbt', () => this.installLatestDbt());
-    this.connection.onNotification('WizardForDbtCore(TM)/installDbtAdapter', (dbtAdapter: string) => this.installDbtAdapter(dbtAdapter));
     this.connection.onNotification('WizardForDbtCore(TM)/resendDiagnostics', (uri: string) => this.onResendDiagnostics(uri));
 
-    this.connection.onRequest('WizardForDbtCore(TM)/getListOfPackages', () => this.featureFinder?.packageInfosPromise.get());
-    this.connection.onRequest('WizardForDbtCore(TM)/getPackageVersions', (dbtPackage: string) => this.featureFinder?.packageVersions(dbtPackage));
+    this.connection.onRequest('WizardForDbtCore(TM)/getListOfPackages', () => this.featureFinder.packageInfosPromise.get());
+    this.connection.onRequest('WizardForDbtCore(TM)/getPackageVersions', (dbtPackage: string) => this.featureFinder.packageVersions(dbtPackage));
     this.connection.onRequest('WizardForDbtCore(TM)/addNewDbtPackage', (dbtPackage: SelectedDbtPackage) => this.onAddNewDbtPackage(dbtPackage));
   }
 
@@ -235,7 +239,7 @@ export class LspServer {
       this.showProfileCreationWarning(profileResult.error.message);
     }
 
-    const ubuntuInWslWorks = Boolean(await this.featureFinder?.ubuntuInWslWorks);
+    const ubuntuInWslWorks = await this.featureFinder.ubuntuInWslWorks;
     if (!ubuntuInWslWorks) {
       await this.showWslWarning();
     }
@@ -245,7 +249,7 @@ export class LspServer {
       : this.destinationState
           .prepareBigQueryDestination(profileResult.value, this.dbtRepository, ubuntuInWslWorks)
           .then((prepareResult: Result<void, string>) => (prepareResult.isErr() ? this.showCreateContextWarning(prepareResult.error) : undefined));
-    const prepareDbt = this.dbt?.prepare(dbtProfileType).then(_ => this.statusSender?.sendStatus());
+    const prepareDbt = this.dbt?.prepare(dbtProfileType).then(_ => this.statusSender.sendStatus());
 
     this.dbtRepository
       .manifestParsed()
@@ -258,7 +262,7 @@ export class LspServer {
     this.logStartupInfo(contextInfo, initTime, ubuntuInWslWorks);
 
     this.featureFinder
-      ?.runPostInitTasks()
+      .runPostInitTasks()
       .catch(e => console.log(`Error while running post init tasks: ${e instanceof Error ? e.message : String(e)}`));
   }
 
@@ -330,9 +334,9 @@ export class LspServer {
 
   logStartupInfo(contextInfo: DbtProfileInfo, initTime: number, ubuntuInWslWorks: boolean): void {
     this.notificationSender.sendTelemetry('log', {
-      dbtVersion: getStringVersion(this.featureFinder?.versionInfo?.installedVersion),
-      pythonPath: this.featureFinder?.pythonInfo?.path ?? 'undefined',
-      pythonVersion: this.featureFinder?.pythonInfo?.version?.join('.') ?? 'undefined',
+      dbtVersion: getStringVersion(this.featureFinder.versionInfo?.installedVersion),
+      pythonPath: this.featureFinder.pythonInfo?.path ?? 'undefined',
+      pythonVersion: this.featureFinder.pythonInfo?.version?.join('.') ?? 'undefined',
       initTime: initTime.toString(),
       type: contextInfo.type ?? 'unknown type',
       method: contextInfo.method ?? 'unknown method',
@@ -342,30 +346,6 @@ export class LspServer {
 
   onDbtCompile(uri: string): void {
     this.openedDocuments.get(uri)?.forceRecompile();
-  }
-
-  async installLatestDbt(): Promise<void> {
-    const pythonPath = this.featureFinder?.getPythonPath();
-    if (pythonPath) {
-      const sendLog = (data: string): void => this.notificationSender.sendInstallLatestDbtLog(data);
-      const installResult = await InstallUtils.installDbt(pythonPath, 'bigquery', sendLog, sendLog);
-
-      if (installResult.isOk()) {
-        this.notificationSender.sendRestart();
-      }
-    }
-  }
-
-  async installDbtAdapter(dbtAdapter: string): Promise<void> {
-    const pythonPath = this.featureFinder?.getPythonPath();
-    if (pythonPath) {
-      const sendLog = (data: string): void => this.notificationSender.sendInstallDbtAdapterLog(data);
-      const installResult = await InstallUtils.installDbtAdapter(pythonPath, dbtAdapter, sendLog, sendLog);
-
-      if (installResult.isOk()) {
-        this.notificationSender.sendRestart();
-      }
-    }
   }
 
   async onResendDiagnostics(uri: string): Promise<void> {

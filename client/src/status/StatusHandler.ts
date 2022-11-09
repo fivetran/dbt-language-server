@@ -1,30 +1,37 @@
-import { StatusNotification } from 'dbt-language-server-common';
+import { NO_PROJECT_PATH, StatusNotification } from 'dbt-language-server-common';
 import { LanguageStatusItems } from './LanguageStatusItems';
-import { ProjectStatus } from './ProjectStatus';
+import { NoProjectStatusGroup } from './status_group/NoProjectStatusGroup';
+import { ProjectStatusGroup } from './status_group/ProjectStatusGroup';
+import { StatusGroupBase } from './status_group/StatusGroupBase';
 
 export class StatusHandler {
-  private projectStatuses: Map<string, ProjectStatus> = new Map();
+  private projectStatuses: Map<string, StatusGroupBase> = new Map();
   private statusItems = new LanguageStatusItems();
+  private activeProjectPath?: string;
 
   onRestart(projectPath: string): void {
     this.getProjectStatus(projectPath).setBusy();
   }
 
-  updateLanguageItems(projectPath: string): void {
+  changeActiveProject(projectPath: string): void {
     this.getProjectStatus(projectPath).updateStatusUi();
+    this.activeProjectPath = projectPath;
   }
 
-  changeStatus(statusNotification: StatusNotification, forCurrentProject: boolean): void {
-    this.getProjectStatus(statusNotification.projectPath).updateStatusData(statusNotification);
-    if (forCurrentProject) {
-      this.updateLanguageItems(statusNotification.projectPath);
+  changeStatus(statusNotification: StatusNotification): void {
+    const status = this.getProjectStatus(statusNotification.projectPath);
+    status.updateStatusData(statusNotification);
+
+    if (!this.activeProjectPath || this.activeProjectPath === statusNotification.projectPath) {
+      status.updateStatusUi();
     }
   }
 
-  private getProjectStatus(projectPath: string): ProjectStatus {
+  private getProjectStatus(projectPath: string): StatusGroupBase {
     let projectStatus = this.projectStatuses.get(projectPath);
     if (projectStatus === undefined) {
-      projectStatus = new ProjectStatus(projectPath, this.statusItems);
+      projectStatus =
+        projectPath === NO_PROJECT_PATH ? new NoProjectStatusGroup(this.statusItems) : new ProjectStatusGroup(projectPath, this.statusItems);
       this.projectStatuses.set(projectPath, projectStatus);
     }
     return projectStatus;
