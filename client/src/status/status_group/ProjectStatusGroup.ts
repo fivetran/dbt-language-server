@@ -4,10 +4,10 @@ import { InstallDbtPackages } from '../../commands/InstallDbtPackages';
 import { PACKAGES_YML, PROFILES_YML, PROFILES_YML_DEFAULT_URI } from '../../Utils';
 import { LanguageStatusItems } from '../LanguageStatusItems';
 import { StatusItemData } from '../StatusItemData';
-import { NoProjectStatusGroup } from './NoProjectStatusGroup';
+import { StatusGroupBase } from './StatusGroupBase';
 import path = require('node:path');
 
-export class ProjectStatusGroup extends NoProjectStatusGroup {
+export class ProjectStatusGroup extends StatusGroupBase {
   private dbtPackagesData?: StatusItemData;
   private profilesYmlData: StatusItemData = {
     severity: LanguageStatusSeverity.Information,
@@ -16,11 +16,11 @@ export class ProjectStatusGroup extends NoProjectStatusGroup {
   };
 
   constructor(projectPath: string, items: LanguageStatusItems) {
-    super(projectPath, items);
+    const filters = [{ pattern: new RelativePattern(Uri.file(projectPath), '**/*') }];
+    super(projectPath, items, filters);
 
-    const documentFilters = [{ pattern: new RelativePattern(Uri.file(projectPath), '**/*') }];
-    this.items.dbtPackages.setDocumentFilter(documentFilters);
-    this.items.profilesYml.setDocumentFilter(documentFilters);
+    this.items.dbtPackages.setDocumentFilter(filters);
+    this.items.profilesYml.setDocumentFilter(filters);
   }
 
   override setBusy(): void {
