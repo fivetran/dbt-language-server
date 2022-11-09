@@ -357,6 +357,10 @@ export async function executeCreateDbtProject(fsPath: string): Promise<void> {
   return commands.executeCommand('WizardForDbtCore(TM).createDbtProject', fsPath, true);
 }
 
+export async function executeCreateFile(): Promise<void> {
+  return commands.executeCommand('workbench.action.files.newUntitledFile');
+}
+
 export async function moveCursorLeft(): Promise<unknown> {
   return commands.executeCommand('cursorMove', {
     to: 'left',
