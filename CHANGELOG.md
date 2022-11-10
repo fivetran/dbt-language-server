@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.15.0 (01/01/1970)
+## Version 0.15.0 (10/11/2022)
 ## What's Changed
 * Add install WSL and Ubuntu button for Windows.
 * Add the ability to install dbt, dbt adapters from language status item of any file.
