@@ -121,7 +121,9 @@ async function parseAndSave(): Promise<void> {
               if (token.content.startsWith('1.')) {
                 const signatures = token.content.split('\n');
                 for (const signature of signatures) {
-                  functionInfo.signatures.push({ signature: signature.slice(3), description: '' });
+                  if (signature !== '') {
+                    functionInfo.signatures.push({ signature: signature.slice(3), description: '' });
+                  }
                 }
               } else {
                 functionInfo.signatures.push({ signature: token.content, description: '' });

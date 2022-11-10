@@ -1685,7 +1685,6 @@ export const HelpProviderWords: FunctionInfo[] = [
           'Extracts the DATE from a TIMESTAMP expression. It supports an\noptional parameter to specify a time zone. If no\ntime zone is specified, the default time zone, which is implementation defined, is used.',
       },
       { signature: 'DATE(datetime_expression)', description: 'Extracts the DATE from a DATETIME expression.' },
-      { signature: '', description: '' },
     ],
   },
   {
@@ -1776,7 +1775,6 @@ export const HelpProviderWords: FunctionInfo[] = [
         description:
           'Constructs a `DATETIME` object using a `TIMESTAMP` object. It supports an\noptional parameter to\nspecify a time zone.\nIf no time zone is specified, the default time zone, which is implementation defined,\nis used.',
       },
-      { signature: '', description: '' },
     ],
   },
   {
@@ -1858,7 +1856,6 @@ export const HelpProviderWords: FunctionInfo[] = [
           'Constructs a `TIME` object using a `TIMESTAMP` object. It supports an\noptional\nparameter to specify a time zone. If no\ntime zone is specified, the default time zone, which is implementation defined, is\nused.',
       },
       { signature: 'TIME(datetime)', description: 'Constructs a `TIME` object using a\n`DATETIME` object.' },
-      { signature: '', description: '' },
     ],
   },
   {
