@@ -31,7 +31,25 @@ export class SnippetsCompletionProvider {
     SnippetsCompletionProvider.createSnippet('macro', 'dbt Macro', '1macro', `{% macro $\{1:name}($\{2:args}) %}${EOL}  $\{3}${EOL}{% endmacro %}`),
 
     SnippetsCompletionProvider.createSnippet('set', 'dbt Set', '1set', '{% set ${1:var_name} = ${2:value} %}'),
-    SnippetsCompletionProvider.createSnippet('setblock', 'dbt Set-Block', '1setblock', `{% set $\{1:name} %}${EOL}  $\{2}${EOL}{% endset %}`),
+    SnippetsCompletionProvider.createSnippet('setblock', 'dbt Set Block', '1setblock', `{% set $\{1:name} %}${EOL}  $\{2}${EOL}{% endset %}`),
+
+    SnippetsCompletionProvider.createSnippet(
+      'statement',
+      'dbt Statement Blocks',
+      '1statement',
+      `{% call statement($\{1:name}, fetch_result=$\{2|True,False|}) %}${EOL}  $\{3}${EOL}{% endcall %}`,
+    ),
+
+    SnippetsCompletionProvider.createSnippet(
+      'source',
+      'dbt Source',
+      '1source',
+      "{{ source('$1', '$2') }}",
+      Command.create('triggerSuggest', 'editor.action.triggerSuggest'),
+    ),
+
+    SnippetsCompletionProvider.createSnippet('block', 'dbt Block', '1block', '{% $1 %}'),
+    SnippetsCompletionProvider.createSnippet('comment', 'dbt Comment', '1comment', '{# $1 #}'),
   ];
 
   static createSnippet(label: string, detail: string, sortText: string, insertText: string, command?: Command): CompletionItem {
