@@ -118,6 +118,10 @@ describe('DiffUtils', () => {
     );
   });
 
+  it('Should not return negative values', () => {
+    assertThat(DiffUtils.getNewCharacter('  a b c', 'b c d', 3), 0);
+  });
+
   function shouldReturnCorrespondingLineNumber(fileName: string, compiledRawArray: number[][]): void {
     for (const compiledRaw of compiledRawArray) {
       shouldReturnCorrespondingLineNumberForOldText(fileName, compiledRaw[0], compiledRaw[1]);
