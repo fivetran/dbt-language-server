@@ -65,6 +65,7 @@
     "nodir",
     "normalize_and_casefold",
     "ntile",
+    "nulliferror",
     "ovsx",
     "Parens",
     "PARTITIONDATE",

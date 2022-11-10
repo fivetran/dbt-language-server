@@ -180,7 +180,8 @@ async function parseAndSave(): Promise<void> {
 
   functionInfos.push(...additionalFields);
 
-  const code = `import { FunctionInfo } from './SignatureHelpProvider';
+  const code = `/* eslint-disable sonarjs/no-duplicate-string */
+    import { FunctionInfo } from './SignatureHelpProvider';
     
     export const HelpProviderWords: FunctionInfo[] = ${JSON.stringify(functionInfos)}`;
 

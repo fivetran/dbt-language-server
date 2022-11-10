@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import { FunctionInfo } from './SignatureHelpProvider';
 
 export const HelpProviderWords: FunctionInfo[] = [
@@ -28,8 +29,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature:
           'ARRAY_CONCAT_AGG(\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n  [ ORDER BY key [ { ASC | DESC } ] [, ... ] ]\n  [ LIMIT n ]\n)\n',
-        description:
-          'Concatenates elements from `expression` of type\nARRAY, returning a single\nARRAY as a result. This function ignores NULL input\narrays, but respects the NULL elements in non-NULL input arrays.',
+        description: 'Concatenates elements from `expression` of type `ARRAY`, returning a single\narray as a result.',
       },
     ],
   },
@@ -256,7 +256,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'APPROX_COUNT_DISTINCT(\n  expression\n)\n',
         description:
-          'Returns the approximate result for `COUNT(DISTINCT expression)`. The value\nreturned is a statistical estimate—not necessarily the actual value.',
+          'Returns the approximate result for `COUNT(DISTINCT expression)`. The value\nreturned is a statistical estimate, not necessarily the actual value.',
       },
     ],
   },
@@ -276,7 +276,8 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature: 'APPROX_TOP_COUNT(\n  expression, number\n  [ HAVING { MAX | MIN } expression2 ]\n)\n',
-        description: 'Returns the approximate top elements of `expression`. The `number` parameter\nspecifies the number of elements returned.',
+        description:
+          'Returns the approximate top elements of `expression` as an array of `STRUCT`s.\nThe `number` parameter specifies the number of elements returned.',
       },
     ],
   },
@@ -715,7 +716,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'ROUND(X [, N])\n',
         description:
-          'If only X is present, `ROUND` rounds X to the nearest integer. If N is present,\n`ROUND` rounds X to N decimal places after the decimal point. If N is negative,\n`ROUND` will round off digits to the left of the decimal point. Rounds halfway\ncases away from zero. Generates an error if overflow occurs.',
+          'If only X is present, rounds X to the nearest integer. If N is present,\nrounds X to N decimal places after the decimal point. If N is negative,\nrounds off digits to the left of the decimal point. Rounds halfway cases\naway from zero. Generates an error if overflow occurs.',
       },
     ],
   },
@@ -1575,6 +1576,15 @@ export const HelpProviderWords: FunctionInfo[] = [
     ],
   },
   {
+    name: 'array_slice',
+    signatures: [
+      {
+        signature: 'ARRAY_SLICE(array_to_slice, start_offset, end_offset)\n',
+        description: 'Returns an array containing zero or more consecutive elements from the\ninput array.',
+      },
+    ],
+  },
+  {
     name: 'array_to_string',
     signatures: [
       {
@@ -2239,6 +2249,9 @@ export const HelpProviderWords: FunctionInfo[] = [
     name: 'error',
     signatures: [{ signature: 'ERROR(error_message)\n', description: 'Returns an error. The `error_message` argument is a `STRING`.' }],
   },
+  { name: 'iferror', signatures: [{ signature: 'IFERROR(try_expression, catch_expression)\n', description: 'Evaluates `try_expression`.' }] },
+  { name: 'iserror', signatures: [{ signature: 'ISERROR(try_expression)\n', description: 'Evaluates `try_expression`.' }] },
+  { name: 'nulliferror', signatures: [{ signature: 'NULLIFERROR(try_expression)\n', description: 'Evaluates `try_expression`.' }] },
   {
     name: 'concat',
     signatures: [
