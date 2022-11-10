@@ -6,10 +6,10 @@ import { DestinationState } from '../DestinationState';
 import { DbtTextDocument } from '../document/DbtTextDocument';
 import { JinjaParser, JinjaPartType } from '../JinjaParser';
 import { LogLevel } from '../Logger';
-import { SnippetsCompletionProvider } from '../SnippetsCompletionProvider';
 import { DiffUtils } from '../utils/DiffUtils';
 import { comparePositions, getIdentifierRangeAtPosition } from '../utils/Utils';
 import { DbtCompletionProvider } from './DbtCompletionProvider';
+import { SnippetsCompletionProvider } from './SnippetsCompletionProvider';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
 
 export class CompletionProvider {
