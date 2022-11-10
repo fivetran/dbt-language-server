@@ -1,4 +1,4 @@
-import { assertThat, defined, not, startsWith } from 'hamjest';
+import { assertThat, startsWith } from 'hamjest';
 import { LanguageStatusSeverity } from 'vscode';
 import { createAndOpenTempModel, executeCreateFile, getLanguageStatusItems, sleep, TEST_FIXTURE_PATH } from './helper';
 
@@ -8,7 +8,7 @@ suite('Language status items', () => {
     assertProjectLanguageStatusItems();
 
     await executeCreateFile();
-    await sleep(1500);
+    await sleep(1000);
     assertNoProjectLanguageStatusItems();
   });
 });
@@ -23,9 +23,6 @@ function assertProjectLanguageStatusItems(): void {
 
   assertThat(items.dbt.busy, false);
   assertThat(items.dbt.text, startsWith('dbt '));
-  assertThat(items.dbt.detail, 'latest version installed');
-  assertThat(items.dbt.severity, LanguageStatusSeverity.Information);
-  assertThat(items.dbt.command, not(defined()));
 
   assertThat(items.dbtAdapters.busy, false);
   assertThat(items.dbtAdapters.detail, 'installed dbt adapters');
