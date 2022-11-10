@@ -8,7 +8,7 @@ suite('Language status items', () => {
     assertProjectLanguageStatusItems();
 
     await executeCreateFile();
-    await sleep(1000);
+    await sleep(1500);
     assertNoProjectLanguageStatusItems();
   });
 });
