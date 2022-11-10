@@ -1,4 +1,6 @@
+import * as MarkdownIt from 'markdown-it';
 import * as fs from 'node:fs';
+import * as prettier from 'prettier';
 import Token = require('markdown-it/lib/token');
 
 interface FunctionInfo {
@@ -84,7 +86,6 @@ const additionalFields = [
 ];
 
 async function parseAndSave(): Promise<void> {
-  const MarkdownIt = await import('markdown-it');
   const md = new MarkdownIt();
   const functionInfos: FunctionInfo[] = [];
   const axios = await import('axios');
@@ -183,7 +184,6 @@ async function parseAndSave(): Promise<void> {
     
     export const HelpProviderWords: FunctionInfo[] = ${JSON.stringify(functionInfos)}`;
 
-  const prettier = await import('prettier');
   const options = await prettier.resolveConfig('./.prettierrc');
   if (options === null) {
     throw new Error("Can't find options from ./.prettierrc");
