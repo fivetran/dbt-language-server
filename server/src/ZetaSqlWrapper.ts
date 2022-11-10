@@ -15,7 +15,7 @@ import { err, ok, Result } from 'neverthrow';
 import * as fs from 'node:fs';
 import { BigQueryClient, Udf } from './bigquery/BigQueryClient';
 import { DbtRepository } from './DbtRepository';
-import { FeatureFinder } from './FeatureFinder';
+import { FeatureFinder } from './feature_finder/FeatureFinder';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
 import { ManifestModel } from './manifest/ManifestJson';
 import { ModelFetcher } from './ModelFetcher';

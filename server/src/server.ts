@@ -1,6 +1,14 @@
+import { CustomInitParams, NO_PROJECT_PATH } from 'dbt-language-server-common';
 import * as sourceMapSupport from 'source-map-support';
-import { createConnection, ProposedFeatures } from 'vscode-languageserver/node';
-import { LspServer } from './LspServer';
+import { createConnection, InitializeError, InitializeParams, InitializeResult, ProposedFeatures, ResponseError } from 'vscode-languageserver/node';
+import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
+import { FeatureFinder } from './feature_finder/FeatureFinder';
+import { FeatureFinderBase } from './feature_finder/FeatureFinderBase';
+import { NoProjectFeatureFinder } from './feature_finder/NoProjectFeatureFinder';
+import { Logger } from './Logger';
+import { LspServer } from './lsp_server/LspServer';
+import { LspServerBase } from './lsp_server/LspServerBase';
+import { NoProjectLspServer } from './lsp_server/NoProjectLspServer';
 
 sourceMapSupport.install({ handleUncaughtExceptions: false });
 
@@ -8,28 +16,24 @@ sourceMapSupport.install({ handleUncaughtExceptions: false });
 // Also include all preview / proposed LSP features.
 const connection = createConnection(ProposedFeatures.all);
 
-const server = new LspServer(connection);
+connection.onInitialize((params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> => {
+  const workspaceFolder = process.cwd();
 
-connection.onInitialize(server.onInitialize.bind(server));
-connection.onInitialized(server.onInitialized.bind(server));
-connection.onHover(server.onHover.bind(server));
-connection.onCompletion(server.onCompletion.bind(server));
-connection.onSignatureHelp(server.onSignatureHelp.bind(server));
-connection.onDefinition(server.onDefinition.bind(server));
+  const customInitParams = params.initializationOptions as CustomInitParams;
+  Logger.prepareLogger(customInitParams.lspMode === 'dbtProject' ? workspaceFolder : NO_PROJECT_PATH);
 
-connection.onWillSaveTextDocument(server.onWillSaveTextDocument.bind(server));
-connection.onDidSaveTextDocument(server.onDidSaveTextDocument.bind(server));
-connection.onDidOpenTextDocument(server.onDidOpenTextDocument.bind(server));
-connection.onDidChangeTextDocument(server.onDidChangeTextDocument.bind(server));
+  const server = createLspServer(customInitParams, workspaceFolder);
+  return server.onInitialize(params);
+});
 
-connection.onCodeAction(server.onCodeAction.bind(server));
-connection.onExecuteCommand(server.onExecuteCommand.bind(server));
-connection.onDidChangeWatchedFiles(server.onDidChangeWatchedFiles.bind(server));
+function createLspServer(customInitParams: CustomInitParams, workspaceFolder: string): LspServerBase<FeatureFinderBase> {
+  if (customInitParams.lspMode === 'noProject') {
+    const noProjectFeatureFinder = new NoProjectFeatureFinder(customInitParams.pythonInfo, new DbtCommandExecutor());
+    return new NoProjectLspServer(connection, noProjectFeatureFinder);
+  }
 
-connection.onShutdown(server.onShutdown.bind(server));
-
-connection.workspace.onDidCreateFiles(server.onDidCreateFiles.bind(server));
-connection.workspace.onDidRenameFiles(server.onDidRenameFiles.bind(server));
-connection.workspace.onDidDeleteFiles(server.onDidDeleteFiles.bind(server));
+  const featureFinder = new FeatureFinder(customInitParams.pythonInfo, new DbtCommandExecutor());
+  return new LspServer(connection, featureFinder, workspaceFolder);
+}
 
 connection.listen();

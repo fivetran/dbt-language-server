@@ -1,3 +1,4 @@
+import { NO_PROJECT_PATH } from 'dbt-language-server-common';
 import { Disposable, TextEditor, window } from 'vscode';
 import { DbtLanguageClientManager } from './DbtLanguageClientManager';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
@@ -6,7 +7,7 @@ import { isDocumentSupported } from './Utils';
 
 export class ActiveTextEditorHandler {
   handler: Disposable;
-  static lastActiveEditor?: TextEditor;
+  lastActiveEditor?: TextEditor;
 
   constructor(
     private previewContentProvider: SqlPreviewContentProvider,
@@ -15,26 +16,25 @@ export class ActiveTextEditorHandler {
   ) {
     this.handler = window.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditor.bind(this));
     if (window.activeTextEditor && isDocumentSupported(window.activeTextEditor.document)) {
-      ActiveTextEditorHandler.lastActiveEditor = window.activeTextEditor;
+      this.lastActiveEditor = window.activeTextEditor;
     }
   }
 
   async onDidChangeActiveTextEditor(activeEditor: TextEditor | undefined): Promise<void> {
     if (
       !activeEditor ||
+      (activeEditor.document.uri.scheme !== 'file' && activeEditor.document.uri.scheme !== 'untitled') ||
       SqlPreviewContentProvider.isPreviewDocument(activeEditor.document.uri) ||
-      ActiveTextEditorHandler.lastActiveEditor?.document.uri.path === activeEditor.document.uri.path
+      this.lastActiveEditor?.document.uri.path === activeEditor.document.uri.path
     ) {
       return;
     }
 
-    ActiveTextEditorHandler.lastActiveEditor = activeEditor;
+    this.lastActiveEditor = activeEditor;
 
     const client = await this.dbtLanguageClientManager.getClientByUri(activeEditor.document.uri);
 
-    if (client?.getProjectUri()) {
-      this.statusHandler.updateLanguageItems(client.getProjectUri().fsPath);
-    }
+    this.statusHandler.changeActiveProject(client?.getProjectUri().fsPath ?? NO_PROJECT_PATH);
 
     if (isDocumentSupported(activeEditor.document)) {
       this.previewContentProvider.changeActiveDocument(activeEditor.document.uri);

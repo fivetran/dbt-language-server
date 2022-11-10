@@ -1,6 +1,6 @@
 import { _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
-import { FeatureFinder } from '../FeatureFinder';
+import { FeatureFinder } from '../feature_finder/FeatureFinder';
 import { FileChangeListener } from '../FileChangeListener';
 import { NotificationSender } from '../NotificationSender';
 import { ProgressReporter } from '../ProgressReporter';
