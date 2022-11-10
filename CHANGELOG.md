@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 0.15.0 (10/11/2022)
+## What's Changed
+* Add install WSL and Ubuntu button for Windows.
+* Add the ability to install dbt, dbt adapters from language status item of any file.
+* Increase grpc request/response max size to support big SQL queries.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.14.0...v0.15.0
+---
+
 ## Version 0.14.0 (01/11/2022)
 ## What's Changed
 * For the global dbt error, now only one error is displayed for the problem model.
