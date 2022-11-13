@@ -11,6 +11,7 @@ interface FunctionInfo {
 interface SignatureInfo {
   signature: string;
   description: string;
+  parameters: string[];
 }
 
 const filesToParse: Map<string, string[]> = new Map([
@@ -80,6 +81,7 @@ const additionalFields = [
         signature: 'TO_JSON_STRING(value[, pretty_print])\n',
         description:
           'Takes a SQL value and returns a JSON-formatted string\nrepresentation of the value. The value must be a supported BigQuery\ndata type.',
+        parameters: [],
       },
     ],
   },
@@ -120,13 +122,22 @@ async function parseAndSave(): Promise<void> {
             if (token.type === 'fence') {
               if (token.content.startsWith('1.')) {
                 const signatures = token.content.split('\n');
-                for (const signature of signatures) {
-                  if (signature !== '') {
-                    functionInfo.signatures.push({ signature: signature.slice(3), description: '' });
+                for (const numberedSignature of signatures) {
+                  if (numberedSignature !== '') {
+                    const signature = numberedSignature.slice(3);
+                    const parameters: string[] = [];
+
+                    if (['[', '['].some(b => signature.includes(b)) || !signature.toLocaleLowerCase().startsWith(`${name}(`)) {
+                      // do nothing
+                    } else {
+                      const allParameters = signature.slice(name.length + 1, -1);
+                      parameters.push(...allParameters.split(',').map(p => p.trim()));
+                    }
+                    functionInfo.signatures.push({ signature, description: '', parameters });
                   }
                 }
               } else {
-                functionInfo.signatures.push({ signature: token.content, description: '' });
+                functionInfo.signatures.push({ signature: token.content, description: '', parameters: [] }); // TODO
               }
             } else {
               while (token.type !== 'paragraph_open') {
@@ -134,6 +145,7 @@ async function parseAndSave(): Promise<void> {
                   functionInfo.signatures.push({
                     signature: token.content,
                     description: '',
+                    parameters: [], // TODO
                   });
                 }
                 i++;
@@ -164,7 +176,7 @@ async function parseAndSave(): Promise<void> {
               const description = parseText(tokens[i + 1]);
               if (functionInfo.signatures.length === 0) {
                 // There is no signature in md file for the function
-                functionInfo.signatures.push({ signature: '', description });
+                functionInfo.signatures.push({ signature: '', description, parameters: [] }); // TODO
               }
               functionInfo.signatures[0].description = description;
             }

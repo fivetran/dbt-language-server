@@ -128,7 +128,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
           triggerCharacters: ['.', '(', '"', "'"],
         },
         signatureHelpProvider: {
-          triggerCharacters: ['('],
+          triggerCharacters: ['(', ',', ')'],
         },
         definitionProvider: true,
         codeActionProvider: true,

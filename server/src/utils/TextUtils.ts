@@ -1,4 +1,5 @@
 import { Position, Range } from 'vscode-languageserver';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 
 export interface IWordAtPosition {
   /**
@@ -203,40 +204,64 @@ function createWordRegExp(allowInWords = ''): RegExp {
   return new RegExp(source, 'g');
 }
 
-export function getTextRangeBeforeBracket(text: string, cursorPosition: Position): Range {
-  const lines = text.split('\n');
-  if (lines.length === 0) {
-    return Range.create(cursorPosition, cursorPosition);
-  }
-  const line = Math.min(lines.length - 1, Math.max(0, cursorPosition.line));
-  const lineText = lines[line];
+export function getLineByPosition(document: TextDocument, position: Position): string {
+  const startPosition = Position.create(position.line, 0);
+  const endPosition = Position.create(position.line, Number.MAX_VALUE);
+  return document.getText(Range.create(startPosition, endPosition));
+}
+
+export interface SignatureInfo {
+  range: Range;
+  parameterIndex: number;
+}
+
+export function getSignatureInfo(lineText: string, cursorPosition: Position): SignatureInfo | undefined {
   const textBeforeCursor = lineText.slice(0, cursorPosition.character);
   let openBracketIndex = -1;
   let closedBracketCount = 0;
   let index = textBeforeCursor.length - 1;
-  while (index > 0) {
+  let parameterIndex = 0;
+  let finished = false;
+  while (index > 0 && !finished) {
     const char = textBeforeCursor.charAt(index);
-    if (char === ')') {
-      closedBracketCount++;
-    } else if (char === '(') {
-      if (closedBracketCount === 0) {
-        openBracketIndex = index;
+    switch (char) {
+      case ',': {
+        if (closedBracketCount === 0) {
+          parameterIndex++;
+        }
         break;
-      } else {
-        closedBracketCount--;
+      }
+      case ')': {
+        closedBracketCount++;
+        break;
+      }
+      case '(': {
+        if (closedBracketCount === 0) {
+          openBracketIndex = index;
+          finished = true;
+        } else {
+          closedBracketCount--;
+        }
+        break;
+      }
+      default: {
+        // Do nothing
+        break;
       }
     }
     index--;
   }
   if (openBracketIndex === -1) {
-    return Range.create(cursorPosition, cursorPosition);
+    return undefined;
   }
 
-  const range =
-    getWordRangeAtPosition(Position.create(0, openBracketIndex), /\w+/, [textBeforeCursor]) ?? Range.create(cursorPosition, cursorPosition);
-  range.start.line = line;
-  range.end.line = line;
-  return range;
+  const range = getWordRangeAtPosition(Position.create(0, openBracketIndex), /\w+/, [textBeforeCursor]);
+  if (!range) {
+    return undefined;
+  }
+  range.start.line = cursorPosition.line;
+  range.end.line = cursorPosition.line;
+  return { range, parameterIndex };
 }
 
 export function isQuote(text: string): boolean {

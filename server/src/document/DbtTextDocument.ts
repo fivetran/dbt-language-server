@@ -36,7 +36,7 @@ import { NotificationSender } from '../NotificationSender';
 import { PositionConverter } from '../PositionConverter';
 import { ProgressReporter } from '../ProgressReporter';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
-import { getTextRangeBeforeBracket } from '../utils/TextUtils';
+import { getLineByPosition, getSignatureInfo } from '../utils/TextUtils';
 import { areRangesEqual, debounce, getFilePathRelatedToWorkspace, getIdentifierRangeAtPosition, positionInRange } from '../utils/Utils';
 import { ZetaSqlAst } from '../ZetaSqlAst';
 import { DbtDocumentKind } from './DbtDocumentKind';
@@ -365,9 +365,17 @@ export class DbtTextDocument {
   }
 
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
-    const text = this.rawDocument.getText(getTextRangeBeforeBracket(this.rawDocument.getText(), params.position));
-    console.log(`onSignatureHelp(line='${params.position.line}', character='${params.position.character}', text='${text}')`, LogLevel.Debug);
-    return this.signatureHelpProvider.onSignatureHelp(text);
+    const lineText = getLineByPosition(this.rawDocument, params.position);
+    const signatureInfo = getSignatureInfo(lineText, params.position);
+    if (!signatureInfo) {
+      return undefined;
+    }
+    const textBeforeBracket = this.rawDocument.getText(signatureInfo.range);
+    console.log(
+      `onSignatureHelp(line='${params.position.line}', character='${params.position.character}', text='${textBeforeBracket}', parameterIndex='${signatureInfo.parameterIndex}')`,
+      LogLevel.Debug,
+    );
+    return this.signatureHelpProvider.onSignatureHelp(textBeforeBracket, signatureInfo.parameterIndex);
   }
 
   onDefinition(definitionParams: DefinitionParams): DefinitionLink[] | undefined {

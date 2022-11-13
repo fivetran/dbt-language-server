@@ -1,4 +1,4 @@
-import { MarkupKind, SignatureHelp, SignatureInformation } from 'vscode-languageserver';
+import { MarkupKind, ParameterInformation, SignatureHelp, SignatureInformation } from 'vscode-languageserver';
 import { HelpProviderWords } from './HelpProviderWords';
 
 export interface FunctionInfo {
@@ -9,10 +9,11 @@ export interface FunctionInfo {
 export interface SignatureInfo {
   signature: string;
   description: string;
+  parameters: string[];
 }
 
 export class SignatureHelpProvider {
-  onSignatureHelp(text: string): SignatureHelp | undefined {
+  onSignatureHelp(text: string, activeParameter: number): SignatureHelp | undefined {
     const index = HelpProviderWords.findIndex(w => w.name === text.toLocaleLowerCase());
     if (index !== -1) {
       return {
@@ -22,8 +23,10 @@ export class SignatureHelpProvider {
             kind: MarkupKind.Markdown,
             value: s.description,
           },
+          parameters: s.parameters.length > 0 ? s.parameters.map(p => ParameterInformation.create(p)) : undefined,
         })),
         activeSignature: 0,
+        activeParameter,
       };
     }
     return undefined;
