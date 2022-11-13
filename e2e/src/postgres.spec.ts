@@ -102,7 +102,7 @@ suite('Postgres destination', () => {
       (help.signatures[1].documentation as MarkdownString).value,
       'Returns the number of rows with `expression` evaluated to any value other\nthan `NULL`.',
     );
-    assertThat(help.signatures[0].parameters, [
+    assertThat(help.signatures[1].parameters, [
       { label: '[ DISTINCT ]\n  expression\n  [ HAVING { MAX | MIN } expression2 ]', documentation: undefined },
     ]);
   });
