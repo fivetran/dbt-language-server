@@ -255,7 +255,7 @@ export function getSignatureInfo(lineText: string, cursorPosition: Position): Si
     return undefined;
   }
 
-  const range = getWordRangeAtPosition(Position.create(0, openBracketIndex), /\w+/, [textBeforeCursor]);
+  const range = getWordRangeAtPosition(Position.create(0, openBracketIndex), /[\w.]+/, [textBeforeCursor]);
   if (!range) {
     return undefined;
   }

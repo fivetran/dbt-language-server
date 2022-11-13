@@ -84,6 +84,7 @@ describe('TextUtils', () => {
     getSignatureInfoShouldReturnRange('a(b)', Position.create(0, 4), undefined, 0);
     getSignatureInfoShouldReturnRange('a)(', Position.create(0, 1), undefined, 0);
     getSignatureInfoShouldReturnRange('a)(', Position.create(0, 2), undefined, 0);
+    getSignatureInfoShouldReturnRange('KLL_QUANTILES.EXTRACT_POINT_INT64(sketch, phi)', Position.create(0, 46), undefined, 0);
   });
 
   it('getSignatureInfo should return range', () => {
@@ -120,6 +121,11 @@ describe('TextUtils', () => {
     getSignatureInfoShouldReturnRange('a(b(,))', Position.create(0, 5), Range.create(0, 2, 0, 3), 1);
     getSignatureInfoShouldReturnRange('a(b(,,))', Position.create(0, 6), Range.create(0, 2, 0, 3), 2);
     getSignatureInfoShouldReturnRange('a(b(,,,))', Position.create(0, 7), Range.create(0, 2, 0, 3), 3);
+  });
+
+  it('getSignatureInfo should work for two words functions', () => {
+    getSignatureInfoShouldReturnRange('hll_count.init()', Position.create(0, 15), Range.create(0, 0, 0, 14), 0);
+    getSignatureInfoShouldReturnRange('KLL_QUANTILES.EXTRACT_POINT_INT64(sketch, phi)', Position.create(0, 45), Range.create(0, 0, 0, 33), 1);
   });
 });
 
