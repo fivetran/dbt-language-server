@@ -88,18 +88,22 @@ suite('Postgres destination', () => {
     // assert
     assertThat(help.signatures.length, 2);
 
-    assertThat(help.signatures[0].label, 'COUNT(*)\n[OVER over_clause]\n');
+    assertThat(help.signatures[0].label, 'COUNT(*)\n[OVER over_clause]');
     assertThat(help.signatures[0].documentation, instanceOf(MarkdownString));
     assertThat((help.signatures[0].documentation as MarkdownString).value, 'Returns the number of rows in the input.');
+    assertThat(help.signatures[0].parameters, [{ label: '*', documentation: undefined }]);
 
     assertThat(
       help.signatures[1].label,
-      'COUNT(\n  [ DISTINCT ]\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
+      'COUNT(\n  [ DISTINCT ]\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]',
     );
     assertThat(help.signatures[1].documentation, instanceOf(MarkdownString));
     assertThat(
       (help.signatures[1].documentation as MarkdownString).value,
       'Returns the number of rows with `expression` evaluated to any value other\nthan `NULL`.',
     );
+    assertThat(help.signatures[0].parameters, [
+      { label: '[ DISTINCT ]\n  expression\n  [ HAVING { MAX | MIN } expression2 ]', documentation: undefined },
+    ]);
   });
 });
