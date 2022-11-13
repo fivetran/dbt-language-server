@@ -135,7 +135,7 @@ export class DiffUtils {
       }
     }
 
-    return newNumber;
+    return newNumber >= 0 ? newNumber : 0;
   }
 
   static getLinesCount(str: string): number {
