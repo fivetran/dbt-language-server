@@ -281,7 +281,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'APPROX_COUNT_DISTINCT(\n  expression\n)',
         description:
           'Returns the approximate result for `COUNT(DISTINCT expression)`. The value\nreturned is a statistical estimate, not necessarily the actual value.',
-        parameters: [],
+        parameters: ['expression'],
       },
     ],
   },
@@ -336,7 +336,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'HLL_COUNT.MERGE(sketch)',
         description: 'An aggregate function that returns the cardinality of several\nHLL++ set sketches by computing their union.',
-        parameters: [],
+        parameters: ['sketch'],
       },
     ],
   },
@@ -346,7 +346,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'HLL_COUNT.MERGE_PARTIAL(sketch)',
         description: 'An aggregate function that takes one or more\nHLL++ `sketch`\ninputs and merges them into a new sketch.',
-        parameters: [],
+        parameters: ['sketch'],
       },
     ],
   },
@@ -356,7 +356,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'HLL_COUNT.EXTRACT(sketch)',
         description: 'A scalar function that extracts a cardinality estimate of a single\nHLL++ sketch.',
-        parameters: [],
+        parameters: ['sketch'],
       },
     ],
   },
@@ -398,7 +398,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'KLL_QUANTILES.MERGE_PARTIAL(sketch)',
         description:
           'Takes KLL sketches of the same underlying type and merges them to return a new\nsketch of the same underlying type. This is an aggregate function.',
-        parameters: [],
+        parameters: ['sketch'],
       },
     ],
   },
@@ -409,7 +409,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'KLL_QUANTILES.MERGE_INT64(sketch, number)',
         description:
           'Takes KLL sketches as `BYTES` and merges them into\na new sketch, then returns the quantiles that divide the input into\n`number` equal-sized groups, along with the minimum and maximum values of the\ninput. The output is an `ARRAY` containing the exact minimum value from\nthe input data that you used to initialize the sketches, each\napproximate quantile, and the exact maximum value from the initial input data.\nThis is an aggregate function.',
-        parameters: [],
+        parameters: ['sketch', 'number'],
       },
     ],
   },
@@ -419,7 +419,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'KLL_QUANTILES.MERGE_UINT64(sketch, number)',
         description: 'Like `KLL_QUANTILES.MERGE_INT64`,\nbut accepts KLL sketches initialized on data of type `UINT64`.',
-        parameters: [],
+        parameters: ['sketch', 'number'],
       },
     ],
   },
@@ -429,7 +429,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'KLL_QUANTILES.MERGE_DOUBLE(sketch, number)',
         description: 'Like `KLL_QUANTILES.MERGE_INT64`,\nbut accepts KLL sketches initialized on data of type\n`DOUBLE`.',
-        parameters: [],
+        parameters: ['sketch', 'number'],
       },
     ],
   },
@@ -440,7 +440,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'KLL_QUANTILES.MERGE_POINT_INT64(sketch, phi)',
         description:
           'Takes KLL sketches as `BYTES` and merges them, then extracts a single\nquantile from the merged sketch. The `phi` argument specifies the quantile\nto return as a fraction of the total number of rows in the input, normalized\nbetween 0 and 1. This means that the function will return a value v such that\napproximately Φ * n inputs are less than or equal to v, and a (1-Φ) / n\ninputs are greater than or equal to v. This is an aggregate function.',
-        parameters: [],
+        parameters: ['sketch', 'phi'],
       },
     ],
   },
@@ -450,7 +450,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'KLL_QUANTILES.MERGE_POINT_UINT64(sketch, phi)',
         description: 'Like `KLL_QUANTILES.MERGE_POINT_INT64`,\nbut accepts KLL sketches initialized on data of type `UINT64`.',
-        parameters: [],
+        parameters: ['sketch', 'phi'],
       },
     ],
   },
@@ -460,7 +460,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'KLL_QUANTILES.MERGE_POINT_DOUBLE(sketch, phi)',
         description: 'Like `KLL_QUANTILES.MERGE_POINT_INT64`,\nbut accepts KLL sketches initialized on data of type\n`DOUBLE`.',
-        parameters: [],
+        parameters: ['sketch', 'phi'],
       },
     ],
   },
@@ -471,7 +471,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'KLL_QUANTILES.EXTRACT_INT64(sketch, number)',
         description:
           'Takes a single KLL sketch as `BYTES` and returns a selected `number` of\nquantiles. The output is an `ARRAY` containing the exact minimum value from\nthe input data that you used to initialize the sketch, each approximate\nquantile, and the exact maximum value from the initial input data. This is a\nscalar function, similar to `KLL_QUANTILES.MERGE_INT64`, but scalar rather than\naggregate.',
-        parameters: [],
+        parameters: ['sketch', 'number'],
       },
     ],
   },
@@ -481,7 +481,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'KLL_QUANTILES.EXTRACT_UINT64(sketch, number)',
         description: 'Like `KLL_QUANTILES.EXTRACT_INT64`,\nbut accepts KLL sketches initialized on data of type `UINT64`.',
-        parameters: [],
+        parameters: ['sketch', 'number'],
       },
     ],
   },
@@ -491,7 +491,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'KLL_QUANTILES.EXTRACT_DOUBLE(sketch, number)',
         description: 'Like `KLL_QUANTILES.EXTRACT_INT64`,\nbut accepts KLL sketches initialized on data of type\n`DOUBLE`.',
-        parameters: [],
+        parameters: ['sketch', 'number'],
       },
     ],
   },
@@ -502,7 +502,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'KLL_QUANTILES.EXTRACT_POINT_INT64(sketch, phi)',
         description:
           'Takes a single KLL sketch as `BYTES` and returns a single quantile.\nThe `phi` argument specifies the quantile to return as a fraction of the total\nnumber of rows in the input, normalized between 0 and 1. This means that the\nfunction will return a value v such that approximately Φ * n inputs are less\nthan or equal to v, and a (1-Φ) / n inputs are greater than or equal to v.\nThis is a scalar function.',
-        parameters: [],
+        parameters: ['sketch', 'phi'],
       },
     ],
   },
@@ -512,7 +512,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'KLL_QUANTILES.EXTRACT_POINT_UINT64(sketch, phi)',
         description: 'Like `KLL_QUANTILES.EXTRACT_POINT_INT64`,\nbut accepts KLL sketches initialized on data of type `UINT64`.',
-        parameters: [],
+        parameters: ['sketch', 'phi'],
       },
     ],
   },
@@ -522,7 +522,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'KLL_QUANTILES.EXTRACT_POINT_DOUBLE(sketch, phi)',
         description: 'Like `KLL_QUANTILES.EXTRACT_POINT_INT64`,\nbut accepts KLL sketches initialized on data of type\n`DOUBLE`.',
-        parameters: [],
+        parameters: ['sketch', 'phi'],
       },
     ],
   },
@@ -600,7 +600,9 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'bit_count',
-    signatures: [{ signature: 'BIT_COUNT(expression)', description: 'The input, `expression`, must be an\ninteger or BYTES.', parameters: [] }],
+    signatures: [
+      { signature: 'BIT_COUNT(expression)', description: 'The input, `expression`, must be an\ninteger or BYTES.', parameters: ['expression'] },
+    ],
   },
   {
     name: 'abs',
@@ -609,7 +611,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'ABS(X)',
         description:
           'Computes absolute value. Returns an error if the argument is an integer and the\noutput value cannot be represented as the same type; this happens only for the\nlargest negative input value, which has no positive representation.',
-        parameters: [],
+        parameters: ['X'],
       },
     ],
   },
@@ -620,15 +622,15 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'SIGN(X)',
         description:
           'Returns `-1`, `0`, or `+1` for negative, zero and positive arguments\nrespectively. For floating point arguments, this function does not distinguish\nbetween positive and negative zero.',
-        parameters: [],
+        parameters: ['X'],
       },
     ],
   },
   {
     name: 'is_inf',
-    signatures: [{ signature: 'IS_INF(X)', description: 'Returns `TRUE` if the value is positive or negative infinity.', parameters: [] }],
+    signatures: [{ signature: 'IS_INF(X)', description: 'Returns `TRUE` if the value is positive or negative infinity.', parameters: ['X'] }],
   },
-  { name: 'is_nan', signatures: [{ signature: 'IS_NAN(X)', description: 'Returns `TRUE` if the value is a `NaN` value.', parameters: [] }] },
+  { name: 'is_nan', signatures: [{ signature: 'IS_NAN(X)', description: 'Returns `TRUE` if the value is a `NaN` value.', parameters: ['X'] }] },
   {
     name: 'ieee_divide',
     signatures: [
@@ -636,7 +638,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'IEEE_DIVIDE(X, Y)',
         description:
           'Divides X by Y; this function never fails. Returns\n`DOUBLE` unless\nboth X and Y are `FLOAT`, in which case it returns\n`FLOAT`. Unlike the division operator (/),\nthis function does not generate errors for division by zero or overflow.</p>',
-        parameters: [],
+        parameters: ['X', 'Y'],
       },
     ],
   },
@@ -652,7 +654,7 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'sqrt',
-    signatures: [{ signature: 'SQRT(X)', description: 'Computes the square root of X. Generates an error if X is less than 0.', parameters: [] }],
+    signatures: [{ signature: 'SQRT(X)', description: 'Computes the square root of X. Generates an error if X is less than 0.', parameters: ['X'] }],
   },
   {
     name: 'pow',
@@ -661,11 +663,11 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'POW(X, Y)',
         description:
           'Returns the value of X raised to the power of Y. If the result underflows and is\nnot representable, then the function returns a  value of zero.',
-        parameters: [],
+        parameters: ['X', 'Y'],
       },
     ],
   },
-  { name: 'power', signatures: [{ signature: 'POWER(X, Y)', description: 'Synonym of `POW(X, Y)`.', parameters: [] }] },
+  { name: 'power', signatures: [{ signature: 'POWER(X, Y)', description: 'Synonym of `POW(X, Y)`.', parameters: ['X', 'Y'] }] },
   {
     name: 'exp',
     signatures: [
@@ -673,7 +675,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'EXP(X)',
         description:
           'Computes e to the power of X, also called the natural exponential function. If\nthe result underflows, this function returns a zero. Generates an error if the\nresult overflows.',
-        parameters: [],
+        parameters: ['X'],
       },
     ],
   },
@@ -683,7 +685,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'LN(X)',
         description: 'Computes the natural logarithm of X. Generates an error if X is less than or\nequal to zero.',
-        parameters: [],
+        parameters: ['X'],
       },
     ],
   },
@@ -697,7 +699,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       },
     ],
   },
-  { name: 'log10', signatures: [{ signature: 'LOG10(X)', description: 'Similar to `LOG`, but computes logarithm to base 10.', parameters: [] }] },
+  { name: 'log10', signatures: [{ signature: 'LOG10(X)', description: 'Similar to `LOG`, but computes logarithm to base 10.', parameters: ['X'] }] },
   {
     name: 'greatest',
     signatures: [
@@ -705,7 +707,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'GREATEST(X1,...,XN)',
         description:
           'Returns the greatest value among `X1,...,XN`. If any argument is `NULL`, returns\n`NULL`. Otherwise, in the case of floating-point arguments, if any argument is\n`NaN`, returns `NaN`. In all other cases, returns the value among `X1,...,XN`\nthat has the greatest value according to the ordering used by the `ORDER BY`\nclause. The arguments `X1, ..., XN` must be coercible to a common supertype, and\nthe supertype must support ordering.',
-        parameters: [],
+        parameters: ['X1', '...', 'XN'],
       },
     ],
   },
@@ -716,7 +718,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'LEAST(X1,...,XN)',
         description:
           'Returns the least value among `X1,...,XN`. If any argument is `NULL`, returns\n`NULL`. Otherwise, in the case of floating-point arguments, if any argument is\n`NaN`, returns `NaN`. In all other cases, returns the value among `X1,...,XN`\nthat has the least value according to the ordering used by the `ORDER BY`\nclause. The arguments `X1, ..., XN` must be coercible to a common supertype, and\nthe supertype must support ordering.',
-        parameters: [],
+        parameters: ['X1', '...', 'XN'],
       },
     ],
   },
@@ -726,7 +728,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'DIV(X, Y)',
         description: 'Returns the result of integer division of X by Y. Division by zero returns\nan error. Division by -1 may overflow.',
-        parameters: [],
+        parameters: ['X', 'Y'],
       },
     ],
   },
@@ -737,7 +739,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'SAFE_DIVIDE(X, Y)',
         description:
           'Equivalent to the division operator (<code>X / Y</code>), but returns\n<code>NULL</code> if an error occurs, such as a division by zero error.',
-        parameters: [],
+        parameters: ['X', 'Y'],
       },
     ],
   },
@@ -747,7 +749,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'SAFE_MULTIPLY(X, Y)',
         description: 'Equivalent to the multiplication operator (<code>*</code>), but returns\n<code>NULL</code> if overflow occurs.',
-        parameters: [],
+        parameters: ['X', 'Y'],
       },
     ],
   },
@@ -757,7 +759,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'SAFE_NEGATE(X)',
         description: 'Equivalent to the unary minus operator (<code>-</code>), but returns\n<code>NULL</code> if overflow occurs.',
-        parameters: [],
+        parameters: ['X'],
       },
     ],
   },
@@ -767,7 +769,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'SAFE_ADD(X, Y)',
         description: 'Equivalent to the addition operator (<code>+</code>), but returns\n<code>NULL</code> if overflow occurs.',
-        parameters: [],
+        parameters: ['X', 'Y'],
       },
     ],
   },
@@ -778,7 +780,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'SAFE_SUBTRACT(X, Y)',
         description:
           'Returns the result of Y subtracted from X.\nEquivalent to the subtraction operator (<code>-</code>), but returns\n<code>NULL</code> if overflow occurs.',
-        parameters: [],
+        parameters: ['X', 'Y'],
       },
     ],
   },
@@ -789,7 +791,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'MOD(X, Y)',
         description:
           'Modulo function: returns the remainder of the division of X by Y. Returned\nvalue has the same sign as X. An error is generated if Y is 0.',
-        parameters: [],
+        parameters: ['X', 'Y'],
       },
     ],
   },
@@ -817,16 +819,16 @@ export const HelpProviderWords: FunctionInfo[] = [
   },
   {
     name: 'ceil',
-    signatures: [{ signature: 'CEIL(X)', description: 'Returns the smallest integral value that is not less than X.', parameters: [] }],
+    signatures: [{ signature: 'CEIL(X)', description: 'Returns the smallest integral value that is not less than X.', parameters: ['X'] }],
   },
-  { name: 'ceiling', signatures: [{ signature: 'CEILING(X)', description: 'Synonym of CEIL(X)', parameters: [] }] },
+  { name: 'ceiling', signatures: [{ signature: 'CEILING(X)', description: 'Synonym of CEIL(X)', parameters: ['X'] }] },
   {
     name: 'floor',
-    signatures: [{ signature: 'FLOOR(X)', description: 'Returns the largest integral value that is not greater than X.', parameters: [] }],
+    signatures: [{ signature: 'FLOOR(X)', description: 'Returns the largest integral value that is not greater than X.', parameters: ['X'] }],
   },
   {
     name: 'cos',
-    signatures: [{ signature: 'COS(X)', description: 'Computes the cosine of X where X is specified in radians. Never fails.', parameters: [] }],
+    signatures: [{ signature: 'COS(X)', description: 'Computes the cosine of X where X is specified in radians. Never fails.', parameters: ['X'] }],
   },
   {
     name: 'cosh',
@@ -834,7 +836,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'COSH(X)',
         description: 'Computes the hyperbolic cosine of X where X is specified in radians.\nGenerates an error if overflow occurs.',
-        parameters: [],
+        parameters: ['X'],
       },
     ],
   },
@@ -845,7 +847,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'ACOS(X)',
         description:
           'Computes the principal value of the inverse cosine of X. The return value is in\nthe range [0,π]. Generates an error if X is a value outside of the\nrange [-1, 1].',
-        parameters: [],
+        parameters: ['X'],
       },
     ],
   },
@@ -855,7 +857,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'ACOSH(X)',
         description: 'Computes the inverse hyperbolic cosine of X. Generates an error if X is a value\nless than 1.',
-        parameters: [],
+        parameters: ['X'],
       },
     ],
   },
@@ -866,7 +868,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'COT(X)',
         description:
           'Computes the cotangent for the angle of `X`, where `X` is specified in radians.\n`X` can be any data type\nthat coerces to `DOUBLE`.\nSupports the `SAFE.` prefix.',
-        parameters: [],
+        parameters: ['X'],
       },
     ],
   },
@@ -877,7 +879,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'COTH(X)',
         description:
           'Computes the hyperbolic cotangent for the angle of `X`, where `X` is specified\nin radians. `X` can be any data type\nthat coerces to `DOUBLE`.\nSupports the `SAFE.` prefix.',
-        parameters: [],
+        parameters: ['X'],
       },
     ],
   },
@@ -888,7 +890,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'CSC(X)',
         description:
           'Computes the cosecant of the input angle, which is in radians.\n`X` can be any data type\nthat coerces to `DOUBLE`.\nSupports the `SAFE.` prefix.',
-        parameters: [],
+        parameters: ['X'],
       },
     ],
   },
@@ -899,7 +901,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'CSCH(X)',
         description:
           'Computes the hyperbolic cosecant of the input angle, which is in radians.\n`X` can be any data type\nthat coerces to `DOUBLE`.\nSupports the `SAFE.` prefix.',
-        parameters: [],
+        parameters: ['X'],
       },
     ],
   },
@@ -910,7 +912,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'SEC(X)',
         description:
           'Computes the secant for the angle of `X`, where `X` is specified in radians.\n`X` can be any data type\nthat coerces to `DOUBLE`.',
-        parameters: [],
+        parameters: ['X'],
       },
     ],
   },
@@ -921,13 +923,13 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'SECH(X)',
         description:
           'Computes the hyperbolic secant for the angle of `X`, where `X` is specified\nin radians. `X` can be any data type\nthat coerces to `DOUBLE`.\nNever produces an error.',
-        parameters: [],
+        parameters: ['X'],
       },
     ],
   },
   {
     name: 'sin',
-    signatures: [{ signature: 'SIN(X)', description: 'Computes the sine of X where X is specified in radians. Never fails.', parameters: [] }],
+    signatures: [{ signature: 'SIN(X)', description: 'Computes the sine of X where X is specified in radians. Never fails.', parameters: ['X'] }],
   },
   {
     name: 'sinh',
@@ -935,7 +937,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'SINH(X)',
         description: 'Computes the hyperbolic sine of X where X is specified in radians. Generates\nan error if overflow occurs.',
-        parameters: [],
+        parameters: ['X'],
       },
     ],
   },
@@ -946,13 +948,13 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'ASIN(X)',
         description:
           'Computes the principal value of the inverse sine of X. The return value is in\nthe range [-π/2,π/2]. Generates an error if X is outside of\nthe range [-1, 1].',
-        parameters: [],
+        parameters: ['X'],
       },
     ],
   },
   {
     name: 'asinh',
-    signatures: [{ signature: 'ASINH(X)', description: 'Computes the inverse hyperbolic sine of X. Does not fail.', parameters: [] }],
+    signatures: [{ signature: 'ASINH(X)', description: 'Computes the inverse hyperbolic sine of X. Does not fail.', parameters: ['X'] }],
   },
   {
     name: 'tan',
@@ -960,14 +962,18 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'TAN(X)',
         description: 'Computes the tangent of X where X is specified in radians. Generates an error if\noverflow occurs.',
-        parameters: [],
+        parameters: ['X'],
       },
     ],
   },
   {
     name: 'tanh',
     signatures: [
-      { signature: 'TANH(X)', description: 'Computes the hyperbolic tangent of X where X is specified in radians. Does not\nfail.', parameters: [] },
+      {
+        signature: 'TANH(X)',
+        description: 'Computes the hyperbolic tangent of X where X is specified in radians. Does not\nfail.',
+        parameters: ['X'],
+      },
     ],
   },
   {
@@ -976,7 +982,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'ATAN(X)',
         description: 'Computes the principal value of the inverse tangent of X. The return value is\nin the range [-π/2,π/2]. Does not fail.',
-        parameters: [],
+        parameters: ['X'],
       },
     ],
   },
@@ -986,7 +992,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'ATANH(X)',
         description: 'Computes the inverse hyperbolic tangent of X. Generates an error if X is outside\nof the range [-1, 1].',
-        parameters: [],
+        parameters: ['X'],
       },
     ],
   },
@@ -997,7 +1003,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'ATAN2(X, Y)',
         description:
           'Calculates the principal value of the inverse tangent of X/Y using the signs of\nthe two arguments to determine the quadrant. The return value is in the range\n[-π,π].',
-        parameters: [],
+        parameters: ['X', 'Y'],
       },
     ],
   },
@@ -1007,7 +1013,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'CBRT(X)',
         description: 'Computes the cube root of `X`. `X` can be any data type\nthat coerces to `DOUBLE`.\nSupports the `SAFE.` prefix.',
-        parameters: [],
+        parameters: ['X'],
       },
     ],
   },
@@ -1099,7 +1105,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'FARM_FINGERPRINT(value)',
         description:
           'Computes the fingerprint of the `STRING` or `BYTES` input using the\n`Fingerprint64` function from the\nopen-source FarmHash library. The output\nof this function for a particular input will never change.',
-        parameters: [],
+        parameters: ['value'],
       },
     ],
   },
@@ -1109,7 +1115,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'FINGERPRINT(input)',
         description: 'Computes the fingerprint of the `STRING`\nor `BYTES` input using Fingerprint.',
-        parameters: [],
+        parameters: ['input'],
       },
     ],
   },
@@ -1120,7 +1126,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'MD5(input)',
         description:
           'Computes the hash of the input using the\nMD5 algorithm. The input can either be\n`STRING` or `BYTES`. The string version treats the input as an array of bytes.',
-        parameters: [],
+        parameters: ['input'],
       },
     ],
   },
@@ -1131,7 +1137,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'SHA1(input)',
         description:
           'Computes the hash of the input using the\nSHA-1 algorithm. The input can either be\n`STRING` or `BYTES`. The string version treats the input as an array of bytes.',
-        parameters: [],
+        parameters: ['input'],
       },
     ],
   },
@@ -1142,7 +1148,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'SHA256(input)',
         description:
           'Computes the hash of the input using the\nSHA-256 algorithm. The input can either be\n`STRING` or `BYTES`. The string version treats the input as an array of bytes.',
-        parameters: [],
+        parameters: ['input'],
       },
     ],
   },
@@ -1153,7 +1159,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'SHA512(input)',
         description:
           'Computes the hash of the input using the\nSHA-512 algorithm. The input can either be\n`STRING` or `BYTES`. The string version treats the input as an array of bytes.',
-        parameters: [],
+        parameters: ['input'],
       },
     ],
   },
@@ -1164,7 +1170,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'ASCII(value)',
         description:
           'Returns the ASCII code for the first character or byte in `value`. Returns\n`0` if `value` is empty or the ASCII code is `0` for the first character\nor byte.',
-        parameters: [],
+        parameters: ['value'],
       },
     ],
   },
@@ -1175,15 +1181,18 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'BYTE_LENGTH(value)',
         description:
           'Returns the length of the `STRING` or `BYTES` value in `BYTES`,\nregardless of whether the type of the value is `STRING` or `BYTES`.',
-        parameters: [],
+        parameters: ['value'],
       },
     ],
   },
   {
     name: 'char_length',
-    signatures: [{ signature: 'CHAR_LENGTH(value)', description: 'Returns the length of the `STRING` in characters.', parameters: [] }],
+    signatures: [{ signature: 'CHAR_LENGTH(value)', description: 'Returns the length of the `STRING` in characters.', parameters: ['value'] }],
   },
-  { name: 'character_length', signatures: [{ signature: 'CHARACTER_LENGTH(value)', description: 'Synonym for CHAR_LENGTH.', parameters: [] }] },
+  {
+    name: 'character_length',
+    signatures: [{ signature: 'CHARACTER_LENGTH(value)', description: 'Synonym for CHAR_LENGTH.', parameters: ['value'] }],
+  },
   {
     name: 'chr',
     signatures: [
@@ -1191,7 +1200,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'CHR(value)',
         description:
           'Takes a Unicode code point and returns\nthe character that matches the code point. Each valid code point should fall\nwithin the range of [0, 0xD7FF] and [0xE000, 0x10FFFF]. Returns an empty string\nif the code point is `0`. If an invalid Unicode code point is specified, an\nerror is returned.',
-        parameters: [],
+        parameters: ['value'],
       },
     ],
   },
@@ -1201,7 +1210,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'CODE_POINTS_TO_BYTES(ascii_code_points)',
         description: 'Takes an array of extended ASCII\ncode points\n(`ARRAY` of `INT64`) and returns `BYTES`.',
-        parameters: [],
+        parameters: ['ascii_code_points'],
       },
     ],
   },
@@ -1211,7 +1220,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'CODE_POINTS_TO_STRING(unicode_code_points)',
         description: 'Takes an array of Unicode code points\n(`ARRAY` of `INT64`) and returns a `STRING`.',
-        parameters: [],
+        parameters: ['unicode_code_points'],
       },
     ],
   },
@@ -1221,7 +1230,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'COLLATE(value, collate_specification)',
         description: 'Concatenates one or more values into a single result. All values must be\n`BYTES` or data types that can be cast to `STRING`.',
-        parameters: [],
+        parameters: ['value', 'collate_specification'],
       },
     ],
   },
@@ -1231,7 +1240,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'ENDS_WITH(value1, value2)',
         description: 'Takes two `STRING` or `BYTES` values. Returns `TRUE` if the second\nvalue is a suffix of the first.',
-        parameters: [],
+        parameters: ['value1', 'value2'],
       },
     ],
   },
@@ -1243,7 +1252,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'FROM_BASE32(string_expr)',
         description:
           'Converts the base32-encoded input `string_expr` into `BYTES` format. To convert\n`BYTES` to a base32-encoded `STRING`, use TO_BASE32.',
-        parameters: [],
+        parameters: ['string_expr'],
       },
     ],
   },
@@ -1254,7 +1263,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'FROM_BASE64(string_expr)',
         description:
           'Converts the base64-encoded input `string_expr` into\n`BYTES` format. To convert\n`BYTES` to a base64-encoded `STRING`,\nuse TO_BASE64.',
-        parameters: [],
+        parameters: ['string_expr'],
       },
     ],
   },
@@ -1265,7 +1274,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'FROM_HEX(string)',
         description:
           'Converts a hexadecimal-encoded `STRING` into `BYTES` format. Returns an error\nif the input `STRING` contains characters outside the range\n`(0..9, A..F, a..f)`. The lettercase of the characters does not matter. If the\ninput `STRING` has an odd number of characters, the function acts as if the\ninput has an additional leading `0`. To convert `BYTES` to a hexadecimal-encoded\n`STRING`, use TO_HEX.',
-        parameters: [],
+        parameters: ['string'],
       },
     ],
   },
@@ -1298,7 +1307,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'LEFT(value, length)',
         description:
           'Returns a `STRING` or `BYTES` value that consists of the specified\nnumber of leftmost characters or bytes from `value`. The `length` is an\n`INT64` that specifies the length of the returned\nvalue. If `value` is of type `BYTES`, `length` is the number of leftmost bytes\nto return. If `value` is `STRING`, `length` is the number of leftmost characters\nto return.',
-        parameters: [],
+        parameters: ['value', 'length'],
       },
     ],
   },
@@ -1309,7 +1318,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'LENGTH(value)',
         description:
           'Returns the length of the `STRING` or `BYTES` value. The returned\nvalue is in characters for `STRING` arguments and in bytes for the `BYTES`\nargument.',
-        parameters: [],
+        parameters: ['value'],
       },
     ],
   },
@@ -1331,7 +1340,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'LOWER(value)',
         description:
           'For `STRING` arguments, returns the original string with all alphabetic\ncharacters in lowercase. Mapping between lowercase and uppercase is done\naccording to the\nUnicode Character Database\nwithout taking into account language-specific mappings.',
-        parameters: [],
+        parameters: ['value'],
       },
     ],
   },
@@ -1365,7 +1374,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'OCTET_LENGTH(value)',
         description: 'Returns `TRUE` if `value` is a partial match for the regular expression,\n`regexp`.',
-        parameters: [],
+        parameters: ['value'],
       },
     ],
   },
@@ -1375,7 +1384,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'REGEXP_EXTRACT(value, regexp)',
         description: 'Returns the first substring in `value` that matches the regular expression,\n`regexp`. Returns `NULL` if there is no match.',
-        parameters: [],
+        parameters: ['value', 'regexp'],
       },
     ],
   },
@@ -1385,7 +1394,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'REGEXP_EXTRACT_ALL(value, regexp)',
         description: 'Returns an array of all substrings of `value` that match the regular expression,\n`regexp`.',
-        parameters: [],
+        parameters: ['value', 'regexp'],
       },
     ],
   },
@@ -1410,7 +1419,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'REGEXP_REPLACE(value, regexp, replacement)',
         description: 'Returns a `STRING` where all substrings of `value` that\nmatch regular expression `regexp` are replaced with `replacement`.',
-        parameters: [],
+        parameters: ['value', 'regexp', 'replacement'],
       },
     ],
   },
@@ -1421,7 +1430,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'REPLACE(original_value, from_value, to_value)',
         description:
           'Replaces all occurrences of `from_value` with `to_value` in `original_value`.\nIf `from_value` is empty, no replacement is made.',
-        parameters: [],
+        parameters: ['original_value', 'from_value', 'to_value'],
       },
     ],
   },
@@ -1432,13 +1441,13 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'REPEAT(original_value, repetitions)',
         description:
           'Returns a `STRING` or `BYTES` value that consists of `original_value`, repeated.\nThe `repetitions` parameter specifies the number of times to repeat\n`original_value`. Returns `NULL` if either `original_value` or `repetitions`\nare `NULL`.',
-        parameters: [],
+        parameters: ['original_value', 'repetitions'],
       },
     ],
   },
   {
     name: 'reverse',
-    signatures: [{ signature: 'REVERSE(value)', description: 'Returns the reverse of the input `STRING` or `BYTES`.', parameters: [] }],
+    signatures: [{ signature: 'REVERSE(value)', description: 'Returns the reverse of the input `STRING` or `BYTES`.', parameters: ['value'] }],
   },
   {
     name: 'right',
@@ -1447,7 +1456,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'RIGHT(value, length)',
         description:
           'Returns a `STRING` or `BYTES` value that consists of the specified\nnumber of rightmost characters or bytes from `value`. The `length` is an\n`INT64` that specifies the length of the returned\nvalue. If `value` is `BYTES`, `length` is the number of rightmost bytes to\nreturn. If `value` is `STRING`, `length` is the number of rightmost characters\nto return.',
-        parameters: [],
+        parameters: ['value', 'length'],
       },
     ],
   },
@@ -1473,13 +1482,15 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'SAFE_CONVERT_BYTES_TO_STRING(value)',
         description:
           'Converts a sequence of `BYTES` to a `STRING`. Any invalid UTF-8 characters are\nreplaced with the Unicode replacement character, `U+FFFD`.',
-        parameters: [],
+        parameters: ['value'],
       },
     ],
   },
   {
     name: 'soundex',
-    signatures: [{ signature: 'SOUNDEX(value)', description: 'Returns a `STRING` that represents the\nSoundex code for `value`.', parameters: [] }],
+    signatures: [
+      { signature: 'SOUNDEX(value)', description: 'Returns a `STRING` that represents the\nSoundex code for `value`.', parameters: ['value'] },
+    ],
   },
   {
     name: 'split',
@@ -1491,7 +1502,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'STARTS_WITH(value1, value2)',
         description: 'Takes two `STRING` or `BYTES` values. Returns `TRUE` if the second value is a\nprefix of the first.',
-        parameters: [],
+        parameters: ['value1', 'value2'],
       },
     ],
   },
@@ -1502,7 +1513,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'STRPOS(value1, value2)',
         description:
           'Takes two `STRING` or `BYTES` values. Returns the 1-based index of the first\noccurrence of `value2` inside `value1`. Returns `0` if `value2` is not found.',
-        parameters: [],
+        parameters: ['value1', 'value2'],
       },
     ],
   },
@@ -1534,13 +1545,13 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'TO_BASE64(bytes_expr)',
         description:
           'Converts a sequence of `BYTES` into a base64-encoded `STRING`. To convert a\nbase64-encoded `STRING` into `BYTES`, use FROM_BASE64.',
-        parameters: [],
+        parameters: ['bytes_expr'],
       },
     ],
   },
   {
     name: 'to_code_points',
-    signatures: [{ signature: 'TO_CODE_POINTS(value)', description: 'Takes a value and returns an array of\n`INT64`.', parameters: [] }],
+    signatures: [{ signature: 'TO_CODE_POINTS(value)', description: 'Takes a value and returns an array of\n`INT64`.', parameters: ['value'] }],
   },
   {
     name: 'to_hex',
@@ -1549,7 +1560,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'TO_HEX(bytes)',
         description:
           'Converts a sequence of `BYTES` into a hexadecimal `STRING`. Converts each byte\nin the `STRING` as two hexadecimal characters in the range\n`(0..9, a..f)`. To convert a hexadecimal-encoded\n`STRING` to `BYTES`, use FROM_HEX.',
-        parameters: [],
+        parameters: ['bytes'],
       },
     ],
   },
@@ -1560,7 +1571,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'TRANSLATE(expression, source_characters, target_characters)',
         description:
           'In `expression`, replaces each character in `source_characters` with the\ncorresponding character in `target_characters`. All inputs must be the same\ntype, either `STRING` or `BYTES`.',
-        parameters: [],
+        parameters: ['expression', 'source_characters', 'target_characters'],
       },
     ],
   },
@@ -1577,7 +1588,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'UNICODE(value)',
         description:
           'Returns the Unicode code point for the first character in\n`value`. Returns `0` if `value` is empty, or if the resulting Unicode code\npoint is `0`.',
-        parameters: [],
+        parameters: ['value'],
       },
     ],
   },
@@ -1588,7 +1599,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'UPPER(value)',
         description:
           'For `STRING` arguments, returns the original string with all alphabetic\ncharacters in uppercase. Mapping between uppercase and lowercase is done\naccording to the\nUnicode Character Database\nwithout taking into account language-specific mappings.',
-        parameters: [],
+        parameters: ['value'],
       },
     ],
   },
@@ -1610,7 +1621,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'JSON_QUERY(json_string_expr, json_path)',
         description:
           'Extracts a JSON value, such as an array or object, or a JSON scalar\nvalue, such as a string, number, or boolean. If a JSON key uses invalid\nJSONPath characters, then you can escape those characters\nusing double quotes.',
-        parameters: [],
+        parameters: ['json_string_expr', 'json_path'],
       },
     ],
   },
@@ -1729,7 +1740,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'ARRAY(subquery)',
         description: 'The `ARRAY` function returns an `ARRAY` with one element for each row in a\nsubquery.',
-        parameters: [],
+        parameters: ['subquery'],
       },
     ],
   },
@@ -1750,14 +1761,18 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature:
           'ARRAY_FILTER(array_expression, lambda_expression)\n\nlambda_expression:\n  {\n    element_alias->boolean_expression\n    | (element_alias, index_alias)->boolean_expression\n  }',
         description: 'Takes an array, filters out unwanted elements, and returns the results in a new\narray.',
-        parameters: [],
+        parameters: ['array_expression', 'lambda_expression'],
       },
     ],
   },
   {
     name: 'array_first',
     signatures: [
-      { signature: 'ARRAY_FIRST(array_expression)', description: 'Takes an array and returns the first element in the array.', parameters: [] },
+      {
+        signature: 'ARRAY_FIRST(array_expression)',
+        description: 'Takes an array and returns the first element in the array.',
+        parameters: ['array_expression'],
+      },
     ],
   },
   {
@@ -1777,7 +1792,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'ARRAY_INCLUDES_ANY(array_to_search, search_values)',
         description:
           'Takes an array to search and an array of search values. Returns `TRUE` if any\nsearch values are in the array to search, otherwise returns `FALSE`.',
-        parameters: [],
+        parameters: ['array_to_search', 'search_values'],
       },
     ],
   },
@@ -1788,14 +1803,18 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'ARRAY_INCLUDES_ALL(array_to_search, search_values)',
         description:
           'Takes an array to search and an array of search values. Returns `TRUE` if all\nsearch values are in the array to search, otherwise returns `FALSE`.',
-        parameters: [],
+        parameters: ['array_to_search', 'search_values'],
       },
     ],
   },
   {
     name: 'array_last',
     signatures: [
-      { signature: 'ARRAY_LAST(array_expression)', description: 'Takes an array and returns the last element in the array.', parameters: [] },
+      {
+        signature: 'ARRAY_LAST(array_expression)',
+        description: 'Takes an array and returns the last element in the array.',
+        parameters: ['array_expression'],
+      },
     ],
   },
   {
@@ -1804,7 +1823,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'ARRAY_LENGTH(array_expression)',
         description: 'Returns the size of the array. Returns 0 for an empty array. Returns `NULL` if\nthe `array_expression` is `NULL`.',
-        parameters: [],
+        parameters: ['array_expression'],
       },
     ],
   },
@@ -1814,7 +1833,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'ARRAY_SLICE(array_to_slice, start_offset, end_offset)',
         description: 'Returns an array containing zero or more consecutive elements from the\ninput array.',
-        parameters: [],
+        parameters: ['array_to_slice', 'start_offset', 'end_offset'],
       },
     ],
   },
@@ -1837,7 +1856,7 @@ export const HelpProviderWords: FunctionInfo[] = [
           'ARRAY_TRANSFORM(array_expression, lambda_expression)\n\nlambda_expression:\n  {\n    element_alias->transform_expression\n    | (element_alias, index_alias)->transform_expression\n  }',
         description:
           'Takes an array, transforms the elements, and returns the results in a new array.\nThe output array always has the same length as the input array.',
-        parameters: [],
+        parameters: ['array_expression', 'lambda_expression'],
       },
     ],
   },
@@ -1848,7 +1867,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'FLATTEN(array_elements_field_access_expression)',
         description:
           'Takes a nested array and flattens a specific part of it into a single, flat\narray with the\narray elements field access operator.\nReturns `NULL` if the input value is `NULL`.\nIf `NULL` array elements are\nencountered, they are added to the resulting array.',
-        parameters: [],
+        parameters: ['array_elements_field_access_expression'],
       },
     ],
   },
@@ -1880,13 +1899,15 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'GENERATE_TIMESTAMP_ARRAY(start_timestamp, end_timestamp,\n                         INTERVAL step_expression date_part)',
         description:
           'Returns an `ARRAY` of `TIMESTAMPS` separated by a given interval. The\n`start_timestamp` and `end_timestamp` parameters determine the inclusive\nlower and upper bounds of the `ARRAY`.',
-        parameters: [],
+        parameters: ['start_timestamp', 'end_timestamp', 'INTERVAL step_expression date_part'],
       },
     ],
   },
   {
     name: 'array_reverse',
-    signatures: [{ signature: 'ARRAY_REVERSE(value)', description: 'Returns the input ARRAY with elements in reverse order.', parameters: [] }],
+    signatures: [
+      { signature: 'ARRAY_REVERSE(value)', description: 'Returns the input ARRAY with elements in reverse order.', parameters: ['value'] },
+    ],
   },
   {
     name: 'array_is_distinct',
@@ -1894,7 +1915,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'ARRAY_IS_DISTINCT(value)',
         description: 'Returns true if the array contains no repeated elements, using the same equality\ncomparison logic as `SELECT DISTINCT`.',
-        parameters: [],
+        parameters: ['value'],
       },
     ],
   },
@@ -1914,7 +1935,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'EXTRACT(part FROM date_expression)',
         description: 'Returns the value corresponding to the specified date part. The `part` must\nbe one of:',
-        parameters: [],
+        parameters: ['part FROM date_expression'],
       },
     ],
   },
@@ -1941,7 +1962,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'DATE_ADD(date_expression, INTERVAL int64_expression date_part)',
         description: 'Adds a specified time interval to a DATE.',
-        parameters: [],
+        parameters: ['date_expression', 'INTERVAL int64_expression date_part'],
       },
     ],
   },
@@ -1951,7 +1972,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'DATE_SUB(date_expression, INTERVAL int64_expression date_part)',
         description: 'Subtracts a specified time interval from a DATE.',
-        parameters: [],
+        parameters: ['date_expression', 'INTERVAL int64_expression date_part'],
       },
     ],
   },
@@ -1962,7 +1983,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'DATE_DIFF(date_expression_a, date_expression_b, date_part)',
         description:
           'Returns the whole number of specified `date_part` intervals between two\n`DATE` objects (`date_expression_a` - `date_expression_b`).\nIf the first `DATE` is earlier than the second one,\nthe output is negative.',
-        parameters: [],
+        parameters: ['date_expression_a', 'date_expression_b', 'date_part'],
       },
     ],
   },
@@ -1973,7 +1994,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'DATE_TRUNC(date_expression, date_part)',
         description:
           'Truncates a `DATE` value to the granularity of `date_part`. The `DATE` value\nis always rounded to the beginning of `date_part`, which can be one of the\nfollowing:',
-        parameters: [],
+        parameters: ['date_expression', 'date_part'],
       },
     ],
   },
@@ -1983,7 +2004,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'DATE_FROM_UNIX_DATE(int64_expression)',
         description: 'Interprets `int64_expression` as the number of days since 1970-01-01.',
-        parameters: [],
+        parameters: ['int64_expression'],
       },
     ],
   },
@@ -1993,7 +2014,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'FORMAT_DATE(format_string, date_expr)',
         description: 'Formats the `date_expr` according to the specified `format_string`.',
-        parameters: [],
+        parameters: ['format_string', 'date_expr'],
       },
     ],
   },
@@ -2013,13 +2034,15 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'PARSE_DATE(format_string, date_string)',
         description: 'Converts a string representation of date to a\n`DATE` object.',
-        parameters: [],
+        parameters: ['format_string', 'date_string'],
       },
     ],
   },
   {
     name: 'unix_date',
-    signatures: [{ signature: 'UNIX_DATE(date_expression)', description: 'Returns the number of days since 1970-01-01.', parameters: [] }],
+    signatures: [
+      { signature: 'UNIX_DATE(date_expression)', description: 'Returns the number of days since 1970-01-01.', parameters: ['date_expression'] },
+    ],
   },
   {
     name: 'current_datetime',
@@ -2058,7 +2081,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'DATETIME_ADD(datetime_expression, INTERVAL int64_expression part)',
         description: 'Adds `int64_expression` units of `part` to the `DATETIME` object.',
-        parameters: [],
+        parameters: ['datetime_expression', 'INTERVAL int64_expression part'],
       },
     ],
   },
@@ -2068,7 +2091,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'DATETIME_SUB(datetime_expression, INTERVAL int64_expression part)',
         description: 'Subtracts `int64_expression` units of `part` from the `DATETIME`.',
-        parameters: [],
+        parameters: ['datetime_expression', 'INTERVAL int64_expression part'],
       },
     ],
   },
@@ -2079,7 +2102,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'DATETIME_DIFF(datetime_expression_a, datetime_expression_b, part)',
         description:
           'Returns the whole number of specified `part` intervals between two\n`DATETIME` objects (`datetime_expression_a` - `datetime_expression_b`).\nIf the first `DATETIME` is earlier than the second one,\nthe output is negative. Throws an error if the computation overflows the\nresult type, such as if the difference in\nnanoseconds\nbetween the two `DATETIME` objects would overflow an\n`INT64` value.',
-        parameters: [],
+        parameters: ['datetime_expression_a', 'datetime_expression_b', 'part'],
       },
     ],
   },
@@ -2090,7 +2113,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'DATETIME_TRUNC(datetime_expression, date_time_part)',
         description:
           'Truncates a `DATETIME` value to the granularity of `date_time_part`.\nThe `DATETIME` value is always rounded to the beginning of `date_time_part`,\nwhich can be one of the following:',
-        parameters: [],
+        parameters: ['datetime_expression', 'date_time_part'],
       },
     ],
   },
@@ -2101,7 +2124,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'FORMAT_DATETIME(format_string, datetime_expression)',
         description:
           'Formats a `DATETIME` object according to the specified `format_string`. See\nSupported Format Elements For DATETIME\nfor a list of format elements that this function supports.',
-        parameters: [],
+        parameters: ['format_string', 'datetime_expression'],
       },
     ],
   },
@@ -2111,7 +2134,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'PARSE_DATETIME(format_string, datetime_string)',
         description: 'Converts a string representation of a datetime to a\n`DATETIME` object.',
-        parameters: [],
+        parameters: ['format_string', 'datetime_string'],
       },
     ],
   },
@@ -2148,7 +2171,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'TIME_ADD(time_expression, INTERVAL int64_expression part)',
         description: 'Adds `int64_expression` units of `part` to the `TIME` object.',
-        parameters: [],
+        parameters: ['time_expression', 'INTERVAL int64_expression part'],
       },
     ],
   },
@@ -2158,7 +2181,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'TIME_SUB(time_expression, INTERVAL int64_expression part)',
         description: 'Subtracts `int64_expression` units of `part` from the `TIME` object.',
-        parameters: [],
+        parameters: ['time_expression', 'INTERVAL int64_expression part'],
       },
     ],
   },
@@ -2169,7 +2192,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'TIME_DIFF(time_expression_a, time_expression_b, part)',
         description:
           'Returns the whole number of specified `part` intervals between two\n`TIME` objects (`time_expression_a` - `time_expression_b`). If the first\n`TIME` is earlier than the second one, the output is negative. Throws an error\nif the computation overflows the result type, such as if the difference in\nnanoseconds\nbetween the two `TIME` objects would overflow an\n`INT64` value.',
-        parameters: [],
+        parameters: ['time_expression_a', 'time_expression_b', 'part'],
       },
     ],
   },
@@ -2180,7 +2203,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'TIME_TRUNC(time_expression, time_part)',
         description:
           'Truncates a `TIME` value to the granularity of `time_part`. The `TIME` value\nis always rounded to the beginning of `time_part`, which can be one of the\nfollowing:',
-        parameters: [],
+        parameters: ['time_expression', 'time_part'],
       },
     ],
   },
@@ -2190,7 +2213,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'FORMAT_TIME(format_string, time_object)',
         description: 'Converts a string representation of time to a\n`TIME` object.',
-        parameters: [],
+        parameters: ['format_string', 'time_object'],
       },
     ],
   },
@@ -2221,7 +2244,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'TIMESTAMP_ADD(timestamp_expression, INTERVAL int64_expression date_part)',
         description: 'Adds `int64_expression` units of `date_part` to the timestamp, independent of\nany time zone.',
-        parameters: [],
+        parameters: ['timestamp_expression', 'INTERVAL int64_expression date_part'],
       },
     ],
   },
@@ -2231,7 +2254,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'TIMESTAMP_SUB(timestamp_expression, INTERVAL int64_expression date_part)',
         description: 'Subtracts `int64_expression` units of `date_part` from the timestamp,\nindependent of any time zone.',
-        parameters: [],
+        parameters: ['timestamp_expression', 'INTERVAL int64_expression date_part'],
       },
     ],
   },
@@ -2242,7 +2265,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'TIMESTAMP_DIFF(timestamp_expression_a, timestamp_expression_b, date_part)',
         description:
           'Returns the whole number of specified `date_part` intervals between two\n`TIMESTAMP` objects (`timestamp_expression_a` - `timestamp_expression_b`).\nIf the first `TIMESTAMP` is earlier than the second one,\nthe output is negative. Throws an error if the computation overflows the\nresult type, such as if the difference in\nnanoseconds\nbetween the two `TIMESTAMP` objects would overflow an\n`INT64` value.',
-        parameters: [],
+        parameters: ['timestamp_expression_a', 'timestamp_expression_b', 'date_part'],
       },
     ],
   },
@@ -2283,7 +2306,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'TIMESTAMP_SECONDS(int64_expression)',
         description: 'Interprets `int64_expression` as the number of seconds since 1970-01-01 00:00:00\nUTC and returns a timestamp.',
-        parameters: [],
+        parameters: ['int64_expression'],
       },
     ],
   },
@@ -2293,7 +2316,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'TIMESTAMP_MILLIS(int64_expression)',
         description: 'Interprets `int64_expression` as the number of milliseconds since 1970-01-01\n00:00:00 UTC and returns a timestamp.',
-        parameters: [],
+        parameters: ['int64_expression'],
       },
     ],
   },
@@ -2303,7 +2326,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'TIMESTAMP_MICROS(int64_expression)',
         description: 'Interprets `int64_expression` as the number of microseconds since 1970-01-01\n00:00:00 UTC and returns a timestamp.',
-        parameters: [],
+        parameters: ['int64_expression'],
       },
     ],
   },
@@ -2313,7 +2336,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'UNIX_SECONDS(timestamp_expression)',
         description: 'Returns the number of seconds since 1970-01-01 00:00:00 UTC. Truncates higher\nlevels of precision.',
-        parameters: [],
+        parameters: ['timestamp_expression'],
       },
     ],
   },
@@ -2323,7 +2346,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'UNIX_MILLIS(timestamp_expression)',
         description: 'Returns the number of milliseconds since 1970-01-01 00:00:00 UTC. Truncates\nhigher levels of precision.',
-        parameters: [],
+        parameters: ['timestamp_expression'],
       },
     ],
   },
@@ -2333,7 +2356,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'UNIX_MICROS(timestamp_expression)',
         description: 'Returns the number of microseconds since 1970-01-01 00:00:00 UTC. Truncates\nhigher levels of precision.',
-        parameters: [],
+        parameters: ['timestamp_expression'],
       },
     ],
   },
@@ -2344,7 +2367,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'TIMESTAMP_FROM_UNIX_SECONDS(int64_expression)',
         description:
           'Interprets `int64_expression` as the number of seconds since\n1970-01-01 00:00:00 UTC and returns a timestamp. If a timestamp is passed in,\nthe same timestamp is returned.',
-        parameters: [],
+        parameters: ['int64_expression'],
       },
     ],
   },
@@ -2355,7 +2378,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'TIMESTAMP_FROM_UNIX_MILLIS(int64_expression)',
         description:
           'Interprets `int64_expression` as the number of milliseconds since\n1970-01-01 00:00:00 UTC and returns a timestamp. If a timestamp is passed in,\nthe same timestamp is returned.',
-        parameters: [],
+        parameters: ['int64_expression'],
       },
     ],
   },
@@ -2366,7 +2389,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'TIMESTAMP_FROM_UNIX_MICROS(int64_expression)',
         description:
           'Interprets `int64_expression` as the number of microseconds since\n1970-01-01 00:00:00 UTC and returns a timestamp. If a timestamp is passed in,\nthe same timestamp is returned.',
-        parameters: [],
+        parameters: ['int64_expression'],
       },
     ],
   },
@@ -2377,7 +2400,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'MAKE_INTERVAL(year, month, day, hour, minute, second)',
         description:
           'Constructs an `INTERVAL` object using `INT64` values representing the year,\nmonth, day, hour, minute, and second. All arguments are optional with default\nvalue of 0 and can be used as named arguments.',
-        parameters: [],
+        parameters: ['year', 'month', 'day', 'hour', 'minute', 'second'],
       },
     ],
   },
@@ -2388,7 +2411,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'JUSTIFY_DAYS(interval_expression)',
         description:
           'Normalizes the day part of the interval to the range from -29 to 29 by\nincrementing/decrementing the month or year part of the interval.',
-        parameters: [],
+        parameters: ['interval_expression'],
       },
     ],
   },
@@ -2399,14 +2422,18 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'JUSTIFY_HOURS(interval_expression)',
         description:
           'Normalizes the time part of the interval to the range from -23:59:59.999999 to\n23:59:59.999999 by incrementing/decrementing the day part of the interval.',
-        parameters: [],
+        parameters: ['interval_expression'],
       },
     ],
   },
   {
     name: 'justify_interval',
     signatures: [
-      { signature: 'JUSTIFY_INTERVAL(interval_expression)', description: 'Normalizes the days and time parts of the interval.', parameters: [] },
+      {
+        signature: 'JUSTIFY_INTERVAL(interval_expression)',
+        description: 'Normalizes the days and time parts of the interval.',
+        parameters: ['interval_expression'],
+      },
     ],
   },
   {
@@ -2419,7 +2446,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'NET.IP_FROM_STRING(addr_str)',
         description: 'Converts an IPv4 or IPv6 address from text (STRING) format to binary (BYTES)\nformat in network byte order.',
-        parameters: [],
+        parameters: ['addr_str'],
       },
     ],
   },
@@ -2429,7 +2456,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'NET.SAFE_IP_FROM_STRING(addr_str)',
         description: 'Similar to `NET.IP_FROM_STRING`, but returns `NULL`\ninstead of throwing an error if the input is invalid.',
-        parameters: [],
+        parameters: ['addr_str'],
       },
     ],
   },
@@ -2440,7 +2467,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'NET.IP_TO_STRING(addr_bin)',
         description:
           'Returns a network mask: a byte sequence with length equal to `num_output_bytes`,\nwhere the first `prefix_length` bits are set to 1 and the other bits are set to\n0. `num_output_bytes` and `prefix_length` are INT64.\nThis function throws an error if `num_output_bytes` is not 4 (for IPv4) or 16\n(for IPv6). It also throws an error if `prefix_length` is negative or greater\nthan `8 * num_output_bytes`.',
-        parameters: [],
+        parameters: ['addr_bin'],
       },
     ],
   },
@@ -2451,7 +2478,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'NET.IP_TRUNC(addr_bin, prefix_length)',
         description:
           'Converts an IPv4 address from integer format to binary (BYTES) format in network\nbyte order. In the integer input, the least significant bit of the IP address is\nstored in the least significant bit of the integer, regardless of host or client\narchitecture. For example, `1` means `0.0.0.1`, and `0x1FF` means `0.0.1.255`.',
-        parameters: [],
+        parameters: ['addr_bin', 'prefix_length'],
       },
     ],
   },
@@ -2462,7 +2489,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'NET.IPV4_TO_INT64(addr_bin)',
         description:
           'Converts an IPv4 address from binary (BYTES) format in network byte order to\ninteger format. In the integer output, the least significant bit of the IP\naddress is stored in the least significant bit of the integer, regardless of\nhost or client architecture. For example, `1` means `0.0.0.1`, and `0x1FF` means\n`0.0.1.255`. The output is in the range `[0, 0xFFFFFFFF]`.',
-        parameters: [],
+        parameters: ['addr_bin'],
       },
     ],
   },
@@ -2472,7 +2499,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'NET.IP_IN_NET(address, subnet)',
         description: 'Takes an IP address and a subnet CIDR as STRING and returns true if the IP\naddress is contained in the subnet.',
-        parameters: [],
+        parameters: ['address', 'subnet'],
       },
     ],
   },
@@ -2483,7 +2510,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'NET.MAKE_NET(address, prefix_length)',
         description:
           'Takes an IPv4 or IPv6 address as STRING and an integer representing the prefix\nlength (the number of leading 1-bits in the network mask). Returns a\nSTRING representing the CIDR subnet with the given prefix length.',
-        parameters: [],
+        parameters: ['address', 'prefix_length'],
       },
     ],
   },
@@ -2494,7 +2521,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'NET.HOST(url)',
         description:
           'Takes a URL as a STRING and returns the host as a STRING. For best results, URL\nvalues should comply with the format as defined by\nRFC 3986. If the URL value does not comply with RFC 3986 formatting,\nthis function makes a best effort to parse the input and return a relevant\nresult. If the function cannot parse the input, it\nreturns NULL.',
-        parameters: [],
+        parameters: ['url'],
       },
     ],
   },
@@ -2505,7 +2532,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'NET.PUBLIC_SUFFIX(url)',
         description:
           'Takes a URL as a STRING and returns the public suffix (such as `com`, `org`,\nor `net`) as a STRING. A public suffix is an ICANN domain registered at\npublicsuffix.org. For best results, URL values\nshould comply with the format as defined by\nRFC 3986. If the URL value does not comply\nwith RFC 3986 formatting, this function makes a best effort to parse the input\nand return a relevant result.',
-        parameters: [],
+        parameters: ['url'],
       },
     ],
   },
@@ -2516,7 +2543,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'NET.REG_DOMAIN(url)',
         description:
           'Takes a URL as a STRING and returns the registered or registerable domain (the\npublic suffix plus one preceding label), as a\nSTRING. For best results, URL values should comply with the format as defined by\nRFC 3986. If the URL value does not comply with RFC 3986 formatting,\nthis function makes a best effort to parse the input and return a relevant\nresult.',
-        parameters: [],
+        parameters: ['url'],
       },
     ],
   },
@@ -2549,7 +2576,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'IF(expr, true_result, else_result)',
         description:
           'If `expr` is true, returns `true_result`, else returns `else_result`.\n`else_result` is not evaluated if `expr` is true. `true_result` is not\nevaluated if `expr` is false or NULL.',
-        parameters: [],
+        parameters: ['expr', 'true_result', 'else_result'],
       },
     ],
   },
@@ -2559,7 +2586,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'IFNULL(expr, null_result)',
         description: 'If `expr` is NULL, return `null_result`. Otherwise, return `expr`. If `expr`\nis not NULL, `null_result` is not evaluated.',
-        parameters: [],
+        parameters: ['expr', 'null_result'],
       },
     ],
   },
@@ -2569,20 +2596,38 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'NULLIF(expr, expr_to_match)',
         description: 'Returns NULL if `expr = expr_to_match` is true, otherwise\nreturns `expr`.',
-        parameters: [],
+        parameters: ['expr', 'expr_to_match'],
       },
     ],
   },
   {
     name: 'error',
-    signatures: [{ signature: 'ERROR(error_message)', description: 'Returns an error. The `error_message` argument is a `STRING`.', parameters: [] }],
+    signatures: [
+      {
+        signature: 'ERROR(error_message)',
+        description: 'Returns an error. The `error_message` argument is a `STRING`.',
+        parameters: ['error_message'],
+      },
+    ],
   },
   {
     name: 'iferror',
-    signatures: [{ signature: 'IFERROR(try_expression, catch_expression)', description: 'Evaluates `try_expression`.', parameters: [] }],
+    signatures: [
+      {
+        signature: 'IFERROR(try_expression, catch_expression)',
+        description: 'Evaluates `try_expression`.',
+        parameters: ['try_expression', 'catch_expression'],
+      },
+    ],
   },
-  { name: 'iserror', signatures: [{ signature: 'ISERROR(try_expression)', description: 'Evaluates `try_expression`.', parameters: [] }] },
-  { name: 'nulliferror', signatures: [{ signature: 'NULLIFERROR(try_expression)', description: 'Evaluates `try_expression`.', parameters: [] }] },
+  {
+    name: 'iserror',
+    signatures: [{ signature: 'ISERROR(try_expression)', description: 'Evaluates `try_expression`.', parameters: ['try_expression'] }],
+  },
+  {
+    name: 'nulliferror',
+    signatures: [{ signature: 'NULLIFERROR(try_expression)', description: 'Evaluates `try_expression`.', parameters: ['try_expression'] }],
+  },
   {
     name: 'concat',
     signatures: [
@@ -2599,7 +2644,7 @@ export const HelpProviderWords: FunctionInfo[] = [
       {
         signature: 'REGEXP_CONTAINS(value, regexp)',
         description: 'Returns `TRUE` if `value` is a partial match for the regular expression,\n`regexp`.',
-        parameters: [],
+        parameters: ['value', 'regexp'],
       },
     ],
   },
@@ -2610,7 +2655,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'TO_BASE32(bytes_expr)',
         description:
           'Converts a sequence of `BYTES` into a base32-encoded `STRING`. To convert a\nbase32-encoded `STRING` into `BYTES`, use FROM_BASE32.',
-        parameters: [],
+        parameters: ['bytes_expr'],
       },
     ],
   },
@@ -2621,7 +2666,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'NET.IP_NET_MASK(num_output_bytes, prefix_length)',
         description:
           'Returns a network mask: a byte sequence with length equal to `num_output_bytes`,\nwhere the first `prefix_length` bits are set to 1 and the other bits are set to\n0. `num_output_bytes` and `prefix_length` are INT64.\nThis function throws an error if `num_output_bytes` is not 4 (for IPv4) or 16\n(for IPv6). It also throws an error if `prefix_length` is negative or greater\nthan `8 * num_output_bytes`.',
-        parameters: [],
+        parameters: ['num_output_bytes', 'prefix_length'],
       },
     ],
   },
@@ -2632,7 +2677,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'NET.IPV4_FROM_INT64(integer_value)',
         description:
           'Converts an IPv4 address from integer format to binary (BYTES) format in network\nbyte order. In the integer input, the least significant bit of the IP address is\nstored in the least significant bit of the integer, regardless of host or client\narchitecture. For example, `1` means `0.0.0.1`, and `0x1FF` means `0.0.1.255`.',
-        parameters: [],
+        parameters: ['integer_value'],
       },
     ],
   },
@@ -2676,7 +2721,7 @@ export const HelpProviderWords: FunctionInfo[] = [
         signature: 'ANON_QUANTILES(expression, number CLAMPED BETWEEN lower AND upper)',
         description:
           'Returns an array of anonymized quantile boundaries for values in `expression`.\n`number` represents the number of quantiles to create and must be an\n`INT64`. The first element in the return value is the\nminimum quantile boundary and the last element is the maximum quantile boundary.\n`lower` and `upper` are the explicit bounds wherein the\ninput values are clamped. The returned results are aggregations\nacross anonymization IDs.',
-        parameters: [],
+        parameters: ['expression', 'number CLAMPED BETWEEN lower AND upper'],
       },
     ],
   },

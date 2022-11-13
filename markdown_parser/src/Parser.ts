@@ -124,23 +124,16 @@ async function parseAndSave(): Promise<void> {
                 const signatures = token.content.split('\n');
                 for (const numberedSignature of signatures) {
                   if (numberedSignature !== '') {
-                    const signature = numberedSignature.slice(3);
-                    const parameters: string[] = getParameters(signature, name);
-                    functionInfo.signatures.push({ signature, description: '', parameters });
+                    addSignature(numberedSignature.slice(3), name, functionInfo);
                   }
                 }
               } else {
-                const signature = token.content.trimEnd();
-                functionInfo.signatures.push({ signature, description: '', parameters: [] });
+                addSignature(token.content, name, functionInfo);
               }
             } else {
               while (token.type !== 'paragraph_open') {
                 if (token.type === 'fence') {
-                  functionInfo.signatures.push({
-                    signature: token.content.trimEnd(),
-                    description: '',
-                    parameters: [], // TODO
-                  });
+                  addSignature(token.content, name, functionInfo);
                 }
                 i++;
                 token = tokens[i];
@@ -170,7 +163,7 @@ async function parseAndSave(): Promise<void> {
               const description = parseText(tokens[i + 1]);
               if (functionInfo.signatures.length === 0) {
                 // There is no signature in md file for the function
-                functionInfo.signatures.push({ signature: '', description, parameters: [] }); // TODO
+                functionInfo.signatures.push({ signature: '', description, parameters: [] });
               }
               functionInfo.signatures[0].description = description;
             }
@@ -202,12 +195,18 @@ async function parseAndSave(): Promise<void> {
   fs.writeFileSync(`${__dirname}/../../server/src/HelpProviderWords.ts`, formatted);
 }
 
+function addSignature(rawSignature: string, functionName: string, functionInfo: FunctionInfo): void {
+  const signature = rawSignature.trimEnd();
+  const parameters: string[] = getParameters(signature, functionName);
+  functionInfo.signatures.push({ signature, description: '', parameters });
+}
+
 function getParameters(signature: string, functionName: string): string[] {
-  if (['[', '['].some(b => signature.includes(b)) || !signature.toLocaleLowerCase().startsWith(`${functionName}(`)) {
+  if (['[', '['].some(b => signature.includes(b)) || !signature.toLocaleLowerCase().startsWith(`${functionName}(`) || signature.endsWith('()')) {
     return [];
   }
 
-  const allParameters = signature.slice(functionName.length + 1, -1);
+  const allParameters = signature.slice(functionName.length + 1, signature.indexOf(')'));
   return allParameters.split(',').map(p => p.trim());
 }
 
