@@ -125,25 +125,19 @@ async function parseAndSave(): Promise<void> {
                 for (const numberedSignature of signatures) {
                   if (numberedSignature !== '') {
                     const signature = numberedSignature.slice(3);
-                    const parameters: string[] = [];
-
-                    if (['[', '['].some(b => signature.includes(b)) || !signature.toLocaleLowerCase().startsWith(`${name}(`)) {
-                      // do nothing
-                    } else {
-                      const allParameters = signature.slice(name.length + 1, -1);
-                      parameters.push(...allParameters.split(',').map(p => p.trim()));
-                    }
+                    const parameters: string[] = getParameters(signature, name);
                     functionInfo.signatures.push({ signature, description: '', parameters });
                   }
                 }
               } else {
-                functionInfo.signatures.push({ signature: token.content, description: '', parameters: [] }); // TODO
+                const signature = token.content.trimEnd();
+                functionInfo.signatures.push({ signature, description: '', parameters: [] });
               }
             } else {
               while (token.type !== 'paragraph_open') {
                 if (token.type === 'fence') {
                   functionInfo.signatures.push({
-                    signature: token.content,
+                    signature: token.content.trimEnd(),
                     description: '',
                     parameters: [], // TODO
                   });
@@ -206,6 +200,15 @@ async function parseAndSave(): Promise<void> {
   options.parser = 'typescript';
   const formatted = prettier.format(code, options);
   fs.writeFileSync(`${__dirname}/../../server/src/HelpProviderWords.ts`, formatted);
+}
+
+function getParameters(signature: string, functionName: string): string[] {
+  if (['[', '['].some(b => signature.includes(b)) || !signature.toLocaleLowerCase().startsWith(`${functionName}(`)) {
+    return [];
+  }
+
+  const allParameters = signature.slice(functionName.length + 1, -1);
+  return allParameters.split(',').map(p => p.trim());
 }
 
 function parseText(token: Token): string {
