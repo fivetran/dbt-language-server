@@ -40,6 +40,6 @@ suite('Functions', () => {
     // assert
     assertThat(hovers, hasSize(1));
     assertThat(hovers[0].contents, hasSize(1));
-    assertThat((hovers[0].contents[0] as MarkdownString).value, startsWith('```sql\nCOALESCE(expr[, ...])```'));
+    assertThat((hovers[0].contents[0] as MarkdownString).value, startsWith('```sql\nCOALESCE(expr[, ...])\n```'));
   });
 });
