@@ -1,3 +1,4 @@
+import matchBracket from 'find-matching-bracket';
 import * as MarkdownIt from 'markdown-it';
 import * as fs from 'node:fs';
 import * as prettier from 'prettier';
@@ -202,12 +203,50 @@ function addSignature(rawSignature: string, functionName: string, functionInfo: 
 }
 
 function getParameters(signature: string, functionName: string): string[] {
-  if (['[', '['].some(b => signature.includes(b)) || !signature.toLocaleLowerCase().startsWith(`${functionName}(`) || signature.endsWith('()')) {
+  if (!signature.toLocaleLowerCase().startsWith(`${functionName}(`) || signature.endsWith('()')) {
     return [];
   }
 
-  const allParameters = signature.slice(functionName.length + 1, signature.indexOf(')'));
-  return allParameters.split(',').map(p => p.trim());
+  const closingBracket = matchBracket(signature, functionName.length, true);
+  const actualSignature = signature.slice(functionName.length + 1, closingBracket);
+  if (actualSignature === '') {
+    return [];
+  }
+
+  const parameters = [];
+  let parameter = '';
+  let squareBrackets = 0;
+
+  for (const c of actualSignature) {
+    switch (c) {
+      case ',': {
+        if (squareBrackets > 0) {
+          parameter += c;
+        } else {
+          parameters.push(parameter.trim());
+          parameter = '';
+        }
+        break;
+      }
+      case '[': {
+        squareBrackets++;
+        parameter += c;
+        break;
+      }
+      case ']': {
+        squareBrackets--;
+        parameter += c;
+        break;
+      }
+      default: {
+        parameter += c;
+        break;
+      }
+    }
+  }
+  parameters.push(parameter.trim());
+
+  return parameters;
 }
 
 function parseText(token: Token): string {
