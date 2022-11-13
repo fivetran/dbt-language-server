@@ -11,7 +11,7 @@ suite('Signature help', () => {
     await moveCursorLeft();
 
     // act
-    const signatureHelp = await executeSignatureHelpProvider(uri, new Position(4, 6));
+    const signatureHelp = await executeSignatureHelpProvider(uri, new Position(3, 6));
 
     // assert
     assertThat(signatureHelp.signatures, hasSize(2));
