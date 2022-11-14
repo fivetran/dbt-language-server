@@ -375,7 +375,7 @@ export class DbtTextDocument {
       `onSignatureHelp(line='${params.position.line}', character='${params.position.character}', text='${textBeforeBracket}', parameterIndex='${signatureInfo.parameterIndex}')`,
       LogLevel.Debug,
     );
-    return this.signatureHelpProvider.onSignatureHelp(textBeforeBracket, signatureInfo.parameterIndex);
+    return this.signatureHelpProvider.onSignatureHelp(textBeforeBracket, signatureInfo.parameterIndex, params.context?.activeSignatureHelp);
   }
 
   onDefinition(definitionParams: DefinitionParams): DefinitionLink[] | undefined {
