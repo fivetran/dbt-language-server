@@ -1026,9 +1026,9 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature:
-          'FIRST_VALUE (value_expression [{RESPECT | IGNORE} NULLS])\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  ORDER BY expression [ { ASC | DESC }  ] [, ...]\n  [ window_frame_clause ]',
+          'FIRST_VALUE(value_expression [{RESPECT | IGNORE} NULLS])\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  ORDER BY expression [ { ASC | DESC }  ] [, ...]\n  [ window_frame_clause ]',
         description: 'Returns the value of the `value_expression` for the first row in the current\nwindow frame.',
-        parameters: [],
+        parameters: ['value_expression [{RESPECT | IGNORE} NULLS]'],
       },
     ],
   },
@@ -1037,9 +1037,9 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature:
-          'LAST_VALUE (value_expression [{RESPECT | IGNORE} NULLS])\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  ORDER BY expression [ { ASC | DESC }  ] [, ...]\n  [ window_frame_clause ]',
+          'LAST_VALUE(value_expression [{RESPECT | IGNORE} NULLS])\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  ORDER BY expression [ { ASC | DESC }  ] [, ...]\n  [ window_frame_clause ]',
         description: 'Returns the value of the `value_expression` for the last row in the current\nwindow frame.',
-        parameters: [],
+        parameters: ['value_expression [{RESPECT | IGNORE} NULLS]'],
       },
     ],
   },
@@ -1048,10 +1048,10 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature:
-          'NTH_VALUE (value_expression, constant_integer_expression [{RESPECT | IGNORE} NULLS])\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  ORDER BY expression [ { ASC | DESC }  ] [, ...]\n  [ window_frame_clause ]',
+          'NTH_VALUE(value_expression, constant_integer_expression [{RESPECT | IGNORE} NULLS])\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  ORDER BY expression [ { ASC | DESC }  ] [, ...]\n  [ window_frame_clause ]',
         description:
           'Returns the value of `value_expression` at the Nth row of the current window\nframe, where Nth is defined by `constant_integer_expression`. Returns NULL if\nthere is no such row.',
-        parameters: [],
+        parameters: ['value_expression', 'constant_integer_expression [{RESPECT | IGNORE} NULLS]'],
       },
     ],
   },
@@ -1060,10 +1060,10 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature:
-          'LEAD (value_expression[, offset [, default_expression]])\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  ORDER BY expression [ { ASC | DESC }  ] [, ...]',
+          'LEAD(value_expression[, offset [, default_expression]])\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  ORDER BY expression [ { ASC | DESC }  ] [, ...]',
         description:
           'Returns the value of the `value_expression` on a subsequent row. Changing the\n`offset` value changes which subsequent row is returned; the default value is\n`1`, indicating the next row in the window frame. An error occurs if `offset` is\nNULL or a negative value.',
-        parameters: [],
+        parameters: ['value_expression[, offset [, default_expression]]'],
       },
     ],
   },
@@ -1072,10 +1072,10 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature:
-          'LAG (value_expression[, offset [, default_expression]])\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  ORDER BY expression [ { ASC | DESC }  ] [, ...]',
+          'LAG(value_expression[, offset [, default_expression]])\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  ORDER BY expression [ { ASC | DESC }  ] [, ...]',
         description:
           'Returns the value of the `value_expression` on a preceding row. Changing the\n`offset` value changes which preceding row is returned; the default value is\n`1`, indicating the previous row in the window frame. An error occurs if\n`offset` is NULL or a negative value.',
-        parameters: [],
+        parameters: ['value_expression[, offset [, default_expression]]'],
       },
     ],
   },
@@ -1084,9 +1084,9 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature:
-          'PERCENTILE_CONT (value_expression, percentile [{RESPECT | IGNORE} NULLS])\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]',
+          'PERCENTILE_CONT(value_expression, percentile [{RESPECT | IGNORE} NULLS])\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]',
         description: 'Computes the specified percentile value for the value_expression, with linear\ninterpolation.',
-        parameters: [],
+        parameters: ['value_expression', 'percentile [{RESPECT | IGNORE} NULLS]'],
       },
     ],
   },
@@ -1095,10 +1095,10 @@ export const HelpProviderWords: FunctionInfo[] = [
     signatures: [
       {
         signature:
-          'PERCENTILE_DISC (value_expression, percentile [{RESPECT | IGNORE} NULLS])\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]',
+          'PERCENTILE_DISC(value_expression, percentile [{RESPECT | IGNORE} NULLS])\nOVER over_clause\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]',
         description:
           'Computes the specified percentile value for a discrete `value_expression`. The\nreturned value is the first sorted value of `value_expression` with cumulative\ndistribution greater than or equal to the given `percentile` value.',
-        parameters: [],
+        parameters: ['value_expression', 'percentile [{RESPECT | IGNORE} NULLS]'],
       },
     ],
   },

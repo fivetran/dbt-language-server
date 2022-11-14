@@ -197,9 +197,17 @@ async function parseAndSave(): Promise<void> {
 }
 
 function addSignature(rawSignature: string, functionName: string, functionInfo: FunctionInfo): void {
-  const signature = rawSignature.trimEnd();
+  const signature = normalizeSignature(rawSignature, functionName);
+
   const parameters: string[] = getParameters(signature, functionName);
   functionInfo.signatures.push({ signature, description: '', parameters });
+}
+
+function normalizeSignature(rawSignature: string, functionName: string): string {
+  const signature = new RegExp(`${functionName}\\s+\\(`).test(rawSignature.toLocaleLowerCase())
+    ? rawSignature.slice(0, functionName.length) + rawSignature.slice(rawSignature.indexOf('('))
+    : rawSignature;
+  return signature.trimEnd();
 }
 
 function getParameters(signature: string, functionName: string): string[] {
