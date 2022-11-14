@@ -25,7 +25,6 @@ export class SignatureHelpProvider {
           },
           parameters: s.parameters.length > 0 ? s.parameters.map(p => ParameterInformation.create(p)) : undefined,
         })),
-        activeSignature: 0,
         activeParameter,
       };
     }
