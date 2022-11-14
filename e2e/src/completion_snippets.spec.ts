@@ -1,12 +1,6 @@
 import { assertThat } from 'hamjest';
 import { Position } from 'vscode';
-import {
-  acceptFirstSuggestion as triggerAndAcceptFirstSuggestion,
-  createAndOpenTempModel,
-  getCursorPosition,
-  getMainEditorText,
-  setTestContent,
-} from './helper';
+import { createAndOpenTempModel, getCursorPosition, getMainEditorText, setTestContent, triggerAndAcceptFirstSuggestion } from './helper';
 
 suite('Should do completion for snippets', () => {
   suiteSetup(async () => {
