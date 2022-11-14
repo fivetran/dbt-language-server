@@ -8,7 +8,7 @@ import { PythonExtension } from '../python/PythonExtension';
 import { StatusHandler } from '../status/StatusHandler';
 
 export abstract class DbtWizardLanguageClient implements Disposable {
-  static readonly CLIENT_ID = 'dbtWizard';
+  static readonly CLIENT_ID = 'WizardForDbtCore(TM)';
   static readonly CLIENT_NAME = 'Wizard for dbt Core (TM)';
 
   static createServerOptions(port: number, module: string): ServerOptions {
