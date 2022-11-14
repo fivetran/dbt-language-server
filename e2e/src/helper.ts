@@ -191,7 +191,9 @@ export function getCustomDocUri(p: string): Uri {
 }
 
 export async function setTestContent(content: string, waitForPreview = true): Promise<void> {
-  await showPreview();
+  if (waitForPreview) {
+    await showPreview();
+  }
 
   if (doc.getText() === content) {
     return;

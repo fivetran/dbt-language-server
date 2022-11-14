@@ -4,7 +4,7 @@ import { createAndOpenTempModel, getCursorPosition, getMainEditorText, setTestCo
 
 suite('Should do completion for snippets', () => {
   suiteSetup(async () => {
-    await createAndOpenTempModel('test-fixture', 'preview');
+    await createAndOpenTempModel('test-fixture', 'manifest');
   });
 
   test('Should move cursor into brackets after avg function completion', async () => {
