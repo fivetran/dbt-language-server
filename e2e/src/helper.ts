@@ -153,8 +153,9 @@ export async function compileDocument(): Promise<void> {
 export async function triggerAndAcceptFirstSuggestion(): Promise<void> {
   await commands.executeCommand('editor.action.triggerSuggest');
   await sleep(400);
-  await commands.executeCommand('acceptSelectedSuggestion');
-  await sleep(300);
+  await waitDocumentModification(async () => {
+    await commands.executeCommand('acceptSelectedSuggestion');
+  });
 }
 
 export function getPreviewText(): string {
