@@ -51,7 +51,6 @@ import { DbtRepository } from '../DbtRepository';
 import { Dbt, DbtMode } from '../dbt_execution/Dbt';
 import { DbtCli } from '../dbt_execution/DbtCli';
 import { DbtRpc } from '../dbt_execution/DbtRpc';
-import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
 import { DestinationState } from '../DestinationState';
 import { DbtDocumentKind } from '../document/DbtDocumentKind';
 import { DbtDocumentKindResolver } from '../document/DbtDocumentKindResolver';
@@ -76,7 +75,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
   fileChangeListener: FileChangeListener;
-  dbtDefinitionProvider: DbtDefinitionProvider;
   dbtProfileCreator: DbtProfileCreator;
   manifestParser = new ManifestParser();
   dbtRepository = new DbtRepository();
@@ -95,7 +93,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     this.progressReporter = new ProgressReporter(this.connection);
     this.dbtProfileCreator = new DbtProfileCreator(this.dbtProject, path.join(homedir(), '.dbt', 'profiles.yml'));
     this.fileChangeListener = new FileChangeListener(this.workspaceFolder, this.dbtProject, this.manifestParser, this.dbtRepository);
-    this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
     this.statusSender = new DbtProjectStatusSender(this.notificationSender, this.workspaceFolder, this.featureFinder, this.fileChangeListener);
   }
 
@@ -379,7 +376,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
         this.workspaceFolder,
         this.notificationSender,
         this.progressReporter,
-        this.dbtDefinitionProvider,
         new ModelCompiler(this.dbt, this.dbtRepository),
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,

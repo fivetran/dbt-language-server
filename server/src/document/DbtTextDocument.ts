@@ -53,6 +53,7 @@ export class DbtTextDocument {
   ast?: AnalyzeResponse;
   signatureHelpProvider = new SignatureHelpProvider();
   completionProvider: CompletionProvider;
+  dbtDefinitionProvider: DbtDefinitionProvider;
 
   diagnosticGenerator: DiagnosticGenerator;
   hoverProvider = new HoverProvider();
@@ -69,7 +70,6 @@ export class DbtTextDocument {
     private workspaceFolder: string,
     private notificationSender: NotificationSender,
     private progressReporter: ProgressReporter,
-    private dbtDefinitionProvider: DbtDefinitionProvider,
     private modelCompiler: ModelCompiler,
     private jinjaParser: JinjaParser,
     private onGlobalDbtErrorFixedEmitter: Emitter<void>,
@@ -81,6 +81,7 @@ export class DbtTextDocument {
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.diagnosticGenerator = new DiagnosticGenerator(this.dbtRepository);
     this.completionProvider = new CompletionProvider(this.rawDocument, this.compiledDocument, this.dbtRepository, this.jinjaParser, destinationState);
+    this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
     this.requireCompileOnSave = false;
 
     this.modelCompiler.onCompilationError(this.onCompilationError.bind(this));

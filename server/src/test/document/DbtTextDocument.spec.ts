@@ -6,7 +6,6 @@ import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, Range, TextDocumentSaveReason, VersionedTextDocumentIdentifier } from 'vscode-languageserver';
 import { DbtRepository } from '../../DbtRepository';
 import { Dbt } from '../../dbt_execution/Dbt';
-import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
 import { DestinationState } from '../../DestinationState';
 import { DbtDocumentKind } from '../../document/DbtDocumentKind';
 import { DbtTextDocument } from '../../document/DbtTextDocument';
@@ -50,7 +49,6 @@ describe('DbtTextDocument', () => {
       '',
       mock(NotificationSender),
       mock(ProgressReporter),
-      mock(DbtDefinitionProvider),
       instance(mockModelCompiler),
       instance(mockJinjaParser),
       onGlobalDbtErrorFixedEmitter,
