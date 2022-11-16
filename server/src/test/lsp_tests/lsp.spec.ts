@@ -1,10 +1,8 @@
 import { assertThat } from 'hamjest';
 import { spawn } from 'node:child_process';
-import { EOL } from 'node:os';
 import { StreamMessageReader, StreamMessageWriter } from 'vscode-jsonrpc/node';
 import {
   CompletionItem,
-  CompletionItemKind,
   CompletionParams,
   CompletionRequest,
   CompletionTriggerKind,
@@ -17,7 +15,6 @@ import {
   InitializedNotification,
   InitializeParams,
   InitializeRequest,
-  InsertTextFormat,
   ProtocolConnection,
   Range,
   ShowMessageRequest,
@@ -25,9 +22,10 @@ import {
   ShutdownRequest,
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
+import { SNIPPET_TESTS } from './snippet_tests';
 import path = require('path');
 
-describe('CompletionProvider', () => {
+describe('lsp tests', () => {
   const PROJECT_PATH = './server/src/test/lsp_tests/project';
   const DOCUMENT_URI = URI.file(path.resolve(PROJECT_PATH, 'models', 'default_document.sql')).toString();
 
@@ -90,33 +88,14 @@ describe('CompletionProvider', () => {
     await connection.sendNotification(ExitNotification.type);
   });
 
-  it('Should return ref snippet', async () => {
-    await completionRequestShouldReturnSnippet('ref', {
-      label: 'ref',
-      detail: 'dbt Ref',
-      sortText: '1ref',
-      insertText: "{{ ref('$0') }}",
-      insertTextFormat: InsertTextFormat.Snippet,
-      kind: CompletionItemKind.Snippet,
-      command: {
-        title: 'triggerSuggest',
-        command: 'editor.action.triggerSuggest',
-      },
-    });
+  it('Completion request should return corresponding snippet', async () => {
+    for (const snippetTest of SNIPPET_TESTS) {
+      const { expectedCompletionItems } = snippetTest;
+      await completionRequestShouldReturnSnippet(snippetTest.textInDocument, expectedCompletionItems);
+    }
   });
 
-  it('Should return config snippet', async () => {
-    await completionRequestShouldReturnSnippet('confi', {
-      label: 'config',
-      detail: 'dbt Config',
-      sortText: '1config',
-      insertText: `{{${EOL}  config(${EOL}    materialized='$\{1|table,view,incremental,ephemeral|}'${EOL}  )${EOL}}}${EOL}`,
-      insertTextFormat: InsertTextFormat.Snippet,
-      kind: CompletionItemKind.Snippet,
-    });
-  });
-
-  async function completionRequestShouldReturnSnippet(documentText: string, expectedItem: CompletionItem): Promise<void> {
+  async function completionRequestShouldReturnSnippet(documentText: string, expectedItems: CompletionItem[]): Promise<void> {
     // arrange
     const changeDocParams: DidChangeTextDocumentParams = {
       textDocument: {
@@ -150,6 +129,6 @@ describe('CompletionProvider', () => {
     console.log(response);
 
     // assert
-    assertThat(response, [expectedItem]);
+    assertThat(response, expectedItems);
   }
 });
