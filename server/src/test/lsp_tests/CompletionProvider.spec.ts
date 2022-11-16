@@ -34,7 +34,9 @@ describe('CompletionProvider', () => {
   let connection: ProtocolConnection;
   let version = 1;
 
-  before(async () => {
+  before(async function b() {
+    this.timeout('10s');
+
     const args = ['-r', 'ts-node/register', path.resolve('server', 'out', 'server.js'), '--stdio'];
     const child = spawn('node', args, { cwd: path.resolve(PROJECT_PATH) });
     child.on('exit', code => {
