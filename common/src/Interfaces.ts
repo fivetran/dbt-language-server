@@ -15,4 +15,5 @@ export interface CustomInitParams {
   pythonInfo?: PythonInfo;
   dbtCompiler: DbtCompilerType;
   lspMode: LspModeType;
+  disableLogger?: boolean;
 }

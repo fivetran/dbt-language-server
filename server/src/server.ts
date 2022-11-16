@@ -20,7 +20,7 @@ connection.onInitialize((params: InitializeParams): InitializeResult<unknown> | 
   const workspaceFolder = process.cwd();
 
   const customInitParams = params.initializationOptions as CustomInitParams;
-  Logger.prepareLogger(customInitParams.lspMode === 'dbtProject' ? workspaceFolder : NO_PROJECT_PATH);
+  Logger.prepareLogger(customInitParams.lspMode === 'dbtProject' ? workspaceFolder : NO_PROJECT_PATH, customInitParams.disableLogger);
 
   const server = createLspServer(customInitParams, workspaceFolder);
   return server.onInitialize(params);
