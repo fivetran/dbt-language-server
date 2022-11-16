@@ -1,6 +1,7 @@
 import { CustomInitParams, NO_PROJECT_PATH } from 'dbt-language-server-common';
 import * as sourceMapSupport from 'source-map-support';
 import { createConnection, InitializeError, InitializeParams, InitializeResult, ProposedFeatures, ResponseError } from 'vscode-languageserver/node';
+import { URI } from 'vscode-uri';
 import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
 import { FeatureFinder } from './feature_finder/FeatureFinder';
 import { FeatureFinderBase } from './feature_finder/FeatureFinderBase';
@@ -17,7 +18,7 @@ sourceMapSupport.install({ handleUncaughtExceptions: false });
 const connection = createConnection(ProposedFeatures.all);
 
 connection.onInitialize((params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> => {
-  const workspaceFolder = process.cwd();
+  const workspaceFolder = params.workspaceFolders?.length === 1 ? URI.parse(params.workspaceFolders[0].uri).fsPath : process.cwd();
 
   const customInitParams = params.initializationOptions as CustomInitParams;
   Logger.prepareLogger(customInitParams.lspMode === 'dbtProject' ? workspaceFolder : NO_PROJECT_PATH, customInitParams.disableLogger);

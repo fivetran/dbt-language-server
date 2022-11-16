@@ -1,5 +1,6 @@
 import { assertThat } from 'hamjest';
 import { spawn } from 'node:child_process';
+import { EOL } from 'node:os';
 import { StreamMessageReader, StreamMessageWriter } from 'vscode-jsonrpc/node';
 import {
   CompletionItem,
@@ -61,6 +62,12 @@ describe('CompletionProvider', () => {
       },
       processId: process.pid,
       rootUri: '/',
+      workspaceFolders: [
+        {
+          uri: URI.file(path.resolve(PROJECT_PATH)).toString(),
+          name: 'project',
+        },
+      ],
     };
 
     await connection.sendRequest(InitializeRequest.type, initParams);
@@ -101,7 +108,7 @@ describe('CompletionProvider', () => {
       label: 'config',
       detail: 'dbt Config',
       sortText: '1config',
-      insertText: "{{\n  config(\n    materialized='${1|table,view,incremental,ephemeral|}'\n  )\n}}\n",
+      insertText: `{{${EOL}  config(${EOL}    materialized='$\{1|table,view,incremental,ephemeral|}'${EOL}  )${EOL}}}${EOL}`,
       insertTextFormat: InsertTextFormat.Snippet,
       kind: CompletionItemKind.Snippet,
     });
