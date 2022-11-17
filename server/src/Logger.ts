@@ -7,8 +7,8 @@ export enum LogLevel {
 export const Logger = {
   prepareLogger(workspaceFolder: string, disableLogger?: boolean): void {
     if (disableLogger) {
-      console.log = (...args): void => {
-        console.error(args);
+      console.log = (): void => {
+        // Do nothing
       };
       return;
     }
