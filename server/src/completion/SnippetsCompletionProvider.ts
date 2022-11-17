@@ -15,7 +15,7 @@ export class SnippetsCompletionProvider {
       'config',
       'dbt Config',
       '1config',
-      `{{${EOL}  config(${EOL}    materialized='$\{1|table,view,incremental,ephemeral|}'${EOL}  )${EOL}}}${EOL}`,
+      `{{${EOL}  config(${EOL}    schema='$1'${EOL}    materialized='$\{2|table,view,incremental,ephemeral|}'${EOL}  )${EOL}}}${EOL}`,
     ),
 
     SnippetsCompletionProvider.createSnippet('if', 'dbt If', '1if', `{% if $\{1:condition} %}${EOL}  $\{2}${EOL}{% endif %}`),

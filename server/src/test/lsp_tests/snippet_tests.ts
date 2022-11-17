@@ -26,7 +26,7 @@ export const SNIPPET_TESTS = [
         label: 'config',
         detail: 'dbt Config',
         sortText: '1config',
-        insertText: `{{${EOL}  config(${EOL}    materialized='$\{1|table,view,incremental,ephemeral|}'${EOL}  )${EOL}}}${EOL}`,
+        insertText: `{{${EOL}  config(${EOL}    schema='$1'${EOL}    materialized='$\{2|table,view,incremental,ephemeral|}'${EOL}  )${EOL}}}${EOL}`,
         insertTextFormat: InsertTextFormat.Snippet,
         kind: CompletionItemKind.Snippet,
       },
