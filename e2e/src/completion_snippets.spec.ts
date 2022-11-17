@@ -16,7 +16,7 @@ suite('Should do completion for snippets', () => {
   });
 
   test('Should paste config', async () => {
-    await shouldPasteTextAndMoveCursor('conf', "{{\n  config(\n    materialized='table'\n  )\n}}\n", new Position(2, 23));
+    await shouldPasteTextAndMoveCursor('conf', "{{\n  config(\n    schema=''\n    materialized='table'\n  )\n}}\n", new Position(2, 12));
   });
 
   suiteTeardown(async () => {
