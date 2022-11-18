@@ -276,7 +276,7 @@ export class ZetaSqlWrapper {
     return response;
   }
 
-  async analyzeTable(originalFilePath: string, sql?: string): Promise<Result<AnalyzeResponse__Output, string>> {
+  async analyzeTable(originalFilePath: string, sql: string): Promise<Result<AnalyzeResponse__Output, string>> {
     await this.registerAllLanguageFeatures(this.catalog);
     return this.analyzeTableInternal(originalFilePath, sql);
   }

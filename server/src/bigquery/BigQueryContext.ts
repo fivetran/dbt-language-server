@@ -37,7 +37,7 @@ export class BigQueryContext {
     }
   }
 
-  async analyzeTable(originalFilePath: string, sql?: string): Promise<Result<AnalyzeResponse__Output, string>> {
+  async analyzeTable(originalFilePath: string, sql: string): Promise<Result<AnalyzeResponse__Output, string>> {
     return this.zetaSqlWrapper.analyzeTable(originalFilePath, sql);
   }
 
