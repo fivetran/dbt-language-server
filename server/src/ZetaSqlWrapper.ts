@@ -278,12 +278,11 @@ export class ZetaSqlWrapper {
 
   async analyzeTable(originalFilePath: string, sql: string): Promise<Result<AnalyzeResponse__Output, string>> {
     await this.registerAllLanguageFeatures(this.catalog);
-    return this.analyzeTableInternal(originalFilePath, sql);
+    const modelFetcher = new ModelFetcher(this.dbtRepository, originalFilePath);
+    return this.analyzeTableInternal(modelFetcher, sql);
   }
 
-  private async analyzeTableInternal(originalFilePath: string, sql?: string): Promise<Result<AnalyzeResponse__Output, string>> {
-    const modelFetcher = new ModelFetcher(this.dbtRepository, originalFilePath);
-
+  private async analyzeTableInternal(modelFetcher: ModelFetcher, sql?: string): Promise<Result<AnalyzeResponse__Output, string>> {
     const compiledSql = sql ?? this.getCompiledSql(await modelFetcher.getModel());
     if (compiledSql === undefined) {
       return err('Compiled SQL not found');
@@ -300,11 +299,7 @@ export class ZetaSqlWrapper {
         if (schemaIsFilled) {
           this.registerTable(table);
         } else {
-          const model = await modelFetcher.getModel();
-          if (!model) {
-            return err(this.createUnknownError(`Model not found for table ${table.tableName ?? 'undefined'}`));
-          }
-          await this.analyzeRef(table, model);
+          await this.analyzeRef(table, modelFetcher);
         }
       }
     }
@@ -326,17 +321,22 @@ export class ZetaSqlWrapper {
     return ast;
   }
 
-  async analyzeRef(table: TableDefinition, model: ManifestModel): Promise<void> {
-    const ref = this.getTableRef(model, table.getTableName());
-    if (ref) {
-      const refModel = this.findModelByRefName(model, ref);
-      if (refModel) {
-        await this.analyzeTableInternal(refModel.originalFilePath);
+  async analyzeRef(table: TableDefinition, modelFetcher: ModelFetcher): Promise<void> {
+    const model = await modelFetcher.getModel();
+    if (model) {
+      const ref = this.getTableRef(model, table.getTableName());
+      if (ref) {
+        const refModel = this.findModelByRefName(model, ref);
+        if (refModel) {
+          await this.analyzeTableInternal(new ModelFetcher(this.dbtRepository, refModel.originalFilePath));
+        } else {
+          console.log("Can't find ref model");
+        }
       } else {
-        console.log("Can't find ref model");
+        console.log("Can't find ref");
       }
     } else {
-      console.log("Can't find ref");
+      console.log("Can't fetch model from manifest.json");
     }
   }
 
