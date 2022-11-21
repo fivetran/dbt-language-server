@@ -34,7 +34,7 @@ export abstract class DbtCompileJob {
 
   async findCompiledFilePath(): Promise<string> {
     if (this.modelPath.endsWith('.sql')) {
-      const model = await new ModelFetcher(this.dbtRepository, this.modelPath).getModel();
+      const model = await new ModelFetcher(this.dbtRepository, path.resolve(this.modelPath)).getModel();
       if (!model) {
         throw new Error(`Cannot find model ${this.modelPath}`);
       }

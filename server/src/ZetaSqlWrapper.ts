@@ -276,9 +276,9 @@ export class ZetaSqlWrapper {
     return response;
   }
 
-  async analyzeTable(originalFilePath: string, sql: string): Promise<Result<AnalyzeResponse__Output, string>> {
+  async analyzeTable(fullFilePath: string, sql: string): Promise<Result<AnalyzeResponse__Output, string>> {
     await this.registerAllLanguageFeatures(this.catalog);
-    const modelFetcher = new ModelFetcher(this.dbtRepository, originalFilePath);
+    const modelFetcher = new ModelFetcher(this.dbtRepository, fullFilePath);
     return this.analyzeTableInternal(modelFetcher, sql);
   }
 
@@ -328,7 +328,7 @@ export class ZetaSqlWrapper {
       if (ref) {
         const refModel = this.findModelByRefName(model, ref);
         if (refModel) {
-          await this.analyzeTableInternal(new ModelFetcher(this.dbtRepository, refModel.originalFilePath));
+          await this.analyzeTableInternal(new ModelFetcher(this.dbtRepository, path.join(refModel.rootPath, refModel.originalFilePath)));
         } else {
           console.log("Can't find ref model");
         }

@@ -9,9 +9,12 @@ import { DbtRepository } from '../DbtRepository';
 import { SqlHeaderAnalyzer } from '../SqlHeaderAnalyzer';
 import { ZetaSqlParser } from '../ZetaSqlParser';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
+import path = require('node:path');
 
 describe('ZetaSqlWrapper analyzeTable', () => {
-  const ORIGINAL_FILE_PATH = 'original/file/path';
+  const ROOT_PATH = '/home/project';
+  const ORIGINAL_FILE_PATH = 'models/model.sql';
+  const FILE_PATH = path.join(ROOT_PATH, ORIGINAL_FILE_PATH);
   const COMPILED_SQL = 'select * from dataset.table t where t.id = dataset.udf(1)';
   const INTERNAL_TABLE_NAME_PATH = ['dataset', 'table'];
   const MAIN_TABLE_NAME_PATH = ['db', 'schema', 'main_table'];
@@ -37,7 +40,7 @@ describe('ZetaSqlWrapper analyzeTable', () => {
         uniqueId: 'id',
         name: 'main_table',
         packageName: 'packageName',
-        rootPath: 'rootPath',
+        rootPath: ROOT_PATH,
         originalFilePath: ORIGINAL_FILE_PATH,
         database: 'db',
         schema: 'schema',
@@ -98,7 +101,7 @@ describe('ZetaSqlWrapper analyzeTable', () => {
 
   it('analyzeTable should register tables and udfs before calling analyze', async () => {
     // act
-    await zetaSqlWrapper.analyzeTable(ORIGINAL_FILE_PATH, COMPILED_SQL);
+    await zetaSqlWrapper.analyzeTable(FILE_PATH, COMPILED_SQL);
 
     // assert
     verify(spiedZetaSqlWrapper.registerTable(objectContaining({ namePath: INTERNAL_TABLE_NAME_PATH }))).calledBefore(
@@ -121,10 +124,10 @@ describe('ZetaSqlWrapper analyzeTable', () => {
 
   it('analyzeTable should call bigquery only once if table is already registered', async () => {
     // arrange
-    await zetaSqlWrapper.analyzeTable(ORIGINAL_FILE_PATH, COMPILED_SQL);
+    await zetaSqlWrapper.analyzeTable(FILE_PATH, COMPILED_SQL);
 
     // act
-    await zetaSqlWrapper.analyzeTable(ORIGINAL_FILE_PATH, COMPILED_SQL);
+    await zetaSqlWrapper.analyzeTable(FILE_PATH, COMPILED_SQL);
 
     // assert
     verify(mockBigQueryClient.getTableMetadata(anything(), anything())).once();
@@ -136,7 +139,7 @@ describe('ZetaSqlWrapper analyzeTable', () => {
     when(mockSqlHeaderAnalyzer.getAllFunctionDeclarations(anything(), anything(), anything())).thenReturn(Promise.resolve(tempUdfs));
 
     // act
-    await zetaSqlWrapper.analyzeTable(ORIGINAL_FILE_PATH, COMPILED_SQL);
+    await zetaSqlWrapper.analyzeTable(FILE_PATH, COMPILED_SQL);
 
     // assert
     /* eslint-disable-next-line @typescript-eslint/unbound-method */

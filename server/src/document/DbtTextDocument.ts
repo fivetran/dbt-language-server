@@ -322,13 +322,12 @@ export class DbtTextDocument {
       compiledSql !== DbtCompileJob.NO_RESULT_FROM_COMPILER
     ) {
       const { fsPath } = URI.parse(this.rawDocument.uri);
-      const originalFilePath = fsPath.slice(fsPath.lastIndexOf(this.workspaceFolder) + this.workspaceFolder.length + 1);
-      const astResult = await this.destinationState.bigQueryContext.analyzeTable(originalFilePath, compiledSql);
+      const astResult = await this.destinationState.bigQueryContext.analyzeTable(fsPath, compiledSql);
       if (astResult.isOk()) {
-        console.log(`AST was successfully received for ${originalFilePath}`, LogLevel.Debug);
+        console.log(`AST was successfully received for ${fsPath}`, LogLevel.Debug);
         this.ast = astResult.value;
       } else {
-        console.log(`There was an error while parsing ${originalFilePath}`, LogLevel.Debug);
+        console.log(`There was an error while parsing ${fsPath}`, LogLevel.Debug);
         console.log(astResult, LogLevel.Debug);
       }
       [rawDocDiagnostics, compiledDocDiagnostics] = this.diagnosticGenerator.getDiagnosticsFromAst(
