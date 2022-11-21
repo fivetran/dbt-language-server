@@ -171,7 +171,9 @@ export function ensureValidWordDefinition(wordDefinition?: RegExp | null): RegEx
   let result: RegExp = createWordRegExp();
 
   if (wordDefinition && wordDefinition instanceof RegExp) {
-    if (!wordDefinition.global) {
+    if (wordDefinition.global) {
+      result = wordDefinition;
+    } else {
       let flags = 'g';
       if (wordDefinition.ignoreCase) {
         flags += 'i';
@@ -183,8 +185,6 @@ export function ensureValidWordDefinition(wordDefinition?: RegExp | null): RegEx
         flags += 'u';
       }
       result = new RegExp(wordDefinition.source, flags);
-    } else {
-      result = wordDefinition;
     }
   }
 
