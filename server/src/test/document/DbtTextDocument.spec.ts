@@ -4,10 +4,8 @@ import { assertThat } from 'hamjest';
 import * as path from 'node:path';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, Range, TextDocumentSaveReason, VersionedTextDocumentIdentifier } from 'vscode-languageserver';
-import { DbtCompletionProvider } from '../../completion/DbtCompletionProvider';
 import { DbtRepository } from '../../DbtRepository';
 import { Dbt } from '../../dbt_execution/Dbt';
-import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
 import { DestinationState } from '../../DestinationState';
 import { DbtDocumentKind } from '../../document/DbtDocumentKind';
 import { DbtTextDocument } from '../../document/DbtTextDocument';
@@ -15,7 +13,6 @@ import { JinjaParser } from '../../JinjaParser';
 import { ModelCompiler } from '../../ModelCompiler';
 import { NotificationSender } from '../../NotificationSender';
 import { ProgressReporter } from '../../ProgressReporter';
-import { SqlCompletionProvider } from '../../SqlCompletionProvider';
 import { sleep } from '../helper';
 
 describe('DbtTextDocument', () => {
@@ -52,9 +49,6 @@ describe('DbtTextDocument', () => {
       '',
       mock(NotificationSender),
       mock(ProgressReporter),
-      mock(SqlCompletionProvider),
-      mock(DbtCompletionProvider),
-      mock(DbtDefinitionProvider),
       instance(mockModelCompiler),
       instance(mockJinjaParser),
       onGlobalDbtErrorFixedEmitter,

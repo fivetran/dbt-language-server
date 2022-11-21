@@ -45,14 +45,12 @@ import {
 } from 'vscode-languageserver';
 import { FileOperationFilter } from 'vscode-languageserver-protocol/lib/common/protocol.fileOperations';
 import { URI } from 'vscode-uri';
-import { DbtCompletionProvider } from '../completion/DbtCompletionProvider';
 import { DbtProfileCreator, DbtProfileInfo } from '../DbtProfileCreator';
 import { DbtProject } from '../DbtProject';
 import { DbtRepository } from '../DbtRepository';
 import { Dbt, DbtMode } from '../dbt_execution/Dbt';
 import { DbtCli } from '../dbt_execution/DbtCli';
 import { DbtRpc } from '../dbt_execution/DbtRpc';
-import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
 import { DestinationState } from '../DestinationState';
 import { DbtDocumentKind } from '../document/DbtDocumentKind';
 import { DbtDocumentKindResolver } from '../document/DbtDocumentKindResolver';
@@ -65,7 +63,6 @@ import { ManifestParser } from '../manifest/ManifestParser';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProcessExecutor } from '../ProcessExecutor';
 import { ProgressReporter } from '../ProgressReporter';
-import { SqlCompletionProvider } from '../SqlCompletionProvider';
 import { DbtProjectStatusSender } from '../status_bar/DbtProjectStatusSender';
 import { LspServerBase } from './LspServerBase';
 
@@ -78,9 +75,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   openedDocuments = new Map<string, DbtTextDocument>();
   progressReporter: ProgressReporter;
   fileChangeListener: FileChangeListener;
-  sqlCompletionProvider: SqlCompletionProvider;
-  dbtCompletionProvider: DbtCompletionProvider;
-  dbtDefinitionProvider: DbtDefinitionProvider;
   dbtProfileCreator: DbtProfileCreator;
   manifestParser = new ManifestParser();
   dbtRepository = new DbtRepository();
@@ -99,9 +93,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     this.progressReporter = new ProgressReporter(this.connection);
     this.dbtProfileCreator = new DbtProfileCreator(this.dbtProject, path.join(homedir(), '.dbt', 'profiles.yml'));
     this.fileChangeListener = new FileChangeListener(this.workspaceFolder, this.dbtProject, this.manifestParser, this.dbtRepository);
-    this.sqlCompletionProvider = new SqlCompletionProvider();
-    this.dbtCompletionProvider = new DbtCompletionProvider(this.dbtRepository);
-    this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
     this.statusSender = new DbtProjectStatusSender(this.notificationSender, this.workspaceFolder, this.featureFinder, this.fileChangeListener);
   }
 
@@ -134,7 +125,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
         },
         hoverProvider: true,
         completionProvider: {
-          resolveProvider: true,
           triggerCharacters: ['.', '(', '"', "'"],
         },
         signatureHelpProvider: {
@@ -160,7 +150,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     this.connection.onInitialized(this.onInitialized.bind(this));
     this.connection.onHover(this.onHover.bind(this));
     this.connection.onCompletion(this.onCompletion.bind(this));
-    this.connection.onCompletionResolve(this.onCompletionResolve.bind(this));
     this.connection.onSignatureHelp(this.onSignatureHelp.bind(this));
     this.connection.onDefinition(this.onDefinition.bind(this));
 
@@ -387,9 +376,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
         this.workspaceFolder,
         this.notificationSender,
         this.progressReporter,
-        this.sqlCompletionProvider,
-        this.dbtCompletionProvider,
-        this.dbtDefinitionProvider,
         new ModelCompiler(this.dbt, this.dbtRepository),
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,
@@ -427,10 +413,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
     const document = this.openedDocuments.get(completionParams.textDocument.uri);
     return document?.onCompletion(completionParams);
-  }
-
-  onCompletionResolve(item: CompletionItem): CompletionItem {
-    return this.sqlCompletionProvider.onCompletionResolve(item);
   }
 
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {

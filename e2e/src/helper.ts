@@ -150,6 +150,14 @@ export async function compileDocument(): Promise<void> {
   await commands.executeCommand('WizardForDbtCore(TM).compile');
 }
 
+export async function triggerAndAcceptFirstSuggestion(): Promise<void> {
+  await commands.executeCommand('editor.action.triggerSuggest');
+  await sleep(400);
+  await waitDocumentModification(async () => {
+    await commands.executeCommand('acceptSelectedSuggestion');
+  });
+}
+
 export function getPreviewText(): string {
   const previewEditor = getPreviewEditor();
   if (!previewEditor) {
@@ -184,7 +192,9 @@ export function getCustomDocUri(p: string): Uri {
 }
 
 export async function setTestContent(content: string, waitForPreview = true): Promise<void> {
-  await showPreview();
+  if (waitForPreview) {
+    await showPreview();
+  }
 
   if (doc.getText() === content) {
     return;
@@ -337,7 +347,6 @@ export function getLanguageStatusItems(): LanguageStatusItemsType {
 }
 
 export async function triggerCompletion(docUri: Uri, position: Position, triggerChar?: string): Promise<CompletionList<CompletionItem>> {
-  // Simulate triggering completion
   return commands.executeCommand<CompletionList>('vscode.executeCompletionItemProvider', docUri, position, triggerChar);
 }
 

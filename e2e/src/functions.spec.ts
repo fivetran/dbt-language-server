@@ -1,14 +1,6 @@
 import { assertThat, hasSize, instanceOf, startsWith } from 'hamjest';
 import { commands, Hover, MarkdownString, Position } from 'vscode';
-import {
-  activateAndWaitManifestParsed,
-  executeSignatureHelpProvider,
-  getCursorPosition,
-  getDocUri,
-  setTestContent,
-  sleep,
-  TEST_FIXTURE_PATH,
-} from './helper';
+import { activateAndWaitManifestParsed, executeSignatureHelpProvider, getDocUri, setTestContent, TEST_FIXTURE_PATH } from './helper';
 
 suite('Functions', () => {
   const DOC_URI = getDocUri('functions.sql');
@@ -32,20 +24,6 @@ suite('Functions', () => {
       (help.signatures[0].documentation as MarkdownString).value,
       'Returns the maximum value of non-`NULL` expressions. Returns `NULL` if there\nare zero input rows or `expression` evaluates to `NULL` for all rows.\nReturns `NaN` if the input contains a `NaN`.',
     );
-  });
-
-  test('Should move cursor into brackets after avg function completion', async () => {
-    // arrange
-    await activateAndWaitManifestParsed(DOC_URI, TEST_FIXTURE_PATH);
-
-    await setTestContent('select Avg()', false);
-
-    // act
-    await commands.executeCommand('WizardForDbtCore(TM).afterFunctionCompletion');
-
-    // assert
-    await sleep(300);
-    assertThat(getCursorPosition(), new Position(0, 11));
   });
 
   test('Should show signature on hover', async () => {

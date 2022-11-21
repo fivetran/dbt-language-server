@@ -1,7 +1,7 @@
-import { Command, CompletionItem, CompletionItemKind, CompletionParams, CompletionTriggerKind } from 'vscode-languageserver';
-import { DestinationDefinition } from './DestinationDefinition';
-import { HelpProviderWords } from './HelpProviderWords';
-import { ActiveTableInfo, CompletionInfo } from './ZetaSqlAst';
+import { Command, CompletionItem, CompletionItemKind, CompletionParams, CompletionTriggerKind, InsertTextFormat } from 'vscode-languageserver';
+import { DestinationDefinition } from '../DestinationDefinition';
+import { HelpProviderWords } from '../HelpProviderWords';
+import { ActiveTableInfo, CompletionInfo } from '../ZetaSqlAst';
 
 export class SqlCompletionProvider {
   static readonly BQ_KEYWORDS = [
@@ -267,17 +267,6 @@ export class SqlCompletionProvider {
     return result;
   }
 
-  onCompletionResolve(item: CompletionItem): CompletionItem {
-    if (item.kind === CompletionItemKind.Keyword) {
-      item.label += ' ';
-    }
-    if (item.kind === CompletionItemKind.Function) {
-      item.label += '()';
-      item.command = Command.create('additional', 'WizardForDbtCore(TM).afterFunctionCompletion');
-    }
-    return item;
-  }
-
   getWithNames(withNames: Set<string>): CompletionItem[] {
     return [...withNames].map<CompletionItem>(w => ({
       label: w,
@@ -353,6 +342,7 @@ export class SqlCompletionProvider {
     return SqlCompletionProvider.BQ_KEYWORDS.map<CompletionItem>(k => ({
       label: k,
       kind: CompletionItemKind.Keyword,
+      insertText: `${k} `,
       detail: '',
     }));
   }
@@ -363,6 +353,9 @@ export class SqlCompletionProvider {
       kind: CompletionItemKind.Function,
       detail: w.signatures[0].signature,
       documentation: w.signatures[0].description,
+      insertTextFormat: InsertTextFormat.Snippet,
+      insertText: `${w.name}($0)`,
+      command: Command.create('triggerParameterHints', 'editor.action.triggerParameterHints'),
     }));
   }
 

@@ -1,11 +1,18 @@
-import * as path from 'node:path';
+import path = require('node:path');
 
 export enum LogLevel {
   Debug = '__LogLevelDebug',
 }
 
 export const Logger = {
-  prepareLogger(workspaceFolder: string): void {
+  prepareLogger(workspaceFolder: string, disableLogger?: boolean): void {
+    if (disableLogger) {
+      console.log = (): void => {
+        // Do nothing
+      };
+      return;
+    }
+
     const id = workspaceFolder.slice(workspaceFolder.lastIndexOf(path.sep) + 1);
 
     const old = console.log;

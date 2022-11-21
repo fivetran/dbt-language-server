@@ -1,7 +1,6 @@
 import * as fs from 'node:fs';
 import { commands, ExtensionContext, languages, TextDocument, TextEditor, Uri, ViewColumn, window, workspace } from 'vscode';
 import { ActiveTextEditorHandler } from './ActiveTextEditorHandler';
-import { AfterFunctionCompletion } from './commands/AfterFunctionCompletion';
 import { CommandManager } from './commands/CommandManager';
 import { Compile } from './commands/Compile';
 import { InstallDbtAdapters } from './commands/InstallDbtAdapters';
@@ -105,7 +104,6 @@ export class ExtensionClient {
 
   registerCommands(): void {
     this.commandManager.register(new Compile(this.dbtLanguageClientManager));
-    this.commandManager.register(new AfterFunctionCompletion());
     this.commandManager.register(new CreateDbtProject(this.context.globalState));
     this.commandManager.register(new InstallLatestDbt(this.dbtLanguageClientManager, this.outputChannelProvider));
     this.commandManager.register(new InstallDbtAdapters(this.dbtLanguageClientManager, this.outputChannelProvider));
