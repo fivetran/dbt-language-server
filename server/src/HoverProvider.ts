@@ -18,7 +18,7 @@ export class HoverProvider {
       return {
         contents: {
           kind: MarkupKind.Markdown,
-          value: [`\`\`\`sql\n${firstSignature.signature}\`\`\``, firstSignature.description].join('\n---\n'),
+          value: [`\`\`\`sql\n${firstSignature.signature}\n\`\`\``, firstSignature.description].join('\n---\n'),
         },
       };
     }

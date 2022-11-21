@@ -5,25 +5,27 @@ import { activateAndWaitManifestParsed, executeSignatureHelpProvider, getDocUri,
 suite('Functions', () => {
   const DOC_URI = getDocUri('functions.sql');
 
-  test('Should show help for max function', async () => {
+  test('Should show help for date function', async () => {
     // arrange
     await activateAndWaitManifestParsed(DOC_URI, TEST_FIXTURE_PATH);
 
-    await setTestContent('select Max(', false);
+    await setTestContent('select Date(', false);
 
-    const help = await executeSignatureHelpProvider(DOC_URI, new Position(0, 11), '(');
+    const help = await executeSignatureHelpProvider(DOC_URI, new Position(0, 12), '(');
 
     // assert
-    assertThat(help.signatures.length, 1);
-    assertThat(
-      help.signatures[0].label,
-      'MAX(\n  expression\n  [ HAVING { MAX | MIN } expression2 ]\n)\n[ OVER over_clause ]\n\nover_clause:\n  { named_window | ( [ window_specification ] ) }\n\nwindow_specification:\n  [ named_window ]\n  [ PARTITION BY partition_expression [, ...] ]\n  [ ORDER BY expression [ { ASC | DESC }  ] [, ...] ]\n  [ window_frame_clause ]\n\n',
-    );
+    assertThat(help.signatures.length, 3);
+    assertThat(help.signatures[0].label, 'DATE(year, month, day)');
     assertThat(help.signatures[0].documentation, instanceOf(MarkdownString));
     assertThat(
       (help.signatures[0].documentation as MarkdownString).value,
-      'Returns the maximum value of non-`NULL` expressions. Returns `NULL` if there\nare zero input rows or `expression` evaluates to `NULL` for all rows.\nReturns `NaN` if the input contains a `NaN`.',
+      'Constructs a DATE from INT64 values representing\nthe year, month, and day.',
     );
+    assertThat(help.signatures[0].parameters, [
+      { label: 'year', documentation: undefined },
+      { label: 'month', documentation: undefined },
+      { label: 'day', documentation: undefined },
+    ]);
   });
 
   test('Should show signature on hover', async () => {

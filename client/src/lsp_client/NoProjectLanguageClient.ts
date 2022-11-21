@@ -17,6 +17,7 @@ export class NoProjectLanguageClient extends DbtWizardLanguageClient {
       DbtWizardLanguageClient.createServerOptions(this.port, this.serverAbsolutePath),
       {
         outputChannel: this.outputChannelProvider.getMainLogChannel(),
+        traceOutputChannel: this.outputChannelProvider.getTraceChannel(),
       },
     );
   }

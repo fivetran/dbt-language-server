@@ -1,3 +1,4 @@
+import matchBracket from 'find-matching-bracket';
 import * as MarkdownIt from 'markdown-it';
 import * as fs from 'node:fs';
 import * as prettier from 'prettier';
@@ -11,6 +12,7 @@ interface FunctionInfo {
 interface SignatureInfo {
   signature: string;
   description: string;
+  parameters: string[];
 }
 
 const filesToParse: Map<string, string[]> = new Map([
@@ -80,6 +82,7 @@ const additionalFields = [
         signature: 'TO_JSON_STRING(value[, pretty_print])\n',
         description:
           'Takes a SQL value and returns a JSON-formatted string\nrepresentation of the value. The value must be a supported BigQuery\ndata type.',
+        parameters: [],
       },
     ],
   },
@@ -120,19 +123,18 @@ async function parseAndSave(): Promise<void> {
             if (token.type === 'fence') {
               if (token.content.startsWith('1.')) {
                 const signatures = token.content.split('\n');
-                for (const signature of signatures) {
-                  functionInfo.signatures.push({ signature: signature.slice(3), description: '' });
+                for (const numberedSignature of signatures) {
+                  if (numberedSignature !== '') {
+                    addSignature(numberedSignature.slice(3), name, functionInfo);
+                  }
                 }
               } else {
-                functionInfo.signatures.push({ signature: token.content, description: '' });
+                addSignature(token.content, name, functionInfo);
               }
             } else {
               while (token.type !== 'paragraph_open') {
                 if (token.type === 'fence') {
-                  functionInfo.signatures.push({
-                    signature: token.content,
-                    description: '',
-                  });
+                  addSignature(token.content, name, functionInfo);
                 }
                 i++;
                 token = tokens[i];
@@ -162,7 +164,7 @@ async function parseAndSave(): Promise<void> {
               const description = parseText(tokens[i + 1]);
               if (functionInfo.signatures.length === 0) {
                 // There is no signature in md file for the function
-                functionInfo.signatures.push({ signature: '', description });
+                functionInfo.signatures.push({ signature: '', description, parameters: [] });
               }
               functionInfo.signatures[0].description = description;
             }
@@ -192,6 +194,67 @@ async function parseAndSave(): Promise<void> {
   options.parser = 'typescript';
   const formatted = prettier.format(code, options);
   fs.writeFileSync(`${__dirname}/../../server/src/HelpProviderWords.ts`, formatted);
+}
+
+function addSignature(rawSignature: string, functionName: string, functionInfo: FunctionInfo): void {
+  const signature = normalizeSignature(rawSignature, functionName);
+
+  const parameters: string[] = getParameters(signature, functionName);
+  functionInfo.signatures.push({ signature, description: '', parameters });
+}
+
+function normalizeSignature(rawSignature: string, functionName: string): string {
+  const signature = new RegExp(`${functionName}\\s+\\(`).test(rawSignature.toLocaleLowerCase())
+    ? rawSignature.slice(0, functionName.length) + rawSignature.slice(rawSignature.indexOf('('))
+    : rawSignature;
+  return signature.trimEnd();
+}
+
+function getParameters(signature: string, functionName: string): string[] {
+  if (!signature.toLocaleLowerCase().startsWith(`${functionName}(`) || signature.endsWith('()')) {
+    return [];
+  }
+
+  const closingBracket = matchBracket(signature, functionName.length, true);
+  const actualSignature = signature.slice(functionName.length + 1, closingBracket);
+  if (actualSignature === '') {
+    return [];
+  }
+
+  const parameters = [];
+  let parameter = '';
+  let squareBrackets = 0;
+
+  for (const c of actualSignature) {
+    switch (c) {
+      case ',': {
+        if (squareBrackets > 0) {
+          parameter += c;
+        } else {
+          parameters.push(parameter.trim());
+          parameter = '';
+        }
+        break;
+      }
+      case '[': {
+        squareBrackets++;
+        parameter += c;
+        break;
+      }
+      case ']': {
+        squareBrackets--;
+        parameter += c;
+        break;
+      }
+      default: {
+        parameter += c;
+        break;
+      }
+    }
+  }
+  parameters.push(parameter.trim());
+
+  return parameters;
 }
 
 function parseText(token: Token): string {

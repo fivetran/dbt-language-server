@@ -8,6 +8,7 @@
     "@types/markdown-it": "^12.2.3",
     "@types/prettier": "^2.7.1",
     "axios": "^1.1.0",
+    "find-matching-bracket": "^1.0.3",
     "markdown-it": "^13.0.1"
   }
 }

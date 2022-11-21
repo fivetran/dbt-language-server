@@ -3,7 +3,7 @@ import { Position, Range } from 'vscode-languageserver';
 import { MacroDefinitionProvider } from '../../definition/MacroDefinitionProvider';
 import { ModelDefinitionProvider } from '../../definition/ModelDefinitionProvider';
 import { SourceDefinitionProvider } from '../../definition/SourceDefinitionProvider';
-import { getTextRangeBeforeBracket, getWordRangeAtPosition } from '../../utils/TextUtils';
+import { getSignatureInfo, getWordRangeAtPosition } from '../../utils/TextUtils';
 
 describe('TextUtils', () => {
   it('getWordRangeAtPosition should find words', () => {
@@ -77,40 +77,64 @@ describe('TextUtils', () => {
     );
   });
 
-  it('getTextRangeBeforeBracket should return cursor position if no range found', () => {
-    getTextRangeBeforeBracketShouldReturnRange('a()', Position.create(0, 0), Range.create(0, 0, 0, 0));
-    getTextRangeBeforeBracketShouldReturnRange('a()', Position.create(0, 1), Range.create(0, 1, 0, 1));
-    getTextRangeBeforeBracketShouldReturnRange('a()', Position.create(0, 3), Range.create(0, 3, 0, 3));
-    getTextRangeBeforeBracketShouldReturnRange('a(b)', Position.create(0, 4), Range.create(0, 4, 0, 4));
-    getTextRangeBeforeBracketShouldReturnRange('a)(', Position.create(0, 1), Range.create(0, 1, 0, 1));
-    getTextRangeBeforeBracketShouldReturnRange('a)(', Position.create(0, 2), Range.create(0, 2, 0, 2));
+  it('getSignatureInfo should return undefined if no range found', () => {
+    getSignatureInfoShouldReturnRange('a()', Position.create(0, 0), undefined, 0);
+    getSignatureInfoShouldReturnRange('a()', Position.create(0, 1), undefined, 0);
+    getSignatureInfoShouldReturnRange('a()', Position.create(0, 3), undefined, 0);
+    getSignatureInfoShouldReturnRange('a(b)', Position.create(0, 4), undefined, 0);
+    getSignatureInfoShouldReturnRange('a)(', Position.create(0, 1), undefined, 0);
+    getSignatureInfoShouldReturnRange('a)(', Position.create(0, 2), undefined, 0);
+    getSignatureInfoShouldReturnRange('KLL_QUANTILES.EXTRACT_POINT_INT64(sketch, phi)', Position.create(0, 46), undefined, 0);
   });
 
-  it('getTextRangeBeforeBracket should return range', () => {
-    getTextRangeBeforeBracketShouldReturnRange('a()', Position.create(0, 2), Range.create(0, 0, 0, 1));
-    getTextRangeBeforeBracketShouldReturnRange('  a()', Position.create(0, 4), Range.create(0, 2, 0, 3));
-    getTextRangeBeforeBracketShouldReturnRange('a(b)', Position.create(0, 3), Range.create(0, 0, 0, 1));
-    getTextRangeBeforeBracketShouldReturnRange('a(b())', Position.create(0, 3), Range.create(0, 0, 0, 1));
-    getTextRangeBeforeBracketShouldReturnRange('a(b())', Position.create(0, 5), Range.create(0, 0, 0, 1));
-    getTextRangeBeforeBracketShouldReturnRange('a(  b())', Position.create(0, 5), Range.create(0, 0, 0, 1));
-    getTextRangeBeforeBracketShouldReturnRange('a(b())', Position.create(0, 4), Range.create(0, 2, 0, 3));
-    getTextRangeBeforeBracketShouldReturnRange('a(b(c()))', Position.create(0, 6), Range.create(0, 4, 0, 5));
-    getTextRangeBeforeBracketShouldReturnRange(' coalesce(max())', Position.create(0, 13), Range.create(0, 1, 0, 9));
-    getTextRangeBeforeBracketShouldReturnRange(' coalesce(min())', Position.create(0, 14), Range.create(0, 10, 0, 13));
+  it('getSignatureInfo should return range', () => {
+    getSignatureInfoShouldReturnRange('a()', Position.create(0, 2), Range.create(0, 0, 0, 1), 0);
+    getSignatureInfoShouldReturnRange('  a()', Position.create(0, 4), Range.create(0, 2, 0, 3), 0);
+    getSignatureInfoShouldReturnRange('a(b)', Position.create(0, 3), Range.create(0, 0, 0, 1), 0);
+    getSignatureInfoShouldReturnRange('a(b())', Position.create(0, 3), Range.create(0, 0, 0, 1), 0);
+    getSignatureInfoShouldReturnRange('a(b())', Position.create(0, 5), Range.create(0, 0, 0, 1), 0);
+    getSignatureInfoShouldReturnRange('a(  b())', Position.create(0, 5), Range.create(0, 0, 0, 1), 0);
+    getSignatureInfoShouldReturnRange('a(b())', Position.create(0, 4), Range.create(0, 2, 0, 3), 0);
+    getSignatureInfoShouldReturnRange('a(b(c()))', Position.create(0, 6), Range.create(0, 4, 0, 5), 0);
+    getSignatureInfoShouldReturnRange(' coalesce(max())', Position.create(0, 13), Range.create(0, 1, 0, 9), 0);
+    getSignatureInfoShouldReturnRange(' coalesce(min())', Position.create(0, 14), Range.create(0, 10, 0, 13), 0);
   });
 
-  it('getTextRangeBeforeBracket should return range for multiline text', () => {
-    getTextRangeBeforeBracketShouldReturnRange('\n\na()', Position.create(2, 2), Range.create(2, 0, 2, 1));
-    getTextRangeBeforeBracketShouldReturnRange('\n\n coalesce(max())', Position.create(2, 13), Range.create(2, 1, 2, 9));
+  it('getSignatureInfo should return range for multiline text', () => {
+    getSignatureInfoShouldReturnRange('a()', Position.create(2, 2), Range.create(2, 0, 2, 1), 0);
+    getSignatureInfoShouldReturnRange(' coalesce(max())', Position.create(2, 13), Range.create(2, 1, 2, 9), 0);
+  });
+
+  it('getSignatureInfo should return correct parameter index for only one function', () => {
+    getSignatureInfoShouldReturnRange('a(,)', Position.create(0, 2), Range.create(0, 0, 0, 1), 0);
+    getSignatureInfoShouldReturnRange('a(,)', Position.create(0, 3), Range.create(0, 0, 0, 1), 1);
+    getSignatureInfoShouldReturnRange('a(,,)', Position.create(0, 3), Range.create(0, 0, 0, 1), 1);
+    getSignatureInfoShouldReturnRange('a(,,)', Position.create(0, 4), Range.create(0, 0, 0, 1), 2);
+    getSignatureInfoShouldReturnRange('a(,   ,)', Position.create(0, 4), Range.create(0, 0, 0, 1), 1);
+    getSignatureInfoShouldReturnRange('a(    ,   ,)', Position.create(0, 4), Range.create(0, 0, 0, 1), 0);
+  });
+
+  it('getSignatureInfo should return correct parameter index for nested functions', () => {
+    getSignatureInfoShouldReturnRange('a(b(,))', Position.create(0, 4), Range.create(0, 2, 0, 3), 0);
+    getSignatureInfoShouldReturnRange('a(b(,))', Position.create(0, 5), Range.create(0, 2, 0, 3), 1);
+    getSignatureInfoShouldReturnRange('a( b(,))', Position.create(0, 5), Range.create(0, 3, 0, 4), 0);
+    getSignatureInfoShouldReturnRange('a(b(,))', Position.create(0, 5), Range.create(0, 2, 0, 3), 1);
+    getSignatureInfoShouldReturnRange('a(b(,,))', Position.create(0, 6), Range.create(0, 2, 0, 3), 2);
+    getSignatureInfoShouldReturnRange('a(b(,,,))', Position.create(0, 7), Range.create(0, 2, 0, 3), 3);
+  });
+
+  it('getSignatureInfo should work for two words functions', () => {
+    getSignatureInfoShouldReturnRange('hll_count.init()', Position.create(0, 15), Range.create(0, 0, 0, 14), 0);
+    getSignatureInfoShouldReturnRange('KLL_QUANTILES.EXTRACT_POINT_INT64(sketch, phi)', Position.create(0, 45), Range.create(0, 0, 0, 33), 1);
   });
 });
 
-function getTextRangeBeforeBracketShouldReturnRange(text: string, position: Position, expectedRange: Range): void {
+function getSignatureInfoShouldReturnRange(text: string, position: Position, expectedRange?: Range, expectedParameterIndex?: number): void {
   // act
-  const range = getTextRangeBeforeBracket(text, position);
+  const signatureInfo = getSignatureInfo(text, position);
 
   // assert
-  assertThat(range, expectedRange);
+  assertThat(signatureInfo, expectedRange ? { range: expectedRange, parameterIndex: expectedParameterIndex } : undefined);
 }
 
 function assertWordRangeAtPosition(position: Position, regex: RegExp, textLines: string[], wordRange: Range | undefined): void {
