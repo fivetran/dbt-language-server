@@ -46,15 +46,15 @@ export class ProjectStatusGroup extends StatusGroupBase {
   }
 
   private updateDbtPackagesUi(): void {
-    if (!this.dbtPackagesData) {
-      this.items.dbtPackages.setBusy();
-    } else {
+    if (this.dbtPackagesData) {
       this.items.dbtPackages.setState(
         this.dbtPackagesData.severity,
         this.dbtPackagesData.text,
         this.dbtPackagesData.detail,
         this.dbtPackagesData.command,
       );
+    } else {
+      this.items.dbtPackages.setBusy();
     }
   }
 

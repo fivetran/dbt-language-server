@@ -16,7 +16,9 @@ suite('dbt_ft', () => {
       const file = files[i];
       console.log(`File: ${file}`);
 
-      if (!EXCLUDE.some(e => file.endsWith(e))) {
+      if (EXCLUDE.some(e => file.endsWith(e))) {
+        console.log(`Skipping: ${file}`);
+      } else {
         const fileProcessingTimeout = new Promise<string>((resolve, _reject) => {
           setTimeout(() => {
             resolve(`Something went wrong when opening model ${file}`);
@@ -47,8 +49,6 @@ suite('dbt_ft', () => {
             console.log(`${new Date().toISOString()}: diagnostics: ${JSON.stringify(diagnostics)}`);
           }
         }
-      } else {
-        console.log(`Skipping: ${file}`);
       }
     }
   });
