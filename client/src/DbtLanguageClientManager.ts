@@ -8,7 +8,7 @@ import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 import { StatusHandler } from './status/StatusHandler';
-import { DBT_PROJECT_YML, DEFAULT_PACKAGES_PATHS, INTEGRATION_TEST_PROJECT_NAME, isDocumentSupported } from './Utils';
+import { DBT_PROJECT_YML, isDocumentSupported } from './Utils';
 import { WorkspaceHelper } from './WorkspaceHelper';
 
 export class DbtLanguageClientManager {
@@ -66,7 +66,7 @@ export class DbtLanguageClientManager {
   }
 
   async getClientByUri(uri: Uri): Promise<DbtLanguageClient | undefined> {
-    const projectUri = await this.getDbtProjectUri(uri);
+    const projectUri = await this.getOuterMostDbtProjectUri(uri);
     return projectUri ? this.getClientByPath(projectUri.fsPath) : undefined;
   }
 
@@ -75,7 +75,7 @@ export class DbtLanguageClientManager {
   }
 
   /** We expect the dbt project folder to be the folder containing the dbt_project.yml file. This folder is used to run dbt-rpc. */
-  async getDbtProjectUri(fileUri: Uri): Promise<Uri | undefined> {
+  async getOuterMostDbtProjectUri(fileUri: Uri): Promise<Uri | undefined> {
     const folder = workspace.getWorkspaceFolder(fileUri);
     if (!folder) {
       return undefined;
@@ -89,28 +89,23 @@ export class DbtLanguageClientManager {
     const outerWorkspace = this.workspaceHelper.getOuterMostWorkspaceFolder(folder);
 
     let currentUri = fileUri;
+    let outerMostProjectUri: Uri | undefined = undefined;
     do {
       currentUri = Uri.joinPath(currentUri, '..');
       try {
         const stat = await workspace.fs.stat(currentUri.with({ path: `${currentUri.path}/${DBT_PROJECT_YML}` }));
         if (stat.type !== FileType.Directory) {
-          const oneLevelUpPath = Uri.joinPath(currentUri, '..').path;
-          if (
-            !DEFAULT_PACKAGES_PATHS.some(p => oneLevelUpPath.toLocaleLowerCase().endsWith(p)) &&
-            !currentUri.fsPath.toLocaleLowerCase().endsWith(INTEGRATION_TEST_PROJECT_NAME)
-          ) {
-            return currentUri;
-          }
+          outerMostProjectUri = currentUri;
         }
       } catch {
         // file does not exist
       }
     } while (currentUri.path !== outerWorkspace.uri.path);
-    return undefined;
+    return outerMostProjectUri;
   }
 
   async ensureClient(documentUri: Uri): Promise<void> {
-    const projectUri = await this.getDbtProjectUri(documentUri);
+    const projectUri = await this.getOuterMostDbtProjectUri(documentUri);
     if (!projectUri) {
       return;
     }
