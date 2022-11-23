@@ -101,7 +101,8 @@ export class DbtLanguageClientManager {
       log(`currentUri path ${currentUri.path}`);
 
       try {
-        const stat = await workspace.fs.stat(currentUri.with({ path: `${currentUri.path}/${DBT_PROJECT_YML}` }));
+        log(`check file ${Uri.joinPath(currentUri, DBT_PROJECT_YML).fsPath}`);
+        const stat = await workspace.fs.stat(Uri.joinPath(currentUri, DBT_PROJECT_YML));
         if (stat.type !== FileType.Directory) {
           outerMostProjectUri = currentUri;
         }
