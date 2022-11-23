@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.16.0 (01/01/1970)
+## Version 0.16.0 (23/11/2022)
 ## What's Changed
 * Add dbt snippets: `block`, `comment`, `config`, `for`, `if`, `ifelse`, `macro`, `ref`, `set`, `setblock`, `source`, `statement`.
 * Highlight function signature parameters.
