@@ -115,7 +115,7 @@ export class ExtensionClient {
   registerSqlPreviewContentProvider(context: ExtensionContext): void {
     const providerRegistrations = workspace.registerTextDocumentContentProvider(SqlPreviewContentProvider.SCHEME, this.previewContentProvider);
     const commandRegistration = commands.registerTextEditorCommand('WizardForDbtCore(TM).showQueryPreview', async (editor: TextEditor) => {
-      const projectUri = await this.dbtLanguageClientManager.getDbtProjectUri(editor.document.uri);
+      const projectUri = await this.dbtLanguageClientManager.getOuterMostDbtProjectUri(editor.document.uri);
       if (!projectUri) {
         return;
       }

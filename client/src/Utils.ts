@@ -7,8 +7,6 @@ export const PACKAGES_YML = 'packages.yml';
 export const PROFILES_YML = 'profiles.yml';
 export const PROFILES_YML_DEFAULT_URI = Uri.file(path.join(homedir(), '.dbt', PROFILES_YML));
 export const DBT_PROJECT_YML = 'dbt_project.yml';
-export const DEFAULT_PACKAGES_PATHS = ['dbt_packages', 'dbt_modules'];
-export const INTEGRATION_TEST_PROJECT_NAME = 'integration_tests';
 export const DBT_ADAPTERS = [
   'dbt-postgres',
   'dbt-redshift',
