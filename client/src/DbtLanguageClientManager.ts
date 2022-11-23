@@ -76,22 +76,30 @@ export class DbtLanguageClientManager {
 
   /** We expect the dbt project folder to be the folder containing the dbt_project.yml file. This folder is used to run dbt-rpc. */
   async getOuterMostDbtProjectUri(fileUri: Uri): Promise<Uri | undefined> {
+    log(fileUri.fsPath);
     const folder = workspace.getWorkspaceFolder(fileUri);
     if (!folder) {
+      log('undefined');
       return undefined;
     }
 
     const projectFolder = [...this.clients.keys()].find(k => fileUri.fsPath.startsWith(k));
     if (projectFolder) {
+      log(`return projectFolder ${projectFolder}`);
       return Uri.file(projectFolder);
     }
 
     const outerWorkspace = this.workspaceHelper.getOuterMostWorkspaceFolder(folder);
+    log(outerWorkspace.uri.path);
+    log(outerWorkspace.uri.fsPath);
 
     let currentUri = fileUri;
     let outerMostProjectUri: Uri | undefined = undefined;
     do {
       currentUri = Uri.joinPath(currentUri, '..');
+      log(`currentUri fsPath ${currentUri.fsPath}`);
+      log(`currentUri path ${currentUri.path}`);
+
       try {
         const stat = await workspace.fs.stat(currentUri.with({ path: `${currentUri.path}/${DBT_PROJECT_YML}` }));
         if (stat.type !== FileType.Directory) {
@@ -101,6 +109,7 @@ export class DbtLanguageClientManager {
         // file does not exist
       }
     } while (currentUri.path !== outerWorkspace.uri.path);
+    log(`return outerMostProjectUri ${outerMostProjectUri?.fsPath ?? 'undefined'}`);
     return outerMostProjectUri;
   }
 
