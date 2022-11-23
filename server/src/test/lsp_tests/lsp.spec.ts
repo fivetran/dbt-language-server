@@ -93,7 +93,7 @@ describe('lsp tests', () => {
       const { expectedCompletionItems } = snippetTest;
       await completionRequestShouldReturnSnippet(snippetTest.textInDocument, expectedCompletionItems);
     }
-  });
+  }).timeout('10s');
 
   async function completionRequestShouldReturnSnippet(documentText: string, expectedItems: CompletionItem[]): Promise<void> {
     // arrange
