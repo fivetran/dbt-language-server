@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 0.16.0 (23/11/2022)
+## What's Changed
+* Add dbt snippets: `block`, `comment`, `config`, `for`, `if`, `ifelse`, `macro`, `ref`, `set`, `setblock`, `source`, `statement`.
+* Highlight function signature parameters.
+* Fix extension crush when packages-install-path is overridden.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.15.0...v0.16.0
+---
+
 ## Version 0.15.0 (10/11/2022)
 ## What's Changed
 * Add install WSL and Ubuntu button for Windows.
