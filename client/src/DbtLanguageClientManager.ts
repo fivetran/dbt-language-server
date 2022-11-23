@@ -108,7 +108,7 @@ export class DbtLanguageClientManager {
       } catch {
         // file does not exist
       }
-    } while (currentUri.path !== outerWorkspace.uri.path);
+    } while (currentUri.fsPath !== outerWorkspace.uri.fsPath);
     log(`return outerMostProjectUri ${outerMostProjectUri?.fsPath ?? 'undefined'}`);
     return outerMostProjectUri;
   }
