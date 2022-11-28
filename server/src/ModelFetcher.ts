@@ -1,5 +1,4 @@
 import * as retry from 'async-retry';
-import { pathEqual } from 'path-equal';
 import { DbtRepository } from './DbtRepository';
 import { ManifestModel } from './manifest/ManifestJson';
 
@@ -12,6 +11,7 @@ export class ModelFetcher {
   /** We retry here because in some situations manifest.json can appear a bit later after compilation is finished */
   async getModel(): Promise<ManifestModel | undefined> {
     if (!this.fetchCompleted) {
+      const { pathEqual } = await import('path-equal');
       try {
         this.model = await retry(
           () => {
