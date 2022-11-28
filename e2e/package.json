@@ -14,7 +14,7 @@
     "dbt-language-server-common": "file:../common",
     "hamjest": "^3.7.3",
     "mocha": "^10.1.0",
-    "path-equal": "^1.2.4",
+    "path-equal": "^1.2.5",
     "pg": "^8.8.0"
   }
 }
