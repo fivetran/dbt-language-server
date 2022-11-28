@@ -175,7 +175,7 @@
     "hamjest": "^3.7.3",
     "eslint-plugin-unicorn": "^45.0.0",
     "husky": "^8.0.2",
-    "lint-staged": "^13.0.3",
+    "lint-staged": "^13.0.4",
     "merge-options": "^3.0.4",
     "mocha": "^10.1.0",
     "prettier": "^2.8.0",
