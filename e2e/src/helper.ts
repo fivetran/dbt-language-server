@@ -56,9 +56,7 @@ export const COMPLETION_JINJA_PATH = path.resolve(PROJECTS_PATH, 'completion-jin
 export const SPECIAL_PYTHON_SETTINGS_PATH = path.resolve(PROJECTS_PATH, 'special-python-settings');
 export const PREVIEW_URI = 'query-preview:Preview?dbt-language-server';
 
-export const MAX_VSCODE_INTEGER = 2_147_483_647;
-export const MAX_RANGE = new Range(0, 0, MAX_VSCODE_INTEGER, MAX_VSCODE_INTEGER);
-export const MIN_RANGE = new Range(0, 0, 0, 0);
+export const MAX_RANGE = new Range(0, 0, 999, 999);
 
 workspace.onDidChangeTextDocument(onDidChangeTextDocument);
 

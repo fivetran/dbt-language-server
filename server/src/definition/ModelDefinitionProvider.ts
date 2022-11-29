@@ -75,7 +75,7 @@ export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
   searchModelDefinition(model: string, dbtModels: ManifestModel[], modelSelectionRange: Range, dbPackage?: string): DefinitionLink[] | undefined {
     const foundModel = dbtModels.find(m => m.name === model && (dbPackage === undefined || m.packageName === dbPackage));
     // Decided to use the same range as other dbt extensions in order VS Code to filter equal values from definitions list (some details here: https://github.com/microsoft/vscode/issues/63895)
-    return foundModel ? [this.createLocationLink(foundModel, DbtDefinitionProvider.MIN_RANGE, modelSelectionRange)] : undefined;
+    return foundModel ? [this.createLocationLink(foundModel, DbtDefinitionProvider.MAX_RANGE, modelSelectionRange)] : undefined;
   }
 
   createLocationLink(manifestModel: ManifestModel, targetSelectionRange: Range, originSelectionRange: Range): LocationLink {
