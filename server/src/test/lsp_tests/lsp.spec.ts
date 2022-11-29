@@ -83,7 +83,8 @@ describe('lsp tests', () => {
     await connection.sendNotification(DidOpenTextDocumentNotification.type, didOpenParams);
   });
 
-  after(async () => {
+  after(async function a() {
+    this.timeout('10s');
     await connection.sendRequest(ShutdownRequest.type);
     await connection.sendNotification(ExitNotification.type);
   });
