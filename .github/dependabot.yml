@@ -8,7 +8,8 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "friday"
       time: "06:00" #UTC
     reviewers:
       - "pgrivachev"
@@ -16,7 +17,8 @@ updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "friday"
       time: "06:00" #UTC
     reviewers:
       - "pgrivachev"
@@ -24,7 +26,8 @@ updates:
   - package-ecosystem: "npm"
     directory: "/server"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "friday"
       time: "06:00" #UTC
     reviewers:
       - "pgrivachev"
@@ -32,7 +35,8 @@ updates:
   - package-ecosystem: "npm"
     directory: "/client"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "friday"
       time: "06:00" #UTC
     reviewers:
       - "pgrivachev"
@@ -40,7 +44,8 @@ updates:
   - package-ecosystem: "npm"
     directory: "/e2e"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "friday"
       time: "06:00" #UTC
     reviewers:
       - "pgrivachev"
@@ -48,7 +53,8 @@ updates:
   - package-ecosystem: "npm"
     directory: "/markdown_parser"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "friday"
       time: "06:00" #UTC
     reviewers:
       - "pgrivachev"
