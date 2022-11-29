@@ -173,7 +173,7 @@
     "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-sonarjs": "^0.16.0",
     "hamjest": "^3.7.3",
-    "eslint-plugin-unicorn": "^45.0.0",
+    "eslint-plugin-unicorn": "^45.0.1",
     "husky": "^8.0.2",
     "lint-staged": "^13.0.4",
     "merge-options": "^3.0.4",
