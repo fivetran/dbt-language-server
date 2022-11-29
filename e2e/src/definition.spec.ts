@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Position, Range } from 'vscode';
 import { assertDefinitions } from './asserts';
-import { activateAndWaitManifestParsed, getCustomDocUri, getDocUri, MAX_RANGE, MIN_RANGE, TEST_FIXTURE_PATH } from './helper';
+import { activateAndWaitManifestParsed, getCustomDocUri, getDocUri, MAX_RANGE, TEST_FIXTURE_PATH } from './helper';
 
 const REF_SQL_DOC_URI = getDocUri('ref_sql.sql');
 const PACKAGE_REF_DOC_URI = getDocUri('package_ref.sql');
@@ -15,7 +15,7 @@ suite('ref definitions', () => {
         originSelectionRange: new Range(1, 19, 1, 31),
         targetUri: getDocUri('table_exists.sql'),
         targetRange: MAX_RANGE,
-        targetSelectionRange: MIN_RANGE,
+        targetSelectionRange: MAX_RANGE,
       },
     ]);
   });
@@ -39,7 +39,7 @@ suite('ref definitions', () => {
         originSelectionRange: new Range(5, 37, 5, 49),
         targetUri: getDocUri('table_exists.sql'),
         targetRange: MAX_RANGE,
-        targetSelectionRange: MIN_RANGE,
+        targetSelectionRange: MAX_RANGE,
       },
     ]);
   });

@@ -1,4 +1,4 @@
-import { DefinitionLink, integer, Position, Range } from 'vscode-languageserver';
+import { DefinitionLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtRepository } from '../DbtRepository';
 import { JinjaType, ParseNode } from '../JinjaParser';
@@ -12,7 +12,7 @@ export interface DbtNodeDefinitionProvider {
 }
 
 export class DbtDefinitionProvider {
-  static readonly MAX_RANGE = Range.create(0, 0, integer.MAX_VALUE, integer.MAX_VALUE);
+  static readonly MAX_RANGE = Range.create(0, 0, 999, 999);
   static readonly MIN_RANGE = Range.create(0, 0, 0, 0);
 
   modelDefinitionProvider: ModelDefinitionProvider;

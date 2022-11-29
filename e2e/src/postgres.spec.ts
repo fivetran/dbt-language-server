@@ -8,7 +8,6 @@ import {
   getCustomDocUri,
   getPreviewText,
   MAX_RANGE,
-  MIN_RANGE,
   POSTGRES_PATH,
 } from './helper';
 
@@ -33,7 +32,7 @@ suite('Postgres destination', () => {
         originSelectionRange: new Range(1, 34, 1, 46),
         targetUri: ACTIVE_USERS_URI,
         targetRange: MAX_RANGE,
-        targetSelectionRange: MIN_RANGE,
+        targetSelectionRange: MAX_RANGE,
       },
     ]);
 

@@ -68,7 +68,7 @@ describe('ModelDefinitionProvider', () => {
           originSelectionRange: Range.create(1, 24, 1, 37),
           targetUri: `file://${PATH_TO_PROJECT}/${PACKAGE_MODEL_ROOT_PATH}`,
           targetRange: DbtDefinitionProvider.MAX_RANGE,
-          targetSelectionRange: DbtDefinitionProvider.MIN_RANGE,
+          targetSelectionRange: DbtDefinitionProvider.MAX_RANGE,
         },
       ],
     );
@@ -85,7 +85,7 @@ describe('ModelDefinitionProvider', () => {
           originSelectionRange: Range.create(2, 21, 2, 34),
           targetUri: `file://${PATH_TO_PROJECT}/${PACKAGE_MODEL_ROOT_PATH}`,
           targetRange: DbtDefinitionProvider.MAX_RANGE,
-          targetSelectionRange: DbtDefinitionProvider.MIN_RANGE,
+          targetSelectionRange: DbtDefinitionProvider.MAX_RANGE,
         },
       ],
     );
@@ -119,7 +119,7 @@ describe('ModelDefinitionProvider', () => {
           originSelectionRange: Range.create(3, 21, 3, 34),
           targetUri: `file://${PATH_TO_PROJECT}/${PROJECT_MODEL_ROOT_PATH}`,
           targetRange: DbtDefinitionProvider.MAX_RANGE,
-          targetSelectionRange: DbtDefinitionProvider.MIN_RANGE,
+          targetSelectionRange: DbtDefinitionProvider.MAX_RANGE,
         },
       ],
     );
