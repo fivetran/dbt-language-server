@@ -4,7 +4,6 @@ import { spawnSync, SpawnSyncReturns } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
-import { pathEqual } from 'path-equal';
 import {
   commands,
   CompletionItem,
@@ -42,6 +41,8 @@ type LanguageStatusItemsType = {
   dbtPackages: LanguageStatusItem;
   profilesYml: LanguageStatusItem;
 };
+
+let pathEqual: (actual: string, expected: string) => boolean;
 
 export let doc: TextDocument;
 export let editor: TextEditor;
@@ -445,6 +446,8 @@ export function waitForManifestParsed(projectFolderName: string): Promise<void> 
 
 export async function initializeExtension(): Promise<void> {
   const ext = extensions.getExtension('Fivetran.dbt-language-server');
+  ({ pathEqual } = await import('path-equal'));
+
   if (!ext) {
     throw new Error('Fivetran.dbt-language-server not found');
   }
@@ -458,7 +461,6 @@ export async function initializeExtension(): Promise<void> {
 
 function getLanguageServerReadyDeferred(rootPath: string): DeferredResult<void> {
   const normalizedPath = normalizePath(rootPath);
-
   let lsReadyDeferred = languageServerReady.find(r => pathEqual(r[0], normalizedPath));
   if (lsReadyDeferred === undefined) {
     lsReadyDeferred = [normalizedPath, deferred<void>()];
