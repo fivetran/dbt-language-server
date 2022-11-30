@@ -82,13 +82,36 @@ export class ZetaSqlWrapper {
     return this.registeredTables.some(t => t.equals(table));
   }
 
-  getTableRef(model: ManifestModel, name: string): string[] | undefined {
-    const tableRef = ZetaSqlWrapper.findModelRef(model, name);
-    if (tableRef) {
-      return tableRef;
+  getTableRefUniqueId(model: ManifestModel, name: string): string | undefined {
+    const refFullName = this.getTableRefFullName(model, name);
+
+    let uniqueId: string | undefined;
+    if (refFullName) {
+      const joinedName = refFullName.join('.');
+      uniqueId = model.dependsOn.nodes.find(n => n.endsWith(joinedName));
     }
+
+    // If we don't hve model in refs list we're probably dealing with an ephemeral model here
+    if (!uniqueId) {
+      const aliasedModel = this.dbtRepository.models.find(m => m.alias === name);
+      uniqueId = aliasedModel?.uniqueId;
+    }
+
+    return uniqueId;
+  }
+
+  getTableRefFullName(model: ManifestModel, name: string): string[] | undefined {
+    const refFullName = ZetaSqlWrapper.findModelRef(model, name);
+    if (refFullName) {
+      return refFullName;
+    }
+
     const aliasedModel = this.dbtRepository.models.find(m => m.alias === name);
-    return aliasedModel && ZetaSqlWrapper.findModelRef(model, aliasedModel.name) ? [aliasedModel.name] : undefined;
+    if (aliasedModel && ZetaSqlWrapper.findModelRef(model, aliasedModel.name)) {
+      return [aliasedModel.name];
+    }
+
+    return undefined;
   }
 
   static findModelRef(model: ManifestModel, name: string): string[] | undefined {
@@ -276,14 +299,13 @@ export class ZetaSqlWrapper {
     return response;
   }
 
-  async analyzeTable(originalFilePath: string, sql?: string): Promise<Result<AnalyzeResponse__Output, string>> {
+  async analyzeTable(fullFilePath: string, sql: string): Promise<Result<AnalyzeResponse__Output, string>> {
     await this.registerAllLanguageFeatures(this.catalog);
-    return this.analyzeTableInternal(originalFilePath, sql);
+    const modelFetcher = new ModelFetcher(this.dbtRepository, fullFilePath);
+    return this.analyzeTableInternal(modelFetcher, sql);
   }
 
-  private async analyzeTableInternal(originalFilePath: string, sql?: string): Promise<Result<AnalyzeResponse__Output, string>> {
-    const modelFetcher = new ModelFetcher(this.dbtRepository, originalFilePath);
-
+  private async analyzeTableInternal(modelFetcher: ModelFetcher, sql?: string): Promise<Result<AnalyzeResponse__Output, string>> {
     const compiledSql = sql ?? this.getCompiledSql(await modelFetcher.getModel());
     if (compiledSql === undefined) {
       return err('Compiled SQL not found');
@@ -300,11 +322,7 @@ export class ZetaSqlWrapper {
         if (schemaIsFilled) {
           this.registerTable(table);
         } else {
-          const model = await modelFetcher.getModel();
-          if (!model) {
-            return err(this.createUnknownError(`Model not found for table ${table.tableName ?? 'undefined'}`));
-          }
-          await this.analyzeRef(table, model);
+          await this.analyzeRef(table, modelFetcher);
         }
       }
     }
@@ -326,17 +344,22 @@ export class ZetaSqlWrapper {
     return ast;
   }
 
-  async analyzeRef(table: TableDefinition, model: ManifestModel): Promise<void> {
-    const ref = this.getTableRef(model, table.getTableName());
-    if (ref) {
-      const refModel = this.findModelByRefName(model, ref);
-      if (refModel) {
-        await this.analyzeTableInternal(refModel.originalFilePath);
+  async analyzeRef(table: TableDefinition, modelFetcher: ModelFetcher): Promise<void> {
+    const model = await modelFetcher.getModel();
+    if (model) {
+      const refId = this.getTableRefUniqueId(model, table.getTableName());
+      if (refId) {
+        const refModel = this.dbtRepository.models.find(m => m.uniqueId === refId);
+        if (refModel) {
+          await this.analyzeTableInternal(new ModelFetcher(this.dbtRepository, path.join(refModel.rootPath, refModel.originalFilePath)));
+        } else {
+          console.log("Can't find ref model by id");
+        }
       } else {
-        console.log("Can't find ref model");
+        console.log("Can't find refId");
       }
     } else {
-      console.log("Can't find ref");
+      console.log("Can't fetch model from manifest.json");
     }
   }
 
@@ -344,15 +367,6 @@ export class ZetaSqlWrapper {
     table.columns = analyzeOutput.resolvedStatement?.resolvedQueryStmtNode?.outputColumnList
       .filter(c => c.column !== null)
       .map(c => ZetaSqlWrapper.createSimpleColumn(c.name, c.column?.type ?? null));
-  }
-
-  findModelByRefName(model: ManifestModel, ref: string[]): ManifestModel | undefined {
-    const uniqueId = model.dependsOn.nodes.find(n => n.endsWith(ref.join('.')));
-    const refModel = this.dbtRepository.models.find(m => m.uniqueId === uniqueId);
-    if (!refModel) {
-      console.log("Can't find ref model");
-    }
-    return refModel;
   }
 
   async registerAllLanguageFeatures(catalog: SimpleCatalogProto): Promise<void> {
