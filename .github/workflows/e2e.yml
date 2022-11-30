@@ -107,19 +107,19 @@ jobs:
 
           private_key=$(echo ${BQ_ANALYTICS_ACCOUNT} | jq '.private_key')
           read project_id private_key_id client_id client_email auth_uri token_uri auth_provider_x509_cert_url client_x509_cert_url < <(echo $(echo ${BQ_ANALYTICS_ACCOUNT} | jq -r '.project_id, .private_key_id, .client_id, .client_email, .auth_uri, .token_uri, .auth_provider_x509_cert_url, .client_x509_cert_url'))
-          dataset="transforms"
+          dataset="z_dbt_pavel"
 
           cat <<EOT > ~/.dbt/profiles.yml
           fivetran:
             outputs:
-              prod:
+              dev:
                 type: bigquery
                 method: service-account
                 project: ${project_id}
                 keyfile: ${keyFilePath}
                 dataset: ${dataset}
                 threads: 4
-            target: prod
+            target: dev
           EOT
         env:
           BQ_ANALYTICS_ACCOUNT: ${{ secrets.BQ_ANALYTICS_ACCOUNT }}

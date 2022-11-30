@@ -99,7 +99,9 @@
       ],
       "env": {
         "CLI_PATH": "code",
-        "LOCAL_RUN": "true"
+        "LOCAL_RUN": "true",
+        "DBT_LS_DISABLE_TELEMETRY": "true",
+        "DBT_LS_ENABLE_DEBUG_LOGS": "true"
       },
       "outFiles": ["${workspaceRoot}/client/out/test/**/*.js"]
     }
