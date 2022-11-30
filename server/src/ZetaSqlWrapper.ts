@@ -85,19 +85,12 @@ export class ZetaSqlWrapper {
   getTableRefUniqueId(model: ManifestModel, name: string): string | undefined {
     const refFullName = this.getTableRefFullName(model, name);
 
-    let uniqueId: string | undefined;
     if (refFullName) {
       const joinedName = refFullName.join('.');
-      uniqueId = model.dependsOn.nodes.find(n => n.endsWith(joinedName));
+      return model.dependsOn.nodes.find(n => n.endsWith(joinedName));
     }
 
-    // If we don't hve model in refs list we're probably dealing with an ephemeral model here
-    if (!uniqueId) {
-      const aliasedModel = this.dbtRepository.models.find(m => m.alias === name);
-      uniqueId = aliasedModel?.uniqueId;
-    }
-
-    return uniqueId;
+    return undefined;
   }
 
   getTableRefFullName(model: ManifestModel, name: string): string[] | undefined {
