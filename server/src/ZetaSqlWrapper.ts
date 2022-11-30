@@ -304,21 +304,21 @@ export class ZetaSqlWrapper {
       return err('Compiled SQL not found');
     }
 
-    let tables = await this.findTableNames(compiledSql);
-
-    const settledResult = await Promise.allSettled(tables.filter(t => !this.isTableRegistered(t)).map(t => this.fillTableSchemaFromBq(t)));
-    tables = settledResult.filter((v): v is PromiseFulfilledResult<TableDefinition> => v.status === 'fulfilled').map(v => v.value);
-
+    const tables = await this.findTableNames(compiledSql);
     for (const table of tables) {
       if (!this.isTableRegistered(table)) {
-        const schemaIsFilled = table.schemaIsFilled();
-        if (schemaIsFilled) {
-          this.registerTable(table);
-        } else {
-          await this.analyzeRef(table, modelFetcher);
-        }
+        await this.analyzeRef(table, modelFetcher);
       }
     }
+
+    const settledResult = await Promise.allSettled(tables.filter(t => !this.isTableRegistered(t)).map(t => this.fillTableSchemaFromBq(t)));
+    settledResult
+      .filter((v): v is PromiseFulfilledResult<TableDefinition> => v.status === 'fulfilled')
+      .forEach(v => {
+        if (v.value.schemaIsFilled()) {
+          this.registerTable(v.value);
+        }
+      });
 
     await this.registerPersistentUdfs(compiledSql);
     const tempUdfs = await this.getTempUdfs(modelFetcher);
@@ -349,6 +349,7 @@ export class ZetaSqlWrapper {
           console.log("Can't find ref model by id");
         }
       } else {
+        // We are dealing with a source or an ephemeral model here
         console.log("Can't find refId");
       }
     } else {
