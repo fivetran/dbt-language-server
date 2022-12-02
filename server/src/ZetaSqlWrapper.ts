@@ -129,22 +129,20 @@ export class ZetaSqlWrapper {
 
     let parent = this.catalog;
 
-    if (!table.rawName) {
-      const projectId = table.getProjectName();
-      if (projectId) {
-        parent = ZetaSqlWrapper.addChildCatalog(this.catalog, projectId);
-      }
+    const projectId = table.getProjectCatalogName();
+    if (projectId) {
+      parent = ZetaSqlWrapper.addChildCatalog(this.catalog, projectId);
+    }
 
-      const dataSetName = table.getDataSetName();
-      if (dataSetName) {
-        parent = ZetaSqlWrapper.addChildCatalog(parent, dataSetName);
-      }
+    const dataSetName = table.getDatasetCatalogName();
+    if (dataSetName) {
+      parent = ZetaSqlWrapper.addChildCatalog(parent, dataSetName);
     }
 
     if (table.containsInformationSchema()) {
       this.informationSchemaConfigurator.fillInformationSchema(table, parent);
     } else {
-      const tableName = table.rawName ?? table.getTableName();
+      const tableName = table.getTableNameInZetaSql();
       let existingTable = parent.table?.find(t => t.name === tableName);
       if (!existingTable) {
         existingTable = {

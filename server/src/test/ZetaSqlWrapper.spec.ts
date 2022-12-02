@@ -62,7 +62,7 @@ describe('ZetaSqlWrapper table/udf registration', () => {
     const datasets = expectedProjectId ? rootCatalog.catalog?.find(c => c.name === expectedProjectId)?.catalog : rootCatalog.catalog;
     assertDataSet(datasets, expectedDataSet);
 
-    const tables = expectedDataSet ? datasets?.find(c => c.name === DATA_SET)?.table : rootCatalog.table;
+    const tables = expectedDataSet ? datasets?.find(c => c.name === expectedDataSet)?.table : rootCatalog.table;
     assert.ok(tables);
     assertThat(tables, hasExactlyOneItem(hasProperty('name', table)));
 
@@ -133,6 +133,12 @@ describe('ZetaSqlWrapper table/udf registration', () => {
     const tableDefinition = new TableDefinition([tableName]);
     tableDefinition.columns = [ONE_COLUMN];
     shouldRegisterTable(tableDefinition, tableName, [ONE_COLUMN]);
+  });
+
+  it('registerTable should register dataset and table', () => {
+    const tableDefinition = new TableDefinition([`${PROJECT_ID}.${DATA_SET}`, TABLE]);
+    tableDefinition.columns = [ONE_COLUMN];
+    shouldRegisterTable(tableDefinition, TABLE, [ONE_COLUMN], `${PROJECT_ID}.${DATA_SET}`);
   });
 
   it('registerTable should register table with time partitioning', () => {
