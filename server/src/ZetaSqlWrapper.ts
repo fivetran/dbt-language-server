@@ -2,6 +2,7 @@ import { runServer, terminateServer, TypeKind, ZetaSQLClient } from '@fivetrande
 import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { FunctionProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/FunctionProto';
+import { LanguageFeature } from '@fivetrandevelopers/zetasql/lib/types/zetasql/LanguageFeature';
 import { LanguageVersion } from '@fivetrandevelopers/zetasql/lib/types/zetasql/LanguageVersion';
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ExtractTableNamesFromStatementResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ExtractTableNamesFromStatementResponse';
@@ -467,6 +468,7 @@ export class ZetaSqlWrapper {
         this.languageOptions = await new LanguageOptions().enableMaximumLanguageFeatures();
         const featuresForVersion = await LanguageOptions.getLanguageFeaturesForVersion(LanguageVersion.VERSION_CURRENT);
         featuresForVersion.forEach(f => this.languageOptions?.enableLanguageFeature(f));
+        this.languageOptions.enableLanguageFeature(LanguageFeature.FEATURE_INTERVAL_TYPE);
         // https://github.com/google/zetasql/issues/115#issuecomment-1210881670
         this.languageOptions.options.reservedKeywords = ['QUALIFY'];
       } catch (e) {
