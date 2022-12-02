@@ -207,27 +207,31 @@ export class InformationSchemaConfigurator {
     });
   }
 
-  fillInformationSchema(tableDefinition: TableDefinition, dataSetCatalog: SimpleCatalogProto): void {
-    let informationSchemaCatalog = dataSetCatalog.catalog?.find(c => c.name === InformationSchemaConfigurator.INFORMATION_SCHEMA);
-    if (!informationSchemaCatalog) {
-      informationSchemaCatalog = {
-        name: InformationSchemaConfigurator.INFORMATION_SCHEMA,
-      };
-      dataSetCatalog.catalog = dataSetCatalog.catalog ?? [];
-      dataSetCatalog.catalog.push(informationSchemaCatalog);
+  fillInformationSchema(tableDefinition: TableDefinition, parentCatalog: SimpleCatalogProto): void {
+    let informationSchemaCatalog = parentCatalog.catalog?.find(c => c.name === InformationSchemaConfigurator.INFORMATION_SCHEMA);
+    if (tableDefinition.catalogCount === undefined) {
+      if (!informationSchemaCatalog) {
+        informationSchemaCatalog = {
+          name: InformationSchemaConfigurator.INFORMATION_SCHEMA,
+        };
+        parentCatalog.catalog = parentCatalog.catalog ?? [];
+        parentCatalog.catalog.push(informationSchemaCatalog);
+      }
+    } else {
+      informationSchemaCatalog = parentCatalog;
     }
-    this.addInformationSchemaTableColumns(tableDefinition.getTableName(), informationSchemaCatalog);
+    this.addInformationSchemaTableColumns(tableDefinition, informationSchemaCatalog);
   }
 
-  addInformationSchemaTableColumns(tableName: string, informationSchemaCatalog: SimpleCatalogProto): void {
-    const tableDefinition = InformationSchemaConfigurator.INFORMATION_SCHEMA_COLUMNS.get(tableName);
-    if (tableDefinition && !informationSchemaCatalog.table?.find(t => t.name === tableName)) {
+  addInformationSchemaTableColumns(tableDefinition: TableDefinition, informationSchemaCatalog: SimpleCatalogProto): void {
+    const informationSchemaTable = InformationSchemaConfigurator.INFORMATION_SCHEMA_COLUMNS.get(tableDefinition.getTableName());
+    if (informationSchemaTable && !informationSchemaCatalog.table?.find(t => t.name === tableDefinition.getTableNameInZetaSql())) {
       const table = {
-        name: tableName,
+        name: tableDefinition.getTableNameInZetaSql(),
       };
       informationSchemaCatalog.table = informationSchemaCatalog.table ?? [];
       informationSchemaCatalog.table.push(table);
-      tableDefinition.forEach(columnDefinition =>
+      informationSchemaTable.forEach(columnDefinition =>
         ZetaSqlWrapper.addColumn(table, ZetaSqlWrapper.createSimpleColumn(columnDefinition.name, createType(columnDefinition))),
       );
     }

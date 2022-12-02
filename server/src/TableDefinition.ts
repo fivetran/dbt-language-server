@@ -23,10 +23,9 @@ export class TableDefinition {
       this.catalogCount = 2;
     } else {
       this.namePath = namePath;
-
-      this.informationSchemaIndex = [0, 1, 2].find(i => this.isInformationSchema(this.namePath[i])) ?? -1;
     }
 
+    this.informationSchemaIndex = [0, 1, 2].find(i => this.isInformationSchema(this.namePath[i])) ?? -1;
     this.datasetIndex = this.namePath.length >= 3 ? 1 : 0;
   }
 
@@ -67,7 +66,7 @@ export class TableDefinition {
     }
   }
 
-  getTableNameInZetaSql(): string | undefined {
+  getTableNameInZetaSql(): string {
     switch (this.catalogCount) {
       case 1: {
         return this.namePath.join('.');
