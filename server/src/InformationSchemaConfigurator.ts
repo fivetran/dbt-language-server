@@ -6,8 +6,8 @@ import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 export class InformationSchemaConfigurator {
   static readonly INFORMATION_SCHEMA = 'information_schema';
 
-  static createColumnDefinition(name: string, type: string, fields?: ColumnDefinition[]): ColumnDefinition {
-    return { name, type, fields };
+  static createColumnDefinition(name: string, type: string, fields?: ColumnDefinition[], mode?: 'repeated'): ColumnDefinition {
+    return { name, type, fields, mode };
   }
 
   /** https://cloud.google.com/bigquery/docs/information-schema-intro */
@@ -146,7 +146,15 @@ export class InformationSchemaConfigurator {
           this.createColumnDefinition('dataset_id', 'string'),
           this.createColumnDefinition('table_id', 'string'),
         ]),
-        this.createColumnDefinition('labels', 'record'),
+        this.createColumnDefinition(
+          'labels',
+          'record',
+          [
+            { name: 'key', type: 'string' },
+            { name: 'value', type: 'string' },
+          ],
+          'repeated',
+        ),
         this.createColumnDefinition('timeline', 'record', [
           this.createColumnDefinition('elapsed_ms', 'string'),
           this.createColumnDefinition('total_slot_ms', 'string'),
