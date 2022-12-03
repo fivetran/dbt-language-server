@@ -304,6 +304,10 @@ export class ZetaSqlWrapper {
     }
 
     const tables = await this.findTableNames(compiledSql);
+    if (tables.length > 0) {
+      await this.analyzeAllEphemeralModels(modelFetcher);
+    }
+
     for (const table of tables) {
       if (!this.isTableRegistered(table)) {
         await this.analyzeRef(table, modelFetcher);
@@ -348,11 +352,30 @@ export class ZetaSqlWrapper {
           console.log("Can't find ref model by id");
         }
       } else {
-        // We are dealing with a source or an ephemeral model here
+        // We are dealing with a source here, probably
         console.log("Can't find refId");
       }
     } else {
       console.log("Can't fetch model from manifest.json");
+    }
+  }
+
+  async analyzeAllEphemeralModels(modelFetcher: ModelFetcher): Promise<void> {
+    const model = await modelFetcher.getModel();
+    for (const node of model?.dependsOn.nodes ?? []) {
+      const dependsOnEphemeralModel = this.dbtRepository.models.find(m => m.uniqueId === node && m.config?.materialized === 'ephemeral');
+      if (dependsOnEphemeralModel) {
+        const table = new TableDefinition([
+          dependsOnEphemeralModel.database,
+          dependsOnEphemeralModel.schema,
+          dependsOnEphemeralModel.alias ?? dependsOnEphemeralModel.name,
+        ]);
+        if (!this.isTableRegistered(table)) {
+          await this.analyzeTableInternal(
+            new ModelFetcher(this.dbtRepository, path.join(dependsOnEphemeralModel.rootPath, dependsOnEphemeralModel.originalFilePath)),
+          );
+        }
+      }
     }
   }
 
