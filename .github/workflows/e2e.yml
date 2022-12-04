@@ -11,6 +11,14 @@ on:
         options:
           - false
           - true
+      TARGET:
+        description: 'Target for profile'
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - 'dev'
+          - 'prod'
 
 jobs:
   package:
@@ -107,7 +115,6 @@ jobs:
 
           private_key=$(echo ${BQ_ANALYTICS_ACCOUNT} | jq '.private_key')
           read project_id private_key_id client_id client_email auth_uri token_uri auth_provider_x509_cert_url client_x509_cert_url < <(echo $(echo ${BQ_ANALYTICS_ACCOUNT} | jq -r '.project_id, .private_key_id, .client_id, .client_email, .auth_uri, .token_uri, .auth_provider_x509_cert_url, .client_x509_cert_url'))
-          dataset="z_dbt_pavel"
 
           cat <<EOT > ~/.dbt/profiles.yml
           fivetran:
@@ -117,12 +124,20 @@ jobs:
                 method: service-account
                 project: ${project_id}
                 keyfile: ${keyFilePath}
-                dataset: ${dataset}
+                dataset: z_dbt_pavel
                 threads: 4
-            target: dev
+              prod:
+                type: bigquery
+                method: service-account
+                project: ${project_id}
+                keyfile: ${keyFilePath}
+                dataset: transforms
+                threads: 4
+            target: ${TARGET}
           EOT
         env:
           BQ_ANALYTICS_ACCOUNT: ${{ secrets.BQ_ANALYTICS_ACCOUNT }}
+          TARGET: ${{ inputs.TARGET }}
 
       - name: show prepared files
         run: |
