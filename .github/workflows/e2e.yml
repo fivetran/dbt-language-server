@@ -20,6 +20,10 @@ on:
           - 'dev'
           - 'prod'
 
+  schedule:
+    # Runs “At minute 0 past every 3rd hour.” (see https://crontab.guru/every-3-hours)
+    - cron: '0 */3 * * *'
+
 jobs:
   package:
     runs-on: macos-latest
