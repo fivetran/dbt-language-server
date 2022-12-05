@@ -29,6 +29,11 @@ import { ZetaSqlParser } from './ZetaSqlParser';
 import findFreePortPmfy = require('find-free-port');
 import path = require('node:path');
 
+interface UpstreamError {
+  error?: string;
+  path?: string;
+}
+
 export class ZetaSqlWrapper {
   static readonly PARTITION_TIME = '_PARTITIONTIME';
   static readonly PARTITION_DATE = '_PARTITIONDATE';
@@ -298,22 +303,31 @@ export class ZetaSqlWrapper {
   async analyzeTable(fullFilePath: string, sql: string): Promise<Result<AnalyzeResponse__Output, string>> {
     await this.registerAllLanguageFeatures(this.catalog);
     const modelFetcher = new ModelFetcher(this.dbtRepository, fullFilePath);
-    return this.analyzeTableInternal(modelFetcher, sql);
+    const upstreamError: UpstreamError = {};
+    const result = await this.analyzeTableInternal(modelFetcher, sql, upstreamError);
+    if (upstreamError.path && upstreamError.error) {
+      console.log(`Upstream error in file ${upstreamError.path}: ${upstreamError.error}`);
+    }
+    return result;
   }
 
-  private async analyzeTableInternal(modelFetcher: ModelFetcher, compiledSql: string | undefined): Promise<Result<AnalyzeResponse__Output, string>> {
+  private async analyzeTableInternal(
+    modelFetcher: ModelFetcher,
+    compiledSql: string | undefined,
+    upstreamError: UpstreamError,
+  ): Promise<Result<AnalyzeResponse__Output, string>> {
     if (compiledSql === undefined) {
       return err('Compiled SQL not found');
     }
 
     const tables = await this.findTableNames(compiledSql);
     if (tables.length > 0) {
-      await this.analyzeAllEphemeralModels(await modelFetcher.getModel());
+      await this.analyzeAllEphemeralModels(await modelFetcher.getModel(), upstreamError);
     }
 
     for (const table of tables) {
       if (!this.isTableRegistered(table)) {
-        await this.analyzeRef(table, await modelFetcher.getModel());
+        await this.analyzeRef(table, await modelFetcher.getModel(), upstreamError);
       }
     }
 
@@ -338,19 +352,22 @@ export class ZetaSqlWrapper {
         this.fillTableWithAnalyzeResponse(table, ast.value);
         this.registerTable(table);
       }
+    } else if (!upstreamError.error) {
+      upstreamError.error = ast.error;
+      upstreamError.path = modelFetcher.fullModelPath;
     }
 
     return ast;
   }
 
-  async analyzeRef(table: TableDefinition, model: ManifestModel | undefined): Promise<void> {
+  async analyzeRef(table: TableDefinition, model: ManifestModel | undefined, upstreamError: UpstreamError): Promise<void> {
     if (model) {
       const refId = this.getTableRefUniqueId(model, table.getTableName());
       if (refId) {
         const refModel = this.dbtRepository.models.find(m => m.uniqueId === refId);
         if (refModel) {
           const modelFetcher = new ModelFetcher(this.dbtRepository, path.join(refModel.rootPath, refModel.originalFilePath));
-          await this.analyzeTableInternal(modelFetcher, this.getCompiledSql(await modelFetcher.getModel()));
+          await this.analyzeTableInternal(modelFetcher, this.getCompiledSql(await modelFetcher.getModel()), upstreamError);
         } else {
           console.log("Can't find ref model by id");
         }
@@ -363,7 +380,7 @@ export class ZetaSqlWrapper {
     }
   }
 
-  async analyzeAllEphemeralModels(model: ManifestModel | undefined): Promise<void> {
+  async analyzeAllEphemeralModels(model: ManifestModel | undefined, upstreamError: UpstreamError): Promise<void> {
     for (const node of model?.dependsOn.nodes ?? []) {
       const dependsOnEphemeralModel = this.dbtRepository.models.find(m => m.uniqueId === node && m.config?.materialized === 'ephemeral');
       if (dependsOnEphemeralModel) {
@@ -373,7 +390,7 @@ export class ZetaSqlWrapper {
             this.dbtRepository,
             path.join(dependsOnEphemeralModel.rootPath, dependsOnEphemeralModel.originalFilePath),
           );
-          await this.analyzeTableInternal(modelFetcher, this.getCompiledSql(await modelFetcher.getModel()));
+          await this.analyzeTableInternal(modelFetcher, this.getCompiledSql(await modelFetcher.getModel()), upstreamError);
         }
       }
     }
