@@ -1,4 +1,5 @@
 import * as glob from 'glob';
+import { assertThat, isEmpty } from 'hamjest';
 import { writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { DiagnosticSeverity, languages, Uri } from 'vscode';
@@ -12,6 +13,7 @@ suite('dbt_ft', () => {
     console.log(`Count: ${files.length}`);
     files.forEach(f => console.log(f));
 
+    const errors = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
 
@@ -43,6 +45,7 @@ suite('dbt_ft', () => {
             const log = `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n${JSON.stringify(diagnostics)}\n\n`;
             writeFileSync(getDiagnosticsPath(), log, { flag: 'a+' });
             console.log(log);
+            errors.push(log);
           }
 
           if (diagnostics.length > 0) {
@@ -51,6 +54,7 @@ suite('dbt_ft', () => {
         }
       }
     }
+    assertThat(errors, isEmpty());
   });
 });
 
