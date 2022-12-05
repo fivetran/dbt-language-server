@@ -14,7 +14,6 @@ suite('dbt_ft', () => {
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      console.log(`File: ${file}`);
 
       if (EXCLUDE.some(e => file.endsWith(e))) {
         console.log(`Skipping: ${file}`);
@@ -41,10 +40,11 @@ suite('dbt_ft', () => {
             flag: 'a+',
           });
           if (diagnostics.some(d => d.severity === DiagnosticSeverity.Error)) {
-            writeFileSync(getDiagnosticsPath(), `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n${JSON.stringify(diagnostics)}\n\n`, {
-              flag: 'a+',
-            });
+            const log = `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n${JSON.stringify(diagnostics)}\n\n`;
+            writeFileSync(getDiagnosticsPath(), log, { flag: 'a+' });
+            console.log(log);
           }
+
           if (diagnostics.length > 0) {
             console.log(`${new Date().toISOString()}: diagnostics: ${JSON.stringify(diagnostics)}`);
           }
