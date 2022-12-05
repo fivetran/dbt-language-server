@@ -146,10 +146,14 @@ jobs:
           ls -la
 
       - name: install dbt
-        run: pip install dbt-bigquery==1.0.0 dbt-postgres==1.0.4 dbt-rpc
+        run: python -m pip install dbt-bigquery==1.0.0 dbt-postgres==1.0.4 dbt-rpc
 
-      - name: show dbt info
+      - name: show info
         run: |
+          which python
+          python --version
+          python -m pip --version
+          python -m pip list | grep dbt
           which dbt
           dbt --version
           node -v
