@@ -141,13 +141,14 @@ jobs:
             target: ${TARGET}
           EOT
 
-          cat <<EOT > ${GITHUB_WORKSPACE}/.vscode/settings.json
+          cat <<EOT > analytics/.vscode/settings.json
           {
-            "python.defaultInterpreterPath": "${env:PYTHON_INSTALL_LOC}"
+            "python.defaultInterpreterPath": "${PYTHON_INSTALL_LOC}"
           }
         env:
           BQ_ANALYTICS_ACCOUNT: ${{ secrets.BQ_ANALYTICS_ACCOUNT }}
           TARGET: ${{ inputs.TARGET }}
+          PYTHON_INSTALL_LOC: '${{ steps.setup-python.outputs.python-path }}'
 
       - name: show prepared files
         run: |
@@ -156,7 +157,9 @@ jobs:
           ls -la
 
       - name: install dbt
-        run: python -m pip install dbt-bigquery==1.0.0 dbt-postgres==1.0.4 dbt-rpc
+        run: ${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery==1.0.0 dbt-postgres==1.0.4 dbt-rpc
+        env:
+          PYTHON_INSTALL_LOC: '${{ steps.setup-python.outputs.python-path }}'
 
       - name: show info
         run: |
@@ -181,7 +184,7 @@ jobs:
 
       - name: run e2e tests
         run: |
-          echo ${PYTHON_INSTALL_LOC}
+          cat analytics/.vscode/settings.json
           node e2e/out/runners/runFtTest $(pwd)/e2e-tests/extension
         env:
           USE_DBT_CLI: ${{ inputs.USE_DBT_CLI }}
