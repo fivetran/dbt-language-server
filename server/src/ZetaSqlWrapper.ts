@@ -301,20 +301,19 @@ export class ZetaSqlWrapper {
     return this.analyzeTableInternal(modelFetcher, sql);
   }
 
-  private async analyzeTableInternal(modelFetcher: ModelFetcher, sql?: string): Promise<Result<AnalyzeResponse__Output, string>> {
-    const compiledSql = sql ?? this.getCompiledSql(await modelFetcher.getModel());
+  private async analyzeTableInternal(modelFetcher: ModelFetcher, compiledSql: string | undefined): Promise<Result<AnalyzeResponse__Output, string>> {
     if (compiledSql === undefined) {
       return err('Compiled SQL not found');
     }
 
     const tables = await this.findTableNames(compiledSql);
     if (tables.length > 0) {
-      await this.analyzeAllEphemeralModels(modelFetcher);
+      await this.analyzeAllEphemeralModels(await modelFetcher.getModel());
     }
 
     for (const table of tables) {
       if (!this.isTableRegistered(table)) {
-        await this.analyzeRef(table, modelFetcher);
+        await this.analyzeRef(table, await modelFetcher.getModel());
       }
     }
 
@@ -335,7 +334,7 @@ export class ZetaSqlWrapper {
     if (ast.isOk()) {
       const model = await modelFetcher.getModel();
       if (model) {
-        const table = new TableDefinition([model.database, model.schema, model.alias ?? model.name]);
+        const table = ZetaSqlWrapper.createTableDefinition(model);
         this.fillTableWithAnalyzeResponse(table, ast.value);
         this.registerTable(table);
       }
@@ -344,14 +343,14 @@ export class ZetaSqlWrapper {
     return ast;
   }
 
-  async analyzeRef(table: TableDefinition, modelFetcher: ModelFetcher): Promise<void> {
-    const model = await modelFetcher.getModel();
+  async analyzeRef(table: TableDefinition, model: ManifestModel | undefined): Promise<void> {
     if (model) {
       const refId = this.getTableRefUniqueId(model, table.getTableName());
       if (refId) {
         const refModel = this.dbtRepository.models.find(m => m.uniqueId === refId);
         if (refModel) {
-          await this.analyzeTableInternal(new ModelFetcher(this.dbtRepository, path.join(refModel.rootPath, refModel.originalFilePath)));
+          const modelFetcher = new ModelFetcher(this.dbtRepository, path.join(refModel.rootPath, refModel.originalFilePath));
+          await this.analyzeTableInternal(modelFetcher, this.getCompiledSql(await modelFetcher.getModel()));
         } else {
           console.log("Can't find ref model by id");
         }
@@ -364,23 +363,24 @@ export class ZetaSqlWrapper {
     }
   }
 
-  async analyzeAllEphemeralModels(modelFetcher: ModelFetcher): Promise<void> {
-    const model = await modelFetcher.getModel();
+  async analyzeAllEphemeralModels(model: ManifestModel | undefined): Promise<void> {
     for (const node of model?.dependsOn.nodes ?? []) {
       const dependsOnEphemeralModel = this.dbtRepository.models.find(m => m.uniqueId === node && m.config?.materialized === 'ephemeral');
       if (dependsOnEphemeralModel) {
-        const table = new TableDefinition([
-          dependsOnEphemeralModel.database,
-          dependsOnEphemeralModel.schema,
-          dependsOnEphemeralModel.alias ?? dependsOnEphemeralModel.name,
-        ]);
+        const table = ZetaSqlWrapper.createTableDefinition(dependsOnEphemeralModel);
         if (!this.isTableRegistered(table)) {
-          await this.analyzeTableInternal(
-            new ModelFetcher(this.dbtRepository, path.join(dependsOnEphemeralModel.rootPath, dependsOnEphemeralModel.originalFilePath)),
+          const modelFetcher = new ModelFetcher(
+            this.dbtRepository,
+            path.join(dependsOnEphemeralModel.rootPath, dependsOnEphemeralModel.originalFilePath),
           );
+          await this.analyzeTableInternal(modelFetcher, this.getCompiledSql(await modelFetcher.getModel()));
         }
       }
     }
+  }
+
+  static createTableDefinition(model: ManifestModel): TableDefinition {
+    return new TableDefinition([model.database, model.schema, model.alias ?? model.name]);
   }
 
   fillTableWithAnalyzeResponse(table: TableDefinition, analyzeOutput: AnalyzeResponse__Output): void {
