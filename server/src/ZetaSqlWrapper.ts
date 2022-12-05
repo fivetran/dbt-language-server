@@ -84,6 +84,10 @@ export class ZetaSqlWrapper {
   }
 
   getTableRefUniqueId(model: ManifestModel, name: string): string | undefined {
+    if (model.dependsOn.nodes.length === 0) {
+      return undefined;
+    }
+
     const refFullName = this.getTableRefFullName(model, name);
 
     if (refFullName) {
@@ -353,7 +357,7 @@ export class ZetaSqlWrapper {
         }
       } else {
         // We are dealing with a source here, probably
-        console.log("Can't find refId");
+        console.log(`Can't find refId for ${table.namePath.join('.')}`);
       }
     } else {
       console.log("Can't fetch model from manifest.json");
