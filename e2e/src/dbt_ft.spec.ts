@@ -22,7 +22,7 @@ suite('dbt_ft', () => {
         const fileProcessingTimeout = new Promise<string>((resolve, _reject) => {
           setTimeout(() => {
             resolve(`Something went wrong when opening model ${file}`);
-          }, 1000 * 60 * 2);
+          }, 1000 * 60 * 3);
         });
 
         const uri = Uri.file(file);
