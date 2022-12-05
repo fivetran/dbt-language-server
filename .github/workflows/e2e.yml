@@ -14,7 +14,7 @@ on:
       TARGET:
         description: 'Target for profile'
         required: true
-        default: 'false'
+        default: 'dev'
         type: choice
         options:
           - 'dev'
