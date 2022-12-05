@@ -50,7 +50,7 @@ export class DbtCli extends Dbt {
       }
     }
 
-    this.compile().catch(e => {
+    await this.compile().catch(e => {
       console.log(`Error while compiling project: ${e instanceof Error ? e.message : String(e)}`);
     });
   }
