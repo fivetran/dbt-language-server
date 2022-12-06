@@ -67,7 +67,9 @@ function getDiagnosticsPath(): string {
 }
 
 function getProjectPath(): string {
-  return isRunningOnCi() ? path.resolve(__dirname, '../../analytics/dbt_ft_prod') : path.resolve(__dirname, '../../../analytics/dbt_ft_prod');
+  return isRunningOnCi()
+    ? path.resolve(__dirname, '../../analytics/dbt_ft_prod.code-workspace')
+    : path.resolve(__dirname, '../../../analytics/dbt_ft_prod');
 }
 
 function isRunningOnCi(): boolean {

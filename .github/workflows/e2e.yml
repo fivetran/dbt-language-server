@@ -141,9 +141,16 @@ jobs:
             target: ${TARGET}
           EOT
 
-          cat <<EOT > analytics/.vscode/settings.json
+          cat <<EOT > analytics/dbt_ft_prod.code-workspace
           {
-            "python.defaultInterpreterPath": "${PYTHON_INSTALL_LOC}"
+            "folders": [
+              {
+                "path": "dbt_ft_prod"
+              }
+            ],
+            "settings": {
+              "python.defaultInterpreterPath": "${PYTHON_INSTALL_LOC}"
+            }
           }
         env:
           BQ_ANALYTICS_ACCOUNT: ${{ secrets.BQ_ANALYTICS_ACCOUNT }}
