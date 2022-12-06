@@ -191,7 +191,7 @@ jobs:
 
       - name: run e2e tests
         run: |
-          cat analytics/.vscode/settings.json
+          cat analytics/dbt_ft_prod.code-workspace
           node e2e/out/runners/runFtTest $(pwd)/e2e-tests/extension
         env:
           USE_DBT_CLI: ${{ inputs.USE_DBT_CLI }}
