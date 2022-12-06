@@ -305,7 +305,7 @@ export class ZetaSqlWrapper {
     const modelFetcher = new ModelFetcher(this.dbtRepository, fullFilePath);
     const upstreamError: UpstreamError = {};
     const result = await this.analyzeTableInternal(modelFetcher, sql, upstreamError);
-    if (upstreamError.path && upstreamError.error) {
+    if (upstreamError.path !== undefined && upstreamError.error !== undefined && upstreamError.path !== fullFilePath) {
       console.log(`Upstream error in file ${upstreamError.path}: ${upstreamError.error}`);
     }
     return result;
