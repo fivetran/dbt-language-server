@@ -18,6 +18,7 @@ import { BigQueryClient, Udf } from './bigquery/BigQueryClient';
 import { DbtRepository } from './DbtRepository';
 import { FeatureFinder } from './feature_finder/FeatureFinder';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
+import { LogLevel } from './Logger';
 import { ManifestModel } from './manifest/ManifestJson';
 import { ModelFetcher } from './ModelFetcher';
 import { ProcessExecutor } from './ProcessExecutor';
@@ -373,7 +374,7 @@ export class ZetaSqlWrapper {
         }
       } else {
         // We are dealing with a source here, probably
-        console.log(`Can't find refId for ${table.namePath.join('.')}`);
+        console.log(`Can't find refId for ${table.namePath.join('.')}`, LogLevel.Debug);
       }
     } else {
       console.log("Can't fetch model from manifest.json");

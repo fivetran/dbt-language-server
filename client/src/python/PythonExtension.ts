@@ -37,9 +37,8 @@ export class PythonExtension {
     if (path === '') {
       return this.pythonNotFound();
     }
-    log(`Python path: ${path}`);
+
     const environment = await api.environments.resolveEnvironment(path);
-    log(`envDetails: ${JSON.stringify(environment)}`);
     const major = String(environment?.version.major ?? 3);
     const minor = String(environment?.version.minor ?? 10);
     const micro = String(environment?.version.micro ?? 0);
