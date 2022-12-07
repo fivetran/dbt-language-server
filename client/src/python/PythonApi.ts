@@ -18,12 +18,49 @@ export interface IExtensionApi {
 export interface ProposedExtensionAPI {
   readonly environments: {
     /**
-     * Carries environments known to the extension at the time of fetching the property. Note this may not
-     * contain all environments in the system as a refresh might be going on.
+     * Returns details for the given environment, or `undefined` if the env is invalid.
+     * @param environment : If string, it represents the full path to environment folder or python executable
+     * for the environment. Otherwise it can be {@link Environment} or {@link EnvironmentPath} itself.
      */
-    readonly known: readonly Environment[];
+    resolveEnvironment(environment: Environment | EnvironmentPath | string): Promise<ResolvedEnvironment | undefined>;
   };
 }
+
+/**
+ * Derived form of {@link Environment} where certain properties can no longer be `undefined`. Meant to represent an
+ * {@link Environment} with complete information.
+ */
+export type ResolvedEnvironment = Environment & {
+  /**
+   * Carries complete details about python executable.
+   */
+  readonly executable: {
+    /**
+     * Uri of the python interpreter/executable. Carries `undefined` in case an executable does not belong to
+     * the environment.
+     */
+    readonly uri: Uri | undefined;
+    /**
+     * Bitness of the environment.
+     */
+    readonly bitness: Bitness;
+    /**
+     * Value of `sys.prefix` in sys module.
+     */
+    readonly sysPrefix: string;
+  };
+  /**
+   * Carries complete Python version information, carries `undefined` for envs without python.
+   */
+  readonly version:
+    | (ResolvedVersionInfo & {
+        /**
+         * Value of `sys.version` in sys module if known at this moment.
+         */
+        readonly sysVersion: string;
+      })
+    | undefined;
+};
 
 export type Environment = EnvironmentPath & {
   /**
@@ -144,6 +181,13 @@ export type VersionInfo = {
   readonly minor: number | undefined;
   readonly micro: number | undefined;
   readonly release: PythonVersionRelease | undefined;
+};
+
+export type ResolvedVersionInfo = {
+  readonly major: number;
+  readonly minor: number;
+  readonly micro: number;
+  readonly release: PythonVersionRelease;
 };
 
 type Resource = Uri | undefined;

@@ -38,12 +38,11 @@ export class PythonExtension {
       return this.pythonNotFound();
     }
     log(`Python path: ${path}`);
-    api.environments.known.forEach(e => log(e.path));
-    const envDetails = api.environments.known.find(e => e.path === path);
-    log(`envDetails: ${JSON.stringify(envDetails)}`);
-    const major = String(envDetails?.version.major ?? 3);
-    const minor = String(envDetails?.version.minor ?? 10);
-    const micro = String(envDetails?.version.micro ?? 0);
+    const environment = await api.environments.resolveEnvironment(path);
+    log(`envDetails: ${JSON.stringify(environment)}`);
+    const major = String(environment?.version.major ?? 3);
+    const minor = String(environment?.version.minor ?? 10);
+    const micro = String(environment?.version.micro ?? 0);
 
     return { path: `"${path}"`, version: [major, minor, micro] };
   }
