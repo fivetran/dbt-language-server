@@ -29,16 +29,16 @@ export class DbtLanguageClientManager {
 
   applyPreviewDiagnostics(): void {
     const previewDiagnostics = this.previewContentProvider.getPreviewDiagnostics();
+    const editor = window.visibleTextEditors.find(e => e.document.uri.toString() === SqlPreviewContentProvider.URI.toString());
 
     for (const client of this.clients.values()) {
       const clientDiagnostics = client.getDiagnostics();
       clientDiagnostics?.set(
         SqlPreviewContentProvider.URI,
-        this.previewContentProvider.activeDocUri.fsPath.startsWith(client.getProjectUri().fsPath) ? previewDiagnostics : [],
+        editor && this.previewContentProvider.activeDocUri.fsPath.startsWith(client.getProjectUri().fsPath) ? previewDiagnostics : [],
       );
     }
 
-    const editor = window.visibleTextEditors.find(e => e.document.uri.toString() === SqlPreviewContentProvider.URI.toString());
     if (editor) {
       editor.selection = new Selection(0, 0, 0, 0);
     }
