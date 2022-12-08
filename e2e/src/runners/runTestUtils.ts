@@ -60,6 +60,9 @@ export async function installVsCodeAndRunTests(indexName: string, projectWithMod
     process.exit(0);
   } catch (e) {
     console.log(`Failed to run tests. Error: ${e instanceof Error ? e.message : String(e)}`);
+    if (e instanceof Error && e.stack) {
+      console.log(e.stack);
+    }
     /* eslint-disable-next-line unicorn/no-process-exit */
     process.exit(1);
   }
