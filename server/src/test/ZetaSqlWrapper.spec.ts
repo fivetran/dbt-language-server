@@ -62,7 +62,7 @@ describe('ZetaSqlWrapper table/udf registration', () => {
     const datasets = expectedProjectId ? rootCatalog.catalog?.find(c => c.name === expectedProjectId)?.catalog : rootCatalog.catalog;
     assertDataSet(datasets, expectedDataSet);
 
-    const tables = expectedDataSet ? datasets?.find(c => c.name === DATA_SET)?.table : rootCatalog.table;
+    const tables = expectedDataSet ? datasets?.find(c => c.name === expectedDataSet)?.table : rootCatalog.table;
     assert.ok(tables);
     assertThat(tables, hasExactlyOneItem(hasProperty('name', table)));
 
@@ -106,14 +106,20 @@ describe('ZetaSqlWrapper table/udf registration', () => {
       parent = dataSetCatalog;
     }
 
-    const informationSchemaCatalog = parent.catalog?.find(c => c.name === InformationSchemaConfigurator.INFORMATION_SCHEMA);
-    assert.ok(informationSchemaCatalog);
+    let informationSchemaCatalog;
+    if (tableDefinition.catalogCount === undefined) {
+      informationSchemaCatalog = parent.catalog?.find(c => c.name === InformationSchemaConfigurator.INFORMATION_SCHEMA);
+      assert.ok(informationSchemaCatalog);
+    } else {
+      informationSchemaCatalog = parent;
+    }
+
     assertThat(informationSchemaCatalog.table, hasSize(1));
 
     const table = informationSchemaCatalog.table?.find(t => t.name === expectedTableName);
     assert.ok(table);
     assertThat(table.column?.length, greaterThan(0));
-    assertThat(table.column, hasSize(InformationSchemaConfigurator.INFORMATION_SCHEMA_COLUMNS.get(expectedTableName)?.length));
+    assertThat(table.column, hasSize(InformationSchemaConfigurator.INFORMATION_SCHEMA_COLUMNS.get(tableDefinition.getTableName())?.length));
   }
 
   it('registerTable should register project data set and table', () => {
@@ -133,6 +139,12 @@ describe('ZetaSqlWrapper table/udf registration', () => {
     const tableDefinition = new TableDefinition([tableName]);
     tableDefinition.columns = [ONE_COLUMN];
     shouldRegisterTable(tableDefinition, tableName, [ONE_COLUMN]);
+  });
+
+  it('registerTable should register dataset and table', () => {
+    const tableDefinition = new TableDefinition([`${PROJECT_ID}.${DATA_SET}`, TABLE]);
+    tableDefinition.columns = [ONE_COLUMN];
+    shouldRegisterTable(tableDefinition, TABLE, [ONE_COLUMN], `${PROJECT_ID}.${DATA_SET}`);
   });
 
   it('registerTable should register table with time partitioning', () => {
@@ -160,6 +172,12 @@ describe('ZetaSqlWrapper table/udf registration', () => {
       const tableDefinition = new TableDefinition([InformationSchemaConfigurator.INFORMATION_SCHEMA, tableName]);
       shouldRegisterInformationSchema(tableDefinition, undefined, tableName);
     }
+  });
+
+  it('registerTable should register information schema in quotes', () => {
+    const tableName = 'region-us.INFORMATION_SCHEMA.JOBS_BY_USER';
+    const tableDefinition = new TableDefinition([tableName]);
+    shouldRegisterInformationSchema(tableDefinition, undefined, tableName);
   });
 
   it('register should register added column', () => {

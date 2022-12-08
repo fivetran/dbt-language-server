@@ -20,6 +20,7 @@ interface RawNode {
   alias?: string;
   config?: {
     sql_header?: string;
+    materialized?: string;
   };
 }
 
@@ -70,6 +71,7 @@ export class ManifestParser {
           alias: n.alias,
           config: {
             sqlHeader: n.config?.sql_header,
+            materialized: n.config?.materialized,
           },
         }));
     }

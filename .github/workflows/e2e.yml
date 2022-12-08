@@ -11,6 +11,18 @@ on:
         options:
           - false
           - true
+      TARGET:
+        description: 'Target for profile'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - 'dev'
+          - 'prod'
+
+  schedule:
+    # Runs “At minute 0 past every 3rd hour.” (see https://crontab.guru/every-3-hours)
+    - cron: '0 */3 * * *'
 
 jobs:
   package:
@@ -92,6 +104,7 @@ jobs:
           npx tsc --sourceMap false --project tsconfig.json
 
       - uses: actions/setup-python@v4
+        id: setup-python
         with:
           python-version: '3.9.12'
 
@@ -107,22 +120,42 @@ jobs:
 
           private_key=$(echo ${BQ_ANALYTICS_ACCOUNT} | jq '.private_key')
           read project_id private_key_id client_id client_email auth_uri token_uri auth_provider_x509_cert_url client_x509_cert_url < <(echo $(echo ${BQ_ANALYTICS_ACCOUNT} | jq -r '.project_id, .private_key_id, .client_id, .client_email, .auth_uri, .token_uri, .auth_provider_x509_cert_url, .client_x509_cert_url'))
-          dataset="transforms"
 
           cat <<EOT > ~/.dbt/profiles.yml
           fivetran:
             outputs:
+              dev:
+                type: bigquery
+                method: service-account
+                project: ${project_id}
+                keyfile: ${keyFilePath}
+                dataset: z_dbt_pavel
+                threads: 4
               prod:
                 type: bigquery
                 method: service-account
                 project: ${project_id}
                 keyfile: ${keyFilePath}
-                dataset: ${dataset}
+                dataset: transforms
                 threads: 4
-            target: prod
+            target: ${TARGET}
           EOT
+
+          cat <<EOT > analytics/dbt_ft_prod.code-workspace
+          {
+            "folders": [
+              {
+                "path": "dbt_ft_prod"
+              }
+            ],
+            "settings": {
+              "python.defaultInterpreterPath": "${PYTHON_INSTALL_LOC}"
+            }
+          }
         env:
           BQ_ANALYTICS_ACCOUNT: ${{ secrets.BQ_ANALYTICS_ACCOUNT }}
+          TARGET: ${{ inputs.TARGET }}
+          PYTHON_INSTALL_LOC: '${{ steps.setup-python.outputs.python-path }}'
 
       - name: show prepared files
         run: |
@@ -131,13 +164,23 @@ jobs:
           ls -la
 
       - name: install dbt
-        run: pip install dbt-bigquery==1.0.0 dbt-postgres==1.0.4 dbt-rpc
+        run: ${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery==1.0.0 dbt-postgres==1.0.4 dbt-rpc
+        env:
+          PYTHON_INSTALL_LOC: '${{ steps.setup-python.outputs.python-path }}'
 
-      - name: show dbt info
+      - name: show info
         run: |
+          which python
+          python --version
+          python -m pip --version
+          python -m pip list | grep dbt
           which dbt
           dbt --version
           node -v
+          echo ${PYTHON_INSTALL_LOC}
+          ${PYTHON_INSTALL_LOC} --version
+        env:
+          PYTHON_INSTALL_LOC: '${{ steps.setup-python.outputs.python-path }}'
 
       - name: build and test
         run: |

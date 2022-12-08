@@ -61,10 +61,6 @@ export const MAX_RANGE = new Range(0, 0, 999, 999);
 
 workspace.onDidChangeTextDocument(onDidChangeTextDocument);
 
-window.onDidChangeActiveTextEditor(e => {
-  console.log(`Active document changed: ${e?.document.uri.toString() ?? 'undefined'}`);
-});
-
 let previewPromiseResolve: VoidFunc | undefined;
 let documentPromiseResolve: VoidFunc | undefined;
 

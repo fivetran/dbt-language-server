@@ -2,6 +2,7 @@ import { runServer, terminateServer, TypeKind, ZetaSQLClient } from '@fivetrande
 import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { FunctionProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/FunctionProto';
+import { LanguageFeature } from '@fivetrandevelopers/zetasql/lib/types/zetasql/LanguageFeature';
 import { LanguageVersion } from '@fivetrandevelopers/zetasql/lib/types/zetasql/LanguageVersion';
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ExtractTableNamesFromStatementResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ExtractTableNamesFromStatementResponse';
@@ -17,6 +18,7 @@ import { BigQueryClient, Udf } from './bigquery/BigQueryClient';
 import { DbtRepository } from './DbtRepository';
 import { FeatureFinder } from './feature_finder/FeatureFinder';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
+import { LogLevel } from './Logger';
 import { ManifestModel } from './manifest/ManifestJson';
 import { ModelFetcher } from './ModelFetcher';
 import { ProcessExecutor } from './ProcessExecutor';
@@ -27,6 +29,11 @@ import { createType } from './utils/ZetaSqlUtils';
 import { ZetaSqlParser } from './ZetaSqlParser';
 import findFreePortPmfy = require('find-free-port');
 import path = require('node:path');
+
+interface UpstreamError {
+  error?: string;
+  path?: string;
+}
 
 export class ZetaSqlWrapper {
   static readonly PARTITION_TIME = '_PARTITIONTIME';
@@ -83,21 +90,18 @@ export class ZetaSqlWrapper {
   }
 
   getTableRefUniqueId(model: ManifestModel, name: string): string | undefined {
+    if (model.dependsOn.nodes.length === 0) {
+      return undefined;
+    }
+
     const refFullName = this.getTableRefFullName(model, name);
 
-    let uniqueId: string | undefined;
     if (refFullName) {
       const joinedName = refFullName.join('.');
-      uniqueId = model.dependsOn.nodes.find(n => n.endsWith(joinedName));
+      return model.dependsOn.nodes.find(n => n.endsWith(joinedName));
     }
 
-    // If we don't hve model in refs list we're probably dealing with an ephemeral model here
-    if (!uniqueId) {
-      const aliasedModel = this.dbtRepository.models.find(m => m.alias === name);
-      uniqueId = aliasedModel?.uniqueId;
-    }
-
-    return uniqueId;
+    return undefined;
   }
 
   getTableRefFullName(model: ManifestModel, name: string): string[] | undefined {
@@ -135,22 +139,20 @@ export class ZetaSqlWrapper {
 
     let parent = this.catalog;
 
-    if (!table.rawName) {
-      const projectId = table.getProjectName();
-      if (projectId) {
-        parent = ZetaSqlWrapper.addChildCatalog(this.catalog, projectId);
-      }
+    const projectId = table.getProjectCatalogName();
+    if (projectId) {
+      parent = ZetaSqlWrapper.addChildCatalog(this.catalog, projectId);
+    }
 
-      const dataSetName = table.getDataSetName();
-      if (dataSetName) {
-        parent = ZetaSqlWrapper.addChildCatalog(parent, dataSetName);
-      }
+    const dataSetName = table.getDatasetCatalogName();
+    if (dataSetName) {
+      parent = ZetaSqlWrapper.addChildCatalog(parent, dataSetName);
     }
 
     if (table.containsInformationSchema()) {
       this.informationSchemaConfigurator.fillInformationSchema(table, parent);
     } else {
-      const tableName = table.rawName ?? table.getTableName();
+      const tableName = table.getTableNameInZetaSql();
       let existingTable = parent.table?.find(t => t.name === tableName);
       if (!existingTable) {
         existingTable = {
@@ -302,30 +304,42 @@ export class ZetaSqlWrapper {
   async analyzeTable(fullFilePath: string, sql: string): Promise<Result<AnalyzeResponse__Output, string>> {
     await this.registerAllLanguageFeatures(this.catalog);
     const modelFetcher = new ModelFetcher(this.dbtRepository, fullFilePath);
-    return this.analyzeTableInternal(modelFetcher, sql);
+    const upstreamError: UpstreamError = {};
+    const result = await this.analyzeTableInternal(modelFetcher, sql, upstreamError);
+    if (upstreamError.path !== undefined && upstreamError.error !== undefined && upstreamError.path !== fullFilePath) {
+      console.log(`Upstream error in file ${upstreamError.path}: ${upstreamError.error}`);
+    }
+    return result;
   }
 
-  private async analyzeTableInternal(modelFetcher: ModelFetcher, sql?: string): Promise<Result<AnalyzeResponse__Output, string>> {
-    const compiledSql = sql ?? this.getCompiledSql(await modelFetcher.getModel());
+  private async analyzeTableInternal(
+    modelFetcher: ModelFetcher,
+    compiledSql: string | undefined,
+    upstreamError: UpstreamError,
+  ): Promise<Result<AnalyzeResponse__Output, string>> {
     if (compiledSql === undefined) {
       return err('Compiled SQL not found');
     }
 
-    let tables = await this.findTableNames(compiledSql);
-
-    const settledResult = await Promise.allSettled(tables.filter(t => !this.isTableRegistered(t)).map(t => this.fillTableSchemaFromBq(t)));
-    tables = settledResult.filter((v): v is PromiseFulfilledResult<TableDefinition> => v.status === 'fulfilled').map(v => v.value);
+    const tables = await this.findTableNames(compiledSql);
+    if (tables.length > 0) {
+      await this.analyzeAllEphemeralModels(await modelFetcher.getModel(), upstreamError);
+    }
 
     for (const table of tables) {
       if (!this.isTableRegistered(table)) {
-        const schemaIsFilled = table.schemaIsFilled();
-        if (schemaIsFilled) {
-          this.registerTable(table);
-        } else {
-          await this.analyzeRef(table, modelFetcher);
-        }
+        await this.analyzeRef(table, await modelFetcher.getModel(), upstreamError);
       }
     }
+
+    const settledResult = await Promise.allSettled(tables.filter(t => !this.isTableRegistered(t)).map(t => this.fillTableSchemaFromBq(t)));
+    settledResult
+      .filter((v): v is PromiseFulfilledResult<TableDefinition> => v.status === 'fulfilled')
+      .forEach(v => {
+        if (v.value.schemaIsFilled()) {
+          this.registerTable(v.value);
+        }
+      });
 
     await this.registerPersistentUdfs(compiledSql);
     const tempUdfs = await this.getTempUdfs(modelFetcher);
@@ -335,32 +349,56 @@ export class ZetaSqlWrapper {
     if (ast.isOk()) {
       const model = await modelFetcher.getModel();
       if (model) {
-        const table = new TableDefinition([model.database, model.schema, model.alias ?? model.name]);
+        const table = ZetaSqlWrapper.createTableDefinition(model);
         this.fillTableWithAnalyzeResponse(table, ast.value);
         this.registerTable(table);
       }
+    } else if (!upstreamError.error) {
+      upstreamError.error = ast.error;
+      upstreamError.path = modelFetcher.fullModelPath;
     }
 
     return ast;
   }
 
-  async analyzeRef(table: TableDefinition, modelFetcher: ModelFetcher): Promise<void> {
-    const model = await modelFetcher.getModel();
+  async analyzeRef(table: TableDefinition, model: ManifestModel | undefined, upstreamError: UpstreamError): Promise<void> {
     if (model) {
       const refId = this.getTableRefUniqueId(model, table.getTableName());
       if (refId) {
         const refModel = this.dbtRepository.models.find(m => m.uniqueId === refId);
         if (refModel) {
-          await this.analyzeTableInternal(new ModelFetcher(this.dbtRepository, path.join(refModel.rootPath, refModel.originalFilePath)));
+          const modelFetcher = new ModelFetcher(this.dbtRepository, path.join(refModel.rootPath, refModel.originalFilePath));
+          await this.analyzeTableInternal(modelFetcher, this.getCompiledSql(await modelFetcher.getModel()), upstreamError);
         } else {
           console.log("Can't find ref model by id");
         }
       } else {
-        console.log("Can't find refId");
+        // We are dealing with a source here, probably
+        console.log(`Can't find refId for ${table.namePath.join('.')}`, LogLevel.Debug);
       }
     } else {
       console.log("Can't fetch model from manifest.json");
     }
+  }
+
+  async analyzeAllEphemeralModels(model: ManifestModel | undefined, upstreamError: UpstreamError): Promise<void> {
+    for (const node of model?.dependsOn.nodes ?? []) {
+      const dependsOnEphemeralModel = this.dbtRepository.models.find(m => m.uniqueId === node && m.config?.materialized === 'ephemeral');
+      if (dependsOnEphemeralModel) {
+        const table = ZetaSqlWrapper.createTableDefinition(dependsOnEphemeralModel);
+        if (!this.isTableRegistered(table)) {
+          const modelFetcher = new ModelFetcher(
+            this.dbtRepository,
+            path.join(dependsOnEphemeralModel.rootPath, dependsOnEphemeralModel.originalFilePath),
+          );
+          await this.analyzeTableInternal(modelFetcher, this.getCompiledSql(await modelFetcher.getModel()), upstreamError);
+        }
+      }
+    }
+  }
+
+  static createTableDefinition(model: ManifestModel): TableDefinition {
+    return new TableDefinition([model.database, model.schema, model.alias ?? model.name]);
   }
 
   fillTableWithAnalyzeResponse(table: TableDefinition, analyzeOutput: AnalyzeResponse__Output): void {
@@ -473,6 +511,7 @@ export class ZetaSqlWrapper {
         this.languageOptions = await new LanguageOptions().enableMaximumLanguageFeatures();
         const featuresForVersion = await LanguageOptions.getLanguageFeaturesForVersion(LanguageVersion.VERSION_CURRENT);
         featuresForVersion.forEach(f => this.languageOptions?.enableLanguageFeature(f));
+        this.languageOptions.enableLanguageFeature(LanguageFeature.FEATURE_INTERVAL_TYPE);
         // https://github.com/google/zetasql/issues/115#issuecomment-1210881670
         this.languageOptions.options.reservedKeywords = ['QUALIFY'];
       } catch (e) {

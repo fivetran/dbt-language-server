@@ -81,7 +81,7 @@ export class DbtRpcServer {
   /** Compilation can be started after server received SIGHUP signal */
   async ensureCompilationFinished(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const maxCheckCount = 30;
+      const maxCheckCount = 100;
       let checkCount = 0;
       const intervalId = setInterval(async () => {
         checkCount++;

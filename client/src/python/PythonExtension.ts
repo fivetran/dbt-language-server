@@ -38,10 +38,10 @@ export class PythonExtension {
       return this.pythonNotFound();
     }
 
-    const envDetails = api.environments.known.find(e => e.path === path);
-    const major = String(envDetails?.version.major ?? 3);
-    const minor = String(envDetails?.version.minor ?? 10);
-    const micro = String(envDetails?.version.micro ?? 0);
+    const environment = await api.environments.resolveEnvironment(path);
+    const major = String(environment?.version.major ?? 3);
+    const minor = String(environment?.version.minor ?? 10);
+    const micro = String(environment?.version.micro ?? 0);
 
     return { path: `"${path}"`, version: [major, minor, micro] };
   }
