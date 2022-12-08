@@ -9,8 +9,8 @@ on:
         default: 'false'
         type: choice
         options:
-          - false
-          - true
+          - 'false'
+          - 'true'
       TARGET:
         description: 'Target for profile'
         required: true
