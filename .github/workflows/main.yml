@@ -224,7 +224,7 @@ jobs:
                 type: bigquery
                 method: service-account
                 project: ${project_id}
-                keyfile: {{ env_var('KEY_FILE_PATH') }}
+                keyfile: "{{ env_var('KEY_FILE_PATH') }}"
                 dataset: ${dataset}
                 threads: 4
 
