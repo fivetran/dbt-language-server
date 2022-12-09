@@ -207,8 +207,8 @@ jobs:
           user=$(whoami)
           homedir=$(eval echo "~${user}")
           ${{ matrix.add-colon-to-key-file-path }}
-          export KEY_FILE_PATH=${homedir}/.dbt/bq-test-project.json
-          echo ${KEY_FILE_PATH}
+          KEY_FILE_PATH=${homedir}/.dbt/bq-test-project.json
+          echo "KEY_FILE_PATH=${KEY_FILE_PATH}" >> $GITHUB_ENV
 
           private_key=$(echo ${BQ_SERVICE_ACCOUNT} | jq '.private_key')
           read project_id private_key_id client_id client_email auth_uri token_uri auth_provider_x509_cert_url client_x509_cert_url < <(echo $(echo ${BQ_SERVICE_ACCOUNT} | jq -r '.project_id, .private_key_id, .client_id, .client_email, .auth_uri, .token_uri, .auth_provider_x509_cert_url, .client_x509_cert_url'))
