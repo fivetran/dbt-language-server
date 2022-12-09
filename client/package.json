@@ -12,6 +12,6 @@
   "devDependencies": {
     "@google-cloud/bigquery": "^6.0.3",
     "@types/vscode": "^1.73.1",
-    "@vscode/test-electron": "^2.2.0"
+    "@vscode/test-electron": "^2.2.1"
   }
 }
