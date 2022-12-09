@@ -7,8 +7,7 @@ export function evalJinjaEnvVar(text: string): string {
       const params = match
         .replace(regex, '$1')
         .split(',')
-        .map(p => p.trim())
-        .map(p => p.replace(/^['"]/, '').replace(/['"]$/, ''));
+        .map(p => p.trim().replace(/^['"]/, '').replace(/['"]$/, ''));
 
       if (params.length > 0) {
         const envVarValue = process.env[params[0]];
