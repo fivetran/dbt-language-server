@@ -21,8 +21,8 @@ on:
           - 'prod'
 
   schedule:
-    # Runs “At minute 0 past every 3rd hour.” (see https://crontab.guru/every-3-hours)
-    - cron: '0 */3 * * *'
+    # Runs “At minute 0 past every 7th hour.” (see https://crontab.guru/#0_*/7_*_*_*)
+    - cron: '0 */7 * * *'
 
 jobs:
   package:
@@ -121,6 +121,12 @@ jobs:
           private_key=$(echo ${BQ_ANALYTICS_ACCOUNT} | jq '.private_key')
           read project_id private_key_id client_id client_email auth_uri token_uri auth_provider_x509_cert_url client_x509_cert_url < <(echo $(echo ${BQ_ANALYTICS_ACCOUNT} | jq -r '.project_id, .private_key_id, .client_id, .client_email, .auth_uri, .token_uri, .auth_provider_x509_cert_url, .client_x509_cert_url'))
 
+          if [[ -z "${TARGET}" ]]; then
+            target_value=dev
+          else
+            target_value="${TARGET}"
+          fi
+
           cat <<EOT > ~/.dbt/profiles.yml
           fivetran:
             outputs:
@@ -138,7 +144,7 @@ jobs:
                 keyfile: ${keyFilePath}
                 dataset: transforms
                 threads: 4
-            target: ${TARGET}
+            target: ${target_value}
           EOT
 
           cat <<EOT > analytics/dbt_ft_prod.code-workspace
