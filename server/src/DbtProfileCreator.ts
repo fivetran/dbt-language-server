@@ -4,6 +4,7 @@ import { DbtProfile, DbtProfileType, ProfileYaml, TargetConfig } from './DbtProf
 import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtProfileType';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
+import { evalJinjaEnvVar } from './utils/JinjaUtils';
 import { YamlParserUtils } from './YamlParserUtils';
 
 export interface DbtProfileInfo {
@@ -28,16 +29,7 @@ type ProfileYamlValidated = {
 export class DbtProfileCreator {
   constructor(private dbtProject: DbtProject, private profilesPath: string) {}
 
-  validateProfilesFile(profiles: unknown, profileName: string): Result<ProfileYamlValidated, DbtProfileError> {
-    const profile = (profiles as Record<string, unknown>)[profileName] as ProfileYaml | undefined;
-    if (!profile) {
-      return err({
-        message: `Couldn't find credentials for profile '${profileName}'. Check your [${this.profilesPath}](${URI.file(
-          this.profilesPath,
-        ).toString()}) file.`,
-      });
-    }
-
+  validateCommonProfileFields(profile: ProfileYaml, profileName: string): Result<ProfileYamlValidated, DbtProfileError> {
     const { target } = profile;
     if (!target) {
       return this.cantFindSectionError(profileName, 'target');
@@ -58,7 +50,7 @@ export class DbtProfileCreator {
       return this.cantFindSectionError(profileName, `outputs.${target}.type`);
     }
 
-    const { method } = outputsTarget;
+    const method = outputsTarget.method ? evalJinjaEnvVar(outputsTarget.method) : undefined;
     const authMethods = PROFILE_METHODS.get(type);
     if (authMethods && (!method || !authMethods.includes(method))) {
       return err({
@@ -94,21 +86,31 @@ export class DbtProfileCreator {
       return err({ message });
     }
 
-    const validationResult = this.validateProfilesFile(profiles, profileName);
+    const rawProfile = (profiles as Record<string, unknown>)[profileName] as ProfileYaml | undefined;
+    if (!rawProfile) {
+      return err({
+        message: `Couldn't find credentials for profile '${profileName}'. Check your [${this.profilesPath}](${URI.file(
+          this.profilesPath,
+        ).toString()}) file.`,
+      });
+    }
+
+    const validationResult = this.validateCommonProfileFields(rawProfile, profileName);
     if (validationResult.isErr()) {
       console.log(validationResult.error);
       return err(validationResult.error);
     }
+    const profileWithValidatedFields = validationResult.value;
 
-    const profile = validationResult.value;
-    const { target } = profile;
-    const targetConfig = profile.outputs[target];
-    const { type, method } = targetConfig;
+    const target = evalJinjaEnvVar(profileWithValidatedFields.target);
+    const targetConfig = DbtProfileCreator.evalTargetConfig(profileWithValidatedFields.outputs[target]) as Required<TargetConfig>;
+    const type = evalJinjaEnvVar(targetConfig.type);
+    const method = targetConfig.method ? evalJinjaEnvVar(targetConfig.method) : undefined;
 
     let dbtProfile: DbtProfile | undefined = undefined;
 
     if (type.valueOf() === DbtProfileType.BigQuery) {
-      const profileBuilder = BIG_QUERY_PROFILES.get(method);
+      const profileBuilder = method ? BIG_QUERY_PROFILES.get(method) : undefined;
       if (!profileBuilder) {
         return this.parseProfileError(`Unknown authentication method of '${type}' profile`, type, method);
       }
@@ -127,6 +129,17 @@ export class DbtProfileCreator {
       type,
       method,
     });
+  }
+
+  static evalTargetConfig(targetConfig: { [index: string]: unknown }): { [index: string]: unknown } {
+    Object.entries(targetConfig).forEach(([key, value]) => {
+      if (typeof value === 'string') {
+        targetConfig[key] = evalJinjaEnvVar(value);
+      } else if (typeof value === 'object') {
+        targetConfig[key] = DbtProfileCreator.evalTargetConfig(value as { [index: string]: unknown });
+      }
+    });
+    return targetConfig;
   }
 
   cantFindSectionError(profileName: string, section: string, docsUrl?: string, type?: string, method?: string): Err<never, DbtProfileError> {

@@ -103,5 +103,9 @@
     "zetasql"
   ],
   "cSpell.language": "en,en-GB",
-  "files.autoSave": "afterDelay"
+  "files.autoSave": "afterDelay",
+
+  "explorer.autoRevealExclude": {
+    "**/node_modules": true
+  }
 }

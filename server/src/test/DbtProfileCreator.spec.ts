@@ -72,6 +72,45 @@ describe('Profiles Validation', () => {
     assert.ok(profile.isErr());
     assertThat(profile.error.message, matchesPattern(errorPattern));
   });
+
+  it('evalTargetConfig should eval whole config with nested objects', () => {
+    // arrange
+    const expectedValue = 'test_value';
+    process.env['TEST'] = expectedValue;
+    const testEnvValue = '{{ env_var("TEST") }}';
+
+    // act
+    const result = DbtProfileCreator.evalTargetConfig({
+      type: testEnvValue,
+      method: testEnvValue,
+      project: testEnvValue,
+      token: testEnvValue,
+      refresh_token: testEnvValue,
+      client_id: testEnvValue,
+      client_secret: testEnvValue,
+      keyfile_json: {
+        private_key: testEnvValue,
+      },
+      keyfile: testEnvValue,
+      scopes: [testEnvValue, testEnvValue],
+    });
+
+    // assert
+    assertThat(result, {
+      type: expectedValue,
+      method: expectedValue,
+      project: expectedValue,
+      token: expectedValue,
+      refresh_token: expectedValue,
+      client_id: expectedValue,
+      client_secret: expectedValue,
+      keyfile_json: {
+        private_key: expectedValue,
+      },
+      keyfile: expectedValue,
+      scopes: [expectedValue, expectedValue],
+    });
+  });
 });
 
 function shouldReturnError(config: string, profileName: string, errorPattern: RegExp): void {
