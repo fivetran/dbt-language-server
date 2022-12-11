@@ -7,7 +7,6 @@ import { LanguageVersion } from '@fivetrandevelopers/zetasql/lib/types/zetasql/L
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ExtractTableNamesFromStatementResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ExtractTableNamesFromStatementResponse';
 import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRecordType';
-import { ResolvedOutputColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedOutputColumnProto';
 import { SimpleCatalogProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleCatalogProto';
 import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
 import { SimpleTableProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleTableProto';
@@ -15,6 +14,7 @@ import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypePro
 import { err, ok, Result } from 'neverthrow';
 import * as fs from 'node:fs';
 import { BigQueryClient, Udf } from './bigquery/BigQueryClient';
+import { BigQueryTableFetcher } from './BigQueryTableFetcher';
 import { DbtRepository } from './DbtRepository';
 import { FeatureFinder } from './feature_finder/FeatureFinder';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
@@ -304,8 +304,9 @@ export class ZetaSqlWrapper {
   async analyzeTable(fullFilePath: string, sql: string): Promise<Result<AnalyzeResponse__Output, string>> {
     await this.registerAllLanguageFeatures(this.catalog);
     const modelFetcher = new ModelFetcher(this.dbtRepository, fullFilePath);
+    const bigQueryTableFetcher = new BigQueryTableFetcher(this.bigQueryClient);
     const upstreamError: UpstreamError = {};
-    const result = await this.analyzeTableInternal(modelFetcher, sql, upstreamError);
+    const result = await this.analyzeTableInternal(modelFetcher, bigQueryTableFetcher, sql, upstreamError);
     if (upstreamError.path !== undefined && upstreamError.error !== undefined && upstreamError.path !== fullFilePath) {
       console.log(`Upstream error in file ${upstreamError.path}: ${upstreamError.error}`);
     }
@@ -314,6 +315,7 @@ export class ZetaSqlWrapper {
 
   private async analyzeTableInternal(
     modelFetcher: ModelFetcher,
+    bigQueryTableFetcher: BigQueryTableFetcher,
     compiledSql: string | undefined,
     upstreamError: UpstreamError,
   ): Promise<Result<AnalyzeResponse__Output, string>> {
@@ -323,16 +325,16 @@ export class ZetaSqlWrapper {
 
     const tables = await this.findTableNames(compiledSql);
     if (tables.length > 0) {
-      await this.analyzeAllEphemeralModels(await modelFetcher.getModel(), upstreamError);
+      await this.analyzeAllEphemeralModels(await modelFetcher.getModel(), bigQueryTableFetcher, upstreamError);
     }
 
     for (const table of tables) {
       if (!this.isTableRegistered(table)) {
-        await this.analyzeRef(table, await modelFetcher.getModel(), upstreamError);
+        await this.analyzeRef(table, bigQueryTableFetcher, await modelFetcher.getModel(), upstreamError);
       }
     }
 
-    const settledResult = await Promise.allSettled(tables.filter(t => !this.isTableRegistered(t)).map(t => this.fillTableSchemaFromBq(t)));
+    const settledResult = await Promise.allSettled(tables.filter(t => !this.isTableRegistered(t)).map(t => bigQueryTableFetcher.fetchTable(t)));
     settledResult
       .filter((v): v is PromiseFulfilledResult<TableDefinition> => v.status === 'fulfilled')
       .forEach(v => {
@@ -361,14 +363,19 @@ export class ZetaSqlWrapper {
     return ast;
   }
 
-  async analyzeRef(table: TableDefinition, model: ManifestModel | undefined, upstreamError: UpstreamError): Promise<void> {
+  async analyzeRef(
+    table: TableDefinition,
+    bigQueryTableFetcher: BigQueryTableFetcher,
+    model: ManifestModel | undefined,
+    upstreamError: UpstreamError,
+  ): Promise<void> {
     if (model) {
       const refId = this.getTableRefUniqueId(model, table.getTableName());
       if (refId) {
         const refModel = this.dbtRepository.models.find(m => m.uniqueId === refId);
         if (refModel) {
           const modelFetcher = new ModelFetcher(this.dbtRepository, path.join(refModel.rootPath, refModel.originalFilePath));
-          await this.analyzeTableInternal(modelFetcher, this.getCompiledSql(await modelFetcher.getModel()), upstreamError);
+          await this.analyzeTableInternal(modelFetcher, bigQueryTableFetcher, this.getCompiledSql(await modelFetcher.getModel()), upstreamError);
         } else {
           console.log("Can't find ref model by id");
         }
@@ -381,7 +388,11 @@ export class ZetaSqlWrapper {
     }
   }
 
-  async analyzeAllEphemeralModels(model: ManifestModel | undefined, upstreamError: UpstreamError): Promise<void> {
+  async analyzeAllEphemeralModels(
+    model: ManifestModel | undefined,
+    bigQueryTableFetcher: BigQueryTableFetcher,
+    upstreamError: UpstreamError,
+  ): Promise<void> {
     for (const node of model?.dependsOn.nodes ?? []) {
       const dependsOnEphemeralModel = this.dbtRepository.models.find(m => m.uniqueId === node && m.config?.materialized === 'ephemeral');
       if (dependsOnEphemeralModel) {
@@ -391,7 +402,7 @@ export class ZetaSqlWrapper {
             this.dbtRepository,
             path.join(dependsOnEphemeralModel.rootPath, dependsOnEphemeralModel.originalFilePath),
           );
-          await this.analyzeTableInternal(modelFetcher, this.getCompiledSql(await modelFetcher.getModel()), upstreamError);
+          await this.analyzeTableInternal(modelFetcher, bigQueryTableFetcher, this.getCompiledSql(await modelFetcher.getModel()), upstreamError);
         }
       }
     }
@@ -454,24 +465,6 @@ export class ZetaSqlWrapper {
       console.log(`Cannot read ${compiledPath}`);
       return undefined;
     }
-  }
-
-  async fillTableSchemaFromBq(table: TableDefinition): Promise<TableDefinition> {
-    if (table.containsInformationSchema()) {
-      return table;
-    }
-
-    const dataSetName = table.getDataSetName();
-    const tableName = table.getTableName();
-
-    if (dataSetName && tableName) {
-      const metadata = await this.bigQueryClient.getTableMetadata(dataSetName, tableName);
-      if (metadata) {
-        table.columns = metadata.schema.fields.map<ResolvedOutputColumnProto>(f => ZetaSqlWrapper.createSimpleColumn(f.name, createType(f)));
-        table.timePartitioning = metadata.timePartitioning;
-      }
-    }
-    return table;
   }
 
   static createSimpleColumn(name: string, type: TypeProto | null): SimpleColumnProto {
