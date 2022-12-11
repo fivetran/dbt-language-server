@@ -1,5 +1,6 @@
 import { TypeFactory, TypeKind } from '@fivetrandevelopers/zetasql';
 import { ParseLocationRangeProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
+import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
 import { StructFieldProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/StructFieldProto';
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
 import { ColumnDefinition } from '../TableDefinition';
@@ -69,4 +70,8 @@ export function traverse<T>(nodeType: string, unknownNode: unknown, action: (nod
       traverse(nodeType, child, action);
     }
   }
+}
+
+export function createSimpleColumn(name: string, type: TypeProto | null): SimpleColumnProto {
+  return { name, type };
 }
