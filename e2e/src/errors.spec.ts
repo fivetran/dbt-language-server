@@ -119,6 +119,12 @@ suite('Errors', () => {
     assertThat(languages.getDiagnostics(upstreamUri), isEmpty());
 
     await activateAndWait(upstreamUri);
+
+    assertThat(languages.getDiagnostics(downstreamUri), hasSize(1));
+    assertThat(languages.getDiagnostics(upstreamUri), hasSize(1));
+
+    console.log(`Preview text:\n${getPreviewText()}`);
+
     const newUpstreamUri = await renameCurrentFile('upstream_model1.sql');
 
     await sleep(500);
