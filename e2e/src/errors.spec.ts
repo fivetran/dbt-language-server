@@ -120,6 +120,7 @@ suite('Errors', () => {
 
     await activateAndWait(upstreamUri);
 
+    await sleep(200);
     assertThat(languages.getDiagnostics(downstreamUri), hasSize(1));
     assertThat(languages.getDiagnostics(upstreamUri), hasSize(1));
 
@@ -127,7 +128,7 @@ suite('Errors', () => {
 
     const newUpstreamUri = await renameCurrentFile('upstream_model1.sql');
 
-    await sleep(500);
+    await sleep(1500);
     await assertAllDiagnostics(newUpstreamUri, []);
     await assertAllDiagnostics(upstreamUri, []);
     await assertAllDiagnostics(downstreamUri, []);
