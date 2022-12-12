@@ -11,6 +11,7 @@ import {
   renameCurrentFile,
   replaceText,
   setTestContent,
+  sleep,
 } from './helper';
 
 suite('Errors', () => {
@@ -120,6 +121,7 @@ suite('Errors', () => {
     await activateAndWait(upstreamUri);
     const newUpstreamUri = await renameCurrentFile('upstream_model1.sql');
 
+    await sleep(500);
     await assertAllDiagnostics(newUpstreamUri, []);
     await assertAllDiagnostics(upstreamUri, []);
     await assertAllDiagnostics(downstreamUri, []);
