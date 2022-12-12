@@ -414,7 +414,11 @@ export async function renameCurrentFile(newName: string): Promise<Uri> {
   await renameFinished;
 
   console.log(`Opening renaming document ${newUri.toString()}`);
-  await openDocument(newUri);
+  try {
+    await openDocument(newUri);
+  } catch (e) {
+    console.log(`Error while opening document ${newUri.toString()}: ${JSON.stringify(e)}`);
+  }
 
   return newUri;
 }
