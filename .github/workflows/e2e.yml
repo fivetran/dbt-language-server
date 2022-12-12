@@ -6,11 +6,11 @@ on:
       USE_DBT_CLI:
         description: 'Use dbt CLI for compiling models'
         required: true
-        default: 'false'
+        default: 'true'
         type: choice
         options:
-          - 'false'
           - 'true'
+          - 'false'
       TARGET:
         description: 'Target for profile'
         required: true
@@ -198,7 +198,7 @@ jobs:
       - name: run e2e tests
         run: node e2e/out/runners/runFtTest $(pwd)/e2e-tests/extension
         env:
-          USE_DBT_CLI: ${{ inputs.USE_DBT_CLI }}
+          USE_DBT_CLI: ${{ inputs.USE_DBT_CLI === 'false' && 'false' || 'true' }}
 
       - name: upload logs
         if: always()
