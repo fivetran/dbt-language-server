@@ -402,9 +402,13 @@ export async function renameCurrentFile(newName: string): Promise<Uri> {
   clipboard.writeSync(newName);
 
   await commands.executeCommand('workbench.files.action.showActiveFileInExplorer');
+  await sleep(400);
   await commands.executeCommand('renameFile');
+  await sleep(400);
   await commands.executeCommand('editor.action.selectAll');
+  await sleep(400);
   await commands.executeCommand('editor.action.clipboardPasteAction');
+  await sleep(400);
   await commands.executeCommand('workbench.action.showCommands');
 
   await renameFinished;
