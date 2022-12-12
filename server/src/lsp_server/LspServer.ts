@@ -470,6 +470,14 @@ export class LspServer extends LspServerBase<FeatureFinder> {
 
   onDidRenameFiles(params: RenameFilesParams): void {
     this.dbt?.refresh();
+
+    for (const document of this.openedDocuments.values()) {
+      if (document.currentDbtError) {
+        document.forceRecompile();
+        return;
+      }
+    }
+
     this.disposeOutdatedDocuments(params.files.map(f => f.oldUri));
   }
 

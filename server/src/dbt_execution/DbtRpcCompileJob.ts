@@ -149,7 +149,7 @@ export class DbtRpcCompileJob extends DbtCompileJob {
   }
 
   private async fallbackForEphemeralModel(): Promise<string> {
-    console.log(`Use fallback for ephemeral model ${this.modelPath}`);
+    console.log(`Use fallback for model ${this.modelPath}`);
     try {
       const resultPath = await this.findCompiledFilePath();
       return fs.readFileSync(`${resultPath}`, 'utf8');

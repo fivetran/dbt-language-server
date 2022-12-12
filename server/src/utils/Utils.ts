@@ -1,6 +1,8 @@
+import path = require('node:path');
 import { Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
+import { DbtRepository } from '../DbtRepository';
 import { getWordRangeAtPosition } from './TextUtils';
 
 export function rangesOverlap(range1: Range, range2: Range): boolean {
@@ -118,6 +120,15 @@ export function getFilePathRelatedToWorkspace(docUri: string, workspaceFolder: s
   }
 
   throw new Error("Can't find path related to workspace");
+}
+
+export function getModelPathOrFullyQualifiedName(docUri: string, workspaceFolder: string, dbtRepository: DbtRepository): string {
+  const filePath = getFilePathRelatedToWorkspace(docUri, workspaceFolder);
+  if (dbtRepository.packagesInstallPaths.some(p => filePath.startsWith(p))) {
+    const startWithPackagesFolder = new RegExp(`^(${dbtRepository.packagesInstallPaths.join('|')}).`);
+    return filePath.replaceAll(path.sep, '.').replace(startWithPackagesFolder, '').replace('models.', '').replace(/.sql$/, '');
+  }
+  return filePath;
 }
 
 export function arraysAreEqual(a1: string[], a2: string[]): boolean {

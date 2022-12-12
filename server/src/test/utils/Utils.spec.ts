@@ -3,6 +3,7 @@ import { assertThat } from 'hamjest';
 import * as path from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Position, Range } from 'vscode-languageserver-types';
+import { DbtRepository } from '../../DbtRepository';
 import {
   areRangesEqual,
   comparePositions,
@@ -11,11 +12,14 @@ import {
   getFilePathRelatedToWorkspace,
   getIdentifierRangeAtPosition,
   getJinjaContentOffset,
+  getModelPathOrFullyQualifiedName,
   rangesOverlap,
 } from '../../utils/Utils';
 import { sleep } from '../helper';
 
 describe('Utils', () => {
+  const WORKSPACE = path.normalize('/workspace');
+
   it('comparePositions_shouldComparePositions', () => {
     assertThat(comparePositions(Position.create(0, 0), Position.create(1, 1)), -1);
     assertThat(comparePositions(Position.create(1, 0), Position.create(1, 1)), -1);
@@ -144,6 +148,28 @@ describe('Utils', () => {
       ),
       path.normalize('models/simple_select_dbt.sql'),
     );
+  });
+
+  it('Should return path', () => {
+    // arrange
+    const dbtRepository = new DbtRepository();
+
+    // act
+    const name = getModelPathOrFullyQualifiedName('/workspace/models/model.sql', WORKSPACE, dbtRepository);
+
+    // assert
+    assertThat(name, path.normalize('models/model.sql'));
+  });
+
+  it('Should return fully qualified model name', () => {
+    // arrange
+    const dbtRepository = new DbtRepository();
+
+    // act
+    const name = getModelPathOrFullyQualifiedName('/workspace/dbt_packages/package/models/model.sql', WORKSPACE, dbtRepository);
+
+    // assert
+    assertThat(name, 'package.model');
   });
 });
 

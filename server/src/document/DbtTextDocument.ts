@@ -37,7 +37,7 @@ import { PositionConverter } from '../PositionConverter';
 import { ProgressReporter } from '../ProgressReporter';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { getLineByPosition, getSignatureInfo } from '../utils/TextUtils';
-import { areRangesEqual, debounce, getFilePathRelatedToWorkspace, getIdentifierRangeAtPosition, positionInRange } from '../utils/Utils';
+import { areRangesEqual, debounce, getIdentifierRangeAtPosition, getModelPathOrFullyQualifiedName, positionInRange } from '../utils/Utils';
 import { ZetaSqlAst } from '../ZetaSqlAst';
 import { DbtDocumentKind } from './DbtDocumentKind';
 
@@ -230,16 +230,7 @@ export class DbtTextDocument {
   }
 
   getModelPathOrFullyQualifiedName(): string {
-    return DbtTextDocument.getModelPathOrFullyQualifiedName(this.rawDocument.uri, this.workspaceFolder, this.dbtRepository);
-  }
-
-  static getModelPathOrFullyQualifiedName(docUri: string, workspaceFolder: string, dbtRepository: DbtRepository): string {
-    const filePath = getFilePathRelatedToWorkspace(docUri, workspaceFolder);
-    if (dbtRepository.packagesInstallPaths.some(p => filePath.startsWith(p))) {
-      const startWithPackagesFolder = new RegExp(`^(${dbtRepository.packagesInstallPaths.join('|')}).`);
-      return filePath.replaceAll(path.sep, '.').replace(startWithPackagesFolder, '').replace('models.', '').replace(/.sql$/, '');
-    }
-    return filePath;
+    return getModelPathOrFullyQualifiedName(this.rawDocument.uri, this.workspaceFolder, this.dbtRepository);
   }
 
   async onCompilationError(dbtCompilationError: string): Promise<void> {
