@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.17.0 (01/01/1970)
+## Version 0.17.0 (13/12/2022)
 ## What's Changed
 * Fix package compilation issues.
 * Analyze code instead of fetching data from BigQuery.
