@@ -120,11 +120,11 @@ suite('Errors', () => {
 
     await activateAndWait(upstreamUri);
 
+    console.log(`Preview text:\n${getPreviewText()}`);
+
     await sleep(200);
     assertThat(languages.getDiagnostics(downstreamUri), hasSize(1));
     assertThat(languages.getDiagnostics(upstreamUri), hasSize(1));
-
-    console.log(`Preview text:\n${getPreviewText()}`);
 
     const newUpstreamUri = await renameCurrentFile('upstream_model1.sql');
 
