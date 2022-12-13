@@ -1,5 +1,16 @@
 # Changelog
 
+## Version 0.17.0 (13/12/2022)
+## What's Changed
+* Fix package compilation issues.
+* Analyze code instead of fetching data from BigQuery.
+* Don't show error for closed Preview editor.
+* Support `env_var` in profiles.yml.
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.16.0...v0.17.0
+---
+
 ## Version 0.16.0 (28/11/2022)
 ## What's Changed
 * Add dbt snippets: `block`, `comment`, `config`, `for`, `if`, `ifelse`, `macro`, `ref`, `set`, `setblock`, `source`, `statement`.
