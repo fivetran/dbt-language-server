@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
 import { assertThat } from 'hamjest';
-import * as path from 'node:path';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, Range, TextDocumentSaveReason, VersionedTextDocumentIdentifier } from 'vscode-languageserver';
 import { DbtRepository } from '../../DbtRepository';
@@ -17,7 +16,6 @@ import { sleep } from '../helper';
 
 describe('DbtTextDocument', () => {
   const TEXT = 'select 1;';
-  const WORKSPACE = path.normalize('/workspace');
 
   let document: DbtTextDocument;
   let mockModelCompiler: ModelCompiler;
@@ -183,28 +181,6 @@ describe('DbtTextDocument', () => {
 
     // assert
     assertThat(document.currentDbtError, undefined);
-  });
-
-  it('Should return path', () => {
-    // arrange
-    const dbtRepository = new DbtRepository();
-
-    // act
-    const name = DbtTextDocument.getModelPathOrFullyQualifiedName('/workspace/models/model.sql', WORKSPACE, dbtRepository);
-
-    // assert
-    assertThat(name, path.normalize('models/model.sql'));
-  });
-
-  it('Should return fully qualified model name', () => {
-    // arrange
-    const dbtRepository = new DbtRepository();
-
-    // act
-    const name = DbtTextDocument.getModelPathOrFullyQualifiedName('/workspace/dbt_packages/package/models/model.sql', WORKSPACE, dbtRepository);
-
-    // assert
-    assertThat(name, 'package.model');
   });
 
   it('Should compile dbt document when dbt ready', async () => {
