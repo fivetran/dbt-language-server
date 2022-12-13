@@ -1,4 +1,4 @@
-import { assertThat, containsString, endsWith, hasSize, isEmpty } from 'hamjest';
+import { assertThat, containsString, endsWith, hasSize } from 'hamjest';
 import { Diagnostic, DiagnosticSeverity, languages, Position, Range } from 'vscode';
 import { assertAllDiagnostics } from './asserts';
 import {
@@ -11,7 +11,6 @@ import {
   renameCurrentFile,
   replaceText,
   setTestContent,
-  sleep,
 } from './helper';
 
 suite('Errors', () => {
@@ -102,35 +101,5 @@ suite('Errors', () => {
     await activateAndWait(COMPARE_DATES_URI);
     await assertAllDiagnostics(COMPARE_DATES_URI, []);
     await assertAllDiagnostics(TABLE_DOES_NOT_EXIST_URI, []);
-  });
-
-  test('Should clear diagnostics after file rename', async () => {
-    const downstreamUri = getDocUri('downstream_model.sql');
-    const upstreamUri = getDocUri('upstream_model.sql');
-
-    await activateAndWait(downstreamUri);
-
-    await assertAllDiagnostics(downstreamUri, []);
-    await assertAllDiagnostics(upstreamUri, []);
-
-    await replaceText('upstream_model', 'upstream_model1');
-
-    assertThat(languages.getDiagnostics(downstreamUri), hasSize(1));
-    assertThat(languages.getDiagnostics(upstreamUri), isEmpty());
-
-    await activateAndWait(upstreamUri);
-
-    console.log(`Preview text:\n${getPreviewText()}`);
-
-    await sleep(200);
-    assertThat(languages.getDiagnostics(downstreamUri), hasSize(1));
-    assertThat(languages.getDiagnostics(upstreamUri), hasSize(1));
-
-    const newUpstreamUri = await renameCurrentFile('upstream_model1.sql');
-
-    await sleep(1500);
-    await assertAllDiagnostics(newUpstreamUri, []);
-    await assertAllDiagnostics(upstreamUri, []);
-    await assertAllDiagnostics(downstreamUri, []);
   });
 });

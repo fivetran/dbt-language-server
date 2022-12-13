@@ -402,23 +402,14 @@ export async function renameCurrentFile(newName: string): Promise<Uri> {
   clipboard.writeSync(newName);
 
   await commands.executeCommand('workbench.files.action.showActiveFileInExplorer');
-  await sleep(400);
   await commands.executeCommand('renameFile');
-  await sleep(400);
   await commands.executeCommand('editor.action.selectAll');
-  await sleep(400);
   await commands.executeCommand('editor.action.clipboardPasteAction');
-  await sleep(400);
   await commands.executeCommand('workbench.action.showCommands');
 
   await renameFinished;
 
-  console.log(`Opening renaming document ${newUri.toString()}`);
-  try {
-    await openDocument(newUri);
-  } catch (e) {
-    console.log(`Error while opening document ${newUri.toString()}: ${JSON.stringify(e)}`);
-  }
+  await openDocument(newUri);
 
   return newUri;
 }
