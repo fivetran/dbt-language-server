@@ -1,15 +1,20 @@
 import { ResolvedOutputColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedOutputColumnProto';
+import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
 import { BigQueryClient } from './bigquery/BigQueryClient';
 import { TableDefinition } from './TableDefinition';
 import { createSimpleColumn, createType } from './utils/ZetaSqlUtils';
 
+export interface TableInformation {
+  columns?: SimpleColumnProto[];
+  timePartitioning: boolean;
+}
 export class BigQueryTableFetcher {
-  tables: Map<string, Promise<TableDefinition>> = new Map();
+  tables: Map<string, Promise<TableInformation | undefined>> = new Map();
 
   constructor(private bigQueryClient: BigQueryClient) {}
 
-  fetchTable(table: TableDefinition): Promise<TableDefinition> {
-    const key = table.namePath.join('.');
+  fetchTable(table: TableDefinition): Promise<TableInformation | undefined> {
+    const key = table.getFullName();
     let promise = this.tables.get(key);
     if (promise === undefined) {
       promise = this.fillTableSchemaFromBq(table);
@@ -18,9 +23,9 @@ export class BigQueryTableFetcher {
     return promise;
   }
 
-  async fillTableSchemaFromBq(table: TableDefinition): Promise<TableDefinition> {
+  async fillTableSchemaFromBq(table: TableDefinition): Promise<TableInformation | undefined> {
     if (table.containsInformationSchema()) {
-      return table;
+      return undefined;
     }
 
     const dataSetName = table.getDataSetName();
@@ -29,10 +34,12 @@ export class BigQueryTableFetcher {
     if (dataSetName && tableName) {
       const metadata = await this.bigQueryClient.getTableMetadata(dataSetName, tableName);
       if (metadata) {
-        table.columns = metadata.schema.fields.map<ResolvedOutputColumnProto>(f => createSimpleColumn(f.name, createType(f)));
-        table.timePartitioning = metadata.timePartitioning;
+        return {
+          columns: metadata.schema.fields.map<ResolvedOutputColumnProto>(f => createSimpleColumn(f.name, createType(f))),
+          timePartitioning: metadata.timePartitioning,
+        };
       }
     }
-    return table;
+    return undefined;
   }
 }

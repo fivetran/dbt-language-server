@@ -334,7 +334,19 @@ export class ZetaSqlWrapper {
       }
     }
 
-    const settledResult = await Promise.allSettled(tables.filter(t => !this.isTableRegistered(t)).map(t => bigQueryTableFetcher.fetchTable(t)));
+    const settledResult = await Promise.allSettled(
+      tables
+        .filter(t => !this.isTableRegistered(t))
+        .map(t =>
+          bigQueryTableFetcher.fetchTable(t).then(ts => {
+            if (ts) {
+              t.columns = ts.columns;
+              t.timePartitioning = ts.timePartitioning;
+            }
+            return t;
+          }),
+        ),
+    );
     settledResult
       .filter((v): v is PromiseFulfilledResult<TableDefinition> => v.status === 'fulfilled')
       .forEach(v => {
@@ -381,7 +393,7 @@ export class ZetaSqlWrapper {
         }
       } else {
         // We are dealing with a source here, probably
-        console.log(`Can't find refId for ${table.namePath.join('.')}`, LogLevel.Debug);
+        console.log(`Can't find refId for ${table.getFullName()}`, LogLevel.Debug);
       }
     } else {
       console.log("Can't fetch model from manifest.json");
