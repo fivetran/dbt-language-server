@@ -29,6 +29,10 @@ export class TableDefinition {
     this.datasetIndex = this.namePath.length >= 3 ? 1 : 0;
   }
 
+  getFullName(): string {
+    return this.namePath.join('.');
+  }
+
   schemaIsFilled(): boolean {
     return this.containsInformationSchema() || this.columns !== undefined;
   }
