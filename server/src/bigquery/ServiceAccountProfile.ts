@@ -36,7 +36,7 @@ export class ServiceAccountProfile implements DbtProfile {
       keyFilename: keyFilePath,
     };
     const bigQuery = new BigQuery(options);
-    const client = new BigQueryClient(project, bigQuery);
+    const client = new BigQueryClient(project, () => bigQuery);
 
     const testResult = await client.test();
     if (testResult.isErr()) {

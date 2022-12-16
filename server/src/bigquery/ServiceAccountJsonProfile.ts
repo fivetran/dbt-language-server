@@ -37,7 +37,7 @@ export class ServiceAccountJsonProfile implements DbtProfile {
       credentials: content,
     };
     const bigQuery = new BigQuery(options);
-    const client = new BigQueryClient(project, bigQuery);
+    const client = new BigQueryClient(project, () => bigQuery);
 
     const testResult = await client.test();
     if (testResult.isErr()) {
