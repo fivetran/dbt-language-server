@@ -27,11 +27,9 @@ export class BigQueryClient implements DbtDestinationClient {
   static readonly BQ_TEST_CLIENT_DATASETS_LIMIT = 1;
 
   project: string;
-  bigQuery: BigQuery;
 
-  constructor(project: string, bigQuery: BigQuery) {
+  constructor(project: string, public bigQuerySupplier: () => BigQuery) {
     this.project = project;
-    this.bigQuery = bigQuery;
   }
 
   async test(): Promise<Result<void, string>> {
@@ -47,11 +45,11 @@ export class BigQueryClient implements DbtDestinationClient {
   }
 
   async getDatasets(maxResults?: number): Promise<DatasetsResponse> {
-    return this.bigQuery.getDatasets({ maxResults });
+    return this.bigQuerySupplier().getDatasets({ maxResults });
   }
 
   async getTableMetadata(dataSet: string, tableName: string): Promise<Metadata | undefined> {
-    const dataset = this.bigQuery.dataset(dataSet);
+    const dataset = this.bigQuerySupplier().dataset(dataSet);
     const table = dataset.table(tableName);
     try {
       const [metadata] = (await table.getMetadata()) as [TableMetadata, unknown];
@@ -66,7 +64,7 @@ export class BigQueryClient implements DbtDestinationClient {
   }
 
   async getUdf(projectId: string | undefined, dataSetId: string, routineId: string): Promise<Udf | undefined> {
-    const dataSet = this.bigQuery.dataset(dataSetId, { projectId });
+    const dataSet = this.bigQuerySupplier().dataset(dataSetId, { projectId });
 
     try {
       const existsResult = await dataSet.exists();

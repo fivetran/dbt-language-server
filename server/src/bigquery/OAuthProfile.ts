@@ -36,8 +36,15 @@ export class OAuthProfile implements DbtProfile {
     const options: BigQueryOptions = {
       projectId: project,
     };
-    const bigQuery = new BigQuery(options);
-    const bigQueryClient = new BigQueryClient(project, bigQuery);
+
+    let bigQuery = new BigQuery(options);
+    const bigQueryClient = new BigQueryClient(project, () => {
+      const expireDate = bigQuery.authClient.cachedCredential?.credentials.expiry_date;
+      if (expireDate && Date.now() - expireDate > -1000) {
+        bigQuery = new BigQuery(options);
+      }
+      return bigQuery;
+    });
 
     const credentialsResult = await this.checkDefaultCredentials(bigQueryClient);
     if (credentialsResult.isOk()) {
@@ -54,7 +61,7 @@ export class OAuthProfile implements DbtProfile {
     }
 
     console.log('gcloud authentication succeeded');
-    bigQueryClient.bigQuery = new BigQuery(options);
+    bigQuery = new BigQuery(options);
 
     const secondTestResult = await bigQueryClient.test();
     if (secondTestResult.isErr()) {
@@ -65,8 +72,9 @@ export class OAuthProfile implements DbtProfile {
   }
 
   private async checkDefaultCredentials(bigQueryClient: BigQueryClient): Promise<Result<void, string>> {
-    return bigQueryClient.bigQuery.authClient
-      .getCredentials()
+    return bigQueryClient
+      .bigQuerySupplier()
+      .authClient.getCredentials()
       .then(() => {
         console.log('Default Credentials found');
         return ok(undefined);

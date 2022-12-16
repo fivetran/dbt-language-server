@@ -69,7 +69,7 @@ export class OAuthTokenBasedProfile implements DbtProfile {
       refreshToken && clientId && clientSecret
         ? this.createRefreshTokenBigQueryClient(project, refreshToken, clientId, clientSecret, scopes)
         : this.createTemporaryTokenBigQueryClient(project, token);
-    const client = new BigQueryClient(project, bigQuery);
+    const client = new BigQueryClient(project, () => bigQuery);
 
     const testResult = await client.test();
     if (testResult.isErr()) {
