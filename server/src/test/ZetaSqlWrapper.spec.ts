@@ -5,7 +5,6 @@ import { assertThat, greaterThan, hasExactlyOneItem, hasProperty, hasSize } from
 import * as assert from 'node:assert';
 import { mock } from 'ts-mockito';
 import { BigQueryClient, Udf } from '../bigquery/BigQueryClient';
-import { DbtRepository } from '../DbtRepository';
 import { InformationSchemaConfigurator } from '../InformationSchemaConfigurator';
 import { SqlHeaderAnalyzer } from '../SqlHeaderAnalyzer';
 import { TableDefinition } from '../TableDefinition';
@@ -43,7 +42,7 @@ describe('ZetaSqlWrapper table/udf registration', () => {
   let zetaSqlWrapper: ZetaSqlWrapper;
 
   before(() => {
-    zetaSqlWrapper = new ZetaSqlWrapper(mock(DbtRepository), mock(BigQueryClient), mock(ZetaSqlParser), mock(SqlHeaderAnalyzer));
+    zetaSqlWrapper = new ZetaSqlWrapper(mock(BigQueryClient), mock(ZetaSqlParser), mock(SqlHeaderAnalyzer));
   });
 
   function shouldRegisterTable(
@@ -79,7 +78,7 @@ describe('ZetaSqlWrapper table/udf registration', () => {
   }
 
   function registerUdf(zetaWrapper: ZetaSqlWrapper, udf: Udf): SimpleCatalogProto {
-    zetaWrapper.registerUdf(udf);
+    zetaWrapper['registerUdf'](udf);
     return zetaWrapper['catalog'];
   }
 
@@ -90,7 +89,7 @@ describe('ZetaSqlWrapper table/udf registration', () => {
     expectedProjectId?: string,
   ): void {
     // arrange, act
-    zetaSqlWrapper = new ZetaSqlWrapper(mock(DbtRepository), mock(BigQueryClient), mock(ZetaSqlParser), mock(SqlHeaderAnalyzer));
+    zetaSqlWrapper = new ZetaSqlWrapper(mock(BigQueryClient), mock(ZetaSqlParser), mock(SqlHeaderAnalyzer));
     const rootCatalog = registerTable(zetaSqlWrapper, tableDefinition);
 
     // assert
@@ -254,6 +253,23 @@ describe('ZetaSqlWrapper table/udf registration', () => {
 
     assertThat(func.signature[0].argument[0].type, { typeKind: TypeKind.TYPE_INT64 });
     assertThat(func.signature[0].returnType?.type, { typeKind: TypeKind.TYPE_INT64 });
+  });
+
+  it('createCatalogWithTempUdfs should create new catalog and not change existing', () => {
+    // arrange
+    const tempUdfs = [{ namePath: ['temp_udf'] }];
+    const innerCatalogs = [{ name: 'inner_catalog' }];
+    zetaSqlWrapper = new ZetaSqlWrapper(mock(BigQueryClient), mock(ZetaSqlParser), mock(SqlHeaderAnalyzer));
+    zetaSqlWrapper['catalog'].catalog = innerCatalogs;
+
+    // act
+    const newCatalog = zetaSqlWrapper.createCatalogWithTempUdfs(tempUdfs);
+
+    // assert
+    assertThat(newCatalog.customFunction, tempUdfs);
+    assertThat(newCatalog.catalog, innerCatalogs);
+    assertThat(zetaSqlWrapper['catalog'].customFunction, undefined);
+    assertThat(zetaSqlWrapper['catalog'].catalog, innerCatalogs);
   });
 });
 

@@ -20,9 +20,15 @@ export class DestinationState {
     profileResult: DbtProfileSuccess,
     dbtRepository: DbtRepository,
     ubuntuInWslWorks: boolean,
+    projectName: string | undefined,
   ): Promise<Result<void, string>> {
     if (DestinationState.ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) && profileResult.dbtProfile && ubuntuInWslWorks) {
-      const bigQueryContextInfo = await BigQueryContext.createContext(profileResult.dbtProfile, profileResult.targetConfig, dbtRepository);
+      const bigQueryContextInfo = await BigQueryContext.createContext(
+        profileResult.dbtProfile,
+        profileResult.targetConfig,
+        dbtRepository,
+        projectName,
+      );
       if (bigQueryContextInfo.isOk()) {
         this.bigQueryContext = bigQueryContextInfo.value;
       } else {

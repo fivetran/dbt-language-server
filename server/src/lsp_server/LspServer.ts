@@ -236,7 +236,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     const prepareDestination = profileResult.isErr()
       ? this.destinationState.prepareDestinationStub()
       : this.destinationState
-          .prepareBigQueryDestination(profileResult.value, this.dbtRepository, ubuntuInWslWorks)
+          .prepareBigQueryDestination(profileResult.value, this.dbtRepository, ubuntuInWslWorks, this.dbtProject.findProjectName())
           .then((prepareResult: Result<void, string>) => (prepareResult.isErr() ? this.showCreateContextWarning(prepareResult.error) : undefined));
     const prepareDbt = this.dbt?.prepare(dbtProfileType).then(_ => this.statusSender.sendStatus());
 
