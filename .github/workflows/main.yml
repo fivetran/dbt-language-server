@@ -295,12 +295,14 @@ jobs:
       - name: show info
         run: |
           which python
-          python --version
-          python -m pip --version
-          python -m pip list | grep dbt
+          ${PYTHON_INSTALL_LOC} --version
+          ${PYTHON_INSTALL_LOC} -m pip --version
+          ${PYTHON_INSTALL_LOC} -m pip list | grep dbt
           which dbt
           dbt --version
           node -v
+        env:
+          PYTHON_INSTALL_LOC: '${{ steps.setup-python.outputs.python-path }}'
 
       # Uncomment lines below if you want to connect to the job via SSH
       # - name: Setup SSH via tmate for debugging
