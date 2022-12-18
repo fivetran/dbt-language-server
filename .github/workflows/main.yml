@@ -294,13 +294,14 @@ jobs:
 
       - name: show info
         run: |
-          which python
-          ${PYTHON_INSTALL_LOC} --version
-          ${PYTHON_INSTALL_LOC} -m pip --version
-          ${PYTHON_INSTALL_LOC} -m pip list | grep dbt
           which dbt
           dbt --version
           node -v
+          echo ${PYTHON_INSTALL_LOC}
+          ${PYTHON_INSTALL_LOC} --version
+          ${PYTHON_INSTALL_LOC} -m pip --version
+          ${PYTHON_INSTALL_LOC} -m pip list | grep dbt
+          ${PYTHON_INSTALL_LOC} -c "import dbt_rpc.__main__; dbt_rpc.__main__.main(['--version'])"
         env:
           PYTHON_INSTALL_LOC: '${{ steps.setup-python.outputs.python-path }}'
 
