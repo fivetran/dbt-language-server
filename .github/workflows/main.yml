@@ -95,7 +95,7 @@ jobs:
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
             python-version: '3.9.12'
 
-          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres dbt-rpc'
+          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres dbt-rpc==0.2.1'
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
@@ -108,7 +108,7 @@ jobs:
             use-dbt-cli: true
             SKIP_TESTS: 'certain_version.spec.js'
 
-          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres dbt-rpc'
+          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres dbt-rpc==0.2.1'
             os: ubuntu-latest
             target: linux-x64
             prepare-for-tests: |
@@ -301,7 +301,6 @@ jobs:
           ${PYTHON_INSTALL_LOC} --version
           ${PYTHON_INSTALL_LOC} -m pip --version
           ${PYTHON_INSTALL_LOC} -m pip list | grep dbt
-          ${PYTHON_INSTALL_LOC} -c "import dbt_rpc.__main__; dbt_rpc.__main__.main(['--version'])"
         env:
           PYTHON_INSTALL_LOC: '${{ steps.setup-python.outputs.python-path }}'
 
