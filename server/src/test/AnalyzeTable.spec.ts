@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
-import { ZetaSQLClient } from '@fivetrandevelopers/zetasql';
-import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
 import { ok } from 'neverthrow';
 import { anything, instance, mock, objectContaining, spy, verify, when } from 'ts-mockito';
 import { BigQueryClient } from '../bigquery/BigQueryClient';
@@ -24,18 +22,13 @@ describe('ProjectAnalyzer analyzeTable', () => {
   let projectAnalyzer: ProjectAnalyzer;
   let spiedProjectAnalyzer: ProjectAnalyzer;
   let mockBigQueryClient: BigQueryClient;
-  let mockZetaSQLClient: ZetaSQLClient;
   let mockSqlHeaderAnalyzer: SqlHeaderAnalyzer;
   let mockZetaSqlWrapper: ZetaSqlWrapper;
 
   before(() => {
-    ZetaSQLClient.getInstance = (): ZetaSQLClient => instance(mockZetaSQLClient);
-
-    // const mockZetaSqlParser = mock(ZetaSqlParser);
     const mockDbtRepository = mock(DbtRepository);
     mockZetaSqlWrapper = mock(ZetaSqlWrapper);
     mockBigQueryClient = mock(BigQueryClient);
-    mockZetaSQLClient = mock(ZetaSQLClient);
     mockSqlHeaderAnalyzer = mock(SqlHeaderAnalyzer);
 
     when(mockDbtRepository.models).thenReturn([
@@ -60,14 +53,8 @@ describe('ProjectAnalyzer analyzeTable', () => {
     when(mockSqlHeaderAnalyzer.getAllFunctionDeclarations(anything(), anything(), anything())).thenReturn(Promise.resolve([]));
 
     projectAnalyzer = new ProjectAnalyzer(instance(mockDbtRepository), 'projectName', instance(mockBigQueryClient), instance(mockZetaSqlWrapper));
-    mockZetaSqlWrapper['languageOptions'] = new LanguageOptions();
 
-    // when(mockZetaSqlParser.getAllFunctionCalls(COMPILED_SQL, anything())).thenReturn(Promise.resolve([UDF_NAME_PATH]));
     when(mockZetaSqlWrapper.findTableNames(COMPILED_SQL)).thenReturn(Promise.resolve([new TableDefinition(INTERNAL_TABLE_NAME_PATH)]));
-
-    // when(mockZetaSQLClient.extractTableNamesFromStatement(anything())).thenReturn(
-    //   Promise.resolve({ tableName: [{ tableNameSegment: INTERNAL_TABLE_NAME_PATH }] }),
-    // );
 
     when(mockBigQueryClient.getTableMetadata('dataset', 'table')).thenReturn(
       Promise.resolve({
@@ -83,7 +70,6 @@ describe('ProjectAnalyzer analyzeTable', () => {
       }),
     );
 
-    // when(mockZetaSqlParser.getAllFunctionCalls(COMPILED_SQL)).thenReturn(Promise.resolve([UDF_NAME_PATH]));
     when(mockBigQueryClient.getUdf(undefined, 'dataset', 'udf')).thenReturn(
       Promise.resolve({
         nameParts: UDF_NAME_PATH,
