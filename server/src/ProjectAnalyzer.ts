@@ -34,7 +34,7 @@ export class ProjectAnalyzer {
     for (const model of this.dbtRepository.models) {
       if (model.packageName === this.projectName) {
         console.log(model.uniqueId);
-        results.set(model.uniqueId, await this.analyzeModel(model, undefined, bigQueryTableFetcher));
+        results.set(model.uniqueId, await this.analyzeModel(model, bigQueryTableFetcher));
       }
     }
     [...results.entries()]
@@ -48,7 +48,7 @@ export class ProjectAnalyzer {
 
   async analyzeTable(fullFilePath: string, sql: string): Promise<Result<AnalyzeResponse__Output, string>> {
     const modelFetcher = new ModelFetcher(this.dbtRepository, fullFilePath);
-    return this.analyzeModel(await modelFetcher.getModel(), sql);
+    return this.analyzeModel(await modelFetcher.getModel(), new BigQueryTableFetcher(this.bigQueryClient), sql);
   }
 
   dispose(): void {
@@ -59,12 +59,12 @@ export class ProjectAnalyzer {
 
   private async analyzeModel(
     model: ManifestModel | undefined,
-    sql: string | undefined,
-    bigQueryTableFetcher?: BigQueryTableFetcher,
+    bigQueryTableFetcher: BigQueryTableFetcher,
+    sql?: string,
   ): Promise<Result<AnalyzeResponse__Output, string>> {
     await this.zetaSqlWrapper.registerAllLanguageFeatures();
     const upstreamError: UpstreamError = {};
-    const result = this.analyzeModelInternal(model, sql, bigQueryTableFetcher ?? new BigQueryTableFetcher(this.bigQueryClient), upstreamError);
+    const result = this.analyzeModelInternal(model, bigQueryTableFetcher, upstreamError, sql);
     if (
       upstreamError.path !== undefined &&
       upstreamError.error !== undefined &&
@@ -77,9 +77,9 @@ export class ProjectAnalyzer {
 
   private async analyzeModelInternal(
     model: ManifestModel | undefined,
-    sql: string | undefined,
     bigQueryTableFetcher: BigQueryTableFetcher,
     upstreamError: UpstreamError,
+    sql?: string,
   ): Promise<Result<AnalyzeResponse__Output, string>> {
     const compiledSql = sql ?? this.getCompiledSql(model);
     if (compiledSql === undefined) {
@@ -97,7 +97,7 @@ export class ProjectAnalyzer {
         if (refId) {
           const refModel = this.dbtRepository.models.find(m => m.uniqueId === refId);
           if (refModel) {
-            await this.analyzeModelInternal(refModel, undefined, bigQueryTableFetcher, upstreamError);
+            await this.analyzeModelInternal(refModel, bigQueryTableFetcher, upstreamError);
           } else {
             console.log("Can't find ref model by id");
           }
@@ -170,7 +170,7 @@ export class ProjectAnalyzer {
       if (dependsOnEphemeralModel) {
         const table = ProjectAnalyzer.createTableDefinition(dependsOnEphemeralModel);
         if (!this.zetaSqlWrapper.isTableRegistered(table)) {
-          await this.analyzeModelInternal(dependsOnEphemeralModel, undefined, bigQueryTableFetcher, upstreamError);
+          await this.analyzeModelInternal(dependsOnEphemeralModel, bigQueryTableFetcher, upstreamError);
         }
       }
     }
