@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.17.1 (01/01/1970)
+## Version 0.17.1 (20/12/2022)
 ## What's Changed
 * Fix compilation issue when project, dataset and table are enclosed in backticks (\`project.dataset.table\`).
 * Refresh credentials when they are expired for BigQuery oAuth authentication method.
