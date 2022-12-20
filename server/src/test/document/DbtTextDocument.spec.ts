@@ -3,9 +3,9 @@
 import { assertThat } from 'hamjest';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, Range, TextDocumentSaveReason, VersionedTextDocumentIdentifier } from 'vscode-languageserver';
+import { BigQueryContext } from '../../bigquery/BigQueryContext';
 import { DbtRepository } from '../../DbtRepository';
 import { Dbt } from '../../dbt_execution/Dbt';
-import { DestinationState } from '../../DestinationState';
 import { DbtDocumentKind } from '../../document/DbtDocumentKind';
 import { DbtTextDocument } from '../../document/DbtTextDocument';
 import { JinjaParser } from '../../JinjaParser';
@@ -52,7 +52,7 @@ describe('DbtTextDocument', () => {
       onGlobalDbtErrorFixedEmitter,
       new DbtRepository(),
       instance(mockDbt),
-      new DestinationState(),
+      new BigQueryContext(),
     );
   });
 

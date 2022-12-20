@@ -45,13 +45,13 @@ import {
 } from 'vscode-languageserver';
 import { FileOperationFilter } from 'vscode-languageserver-protocol/lib/common/protocol.fileOperations';
 import { URI } from 'vscode-uri';
+import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { DbtProfileCreator, DbtProfileInfo } from '../DbtProfileCreator';
 import { DbtProject } from '../DbtProject';
 import { DbtRepository } from '../DbtRepository';
 import { Dbt, DbtMode } from '../dbt_execution/Dbt';
 import { DbtCli } from '../dbt_execution/DbtCli';
 import { DbtRpc } from '../dbt_execution/DbtRpc';
-import { DestinationState } from '../DestinationState';
 import { DbtDocumentKind } from '../document/DbtDocumentKind';
 import { DbtDocumentKindResolver } from '../document/DbtDocumentKindResolver';
 import { DbtTextDocument } from '../document/DbtTextDocument';
@@ -83,7 +83,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
   dbtProject = new DbtProject('.');
 
-  destinationState = new DestinationState();
+  bigQueryContext = new BigQueryContext();
   dbt?: Dbt;
 
   constructor(connection: _Connection, featureFinder: FeatureFinder, private workspaceFolder: string) {
@@ -233,11 +233,12 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       await this.showWslWarning();
     }
 
-    const prepareDestination = profileResult.isErr()
-      ? this.destinationState.prepareDestinationStub()
-      : this.destinationState
-          .prepareBigQueryDestination(profileResult.value, this.dbtRepository, ubuntuInWslWorks, this.dbtProject.findProjectName())
-          .then((prepareResult: Result<void, string>) => (prepareResult.isErr() ? this.showCreateContextWarning(prepareResult.error) : undefined));
+    const destinationInitResult = profileResult.isOk()
+      ? this.bigQueryContext
+          .initialize(profileResult.value, this.dbtRepository, ubuntuInWslWorks, this.dbtProject.findProjectName())
+          .then((initResult: Result<void, string>) => (initResult.isErr() ? this.showCreateContextWarning(initResult.error) : undefined))
+      : Promise.resolve();
+
     const prepareDbt = this.dbt?.prepare(dbtProfileType).then(_ => this.statusSender.sendStatus());
 
     this.dbtRepository
@@ -245,7 +246,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       .then(() => this.notificationSender.sendLanguageServerManifestParsed())
       .catch(e => console.log(`Manifest was not parsed: ${e instanceof Error ? e.message : String(e)}`));
 
-    await Promise.allSettled([prepareDbt, prepareDestination]);
+    await Promise.allSettled([prepareDbt, destinationInitResult]);
 
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime, ubuntuInWslWorks);
@@ -381,7 +382,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
         this.onGlobalDbtErrorFixedEmitter,
         this.dbtRepository,
         this.dbt,
-        this.destinationState,
+        this.bigQueryContext,
       );
       this.openedDocuments.set(uri, document);
 
@@ -500,7 +501,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   dispose(): void {
     console.log('Dispose start...');
     this.dbt?.dispose();
-    this.destinationState.dispose();
+    this.bigQueryContext.dispose();
     this.onGlobalDbtErrorFixedEmitter.dispose();
     console.log('Dispose end.');
   }
