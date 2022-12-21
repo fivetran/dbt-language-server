@@ -68,7 +68,17 @@ export class BigQueryContext {
   }
 
   async analyzeTable(fullFilePath: string, sql: string): Promise<Result<AnalyzeResponse__Output, string>> {
-    return this.projectAnalyzer?.analyzeTable(fullFilePath, sql) ?? err('Project analyzer is not initialized');
+    if (!this.projectAnalyzer) {
+      throw new Error('projectAnalyzer is not initialized');
+    }
+    return this.projectAnalyzer.analyzeTable(fullFilePath, sql);
+  }
+
+  async analyzeProject(): Promise<Map<string, Result<AnalyzeResponse__Output, string>>> {
+    if (!this.projectAnalyzer) {
+      throw new Error('projectAnalyzer is not initialized');
+    }
+    return this.projectAnalyzer.analyzeProject();
   }
 
   dispose(): void {

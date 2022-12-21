@@ -61,11 +61,10 @@ export class DbtRpc extends Dbt {
           );
         }
       }
-      this.doInitialCompile().catch(e => console.log(`Error while compiling project: ${e instanceof Error ? e.message : String(e)}`));
     }
   }
 
-  async doInitialCompile(): Promise<void> {
+  async compileProject(): Promise<void> {
     // Compilation can be started for a short time after the server receives a SIGHUP signal
     await this.dbtRpcServer.ensureCompilationFinished();
 

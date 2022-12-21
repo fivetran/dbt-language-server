@@ -240,6 +240,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       : Promise.resolve();
 
     const prepareDbt = this.dbt?.prepare(dbtProfileType).then(_ => this.statusSender.sendStatus());
+    this.compileAndAnalyzeProject().catch(e => console.log(`Error while compiling/analyzing project: ${e instanceof Error ? e.message : String(e)}`));
 
     this.dbtRepository
       .manifestParsed()
@@ -254,6 +255,18 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     this.featureFinder
       .runPostInitTasks()
       .catch(e => console.log(`Error while running post init tasks: ${e instanceof Error ? e.message : String(e)}`));
+  }
+
+  async compileAndAnalyzeProject(): Promise<void> {
+    await this.dbt?.compileProject();
+    const analyzeResults = await this.bigQueryContext.analyzeProject();
+    [...analyzeResults.entries()]
+      .filter(e => e[1].isErr())
+      .forEach(e => {
+        if (e[1].isErr()) {
+          console.log(`${e[0]}: ${e[1].error}`);
+        }
+      });
   }
 
   registerClientNotification(): void {

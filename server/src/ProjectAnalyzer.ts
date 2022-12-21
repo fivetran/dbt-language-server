@@ -28,22 +28,17 @@ export class ProjectAnalyzer {
     await this.zetaSqlWrapper.initializeZetaSql();
   }
 
-  async analyzeProject(): Promise<void> {
+  async analyzeProject(): Promise<Map<string, Result<AnalyzeResponse__Output, string>>> {
+    console.log('Project analysis started...');
     const bigQueryTableFetcher = new BigQueryTableFetcher(this.bigQueryClient);
     const results: Map<string, Result<AnalyzeResponse__Output, string>> = new Map();
     for (const model of this.dbtRepository.models) {
       if (model.packageName === this.projectName) {
-        console.log(model.uniqueId);
         results.set(model.uniqueId, await this.analyzeModel(model, bigQueryTableFetcher));
       }
     }
-    [...results.entries()]
-      .filter(e => e[1].isErr())
-      .forEach(e => {
-        if (e[1].isErr()) {
-          console.log(`${e[0]}: ${e[1].error}`);
-        }
-      });
+    console.log('Project analysis completed');
+    return results;
   }
 
   async analyzeTable(fullFilePath: string, sql: string): Promise<Result<AnalyzeResponse__Output, string>> {

@@ -49,14 +49,14 @@ export class DbtCli extends Dbt {
         this.onRpcServerFindFailed();
       }
     }
-
-    await this.compile().catch(e => {
-      console.log(`Error while compiling project: ${e instanceof Error ? e.message : String(e)}`);
-    });
   }
 
   createCompileJob(modelPath: string, dbtRepository: DbtRepository, allowFallback: boolean): DbtCompileJob {
     return new DbtCliCompileJob(modelPath, dbtRepository, allowFallback, this);
+  }
+
+  async compileProject(): Promise<void> {
+    await this.compile();
   }
 
   async deps(): Promise<void> {
