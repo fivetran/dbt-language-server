@@ -52,18 +52,21 @@ import { DbtRepository } from '../DbtRepository';
 import { Dbt, DbtMode } from '../dbt_execution/Dbt';
 import { DbtCli } from '../dbt_execution/DbtCli';
 import { DbtRpc } from '../dbt_execution/DbtRpc';
+import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
 import { DbtDocumentKind } from '../document/DbtDocumentKind';
 import { DbtDocumentKindResolver } from '../document/DbtDocumentKindResolver';
 import { DbtTextDocument } from '../document/DbtTextDocument';
 import { FeatureFinder } from '../feature_finder/FeatureFinder';
 import { FileChangeListener } from '../FileChangeListener';
+import { HoverProvider } from '../HoverProvider';
 import { JinjaParser } from '../JinjaParser';
 import { LogLevel } from '../Logger';
 import { ManifestParser } from '../manifest/ManifestParser';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProcessExecutor } from '../ProcessExecutor';
 import { ProgressReporter } from '../ProgressReporter';
+import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { DbtProjectStatusSender } from '../status_bar/DbtProjectStatusSender';
 import { LspServerBase } from './LspServerBase';
 
@@ -81,6 +84,9 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   dbtRepository = new DbtRepository();
   dbtDocumentKindResolver = new DbtDocumentKindResolver(this.dbtRepository);
   diagnosticGenerator = new DiagnosticGenerator(this.dbtRepository);
+  dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
+  signatureHelpProvider = new SignatureHelpProvider();
+  hoverProvider = new HoverProvider();
   initStart = performance.now();
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
   dbtProject = new DbtProject('.');
@@ -399,6 +405,9 @@ export class LspServer extends LspServerBase<FeatureFinder> {
         this.dbt,
         this.bigQueryContext,
         this.diagnosticGenerator,
+        this.signatureHelpProvider,
+        this.hoverProvider,
+        this.dbtDefinitionProvider,
       );
       this.openedDocuments.set(uri, document);
 

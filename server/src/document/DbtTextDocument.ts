@@ -51,11 +51,7 @@ export class DbtTextDocument {
   requireCompileOnSave: boolean;
 
   ast?: AnalyzeResponse;
-  signatureHelpProvider = new SignatureHelpProvider();
   completionProvider: CompletionProvider;
-  dbtDefinitionProvider: DbtDefinitionProvider;
-
-  hoverProvider = new HoverProvider();
 
   currentDbtError?: string;
   firstSave = true;
@@ -76,11 +72,13 @@ export class DbtTextDocument {
     private dbt: Dbt,
     private bigQueryContext: BigQueryContext,
     private diagnosticGenerator: DiagnosticGenerator,
+    private signatureHelpProvider: SignatureHelpProvider,
+    private hoverProvider: HoverProvider,
+    private dbtDefinitionProvider: DbtDefinitionProvider,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.completionProvider = new CompletionProvider(this.rawDocument, this.compiledDocument, this.dbtRepository, this.jinjaParser, bigQueryContext);
-    this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
     this.requireCompileOnSave = false;
 
     this.modelCompiler.onCompilationError(this.onCompilationError.bind(this));

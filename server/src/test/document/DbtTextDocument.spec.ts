@@ -6,13 +6,16 @@ import { Emitter, Range, TextDocumentSaveReason, VersionedTextDocumentIdentifier
 import { BigQueryContext } from '../../bigquery/BigQueryContext';
 import { DbtRepository } from '../../DbtRepository';
 import { Dbt } from '../../dbt_execution/Dbt';
+import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
 import { DiagnosticGenerator } from '../../DiagnosticGenerator';
 import { DbtDocumentKind } from '../../document/DbtDocumentKind';
 import { DbtTextDocument } from '../../document/DbtTextDocument';
+import { HoverProvider } from '../../HoverProvider';
 import { JinjaParser } from '../../JinjaParser';
 import { ModelCompiler } from '../../ModelCompiler';
 import { NotificationSender } from '../../NotificationSender';
 import { ProgressReporter } from '../../ProgressReporter';
+import { SignatureHelpProvider } from '../../SignatureHelpProvider';
 import { sleep } from '../helper';
 
 describe('DbtTextDocument', () => {
@@ -56,6 +59,9 @@ describe('DbtTextDocument', () => {
       instance(mockDbt),
       new BigQueryContext(),
       new DiagnosticGenerator(dbtRepository),
+      new SignatureHelpProvider(),
+      new HoverProvider(),
+      new DbtDefinitionProvider(dbtRepository),
     );
   });
 
