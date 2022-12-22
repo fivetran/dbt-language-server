@@ -60,7 +60,7 @@ export class DiagnosticGenerator {
     return [rawDocDiagnostics, compiledDocDiagnostics];
   }
 
-  createErrorDiagnostics(
+  private createErrorDiagnostics(
     error: string,
     rawDocText: string,
     compiledDocText: string,
@@ -82,7 +82,7 @@ export class DiagnosticGenerator {
     }
   }
 
-  createInformationDiagnostics(
+  private createInformationDiagnostics(
     ast: AnalyzeResponse__Output,
     rawDocument: TextDocument,
     compiledDocument: TextDocument,
@@ -104,7 +104,7 @@ export class DiagnosticGenerator {
     }
   }
 
-  createInformationDiagnostic(range: Range, newText: string): Diagnostic {
+  private createInformationDiagnostic(range: Range, newText: string): Diagnostic {
     return {
       severity: DiagnosticSeverity.Information,
       range,
@@ -135,7 +135,7 @@ export class DiagnosticGenerator {
     };
   }
 
-  extendRangeIfSmall(range: Range): Range {
+  private extendRangeIfSmall(range: Range): Range {
     if (range.start.line === range.end.line && range.end.character === range.start.character + 1) {
       if (range.start.character > 0) {
         range.start.character -= 1;
