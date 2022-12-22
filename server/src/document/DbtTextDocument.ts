@@ -321,11 +321,9 @@ export class DbtTextDocument {
         console.log(`There was an error while parsing ${fsPath}`, LogLevel.Debug);
         console.log(astResult, LogLevel.Debug);
       }
-      [rawDocDiagnostics, compiledDocDiagnostics] = this.diagnosticGenerator.getDiagnosticsFromAst(
-        astResult,
-        this.rawDocument,
-        this.compiledDocument,
-      );
+      const diagnostics = this.diagnosticGenerator.getDiagnosticsFromAst(astResult, this.rawDocument, this.compiledDocument);
+      rawDocDiagnostics = diagnostics.raw;
+      compiledDocDiagnostics = diagnostics.compiled;
     }
 
     return [rawDocDiagnostics, compiledDocDiagnostics];
