@@ -51,12 +51,20 @@ export class DbtCli extends Dbt {
     }
   }
 
-  createCompileJob(modelPath: string, dbtRepository: DbtRepository, allowFallback: boolean): DbtCompileJob {
+  createCompileJob(modelPath: string | undefined, dbtRepository: DbtRepository, allowFallback: boolean): DbtCompileJob {
     return new DbtCliCompileJob(modelPath, dbtRepository, allowFallback, this);
   }
 
-  async compileProject(): Promise<void> {
-    await this.compile();
+  async compileProject(dbtRepository: DbtRepository): Promise<void> {
+    const job = this.createCompileJob(undefined, dbtRepository, false);
+    console.log('Starting project compilation');
+    const result = await job.start();
+
+    if (result.isOk()) {
+      console.log('Project compiled successfully');
+    } else {
+      console.log(`There was an error while project compilation ${result.error}`);
+    }
   }
 
   async deps(): Promise<void> {

@@ -240,7 +240,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       : Promise.resolve();
 
     const prepareDbt = this.dbt?.prepare(dbtProfileType).then(_ => this.statusSender.sendStatus());
-    this.compileAndAnalyzeProject().catch(e => console.log(`Error while compiling/analyzing project: ${e instanceof Error ? e.message : String(e)}`));
 
     this.dbtRepository
       .manifestParsed()
@@ -248,6 +247,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       .catch(e => console.log(`Manifest was not parsed: ${e instanceof Error ? e.message : String(e)}`));
 
     await Promise.allSettled([prepareDbt, destinationInitResult]);
+    this.compileAndAnalyzeProject().catch(e => console.log(`Error while compiling/analyzing project: ${e instanceof Error ? e.message : String(e)}`));
 
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime, ubuntuInWslWorks);
@@ -258,7 +258,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   }
 
   async compileAndAnalyzeProject(): Promise<void> {
-    await this.dbt?.compileProject();
+    await this.dbt?.compileProject(this.dbtRepository);
     const analyzeResults = await this.bigQueryContext.analyzeProject();
     [...analyzeResults.entries()]
       .filter(e => e[1].isErr())

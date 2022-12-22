@@ -8,19 +8,22 @@ import { DbtCompileJob } from './DbtCompileJob';
 
 export class DbtCliCompileJob extends DbtCompileJob {
   static COMPILE_MODEL_TIMEOUT_MS = 30_000;
+  static COMPILE_PROJECT_TIMEOUT_MS = 100_000;
   static COMPILE_MODEL_TIMEOUT_EXCEEDED = 'dbt compile timeout exceeded';
 
   private process?: ChildProcess;
+
   result?: Result<string, string>;
 
-  constructor(modelPath: string, dbtRepository: DbtRepository, allowFallback: boolean, private dbtCli: DbtCli) {
-    super(modelPath, dbtRepository, allowFallback);
+  /** If modelPath === undefined then we compile project */
+  constructor(private modelPath: string | undefined, private dbtRepository: DbtRepository, private allowFallback: boolean, private dbtCli: DbtCli) {
+    super();
   }
 
-  async start(): Promise<void> {
+  async start(): Promise<Result<undefined, string>> {
     if (!this.allowFallback) {
       this.result = ok(DbtCompileJob.NO_RESULT_FROM_COMPILER);
-      return;
+      return ok(undefined);
     }
 
     const promise = this.dbtCli.compile(this.modelPath);
@@ -32,23 +35,30 @@ export class DbtCliCompileJob extends DbtCompileJob {
     ).child;
 
     try {
-      await runWithTimeout(promise, DbtCliCompileJob.COMPILE_MODEL_TIMEOUT_MS, DbtCliCompileJob.COMPILE_MODEL_TIMEOUT_EXCEEDED);
+      await runWithTimeout(
+        promise,
+        this.modelPath ? DbtCliCompileJob.COMPILE_MODEL_TIMEOUT_MS : DbtCliCompileJob.COMPILE_PROJECT_TIMEOUT_MS,
+        DbtCliCompileJob.COMPILE_MODEL_TIMEOUT_EXCEEDED,
+      );
     } catch (e: unknown) {
       if (e instanceof Object && 'stdout' in e) {
         const error = e as ExecException & { stdout?: string; stderr?: string };
-        this.result = err(error.stdout ? this.extractDbtError(error.stdout) : error.message);
+        this.result = err(error.stdout ? DbtCompileJob.extractDbtError(error.stdout) : error.message);
       } else {
         this.result = err(e instanceof Error ? e.message : String(e));
       }
-      return;
+      return err(this.result.error);
     }
 
-    await this.findResultFromFile();
+    if (this.modelPath) {
+      await this.findResultFromFile(this.modelPath, this.dbtRepository);
+    }
+    return ok(undefined);
   }
 
-  private async findResultFromFile(): Promise<void> {
+  private async findResultFromFile(modelPath: string, dbtRepository: DbtRepository): Promise<void> {
     try {
-      const compiledPath = await this.findCompiledFilePath();
+      const compiledPath = await DbtCompileJob.findCompiledFilePath(modelPath, dbtRepository);
       const sql = this.getCompiledSql(compiledPath);
 
       this.result = sql ? ok(sql) : err('Compiled file not found');
@@ -66,7 +76,7 @@ export class DbtCliCompileJob extends DbtCompileJob {
     return this.process?.exitCode === null ? undefined : this.result;
   }
 
-  protected getCompiledSql(filePath: string): string | undefined {
+  private getCompiledSql(filePath: string): string | undefined {
     try {
       return fs.readFileSync(filePath, 'utf8');
     } catch {
