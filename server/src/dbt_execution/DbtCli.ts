@@ -56,7 +56,7 @@ export class DbtCli extends Dbt {
   }
 
   async compileProject(dbtRepository: DbtRepository): Promise<void> {
-    const job = this.createCompileJob(undefined, dbtRepository, false);
+    const job = this.createCompileJob(undefined, dbtRepository, true);
     console.log('Starting project compilation');
     const result = await job.start();
 
