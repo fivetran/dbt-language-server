@@ -10,10 +10,11 @@ import { PositionConverter } from './PositionConverter';
 import { SqlRefConverter } from './SqlRefConverter';
 import { getIdentifierRangeAtPosition } from './utils/Utils';
 
-export interface RawAndCompiledDiagnostics {
+interface RawAndCompiledDiagnostics {
   raw: Diagnostic[];
   compiled: Diagnostic[];
 }
+
 export class DiagnosticGenerator {
   private static readonly DBT_ERROR_LINE_PATTERN = /\n\s*line (\d+)\s*\n/;
   private static readonly DBT_COMPILATION_ERROR_PATTERN = /(Compilation Error in model \w+ \((.*)\)(?:\r\n?|\n).*)(?:\r\n?|\n)/;

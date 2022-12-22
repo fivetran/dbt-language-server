@@ -55,7 +55,6 @@ export class DbtTextDocument {
   completionProvider: CompletionProvider;
   dbtDefinitionProvider: DbtDefinitionProvider;
 
-  diagnosticGenerator: DiagnosticGenerator;
   hoverProvider = new HoverProvider();
 
   currentDbtError?: string;
@@ -76,10 +75,10 @@ export class DbtTextDocument {
     private dbtRepository: DbtRepository,
     private dbt: Dbt,
     private bigQueryContext: BigQueryContext,
+    private diagnosticGenerator: DiagnosticGenerator,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
-    this.diagnosticGenerator = new DiagnosticGenerator(this.dbtRepository);
     this.completionProvider = new CompletionProvider(this.rawDocument, this.compiledDocument, this.dbtRepository, this.jinjaParser, bigQueryContext);
     this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
     this.requireCompileOnSave = false;

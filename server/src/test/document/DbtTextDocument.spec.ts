@@ -6,6 +6,7 @@ import { Emitter, Range, TextDocumentSaveReason, VersionedTextDocumentIdentifier
 import { BigQueryContext } from '../../bigquery/BigQueryContext';
 import { DbtRepository } from '../../DbtRepository';
 import { Dbt } from '../../dbt_execution/Dbt';
+import { DiagnosticGenerator } from '../../DiagnosticGenerator';
 import { DbtDocumentKind } from '../../document/DbtDocumentKind';
 import { DbtTextDocument } from '../../document/DbtTextDocument';
 import { JinjaParser } from '../../JinjaParser';
@@ -41,6 +42,7 @@ describe('DbtTextDocument', () => {
     when(mockDbt.dbtReady).thenReturn(true);
     when(mockDbt.onDbtReady).thenReturn(onDbtReadyEmitter.event);
 
+    const dbtRepository = new DbtRepository();
     document = new DbtTextDocument(
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
       DbtDocumentKind.MODEL,
@@ -50,9 +52,10 @@ describe('DbtTextDocument', () => {
       instance(mockModelCompiler),
       instance(mockJinjaParser),
       onGlobalDbtErrorFixedEmitter,
-      new DbtRepository(),
+      dbtRepository,
       instance(mockDbt),
       new BigQueryContext(),
+      new DiagnosticGenerator(dbtRepository),
     );
   });
 

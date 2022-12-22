@@ -52,6 +52,7 @@ import { DbtRepository } from '../DbtRepository';
 import { Dbt, DbtMode } from '../dbt_execution/Dbt';
 import { DbtCli } from '../dbt_execution/DbtCli';
 import { DbtRpc } from '../dbt_execution/DbtRpc';
+import { DiagnosticGenerator } from '../DiagnosticGenerator';
 import { DbtDocumentKind } from '../document/DbtDocumentKind';
 import { DbtDocumentKindResolver } from '../document/DbtDocumentKindResolver';
 import { DbtTextDocument } from '../document/DbtTextDocument';
@@ -79,6 +80,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   manifestParser = new ManifestParser();
   dbtRepository = new DbtRepository();
   dbtDocumentKindResolver = new DbtDocumentKindResolver(this.dbtRepository);
+  diagnosticGenerator = new DiagnosticGenerator(this.dbtRepository);
   initStart = performance.now();
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
   dbtProject = new DbtProject('.');
@@ -396,6 +398,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
         this.dbtRepository,
         this.dbt,
         this.bigQueryContext,
+        this.diagnosticGenerator,
       );
       this.openedDocuments.set(uri, document);
 
