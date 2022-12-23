@@ -5,12 +5,16 @@ export class NotificationSender {
   constructor(private connection: _Connection) {}
 
   sendDiagnostics(uri: string, rawDiagnostics: Diagnostic[], compiledDiagnostics: Diagnostic[]): void {
-    this.sendDiagnosticsInternal({ uri, diagnostics: rawDiagnostics });
+    this.sendRawDiagnostics({ uri, diagnostics: rawDiagnostics });
     this.sendNotification('custom/updateQueryPreviewDiagnostics', { uri, diagnostics: compiledDiagnostics });
   }
 
   clearDiagnostics(uri: string): void {
-    this.sendDiagnosticsInternal({ uri, diagnostics: [] });
+    this.sendRawDiagnostics({ uri, diagnostics: [] });
+  }
+
+  sendRawDiagnostics(params: PublishDiagnosticsParams): void {
+    this.connection.sendDiagnostics(params).catch(e => console.log(`Failed to send diagnostics: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   sendLanguageServerManifestParsed(): void {
@@ -48,9 +52,5 @@ export class NotificationSender {
     this.connection
       .sendNotification(method, params)
       .catch(e => console.log(`Failed to send ${method} notification: ${e instanceof Error ? e.message : String(e)}`));
-  }
-
-  private sendDiagnosticsInternal(params: PublishDiagnosticsParams): void {
-    this.connection.sendDiagnostics(params).catch(e => console.log(`Failed to send diagnostics: ${e instanceof Error ? e.message : String(e)}`));
   }
 }

@@ -17,7 +17,6 @@ import {
   DefinitionLink,
   DefinitionParams,
   DeleteFilesParams,
-  Diagnostic,
   DidChangeConfigurationNotification,
   DidChangeTextDocumentParams,
   DidChangeWatchedFilesNotification,
@@ -269,27 +268,19 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   async compileAndAnalyzeProject(): Promise<void> {
     await this.dbt?.compileProject(this.dbtRepository);
     const analyzeResults = await this.bigQueryContext.analyzeProject();
-    const diagnostics: Diagnostic[] = [];
     for (const [uniqueId, result] of analyzeResults.entries()) {
       if (result.isErr()) {
         const model = this.dbtRepository.models.find(m => m.uniqueId === uniqueId);
         if (model) {
-          // const rawPath = this.dbtRepository.getModelRawSqlPath(model);
           const { rawSql, compiledSql } = model;
           if (rawSql && compiledSql) {
-            diagnostics.push(...this.diagnosticGenerator.getSqlErrorDiagnostics(result.error, rawSql, compiledSql).raw);
+            const uri = URI.file(this.dbtRepository.getModelRawSqlPath(model)).toString();
+            const diagnostics = this.diagnosticGenerator.getSqlErrorDiagnostics(result.error, rawSql, compiledSql).raw;
+            this.notificationSender.sendRawDiagnostics({ uri, diagnostics });
           }
         }
       }
     }
-    console.log(diagnostics.length);
-    [...analyzeResults.entries()]
-      .filter(e => e[1].isErr())
-      .forEach(e => {
-        if (e[1].isErr()) {
-          console.log(`${e[0]}: ${e[1].error}`);
-        }
-      });
   }
 
   registerClientNotification(): void {
