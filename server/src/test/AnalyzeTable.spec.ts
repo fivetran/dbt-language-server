@@ -49,6 +49,7 @@ describe('ProjectAnalyzer analyzeTable', () => {
         },
       },
     ]);
+    when(mockDbtRepository.getModelRawSqlPath(objectContaining({ originalFilePath: ORIGINAL_FILE_PATH }))).thenReturn(FILE_PATH);
 
     when(mockSqlHeaderAnalyzer.getAllFunctionDeclarations(anything(), anything(), anything())).thenReturn(Promise.resolve([]));
 
