@@ -192,7 +192,7 @@ jobs:
         run: | # https://github.com/dbt-labs/dbt-core/issues/4745
           ${PYTHON_INSTALL_LOC} -m venv ~/dbt_1_2_2_env
           ${{ matrix.activate-venv }}
-          python -m pip install werkzeug==2.1.2 MarkupSafe==2.0.1 dbt-core==1.2.2 dbt-bigquery==1.2.0 dbt-rpc==0.1.2
+          python -m pip install dbt-bigquery==1.2.0 dbt-rpc==0.1.2
           python -m pip list | grep dbt
           dbt --version
         env:
