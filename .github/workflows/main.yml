@@ -93,13 +93,13 @@ jobs:
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
-            python-version: '3.9.12'
+            python-version: '3.7.9'
 
           - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres dbt-rpc==0.2.1'
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
-            python-version: '3.9.12'
+            python-version: '3.7.9'
 
           - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres'
             os: macos-latest
@@ -115,7 +115,7 @@ jobs:
               Xvfb -ac :99 -screen 0 1280x1024x16 &
               export DISPLAY=:99
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
-            python-version: '3.9.12'
+            python-version: '3.7.9'
             SKIP_TESTS: 'vscode_commands.spec.js'
 
           - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres'
