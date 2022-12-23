@@ -9,6 +9,8 @@ interface ManifestNode {
 export interface ManifestModel extends ManifestNode {
   database: string;
   schema: string;
+  rawSql: string;
+  compiledSql: string;
   dependsOn: {
     nodes: string[];
   };

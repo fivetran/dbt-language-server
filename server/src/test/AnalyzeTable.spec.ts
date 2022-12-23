@@ -40,6 +40,8 @@ describe('ProjectAnalyzer analyzeTable', () => {
         originalFilePath: ORIGINAL_FILE_PATH,
         database: 'db',
         schema: 'schema',
+        rawSql: 'raw_sql',
+        compiledSql: 'compiled_sql',
         dependsOn: {
           nodes: [],
         },
