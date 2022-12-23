@@ -7,7 +7,7 @@
   "devDependencies": {
     "@google-cloud/bigquery": "^6.0.3",
     "@types/glob": "^8.0.0",
-    "@types/pg": "^8.6.5",
+    "@types/pg": "^8.6.6",
     "@types/vscode": "^1.74.0",
     "@vscode/test-electron": "^2.2.1",
     "clipboardy": "^2.3.0",
