@@ -170,7 +170,7 @@ export class ProjectAnalyzer {
   }
 
   private getCompiledSql(model?: ManifestModel): string | undefined {
-    return model ? this.dbtRepository.getModelCompiledSql(model) : undefined;
+    return model ? model.compiledSql : undefined;
   }
 
   private getTableRefUniqueId(model: ManifestModel | undefined, name: string): string | undefined {
