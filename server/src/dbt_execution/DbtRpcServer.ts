@@ -21,6 +21,7 @@ export class DbtRpcServer {
     console.log(`Starting dbt-rpc: ${command.toString()}`);
     return new Promise((resolve, reject) => {
       const promiseWithChild = DbtRpcServer.DBT_COMMAND_EXECUTOR.execute(command, async (data: string) => {
+        console.log(`Data: ${data}\n\n`);
         if (!started) {
           if (!this.rpcPid) {
             const matchResults = data.match(/"process": (\d*)/);
