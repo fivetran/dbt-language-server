@@ -17,6 +17,7 @@ import {
   DefinitionLink,
   DefinitionParams,
   DeleteFilesParams,
+  Diagnostic,
   DidChangeConfigurationNotification,
   DidChangeTextDocumentParams,
   DidChangeWatchedFilesNotification,
@@ -268,6 +269,21 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   async compileAndAnalyzeProject(): Promise<void> {
     await this.dbt?.compileProject(this.dbtRepository);
     const analyzeResults = await this.bigQueryContext.analyzeProject();
+    const diagnostics: Diagnostic[] = [];
+    for (const [uniqueId, result] of analyzeResults.entries()) {
+      if (result.isErr()) {
+        const model = this.dbtRepository.models.find(m => m.uniqueId === uniqueId);
+        if (model) {
+          // const rawPath = this.dbtRepository.getModelRawSqlPath(model);
+          const rawSql = this.dbtRepository.getModelRawSql(model);
+          const compiledSql = this.dbtRepository.getModelCompiledSql(model);
+          if (rawSql && compiledSql) {
+            diagnostics.push(...this.diagnosticGenerator.getSqlErrorDiagnostics(result.error, rawSql, compiledSql).raw);
+          }
+        }
+      }
+    }
+    console.log(diagnostics.length);
     [...analyzeResults.entries()]
       .filter(e => e[1].isErr())
       .forEach(e => {

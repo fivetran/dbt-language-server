@@ -1,6 +1,5 @@
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { err, Result } from 'neverthrow';
-import * as fs from 'node:fs';
 import { BigQueryClient } from './bigquery/BigQueryClient';
 import { BigQueryTableFetcher } from './BigQueryTableFetcher';
 import { DbtRepository } from './DbtRepository';
@@ -9,7 +8,6 @@ import { ManifestModel } from './manifest/ManifestJson';
 import { ModelFetcher } from './ModelFetcher';
 import { TableDefinition } from './TableDefinition';
 import { ZetaSqlWrapper } from './ZetaSqlWrapper';
-import path = require('node:path');
 
 interface UpstreamError {
   error?: string;
@@ -63,7 +61,7 @@ export class ProjectAnalyzer {
     if (
       upstreamError.path !== undefined &&
       upstreamError.error !== undefined &&
-      (!model || upstreamError.path !== path.join(model.rootPath, model.originalFilePath))
+      (!model || upstreamError.path !== this.dbtRepository.getModelRawSqlPath(model))
     ) {
       console.log(`Upstream error in file ${upstreamError.path}: ${upstreamError.error}`);
     }
@@ -138,7 +136,7 @@ export class ProjectAnalyzer {
     } else if (!upstreamError.error) {
       upstreamError.error = ast.error;
       if (model) {
-        upstreamError.path = path.join(model.rootPath, model.originalFilePath);
+        upstreamError.path = this.dbtRepository.getModelRawSqlPath(model);
       }
     }
 
@@ -172,16 +170,7 @@ export class ProjectAnalyzer {
   }
 
   private getCompiledSql(model?: ManifestModel): string | undefined {
-    if (!model) {
-      return undefined;
-    }
-    const compiledPath = this.dbtRepository.getModelCompiledPath(model);
-    try {
-      return fs.readFileSync(compiledPath, 'utf8');
-    } catch {
-      console.log(`Cannot read ${compiledPath}`);
-      return undefined;
-    }
+    return model ? this.dbtRepository.getModelCompiledSql(model) : undefined;
   }
 
   private getTableRefUniqueId(model: ManifestModel | undefined, name: string): string | undefined {

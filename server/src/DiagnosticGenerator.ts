@@ -60,14 +60,14 @@ export class DiagnosticGenerator {
         result = this.createInformationDiagnostics(ast, rawDocument, compiledDocument);
       },
       error => {
-        result = this.createErrorDiagnostics(error, rawDocument.getText(), compiledDocument.getText());
+        result = this.getSqlErrorDiagnostics(error, rawDocument.getText(), compiledDocument.getText());
       },
     );
 
     return result;
   }
 
-  private createErrorDiagnostics(error: string, rawDocText: string, compiledDocText: string): RawAndCompiledDiagnostics {
+  getSqlErrorDiagnostics(error: string, rawDocText: string, compiledDocText: string): RawAndCompiledDiagnostics {
     const result: RawAndCompiledDiagnostics = { raw: [], compiled: [] };
     // Parse string like 'Unrecognized name: paused1; Did you mean paused? [at 9:3]'
     const matchResults = error.match(DiagnosticGenerator.SQL_COMPILATION_ERROR_PATTERN);

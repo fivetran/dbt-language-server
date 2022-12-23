@@ -1,4 +1,3 @@
-import * as path from 'node:path';
 import { DefinitionLink, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
@@ -80,7 +79,7 @@ export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
 
   createLocationLink(manifestModel: ManifestModel, targetSelectionRange: Range, originSelectionRange: Range): LocationLink {
     return LocationLink.create(
-      URI.file(path.join(manifestModel.rootPath, manifestModel.originalFilePath)).toString(),
+      URI.file(this.dbtRepository.getModelRawSqlPath(manifestModel)).toString(),
       DbtDefinitionProvider.MAX_RANGE,
       targetSelectionRange,
       originSelectionRange,
