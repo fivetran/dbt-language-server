@@ -115,7 +115,7 @@ jobs:
               Xvfb -ac :99 -screen 0 1280x1024x16 &
               export DISPLAY=:99
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
-            python-version: '3.7.9'
+            python-version: '3.9.12'
             SKIP_TESTS: 'vscode_commands.spec.js'
 
           # - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres'
@@ -192,7 +192,7 @@ jobs:
         run: | # https://github.com/dbt-labs/dbt-core/issues/4745
           ${PYTHON_INSTALL_LOC} -m venv ~/dbt_1_2_2_env
           ${{ matrix.activate-venv }}
-          python -m pip install dbt-bigquery==1.2.0 dbt-rpc==0.1.2
+          python -m pip install json-rpc==1.13.0 dbt-bigquery==1.2.0 dbt-rpc==0.1.2
           python -m pip list | grep dbt
           dbt --version
         env:
