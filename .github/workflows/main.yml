@@ -89,13 +89,13 @@ jobs:
       fail-fast: false
       matrix:
         include: # Run tests on latest version and version used in https://github.com/fivetran/analytics/blob/main/dbt_ft_prod/deployment.yml#L1
-          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-core==1.0.4 dbt-bigquery==1.0.0 dbt-postgres==1.0.4 dbt-rpc'
+          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install json-rpc==1.13.0 dbt-core==1.0.4 dbt-bigquery==1.0.0 dbt-postgres==1.0.4 dbt-rpc'
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
             python-version: '3.7.9'
 
-          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres dbt-rpc==0.2.1'
+          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install json-rpc==1.13.0 dbt-bigquery dbt-postgres dbt-rpc==0.2.1'
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
@@ -108,7 +108,7 @@ jobs:
           #   use-dbt-cli: true
           #   SKIP_TESTS: 'certain_version.spec.js'
 
-          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres dbt-rpc==0.2.1'
+          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install json-rpc==1.13.0 dbt-bigquery dbt-postgres dbt-rpc==0.2.1'
             os: ubuntu-latest
             target: linux-x64
             prepare-for-tests: |
