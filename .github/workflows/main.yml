@@ -27,8 +27,8 @@ jobs:
             target: linux-arm64
             zetasql-lib: libremote_server_arm.so
 
-          # - os: windows-latest
-          #   target: win32-x64
+          - os: windows-latest
+            target: win32-x64
 
     runs-on: ${{ matrix.os }}
     defaults:
@@ -93,20 +93,20 @@ jobs:
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
-            python-version: '3.7.9'
+            python-version: '3.9.12'
 
           - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install json-rpc==1.13.0 dbt-bigquery dbt-postgres dbt-rpc==0.2.1'
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
-            python-version: '3.7.9'
+            python-version: '3.9.12'
 
-          # - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres'
-          #   os: macos-latest
-          #   target: darwin-x64
-          #   python-version: '3.10.5'
-          #   use-dbt-cli: true
-          #   SKIP_TESTS: 'certain_version.spec.js'
+          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres'
+            os: macos-latest
+            target: darwin-x64
+            python-version: '3.10.5'
+            use-dbt-cli: true
+            SKIP_TESTS: 'certain_version.spec.js'
 
           - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install json-rpc==1.13.0 dbt-bigquery dbt-postgres dbt-rpc==0.2.1'
             os: ubuntu-latest
@@ -118,21 +118,21 @@ jobs:
             python-version: '3.9.12'
             SKIP_TESTS: 'vscode_commands.spec.js'
 
-          # - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres'
-          #   os: windows-latest
-          #   target: win32-x64
-          #   add-colon-to-key-file-path: |
-          #     homedir=c:/${homedir#*c/}
-          #     python=${homedir}/dbt_1_2_2_env/Scripts/python
-          #     cat <<EOT > ${GITHUB_WORKSPACE}/e2e/projects/special-python-settings/.vscode/settings.json
-          #     {
-          #       "python.defaultInterpreterPath": "${python}"
-          #     }
-          #     EOT
-          #   activate-venv: |
-          #     cd ~/dbt_1_2_2_env/Scripts
-          #     . activate
-          #   python-version: '3.10.7'
+          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres'
+            os: windows-latest
+            target: win32-x64
+            add-colon-to-key-file-path: |
+              homedir=c:/${homedir#*c/}
+              python=${homedir}/dbt_1_2_2_env/Scripts/python
+              cat <<EOT > ${GITHUB_WORKSPACE}/e2e/projects/special-python-settings/.vscode/settings.json
+              {
+                "python.defaultInterpreterPath": "${python}"
+              }
+              EOT
+            activate-venv: |
+              cd ~/dbt_1_2_2_env/Scripts
+              . activate
+            python-version: '3.10.7'
 
     name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.python-version }} ${{ matrix.use-dbt-cli }}
 

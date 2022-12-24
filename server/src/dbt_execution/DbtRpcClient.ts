@@ -103,7 +103,7 @@ export class DbtRpcClient {
 
   async getStatus(): Promise<StatusResponse | undefined> {
     const data = this.getDefaultPostData('status');
-    data.params = { timeout: 100 };
+    data.params = { timeout: 1 };
 
     return this.makePostRequest<StatusResponse>(data);
   }
