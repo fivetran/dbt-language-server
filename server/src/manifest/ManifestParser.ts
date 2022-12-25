@@ -12,7 +12,9 @@ interface RawNode {
   database: string;
   schema: string;
   raw_sql: string;
+  raw_code?: string;
   compiled_sql: string;
+  compiled_code?: string;
   source_name: string;
   columns: { name: string }[];
   depends_on: {
@@ -68,8 +70,8 @@ export class ManifestParser {
           packageName: n.package_name,
           database: n.database,
           schema: n.schema,
-          rawSql: n.raw_sql,
-          compiledSql: n.compiled_sql,
+          rawCode: n.raw_code ?? n.raw_sql,
+          compiledCode: n.compiled_code ?? n.compiled_sql,
           dependsOn: n.depends_on,
           refs: n.refs,
           alias: n.alias,

@@ -23,8 +23,8 @@ describe('SqlRefConverter', () => {
           name: 'test_model0',
           database: 'db',
           schema: 'schema',
-          rawSql: 'raw_sql',
-          compiledSql: 'compiled_sql',
+          rawCode: 'raw_sql',
+          compiledCode: 'compiled_sql',
           packageName: 'test_package',
           dependsOn: {
             nodes: [],
@@ -71,8 +71,8 @@ function createManifestNodes(length: number): ManifestModel[] {
     name: `test_model${n}`,
     database: 'db',
     schema: 'schema',
-    rawSql: 'raw_sql',
-    compiledSql: 'compiled_sql',
+    rawCode: 'raw_sql',
+    compiledCode: 'compiled_sql',
     packageName: 'test_package',
     dependsOn: {
       nodes: [],

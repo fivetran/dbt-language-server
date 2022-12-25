@@ -115,8 +115,8 @@ function createModel(uniqueId: string, rootPath: string, originalFilePath: strin
     packageName,
     database: 'database',
     schema: 'schema',
-    rawSql: 'raw_sql',
-    compiledSql: 'compiled_sql',
+    rawCode: 'raw_sql',
+    compiledCode: 'compiled_sql',
     dependsOn: {
       nodes: [],
     },

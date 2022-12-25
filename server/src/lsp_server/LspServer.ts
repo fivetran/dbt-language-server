@@ -272,10 +272,10 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       if (result.isErr()) {
         const model = this.dbtRepository.models.find(m => m.uniqueId === uniqueId);
         if (model) {
-          const { rawSql, compiledSql } = model;
-          if (rawSql && compiledSql) {
+          const { rawCode, compiledCode } = model;
+          if (rawCode && compiledCode) {
             const uri = URI.file(this.dbtRepository.getModelRawSqlPath(model)).toString();
-            const diagnostics = this.diagnosticGenerator.getSqlErrorDiagnostics(result.error, rawSql, compiledSql).raw;
+            const diagnostics = this.diagnosticGenerator.getSqlErrorDiagnostics(result.error, rawCode, compiledCode).raw;
             this.notificationSender.sendRawDiagnostics({ uri, diagnostics });
           }
         }

@@ -74,7 +74,7 @@ export class ProjectAnalyzer {
     upstreamError: UpstreamError,
     sql?: string,
   ): Promise<Result<AnalyzeResponse__Output, string>> {
-    const compiledSql = sql ?? this.getCompiledSql(model);
+    const compiledSql = sql ?? this.getCompiledCode(model);
     if (compiledSql === undefined) {
       return err(`Compiled SQL not found for model ${model?.uniqueId ?? 'undefined'}`);
     }
@@ -169,8 +169,8 @@ export class ProjectAnalyzer {
     }
   }
 
-  private getCompiledSql(model?: ManifestModel): string | undefined {
-    return model ? model.compiledSql : undefined;
+  private getCompiledCode(model?: ManifestModel): string | undefined {
+    return model ? model.compiledCode : undefined;
   }
 
   private getTableRefUniqueId(model: ManifestModel | undefined, name: string): string | undefined {

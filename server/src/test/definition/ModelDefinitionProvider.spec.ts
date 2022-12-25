@@ -47,8 +47,8 @@ describe('ModelDefinitionProvider', () => {
       packageName,
       database: '',
       schema: '',
-      rawSql: '',
-      compiledSql: '',
+      rawCode: '',
+      compiledCode: '',
       dependsOn: { nodes: [] },
       refs: [],
     };
