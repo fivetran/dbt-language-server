@@ -1,4 +1,5 @@
 import { deferred } from 'dbt-language-server-common';
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { ManifestMacro, ManifestModel, ManifestSource } from './manifest/ManifestJson';
 
@@ -60,6 +61,24 @@ export class DbtRepository {
 
   getModelRawSqlPath(model: ManifestModel): string {
     return path.join(model.rootPath, model.originalFilePath);
+  }
+
+  getModelCompiledCode(model: ManifestModel): string | undefined {
+    if (model.compiledCode) {
+      return model.compiledCode;
+    }
+
+    const compiledPath = this.getModelCompiledPath(model);
+    return DbtRepository.readFileIfExists(compiledPath);
+  }
+
+  private static readFileIfExists(filePath: string): string | undefined {
+    try {
+      return fs.readFileSync(filePath, 'utf8');
+    } catch {
+      console.log(`Cannot read ${filePath}`);
+      return undefined;
+    }
   }
 
   private groupManifestNodes(): void {

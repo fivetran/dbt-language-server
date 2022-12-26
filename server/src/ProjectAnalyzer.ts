@@ -170,7 +170,7 @@ export class ProjectAnalyzer {
   }
 
   private getCompiledCode(model?: ManifestModel): string | undefined {
-    return model ? model.compiledCode : undefined;
+    return model ? this.dbtRepository.getModelCompiledCode(model) : undefined;
   }
 
   private getTableRefUniqueId(model: ManifestModel | undefined, name: string): string | undefined {
