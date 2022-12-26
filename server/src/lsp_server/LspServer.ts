@@ -189,7 +189,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
         if (pythonVersion !== undefined && pythonVersion[0] >= 3 && pythonVersion[1] >= 10) {
           return DbtMode.CLI;
         }
-        return process.env['USE_DBT_CLI'] === 'true' ? DbtMode.CLI : DbtMode.DBT_RPC;
+        return process.env['USE_DBT_RPC'] === 'true' ? DbtMode.DBT_RPC : DbtMode.CLI;
       }
       case 'dbt-rpc': {
         return DbtMode.DBT_RPC;
@@ -198,7 +198,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
         return DbtMode.CLI;
       }
       default: {
-        return DbtMode.DBT_RPC;
+        return DbtMode.CLI;
       }
     }
   }

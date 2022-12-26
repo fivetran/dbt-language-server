@@ -89,33 +89,32 @@ jobs:
       fail-fast: false
       matrix:
         include: # Run tests on latest version and version used in https://github.com/fivetran/analytics/blob/main/dbt_ft_prod/deployment.yml#L1
-          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install json-rpc==1.13.0 dbt-core==1.0.4 dbt-bigquery==1.0.0 dbt-postgres==1.0.4 dbt-rpc'
+          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-core==1.0.4 dbt-bigquery==1.0.0 dbt-postgres==1.0.4'
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
-            python-version: '3.9.12'
-
-          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install json-rpc==1.13.0 dbt-bigquery dbt-postgres dbt-rpc==0.2.1'
-            os: macos-latest
-            target: darwin-x64
-            activate-venv: source ~/dbt_1_2_2_env/bin/activate
-            python-version: '3.9.12'
+            python-version: '3.10.7'
 
           - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres'
             os: macos-latest
             target: darwin-x64
-            python-version: '3.10.5'
-            use-dbt-cli: true
-            SKIP_TESTS: 'certain_version.spec.js'
+            activate-venv: source ~/dbt_1_2_2_env/bin/activate
+            python-version: '3.10.7'
 
           - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install json-rpc==1.13.0 dbt-bigquery dbt-postgres dbt-rpc==0.2.1'
+            os: macos-latest
+            target: darwin-x64
+            python-version: '3.9.12'
+            use-dbt-rpc: true
+
+          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres'
             os: ubuntu-latest
             target: linux-x64
             prepare-for-tests: |
               Xvfb -ac :99 -screen 0 1280x1024x16 &
               export DISPLAY=:99
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
-            python-version: '3.9.12'
+            python-version: '3.10.7'
             SKIP_TESTS: 'vscode_commands.spec.js'
 
           - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres'
@@ -134,7 +133,7 @@ jobs:
               . activate
             python-version: '3.10.7'
 
-    name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.python-version }} ${{ matrix.use-dbt-cli }}
+    name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.python-version }} ${{ matrix.use-dbt-rpc }}
 
     runs-on: ${{ matrix.os }}
     defaults:
@@ -324,7 +323,7 @@ jobs:
           ${{ matrix.prepare-for-tests }}
           node e2e/out/runners/runTest $(pwd)/e2e-tests/extension
         env:
-          USE_DBT_CLI: ${{ matrix.use-dbt-cli }}
+          USE_DBT_RPC: ${{ matrix.use-dbt-rpc }}
           SKIP_TESTS: ${{ matrix.SKIP_TESTS }}
           PYTHON_INSTALL_LOC: '${{ steps.setup-python.outputs.python-path }}'
           WIZARD_FOR_DBT_WSL_UBUNTU_NAME: 'Ubuntu'
@@ -333,7 +332,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.python-version }} ${{ matrix.use-dbt-cli }}
+          name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.python-version }} ${{ matrix.use-dbt-rpc }}
           path: |
             ./.vscode-test/user-data/logs/**/*Wizard for dbt Core (TM).log
             ./.vscode-test/user-data/logs/**/*Install Latest dbt.log
