@@ -268,6 +268,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   async compileAndAnalyzeProject(): Promise<void> {
     await this.dbt?.compileProject(this.dbtRepository);
     const analyzeResults = await this.bigQueryContext.analyzeProject();
+    let errorCount = 0;
     for (const [uniqueId, result] of analyzeResults.entries()) {
       if (result.isErr()) {
         const model = this.dbtRepository.models.find(m => m.uniqueId === uniqueId);
@@ -277,10 +278,12 @@ export class LspServer extends LspServerBase<FeatureFinder> {
             const uri = URI.file(this.dbtRepository.getModelRawSqlPath(model)).toString();
             const diagnostics = this.diagnosticGenerator.getSqlErrorDiagnostics(result.error, rawCode, compiledCode).raw;
             this.notificationSender.sendRawDiagnostics({ uri, diagnostics });
+            errorCount++;
           }
         }
       }
     }
+    console.log(`${errorCount} errors found during analysis`);
   }
 
   registerClientNotification(): void {
