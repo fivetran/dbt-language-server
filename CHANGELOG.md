@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.18.0 (01/01/1970)
+## Version 0.18.0 (27/12/2022)
 ## What's Changed
 * We now use dbt CLI for model and project compilation by default. You can switch between compiler used by extension in **Preferences** -> **Settings** -> **Extensions** -> **Wizard for dbt Core (TM)** -> **Wizard For Dbt Core(TM): Dbt Compiler**. 
 
