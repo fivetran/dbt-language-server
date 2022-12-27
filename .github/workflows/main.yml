@@ -15,20 +15,20 @@ jobs:
             target: darwin-x64
             zetasql-lib: libremote_server.dylib
 
-          - os: macos-latest # TODO: use M1 runner when possible
-            target: darwin-arm64
-            zetasql-lib: libremote_server_arm.dylib
+          # - os: macos-latest # TODO: use M1 runner when possible
+          #   target: darwin-arm64
+          #   zetasql-lib: libremote_server_arm.dylib
 
-          - os: ubuntu-latest
-            target: linux-x64
-            zetasql-lib: libremote_server.so
+          # - os: ubuntu-latest
+          #   target: linux-x64
+          #   zetasql-lib: libremote_server.so
 
-          - os: ubuntu-latest
-            target: linux-arm64
-            zetasql-lib: libremote_server_arm.so
+          # - os: ubuntu-latest
+          #   target: linux-arm64
+          #   zetasql-lib: libremote_server_arm.so
 
-          - os: windows-latest
-            target: win32-x64
+          # - os: windows-latest
+          #   target: win32-x64
 
     runs-on: ${{ matrix.os }}
     defaults:
@@ -95,44 +95,44 @@ jobs:
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
             python-version: '3.10.7'
 
-          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres'
-            os: macos-latest
-            target: darwin-x64
-            activate-venv: source ~/dbt_1_2_2_env/bin/activate
-            python-version: '3.10.7'
+          # - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres'
+          #   os: macos-latest
+          #   target: darwin-x64
+          #   activate-venv: source ~/dbt_1_2_2_env/bin/activate
+          #   python-version: '3.10.7'
 
-          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install json-rpc==1.13.0 dbt-bigquery dbt-postgres dbt-rpc==0.2.1'
-            os: macos-latest
-            target: darwin-x64
-            activate-venv: source ~/dbt_1_2_2_env/bin/activate
-            python-version: '3.9.12'
-            use-dbt-rpc: true
+          # - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install json-rpc==1.13.0 dbt-bigquery dbt-postgres dbt-rpc==0.2.1'
+          #   os: macos-latest
+          #   target: darwin-x64
+          #   activate-venv: source ~/dbt_1_2_2_env/bin/activate
+          #   python-version: '3.9.12'
+          #   use-dbt-rpc: true
 
-          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres'
-            os: ubuntu-latest
-            target: linux-x64
-            prepare-for-tests: |
-              Xvfb -ac :99 -screen 0 1280x1024x16 &
-              export DISPLAY=:99
-            activate-venv: source ~/dbt_1_2_2_env/bin/activate
-            python-version: '3.10.7'
-            SKIP_TESTS: 'vscode_commands.spec.js'
+          # - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres'
+          #   os: ubuntu-latest
+          #   target: linux-x64
+          #   prepare-for-tests: |
+          #     Xvfb -ac :99 -screen 0 1280x1024x16 &
+          #     export DISPLAY=:99
+          #   activate-venv: source ~/dbt_1_2_2_env/bin/activate
+          #   python-version: '3.10.7'
+          #   SKIP_TESTS: 'vscode_commands.spec.js'
 
-          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres'
-            os: windows-latest
-            target: win32-x64
-            add-colon-to-key-file-path: |
-              homedir=c:/${homedir#*c/}
-              python=${homedir}/dbt_1_2_2_env/Scripts/python
-              cat <<EOT > ${GITHUB_WORKSPACE}/e2e/projects/special-python-settings/.vscode/settings.json
-              {
-                "python.defaultInterpreterPath": "${python}"
-              }
-              EOT
-            activate-venv: |
-              cd ~/dbt_1_2_2_env/Scripts
-              . activate
-            python-version: '3.10.7'
+          # - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres'
+          #   os: windows-latest
+          #   target: win32-x64
+          #   add-colon-to-key-file-path: |
+          #     homedir=c:/${homedir#*c/}
+          #     python=${homedir}/dbt_1_2_2_env/Scripts/python
+          #     cat <<EOT > ${GITHUB_WORKSPACE}/e2e/projects/special-python-settings/.vscode/settings.json
+          #     {
+          #       "python.defaultInterpreterPath": "${python}"
+          #     }
+          #     EOT
+          #   activate-venv: |
+          #     cd ~/dbt_1_2_2_env/Scripts
+          #     . activate
+          #   python-version: '3.10.7'
 
     name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.python-version }} ${{ matrix.use-dbt-rpc }}
 
@@ -300,6 +300,8 @@ jobs:
           ${PYTHON_INSTALL_LOC} --version
           ${PYTHON_INSTALL_LOC} -m pip --version
           ${PYTHON_INSTALL_LOC} -m pip list | grep dbt
+          cd e2e/projects/completion-jinja
+          "/Users/runner/hostedtoolcache/Python/3.10.7/x64/bin/python" -c "import dbt.main; dbt.main.main(['compile'])"
         env:
           PYTHON_INSTALL_LOC: '${{ steps.setup-python.outputs.python-path }}'
 
