@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 0.18.0 (01/01/1970)
+## What's Changed
+* We now use dbt CLI for model and project compilation by default. You can switch between compiler used by extension in **Preferences** -> **Settings** -> **Extensions** -> **Wizard for dbt Core (TM)** -> **Wizard For Dbt Core(TM): Dbt Compiler**. 
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.17.1...v0.18.0
+---
+
 ## Version 0.17.1 (20/12/2022)
 ## What's Changed
 * Fix compilation issue when project, dataset and table are enclosed in backticks (\`project.dataset.table\`).
