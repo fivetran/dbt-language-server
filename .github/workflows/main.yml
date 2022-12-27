@@ -93,7 +93,7 @@ jobs:
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
-            python-version: '3.10.7'
+            python-version: '3.9.12'
 
           # - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-postgres'
           #   os: macos-latest
@@ -300,8 +300,6 @@ jobs:
           ${PYTHON_INSTALL_LOC} --version
           ${PYTHON_INSTALL_LOC} -m pip --version
           ${PYTHON_INSTALL_LOC} -m pip list | grep dbt
-          cd e2e/projects/completion-jinja
-          "/Users/runner/hostedtoolcache/Python/3.10.7/x64/bin/python" -c "import dbt.main; dbt.main.main(['compile'])"
         env:
           PYTHON_INSTALL_LOC: '${{ steps.setup-python.outputs.python-path }}'
 
