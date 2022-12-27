@@ -1,1 +1,20 @@
-{}
+{
+  "nodes": {
+    "model.salesforce_source.stg_salesforce__account_tmp": {
+      "unique_id": "model.salesforce_source.stg_salesforce__account_tmp",
+      "root_path": "/Users/user/projects/project-with-packages/dbt_packages/salesforce_source",
+      "original_file_path": "models/tmp/stg_salesforce__account_tmp.sql",
+      "name": "stg_salesforce__account_tmp",
+      "database": "singular-vector-135519",
+      "schema": "dbt_default",
+      "raw_code": "select *\nfrom {{ var('account') }}\n{% if var('using_account_history_mode_active_records', false) %}\nwhere coalesce(_fivetran_active, true)\n{% endif %}",
+      "compiled_code": "select *\nfrom `singular-vector-135519`.`salesforce`.`account`\n",
+      "package_name": "salesforce_source",
+      "depends_on": {
+        "nodes": []
+      },
+      "refs": [],
+      "resource_type": "model"
+    }
+  }
+}
