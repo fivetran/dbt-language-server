@@ -81,7 +81,7 @@ suite('dbt_ft', () => {
 
     const files = glob.sync(path.resolve(getProjectPath(), '../../.vscode-test/user-data/logs/**/*Wizard for dbt Core (TM).log'), { nodir: true });
     assertThat(files.length, 1);
-    const content = fs.readFileSync(files[0]);
+    const content = fs.readFileSync(files[0], 'utf8');
     assertThat(content, containsString('0 errors found during analysis'));
   });
 });
