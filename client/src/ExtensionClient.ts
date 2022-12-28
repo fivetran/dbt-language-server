@@ -1,5 +1,5 @@
 import * as fs from 'node:fs';
-import { commands, ExtensionContext, languages, TextDocument, TextEditor, Uri, ViewColumn, window, workspace } from 'vscode';
+import { commands, ExtensionContext, languages, TextDocument, TextEditor, Uri, ViewColumn, window, workspace, WorkspaceFolder } from 'vscode';
 import { ActiveTextEditorHandler } from './ActiveTextEditorHandler';
 import { CommandManager } from './commands/CommandManager';
 import { Compile } from './commands/Compile';
@@ -78,12 +78,16 @@ export class ExtensionClient {
   }
 
   async activateDefaultProject(): Promise<void> {
-    let currentWorkspace = undefined;
+    let currentWorkspace: WorkspaceFolder | undefined = undefined;
     log(`workspace name: ${workspace.name ?? 'undefined'}`);
     if (workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
-      log(`workspace.workspaceFolders.length: ${workspace.workspaceFolders.length}`);
       currentWorkspace = workspace.workspaceFolders.find(f => f.name === workspace.name);
     }
+
+    if (!currentWorkspace && workspace.workspaceFolders?.length === 1) {
+      currentWorkspace = workspace.workspaceFolders[0];
+    }
+
     log(`currentWorkspace: ${currentWorkspace?.name ?? 'undefined'}`);
     if (currentWorkspace) {
       const dbtProjectYmlPath = path.join(currentWorkspace.uri.fsPath, DBT_PROJECT_YML);
