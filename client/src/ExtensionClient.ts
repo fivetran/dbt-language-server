@@ -85,6 +85,7 @@ export class ExtensionClient {
 
     if (currentWorkspace) {
       const dbtProjectYmlPath = path.join(currentWorkspace.uri.fsPath, DBT_PROJECT_YML);
+      log(`default project: ${dbtProjectYmlPath}`);
       const possibleProjectYmlUri = currentWorkspace.uri.with({ path: dbtProjectYmlPath });
       await this.dbtLanguageClientManager.ensureClient(possibleProjectYmlUri);
       if (this.context.globalState.get<boolean>(dbtProjectYmlPath)) {
