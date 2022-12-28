@@ -267,8 +267,10 @@ export class LspServer extends LspServerBase<FeatureFinder> {
 
   async analyzeProject(): Promise<void> {
     const analyzeResults = await this.bigQueryContext.analyzeProject();
+    let modelsCount = 0;
     let errorCount = 0;
     for (const [uniqueId, result] of analyzeResults.entries()) {
+      modelsCount++;
       if (result.isErr()) {
         const model = this.dbtRepository.models.find(m => m.uniqueId === uniqueId);
         if (model) {
@@ -282,7 +284,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
         }
       }
     }
-    console.log(`${errorCount} errors found during analysis`);
+    console.log(`Processed ${modelsCount} models. ${errorCount} errors found during analysis`);
   }
 
   registerClientNotification(): void {
