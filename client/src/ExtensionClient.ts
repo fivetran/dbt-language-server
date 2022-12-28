@@ -79,10 +79,12 @@ export class ExtensionClient {
 
   async activateDefaultProject(): Promise<void> {
     let currentWorkspace = undefined;
+    log(`workspace name: ${workspace.name ?? 'undefined'}`);
     if (workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
+      log(`workspace.workspaceFolders.length: ${workspace.workspaceFolders.length}`);
       currentWorkspace = workspace.workspaceFolders.find(f => f.name === workspace.name);
     }
-
+    log(`currentWorkspace: ${currentWorkspace?.name ?? 'undefined'}`);
     if (currentWorkspace) {
       const dbtProjectYmlPath = path.join(currentWorkspace.uri.fsPath, DBT_PROJECT_YML);
       log(`default project: ${dbtProjectYmlPath}`);
