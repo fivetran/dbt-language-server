@@ -266,6 +266,9 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   }
 
   async analyzeProject(): Promise<void> {
+    if (this.bigQueryContext.isEmpty()) {
+      return;
+    }
     const analyzeResults = await this.bigQueryContext.analyzeProject();
     let modelsCount = 0;
     let errorCount = 0;
