@@ -4,7 +4,7 @@ import * as fs from 'node:fs';
 import { writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { DiagnosticSeverity, languages, Uri } from 'vscode';
-import { activateAndWait, sleep } from './helper';
+import { activateAndWait, sleep, waitWithTimeout } from './helper';
 
 suite('dbt_ft', () => {
   const EXCLUDE = ['Add here the file paths to exclude from testing'];
@@ -59,7 +59,23 @@ suite('dbt_ft', () => {
   });
 
   test('Should compile and analyze all models at start', async () => {
-    await sleep(1000 * 60 * 5);
+    await sleep(1000 * 60 * 1);
+    const files = glob.sync(path.resolve(getProjectPath(), '../../.vscode-test/user-data/logs/**/*Wizard for dbt Core (TM).log'), { nodir: true });
+
+    const analyzeFinishedPromise = isRunningOnCi()
+      ? new Promise<void>(resolve => {
+          fs.watch(files[0], () => {
+            const content = fs.readFileSync(files[0], 'utf8');
+            if (content.includes('errors found during analysis')) {
+              resolve();
+            }
+          });
+        })
+      : new Promise<void>(() => {
+          // Do nothing
+        });
+
+    await waitWithTimeout(analyzeFinishedPromise, 1000 * 60 * 4);
 
     const allDiagnostics = languages.getDiagnostics();
 
@@ -80,10 +96,10 @@ suite('dbt_ft', () => {
     assertThat(errorCount, 0);
 
     if (isRunningOnCi()) {
-      const files = glob.sync(path.resolve(getProjectPath(), '../../.vscode-test/user-data/logs/**/*Wizard for dbt Core (TM).log'), { nodir: true });
       assertThat(files.length, 1);
       const content = fs.readFileSync(files[0], 'utf8');
       assertThat(content, containsString('0 errors found during analysis'));
+      console.log('0 errors found during analysis');
     }
   });
 });
