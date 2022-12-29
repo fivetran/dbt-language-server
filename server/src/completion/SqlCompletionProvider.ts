@@ -240,7 +240,7 @@ export class SqlCompletionProvider {
   async onSqlCompletion(
     text: string,
     completionParams: CompletionParams,
-    destinationDefinition: DestinationDefinition,
+    destinationDefinition?: DestinationDefinition,
     completionInfo?: CompletionInfo,
   ): Promise<CompletionItem[]> {
     const result: CompletionItem[] = [];
@@ -315,7 +315,11 @@ export class SqlCompletionProvider {
     return [];
   }
 
-  async getTableSuggestions(datasetName: string, destinationDefinition: DestinationDefinition): Promise<CompletionItem[]> {
+  async getTableSuggestions(datasetName: string, destinationDefinition?: DestinationDefinition): Promise<CompletionItem[]> {
+    if (!destinationDefinition) {
+      return [];
+    }
+
     const tables = await destinationDefinition.getTables(datasetName);
     return tables
       .filter(t => t.id)
@@ -326,16 +330,18 @@ export class SqlCompletionProvider {
       }));
   }
 
-  getDatasets(destinationDefinition: DestinationDefinition): CompletionItem[] {
+  getDatasets(destinationDefinition?: DestinationDefinition): CompletionItem[] {
     return destinationDefinition
-      .getDatasets()
-      .filter(d => d.id)
-      .map<CompletionItem>(d => ({
-        label: d.id ?? '',
-        kind: CompletionItemKind.Value,
-        detail: `Dataset in ${destinationDefinition.activeProject}`,
-        commitCharacters: ['.'],
-      }));
+      ? destinationDefinition
+          .getDatasets()
+          .filter(d => d.id)
+          .map<CompletionItem>(d => ({
+            label: d.id ?? '',
+            kind: CompletionItemKind.Value,
+            detail: `Dataset in ${destinationDefinition.activeProject}`,
+            commitCharacters: ['.'],
+          }))
+      : [];
   }
 
   getKeywords(): CompletionItem[] {

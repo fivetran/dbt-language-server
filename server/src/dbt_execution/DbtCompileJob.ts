@@ -7,21 +7,14 @@ import { ModelFetcher } from '../ModelFetcher';
 export abstract class DbtCompileJob {
   static readonly NO_RESULT_FROM_COMPILER = ' ';
 
-  constructor(
-    protected modelPath: string,
-    protected dbtRepository: DbtRepository,
-    // For empty models we don't use fallback
-    protected allowFallback: boolean,
-  ) {}
-
-  abstract start(): Promise<void>;
+  abstract start(): Promise<Result<undefined, string>>;
 
   abstract forceStop(): Promise<void>;
 
   /** @returns Ok with compiled sql or Err with dbt error or undefined if compilation is not finished yet */
   abstract getResult(): Result<string, string> | undefined;
 
-  extractDbtError(message: string): string {
+  static extractDbtError(message: string): string {
     const index = message.indexOf('Compilation Error');
 
     if (index > -1) {
@@ -32,21 +25,21 @@ export abstract class DbtCompileJob {
     return message.trim();
   }
 
-  async findCompiledFilePath(): Promise<string> {
-    if (this.modelPath.endsWith('.sql')) {
-      const model = await new ModelFetcher(this.dbtRepository, path.resolve(this.modelPath)).getModel();
+  static async findCompiledFilePath(modelPath: string, dbtRepository: DbtRepository): Promise<string> {
+    if (modelPath.endsWith('.sql')) {
+      const model = await new ModelFetcher(dbtRepository, path.resolve(modelPath)).getModel();
       if (!model) {
-        throw new Error(`Cannot find model ${this.modelPath}`);
+        throw new Error(`Cannot find model ${modelPath}`);
       }
-      return this.dbtRepository.getModelCompiledPath(model);
+      return dbtRepository.getModelCompiledPath(model);
     }
-    return this.findCompiledFileInPackage();
+    return DbtCompileJob.findCompiledFileInPackage(modelPath, dbtRepository);
   }
 
-  findCompiledFileInPackage(): string {
-    const pathParts = this.modelPath.split('.');
+  static findCompiledFileInPackage(modelPath: string, dbtRepository: DbtRepository): string {
+    const pathParts = modelPath.split('.');
     pathParts.splice(1, 0, 'models');
     pathParts[pathParts.length - 1] += '.sql';
-    return path.resolve(this.dbtRepository.dbtTargetPath, 'compiled', ...pathParts);
+    return path.resolve(dbtRepository.dbtTargetPath, 'compiled', ...pathParts);
   }
 }

@@ -111,7 +111,7 @@ function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
   }
 }
 
-function waitWithTimeout(promise: Promise<void>, timeout: number): Promise<void> {
+export function waitWithTimeout(promise: Promise<void>, timeout: number): Promise<void> {
   return Promise.race([promise, setTimeout(timeout)]);
 }
 

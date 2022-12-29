@@ -21,58 +21,22 @@ describe('ModelCompletionProvider', () => {
 
     dbtRepository.projectName = PROJECT_PACKAGE;
     const models: ManifestModel[] = [
-      {
-        uniqueId: 'model_1_id',
-        rootPath: '/models/model_1.sql',
-        originalFilePath: '/Users/user_name/project/models/model_1.sql',
-        name: 'model_1',
-        packageName: PROJECT_PACKAGE,
-        database: 'database',
-        schema: 'schema',
-        dependsOn: {
-          nodes: [],
-        },
-        refs: [],
-      },
-      {
-        uniqueId: 'model_2_id',
-        rootPath: '/models/model_2.sql',
-        originalFilePath: '/Users/user_name/project/models/model_2.sql',
-        name: 'model_2',
-        packageName: PROJECT_PACKAGE,
-        database: 'database',
-        schema: 'schema',
-        dependsOn: {
-          nodes: [],
-        },
-        refs: [],
-      },
-      {
-        uniqueId: 'installed_package_model_1_id',
-        rootPath: '/dbt_packages/installed_package/models/installed_package_model_1.sql',
-        originalFilePath: '/Users/user_name/project/dbt_packages/installed_package/models/installed_package_model_1.sql',
-        name: 'installed_package_model_1',
-        packageName: INSTALLED_PACKAGE,
-        database: 'database',
-        schema: 'schema',
-        dependsOn: {
-          nodes: [],
-        },
-        refs: [],
-      },
-      {
-        uniqueId: 'installed_package_model_2_id',
-        rootPath: '/dbt_packages/installed_package/models/installed_package_model_2.sql',
-        originalFilePath: '/Users/user_name/project/dbt_packages/installed_package/models/installed_package_model_2.sql',
-        name: 'installed_package_model_2',
-        packageName: INSTALLED_PACKAGE,
-        database: 'database',
-        schema: 'schema',
-        dependsOn: {
-          nodes: [],
-        },
-        refs: [],
-      },
+      createModel('model_1_id', '/models/model_1.sql', '/Users/user_name/project/models/model_1.sql', 'model_1', PROJECT_PACKAGE),
+      createModel('model_2_id', '/models/model_2.sql', '/Users/user_name/project/models/model_2.sql', 'model_2', PROJECT_PACKAGE),
+      createModel(
+        'installed_package_model_1_id',
+        '/dbt_packages/installed_package/models/installed_package_model_1.sql',
+        '/Users/user_name/project/dbt_packages/installed_package/models/installed_package_model_1.sql',
+        'installed_package_model_1',
+        INSTALLED_PACKAGE,
+      ),
+      createModel(
+        'installed_package_model_2_id',
+        '/dbt_packages/installed_package/models/installed_package_model_2.sql',
+        '/Users/user_name/project/dbt_packages/installed_package/models/installed_package_model_2.sql',
+        'installed_package_model_2',
+        INSTALLED_PACKAGE,
+      ),
     ];
     dbtRepository.updateDbtNodes(models, [], []);
 
@@ -141,3 +105,21 @@ describe('ModelCompletionProvider', () => {
     ]);
   });
 });
+
+function createModel(uniqueId: string, rootPath: string, originalFilePath: string, name: string, packageName: string): ManifestModel {
+  return {
+    uniqueId,
+    rootPath,
+    originalFilePath,
+    name,
+    packageName,
+    database: 'database',
+    schema: 'schema',
+    rawCode: 'raw_sql',
+    compiledCode: 'compiled_sql',
+    dependsOn: {
+      nodes: [],
+    },
+    refs: [],
+  };
+}

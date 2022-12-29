@@ -1,14 +1,15 @@
 import * as glob from 'glob';
-import { assertThat, isEmpty } from 'hamjest';
+import { assertThat, containsString, isEmpty } from 'hamjest';
+import * as fs from 'node:fs';
 import { writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { DiagnosticSeverity, languages, Uri } from 'vscode';
-import { activateAndWait } from './helper';
+import { activateAndWait, sleep, waitWithTimeout } from './helper';
 
 suite('dbt_ft', () => {
   const EXCLUDE = ['Add here the file paths to exclude from testing'];
 
-  test('Should compile all models in analytics repo', async () => {
+  test.skip('Should compile all models in analytics repo one by one', async () => {
     const files = glob.sync(path.resolve(getProjectPath(), 'models/**/*.sql'), { nodir: true });
     console.log(`Count: ${files.length}`);
     files.forEach(f => console.log(f));
@@ -55,6 +56,51 @@ suite('dbt_ft', () => {
       }
     }
     assertThat(errors, isEmpty());
+  });
+
+  test('Should compile and analyze all models at start', async () => {
+    await sleep(1000 * 60 * 1);
+    const files = glob.sync(path.resolve(getProjectPath(), '../../.vscode-test/user-data/logs/**/*Wizard for dbt Core (TM).log'), { nodir: true });
+
+    const analyzeFinishedPromise = isRunningOnCi()
+      ? new Promise<void>(resolve => {
+          fs.watch(files[0], () => {
+            const content = fs.readFileSync(files[0], 'utf8');
+            if (content.includes('errors found during analysis')) {
+              resolve();
+            }
+          });
+        })
+      : new Promise<void>(() => {
+          // Do nothing
+        });
+
+    await waitWithTimeout(analyzeFinishedPromise, 1000 * 60 * (isRunningOnCi() ? 20 : 4));
+
+    const allDiagnostics = languages.getDiagnostics();
+
+    let errorCount = 0;
+    for (const diagnosticWithUri of allDiagnostics) {
+      const uri = diagnosticWithUri[0];
+      const diagnostics = diagnosticWithUri[1];
+      if (diagnostics.length > 0) {
+        console.log(uri.fsPath);
+      }
+      errorCount += diagnostics.length;
+      for (const diagnostic of diagnostics) {
+        console.log(`${diagnostic.message}: [at ${diagnostic.range.start.line}:${diagnostic.range.start.character}]`);
+      }
+      console.log();
+    }
+
+    assertThat(errorCount, 0);
+
+    if (isRunningOnCi()) {
+      assertThat(files.length, 1);
+      const content = fs.readFileSync(files[0], 'utf8');
+      assertThat(content, containsString('0 errors found during analysis'));
+      console.log('0 errors found during analysis');
+    }
   });
 });
 

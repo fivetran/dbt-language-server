@@ -71,7 +71,7 @@ export class SqlHeaderAnalyzer {
           bytePosition = result.resumeBytePosition;
         }
         count++;
-      } while (result !== undefined && count < SqlHeaderAnalyzer.FUNCTIONS_COUNT_LIMIT);
+      } while (result !== undefined && count < SqlHeaderAnalyzer.FUNCTIONS_COUNT_LIMIT && bytePosition < sql.length);
     } catch (e) {
       console.log(e);
     }

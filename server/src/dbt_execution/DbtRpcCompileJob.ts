@@ -14,10 +14,11 @@ export class DbtRpcCompileJob extends DbtCompileJob {
 
   static readonly DBT_COMPILATION_ERROR_CODE = 10_011;
 
-  static COMPILE_MODEL_MAX_RETRIES = 6;
-  static COMPILE_MODEL_TIMEOUT_MS = 200;
+  static GET_POLL_TOKEN_MAX_RETRIES = 6;
+  static GET_POLL_TOKEN_TIMEOUT_MS = 200;
 
-  static POLL_MAX_RETRIES = 15;
+  static POLL_MAX_RETRIES_FOR_MODEL = 15;
+  static POLL_MAX_RETRIES_FOR_PROJECT = 80;
   static POLL_TIMEOUT_MS = 1200;
   static MAX_RETRIES_FOR_UNKNOWN_ERROR = 5;
 
@@ -26,22 +27,36 @@ export class DbtRpcCompileJob extends DbtCompileJob {
 
   result?: Result<string, string>;
 
-  constructor(modelPath: string, dbtRepository: DbtRepository, allowFallback: boolean, private dbtRpcClient: DbtRpcClient) {
-    super(modelPath, dbtRepository, allowFallback);
+  /** If modelPath === undefined then we compile project */
+  constructor(
+    private modelPath: string | undefined,
+    private dbtRepository: DbtRepository,
+    private allowFallback: boolean,
+    private dbtRpcClient: DbtRpcClient,
+  ) {
+    super();
   }
 
-  async start(): Promise<void> {
+  async start(): Promise<Result<undefined, string>> {
     const pollTokenResult = await this.getPollToken();
     if (pollTokenResult.isErr()) {
       this.result = pollTokenResult;
-      return;
+      return err(pollTokenResult.error);
     }
 
     this.pollRequestToken = pollTokenResult.value;
 
     await wait(DbtRpcCompileJob.POLL_TIMEOUT_MS);
 
-    this.result = await this.getPollResponse(pollTokenResult.value);
+    const pollResponse = await this.getPollResponse(
+      pollTokenResult.value,
+      this.modelPath ? DbtRpcCompileJob.POLL_MAX_RETRIES_FOR_MODEL : DbtRpcCompileJob.POLL_MAX_RETRIES_FOR_PROJECT,
+    );
+
+    if (this.modelPath) {
+      this.result = await this.getCompiledSqlOrError(this.modelPath, this.dbtRepository, pollResponse);
+    }
+    return pollResponse.isErr() ? err(pollResponse.error) : ok(undefined);
   }
 
   getResult(): Result<string, string> | undefined {
@@ -71,16 +86,16 @@ export class DbtRpcCompileJob extends DbtCompileJob {
           }
           return compileResponseAttempt;
         },
-        { factor: 1, retries: DbtRpcCompileJob.COMPILE_MODEL_MAX_RETRIES, minTimeout: DbtRpcCompileJob.COMPILE_MODEL_TIMEOUT_MS },
+        { factor: 1, retries: DbtRpcCompileJob.GET_POLL_TOKEN_MAX_RETRIES, minTimeout: DbtRpcCompileJob.GET_POLL_TOKEN_TIMEOUT_MS },
       );
 
       return ok(startCompileResponse.result.request_token);
     } catch (e) {
-      return err(e instanceof Error ? this.extractDbtError(e.message) : JSON.stringify(e));
+      return err(e instanceof Error ? DbtCompileJob.extractDbtError(e.message) : JSON.stringify(e));
     }
   }
 
-  async getPollResponse(pollRequestToken: string): Promise<Result<string, string>> {
+  async getPollResponse(pollRequestToken: string, retries: number): Promise<Result<PollResponse, string>> {
     let connectionRetries = 0;
     try {
       const pollResponse = await retry(
@@ -108,33 +123,39 @@ export class DbtRpcCompileJob extends DbtCompileJob {
 
           return pollAttempt;
         },
-        { factor: 1, retries: DbtRpcCompileJob.POLL_MAX_RETRIES, minTimeout: DbtRpcCompileJob.POLL_TIMEOUT_MS },
+        { factor: 1, retries, minTimeout: DbtRpcCompileJob.POLL_TIMEOUT_MS },
       );
 
-      if (pollResponse.error) {
-        return err(pollResponse.error.data?.message ? this.extractDbtError(pollResponse.error.data.message) : 'Compilation error');
-      }
-
-      const compiledSql = await this.getCompiledSql(pollResponse);
-      return compiledSql === undefined ? err("Couldn't find compiled sql") : ok(compiledSql);
+      return ok(pollResponse);
     } catch (e) {
       return err(e instanceof Error ? e.message : JSON.stringify(e));
     }
   }
 
-  async getCompiledSql(pollResponse: PollResponse): Promise<string | undefined> {
-    const compiledNodes = pollResponse.result.results;
-    if (compiledNodes && compiledNodes.length > 0) {
-      return compiledNodes[0].node.compiled_sql;
+  async getCompiledSqlOrError(
+    modelPath: string,
+    dbtRepository: DbtRepository,
+    pollResponse: Result<PollResponse, string>,
+  ): Promise<Result<string, string>> {
+    if (pollResponse.isErr()) {
+      return err(pollResponse.error);
     }
-    if (pollResponse.result.state === 'success') {
+    if (pollResponse.value.error) {
+      return err(pollResponse.value.error.data?.message ? DbtCompileJob.extractDbtError(pollResponse.value.error.data.message) : 'Compilation error');
+    }
+
+    const compiledNodes = pollResponse.value.result.results;
+    if (compiledNodes && compiledNodes.length > 0) {
+      return ok(compiledNodes[0].node.compiled_sql);
+    }
+    if (pollResponse.value.result.state === 'success') {
       if (this.allowFallback) {
         // For some reason rpc server don't return compilation result for models with materialized='ephemeral'
-        return this.fallbackForEphemeralModel();
+        return ok(await DbtRpcCompileJob.fallbackForEphemeralModel(modelPath, dbtRepository));
       }
-      return DbtCompileJob.NO_RESULT_FROM_COMPILER;
+      return ok(DbtCompileJob.NO_RESULT_FROM_COMPILER);
     }
-    return undefined;
+    return err("Couldn't find compiled sql");
   }
 
   async forceStop(): Promise<void> {
@@ -148,10 +169,10 @@ export class DbtRpcCompileJob extends DbtCompileJob {
     }
   }
 
-  private async fallbackForEphemeralModel(): Promise<string> {
-    console.log(`Use fallback for model ${this.modelPath}`);
+  private static async fallbackForEphemeralModel(modelPath: string, dbtRepository: DbtRepository): Promise<string> {
+    console.log(`Use fallback for model ${modelPath}`);
     try {
-      const resultPath = await this.findCompiledFilePath();
+      const resultPath = await DbtCompileJob.findCompiledFilePath(modelPath, dbtRepository);
       return fs.readFileSync(`${resultPath}`, 'utf8');
     } catch {
       return DbtCompileJob.NO_RESULT_FROM_COMPILER;

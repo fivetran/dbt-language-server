@@ -27,7 +27,7 @@ export class DbtRpc extends Dbt {
     this.fileChangeListener.onDbtPackagesChanged(() => this.refresh());
   }
 
-  createCompileJob(modelPath: string, dbtRepository: DbtRepository, allowFallback: boolean): DbtCompileJob {
+  createCompileJob(modelPath: string | undefined, dbtRepository: DbtRepository, allowFallback: boolean): DbtCompileJob {
     return new DbtRpcCompileJob(modelPath, dbtRepository, allowFallback, this.dbtRpcClient);
   }
 
@@ -61,20 +61,22 @@ export class DbtRpc extends Dbt {
           );
         }
       }
-      this.doInitialCompile().catch(e => console.log(`Error while compiling project: ${e instanceof Error ? e.message : String(e)}`));
     }
   }
 
-  async doInitialCompile(): Promise<void> {
+  async compileProject(dbtRepository: DbtRepository): Promise<void> {
     // Compilation can be started for a short time after the server receives a SIGHUP signal
     await this.dbtRpcServer.ensureCompilationFinished();
 
-    const result = await this.dbtRpcClient.compile();
-    console.log(
-      result?.result.request_token === undefined
-        ? `There was an error while starting the compilation: ${result?.error?.data?.message ?? 'undefined'}`
-        : 'Initial compilation started successfully',
-    );
+    const job = this.createCompileJob(undefined, dbtRepository, false);
+    console.log('Starting project compilation');
+    const result = await job.start();
+
+    if (result.isOk()) {
+      console.log('Project compiled successfully');
+    } else {
+      console.log(`There was an error while project compilation: ${result.error}`);
+    }
   }
 
   getError(): string {

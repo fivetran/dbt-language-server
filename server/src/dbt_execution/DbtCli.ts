@@ -49,14 +49,22 @@ export class DbtCli extends Dbt {
         this.onRpcServerFindFailed();
       }
     }
-
-    await this.compile().catch(e => {
-      console.log(`Error while compiling project: ${e instanceof Error ? e.message : String(e)}`);
-    });
   }
 
-  createCompileJob(modelPath: string, dbtRepository: DbtRepository, allowFallback: boolean): DbtCompileJob {
+  createCompileJob(modelPath: string | undefined, dbtRepository: DbtRepository, allowFallback: boolean): DbtCompileJob {
     return new DbtCliCompileJob(modelPath, dbtRepository, allowFallback, this);
+  }
+
+  async compileProject(dbtRepository: DbtRepository): Promise<void> {
+    const job = this.createCompileJob(undefined, dbtRepository, true);
+    console.log('Starting project compilation');
+    const result = await job.start();
+
+    if (result.isOk()) {
+      console.log('Project compiled successfully');
+    } else {
+      console.log(`There was an error while project compilation ${result.error}`);
+    }
   }
 
   async deps(): Promise<void> {

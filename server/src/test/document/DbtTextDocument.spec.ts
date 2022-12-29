@@ -3,15 +3,19 @@
 import { assertThat } from 'hamjest';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, Range, TextDocumentSaveReason, VersionedTextDocumentIdentifier } from 'vscode-languageserver';
+import { BigQueryContext } from '../../bigquery/BigQueryContext';
 import { DbtRepository } from '../../DbtRepository';
 import { Dbt } from '../../dbt_execution/Dbt';
-import { DestinationState } from '../../DestinationState';
+import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
+import { DiagnosticGenerator } from '../../DiagnosticGenerator';
 import { DbtDocumentKind } from '../../document/DbtDocumentKind';
 import { DbtTextDocument } from '../../document/DbtTextDocument';
+import { HoverProvider } from '../../HoverProvider';
 import { JinjaParser } from '../../JinjaParser';
 import { ModelCompiler } from '../../ModelCompiler';
 import { NotificationSender } from '../../NotificationSender';
 import { ProgressReporter } from '../../ProgressReporter';
+import { SignatureHelpProvider } from '../../SignatureHelpProvider';
 import { sleep } from '../helper';
 
 describe('DbtTextDocument', () => {
@@ -41,6 +45,7 @@ describe('DbtTextDocument', () => {
     when(mockDbt.dbtReady).thenReturn(true);
     when(mockDbt.onDbtReady).thenReturn(onDbtReadyEmitter.event);
 
+    const dbtRepository = new DbtRepository();
     document = new DbtTextDocument(
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
       DbtDocumentKind.MODEL,
@@ -50,9 +55,13 @@ describe('DbtTextDocument', () => {
       instance(mockModelCompiler),
       instance(mockJinjaParser),
       onGlobalDbtErrorFixedEmitter,
-      new DbtRepository(),
+      dbtRepository,
       instance(mockDbt),
-      new DestinationState(),
+      new BigQueryContext(),
+      new DiagnosticGenerator(dbtRepository),
+      new SignatureHelpProvider(),
+      new HoverProvider(),
+      new DbtDefinitionProvider(dbtRepository),
     );
   });
 

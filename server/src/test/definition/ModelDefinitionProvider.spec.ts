@@ -4,6 +4,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtRepository } from '../../DbtRepository';
 import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
 import { ModelDefinitionProvider } from '../../definition/ModelDefinitionProvider';
+import { ManifestModel } from '../../manifest/ManifestJson';
 
 describe('ModelDefinitionProvider', () => {
   const PATH_TO_PROJECT = '/Users/user_name/project';
@@ -30,32 +31,28 @@ describe('ModelDefinitionProvider', () => {
 
   before(() => {
     DBT_REPOSITORY.models = [
-      {
-        uniqueId: `model.${PACKAGE_NAME}.${PACKAGE_MODEL}`,
-        rootPath: PATH_TO_PROJECT,
-        originalFilePath: PACKAGE_MODEL_ROOT_PATH,
-        name: PACKAGE_MODEL,
-        packageName: PACKAGE_NAME,
-        database: '',
-        schema: '',
-        dependsOn: { nodes: [] },
-        refs: [],
-      },
-      {
-        uniqueId: `model.${PROJECT_NAME}.${PROJECT_MODEL}`,
-        rootPath: PATH_TO_PROJECT,
-        originalFilePath: PROJECT_MODEL_ROOT_PATH,
-        name: PROJECT_MODEL,
-        packageName: PROJECT_NAME,
-        database: '',
-        schema: '',
-        dependsOn: { nodes: [] },
-        refs: [],
-      },
+      createModel(`model.${PACKAGE_NAME}.${PACKAGE_MODEL}`, PACKAGE_MODEL_ROOT_PATH, PACKAGE_MODEL, PACKAGE_NAME),
+      createModel(`model.${PROJECT_NAME}.${PROJECT_MODEL}`, PROJECT_MODEL_ROOT_PATH, PROJECT_MODEL, PROJECT_NAME),
     ];
 
     modelDocument = TextDocument.create(`${PATH_TO_PROJECT}/models/${FILE_NAME}`, 'sql', 0, MODEL_FILE_CONTENT);
   });
+
+  function createModel(uniqueId: string, originalFilePath: string, name: string, packageName: string): ManifestModel {
+    return {
+      uniqueId,
+      rootPath: PATH_TO_PROJECT,
+      originalFilePath,
+      name,
+      packageName,
+      database: '',
+      schema: '',
+      rawCode: '',
+      compiledCode: '',
+      dependsOn: { nodes: [] },
+      refs: [],
+    };
+  }
 
   it('provideDefinitions should return definition for model from package (if package is specified)', () => {
     assertThat(

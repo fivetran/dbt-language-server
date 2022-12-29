@@ -21,12 +21,12 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
+import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { CompletionProvider } from '../completion/CompletionProvider';
 import { DbtRepository } from '../DbtRepository';
 import { Dbt } from '../dbt_execution/Dbt';
 import { DbtCompileJob } from '../dbt_execution/DbtCompileJob';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
-import { DestinationState } from '../DestinationState';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
 import { HoverProvider } from '../HoverProvider';
 import { JinjaParser } from '../JinjaParser';
@@ -51,12 +51,7 @@ export class DbtTextDocument {
   requireCompileOnSave: boolean;
 
   ast?: AnalyzeResponse;
-  signatureHelpProvider = new SignatureHelpProvider();
   completionProvider: CompletionProvider;
-  dbtDefinitionProvider: DbtDefinitionProvider;
-
-  diagnosticGenerator: DiagnosticGenerator;
-  hoverProvider = new HoverProvider();
 
   currentDbtError?: string;
   firstSave = true;
@@ -75,13 +70,15 @@ export class DbtTextDocument {
     private onGlobalDbtErrorFixedEmitter: Emitter<void>,
     private dbtRepository: DbtRepository,
     private dbt: Dbt,
-    private destinationState: DestinationState,
+    private bigQueryContext: BigQueryContext,
+    private diagnosticGenerator: DiagnosticGenerator,
+    private signatureHelpProvider: SignatureHelpProvider,
+    private hoverProvider: HoverProvider,
+    private dbtDefinitionProvider: DbtDefinitionProvider,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
-    this.diagnosticGenerator = new DiagnosticGenerator(this.dbtRepository);
-    this.completionProvider = new CompletionProvider(this.rawDocument, this.compiledDocument, this.dbtRepository, this.jinjaParser, destinationState);
-    this.dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
+    this.completionProvider = new CompletionProvider(this.rawDocument, this.compiledDocument, this.dbtRepository, this.jinjaParser, bigQueryContext);
     this.requireCompileOnSave = false;
 
     this.modelCompiler.onCompilationError(this.onCompilationError.bind(this));
@@ -89,7 +86,7 @@ export class DbtTextDocument {
     this.modelCompiler.onFinishAllCompilationJobs(this.onFinishAllCompilationTasks.bind(this));
     this.onGlobalDbtErrorFixedEmitter.event(this.onDbtErrorFixed.bind(this));
 
-    this.destinationState.onContextInitialized(this.onContextInitialized.bind(this));
+    this.bigQueryContext.onContextInitialized(this.onContextInitialized.bind(this));
     this.dbt.onDbtReady(this.onDbtReady.bind(this));
   }
 
@@ -210,7 +207,7 @@ export class DbtTextDocument {
 
   async resendDiagnostics(): Promise<void> {
     if (
-      this.destinationState.contextInitialized &&
+      this.bigQueryContext.contextInitialized &&
       this.dbt.dbtReady &&
       !this.currentDbtError &&
       !this.modelCompiler.compilationInProgress &&
@@ -262,7 +259,7 @@ export class DbtTextDocument {
     this.fixGlobalDbtError();
 
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
-    if (this.destinationState.contextInitialized) {
+    if (this.bigQueryContext.contextInitialized) {
       await this.updateAndSendDiagnosticsAndPreview();
     }
 
@@ -307,13 +304,13 @@ export class DbtTextDocument {
     let compiledDocDiagnostics: Diagnostic[] = [];
 
     if (
-      this.destinationState.bigQueryContext &&
+      !this.bigQueryContext.isEmpty() &&
       this.dbtDocumentKind === DbtDocumentKind.MODEL &&
       compiledSql !== '' &&
       compiledSql !== DbtCompileJob.NO_RESULT_FROM_COMPILER
     ) {
       const { fsPath } = URI.parse(this.rawDocument.uri);
-      const astResult = await this.destinationState.bigQueryContext.analyzeTable(fsPath, compiledSql);
+      const astResult = await this.bigQueryContext.analyzeTable(fsPath, compiledSql);
       if (astResult.isOk()) {
         console.log(`AST was successfully received for ${fsPath}`, LogLevel.Debug);
         this.ast = astResult.value;
@@ -321,11 +318,9 @@ export class DbtTextDocument {
         console.log(`There was an error while parsing ${fsPath}`, LogLevel.Debug);
         console.log(astResult, LogLevel.Debug);
       }
-      [rawDocDiagnostics, compiledDocDiagnostics] = this.diagnosticGenerator.getDiagnosticsFromAst(
-        astResult,
-        this.rawDocument,
-        this.compiledDocument,
-      );
+      const diagnostics = this.diagnosticGenerator.getDiagnosticsFromAst(astResult, this.rawDocument, this.compiledDocument);
+      rawDocDiagnostics = diagnostics.raw;
+      compiledDocDiagnostics = diagnostics.compiled;
     }
 
     return [rawDocDiagnostics, compiledDocDiagnostics];

@@ -1,49 +1,87 @@
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { err, ok, Result } from 'neverthrow';
-import { DbtProfile, TargetConfig } from '../DbtProfile';
+import { Emitter, Event } from 'vscode-languageserver';
+import { DbtProfileSuccess } from '../DbtProfileCreator';
 import { DbtRepository } from '../DbtRepository';
 import { DestinationDefinition } from '../DestinationDefinition';
+import { ProjectAnalyzer } from '../ProjectAnalyzer';
 import { SqlHeaderAnalyzer } from '../SqlHeaderAnalyzer';
 import { ZetaSqlParser } from '../ZetaSqlParser';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 import { BigQueryClient } from './BigQueryClient';
 
 export class BigQueryContext {
-  private constructor(public destinationDefinition: DestinationDefinition, public zetaSqlWrapper: ZetaSqlWrapper) {}
+  private static readonly ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux', 'win32'];
 
-  public static async createContext(
-    dbtProfile: DbtProfile,
-    targetConfig: Required<TargetConfig>,
+  destinationDefinition?: DestinationDefinition;
+  projectAnalyzer?: ProjectAnalyzer;
+
+  contextInitialized = false;
+  onContextInitializedEmitter = new Emitter<void>();
+
+  isEmpty(): boolean {
+    return this.projectAnalyzer === undefined;
+  }
+
+  onDestinationPrepared(): void {
+    this.contextInitialized = true;
+    this.onContextInitializedEmitter.fire();
+  }
+
+  get onContextInitialized(): Event<void> {
+    return this.onContextInitializedEmitter.event;
+  }
+
+  async initialize(
+    profileResult: DbtProfileSuccess,
     dbtRepository: DbtRepository,
-  ): Promise<Result<BigQueryContext, string>> {
-    try {
-      const clientResult = await dbtProfile.createClient(targetConfig);
-      if (clientResult.isErr()) {
-        console.log(clientResult.error);
-        return err(clientResult.error);
+    ubuntuInWslWorks: boolean,
+    projectName: string | undefined,
+  ): Promise<Result<void, string>> {
+    if (BigQueryContext.ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) && profileResult.dbtProfile && ubuntuInWslWorks) {
+      try {
+        const clientResult = await profileResult.dbtProfile.createClient(profileResult.targetConfig);
+        if (clientResult.isErr()) {
+          console.log(clientResult.error);
+          return err(clientResult.error);
+        }
+
+        const bigQueryClient = clientResult.value as BigQueryClient;
+        this.destinationDefinition = new DestinationDefinition(bigQueryClient);
+
+        this.projectAnalyzer = new ProjectAnalyzer(
+          dbtRepository,
+          projectName,
+          bigQueryClient,
+          new ZetaSqlWrapper(bigQueryClient, new ZetaSqlParser(), new SqlHeaderAnalyzer()),
+        );
+        await this.projectAnalyzer.initialize();
+      } catch (e) {
+        console.log(e instanceof Error ? e.stack : e);
+        const message = e instanceof Error ? e.message : JSON.stringify(e);
+        this.onDestinationPrepared();
+        return err(`BigQuery initialization failed. ${message}`);
       }
-
-      const bigQueryClient = clientResult.value as BigQueryClient;
-      const destinationDefinition = new DestinationDefinition(bigQueryClient);
-
-      const zetaSqlWrapper = new ZetaSqlWrapper(dbtRepository, bigQueryClient, new ZetaSqlParser(), new SqlHeaderAnalyzer());
-      await zetaSqlWrapper.initializeZetaSql();
-
-      return ok(new BigQueryContext(destinationDefinition, zetaSqlWrapper));
-    } catch (e) {
-      console.log(e instanceof Error ? e.stack : e);
-      const message = e instanceof Error ? e.message : JSON.stringify(e);
-      return err(`Data Warehouse initialization failed. ${message}`);
     }
+    this.onDestinationPrepared();
+    return ok(undefined);
   }
 
   async analyzeTable(fullFilePath: string, sql: string): Promise<Result<AnalyzeResponse__Output, string>> {
-    return this.zetaSqlWrapper.analyzeTable(fullFilePath, sql);
+    if (!this.projectAnalyzer) {
+      throw new Error('projectAnalyzer is not initialized');
+    }
+    return this.projectAnalyzer.analyzeTable(fullFilePath, sql);
   }
 
-  public dispose(): void {
-    this.zetaSqlWrapper
-      .terminateServer()
-      .catch(e => console.log(`Failed to terminate zetasql server: ${e instanceof Error ? e.message : String(e)}`));
+  async analyzeProject(): Promise<Map<string, Result<AnalyzeResponse__Output, string>>> {
+    if (!this.projectAnalyzer) {
+      throw new Error('projectAnalyzer is not initialized');
+    }
+    return this.projectAnalyzer.analyzeProject();
+  }
+
+  dispose(): void {
+    this.projectAnalyzer?.dispose();
   }
 }

@@ -45,24 +45,28 @@ import {
 } from 'vscode-languageserver';
 import { FileOperationFilter } from 'vscode-languageserver-protocol/lib/common/protocol.fileOperations';
 import { URI } from 'vscode-uri';
+import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { DbtProfileCreator, DbtProfileInfo } from '../DbtProfileCreator';
 import { DbtProject } from '../DbtProject';
 import { DbtRepository } from '../DbtRepository';
 import { Dbt, DbtMode } from '../dbt_execution/Dbt';
 import { DbtCli } from '../dbt_execution/DbtCli';
 import { DbtRpc } from '../dbt_execution/DbtRpc';
-import { DestinationState } from '../DestinationState';
+import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
+import { DiagnosticGenerator } from '../DiagnosticGenerator';
 import { DbtDocumentKind } from '../document/DbtDocumentKind';
 import { DbtDocumentKindResolver } from '../document/DbtDocumentKindResolver';
 import { DbtTextDocument } from '../document/DbtTextDocument';
 import { FeatureFinder } from '../feature_finder/FeatureFinder';
 import { FileChangeListener } from '../FileChangeListener';
+import { HoverProvider } from '../HoverProvider';
 import { JinjaParser } from '../JinjaParser';
 import { LogLevel } from '../Logger';
 import { ManifestParser } from '../manifest/ManifestParser';
 import { ModelCompiler } from '../ModelCompiler';
 import { ProcessExecutor } from '../ProcessExecutor';
 import { ProgressReporter } from '../ProgressReporter';
+import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { DbtProjectStatusSender } from '../status_bar/DbtProjectStatusSender';
 import { LspServerBase } from './LspServerBase';
 
@@ -79,11 +83,15 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   manifestParser = new ManifestParser();
   dbtRepository = new DbtRepository();
   dbtDocumentKindResolver = new DbtDocumentKindResolver(this.dbtRepository);
+  diagnosticGenerator = new DiagnosticGenerator(this.dbtRepository);
+  dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
+  signatureHelpProvider = new SignatureHelpProvider();
+  hoverProvider = new HoverProvider();
   initStart = performance.now();
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
   dbtProject = new DbtProject('.');
 
-  destinationState = new DestinationState();
+  bigQueryContext = new BigQueryContext();
   dbt?: Dbt;
 
   constructor(connection: _Connection, featureFinder: FeatureFinder, private workspaceFolder: string) {
@@ -233,11 +241,12 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       await this.showWslWarning();
     }
 
-    const prepareDestination = profileResult.isErr()
-      ? this.destinationState.prepareDestinationStub()
-      : this.destinationState
-          .prepareBigQueryDestination(profileResult.value, this.dbtRepository, ubuntuInWslWorks)
-          .then((prepareResult: Result<void, string>) => (prepareResult.isErr() ? this.showCreateContextWarning(prepareResult.error) : undefined));
+    const destinationInitResult = profileResult.isOk()
+      ? this.bigQueryContext
+          .initialize(profileResult.value, this.dbtRepository, ubuntuInWslWorks, this.dbtProject.findProjectName())
+          .then((initResult: Result<void, string>) => (initResult.isErr() ? this.showCreateContextWarning(initResult.error) : undefined))
+      : Promise.resolve();
+
     const prepareDbt = this.dbt?.prepare(dbtProfileType).then(_ => this.statusSender.sendStatus());
 
     this.dbtRepository
@@ -245,14 +254,41 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       .then(() => this.notificationSender.sendLanguageServerManifestParsed())
       .catch(e => console.log(`Manifest was not parsed: ${e instanceof Error ? e.message : String(e)}`));
 
-    await Promise.allSettled([prepareDbt, prepareDestination]);
-
+    await Promise.allSettled([prepareDbt, destinationInitResult]);
+    await this.dbt?.compileProject(this.dbtRepository);
+    this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime, ubuntuInWslWorks);
 
     this.featureFinder
       .runPostInitTasks()
       .catch(e => console.log(`Error while running post init tasks: ${e instanceof Error ? e.message : String(e)}`));
+  }
+
+  async analyzeProject(): Promise<void> {
+    if (this.bigQueryContext.isEmpty()) {
+      return;
+    }
+    const analyzeResults = await this.bigQueryContext.analyzeProject();
+    let modelsCount = 0;
+    let errorCount = 0;
+    for (const [uniqueId, result] of analyzeResults.entries()) {
+      modelsCount++;
+      if (result.isErr()) {
+        const model = this.dbtRepository.models.find(m => m.uniqueId === uniqueId);
+        if (model) {
+          const { rawCode } = model;
+          const compiledCode = this.dbtRepository.getModelCompiledCode(model);
+          if (rawCode && compiledCode) {
+            const uri = URI.file(this.dbtRepository.getModelRawSqlPath(model)).toString();
+            const diagnostics = this.diagnosticGenerator.getSqlErrorDiagnostics(result.error, rawCode, compiledCode).raw;
+            this.notificationSender.sendRawDiagnostics({ uri, diagnostics });
+            errorCount++;
+          }
+        }
+      }
+    }
+    console.log(`Processed ${modelsCount} models. ${errorCount} errors found during analysis`);
   }
 
   registerClientNotification(): void {
@@ -381,7 +417,11 @@ export class LspServer extends LspServerBase<FeatureFinder> {
         this.onGlobalDbtErrorFixedEmitter,
         this.dbtRepository,
         this.dbt,
-        this.destinationState,
+        this.bigQueryContext,
+        this.diagnosticGenerator,
+        this.signatureHelpProvider,
+        this.hoverProvider,
+        this.dbtDefinitionProvider,
       );
       this.openedDocuments.set(uri, document);
 
@@ -500,7 +540,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   dispose(): void {
     console.log('Dispose start...');
     this.dbt?.dispose();
-    this.destinationState.dispose();
+    this.bigQueryContext.dispose();
     this.onGlobalDbtErrorFixedEmitter.dispose();
     console.log('Dispose end.');
   }

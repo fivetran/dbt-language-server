@@ -10,6 +10,11 @@ import { PositionConverter } from './PositionConverter';
 import { SqlRefConverter } from './SqlRefConverter';
 import { getIdentifierRangeAtPosition } from './utils/Utils';
 
+interface RawAndCompiledDiagnostics {
+  raw: Diagnostic[];
+  compiled: Diagnostic[];
+}
+
 export class DiagnosticGenerator {
   private static readonly DBT_ERROR_LINE_PATTERN = /\n\s*line (\d+)\s*\n/;
   private static readonly DBT_COMPILATION_ERROR_PATTERN = /(Compilation Error in model \w+ \((.*)\)(?:\r\n?|\n).*)(?:\r\n?|\n)/;
@@ -48,25 +53,22 @@ export class DiagnosticGenerator {
     astResult: Result<AnalyzeResponse__Output, string>,
     rawDocument: TextDocument,
     compiledDocument: TextDocument,
-  ): Diagnostic[][] {
-    const rawDocDiagnostics: Diagnostic[] = [];
-    const compiledDocDiagnostics: Diagnostic[] = [];
-
+  ): RawAndCompiledDiagnostics {
+    let result: RawAndCompiledDiagnostics = { raw: [], compiled: [] };
     astResult.match(
-      ast => this.createInformationDiagnostics(ast, rawDocument, compiledDocument, rawDocDiagnostics),
-      error => this.createErrorDiagnostics(error, rawDocument.getText(), compiledDocument.getText(), rawDocDiagnostics, compiledDocDiagnostics),
+      ast => {
+        result = this.createInformationDiagnostics(ast, rawDocument, compiledDocument);
+      },
+      error => {
+        result = this.getSqlErrorDiagnostics(error, rawDocument.getText(), compiledDocument.getText());
+      },
     );
 
-    return [rawDocDiagnostics, compiledDocDiagnostics];
+    return result;
   }
 
-  createErrorDiagnostics(
-    error: string,
-    rawDocText: string,
-    compiledDocText: string,
-    rawDocDiagnostics: Diagnostic[],
-    compiledDocDiagnostics: Diagnostic[],
-  ): void {
+  getSqlErrorDiagnostics(error: string, rawDocText: string, compiledDocText: string): RawAndCompiledDiagnostics {
+    const result: RawAndCompiledDiagnostics = { raw: [], compiled: [] };
     // Parse string like 'Unrecognized name: paused1; Did you mean paused? [at 9:3]'
     const matchResults = error.match(DiagnosticGenerator.SQL_COMPILATION_ERROR_PATTERN);
     if (matchResults) {
@@ -77,17 +79,19 @@ export class DiagnosticGenerator {
       const positionInCompiledDoc = Position.create(lineInCompiledDoc, characterInCompiledDoc);
       const positionInRawDoc = new PositionConverter(rawDocText, compiledDocText).convertPositionBackward(positionInCompiledDoc);
 
-      rawDocDiagnostics.push(this.createErrorDiagnostic(rawDocText, positionInRawDoc, errorText));
-      compiledDocDiagnostics.push(this.createErrorDiagnostic(compiledDocText, positionInCompiledDoc, errorText));
+      result.raw.push(this.createErrorDiagnostic(rawDocText, positionInRawDoc, errorText));
+      result.compiled.push(this.createErrorDiagnostic(compiledDocText, positionInCompiledDoc, errorText));
     }
+    return result;
   }
 
-  createInformationDiagnostics(
+  private createInformationDiagnostics(
     ast: AnalyzeResponse__Output,
     rawDocument: TextDocument,
     compiledDocument: TextDocument,
-    rawDocDiagnostics: Diagnostic[],
-  ): void {
+  ): RawAndCompiledDiagnostics {
+    const result: RawAndCompiledDiagnostics = { raw: [], compiled: [] };
+
     const rawText = rawDocument.getText();
     const compiledText = compiledDocument.getText();
 
@@ -99,12 +103,13 @@ export class DiagnosticGenerator {
       const range = Range.create(converter.convertPositionBackward(change.range.start), converter.convertPositionBackward(change.range.end));
 
       if (rawDocument.getText(range) === compiledDocument.getText(change.range)) {
-        rawDocDiagnostics.push(this.createInformationDiagnostic(range, change.newText));
+        result.raw.push(this.createInformationDiagnostic(range, change.newText));
       }
     }
+    return result;
   }
 
-  createInformationDiagnostic(range: Range, newText: string): Diagnostic {
+  private createInformationDiagnostic(range: Range, newText: string): Diagnostic {
     return {
       severity: DiagnosticSeverity.Information,
       range,
@@ -135,7 +140,7 @@ export class DiagnosticGenerator {
     };
   }
 
-  extendRangeIfSmall(range: Range): Range {
+  private extendRangeIfSmall(range: Range): Range {
     if (range.start.line === range.end.line && range.end.character === range.start.character + 1) {
       if (range.start.character > 0) {
         range.start.character -= 1;

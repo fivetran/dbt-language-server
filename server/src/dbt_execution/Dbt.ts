@@ -29,6 +29,8 @@ export abstract class Dbt {
 
   protected abstract prepareImplementation(dbtProfileType?: string): Promise<void>;
 
+  abstract compileProject(dbtRepository: DbtRepository): Promise<void>;
+
   abstract createCompileJob(modelPath: string, dbtRepository: DbtRepository, allowFallback: boolean): DbtCompileJob;
 
   abstract getError(): string;

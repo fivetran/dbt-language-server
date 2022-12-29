@@ -1,7 +1,6 @@
 import * as retry from 'async-retry';
 import { DbtRepository } from './DbtRepository';
 import { ManifestModel } from './manifest/ManifestJson';
-import path = require('node:path');
 
 export class ModelFetcher {
   model: ManifestModel | undefined;
@@ -16,7 +15,7 @@ export class ModelFetcher {
       try {
         this.model = await retry(
           () => {
-            const model = this.dbtRepository.models.find(m => pathEqual(path.join(m.rootPath, m.originalFilePath), this.fullModelPath));
+            const model = this.dbtRepository.models.find(m => pathEqual(this.dbtRepository.getModelRawSqlPath(m), this.fullModelPath));
             if (model === undefined) {
               console.log('Model not found in manifest.json, retrying...');
               throw new Error('Model not found in manifest.json');
