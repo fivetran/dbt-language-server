@@ -79,7 +79,6 @@ export class ExtensionClient {
 
   async activateDefaultProject(): Promise<void> {
     let currentWorkspace: WorkspaceFolder | undefined = undefined;
-    log(`workspace name: ${workspace.name ?? 'undefined'}`);
     if (workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
       currentWorkspace = workspace.workspaceFolders.find(f => f.name === workspace.name);
     }
@@ -88,10 +87,8 @@ export class ExtensionClient {
       currentWorkspace = workspace.workspaceFolders[0];
     }
 
-    log(`currentWorkspace: ${currentWorkspace?.name ?? 'undefined'}`);
     if (currentWorkspace) {
       const dbtProjectYmlPath = path.join(currentWorkspace.uri.fsPath, DBT_PROJECT_YML);
-      log(`default project: ${dbtProjectYmlPath}`);
       const possibleProjectYmlUri = currentWorkspace.uri.with({ path: dbtProjectYmlPath });
       await this.dbtLanguageClientManager.ensureClient(possibleProjectYmlUri);
       if (this.context.globalState.get<boolean>(dbtProjectYmlPath)) {
