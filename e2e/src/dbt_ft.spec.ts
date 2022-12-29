@@ -88,7 +88,7 @@ suite('dbt_ft', () => {
       }
       errorCount += diagnostics.length;
       for (const diagnostic of diagnostics) {
-        console.log(`${diagnostic.message}: [${diagnostic.range.start.line}, ${diagnostic.range.start.character}]`);
+        console.log(`${diagnostic.message}: [at ${diagnostic.range.start.line}:${diagnostic.range.start.character}]`);
       }
       console.log();
     }

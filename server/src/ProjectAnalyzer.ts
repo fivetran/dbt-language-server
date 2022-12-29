@@ -57,7 +57,7 @@ export class ProjectAnalyzer {
   ): Promise<Result<AnalyzeResponse__Output, string>> {
     await this.zetaSqlWrapper.registerAllLanguageFeatures();
     const upstreamError: UpstreamError = {};
-    const result = this.analyzeModelInternal(model, bigQueryTableFetcher, upstreamError, sql);
+    const result = await this.analyzeModelInternal(model, bigQueryTableFetcher, upstreamError, sql);
     if (
       upstreamError.path !== undefined &&
       upstreamError.error !== undefined &&
