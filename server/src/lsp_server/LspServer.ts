@@ -28,6 +28,7 @@ import {
   DidSaveTextDocumentParams,
   Emitter,
   ExecuteCommandParams,
+  FileChangeType,
   Hover,
   HoverParams,
   InitializeError,
@@ -101,6 +102,11 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     this.progressReporter = new ProgressReporter(this.connection);
     this.dbtProfileCreator = new DbtProfileCreator(this.dbtProject, path.join(homedir(), '.dbt', 'profiles.yml'));
     this.fileChangeListener = new FileChangeListener(this.workspaceFolder, this.dbtProject, this.manifestParser, this.dbtRepository);
+    this.fileChangeListener.onSqlModelChanged(changes => {
+      if (changes.some(c => !this.openedDocuments.has(c.uri) && c.type !== FileChangeType.Deleted)) {
+        // TODO: re-compile/re-analyze the project
+      }
+    });
     this.statusSender = new DbtProjectStatusSender(this.notificationSender, this.workspaceFolder, this.featureFinder, this.fileChangeListener);
   }
 
@@ -293,6 +299,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
 
   registerClientNotification(): void {
     this.registerManifestWatcher();
+    this.registerModelsWatcher();
 
     if (this.hasConfigurationCapability) {
       this.connection.client
@@ -320,15 +327,29 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       if (!fs.existsSync(targetPath)) {
         fs.mkdirSync(targetPath, { recursive: true });
       }
-
-      this.connection.client
-        .register(DidChangeWatchedFilesNotification.type, {
-          watchers: [{ globPattern: { baseUri: URI.file(targetPath).toString(), pattern: 'manifest.json' } }],
-        })
-        .catch(e =>
-          console.log(`Error while registering DidChangeWatchedFilesNotification notification: ${e instanceof Error ? e.message : String(e)}`),
-        );
+      this.registerDidChangeWatchedFilesNotification(URI.file(targetPath).toString(), 'manifest.json');
     }
+  }
+
+  registerModelsWatcher(): void {
+    if (this.hasDidChangeWatchedFilesCapability) {
+      const modelPaths = this.dbtProject.findModelPaths();
+
+      for (const modelPath of modelPaths) {
+        const baseUri = URI.file(path.resolve(modelPath)).toString();
+        this.registerDidChangeWatchedFilesNotification(baseUri, '**/*.sql');
+      }
+    }
+  }
+
+  registerDidChangeWatchedFilesNotification(baseUri: string, pattern: string): void {
+    this.connection.client
+      .register(DidChangeWatchedFilesNotification.type, {
+        watchers: [{ globPattern: { baseUri, pattern } }],
+      })
+      .catch(e =>
+        console.log(`Error while registering for DidChangeWatchedFilesNotification notification: ${e instanceof Error ? e.message : String(e)}`),
+      );
   }
 
   showWarning(message: string): void {

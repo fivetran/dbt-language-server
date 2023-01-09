@@ -12,6 +12,7 @@ export class FileChangeListener {
   private onDbtProjectYmlChangedEmitter = new Emitter<void>();
   private onDbtPackagesYmlChangedEmitter = new Emitter<FileChangeType>();
   private onDbtPackagesChangedEmitter = new Emitter<void>();
+  private onSqlModelChangedEmitter = new Emitter<FileEvent[]>();
 
   private dbtProjectYmlPath: string;
   private packagesYmlPath: string;
@@ -38,12 +39,22 @@ export class FileChangeListener {
     return this.onDbtPackagesChangedEmitter.event;
   }
 
+  get onSqlModelChanged(): Event<FileEvent[]> {
+    return this.onSqlModelChangedEmitter.event;
+  }
+
   onInit(): void {
     this.updateDbtProjectConfig();
     this.updateManifestNodes();
   }
 
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
+    const sqlChanges = params.changes.filter(change => change.uri.endsWith('.sql'));
+    if (sqlChanges.length > 0) {
+      this.onSqlModelChangedEmitter.fire(sqlChanges); // TODO: test change/add/delete
+    }
+
+    params.changes = params.changes.filter(change => !change.uri.endsWith('.sql'));
     const manifestJsonPath = path.resolve(this.workspaceFolder, this.dbtRepository.dbtTargetPath, DbtRepository.DBT_MANIFEST_FILE_NAME);
     const packagesPaths = this.dbtRepository.packagesInstallPaths.map(p => path.resolve(this.workspaceFolder, p));
 
