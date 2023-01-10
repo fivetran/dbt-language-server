@@ -23,7 +23,10 @@ export class ProjectChangeListener {
 
   onSqlModelChanged(changes: FileEvent[]): void {
     if (changes.some(c => !this.openedDocuments.has(c.uri) && c.type !== FileChangeType.Deleted)) {
-      // TODO: re-compile/re-analyze the project
+      console.log('External change has happened. Start recompiling/reanalyzing the project');
+      this.compileAndAnalyzeProject().catch(e =>
+        console.log(`Error while compiling/analyzing project: ${e instanceof Error ? e.message : String(e)}`),
+      );
     }
   }
 

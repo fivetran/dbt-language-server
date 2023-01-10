@@ -227,11 +227,10 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       .catch(e => console.log(`Manifest was not parsed: ${e instanceof Error ? e.message : String(e)}`));
 
     await Promise.allSettled([prepareDbt, destinationInitResult]);
-    await this.dbt.compileProject(this.dbtRepository);
 
     this.projectChangeListener
-      .analyzeProject()
-      .catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
+      .compileAndAnalyzeProject()
+      .catch(e => console.log(`Error while compiling/analyzing project: ${e instanceof Error ? e.message : String(e)}`));
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime, ubuntuInWslWorks);
 
