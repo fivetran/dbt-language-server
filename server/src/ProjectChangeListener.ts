@@ -24,23 +24,23 @@ export class ProjectChangeListener {
     fileChangeListener.onSqlModelChanged(c => this.onSqlModelChanged(c));
   }
 
-  onSqlModelChanged(changes: FileEvent[]): void {
-    if (changes.some(c => !this.openedDocuments.has(c.uri) && c.type !== FileChangeType.Deleted)) {
-      this.debouncedCompileAndAnalyze();
-    }
-  }
-
   async compileAndAnalyzeProject(): Promise<void> {
     await this.dbt.compileProject(this.dbtRepository);
     this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
   }
 
-  debouncedCompileAndAnalyze = debounce(async () => {
+  private onSqlModelChanged(changes: FileEvent[]): void {
+    if (changes.some(c => !this.openedDocuments.has(c.uri) && c.type !== FileChangeType.Deleted)) {
+      this.debouncedCompileAndAnalyze();
+    }
+  }
+
+  private debouncedCompileAndAnalyze = debounce(async () => {
     console.log('External change has happened. Start recompiling/reanalyzing the project');
     await this.compileAndAnalyzeProject();
   }, ProjectChangeListener.PROJECT_COMPILE_DEBOUNCE_TIMEOUT);
 
-  async analyzeProject(): Promise<void> {
+  private async analyzeProject(): Promise<void> {
     if (this.bigQueryContext.isEmpty()) {
       return;
     }
