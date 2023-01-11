@@ -25,6 +25,10 @@ export class ProjectChangeListener {
     fileChangeListener.onSqlModelChanged(c => this.onSqlModelChanged(c));
   }
 
+  setEnableEntireProjectAnalysis(value: boolean): void {
+    this.enableEntireProjectAnalysis = value;
+  }
+
   async compileAndAnalyzeProject(): Promise<void> {
     await this.dbt.compileProject(this.dbtRepository);
     this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
