@@ -182,7 +182,7 @@ export class ProjectAnalyzer {
 
     if (refFullName) {
       const joinedName = refFullName.join('.');
-      return model.dependsOn.nodes.find(n => n.endsWith(joinedName));
+      return model.dependsOn.nodes.find(n => n.endsWith(`.${joinedName}`));
     }
 
     return undefined;
