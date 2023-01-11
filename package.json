@@ -40,7 +40,7 @@
         "WizardForDbtCore(TM).enableEntireProjectAnalysis": {
           "type": "boolean",
           "default": true,
-          "description": "Enables analysis for the entire project. As the result errors for all models will be shown. For big projects it can be slow."
+          "description": "Enables analysis for the entire project. As the result errors for all models will be shown. For for large projects, the analysis process may be slower."
         },
         "WizardForDbtCore(TM).dbtCompiler": {
           "type": "string",
