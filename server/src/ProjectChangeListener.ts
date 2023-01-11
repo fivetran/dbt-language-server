@@ -35,7 +35,8 @@ export class ProjectChangeListener {
   }
 
   private onSqlModelChanged(changes: FileEvent[]): void {
-    if (changes.some(c => !this.openedDocuments.has(c.uri) && c.type !== FileChangeType.Deleted)) {
+    const externalChangeHappened = changes.some(c => !this.openedDocuments.has(c.uri) && c.type !== FileChangeType.Deleted);
+    if (externalChangeHappened) {
       this.debouncedCompileAndAnalyze();
     }
   }
