@@ -19,6 +19,7 @@ export class ProjectChangeListener {
     private diagnosticGenerator: DiagnosticGenerator,
     private notificationSender: NotificationSender,
     private dbt: Dbt,
+    private enableEntireProjectAnalysis: boolean,
     fileChangeListener: FileChangeListener,
   ) {
     fileChangeListener.onSqlModelChanged(c => this.onSqlModelChanged(c));
@@ -41,7 +42,7 @@ export class ProjectChangeListener {
   }, ProjectChangeListener.PROJECT_COMPILE_DEBOUNCE_TIMEOUT);
 
   private async analyzeProject(): Promise<void> {
-    if (this.bigQueryContext.isEmpty()) {
+    if (!this.enableEntireProjectAnalysis || this.bigQueryContext.isEmpty()) {
       return;
     }
     const analyzeResults = await this.bigQueryContext.analyzeProject();

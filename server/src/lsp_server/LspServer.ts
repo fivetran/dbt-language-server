@@ -73,11 +73,8 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   filesFilter: FileOperationFilter[];
   hasConfigurationCapability = false;
   hasDidChangeWatchedFilesCapability = false;
-  openedDocuments = new Map<string, DbtTextDocument>();
   initStart = performance.now();
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
-
-  projectChangeListener: ProjectChangeListener;
 
   constructor(
     connection: _Connection,
@@ -97,19 +94,11 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     private signatureHelpProvider: SignatureHelpProvider,
     private hoverProvider: HoverProvider,
     private bigQueryContext: BigQueryContext,
+    private openedDocuments: Map<string, DbtTextDocument>,
+    private projectChangeListener: ProjectChangeListener,
   ) {
     super(connection, notificationSender, featureFinder);
-
     this.filesFilter = [{ scheme: 'file', pattern: { glob: `${workspaceFolder}/**/*`, matches: 'file' } }];
-    this.projectChangeListener = new ProjectChangeListener(
-      this.openedDocuments,
-      this.bigQueryContext,
-      this.dbtRepository,
-      this.diagnosticGenerator,
-      this.notificationSender,
-      this.dbt,
-      this.fileChangeListener,
-    );
   }
 
   onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> {

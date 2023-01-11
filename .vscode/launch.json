@@ -9,7 +9,7 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
-      "outFiles": ["${workspaceFolder}/client/out/**/*.js"],
+      "autoAttachChildProcesses": true,
       "env": {
         "DBT_LS_DISABLE_TELEMETRY": "true",
         "DBT_LS_ENABLE_DEBUG_LOGS": "true"
@@ -31,8 +31,7 @@
       "port": 6009,
       "restart": true,
       "timeout": 30000,
-      "skipFiles": ["<node_internals>/**"],
-      "outFiles": ["${workspaceFolder}/server/out/**/*.js"]
+      "skipFiles": ["<node_internals>/**"]
     },
     {
       "name": "Attach to Server 6010",
@@ -40,8 +39,7 @@
       "request": "attach",
       "port": 6010,
       "restart": true,
-      "skipFiles": ["<node_internals>/**"],
-      "outFiles": ["${workspaceFolder}/server/out/**/*.js"]
+      "skipFiles": ["<node_internals>/**"]
     },
     {
       "name": "Debug Server Unit Tests",
@@ -64,8 +62,7 @@
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/markdown_parser/src/Parser.ts",
-      "preLaunchTask": "npm: build",
-      "outFiles": ["${workspaceFolder}/markdown_parser/out/**/*.js"]
+      "preLaunchTask": "npm: build"
     },
     {
       "name": "E2E Tests Client",
@@ -83,8 +80,7 @@
         "DBT_LS_ENABLE_DEBUG_LOGS": "true",
         "CLI_PATH": "code",
         "LOCAL_RUN": "true"
-      },
-      "outFiles": ["${workspaceRoot}/client/out/test/**/*.js"]
+      }
     },
     {
       "name": "dbt_ft Tests Client",
@@ -102,8 +98,7 @@
         "LOCAL_RUN": "true",
         "DBT_LS_DISABLE_TELEMETRY": "true",
         "DBT_LS_ENABLE_DEBUG_LOGS": "true"
-      },
-      "outFiles": ["${workspaceRoot}/client/out/test/**/*.js"]
+      }
     }
   ],
   "compounds": [

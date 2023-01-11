@@ -1,3 +1,4 @@
+import { CustomInitParams } from 'dbt-language-server-common';
 import { assertThat } from 'hamjest';
 import { spawn } from 'node:child_process';
 import { StreamMessageReader, StreamMessageWriter } from 'vscode-jsonrpc/node';
@@ -54,12 +55,16 @@ describe('lsp tests', () => {
 
     connection.listen();
 
+    const initializationOptions: CustomInitParams = {
+      dbtCompiler: 'Auto',
+      lspMode: 'dbtProject',
+      enableEntireProjectAnalysis: true,
+      disableLogger: true,
+    };
+
     const initParams: InitializeParams = {
       capabilities: {},
-      initializationOptions: {
-        lspMode: 'dbtProject',
-        disableLogger: true,
-      },
+      initializationOptions,
       processId: process.pid,
       rootUri: '/',
       workspaceFolders: [

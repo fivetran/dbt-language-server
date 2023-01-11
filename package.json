@@ -37,6 +37,11 @@
       "type": "object",
       "title": "Wizard for dbt Core (TM)",
       "properties": {
+        "WizardForDbtCore(TM).enableEntireProjectAnalysis": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enables analysis for the entire project. As the result errors for all models will be shown. For big projects it can be slow."
+        },
         "WizardForDbtCore(TM).dbtCompiler": {
           "type": "string",
           "order": 1,

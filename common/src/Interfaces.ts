@@ -15,5 +15,6 @@ export interface CustomInitParams {
   pythonInfo?: PythonInfo;
   dbtCompiler: DbtCompilerType;
   lspMode: LspModeType;
+  enableEntireProjectAnalysis: boolean;
   disableLogger?: boolean;
 }

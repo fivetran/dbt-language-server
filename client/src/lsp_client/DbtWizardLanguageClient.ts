@@ -59,9 +59,11 @@ export abstract class DbtWizardLanguageClient implements Disposable {
   }
 
   async initCustomParams(): Promise<void> {
+    const configuration = workspace.getConfiguration('WizardForDbtCore(TM)');
     const customInitParams: CustomInitParams = {
       pythonInfo: await this.pythonExtension.getPythonInfo(this.client.clientOptions.workspaceFolder),
-      dbtCompiler: workspace.getConfiguration('WizardForDbtCore(TM)').get('dbtCompiler', 'Auto') as DbtCompilerType,
+      dbtCompiler: configuration.get<DbtCompilerType>('dbtCompiler', 'Auto'),
+      enableEntireProjectAnalysis: configuration.get<boolean>('enableEntireProjectAnalysis', true),
       lspMode: this.getLspMode(),
     };
 
