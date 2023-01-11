@@ -1,8 +1,7 @@
-import { CustomInitParams, DbtCompilerType, getStringVersion, SelectedDbtPackage } from 'dbt-language-server-common';
+import { getStringVersion, SelectedDbtPackage } from 'dbt-language-server-common';
 import { Result } from 'neverthrow';
 import { randomUUID } from 'node:crypto';
 import * as fs from 'node:fs';
-import { homedir } from 'node:os';
 import * as path from 'node:path';
 import { performance } from 'node:perf_hooks';
 
@@ -49,9 +48,7 @@ import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { DbtProfileCreator, DbtProfileInfo } from '../DbtProfileCreator';
 import { DbtProject } from '../DbtProject';
 import { DbtRepository } from '../DbtRepository';
-import { Dbt, DbtMode } from '../dbt_execution/Dbt';
-import { DbtCli } from '../dbt_execution/DbtCli';
-import { DbtRpc } from '../dbt_execution/DbtRpc';
+import { Dbt } from '../dbt_execution/Dbt';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
 import { DbtDocumentKind } from '../document/DbtDocumentKind';
@@ -62,46 +59,50 @@ import { FileChangeListener } from '../FileChangeListener';
 import { HoverProvider } from '../HoverProvider';
 import { JinjaParser } from '../JinjaParser';
 import { LogLevel } from '../Logger';
-import { ManifestParser } from '../manifest/ManifestParser';
 import { ModelCompiler } from '../ModelCompiler';
+import { NotificationSender } from '../NotificationSender';
 import { ProcessExecutor } from '../ProcessExecutor';
 import { ProgressReporter } from '../ProgressReporter';
+import { ProjectChangeListener } from '../ProjectChangeListener';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { DbtProjectStatusSender } from '../status_bar/DbtProjectStatusSender';
 import { LspServerBase } from './LspServerBase';
+
+interface ExtensionSettings {
+  enableEntireProjectAnalysis: boolean;
+}
 
 export class LspServer extends LspServerBase<FeatureFinder> {
   sqlToRefCommandName = randomUUID();
   filesFilter: FileOperationFilter[];
   hasConfigurationCapability = false;
   hasDidChangeWatchedFilesCapability = false;
-  statusSender: DbtProjectStatusSender;
-  openedDocuments = new Map<string, DbtTextDocument>();
-  progressReporter: ProgressReporter;
-  fileChangeListener: FileChangeListener;
-  dbtProfileCreator: DbtProfileCreator;
-  manifestParser = new ManifestParser();
-  dbtRepository = new DbtRepository();
-  dbtDocumentKindResolver = new DbtDocumentKindResolver(this.dbtRepository);
-  diagnosticGenerator = new DiagnosticGenerator(this.dbtRepository);
-  dbtDefinitionProvider = new DbtDefinitionProvider(this.dbtRepository);
-  signatureHelpProvider = new SignatureHelpProvider();
-  hoverProvider = new HoverProvider();
   initStart = performance.now();
   onGlobalDbtErrorFixedEmitter = new Emitter<void>();
-  dbtProject = new DbtProject('.');
 
-  bigQueryContext = new BigQueryContext();
-  dbt?: Dbt;
-
-  constructor(connection: _Connection, featureFinder: FeatureFinder, private workspaceFolder: string) {
-    super(connection, featureFinder);
-    this.filesFilter = [{ scheme: 'file', pattern: { glob: `${this.workspaceFolder}/**/*`, matches: 'file' } }];
-
-    this.progressReporter = new ProgressReporter(this.connection);
-    this.dbtProfileCreator = new DbtProfileCreator(this.dbtProject, path.join(homedir(), '.dbt', 'profiles.yml'));
-    this.fileChangeListener = new FileChangeListener(this.workspaceFolder, this.dbtProject, this.manifestParser, this.dbtRepository);
-    this.statusSender = new DbtProjectStatusSender(this.notificationSender, this.workspaceFolder, this.featureFinder, this.fileChangeListener);
+  constructor(
+    connection: _Connection,
+    notificationSender: NotificationSender,
+    featureFinder: FeatureFinder,
+    private workspaceFolder: string,
+    private dbt: Dbt,
+    private progressReporter: ProgressReporter,
+    private dbtProject: DbtProject,
+    private dbtRepository: DbtRepository,
+    private fileChangeListener: FileChangeListener,
+    private dbtProfileCreator: DbtProfileCreator,
+    private statusSender: DbtProjectStatusSender,
+    private dbtDocumentKindResolver: DbtDocumentKindResolver,
+    private diagnosticGenerator: DiagnosticGenerator,
+    private dbtDefinitionProvider: DbtDefinitionProvider,
+    private signatureHelpProvider: SignatureHelpProvider,
+    private hoverProvider: HoverProvider,
+    private bigQueryContext: BigQueryContext,
+    private openedDocuments: Map<string, DbtTextDocument>,
+    private projectChangeListener: ProjectChangeListener,
+  ) {
+    super(connection, notificationSender, featureFinder);
+    this.filesFilter = [{ scheme: 'file', pattern: { glob: `${workspaceFolder}/**/*`, matches: 'file' } }];
   }
 
   onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> {
@@ -116,8 +117,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     this.fileChangeListener.onInit();
 
     this.initializeNotifications();
-
-    this.dbt = this.createDbt((params.initializationOptions as CustomInitParams).dbtCompiler);
 
     const { capabilities } = params;
 
@@ -169,6 +168,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     this.connection.onCodeAction(this.onCodeAction.bind(this));
     this.connection.onExecuteCommand(this.onExecuteCommand.bind(this));
     this.connection.onDidChangeWatchedFiles(this.onDidChangeWatchedFiles.bind(this));
+    this.connection.onDidChangeConfiguration(this.onDidChangeConfiguration.bind(this));
 
     this.connection.onShutdown(this.onShutdown.bind(this));
 
@@ -177,38 +177,9 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     this.connection.workspace.onDidDeleteFiles(this.onDidDeleteFiles.bind(this));
   }
 
-  createDbt(dbtCompiler: DbtCompilerType): Dbt {
-    const dbtMode = this.getDbtMode(dbtCompiler);
-    console.log(`ModelCompiler mode: ${DbtMode[dbtMode]}.`);
-
-    return dbtMode === DbtMode.DBT_RPC
-      ? new DbtRpc(this.featureFinder, this.connection, this.progressReporter, this.fileChangeListener, this.notificationSender)
-      : new DbtCli(this.featureFinder, this.connection, this.progressReporter, this.notificationSender);
-  }
-
-  getDbtMode(dbtCompiler: DbtCompilerType): DbtMode {
-    switch (dbtCompiler) {
-      case 'Auto': {
-        if (process.platform === 'win32') {
-          return DbtMode.CLI;
-        }
-        const pythonVersion = this.featureFinder.getPythonVersion();
-        // https://github.com/dbt-labs/dbt-rpc/issues/85
-        if (pythonVersion !== undefined && pythonVersion[0] >= 3 && pythonVersion[1] >= 10) {
-          return DbtMode.CLI;
-        }
-        return process.env['USE_DBT_RPC'] === 'true' ? DbtMode.DBT_RPC : DbtMode.CLI;
-      }
-      case 'dbt-rpc': {
-        return DbtMode.DBT_RPC;
-      }
-      case 'dbt': {
-        return DbtMode.CLI;
-      }
-      default: {
-        return DbtMode.CLI;
-      }
-    }
+  async onDidChangeConfiguration(): Promise<void> {
+    const settings = (await this.connection.workspace.getConfiguration('WizardForDbtCore(TM)')) as ExtensionSettings;
+    this.projectChangeListener.setEnableEntireProjectAnalysis(settings.enableEntireProjectAnalysis);
   }
 
   override initializeNotifications(): void {
@@ -247,7 +218,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
           .then((initResult: Result<void, string>) => (initResult.isErr() ? this.showCreateContextWarning(initResult.error) : undefined))
       : Promise.resolve();
 
-    const prepareDbt = this.dbt?.prepare(dbtProfileType).then(_ => this.statusSender.sendStatus());
+    const prepareDbt = this.dbt.prepare(dbtProfileType).then(_ => this.statusSender.sendStatus());
 
     this.dbtRepository
       .manifestParsed()
@@ -255,8 +226,10 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       .catch(e => console.log(`Manifest was not parsed: ${e instanceof Error ? e.message : String(e)}`));
 
     await Promise.allSettled([prepareDbt, destinationInitResult]);
-    await this.dbt?.compileProject(this.dbtRepository);
-    this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
+
+    this.projectChangeListener
+      .compileAndAnalyzeProject()
+      .catch(e => console.log(`Error while compiling/analyzing project: ${e instanceof Error ? e.message : String(e)}`));
     const initTime = performance.now() - this.initStart;
     this.logStartupInfo(contextInfo, initTime, ubuntuInWslWorks);
 
@@ -265,34 +238,9 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       .catch(e => console.log(`Error while running post init tasks: ${e instanceof Error ? e.message : String(e)}`));
   }
 
-  async analyzeProject(): Promise<void> {
-    if (this.bigQueryContext.isEmpty()) {
-      return;
-    }
-    const analyzeResults = await this.bigQueryContext.analyzeProject();
-    let modelsCount = 0;
-    let errorCount = 0;
-    for (const [uniqueId, result] of analyzeResults.entries()) {
-      modelsCount++;
-      if (result.isErr()) {
-        const model = this.dbtRepository.models.find(m => m.uniqueId === uniqueId);
-        if (model) {
-          const { rawCode } = model;
-          const compiledCode = this.dbtRepository.getModelCompiledCode(model);
-          if (rawCode && compiledCode) {
-            const uri = URI.file(this.dbtRepository.getModelRawSqlPath(model)).toString();
-            const diagnostics = this.diagnosticGenerator.getSqlErrorDiagnostics(result.error, rawCode, compiledCode).raw;
-            this.notificationSender.sendRawDiagnostics({ uri, diagnostics });
-            errorCount++;
-          }
-        }
-      }
-    }
-    console.log(`Processed ${modelsCount} models. ${errorCount} errors found during analysis`);
-  }
-
   registerClientNotification(): void {
     this.registerManifestWatcher();
+    this.registerModelsWatcher();
 
     if (this.hasConfigurationCapability) {
       this.connection.client
@@ -320,15 +268,29 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       if (!fs.existsSync(targetPath)) {
         fs.mkdirSync(targetPath, { recursive: true });
       }
-
-      this.connection.client
-        .register(DidChangeWatchedFilesNotification.type, {
-          watchers: [{ globPattern: { baseUri: URI.file(targetPath).toString(), pattern: 'manifest.json' } }],
-        })
-        .catch(e =>
-          console.log(`Error while registering DidChangeWatchedFilesNotification notification: ${e instanceof Error ? e.message : String(e)}`),
-        );
+      this.registerDidChangeWatchedFilesNotification(URI.file(targetPath).toString(), 'manifest.json');
     }
+  }
+
+  registerModelsWatcher(): void {
+    if (this.hasDidChangeWatchedFilesCapability) {
+      const modelPaths = this.dbtProject.findModelPaths();
+
+      for (const modelPath of modelPaths) {
+        const baseUri = URI.file(path.resolve(modelPath)).toString();
+        this.registerDidChangeWatchedFilesNotification(baseUri, '**/*.sql');
+      }
+    }
+  }
+
+  registerDidChangeWatchedFilesNotification(baseUri: string, pattern: string): void {
+    this.connection.client
+      .register(DidChangeWatchedFilesNotification.type, {
+        watchers: [{ globPattern: { baseUri, pattern } }],
+      })
+      .catch(e =>
+        console.log(`Error while registering for DidChangeWatchedFilesNotification notification: ${e instanceof Error ? e.message : String(e)}`),
+      );
   }
 
   showWarning(message: string): void {
@@ -396,7 +358,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     let document = this.openedDocuments.get(uri);
 
     if (!document) {
-      if (!(await this.isLanguageServerReady()) || !this.dbt) {
+      if (!(await this.isLanguageServerReady())) {
         return;
       }
 
@@ -501,15 +463,15 @@ export class LspServer extends LspServerBase<FeatureFinder> {
 
   onAddNewDbtPackage(dbtPackage: SelectedDbtPackage): void {
     this.dbtProject.addNewDbtPackage(dbtPackage.packageName, dbtPackage.version);
-    this.dbt?.deps().catch(e => console.log(`Error while running dbt deps: ${e instanceof Error ? e.message : String(e)}`));
+    this.dbt.deps().catch(e => console.log(`Error while running dbt deps: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   onDidCreateFiles(_params: CreateFilesParams): void {
-    this.dbt?.refresh();
+    this.dbt.refresh();
   }
 
   onDidRenameFiles(params: RenameFilesParams): void {
-    this.dbt?.refresh();
+    this.dbt.refresh();
 
     for (const document of this.openedDocuments.values()) {
       if (document.currentDbtError) {
@@ -522,7 +484,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   }
 
   onDidDeleteFiles(params: DeleteFilesParams): void {
-    this.dbt?.refresh();
+    this.dbt.refresh();
     this.disposeOutdatedDocuments(params.files.map(f => f.uri));
   }
 
@@ -539,7 +501,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
 
   dispose(): void {
     console.log('Dispose start...');
-    this.dbt?.dispose();
+    this.dbt.dispose();
     this.bigQueryContext.dispose();
     this.onGlobalDbtErrorFixedEmitter.dispose();
     console.log('Dispose end.');

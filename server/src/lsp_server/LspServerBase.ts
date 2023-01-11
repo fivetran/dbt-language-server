@@ -4,11 +4,7 @@ import { InstallUtils } from '../InstallUtils';
 import { NotificationSender } from '../NotificationSender';
 
 export abstract class LspServerBase<T extends FeatureFinderBase> {
-  notificationSender: NotificationSender;
-
-  constructor(protected connection: _Connection, protected featureFinder: T) {
-    this.notificationSender = new NotificationSender(connection);
-  }
+  constructor(protected connection: _Connection, protected notificationSender: NotificationSender, protected featureFinder: T) {}
 
   abstract onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError>;
 
