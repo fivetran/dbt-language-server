@@ -51,7 +51,7 @@ export class FileChangeListener {
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
     const sqlChanges = params.changes.filter(change => change.uri.endsWith('.sql'));
     if (sqlChanges.length > 0) {
-      this.onSqlModelChangedEmitter.fire(sqlChanges); // TODO: test change/add/delete
+      this.onSqlModelChangedEmitter.fire(sqlChanges);
     }
 
     params.changes = params.changes.filter(change => !change.uri.endsWith('.sql'));
