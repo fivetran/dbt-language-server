@@ -166,7 +166,7 @@
     "prepare": "husky install"
   },
   "devDependencies": {
-    "@size-limit/file": "^8.1.0",
+    "@size-limit/file": "^8.1.1",
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.11.18",
     "@typescript-eslint/eslint-plugin": "^5.48.1",
