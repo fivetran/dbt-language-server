@@ -310,7 +310,7 @@ export class DbtTextDocument {
       compiledSql !== DbtCompileJob.NO_RESULT_FROM_COMPILER
     ) {
       const { fsPath } = URI.parse(this.rawDocument.uri);
-      const astResult = await this.bigQueryContext.analyzeTable(fsPath, compiledSql);
+      const astResult = await this.bigQueryContext.analyzeModelsTree(fsPath, compiledSql);
       if (astResult.isOk()) {
         console.log(`AST was successfully received for ${fsPath}`, LogLevel.Debug);
         this.ast = astResult.value;

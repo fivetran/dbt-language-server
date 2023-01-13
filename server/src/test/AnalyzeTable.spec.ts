@@ -10,7 +10,7 @@ import { TableDefinition } from '../TableDefinition';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 import path = require('node:path');
 
-describe('ProjectAnalyzer analyzeTable', () => {
+describe('ProjectAnalyzer analyzeModelsTree', () => {
   const ROOT_PATH = '/home/project';
   const ORIGINAL_FILE_PATH = 'models/model.sql';
   const FILE_PATH = path.join(ROOT_PATH, ORIGINAL_FILE_PATH);
@@ -90,9 +90,9 @@ describe('ProjectAnalyzer analyzeTable', () => {
     spiedProjectAnalyzer = spy(projectAnalyzer);
   });
 
-  it('analyzeTable should register tables and udfs before calling analyze', async () => {
+  it('analyzeModelsTree should register tables and udfs before calling analyze', async () => {
     // act
-    await projectAnalyzer.analyzeTable(FILE_PATH, COMPILED_SQL);
+    await projectAnalyzer.analyzeModelsTree(FILE_PATH, COMPILED_SQL);
 
     // assert
     verify(mockZetaSqlWrapper.registerTable(objectContaining({ namePath: INTERNAL_TABLE_NAME_PATH }))).calledBefore(

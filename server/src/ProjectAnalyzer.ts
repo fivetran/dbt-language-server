@@ -26,6 +26,7 @@ export class ProjectAnalyzer {
     await this.zetaSqlWrapper.initializeZetaSql();
   }
 
+  /** Analyzes all models from project */
   async analyzeProject(): Promise<Map<string, Result<AnalyzeResponse__Output, string>>> {
     console.log('Project analysis started...');
     const bigQueryTableFetcher = new BigQueryTableFetcher(this.bigQueryClient);
@@ -40,7 +41,8 @@ export class ProjectAnalyzer {
     return results;
   }
 
-  async analyzeTable(fullFilePath: string, sql: string): Promise<Result<AnalyzeResponse__Output, string>> {
+  /** Analyzes a single model and all models that depend on it */
+  async analyzeModelsTree(fullFilePath: string, sql: string): Promise<Result<AnalyzeResponse__Output, string>> {
     const modelFetcher = new ModelFetcher(this.dbtRepository, fullFilePath);
     return this.analyzeModel(await modelFetcher.getModel(), new BigQueryTableFetcher(this.bigQueryClient), sql);
   }
