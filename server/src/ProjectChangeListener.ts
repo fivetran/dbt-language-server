@@ -30,6 +30,7 @@ export class ProjectChangeListener {
   }
 
   async compileAndAnalyzeProject(): Promise<void> {
+    this.dbt.refresh();
     await this.dbt.compileProject(this.dbtRepository);
     this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
   }
