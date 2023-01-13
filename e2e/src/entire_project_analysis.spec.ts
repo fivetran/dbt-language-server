@@ -13,7 +13,7 @@ suite('Entire project analysis', () => {
     assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), hasSize(0));
     assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), hasSize(0));
 
-    writeFileSync(PROJECT1_MODEL_URI.fsPath, "select name from {{ var('test_project') }}.dbt_ls_e2e_dataset.{{ var('table_1') }}");
+    writeFileSync(PROJECT1_MODEL_URI.fsPath, getNewContent('name'));
 
     while (languages.getDiagnostics(DEPENDENT_MODEL_URI).length === 0) {
       await sleep(300);
@@ -21,5 +21,18 @@ suite('Entire project analysis', () => {
 
     assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), hasSize(0));
     assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), hasSize(1));
+
+    writeFileSync(PROJECT1_MODEL_URI.fsPath, getNewContent('*'));
+
+    while (languages.getDiagnostics(DEPENDENT_MODEL_URI).length === 1) {
+      await sleep(300);
+    }
+
+    assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), hasSize(0));
+    assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), hasSize(0));
   });
 });
+
+function getNewContent(whatToSelect: string): string {
+  return `select ${whatToSelect} from {{ var('test_project') }}.dbt_ls_e2e_dataset.{{ var('table_1') }}`;
+}

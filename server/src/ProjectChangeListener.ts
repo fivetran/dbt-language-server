@@ -1,4 +1,4 @@
-import { FileChangeType, FileEvent } from 'vscode-languageserver';
+import { Diagnostic, FileChangeType, FileEvent } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtRepository } from './DbtRepository';
@@ -55,18 +55,19 @@ export class ProjectChangeListener {
     let errorCount = 0;
     for (const [uniqueId, result] of analyzeResults.entries()) {
       modelsCount++;
-      if (result.isErr()) {
-        const model = this.dbtRepository.models.find(m => m.uniqueId === uniqueId);
-        if (model) {
+      const model = this.dbtRepository.models.find(m => m.uniqueId === uniqueId);
+      if (model) {
+        const uri = URI.file(this.dbtRepository.getModelRawSqlPath(model)).toString();
+        let diagnostics: Diagnostic[] = [];
+        if (result.isErr()) {
           const { rawCode } = model;
           const compiledCode = this.dbtRepository.getModelCompiledCode(model);
           if (rawCode && compiledCode) {
-            const uri = URI.file(this.dbtRepository.getModelRawSqlPath(model)).toString();
-            const diagnostics = this.diagnosticGenerator.getSqlErrorDiagnostics(result.error, rawCode, compiledCode).raw;
-            this.notificationSender.sendRawDiagnostics({ uri, diagnostics });
+            diagnostics = this.diagnosticGenerator.getSqlErrorDiagnostics(result.error, rawCode, compiledCode).raw;
             errorCount++;
           }
         }
+        this.notificationSender.sendRawDiagnostics({ uri, diagnostics });
       }
     }
     console.log(`Processed ${modelsCount} models. ${errorCount} errors found during analysis`);
