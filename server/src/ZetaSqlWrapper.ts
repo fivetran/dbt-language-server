@@ -31,16 +31,15 @@ export class ZetaSqlWrapper {
   private static readonly MIN_PORT = 1024;
   private static readonly MAX_PORT = 65_535;
 
-  private readonly catalog: SimpleCatalogProto = {
-    name: 'catalog',
-    constant: [{ namePath: ['_dbt_max_partition'], type: { typeKind: TypeKind.TYPE_DATE } }],
-  };
+  private catalog: SimpleCatalogProto;
   private languageOptions: LanguageOptions | undefined;
   private registeredTables: TableDefinition[] = [];
   private registeredFunctions = new Set<string>();
   private informationSchemaConfigurator = new InformationSchemaConfigurator();
 
-  constructor(private bigQueryClient: BigQueryClient, private zetaSqlParser: ZetaSqlParser, private sqlHeaderAnalyzer: SqlHeaderAnalyzer) {}
+  constructor(private bigQueryClient: BigQueryClient, private zetaSqlParser: ZetaSqlParser, private sqlHeaderAnalyzer: SqlHeaderAnalyzer) {
+    this.catalog = this.getDefaultCatalog();
+  }
 
   async initializeZetaSql(): Promise<void> {
     const port = await findFreePortPmfy(randomNumber(ZetaSqlWrapper.MIN_PORT, ZetaSqlWrapper.MAX_PORT));
@@ -74,6 +73,18 @@ export class ZetaSqlWrapper {
         };
       }
     }
+  }
+
+  getDefaultCatalog(): SimpleCatalogProto {
+    return {
+      name: 'catalog',
+      constant: [{ namePath: ['_dbt_max_partition'], type: { typeKind: TypeKind.TYPE_DATE } }],
+    };
+  }
+
+  resetCatalog(): void {
+    this.catalog = this.getDefaultCatalog();
+    this.registeredTables = [];
   }
 
   async findTableNames(sql: string): Promise<TableDefinition[]> {

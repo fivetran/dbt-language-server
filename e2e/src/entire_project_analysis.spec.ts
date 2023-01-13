@@ -1,0 +1,25 @@
+import { assertThat, hasSize } from 'hamjest';
+import { writeFileSync } from 'node:fs';
+import { languages } from 'vscode';
+import { activateAndWaitManifestParsed, getCustomDocUri, PROJECT1_PATH, sleep } from './helper';
+
+suite('Entire project analysis', () => {
+  const MODELS_PATH = 'two-projects/project1/models';
+  const PROJECT1_MODEL_URI = getCustomDocUri(`${MODELS_PATH}/project1_model.sql`);
+  const DEPENDENT_MODEL_URI = getCustomDocUri(`${MODELS_PATH}/dependent_model.sql`);
+
+  test('Should reanalyze project after external change', async () => {
+    await activateAndWaitManifestParsed(getCustomDocUri('two-projects/project1/dbt_project.yml'), PROJECT1_PATH);
+    assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), hasSize(0));
+    assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), hasSize(0));
+
+    writeFileSync(PROJECT1_MODEL_URI.fsPath, "select name from {{ var('test_project') }}.dbt_ls_e2e_dataset.{{ var('table_1') }}");
+
+    while (languages.getDiagnostics(DEPENDENT_MODEL_URI).length === 0) {
+      await sleep(300);
+    }
+
+    assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), hasSize(0));
+    assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), hasSize(1));
+  });
+});

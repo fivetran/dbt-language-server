@@ -30,6 +30,7 @@ export class ProjectAnalyzer {
     console.log('Project analysis started...');
     const bigQueryTableFetcher = new BigQueryTableFetcher(this.bigQueryClient);
     const results: Map<string, Result<AnalyzeResponse__Output, string>> = new Map();
+    this.zetaSqlWrapper.resetCatalog();
     for (const model of this.dbtRepository.models) {
       if (model.packageName === this.projectName) {
         results.set(model.uniqueId, await this.analyzeModel(model, bigQueryTableFetcher));
