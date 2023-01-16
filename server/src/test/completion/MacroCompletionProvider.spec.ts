@@ -1,4 +1,5 @@
 import { MacroCompletionProvider } from '../../completion/MacroCompletionProvider';
+import { Dag } from '../../dag/Dag';
 import { DbtRepository } from '../../DbtRepository';
 import { JinjaPartType } from '../../JinjaParser';
 import { shouldNotProvideCompletions, shouldProvideCompletions } from '../helper';
@@ -44,7 +45,7 @@ describe('MacroCompletionProvider', () => {
         packageName: INSTALLED_PACKAGE,
       },
     ];
-    dbtRepository.updateDbtNodes([], macros, []);
+    dbtRepository.updateDbtNodes(macros, [], new Dag([]));
 
     macroCompletionProvider = new MacroCompletionProvider(dbtRepository);
   });

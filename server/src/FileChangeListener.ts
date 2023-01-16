@@ -101,10 +101,11 @@ export class FileChangeListener {
 
   updateManifestNodes(): void {
     try {
-      const { models, macros, sources } = this.manifestParser.parse(this.dbtProject.findTargetPath());
+      const parseResult = this.manifestParser.parse(this.dbtProject.findTargetPath());
       console.log(`${ManifestParser.MANIFEST_FILE_NAME} was successfully parsed`);
-      if (models.some(m => m.compiledCode)) {
-        this.dbtRepository.updateDbtNodes(models, macros, sources);
+      if (parseResult) {
+        const { macros, sources, dag } = parseResult;
+        this.dbtRepository.updateDbtNodes(macros, sources, dag);
         console.log('models, macros, sources were successfully updated');
       }
     } catch (e) {

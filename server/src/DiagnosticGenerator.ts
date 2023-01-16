@@ -96,7 +96,7 @@ export class DiagnosticGenerator {
     const compiledText = compiledDocument.getText();
 
     const resolvedTables = DbtTextDocument.ZETA_SQL_AST.getResolvedTables(ast, compiledText);
-    const changes = this.sqlRefConverter.sqlToRef(compiledDocument, resolvedTables, this.dbtRepository.models);
+    const changes = this.sqlRefConverter.sqlToRef(compiledDocument, resolvedTables, this.dbtRepository.dag);
 
     const converter = new PositionConverter(rawText, compiledText);
     for (const change of changes) {

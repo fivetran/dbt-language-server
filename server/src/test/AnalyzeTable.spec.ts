@@ -3,6 +3,8 @@
 import { ok } from 'neverthrow';
 import { anything, instance, mock, objectContaining, spy, verify, when } from 'ts-mockito';
 import { BigQueryClient } from '../bigquery/BigQueryClient';
+import { Dag } from '../dag/Dag';
+import { DagNode } from '../dag/DagNode';
 import { DbtRepository } from '../DbtRepository';
 import { ProjectAnalyzer } from '../ProjectAnalyzer';
 import { SqlHeaderAnalyzer } from '../SqlHeaderAnalyzer';
@@ -31,26 +33,28 @@ describe('ProjectAnalyzer analyzeModelsTree', () => {
     mockBigQueryClient = mock(BigQueryClient);
     mockSqlHeaderAnalyzer = mock(SqlHeaderAnalyzer);
 
-    when(mockDbtRepository.models).thenReturn([
-      {
-        uniqueId: 'id',
-        name: 'main_table',
-        packageName: 'packageName',
-        rootPath: ROOT_PATH,
-        originalFilePath: ORIGINAL_FILE_PATH,
-        database: 'db',
-        schema: 'schema',
-        rawCode: 'raw_sql',
-        compiledCode: 'compiled_sql',
-        dependsOn: {
-          nodes: [],
-        },
-        refs: [[]],
-        config: {
-          sqlHeader: 'sql_header',
-        },
-      },
-    ]);
+    when(mockDbtRepository.dag).thenReturn(
+      new Dag([
+        new DagNode({
+          uniqueId: 'id',
+          name: 'main_table',
+          packageName: 'packageName',
+          rootPath: ROOT_PATH,
+          originalFilePath: ORIGINAL_FILE_PATH,
+          database: 'db',
+          schema: 'schema',
+          rawCode: 'raw_sql',
+          compiledCode: 'compiled_sql',
+          dependsOn: {
+            nodes: [],
+          },
+          refs: [[]],
+          config: {
+            sqlHeader: 'sql_header',
+          },
+        }),
+      ]),
+    );
     when(mockDbtRepository.getModelRawSqlPath(objectContaining({ originalFilePath: ORIGINAL_FILE_PATH }))).thenReturn(FILE_PATH);
 
     when(mockSqlHeaderAnalyzer.getAllFunctionDeclarations(anything(), anything(), anything())).thenReturn(Promise.resolve([]));

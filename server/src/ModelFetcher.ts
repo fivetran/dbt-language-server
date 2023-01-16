@@ -15,13 +15,13 @@ export class ModelFetcher {
       try {
         this.model = await retry(
           () => {
-            const model = this.dbtRepository.models.find(m => pathEqual(this.dbtRepository.getModelRawSqlPath(m), this.fullModelPath));
-            if (model === undefined) {
+            const node = this.dbtRepository.dag.nodes.find(n => pathEqual(this.dbtRepository.getModelRawSqlPath(n.getValue()), this.fullModelPath));
+            if (node === undefined) {
               console.log('Model not found in manifest.json, retrying...');
               throw new Error('Model not found in manifest.json');
             }
 
-            return model;
+            return node.getValue();
           },
           { factor: 1, retries: 3, minTimeout: 100 },
         );

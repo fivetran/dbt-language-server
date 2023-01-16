@@ -1,6 +1,6 @@
 import { Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { ManifestModel } from './manifest/ManifestJson';
+import { Dag } from './dag/Dag';
 import { ResolvedTable } from './ZetaSqlAst';
 
 export interface Change {
@@ -10,10 +10,10 @@ export interface Change {
 
 export class SqlRefConverter {
   /** @returns array with ranges in the existing document and new texts for these ranges */
-  sqlToRef(textDocument: TextDocument, resolvedTables: ResolvedTable[], dbtModels: ManifestModel[]): Change[] {
+  sqlToRef(textDocument: TextDocument, resolvedTables: ResolvedTable[], dag: Dag): Change[] {
     const changes = [];
     for (const table of resolvedTables) {
-      const modelName = dbtModels.find(m => m.schema === table.schema && m.name === table.name)?.name;
+      const modelName = dag.nodes.find(n => n.getValue().schema === table.schema && n.getValue().name === table.name)?.getValue().name;
       if (modelName) {
         const range = Range.create(textDocument.positionAt(table.location.start), textDocument.positionAt(table.location.end));
         changes.push({

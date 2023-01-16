@@ -56,7 +56,7 @@ export class ProjectChangeListener {
     let errorCount = 0;
     for (const [uniqueId, result] of analyzeResults.entries()) {
       modelsCount++;
-      const model = this.dbtRepository.models.find(m => m.uniqueId === uniqueId);
+      const model = this.dbtRepository.dag.nodes.find(n => n.getValue().uniqueId === uniqueId)?.getValue();
       if (model) {
         const uri = URI.file(this.dbtRepository.getModelRawSqlPath(model)).toString();
         let diagnostics: Diagnostic[] = [];

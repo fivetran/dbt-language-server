@@ -24,11 +24,12 @@ export class ModelCompletionProvider implements DbtNodeCompletionProvider {
     const modelMatch = ModelCompletionProvider.MODEL_PATTERN.exec(jinjaBeforePositionText);
     if (modelMatch) {
       const quoteSymbol = modelMatch.length >= 2 ? modelMatch[1] : undefined;
-      return this.dbtRepository.models.map<CompletionItem>(m => {
-        const label = `(${m.packageName}) ${m.name}`;
-        const insertText = this.getModelInsertText(m.packageName, m.name, quoteSymbol);
+      return this.dbtRepository.dag.nodes.map<CompletionItem>(n => {
+        const model = n.getValue();
+        const label = `(${model.packageName}) ${model.name}`;
+        const insertText = this.getModelInsertText(model.packageName, model.name, quoteSymbol);
         const sortOrder =
-          this.dbtRepository.projectName === m.packageName
+          this.dbtRepository.projectName === model.packageName
             ? `${ModelCompletionProvider.CURRENT_PACKAGE_SORT_PREFIX}_${label}`
             : `${ModelCompletionProvider.INSTALLED_PACKAGE_SORT_PREFIX}_${label}`;
         return this.getModelCompletionItem(label, insertText, sortOrder);
