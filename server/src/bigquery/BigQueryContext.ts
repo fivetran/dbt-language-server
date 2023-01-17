@@ -67,11 +67,11 @@ export class BigQueryContext {
     return ok(undefined);
   }
 
-  async analyzeModelsTree(fullFilePath: string, sql: string): Promise<ModelTreeAnalyzeResult[] | Result<AnalyzeResponse__Output, string>> {
+  async analyzeModelTree(fullFilePath: string, sql: string): Promise<ModelTreeAnalyzeResult[] | Result<AnalyzeResponse__Output, string>> {
     if (!this.projectAnalyzer) {
       throw new Error('projectAnalyzer is not initialized');
     }
-    return this.projectAnalyzer.analyzeModelsTree(fullFilePath, sql);
+    return this.projectAnalyzer.analyzeModelTree(fullFilePath, sql);
   }
 
   async analyzeProject(): Promise<Map<string, Result<AnalyzeResponse__Output, string>>> {

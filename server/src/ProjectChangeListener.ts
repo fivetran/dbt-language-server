@@ -1,3 +1,5 @@
+import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
+import { Result } from 'neverthrow';
 import { Diagnostic, FileChangeType, FileEvent } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { BigQueryContext } from './bigquery/BigQueryContext';
@@ -33,6 +35,37 @@ export class ProjectChangeListener {
     this.dbt.refresh();
     await this.dbt.compileProject(this.dbtRepository);
     this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
+  }
+
+  /** Analyses model tree, sends diagnostics for the entire tree and returns diagnostics for root model */
+  async analyzeModelTree(rawDocUri: string, sql: string): Promise<Result<AnalyzeResponse__Output, string> | undefined> {
+    const { fsPath } = URI.parse(rawDocUri);
+    const results = await this.bigQueryContext.analyzeModelTree(fsPath, sql);
+    let mainModelResult: Result<AnalyzeResponse__Output, string> | undefined;
+    if (Array.isArray(results)) {
+      for (const result of results) {
+        const model = this.dbtRepository.dag.nodes.find(n => n.getValue().uniqueId === result.modelUniqueId)?.getValue();
+        if (model) {
+          const uri = URI.file(this.dbtRepository.getModelRawSqlPath(model)).toString();
+          if (uri === rawDocUri) {
+            mainModelResult = result.astResult;
+          } else {
+            const otherDiagnostics = [];
+            if (result.astResult.isErr()) {
+              const { rawCode } = model;
+              const compiledCode = this.dbtRepository.getModelCompiledCode(model);
+              if (rawCode && compiledCode) {
+                otherDiagnostics.push(...this.diagnosticGenerator.getSqlErrorDiagnostics(result.astResult.error, rawCode, compiledCode).raw);
+              }
+            }
+            this.notificationSender.sendRawDiagnostics({ uri, diagnostics: otherDiagnostics });
+          }
+        }
+      }
+    } else {
+      mainModelResult = results;
+    }
+    return mainModelResult;
   }
 
   private onSqlModelChanged(changes: FileEvent[]): void {

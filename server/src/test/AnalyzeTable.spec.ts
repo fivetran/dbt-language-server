@@ -96,7 +96,7 @@ describe('ProjectAnalyzer analyzeModelsTree', () => {
 
   it('analyzeModelsTree should register tables and udfs before calling analyze', async () => {
     // act
-    await projectAnalyzer.analyzeModelsTree(FILE_PATH, COMPILED_SQL);
+    await projectAnalyzer.analyzeModelTree(FILE_PATH, COMPILED_SQL);
 
     // assert
     verify(mockZetaSqlWrapper.registerTable(objectContaining({ namePath: INTERNAL_TABLE_NAME_PATH }))).calledBefore(

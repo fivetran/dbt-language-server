@@ -49,7 +49,7 @@ export class ProjectAnalyzer {
   }
 
   /** Analyzes a single model and all models that depend on it */
-  async analyzeModelsTree(filePath: string, sql: string): Promise<ModelTreeAnalyzeResult[] | Result<AnalyzeResponse__Output, string>> {
+  async analyzeModelTree(filePath: string, sql: string): Promise<ModelTreeAnalyzeResult[] | Result<AnalyzeResponse__Output, string>> {
     const modelFetcher = new DagNodeFetcher(this.dbtRepository, filePath);
     const node = await modelFetcher.getDagNode();
     const tableFetcher = new BigQueryTableFetcher(this.bigQueryClient);

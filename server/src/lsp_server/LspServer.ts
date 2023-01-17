@@ -384,6 +384,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
         this.signatureHelpProvider,
         this.hoverProvider,
         this.dbtDefinitionProvider,
+        this.projectChangeListener,
       );
       this.openedDocuments.set(uri, document);
 
