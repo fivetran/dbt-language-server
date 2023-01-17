@@ -20,6 +20,24 @@ describe('ProjectAnalyzer analyzeModelsTree', () => {
   const INTERNAL_TABLE_NAME_PATH = ['dataset', 'table'];
   const MAIN_TABLE_NAME_PATH = ['db', 'schema', 'main_table'];
   const UDF_NAME_PATH = ['dataset', 'udf'];
+  const DAG_NODE = new DagNode({
+    uniqueId: 'id',
+    name: 'main_table',
+    packageName: 'packageName',
+    rootPath: ROOT_PATH,
+    originalFilePath: ORIGINAL_FILE_PATH,
+    database: 'db',
+    schema: 'schema',
+    rawCode: 'raw_sql',
+    compiledCode: 'compiled_sql',
+    dependsOn: {
+      nodes: [],
+    },
+    refs: [[]],
+    config: {
+      sqlHeader: 'sql_header',
+    },
+  });
 
   let projectAnalyzer: ProjectAnalyzer;
   let spiedProjectAnalyzer: ProjectAnalyzer;
@@ -33,28 +51,7 @@ describe('ProjectAnalyzer analyzeModelsTree', () => {
     mockBigQueryClient = mock(BigQueryClient);
     mockSqlHeaderAnalyzer = mock(SqlHeaderAnalyzer);
 
-    when(mockDbtRepository.dag).thenReturn(
-      new Dag([
-        new DagNode({
-          uniqueId: 'id',
-          name: 'main_table',
-          packageName: 'packageName',
-          rootPath: ROOT_PATH,
-          originalFilePath: ORIGINAL_FILE_PATH,
-          database: 'db',
-          schema: 'schema',
-          rawCode: 'raw_sql',
-          compiledCode: 'compiled_sql',
-          dependsOn: {
-            nodes: [],
-          },
-          refs: [[]],
-          config: {
-            sqlHeader: 'sql_header',
-          },
-        }),
-      ]),
-    );
+    when(mockDbtRepository.dag).thenReturn(new Dag([DAG_NODE]));
     when(mockDbtRepository.getModelRawSqlPath(objectContaining({ originalFilePath: ORIGINAL_FILE_PATH }))).thenReturn(FILE_PATH);
 
     when(mockSqlHeaderAnalyzer.getAllFunctionDeclarations(anything(), anything(), anything())).thenReturn(Promise.resolve([]));
@@ -96,7 +93,7 @@ describe('ProjectAnalyzer analyzeModelsTree', () => {
 
   it('analyzeModelsTree should register tables and udfs before calling analyze', async () => {
     // act
-    await projectAnalyzer.analyzeModelTree(FILE_PATH, COMPILED_SQL);
+    await projectAnalyzer.analyzeModelTree(DAG_NODE, COMPILED_SQL);
 
     // assert
     verify(mockZetaSqlWrapper.registerTable(objectContaining({ namePath: INTERNAL_TABLE_NAME_PATH }))).calledBefore(

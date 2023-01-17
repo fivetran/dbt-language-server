@@ -8,7 +8,9 @@ import { Dbt } from './dbt_execution/Dbt';
 import { DiagnosticGenerator } from './DiagnosticGenerator';
 import { DbtTextDocument } from './document/DbtTextDocument';
 import { FileChangeListener } from './FileChangeListener';
+import { DagNodeFetcher } from './ModelFetcher';
 import { NotificationSender } from './NotificationSender';
+import { ModelsAnalyzeResult } from './ProjectAnalyzer';
 import { debounce } from './utils/Utils';
 
 export class ProjectChangeListener {
@@ -40,30 +42,16 @@ export class ProjectChangeListener {
   /** Analyses model tree, sends diagnostics for the entire tree and returns diagnostics for root model */
   async analyzeModelTree(rawDocUri: string, sql: string): Promise<Result<AnalyzeResponse__Output, string> | undefined> {
     const { fsPath } = URI.parse(rawDocUri);
-    const results = await this.bigQueryContext.analyzeModelTree(fsPath, sql);
+    const modelFetcher = new DagNodeFetcher(this.dbtRepository, fsPath);
+    const node = await modelFetcher.getDagNode();
     let mainModelResult: Result<AnalyzeResponse__Output, string> | undefined;
-    if (Array.isArray(results)) {
-      for (const result of results) {
-        const model = this.dbtRepository.dag.nodes.find(n => n.getValue().uniqueId === result.modelUniqueId)?.getValue();
-        if (model) {
-          const uri = URI.file(this.dbtRepository.getModelRawSqlPath(model)).toString();
-          if (uri === rawDocUri) {
-            mainModelResult = result.astResult;
-          } else {
-            const otherDiagnostics = [];
-            if (result.astResult.isErr()) {
-              const { rawCode } = model;
-              const compiledCode = this.dbtRepository.getModelCompiledCode(model);
-              if (rawCode && compiledCode) {
-                otherDiagnostics.push(...this.diagnosticGenerator.getSqlErrorDiagnostics(result.astResult.error, rawCode, compiledCode).raw);
-              }
-            }
-            this.notificationSender.sendRawDiagnostics({ uri, diagnostics: otherDiagnostics });
-          }
-        }
-      }
+
+    if (node) {
+      const results = await this.bigQueryContext.analyzeModelTree(node, sql);
+      this.sendDiagnosticsForDocuments(results);
+      mainModelResult = results.find(r => r.modelUniqueId === node.getValue().uniqueId)?.astResult;
     } else {
-      mainModelResult = results;
+      mainModelResult = await this.bigQueryContext.analyzeSql(sql);
     }
     return mainModelResult;
   }
@@ -84,26 +72,26 @@ export class ProjectChangeListener {
     if (!this.enableEntireProjectAnalysis || this.bigQueryContext.isEmpty()) {
       return;
     }
-    const analyzeResults = await this.bigQueryContext.analyzeProject();
-    let modelsCount = 0;
-    let errorCount = 0;
-    for (const [uniqueId, result] of analyzeResults.entries()) {
-      modelsCount++;
-      const model = this.dbtRepository.dag.nodes.find(n => n.getValue().uniqueId === uniqueId)?.getValue();
+    const results = await this.bigQueryContext.analyzeProject();
+    this.sendDiagnosticsForDocuments(results);
+    console.log(`Processed ${results.length} models. ${results.filter(r => r.astResult.isErr()).length} errors found during analysis`);
+  }
+
+  private sendDiagnosticsForDocuments(results: ModelsAnalyzeResult[]): void {
+    for (const result of results) {
+      const model = this.dbtRepository.dag.nodes.find(n => n.getValue().uniqueId === result.modelUniqueId)?.getValue();
       if (model) {
         const uri = URI.file(this.dbtRepository.getModelRawSqlPath(model)).toString();
         let diagnostics: Diagnostic[] = [];
-        if (result.isErr()) {
+        if (result.astResult.isErr()) {
           const { rawCode } = model;
           const compiledCode = this.dbtRepository.getModelCompiledCode(model);
           if (rawCode && compiledCode) {
-            diagnostics = this.diagnosticGenerator.getSqlErrorDiagnostics(result.error, rawCode, compiledCode).raw;
-            errorCount++;
+            diagnostics = this.diagnosticGenerator.getSqlErrorDiagnostics(result.astResult.error, rawCode, compiledCode).raw;
           }
         }
         this.notificationSender.sendRawDiagnostics({ uri, diagnostics });
       }
     }
-    console.log(`Processed ${modelsCount} models. ${errorCount} errors found during analysis`);
   }
 }
