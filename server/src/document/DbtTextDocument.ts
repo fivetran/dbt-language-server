@@ -1,4 +1,5 @@
-import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
+import { AnalyzeResponse, AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
+import { Result } from 'neverthrow';
 import * as path from 'node:path';
 import {
   CompletionItem,
@@ -310,20 +311,46 @@ export class DbtTextDocument {
       compiledSql !== DbtCompileJob.NO_RESULT_FROM_COMPILER
     ) {
       const { fsPath } = URI.parse(this.rawDocument.uri);
-      const astResult = await this.bigQueryContext.analyzeModelsTree(fsPath, compiledSql);
-      if (astResult.isOk()) {
-        console.log(`AST was successfully received for ${fsPath}`, LogLevel.Debug);
-        this.ast = astResult.value;
+      const results = await this.bigQueryContext.analyzeModelsTree(fsPath, compiledSql);
+
+      if (Array.isArray(results)) {
+        for (const result of results) {
+          const model = this.dbtRepository.dag.nodes.find(n => n.getValue().uniqueId === result.modelUniqueId)?.getValue();
+          if (model) {
+            const uri = URI.file(this.dbtRepository.getModelRawSqlPath(model)).toString();
+            if (uri === this.rawDocument.uri) {
+              [rawDocDiagnostics, compiledDocDiagnostics] = this.createCurrentDiagnostics(fsPath, result.astResult);
+            } else {
+              const otherDiagnostics = [];
+              if (result.astResult.isErr()) {
+                const { rawCode } = model;
+                const compiledCode = this.dbtRepository.getModelCompiledCode(model);
+                if (rawCode && compiledCode) {
+                  otherDiagnostics.push(...this.diagnosticGenerator.getSqlErrorDiagnostics(result.astResult.error, rawCode, compiledCode).raw);
+                }
+              }
+              this.notificationSender.sendRawDiagnostics({ uri, diagnostics: otherDiagnostics });
+            }
+          }
+        }
       } else {
-        console.log(`There was an error while parsing ${fsPath}`, LogLevel.Debug);
-        console.log(astResult, LogLevel.Debug);
+        [rawDocDiagnostics, compiledDocDiagnostics] = this.createCurrentDiagnostics(fsPath, results);
       }
-      const diagnostics = this.diagnosticGenerator.getDiagnosticsFromAst(astResult, this.rawDocument, this.compiledDocument);
-      rawDocDiagnostics = diagnostics.raw;
-      compiledDocDiagnostics = diagnostics.compiled;
     }
 
     return [rawDocDiagnostics, compiledDocDiagnostics];
+  }
+
+  createCurrentDiagnostics(fsPath: string, astResult: Result<AnalyzeResponse__Output, string>): [Diagnostic[], Diagnostic[]] {
+    if (astResult.isOk()) {
+      console.log(`AST was successfully received for ${fsPath}`, LogLevel.Debug);
+      this.ast = astResult.value;
+    } else {
+      console.log(`There was an error while parsing ${fsPath}`, LogLevel.Debug);
+      console.log(astResult, LogLevel.Debug);
+    }
+    const diagnostics = this.diagnosticGenerator.getDiagnosticsFromAst(astResult, this.rawDocument, this.compiledDocument);
+    return [diagnostics.raw, diagnostics.compiled];
   }
 
   fixInformationDiagnostic(range: Range): void {

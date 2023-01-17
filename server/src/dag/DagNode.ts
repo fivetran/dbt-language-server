@@ -14,4 +14,8 @@ export class DagNode {
   getValue(): ManifestModel {
     return this.value;
   }
+
+  getChildren(): Set<DagNode> {
+    return this.children;
+  }
 }

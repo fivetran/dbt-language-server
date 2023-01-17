@@ -4,7 +4,7 @@ import { Emitter, Event } from 'vscode-languageserver';
 import { DbtProfileSuccess } from '../DbtProfileCreator';
 import { DbtRepository } from '../DbtRepository';
 import { DestinationDefinition } from '../DestinationDefinition';
-import { ProjectAnalyzer } from '../ProjectAnalyzer';
+import { ModelTreeAnalyzeResult, ProjectAnalyzer } from '../ProjectAnalyzer';
 import { SqlHeaderAnalyzer } from '../SqlHeaderAnalyzer';
 import { ZetaSqlParser } from '../ZetaSqlParser';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
@@ -67,7 +67,7 @@ export class BigQueryContext {
     return ok(undefined);
   }
 
-  async analyzeModelsTree(fullFilePath: string, sql: string): Promise<Result<AnalyzeResponse__Output, string>> {
+  async analyzeModelsTree(fullFilePath: string, sql: string): Promise<ModelTreeAnalyzeResult[] | Result<AnalyzeResponse__Output, string>> {
     if (!this.projectAnalyzer) {
       throw new Error('projectAnalyzer is not initialized');
     }

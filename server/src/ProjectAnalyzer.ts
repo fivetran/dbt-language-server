@@ -2,10 +2,11 @@ import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/z
 import { err, Result } from 'neverthrow';
 import { BigQueryClient } from './bigquery/BigQueryClient';
 import { BigQueryTableFetcher } from './BigQueryTableFetcher';
+import { DagNode } from './dag/DagNode';
 import { DbtRepository } from './DbtRepository';
 import { LogLevel } from './Logger';
 import { ManifestModel } from './manifest/ManifestJson';
-import { ModelFetcher } from './ModelFetcher';
+import { DagNodeFetcher } from './ModelFetcher';
 import { TableDefinition } from './TableDefinition';
 import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 
@@ -13,6 +14,11 @@ interface ModelError {
   error?: string;
   path?: string;
 }
+
+export type ModelTreeAnalyzeResult = {
+  modelUniqueId: string;
+  astResult: Result<AnalyzeResponse__Output, string>;
+};
 
 export class ProjectAnalyzer {
   constructor(
@@ -43,10 +49,14 @@ export class ProjectAnalyzer {
   }
 
   /** Analyzes a single model and all models that depend on it */
-  async analyzeModelsTree(fullFilePath: string, sql: string): Promise<Result<AnalyzeResponse__Output, string>> {
-    const modelFetcher = new ModelFetcher(this.dbtRepository, fullFilePath);
-    const model = await modelFetcher.getModel();
-    return this.analyzeModel(model, new BigQueryTableFetcher(this.bigQueryClient), sql);
+  async analyzeModelsTree(filePath: string, sql: string): Promise<ModelTreeAnalyzeResult[] | Result<AnalyzeResponse__Output, string>> {
+    const modelFetcher = new DagNodeFetcher(this.dbtRepository, filePath);
+    const node = await modelFetcher.getDagNode();
+    const tableFetcher = new BigQueryTableFetcher(this.bigQueryClient);
+    if (node) {
+      return this.analyzeModelTreeInternal(node, tableFetcher, sql);
+    }
+    return this.analyzeModel(undefined, tableFetcher, sql);
   }
 
   dispose(): void {
@@ -55,14 +65,32 @@ export class ProjectAnalyzer {
       .catch(e => console.log(`Failed to terminate zetasql server: ${e instanceof Error ? e.message : String(e)}`));
   }
 
+  private async analyzeModelTreeInternal(node: DagNode, tableFetcher: BigQueryTableFetcher, sql?: string): Promise<ModelTreeAnalyzeResult[]> {
+    const model = node.getValue();
+    const astResult = await this.analyzeModel(model, tableFetcher, sql);
+    let results: ModelTreeAnalyzeResult[] = [{ modelUniqueId: model.uniqueId, astResult }];
+
+    if (astResult.isErr()) {
+      // We don't analyze models that depend on this model because they all will have errors
+      return results;
+    }
+
+    // If main model is OK we analyze all models that depend on it
+    const children = node.getChildren();
+    for (const child of children) {
+      results = [...results, ...(await this.analyzeModelTreeInternal(child, tableFetcher))];
+    }
+    return results;
+  }
+
   private async analyzeModel(
     model: ManifestModel | undefined,
-    bigQueryTableFetcher: BigQueryTableFetcher,
+    tableFetcher: BigQueryTableFetcher,
     sql?: string,
   ): Promise<Result<AnalyzeResponse__Output, string>> {
     await this.zetaSqlWrapper.registerAllLanguageFeatures();
     const upstreamError: ModelError = {};
-    const result = await this.analyzeModelInternal(model, bigQueryTableFetcher, upstreamError, sql);
+    const result = await this.analyzeModelInternal(model, tableFetcher, upstreamError, sql);
     if (
       upstreamError.path !== undefined &&
       upstreamError.error !== undefined &&

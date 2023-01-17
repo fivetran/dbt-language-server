@@ -2,7 +2,7 @@ import { Result } from 'neverthrow';
 import { EOL } from 'node:os';
 import * as path from 'node:path';
 import { DbtRepository } from '../DbtRepository';
-import { ModelFetcher } from '../ModelFetcher';
+import { DagNodeFetcher } from '../ModelFetcher';
 
 export abstract class DbtCompileJob {
   static readonly NO_RESULT_FROM_COMPILER = ' ';
@@ -27,11 +27,11 @@ export abstract class DbtCompileJob {
 
   static async findCompiledFilePath(modelPath: string, dbtRepository: DbtRepository): Promise<string> {
     if (modelPath.endsWith('.sql')) {
-      const model = await new ModelFetcher(dbtRepository, path.resolve(modelPath)).getModel();
-      if (!model) {
+      const node = await new DagNodeFetcher(dbtRepository, path.resolve(modelPath)).getDagNode();
+      if (!node) {
         throw new Error(`Cannot find model ${modelPath}`);
       }
-      return dbtRepository.getModelCompiledPath(model);
+      return dbtRepository.getModelCompiledPath(node.getValue());
     }
     return DbtCompileJob.findCompiledFileInPackage(modelPath, dbtRepository);
   }

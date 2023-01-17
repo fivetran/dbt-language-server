@@ -1,19 +1,19 @@
 import * as retry from 'async-retry';
+import { DagNode } from './dag/DagNode';
 import { DbtRepository } from './DbtRepository';
-import { ManifestModel } from './manifest/ManifestJson';
 
-export class ModelFetcher {
-  model: ManifestModel | undefined;
+export class DagNodeFetcher {
+  node: DagNode | undefined;
   fetchCompleted = false;
 
   constructor(private dbtRepository: DbtRepository, public fullModelPath: string) {}
 
   /** We retry here because in some situations manifest.json can appear a bit later after compilation is finished */
-  async getModel(): Promise<ManifestModel | undefined> {
+  async getDagNode(): Promise<DagNode | undefined> {
     if (!this.fetchCompleted) {
       const { pathEqual } = await import('path-equal');
       try {
-        this.model = await retry(
+        this.node = await retry(
           () => {
             const node = this.dbtRepository.dag.nodes.find(n => pathEqual(this.dbtRepository.getModelRawSqlPath(n.getValue()), this.fullModelPath));
             if (node === undefined) {
@@ -21,7 +21,7 @@ export class ModelFetcher {
               throw new Error('Model not found in manifest.json');
             }
 
-            return node.getValue();
+            return node;
           },
           { factor: 1, retries: 3, minTimeout: 100 },
         );
@@ -31,6 +31,6 @@ export class ModelFetcher {
       this.fetchCompleted = true;
     }
 
-    return this.model;
+    return this.node;
   }
 }

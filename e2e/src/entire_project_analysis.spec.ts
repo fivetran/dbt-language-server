@@ -1,7 +1,7 @@
 import { assertThat, hasSize } from 'hamjest';
 import { writeFileSync } from 'node:fs';
 import { languages } from 'vscode';
-import { activateAndWaitManifestParsed, getCustomDocUri, PROJECT1_PATH, sleep } from './helper';
+import { activateAndWait, activateAndWaitManifestParsed, getCustomDocUri, PROJECT1_PATH, replaceText, sleep } from './helper';
 
 suite('Entire project analysis', () => {
   const MODELS_PATH = 'two-projects/project1/models';
@@ -27,6 +27,23 @@ suite('Entire project analysis', () => {
     while (languages.getDiagnostics(DEPENDENT_MODEL_URI).length === 1) {
       await sleep(300);
     }
+
+    assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), hasSize(0));
+    assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), hasSize(0));
+  });
+
+  test('Should analyze dependant models and report about errors', async () => {
+    await activateAndWait(PROJECT1_MODEL_URI);
+
+    assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), hasSize(0));
+    assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), hasSize(0));
+
+    await replaceText('*', 'name');
+
+    assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), hasSize(0));
+    assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), hasSize(1));
+
+    await replaceText('name', '*');
 
     assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), hasSize(0));
     assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), hasSize(0));
