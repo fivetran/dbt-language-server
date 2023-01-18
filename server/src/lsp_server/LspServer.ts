@@ -111,8 +111,8 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     this.initializeEvents();
 
     process.on('uncaughtException', this.onUncaughtException.bind(this));
-    process.on('SIGTERM', () => this.onShutdown());
-    process.on('SIGINT', () => this.onShutdown());
+    process.on('SIGTERM', () => this.onShutdown('SIGTERM'));
+    process.on('SIGINT', () => this.onShutdown('SIGINT'));
 
     this.fileChangeListener.onInit();
 
@@ -170,7 +170,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     this.connection.onDidChangeWatchedFiles(this.onDidChangeWatchedFiles.bind(this));
     this.connection.onDidChangeConfiguration(this.onDidChangeConfiguration.bind(this));
 
-    this.connection.onShutdown(this.onShutdown.bind(this));
+    this.connection.onShutdown(() => this.onShutdown('Client'));
 
     this.connection.workspace.onDidCreateFiles(this.onDidCreateFiles.bind(this));
     this.connection.workspace.onDidRenameFiles(this.onDidRenameFiles.bind(this));
@@ -496,7 +496,8 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     });
   }
 
-  onShutdown(): void {
+  onShutdown(reason: string): void {
+    console.log(`Shutdown: ${reason}`);
     this.dispose();
   }
 
