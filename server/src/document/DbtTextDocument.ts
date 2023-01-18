@@ -318,7 +318,7 @@ export class DbtTextDocument {
           console.log(`AST was successfully received for ${fsPath}`, LogLevel.Debug);
           this.ast = astResult.value;
         } else {
-          console.log(`There was an error while parsing ${fsPath}`, LogLevel.Debug);
+          console.log(`There was an error while analyzing ${fsPath}`, LogLevel.Debug);
           console.log(astResult, LogLevel.Debug);
         }
         const diagnostics = this.diagnosticGenerator.getDiagnosticsFromAst(astResult, this.rawDocument, this.compiledDocument);
