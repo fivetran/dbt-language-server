@@ -75,7 +75,7 @@ export abstract class DbtWizardLanguageClient implements Disposable {
   }
 
   stop(): Promise<void> {
-    log(`Stop client ${this.constructor.name}`);
+    log(`Stop client ${DbtWizardLanguageClient.name}`);
     return this.client.stop();
   }
 
@@ -92,7 +92,7 @@ export abstract class DbtWizardLanguageClient implements Disposable {
   }
 
   dispose(): void {
-    log(`Dispose ${this.constructor.name}`);
+    log(`Dispose ${DbtWizardLanguageClient.name}`);
     this.disposables.forEach(disposable => {
       disposable.dispose();
     });
