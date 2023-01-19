@@ -212,15 +212,19 @@ export class DbtTextDocument {
   }
 
   async resendDiagnostics(): Promise<void> {
-    if (
+    if (this.canResendDiagnostics()) {
+      await this.updateDiagnostics();
+    }
+  }
+
+  canResendDiagnostics(): boolean {
+    return (
       this.bigQueryContext.contextInitialized &&
       this.dbt.dbtReady &&
       !this.currentDbtError &&
       !this.modelCompiler.compilationInProgress &&
       this.compiledDocument.getText() !== this.rawDocument.getText()
-    ) {
-      await this.updateDiagnostics();
-    }
+    );
   }
 
   debouncedCompile = debounce(async () => {
@@ -276,7 +280,7 @@ export class DbtTextDocument {
   }
 
   async onContextInitialized(): Promise<void> {
-    if (this.dbt.dbtReady && this.rawDocument.getText() !== this.compiledDocument.getText()) {
+    if (this.canResendDiagnostics()) {
       console.log('onContextInitialized this.dbt.dbtReady!!!');
       await this.updateAndSendDiagnosticsAndPreview();
     }
