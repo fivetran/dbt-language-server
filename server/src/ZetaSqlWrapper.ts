@@ -85,6 +85,7 @@ export class ZetaSqlWrapper {
   resetCatalog(): void {
     this.catalog = this.getDefaultCatalog();
     this.registeredTables = [];
+    this.registeredFunctions = new Set<string>();
   }
 
   async findTableNames(sql: string): Promise<TableDefinition[]> {
