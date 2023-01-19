@@ -23,7 +23,7 @@ export class ProjectChangeListener {
     private diagnosticGenerator: DiagnosticGenerator,
     private notificationSender: NotificationSender,
     private dbt: Dbt,
-    private enableEntireProjectAnalysis: boolean,
+    public enableEntireProjectAnalysis: boolean,
     fileChangeListener: FileChangeListener,
   ) {
     fileChangeListener.onSqlModelChanged(c => this.onSqlModelChanged(c));
@@ -36,7 +36,7 @@ export class ProjectChangeListener {
   async compileAndAnalyzeProject(): Promise<void> {
     this.dbt.refresh();
     await this.dbt.compileProject(this.dbtRepository);
-    this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
+    // this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`)); TODO: uncomment
   }
 
   /** Analyses model tree, sends diagnostics for the entire tree and returns diagnostics for root model */
@@ -68,14 +68,14 @@ export class ProjectChangeListener {
     await this.compileAndAnalyzeProject();
   }, ProjectChangeListener.PROJECT_COMPILE_DEBOUNCE_TIMEOUT);
 
-  private async analyzeProject(): Promise<void> {
-    if (!this.enableEntireProjectAnalysis || this.bigQueryContext.isEmpty()) {
-      return;
-    }
-    const results = await this.bigQueryContext.analyzeProject();
-    this.sendDiagnosticsForDocuments(results);
-    console.log(`Processed ${results.length} models. ${results.filter(r => r.astResult.isErr()).length} errors found during analysis`);
-  }
+  // private async analyzeProject(): Promise<void> {
+  //   if (!this.enableEntireProjectAnalysis || this.bigQueryContext.isEmpty()) {
+  //     return;
+  //   }
+  //   const results = await this.bigQueryContext.analyzeProject();
+  //   this.sendDiagnosticsForDocuments(results);
+  //   console.log(`Processed ${results.length} models. ${results.filter(r => r.astResult.isErr()).length} errors found during analysis`);
+  // }
 
   private sendDiagnosticsForDocuments(results: ModelsAnalyzeResult[]): void {
     for (const result of results) {
