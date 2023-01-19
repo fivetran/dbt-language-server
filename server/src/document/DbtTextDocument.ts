@@ -276,7 +276,7 @@ export class DbtTextDocument {
   }
 
   async onContextInitialized(): Promise<void> {
-    if (this.dbt.dbtReady) {
+    if (this.dbt.dbtReady && this.rawDocument.getText() !== this.compiledDocument.getText()) {
       console.log('onContextInitialized this.dbt.dbtReady!!!');
       await this.updateAndSendDiagnosticsAndPreview();
     }
