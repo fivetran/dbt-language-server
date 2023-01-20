@@ -14,7 +14,7 @@ export class BigQueryTableFetcher {
   constructor(private bigQueryClient: BigQueryClient) {}
 
   fetchTable(table: TableDefinition): Promise<TableInformation | undefined> {
-    const key = table.getFullName();
+    const key = `${table.getDataSetName() ?? 'undefined'}.${table.getTableName()}`;
     let promise = this.tables.get(key);
     if (promise === undefined) {
       promise = this.fillTableSchemaFromBq(table);
