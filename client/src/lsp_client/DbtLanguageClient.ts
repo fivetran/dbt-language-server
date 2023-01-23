@@ -118,6 +118,10 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
       this.client.onNotification('custom/manifestParsed', () => {
         this.manifestParsedEventEmitter.emit(LS_MANIFEST_PARSED_EVENT, this.dbtProjectUri.fsPath);
       }),
+
+      this.client.onNotification('custom/clearAllDiagnostics', () => {
+        this.client.diagnostics?.clear();
+      }),
     );
   }
 
