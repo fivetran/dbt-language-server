@@ -1,11 +1,10 @@
-import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { err, ok, Result } from 'neverthrow';
 import { Emitter, Event } from 'vscode-languageserver';
 import { DagNode } from '../dag/DagNode';
 import { DbtProfileSuccess } from '../DbtProfileCreator';
 import { DbtRepository } from '../DbtRepository';
 import { DestinationDefinition } from '../DestinationDefinition';
-import { ModelsAnalyzeResult, ProjectAnalyzer } from '../ProjectAnalyzer';
+import { AnalyzeResult, ModelsAnalyzeResult, ProjectAnalyzer } from '../ProjectAnalyzer';
 import { SqlHeaderAnalyzer } from '../SqlHeaderAnalyzer';
 import { ZetaSqlParser } from '../ZetaSqlParser';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
@@ -76,7 +75,7 @@ export class BigQueryContext {
     return this.projectAnalyzer.analyzeModelTree(node, sql);
   }
 
-  async analyzeSql(sql: string): Promise<Result<AnalyzeResponse__Output, string>> {
+  async analyzeSql(sql: string): Promise<AnalyzeResult> {
     if (!this.projectAnalyzer) {
       throw new Error(BigQueryContext.NOT_INITIALIZED_ERROR);
     }

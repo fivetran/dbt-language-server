@@ -18,4 +18,13 @@ export class DagNode {
   getChildren(): Set<DagNode> {
     return this.children;
   }
+
+  findParent(condition: (parent: DagNode) => boolean): DagNode | undefined {
+    for (const parent of this.parents) {
+      if (condition(parent)) {
+        return parent;
+      }
+    }
+    return undefined;
+  }
 }

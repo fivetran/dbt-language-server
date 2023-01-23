@@ -8,15 +8,14 @@ import { ManifestModel } from './manifest/ManifestJson';
 import { TableDefinition } from './TableDefinition';
 import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 
-interface ModelError {
-  error?: string;
-  path?: string;
-}
-
 export type ModelsAnalyzeResult = {
   modelUniqueId: string;
-  astResult: Result<AnalyzeResponse__Output, string>;
+  analyzeResult: AnalyzeResult;
 };
+
+export interface AnalyzeResult {
+  astResult: Result<AnalyzeResponse__Output, string>;
+}
 
 export class ProjectAnalyzer {
   constructor(
@@ -53,8 +52,8 @@ export class ProjectAnalyzer {
 
         const model = node.getValue();
         if (model.packageName === this.projectName) {
-          const astResult = await this.analyzeModel(model, bigQueryTableFetcher, undefined, visitedModels);
-          results.push({ modelUniqueId: model.uniqueId, astResult });
+          const analyzeResult = await this.analyzeModel(model, bigQueryTableFetcher, undefined, visitedModels);
+          results.push({ modelUniqueId: model.uniqueId, analyzeResult });
 
           for (const child of node.children) {
             if (!visited.has(child.getValue().uniqueId)) {
@@ -68,7 +67,19 @@ export class ProjectAnalyzer {
     }
 
     console.log('Project analysis completed');
-    return results;
+    return this.filterErrorResults(results);
+  }
+
+  filterErrorResults(results: ModelsAnalyzeResult[]): ModelsAnalyzeResult[] {
+    const idToExclude: string[] = [];
+    const errorResults = results.filter(r => r.analyzeResult.astResult.isErr());
+    errorResults.forEach(r => {
+      const current = this.dbtRepository.dag.nodes.find(n => n.getValue().uniqueId === r.modelUniqueId);
+      if (current?.findParent(p => errorResults.some(er => er.modelUniqueId === p.getValue().uniqueId))) {
+        idToExclude.push(r.modelUniqueId);
+      }
+    });
+    return results.filter(r => !idToExclude.includes(r.modelUniqueId));
   }
 
   /** Analyzes a single model and all models that depend on it */
@@ -77,7 +88,7 @@ export class ProjectAnalyzer {
     return this.analyzeModelTreeInternal(node, tableFetcher, sql, new Map());
   }
 
-  async analyzeSql(sql: string): Promise<Result<AnalyzeResponse__Output, string>> {
+  async analyzeSql(sql: string): Promise<AnalyzeResult> {
     return this.analyzeModel(undefined, new BigQueryTableFetcher(this.bigQueryClient), sql, new Map());
   }
 
@@ -94,10 +105,11 @@ export class ProjectAnalyzer {
     visitedModels: Map<string, Promise<Result<AnalyzeResponse__Output, string>>>,
   ): Promise<ModelsAnalyzeResult[]> {
     const model = node.getValue();
-    const astResult = await this.analyzeModel(model, tableFetcher, sql, visitedModels);
-    let results: ModelsAnalyzeResult[] = [{ modelUniqueId: model.uniqueId, astResult }];
+    const analyzeResult = await this.analyzeModel(model, tableFetcher, sql, visitedModels);
 
-    if (astResult.isErr()) {
+    let results: ModelsAnalyzeResult[] = [{ modelUniqueId: model.uniqueId, analyzeResult }];
+
+    if (analyzeResult.astResult.isErr()) {
       // We don't analyze models that depend on this model because they all will have errors
       return results;
     }
@@ -115,31 +127,24 @@ export class ProjectAnalyzer {
     tableFetcher: BigQueryTableFetcher,
     sql: string | undefined,
     visitedModels: Map<string, Promise<Result<AnalyzeResponse__Output, string>>>,
-  ): Promise<Result<AnalyzeResponse__Output, string>> {
+  ): Promise<AnalyzeResult> {
     await this.zetaSqlWrapper.registerAllLanguageFeatures();
-    const upstreamError: ModelError = {};
-    const result = await this.analyzeModelCached(model, tableFetcher, upstreamError, sql, visitedModels);
-    if (
-      upstreamError.path !== undefined &&
-      upstreamError.error !== undefined &&
-      (!model || upstreamError.path !== this.dbtRepository.getModelRawSqlPath(model))
-    ) {
-      console.log(`Upstream error in file ${upstreamError.path}: ${upstreamError.error}`);
-    }
-    return result;
+    const astResult = await this.analyzeModelCached(model, tableFetcher, sql, visitedModels);
+    return {
+      astResult,
+    };
   }
 
   private analyzeModelCached(
     model: ManifestModel | undefined,
     bigQueryTableFetcher: BigQueryTableFetcher,
-    upstreamError: ModelError,
     sql: string | undefined,
     visitedModels: Map<string, Promise<Result<AnalyzeResponse__Output, string>>>,
   ): Promise<Result<AnalyzeResponse__Output, string>> {
     const cacheKey = model?.uniqueId;
     let promise = cacheKey ? visitedModels.get(cacheKey) : undefined;
     if (!promise) {
-      promise = this.analyzeModelInternal(model, bigQueryTableFetcher, upstreamError, sql, visitedModels);
+      promise = this.analyzeModelInternal(model, bigQueryTableFetcher, sql, visitedModels);
       if (cacheKey) {
         visitedModels.set(cacheKey, promise);
       }
@@ -150,7 +155,6 @@ export class ProjectAnalyzer {
   private async analyzeModelInternal(
     model: ManifestModel | undefined,
     bigQueryTableFetcher: BigQueryTableFetcher,
-    upstreamError: ModelError,
     sql: string | undefined,
     visitedModels: Map<string, Promise<Result<AnalyzeResponse__Output, string>>>,
   ): Promise<Result<AnalyzeResponse__Output, string>> {
@@ -161,7 +165,7 @@ export class ProjectAnalyzer {
 
     const tables = await this.zetaSqlWrapper.findTableNames(compiledSql);
     if (tables.length > 0) {
-      await this.analyzeAllEphemeralModels(model, bigQueryTableFetcher, upstreamError, visitedModels);
+      await this.analyzeAllEphemeralModels(model, bigQueryTableFetcher, visitedModels);
     }
 
     for (const table of tables) {
@@ -170,7 +174,7 @@ export class ProjectAnalyzer {
         if (refId) {
           const refModel = this.dbtRepository.dag.nodes.find(n => n.getValue().uniqueId === refId)?.getValue();
           if (refModel) {
-            await this.analyzeModelCached(refModel, bigQueryTableFetcher, upstreamError, undefined, visitedModels);
+            await this.analyzeModelCached(refModel, bigQueryTableFetcher, undefined, visitedModels);
           } else {
             console.log("Can't find ref model by id");
           }
@@ -206,17 +210,10 @@ export class ProjectAnalyzer {
     const catalogWithTempUdfs = this.zetaSqlWrapper.createCatalogWithTempUdfs(tempUdfs);
 
     const ast = await this.zetaSqlWrapper.getAstOrError(compiledSql, catalogWithTempUdfs);
-    if (ast.isOk()) {
-      if (model) {
-        const table = ProjectAnalyzer.createTableDefinition(model);
-        this.fillTableWithAnalyzeResponse(table, ast.value);
-        this.zetaSqlWrapper.registerTable(table);
-      }
-    } else if (!upstreamError.error) {
-      upstreamError.error = ast.error;
-      if (model) {
-        upstreamError.path = this.dbtRepository.getModelRawSqlPath(model);
-      }
+    if (ast.isOk() && model) {
+      const table = ProjectAnalyzer.createTableDefinition(model);
+      this.fillTableWithAnalyzeResponse(table, ast.value);
+      this.zetaSqlWrapper.registerTable(table);
     }
 
     return ast;
@@ -235,7 +232,6 @@ export class ProjectAnalyzer {
   private async analyzeAllEphemeralModels(
     model: ManifestModel | undefined,
     bigQueryTableFetcher: BigQueryTableFetcher,
-    upstreamError: ModelError,
     visitedModels: Map<string, Promise<Result<AnalyzeResponse__Output, string>>>,
   ): Promise<void> {
     for (const node of model?.dependsOn.nodes ?? []) {
@@ -245,7 +241,7 @@ export class ProjectAnalyzer {
       if (dependsOnEphemeralModel) {
         const table = ProjectAnalyzer.createTableDefinition(dependsOnEphemeralModel);
         if (!this.zetaSqlWrapper.isTableRegistered(table)) {
-          await this.analyzeModelCached(dependsOnEphemeralModel, bigQueryTableFetcher, upstreamError, undefined, visitedModels);
+          await this.analyzeModelCached(dependsOnEphemeralModel, bigQueryTableFetcher, undefined, visitedModels);
         }
       }
     }

@@ -49,9 +49,10 @@ export class ProjectChangeListener {
     if (node) {
       const results = await this.bigQueryContext.analyzeModelTree(node, sql);
       this.sendDiagnosticsForDocuments(results);
-      mainModelResult = results.find(r => r.modelUniqueId === node.getValue().uniqueId)?.astResult;
+      mainModelResult = results.find(r => r.modelUniqueId === node.getValue().uniqueId)?.analyzeResult.astResult;
     } else {
-      mainModelResult = await this.bigQueryContext.analyzeSql(sql);
+      const result = await this.bigQueryContext.analyzeSql(sql);
+      mainModelResult = result.astResult;
     }
     return mainModelResult;
   }
@@ -73,8 +74,9 @@ export class ProjectChangeListener {
       return;
     }
     const results = await this.bigQueryContext.analyzeProject();
+    this.notificationSender.clearAllDiagnostics();
     this.sendDiagnosticsForDocuments(results);
-    console.log(`Processed ${results.length} models. ${results.filter(r => r.astResult.isErr()).length} errors found during analysis`);
+    console.log(`Processed ${results.length} models. ${results.filter(r => r.analyzeResult.astResult.isErr()).length} errors found during analysis`);
   }
 
   private sendDiagnosticsForDocuments(results: ModelsAnalyzeResult[]): void {
@@ -83,11 +85,11 @@ export class ProjectChangeListener {
       if (model) {
         const uri = URI.file(this.dbtRepository.getModelRawSqlPath(model)).toString();
         let diagnostics: Diagnostic[] = [];
-        if (result.astResult.isErr()) {
+        if (result.analyzeResult.astResult.isErr()) {
           const { rawCode } = model;
           const compiledCode = this.dbtRepository.getModelCompiledCode(model);
           if (rawCode && compiledCode) {
-            diagnostics = this.diagnosticGenerator.getSqlErrorDiagnostics(result.astResult.error, rawCode, compiledCode).raw;
+            diagnostics = this.diagnosticGenerator.getSqlErrorDiagnostics(result.analyzeResult.astResult.error, rawCode, compiledCode).raw;
           }
         }
         this.notificationSender.sendRawDiagnostics({ uri, diagnostics });
