@@ -9,7 +9,7 @@ export interface TableInformation {
   timePartitioning: boolean;
 }
 export class BigQueryTableFetcher {
-  tables: Map<string, Promise<TableInformation | undefined>> = new Map();
+  private tables: Map<string, Promise<TableInformation | undefined>> = new Map();
 
   constructor(private bigQueryClient: BigQueryClient) {}
 
@@ -23,7 +23,7 @@ export class BigQueryTableFetcher {
     return promise;
   }
 
-  async fillTableSchemaFromBq(table: TableDefinition): Promise<TableInformation | undefined> {
+  private async fillTableSchemaFromBq(table: TableDefinition): Promise<TableInformation | undefined> {
     if (table.containsInformationSchema()) {
       return undefined;
     }
