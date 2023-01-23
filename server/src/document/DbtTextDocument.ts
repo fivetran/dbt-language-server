@@ -108,7 +108,6 @@ export class DbtTextDocument {
 
   async didSaveTextDocument(refresh: boolean): Promise<void> {
     if (this.requireCompileOnSave) {
-      console.log('didSaveTextDocument with this.requireCompileOnSave!!!');
       if (this.dbt.dbtReady) {
         this.requireCompileOnSave = false;
         if (refresh) {
@@ -117,10 +116,8 @@ export class DbtTextDocument {
         this.debouncedCompile();
       }
     } else if (this.currentDbtError) {
-      console.log('didSaveTextDocument with this.currentDbtError!!!');
       await this.onCompilationError(this.currentDbtError);
     } else {
-      console.log('didSaveTextDocument with old text!!!');
       await this.onCompilationFinished(this.compiledDocument.getText());
     }
   }
@@ -170,7 +167,6 @@ export class DbtTextDocument {
       });
 
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
-      console.log('didChangeTextDocument update this.compiledDocument with new text!!!');
       TextDocument.update(this.compiledDocument, compiledContentChanges, params.textDocument.version);
     }
   }
@@ -268,7 +264,6 @@ export class DbtTextDocument {
   async onCompilationFinished(compiledSql: string): Promise<void> {
     this.fixGlobalDbtError();
 
-    console.log('onCompilationFinished update this.compiledDocument with some text!!!');
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
     if (this.bigQueryContext.contextInitialized) {
       await this.updateAndSendDiagnosticsAndPreview();
@@ -281,14 +276,11 @@ export class DbtTextDocument {
 
   async onContextInitialized(): Promise<void> {
     if (this.canResendDiagnostics()) {
-      console.log('onContextInitialized this.dbt.dbtReady!!!');
       await this.updateAndSendDiagnosticsAndPreview();
     }
   }
 
   async updateAndSendDiagnosticsAndPreview(dbtCompilationError?: string): Promise<void> {
-    console.log('updateAndSendDiagnosticsAndPreview!!!');
-    console.log(this.compiledDocument.getText());
     await this.updateDiagnostics(dbtCompilationError);
     this.notificationSender.sendUpdateQueryPreview(this.rawDocument.uri, this.compiledDocument.getText());
   }
