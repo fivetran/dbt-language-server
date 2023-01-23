@@ -30,27 +30,15 @@ export class ProjectAnalyzer {
     await this.zetaSqlWrapper.initializeZetaSql();
   }
 
-  /** Analyzes all models from project */
+  /** Analyzes models from project starting from the roots and stopping if there is error in node */
   async analyzeProject(): Promise<ModelsAnalyzeResult[]> {
     console.log('Project analysis started...');
-    const bigQueryTableFetcher = new BigQueryTableFetcher(this.bigQueryClient);
-    const results: ModelsAnalyzeResult[] = [];
-    this.zetaSqlWrapper.resetCatalog();
-    const visitedModels = new Map<string, Promise<Result<AnalyzeResponse__Output, string>>>();
 
-    await ProjectAnalyzer.walkRootToLeafBreadthFirst(this.dbtRepository.dag.getRootNodes(), async node => {
-      const model = node.getValue();
-      if (model.packageName === this.projectName) {
-        results.push({ modelUniqueId: model.uniqueId, astResult: await this.analyzeModel(model, bigQueryTableFetcher, undefined, visitedModels) });
-      }
-    });
-    console.log('Project analysis completed');
-    return results;
-  }
-
-  static async walkRootToLeafBreadthFirst(startNodes: DagNode[], action: (node: DagNode) => Promise<void>): Promise<void> {
     const visited = new Set<string>();
-    let queue = startNodes;
+    let queue = this.dbtRepository.dag.getRootNodes();
+    const results: ModelsAnalyzeResult[] = [];
+    const bigQueryTableFetcher = new BigQueryTableFetcher(this.bigQueryClient);
+    const visitedModels = new Map<string, Promise<Result<AnalyzeResponse__Output, string>>>();
 
     while (queue.length > 0) {
       const currentLevel = queue;
@@ -62,17 +50,25 @@ export class ProjectAnalyzer {
           return;
         }
         visited.add(id);
-        await action(node);
 
-        for (const child of node.children) {
-          if (!visited.has(child.getValue().uniqueId)) {
-            queue.push(child);
+        const model = node.getValue();
+        if (model.packageName === this.projectName) {
+          const astResult = await this.analyzeModel(model, bigQueryTableFetcher, undefined, visitedModels);
+          results.push({ modelUniqueId: model.uniqueId, astResult });
+
+          for (const child of node.children) {
+            if (!visited.has(child.getValue().uniqueId)) {
+              queue.push(child);
+            }
           }
         }
       });
 
       await Promise.all(promises);
     }
+
+    console.log('Project analysis completed');
+    return results;
   }
 
   /** Analyzes a single model and all models that depend on it */
