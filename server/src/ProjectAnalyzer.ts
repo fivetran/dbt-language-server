@@ -13,9 +13,7 @@ export type ModelsAnalyzeResult = {
   analyzeResult: AnalyzeResult;
 };
 
-export interface AnalyzeResult {
-  astResult: Result<AnalyzeResponse__Output, string>;
-}
+export type AnalyzeResult = Result<AnalyzeResponse__Output, string>;
 
 export class ProjectAnalyzer {
   constructor(
@@ -37,7 +35,7 @@ export class ProjectAnalyzer {
     let queue = this.dbtRepository.dag.getRootNodes();
     const results: ModelsAnalyzeResult[] = [];
     const bigQueryTableFetcher = new BigQueryTableFetcher(this.bigQueryClient);
-    const visitedModels = new Map<string, Promise<Result<AnalyzeResponse__Output, string>>>();
+    const visitedModels = new Map<string, Promise<AnalyzeResult>>();
 
     while (queue.length > 0) {
       const currentLevel = queue;
@@ -52,7 +50,7 @@ export class ProjectAnalyzer {
 
         const model = node.getValue();
         if (model.packageName === this.projectName) {
-          const analyzeResult = await this.analyzeModel(model, bigQueryTableFetcher, undefined, visitedModels);
+          const analyzeResult = await this.analyzeModelCached(model, bigQueryTableFetcher, undefined, visitedModels);
           results.push({ modelUniqueId: model.uniqueId, analyzeResult });
 
           for (const child of node.children) {
@@ -72,7 +70,7 @@ export class ProjectAnalyzer {
 
   /** Filters all errors. Returns only root errors */
   private filterErrorResults(results: ModelsAnalyzeResult[]): ModelsAnalyzeResult[] {
-    const errorResults = results.filter(r => r.analyzeResult.astResult.isErr());
+    const errorResults = results.filter(r => r.analyzeResult.isErr());
     const idToExclude = new Set(
       errorResults
         .filter(r => {
@@ -91,7 +89,7 @@ export class ProjectAnalyzer {
   }
 
   async analyzeSql(sql: string): Promise<AnalyzeResult> {
-    return this.analyzeModel(undefined, new BigQueryTableFetcher(this.bigQueryClient), sql, new Map());
+    return this.analyzeModelCached(undefined, new BigQueryTableFetcher(this.bigQueryClient), sql, new Map());
   }
 
   dispose(): void {
@@ -104,14 +102,14 @@ export class ProjectAnalyzer {
     node: DagNode,
     tableFetcher: BigQueryTableFetcher,
     sql: string | undefined,
-    visitedModels: Map<string, Promise<Result<AnalyzeResponse__Output, string>>>,
+    visitedModels: Map<string, Promise<AnalyzeResult>>,
   ): Promise<ModelsAnalyzeResult[]> {
     const model = node.getValue();
-    const analyzeResult = await this.analyzeModel(model, tableFetcher, sql, visitedModels);
+    const analyzeResult = await this.analyzeModelCached(model, tableFetcher, sql, visitedModels);
 
     let results: ModelsAnalyzeResult[] = [{ modelUniqueId: model.uniqueId, analyzeResult }];
 
-    if (analyzeResult.astResult.isErr()) {
+    if (analyzeResult.isErr()) {
       // We don't analyze models that depend on this model because they all will have errors
       return results;
     }
@@ -124,25 +122,13 @@ export class ProjectAnalyzer {
     return results;
   }
 
-  private async analyzeModel(
-    model: ManifestModel | undefined,
-    tableFetcher: BigQueryTableFetcher,
-    sql: string | undefined,
-    visitedModels: Map<string, Promise<Result<AnalyzeResponse__Output, string>>>,
-  ): Promise<AnalyzeResult> {
-    await this.zetaSqlWrapper.registerAllLanguageFeatures();
-    const astResult = await this.analyzeModelCached(model, tableFetcher, sql, visitedModels);
-    return {
-      astResult,
-    };
-  }
-
-  private analyzeModelCached(
+  private async analyzeModelCached(
     model: ManifestModel | undefined,
     bigQueryTableFetcher: BigQueryTableFetcher,
     sql: string | undefined,
-    visitedModels: Map<string, Promise<Result<AnalyzeResponse__Output, string>>>,
-  ): Promise<Result<AnalyzeResponse__Output, string>> {
+    visitedModels: Map<string, Promise<AnalyzeResult>>,
+  ): Promise<AnalyzeResult> {
+    await this.zetaSqlWrapper.registerAllLanguageFeatures();
     const cacheKey = model?.uniqueId;
     let promise = cacheKey ? visitedModels.get(cacheKey) : undefined;
     if (!promise) {
@@ -158,8 +144,8 @@ export class ProjectAnalyzer {
     model: ManifestModel | undefined,
     bigQueryTableFetcher: BigQueryTableFetcher,
     sql: string | undefined,
-    visitedModels: Map<string, Promise<Result<AnalyzeResponse__Output, string>>>,
-  ): Promise<Result<AnalyzeResponse__Output, string>> {
+    visitedModels: Map<string, Promise<AnalyzeResult>>,
+  ): Promise<AnalyzeResult> {
     const compiledSql = sql ?? this.getCompiledCode(model);
     if (compiledSql === undefined) {
       return err(`Compiled SQL not found for model ${model?.uniqueId ?? 'undefined'}`);
@@ -234,7 +220,7 @@ export class ProjectAnalyzer {
   private async analyzeAllEphemeralModels(
     model: ManifestModel | undefined,
     bigQueryTableFetcher: BigQueryTableFetcher,
-    visitedModels: Map<string, Promise<Result<AnalyzeResponse__Output, string>>>,
+    visitedModels: Map<string, Promise<AnalyzeResult>>,
   ): Promise<void> {
     for (const node of model?.dependsOn.nodes ?? []) {
       const dependsOnEphemeralModel = this.dbtRepository.dag.nodes

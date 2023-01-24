@@ -1,5 +1,4 @@
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
-import { Result } from 'neverthrow';
 import * as path from 'node:path';
 import { Diagnostic, DiagnosticSeverity, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -7,6 +6,7 @@ import { URI } from 'vscode-uri';
 import { DbtRepository } from './DbtRepository';
 import { DbtTextDocument } from './document/DbtTextDocument';
 import { PositionConverter } from './PositionConverter';
+import { AnalyzeResult } from './ProjectAnalyzer';
 import { SqlRefConverter } from './SqlRefConverter';
 import { getIdentifierRangeAtPosition } from './utils/Utils';
 
@@ -49,11 +49,7 @@ export class DiagnosticGenerator {
     ];
   }
 
-  getDiagnosticsFromAst(
-    astResult: Result<AnalyzeResponse__Output, string>,
-    rawDocument: TextDocument,
-    compiledDocument: TextDocument,
-  ): RawAndCompiledDiagnostics {
+  getDiagnosticsFromAst(astResult: AnalyzeResult, rawDocument: TextDocument, compiledDocument: TextDocument): RawAndCompiledDiagnostics {
     let result: RawAndCompiledDiagnostics = { raw: [], compiled: [] };
     astResult.match(
       ast => {

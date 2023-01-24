@@ -11,11 +11,12 @@ import { SimpleCatalogProto } from '@fivetrandevelopers/zetasql/lib/types/zetasq
 import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
 import { SimpleTableProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleTableProto';
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
-import { err, ok, Result } from 'neverthrow';
+import { err, ok } from 'neverthrow';
 import { BigQueryClient, Udf } from './bigquery/BigQueryClient';
 import { FeatureFinder } from './feature_finder/FeatureFinder';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
 import { ProcessExecutor } from './ProcessExecutor';
+import { AnalyzeResult } from './ProjectAnalyzer';
 import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
 import { TableDefinition } from './TableDefinition';
 import { randomNumber } from './utils/Utils';
@@ -155,7 +156,7 @@ export class ZetaSqlWrapper {
     }
   }
 
-  async getAstOrError(compiledSql: string, catalog: SimpleCatalogProto): Promise<Result<AnalyzeResponse__Output, string>> {
+  async getAstOrError(compiledSql: string, catalog: SimpleCatalogProto): Promise<AnalyzeResult> {
     try {
       const ast = await this.analyze(compiledSql, catalog);
       return ok(ast);

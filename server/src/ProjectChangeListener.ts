@@ -1,5 +1,3 @@
-import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
-import { Result } from 'neverthrow';
 import { Diagnostic, FileChangeType, FileEvent } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { BigQueryContext } from './bigquery/BigQueryContext';
@@ -10,7 +8,7 @@ import { DbtTextDocument } from './document/DbtTextDocument';
 import { FileChangeListener } from './FileChangeListener';
 import { DagNodeFetcher } from './ModelFetcher';
 import { NotificationSender } from './NotificationSender';
-import { ModelsAnalyzeResult } from './ProjectAnalyzer';
+import { AnalyzeResult, ModelsAnalyzeResult } from './ProjectAnalyzer';
 import { debounce } from './utils/Utils';
 
 export class ProjectChangeListener {
@@ -40,19 +38,19 @@ export class ProjectChangeListener {
   }
 
   /** Analyses model tree, sends diagnostics for the entire tree and returns diagnostics for root model */
-  async analyzeModelTree(rawDocUri: string, sql: string): Promise<Result<AnalyzeResponse__Output, string> | undefined> {
+  async analyzeModelTree(rawDocUri: string, sql: string): Promise<AnalyzeResult | undefined> {
     const { fsPath } = URI.parse(rawDocUri);
     const modelFetcher = new DagNodeFetcher(this.dbtRepository, fsPath);
     const node = await modelFetcher.getDagNode();
-    let mainModelResult: Result<AnalyzeResponse__Output, string> | undefined;
+    let mainModelResult: AnalyzeResult | undefined;
 
     if (node) {
       const results = await this.bigQueryContext.analyzeModelTree(node, sql);
       this.sendDiagnosticsForDocuments(results);
-      mainModelResult = results.find(r => r.modelUniqueId === node.getValue().uniqueId)?.analyzeResult.astResult;
+      mainModelResult = results.find(r => r.modelUniqueId === node.getValue().uniqueId)?.analyzeResult;
     } else {
       const result = await this.bigQueryContext.analyzeSql(sql);
-      mainModelResult = result.astResult;
+      mainModelResult = result;
     }
     return mainModelResult;
   }
@@ -76,7 +74,7 @@ export class ProjectChangeListener {
     const results = await this.bigQueryContext.analyzeProject();
     this.notificationSender.clearAllDiagnostics();
     this.sendDiagnosticsForDocuments(results);
-    console.log(`Processed ${results.length} models. ${results.filter(r => r.analyzeResult.astResult.isErr()).length} errors found during analysis`);
+    console.log(`Processed ${results.length} models. ${results.filter(r => r.analyzeResult.isErr()).length} errors found during analysis`);
   }
 
   private sendDiagnosticsForDocuments(results: ModelsAnalyzeResult[]): void {
@@ -85,11 +83,11 @@ export class ProjectChangeListener {
       if (model) {
         const uri = URI.file(this.dbtRepository.getModelRawSqlPath(model)).toString();
         let diagnostics: Diagnostic[] = [];
-        if (result.analyzeResult.astResult.isErr()) {
+        if (result.analyzeResult.isErr()) {
           const { rawCode } = model;
           const compiledCode = this.dbtRepository.getModelCompiledCode(model);
           if (rawCode && compiledCode) {
-            diagnostics = this.diagnosticGenerator.getSqlErrorDiagnostics(result.analyzeResult.astResult.error, rawCode, compiledCode).raw;
+            diagnostics = this.diagnosticGenerator.getSqlErrorDiagnostics(result.analyzeResult.error, rawCode, compiledCode).raw;
           }
         }
         this.notificationSender.sendRawDiagnostics({ uri, diagnostics });
