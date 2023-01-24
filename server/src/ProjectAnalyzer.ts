@@ -70,7 +70,8 @@ export class ProjectAnalyzer {
     return this.filterErrorResults(results);
   }
 
-  filterErrorResults(results: ModelsAnalyzeResult[]): ModelsAnalyzeResult[] {
+  /** Filters all errors. Returns only root errors */
+  private filterErrorResults(results: ModelsAnalyzeResult[]): ModelsAnalyzeResult[] {
     const idToExclude: string[] = [];
     const errorResults = results.filter(r => r.analyzeResult.astResult.isErr());
     errorResults.forEach(r => {
