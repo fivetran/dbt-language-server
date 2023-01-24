@@ -1,6 +1,8 @@
 import { assertThat } from 'hamjest';
 import { Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { Dag } from '../../dag/Dag';
+import { DagNode } from '../../dag/DagNode';
 import { DbtRepository } from '../../DbtRepository';
 import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
 import { ModelDefinitionProvider } from '../../definition/ModelDefinitionProvider';
@@ -30,10 +32,10 @@ describe('ModelDefinitionProvider', () => {
   let modelDocument: TextDocument;
 
   before(() => {
-    DBT_REPOSITORY.models = [
-      createModel(`model.${PACKAGE_NAME}.${PACKAGE_MODEL}`, PACKAGE_MODEL_ROOT_PATH, PACKAGE_MODEL, PACKAGE_NAME),
-      createModel(`model.${PROJECT_NAME}.${PROJECT_MODEL}`, PROJECT_MODEL_ROOT_PATH, PROJECT_MODEL, PROJECT_NAME),
-    ];
+    DBT_REPOSITORY.dag = new Dag([
+      new DagNode(createModel(`model.${PACKAGE_NAME}.${PACKAGE_MODEL}`, PACKAGE_MODEL_ROOT_PATH, PACKAGE_MODEL, PACKAGE_NAME)),
+      new DagNode(createModel(`model.${PROJECT_NAME}.${PROJECT_MODEL}`, PROJECT_MODEL_ROOT_PATH, PROJECT_MODEL, PROJECT_NAME)),
+    ]);
 
     modelDocument = TextDocument.create(`${PATH_TO_PROJECT}/models/${FILE_NAME}`, 'sql', 0, MODEL_FILE_CONTENT);
   });

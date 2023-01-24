@@ -56,6 +56,7 @@ export const POSTGRES_PATH = path.resolve(PROJECTS_PATH, 'postgres');
 export const COMPLETION_JINJA_PATH = path.resolve(PROJECTS_PATH, 'completion-jinja');
 export const SPECIAL_PYTHON_SETTINGS_PATH = path.resolve(PROJECTS_PATH, 'special-python-settings');
 export const PREVIEW_URI = 'query-preview:Preview?dbt-language-server';
+export const PROJECT1_PATH = path.resolve(PROJECTS_PATH, 'two-projects/project1');
 
 export const MAX_RANGE = new Range(0, 0, 999, 999);
 

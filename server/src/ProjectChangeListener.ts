@@ -1,4 +1,4 @@
-import { FileChangeType, FileEvent } from 'vscode-languageserver';
+import { Diagnostic, FileChangeType, FileEvent } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtRepository } from './DbtRepository';
@@ -6,7 +6,9 @@ import { Dbt } from './dbt_execution/Dbt';
 import { DiagnosticGenerator } from './DiagnosticGenerator';
 import { DbtTextDocument } from './document/DbtTextDocument';
 import { FileChangeListener } from './FileChangeListener';
+import { DagNodeFetcher } from './ModelFetcher';
 import { NotificationSender } from './NotificationSender';
+import { AnalyzeResult, ModelsAnalyzeResult } from './ProjectAnalyzer';
 import { debounce } from './utils/Utils';
 
 export class ProjectChangeListener {
@@ -30,8 +32,27 @@ export class ProjectChangeListener {
   }
 
   async compileAndAnalyzeProject(): Promise<void> {
+    this.dbt.refresh();
     await this.dbt.compileProject(this.dbtRepository);
     this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
+  }
+
+  /** Analyses model tree, sends diagnostics for the entire tree and returns diagnostics for root model */
+  async analyzeModelTree(rawDocUri: string, sql: string): Promise<AnalyzeResult | undefined> {
+    const { fsPath } = URI.parse(rawDocUri);
+    const modelFetcher = new DagNodeFetcher(this.dbtRepository, fsPath);
+    const node = await modelFetcher.getDagNode();
+    let mainModelResult: AnalyzeResult | undefined;
+
+    if (node) {
+      const results = await this.bigQueryContext.analyzeModelTree(node, sql);
+      this.sendDiagnosticsForDocuments(results);
+      mainModelResult = results.find(r => r.modelUniqueId === node.getValue().uniqueId)?.analyzeResult;
+    } else {
+      const result = await this.bigQueryContext.analyzeSql(sql);
+      mainModelResult = result;
+    }
+    return mainModelResult;
   }
 
   private onSqlModelChanged(changes: FileEvent[]): void {
@@ -50,25 +71,27 @@ export class ProjectChangeListener {
     if (!this.enableEntireProjectAnalysis || this.bigQueryContext.isEmpty()) {
       return;
     }
-    const analyzeResults = await this.bigQueryContext.analyzeProject();
-    let modelsCount = 0;
-    let errorCount = 0;
-    for (const [uniqueId, result] of analyzeResults.entries()) {
-      modelsCount++;
-      if (result.isErr()) {
-        const model = this.dbtRepository.models.find(m => m.uniqueId === uniqueId);
-        if (model) {
+    const results = await this.bigQueryContext.analyzeProject();
+    this.notificationSender.clearAllDiagnostics();
+    this.sendDiagnosticsForDocuments(results);
+    console.log(`Processed ${results.length} models. ${results.filter(r => r.analyzeResult.isErr()).length} errors found during analysis`);
+  }
+
+  private sendDiagnosticsForDocuments(results: ModelsAnalyzeResult[]): void {
+    for (const result of results) {
+      const model = this.dbtRepository.dag.nodes.find(n => n.getValue().uniqueId === result.modelUniqueId)?.getValue();
+      if (model) {
+        const uri = URI.file(this.dbtRepository.getModelRawSqlPath(model)).toString();
+        let diagnostics: Diagnostic[] = [];
+        if (result.analyzeResult.isErr()) {
           const { rawCode } = model;
           const compiledCode = this.dbtRepository.getModelCompiledCode(model);
           if (rawCode && compiledCode) {
-            const uri = URI.file(this.dbtRepository.getModelRawSqlPath(model)).toString();
-            const diagnostics = this.diagnosticGenerator.getSqlErrorDiagnostics(result.error, rawCode, compiledCode).raw;
-            this.notificationSender.sendRawDiagnostics({ uri, diagnostics });
-            errorCount++;
+            diagnostics = this.diagnosticGenerator.getSqlErrorDiagnostics(result.analyzeResult.error, rawCode, compiledCode).raw;
           }
         }
+        this.notificationSender.sendRawDiagnostics({ uri, diagnostics });
       }
     }
-    console.log(`Processed ${modelsCount} models. ${errorCount} errors found during analysis`);
   }
 }

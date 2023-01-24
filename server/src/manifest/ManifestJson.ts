@@ -1,4 +1,6 @@
-interface ManifestNode {
+import { Dag } from '../dag/Dag';
+
+export interface ManifestNode {
   uniqueId: string;
   rootPath: string;
   originalFilePath: string;
@@ -30,7 +32,7 @@ export interface ManifestSource extends ManifestNode {
 }
 
 export interface ManifestJson {
-  models: ManifestModel[];
   macros: ManifestMacro[];
   sources: ManifestSource[];
+  dag: Dag;
 }

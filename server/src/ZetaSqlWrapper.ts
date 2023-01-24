@@ -11,11 +11,12 @@ import { SimpleCatalogProto } from '@fivetrandevelopers/zetasql/lib/types/zetasq
 import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
 import { SimpleTableProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleTableProto';
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
-import { err, ok, Result } from 'neverthrow';
+import { err, ok } from 'neverthrow';
 import { BigQueryClient, Udf } from './bigquery/BigQueryClient';
 import { FeatureFinder } from './feature_finder/FeatureFinder';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
 import { ProcessExecutor } from './ProcessExecutor';
+import { AnalyzeResult } from './ProjectAnalyzer';
 import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
 import { TableDefinition } from './TableDefinition';
 import { randomNumber } from './utils/Utils';
@@ -31,16 +32,15 @@ export class ZetaSqlWrapper {
   private static readonly MIN_PORT = 1024;
   private static readonly MAX_PORT = 65_535;
 
-  private readonly catalog: SimpleCatalogProto = {
-    name: 'catalog',
-    constant: [{ namePath: ['_dbt_max_partition'], type: { typeKind: TypeKind.TYPE_DATE } }],
-  };
+  private catalog: SimpleCatalogProto;
   private languageOptions: LanguageOptions | undefined;
   private registeredTables: TableDefinition[] = [];
   private registeredFunctions = new Set<string>();
   private informationSchemaConfigurator = new InformationSchemaConfigurator();
 
-  constructor(private bigQueryClient: BigQueryClient, private zetaSqlParser: ZetaSqlParser, private sqlHeaderAnalyzer: SqlHeaderAnalyzer) {}
+  constructor(private bigQueryClient: BigQueryClient, private zetaSqlParser: ZetaSqlParser, private sqlHeaderAnalyzer: SqlHeaderAnalyzer) {
+    this.catalog = this.getDefaultCatalog();
+  }
 
   async initializeZetaSql(): Promise<void> {
     const port = await findFreePortPmfy(randomNumber(ZetaSqlWrapper.MIN_PORT, ZetaSqlWrapper.MAX_PORT));
@@ -74,6 +74,19 @@ export class ZetaSqlWrapper {
         };
       }
     }
+  }
+
+  getDefaultCatalog(): SimpleCatalogProto {
+    return {
+      name: 'catalog',
+      constant: [{ namePath: ['_dbt_max_partition'], type: { typeKind: TypeKind.TYPE_DATE } }],
+    };
+  }
+
+  resetCatalog(): void {
+    this.catalog = this.getDefaultCatalog();
+    this.registeredTables = [];
+    this.registeredFunctions = new Set<string>();
   }
 
   async findTableNames(sql: string): Promise<TableDefinition[]> {
@@ -143,7 +156,7 @@ export class ZetaSqlWrapper {
     }
   }
 
-  async getAstOrError(compiledSql: string, catalog: SimpleCatalogProto): Promise<Result<AnalyzeResponse__Output, string>> {
+  async getAstOrError(compiledSql: string, catalog: SimpleCatalogProto): Promise<AnalyzeResult> {
     try {
       const ast = await this.analyze(compiledSql, catalog);
       return ok(ast);

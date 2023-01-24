@@ -1,10 +1,10 @@
-import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { err, ok, Result } from 'neverthrow';
 import { Emitter, Event } from 'vscode-languageserver';
+import { DagNode } from '../dag/DagNode';
 import { DbtProfileSuccess } from '../DbtProfileCreator';
 import { DbtRepository } from '../DbtRepository';
 import { DestinationDefinition } from '../DestinationDefinition';
-import { ProjectAnalyzer } from '../ProjectAnalyzer';
+import { AnalyzeResult, ModelsAnalyzeResult, ProjectAnalyzer } from '../ProjectAnalyzer';
 import { SqlHeaderAnalyzer } from '../SqlHeaderAnalyzer';
 import { ZetaSqlParser } from '../ZetaSqlParser';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
@@ -12,6 +12,7 @@ import { BigQueryClient } from './BigQueryClient';
 
 export class BigQueryContext {
   private static readonly ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux', 'win32'];
+  private static readonly NOT_INITIALIZED_ERROR = 'projectAnalyzer is not initialized';
 
   destinationDefinition?: DestinationDefinition;
   projectAnalyzer?: ProjectAnalyzer;
@@ -67,16 +68,23 @@ export class BigQueryContext {
     return ok(undefined);
   }
 
-  async analyzeTable(fullFilePath: string, sql: string): Promise<Result<AnalyzeResponse__Output, string>> {
+  async analyzeModelTree(node: DagNode, sql: string): Promise<ModelsAnalyzeResult[]> {
     if (!this.projectAnalyzer) {
-      throw new Error('projectAnalyzer is not initialized');
+      throw new Error(BigQueryContext.NOT_INITIALIZED_ERROR);
     }
-    return this.projectAnalyzer.analyzeTable(fullFilePath, sql);
+    return this.projectAnalyzer.analyzeModelTree(node, sql);
   }
 
-  async analyzeProject(): Promise<Map<string, Result<AnalyzeResponse__Output, string>>> {
+  async analyzeSql(sql: string): Promise<AnalyzeResult> {
     if (!this.projectAnalyzer) {
-      throw new Error('projectAnalyzer is not initialized');
+      throw new Error(BigQueryContext.NOT_INITIALIZED_ERROR);
+    }
+    return this.projectAnalyzer.analyzeSql(sql);
+  }
+
+  async analyzeProject(): Promise<ModelsAnalyzeResult[]> {
+    if (!this.projectAnalyzer) {
+      throw new Error(BigQueryContext.NOT_INITIALIZED_ERROR);
     }
     return this.projectAnalyzer.analyzeProject();
   }

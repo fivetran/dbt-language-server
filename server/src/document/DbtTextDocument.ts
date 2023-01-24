@@ -35,6 +35,7 @@ import { ModelCompiler } from '../ModelCompiler';
 import { NotificationSender } from '../NotificationSender';
 import { PositionConverter } from '../PositionConverter';
 import { ProgressReporter } from '../ProgressReporter';
+import { ProjectChangeListener } from '../ProjectChangeListener';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { getLineByPosition, getSignatureInfo } from '../utils/TextUtils';
 import { areRangesEqual, debounce, getIdentifierRangeAtPosition, getModelPathOrFullyQualifiedName, positionInRange } from '../utils/Utils';
@@ -75,6 +76,7 @@ export class DbtTextDocument {
     private signatureHelpProvider: SignatureHelpProvider,
     private hoverProvider: HoverProvider,
     private dbtDefinitionProvider: DbtDefinitionProvider,
+    private projectChangeListener: ProjectChangeListener,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -206,15 +208,19 @@ export class DbtTextDocument {
   }
 
   async resendDiagnostics(): Promise<void> {
-    if (
+    if (this.canResendDiagnostics()) {
+      await this.updateDiagnostics();
+    }
+  }
+
+  canResendDiagnostics(): boolean {
+    return (
       this.bigQueryContext.contextInitialized &&
       this.dbt.dbtReady &&
       !this.currentDbtError &&
       !this.modelCompiler.compilationInProgress &&
       this.compiledDocument.getText() !== this.rawDocument.getText()
-    ) {
-      await this.updateDiagnostics();
-    }
+    );
   }
 
   debouncedCompile = debounce(async () => {
@@ -269,7 +275,7 @@ export class DbtTextDocument {
   }
 
   async onContextInitialized(): Promise<void> {
-    if (this.dbt.dbtReady) {
+    if (this.canResendDiagnostics()) {
       await this.updateAndSendDiagnosticsAndPreview();
     }
   }
@@ -309,18 +315,20 @@ export class DbtTextDocument {
       compiledSql !== '' &&
       compiledSql !== DbtCompileJob.NO_RESULT_FROM_COMPILER
     ) {
-      const { fsPath } = URI.parse(this.rawDocument.uri);
-      const astResult = await this.bigQueryContext.analyzeTable(fsPath, compiledSql);
-      if (astResult.isOk()) {
-        console.log(`AST was successfully received for ${fsPath}`, LogLevel.Debug);
-        this.ast = astResult.value;
-      } else {
-        console.log(`There was an error while parsing ${fsPath}`, LogLevel.Debug);
-        console.log(astResult, LogLevel.Debug);
+      const astResult = await this.projectChangeListener.analyzeModelTree(this.rawDocument.uri, compiledSql);
+      if (astResult) {
+        const { fsPath } = URI.parse(this.rawDocument.uri);
+        if (astResult.isOk()) {
+          console.log(`AST was successfully received for ${fsPath}`, LogLevel.Debug);
+          this.ast = astResult.value;
+        } else {
+          console.log(`There was an error while analyzing ${fsPath}`, LogLevel.Debug);
+          console.log(astResult, LogLevel.Debug);
+        }
+        const diagnostics = this.diagnosticGenerator.getDiagnosticsFromAst(astResult, this.rawDocument, this.compiledDocument);
+        rawDocDiagnostics = diagnostics.raw;
+        compiledDocDiagnostics = diagnostics.compiled;
       }
-      const diagnostics = this.diagnosticGenerator.getDiagnosticsFromAst(astResult, this.rawDocument, this.compiledDocument);
-      rawDocDiagnostics = diagnostics.raw;
-      compiledDocDiagnostics = diagnostics.compiled;
     }
 
     return [rawDocDiagnostics, compiledDocDiagnostics];

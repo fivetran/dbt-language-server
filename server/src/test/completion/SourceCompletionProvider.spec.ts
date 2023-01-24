@@ -1,4 +1,5 @@
 import { SourceCompletionProvider } from '../../completion/SourceCompletionProvider';
+import { Dag } from '../../dag/Dag';
 import { DbtRepository } from '../../DbtRepository';
 import { JinjaPartType } from '../../JinjaParser';
 import { shouldNotProvideCompletions, shouldProvideCompletions } from '../helper';
@@ -55,7 +56,7 @@ describe('SourceCompletionProvider', () => {
         columns: [],
       },
     ];
-    dbtRepository.updateDbtNodes([], [], sources);
+    dbtRepository.updateDbtNodes([], sources, new Dag([]));
 
     sourceCompletionProvider = new SourceCompletionProvider(dbtRepository);
   });

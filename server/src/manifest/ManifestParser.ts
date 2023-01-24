@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import * as path from 'node:path';
+import { DagGenerator } from '../dag/DagGenerator';
 import { ManifestJson, ManifestMacro, ManifestModel, ManifestSource } from './ManifestJson';
 
 interface RawNode {
@@ -41,17 +42,23 @@ export class ManifestParser {
   static readonly RESOURCE_TYPE_SOURCE = 'source';
   static readonly PROJECT_PATH = './';
 
-  parse(targetPath: string): ManifestJson {
+  static readonly DAG_GENERATOR = new DagGenerator();
+
+  /** we don't continue parse manifest if there is no compiled code */
+  parse(targetPath: string): ManifestJson | undefined {
     const manifestPath = ManifestParser.getManifestPath(targetPath);
     const content = readFileSync(manifestPath, 'utf8');
     const manifest = JSON.parse(content) as RawManifest;
     const { nodes, macros, sources } = manifest;
 
-    return {
-      models: this.parseModelDefinitions(nodes),
-      macros: this.parseMacroDefinitions(macros),
-      sources: this.parseSourceDefinitions(sources),
-    };
+    const models = this.parseModelDefinitions(nodes);
+    return models.some(m => m.compiledCode)
+      ? {
+          macros: this.parseMacroDefinitions(macros),
+          sources: this.parseSourceDefinitions(sources),
+          dag: ManifestParser.DAG_GENERATOR.generateDbtGraph(models),
+        }
+      : undefined;
   }
 
   static getManifestPath(targetPath: string): string {

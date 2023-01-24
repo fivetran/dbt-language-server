@@ -15,6 +15,7 @@ import { JinjaParser } from '../../JinjaParser';
 import { ModelCompiler } from '../../ModelCompiler';
 import { NotificationSender } from '../../NotificationSender';
 import { ProgressReporter } from '../../ProgressReporter';
+import { ProjectChangeListener } from '../../ProjectChangeListener';
 import { SignatureHelpProvider } from '../../SignatureHelpProvider';
 import { sleep } from '../helper';
 
@@ -62,6 +63,7 @@ describe('DbtTextDocument', () => {
       new SignatureHelpProvider(),
       new HoverProvider(),
       new DbtDefinitionProvider(dbtRepository),
+      mock(ProjectChangeListener),
     );
   });
 

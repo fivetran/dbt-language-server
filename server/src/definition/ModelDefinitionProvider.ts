@@ -1,6 +1,7 @@
 import { DefinitionLink, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
+import { Dag } from '../dag/Dag';
 import { DbtRepository } from '../DbtRepository';
 import { ParseNode } from '../JinjaParser';
 import { ManifestModel } from '../manifest/ManifestJson';
@@ -48,7 +49,7 @@ export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
         modelSelectionRange = this.getAbsoluteTextRange(document, wordAbsoluteOffset, matches[1]);
 
         if (positionInRange(position, packageSelectionRange)) {
-          return this.searchPackageDefinition(dbtPackage, this.dbtRepository.models, packageSelectionRange);
+          return this.searchPackageDefinition(dbtPackage, this.dbtRepository.dag, packageSelectionRange);
         }
       } else {
         model = truncateAtBothSides(matches[0].text);
@@ -57,24 +58,24 @@ export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
       }
 
       if (positionInRange(position, modelSelectionRange)) {
-        return this.searchModelDefinition(model, this.dbtRepository.models, modelSelectionRange, dbtPackage);
+        return this.searchModelDefinition(model, this.dbtRepository.dag, modelSelectionRange, dbtPackage);
       }
     }
 
     return undefined;
   }
 
-  searchPackageDefinition(dbtPackage: string, dbtModels: ManifestModel[], packageSelectionRange: Range): DefinitionLink[] | undefined {
+  searchPackageDefinition(dbtPackage: string, dag: Dag, packageSelectionRange: Range): DefinitionLink[] | undefined {
     const modelIdPattern = `model.${dbtPackage}.`;
-    return dbtModels
-      .filter(m => m.uniqueId.startsWith(modelIdPattern))
-      .map(m => this.createLocationLink(m, DbtDefinitionProvider.MAX_RANGE, packageSelectionRange));
+    return dag.nodes
+      .filter(n => n.getValue().uniqueId.startsWith(modelIdPattern))
+      .map(n => this.createLocationLink(n.getValue(), DbtDefinitionProvider.MAX_RANGE, packageSelectionRange));
   }
 
-  searchModelDefinition(model: string, dbtModels: ManifestModel[], modelSelectionRange: Range, dbPackage?: string): DefinitionLink[] | undefined {
-    const foundModel = dbtModels.find(m => m.name === model && (dbPackage === undefined || m.packageName === dbPackage));
+  searchModelDefinition(model: string, dag: Dag, modelSelectionRange: Range, dbPackage?: string): DefinitionLink[] | undefined {
+    const foundNode = dag.nodes.find(n => n.getValue().name === model && (dbPackage === undefined || n.getValue().packageName === dbPackage));
     // Decided to use the same range as other dbt extensions in order VS Code to filter equal values from definitions list (some details here: https://github.com/microsoft/vscode/issues/63895)
-    return foundModel ? [this.createLocationLink(foundModel, DbtDefinitionProvider.MAX_RANGE, modelSelectionRange)] : undefined;
+    return foundNode ? [this.createLocationLink(foundNode.getValue(), DbtDefinitionProvider.MAX_RANGE, modelSelectionRange)] : undefined;
   }
 
   createLocationLink(manifestModel: ManifestModel, targetSelectionRange: Range, originSelectionRange: Range): LocationLink {

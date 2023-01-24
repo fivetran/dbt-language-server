@@ -1,4 +1,6 @@
 import { ModelCompletionProvider } from '../../completion/ModelCompletionProvider';
+import { Dag } from '../../dag/Dag';
+import { DagNode } from '../../dag/DagNode';
 import { DbtRepository } from '../../DbtRepository';
 import { JinjaPartType } from '../../JinjaParser';
 import { ManifestModel } from '../../manifest/ManifestJson';
@@ -38,7 +40,7 @@ describe('ModelCompletionProvider', () => {
         INSTALLED_PACKAGE,
       ),
     ];
-    dbtRepository.updateDbtNodes(models, [], []);
+    dbtRepository.updateDbtNodes([], [], new Dag(models.map(m => new DagNode(m))));
 
     modelCompletionProvider = new ModelCompletionProvider(dbtRepository);
   });

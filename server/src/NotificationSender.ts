@@ -13,6 +13,10 @@ export class NotificationSender {
     this.sendRawDiagnostics({ uri, diagnostics: [] });
   }
 
+  clearAllDiagnostics(): void {
+    this.sendNotification('custom/clearAllDiagnostics');
+  }
+
   sendRawDiagnostics(params: PublishDiagnosticsParams): void {
     this.connection.sendDiagnostics(params).catch(e => console.log(`Failed to send diagnostics: ${e instanceof Error ? e.message : String(e)}`));
   }

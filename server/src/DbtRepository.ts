@@ -1,6 +1,7 @@
 import { deferred } from 'dbt-language-server-common';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { Dag } from './dag/Dag';
 import { ManifestMacro, ManifestModel, ManifestSource } from './manifest/ManifestJson';
 
 export class DbtRepository {
@@ -33,9 +34,9 @@ export class DbtRepository {
 
   manifestParsedDeferred = deferred<void>();
 
-  models: ManifestModel[] = [];
   macros: ManifestMacro[] = [];
   sources: ManifestSource[] = [];
+  dag: Dag = new Dag([]);
 
   packageToModels = new Map<string, Set<ManifestModel>>();
   packageToMacros = new Map<string, Set<ManifestMacro>>();
@@ -45,10 +46,10 @@ export class DbtRepository {
     return this.manifestParsedDeferred.promise;
   }
 
-  updateDbtNodes(models: ManifestModel[], macros: ManifestMacro[], sources: ManifestSource[]): void {
-    this.models = models;
+  updateDbtNodes(macros: ManifestMacro[], sources: ManifestSource[], dag: Dag): void {
     this.macros = macros;
     this.sources = sources;
+    this.dag = dag;
 
     this.groupManifestNodes();
 
@@ -90,13 +91,13 @@ export class DbtRepository {
   private groupManifestModelNodes(): void {
     const newPackageToModels = new Map<string, Set<ManifestModel>>();
 
-    for (const model of this.models) {
-      let packageModels = newPackageToModels.get(model.packageName);
+    for (const node of this.dag.nodes) {
+      let packageModels = newPackageToModels.get(node.getValue().packageName);
       if (!packageModels) {
         packageModels = new Set();
-        newPackageToModels.set(model.packageName, packageModels);
+        newPackageToModels.set(node.getValue().packageName, packageModels);
       }
-      packageModels.add(model);
+      packageModels.add(node.getValue());
     }
     this.packageToModels = newPackageToModels;
   }

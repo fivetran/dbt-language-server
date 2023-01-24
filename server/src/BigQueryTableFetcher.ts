@@ -9,12 +9,12 @@ export interface TableInformation {
   timePartitioning: boolean;
 }
 export class BigQueryTableFetcher {
-  tables: Map<string, Promise<TableInformation | undefined>> = new Map();
+  private tables: Map<string, Promise<TableInformation | undefined>> = new Map();
 
   constructor(private bigQueryClient: BigQueryClient) {}
 
   fetchTable(table: TableDefinition): Promise<TableInformation | undefined> {
-    const key = table.getFullName();
+    const key = `${table.getDataSetName() ?? 'undefined'}.${table.getTableName()}`;
     let promise = this.tables.get(key);
     if (promise === undefined) {
       promise = this.fillTableSchemaFromBq(table);
@@ -23,7 +23,7 @@ export class BigQueryTableFetcher {
     return promise;
   }
 
-  async fillTableSchemaFromBq(table: TableDefinition): Promise<TableInformation | undefined> {
+  private async fillTableSchemaFromBq(table: TableDefinition): Promise<TableInformation | undefined> {
     if (table.containsInformationSchema()) {
       return undefined;
     }
