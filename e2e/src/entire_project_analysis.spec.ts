@@ -51,5 +51,5 @@ suite('Entire project analysis', () => {
 });
 
 function getNewContent(whatToSelect: string): string {
-  return `select ${whatToSelect} from {{ var('test_project') }}.dbt_ls_e2e_dataset.{{ var('table_1') }}`;
+  return `select ${whatToSelect} from {{ var('test_project') }}.dbt_ls_e2e_dataset.{{ var('table_1') }}\n`;
 }
