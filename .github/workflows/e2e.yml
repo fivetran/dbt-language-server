@@ -32,10 +32,10 @@ jobs:
       - name: checkout
         uses: actions/checkout@v3
 
-      - name: set up node 16.x
+      - name: set up node
         uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
+          node-version: '19.x'
 
       - name: build and test
         run: |
@@ -92,7 +92,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
+          node-version: '19.x'
 
       - name: build tests
         run: | # ignore postinstall script and install dependencies for e2e

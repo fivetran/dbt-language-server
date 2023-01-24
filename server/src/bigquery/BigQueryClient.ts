@@ -56,7 +56,7 @@ export class BigQueryClient implements DbtDestinationClient {
     try {
       const [metadata] = (await table.getMetadata({
         fields: BigQueryClient.JOINED_FIELDS,
-      })) as [Pick<TableMetadata, typeof BigQueryClient.REQUESTED_SCHEMA_FIELDS[number]>, unknown];
+      })) as [Pick<TableMetadata, (typeof BigQueryClient.REQUESTED_SCHEMA_FIELDS)[number]>, unknown];
       return {
         schema: metadata.schema as SchemaDefinition,
         timePartitioning: metadata.timePartitioning !== undefined,
