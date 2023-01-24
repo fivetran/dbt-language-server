@@ -72,15 +72,16 @@ export class ProjectAnalyzer {
 
   /** Filters all errors. Returns only root errors */
   private filterErrorResults(results: ModelsAnalyzeResult[]): ModelsAnalyzeResult[] {
-    const idToExclude: string[] = [];
     const errorResults = results.filter(r => r.analyzeResult.astResult.isErr());
-    errorResults.forEach(r => {
-      const current = this.dbtRepository.dag.nodes.find(n => n.getValue().uniqueId === r.modelUniqueId);
-      if (current?.findParent(p => errorResults.some(er => er.modelUniqueId === p.getValue().uniqueId))) {
-        idToExclude.push(r.modelUniqueId);
-      }
-    });
-    return results.filter(r => !idToExclude.includes(r.modelUniqueId));
+    const idToExclude = new Set(
+      errorResults
+        .filter(r => {
+          const current = this.dbtRepository.dag.nodes.find(n => n.getValue().uniqueId === r.modelUniqueId);
+          return current?.findParent(p => errorResults.some(er => er.modelUniqueId === p.getValue().uniqueId));
+        })
+        .map(r => r.modelUniqueId),
+    );
+    return results.filter(r => !idToExclude.has(r.modelUniqueId));
   }
 
   /** Analyzes a single model and all models that depend on it */
