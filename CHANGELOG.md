@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.19.0 (01/01/1970)
+## Version 0.19.0 (25/01/2023)
 ## What's Changed
 * Added the ability to analyze project using the **Analyze current project** button at upper right corner of VS Code editor or context menu. This feature can be disabled using menu **Preferences** -> **Settings** -> **Extensions** -> **Wizard for dbt Core (TM)** -> **Wizard For Dbt Core(TM): Enable Entire Project Analysis**.
 * Recompile and reanalyze entire project after extension start or external changes happened.
