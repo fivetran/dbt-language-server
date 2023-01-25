@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 0.19.0 (01/01/1970)
+## What's Changed
+* Added the ability to analyze project using the **Analyze current project** button at upper right corner of VS Code editor or context menu. This feature can be disabled using menu **Preferences** -> **Settings** -> **Extensions** -> **Wizard for dbt Core (TM)** -> **Wizard For Dbt Core(TM): Enable Entire Project Analysis**.
+* Recompile and reanalyze entire project after extension start or external changes happened.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.18.0...v0.19.0
+---
+
 ## Version 0.18.0 (27/12/2022)
 ## What's Changed
 * We now use dbt CLI for model and project compilation by default. You can switch between compiler used by extension in **Preferences** -> **Settings** -> **Extensions** -> **Wizard for dbt Core (TM)** -> **Wizard For Dbt Core(TM): Dbt Compiler**. 
@@ -278,19 +286,3 @@
 * Improve error display for dbt problems
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.1.0...v0.2.0
----
-
-## Version 0.1.0 (03/02/2022)
-## What's Changed
-* Add oauth token-based authentication method
-* Support Linux
-* Add commands to convert ref to SQL and SQL to ref
-* Fix infinite loop bug while compiling models
-* Show errors in preview
-* Fix compile issue when model edited before extension initialized
-* Rename extension to dbt Language Support
-* Publish repository
-* Add docs for Windows users
-* Delete compile button
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.0.3...v0.1.0
