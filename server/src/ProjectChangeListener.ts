@@ -14,6 +14,8 @@ import { debounce } from './utils/Utils';
 export class ProjectChangeListener {
   private static PROJECT_COMPILE_DEBOUNCE_TIMEOUT = 1000;
 
+  private analysisInProgress = false;
+
   constructor(
     private openedDocuments: Map<string, DbtTextDocument>,
     private bigQueryContext: BigQueryContext,
@@ -32,9 +34,23 @@ export class ProjectChangeListener {
   }
 
   async compileAndAnalyzeProject(): Promise<void> {
-    this.dbt.refresh();
-    await this.dbt.compileProject(this.dbtRepository);
-    this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
+    if (this.analysisInProgress) {
+      console.log('Analysis is already in progress. Skip recompiling/reanalyzing the project');
+      return;
+    }
+    console.log('Starting to recompile/reanalyze the project');
+    this.analysisInProgress = true;
+    try {
+      this.dbt.refresh();
+      await this.dbt.compileProject(this.dbtRepository);
+      this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
+    } finally {
+      this.analysisInProgress = false;
+    }
+  }
+
+  forceCompileAndAnalyzeProject(): void {
+    this.debouncedCompileAndAnalyze();
   }
 
   /** Analyses model tree, sends diagnostics for the entire tree and returns diagnostics for root model */
@@ -63,7 +79,6 @@ export class ProjectChangeListener {
   }
 
   private debouncedCompileAndAnalyze = debounce(async () => {
-    console.log('External change has happened. Start recompiling/reanalyzing the project');
     await this.compileAndAnalyzeProject();
   }, ProjectChangeListener.PROJECT_COMPILE_DEBOUNCE_TIMEOUT);
 
