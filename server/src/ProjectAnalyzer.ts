@@ -106,7 +106,9 @@ export class ProjectAnalyzer {
   ): Promise<ModelsAnalyzeResult[]> {
     const model = node.getValue();
     const analyzeResult = await this.analyzeModelCached(model, tableFetcher, sql, visitedModels);
+    return [{ modelUniqueId: model.uniqueId, analyzeResult }];
 
+    /* TODO: Uncomment when we will be able to analyze all models or part of models in the tree
     let results: ModelsAnalyzeResult[] = [{ modelUniqueId: model.uniqueId, analyzeResult }];
 
     if (analyzeResult.isErr()) {
@@ -114,12 +116,16 @@ export class ProjectAnalyzer {
       return results;
     }
 
-    // If main model is OK we analyze all models that depend on it
+    // If main model is OK we analyze it's first level children
     const children = node.getChildren();
     for (const child of children) {
-      results = [...results, ...(await this.analyzeModelTreeInternal(child, tableFetcher, undefined, visitedModels))];
+      console.log('ANALYZE CHILD ' + child.getValue().uniqueId);
+      const childModel = child.getValue();
+      const childResult = await this.analyzeModelCached(childModel, tableFetcher, undefined, visitedModels);
+      results = [...results, { modelUniqueId: childModel.uniqueId, analyzeResult: childResult }];
     }
     return results;
+    */
   }
 
   private async analyzeModelCached(

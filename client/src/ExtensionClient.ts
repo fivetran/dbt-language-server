@@ -18,6 +18,7 @@ import { DBT_PROJECT_YML, isDocumentSupported } from './Utils';
 
 import { EventEmitter } from 'node:events';
 import * as path from 'node:path';
+import { AnalyzeEntireProject } from './commands/AnalyzeEntireProject';
 import { CreateDbtProject } from './commands/CreateDbtProject/CreateDbtProject';
 
 export interface PackageJson {
@@ -108,6 +109,7 @@ export class ExtensionClient {
 
   registerCommands(): void {
     this.commandManager.register(new Compile(this.dbtLanguageClientManager));
+    this.commandManager.register(new AnalyzeEntireProject(this.dbtLanguageClientManager));
     this.commandManager.register(new CreateDbtProject(this.context.globalState));
     this.commandManager.register(new InstallLatestDbt(this.dbtLanguageClientManager, this.outputChannelProvider));
     this.commandManager.register(new InstallDbtAdapters(this.dbtLanguageClientManager, this.outputChannelProvider));

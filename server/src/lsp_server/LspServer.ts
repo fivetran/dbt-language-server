@@ -187,6 +187,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
 
     this.connection.onNotification('custom/dbtCompile', (uri: string) => this.onDbtCompile(uri));
     this.connection.onNotification('WizardForDbtCore(TM)/resendDiagnostics', (uri: string) => this.onResendDiagnostics(uri));
+    this.connection.onNotification('custom/analyzeEntireProject', () => this.onAnalyzeEntireProject());
 
     this.connection.onRequest('WizardForDbtCore(TM)/getListOfPackages', () => this.featureFinder.packageInfosPromise.get());
     this.connection.onRequest('WizardForDbtCore(TM)/getPackageVersions', (dbtPackage: string) => this.featureFinder.packageVersions(dbtPackage));
@@ -338,6 +339,10 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   async onResendDiagnostics(uri: string): Promise<void> {
     const document = this.openedDocuments.get(uri);
     await document?.resendDiagnostics();
+  }
+
+  onAnalyzeEntireProject(): void {
+    this.projectChangeListener.forceCompileAndAnalyzeProject();
   }
 
   onWillSaveTextDocument(params: WillSaveTextDocumentParams): void {
