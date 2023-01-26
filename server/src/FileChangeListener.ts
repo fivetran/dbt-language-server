@@ -25,7 +25,6 @@ export class FileChangeListener {
   ) {
     this.dbtProjectYmlPath = path.resolve(this.workspaceFolder, DbtRepository.DBT_PROJECT_FILE_NAME);
     this.packagesYmlPath = path.resolve(this.workspaceFolder, DbtRepository.DBT_PACKAGES_FILE_NAME);
-    this.dbtRepository.projectPath = this.workspaceFolder;
   }
 
   get onDbtProjectYmlChanged(): Event<void> {
