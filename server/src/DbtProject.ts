@@ -81,7 +81,7 @@ export class DbtProject {
     } catch {
       // do nothing
     }
-    return DbtRepository.DEFAULT_PACKAGES_PATHS;
+    return DbtRepository.DEFAULT_PACKAGES_PATH;
   }
 
   findTargetPath(): string {

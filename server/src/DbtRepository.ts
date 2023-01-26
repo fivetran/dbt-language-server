@@ -24,13 +24,13 @@ export class DbtRepository {
 
   static readonly DEFAULT_MACRO_PATHS = ['macros'];
   static readonly DEFAULT_MODEL_PATHS = ['models'];
-  static readonly DEFAULT_PACKAGES_PATHS = 'dbt_packages';
+  static readonly DEFAULT_PACKAGES_PATH = 'dbt_packages';
 
   dbtTargetPath = DbtRepository.DEFAULT_TARGET_PATH;
   projectName?: string;
   macroPaths: string[] = DbtRepository.DEFAULT_MACRO_PATHS;
   modelPaths: string[] = DbtRepository.DEFAULT_MODEL_PATHS;
-  packagesInstallPath = DbtRepository.DEFAULT_PACKAGES_PATHS;
+  packagesInstallPath = DbtRepository.DEFAULT_PACKAGES_PATH;
 
   manifestParsedDeferred = deferred<void>();
 
