@@ -20,7 +20,6 @@ describe('SqlRefConverter', () => {
       new Dag([
         new DagNode({
           uniqueId: 'model.package.test_model0',
-          rootPath: '/Users/test/dbt_project',
           originalFilePath: 'test_model0.sql',
           name: 'test_model0',
           database: 'db',
@@ -72,7 +71,6 @@ describe('SqlRefConverter', () => {
 function createManifestModels(length: number): ManifestModel[] {
   return [...Array.from({ length }).keys()].map<ManifestModel>(n => ({
     uniqueId: `model.package.test_model${n}`,
-    rootPath: '/Users/test/dbt_project',
     originalFilePath: `models/test_model${n}.sql`,
     name: `test_model${n}`,
     database: 'db',

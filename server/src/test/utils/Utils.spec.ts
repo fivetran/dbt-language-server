@@ -152,7 +152,7 @@ describe('Utils', () => {
 
   it('Should return path', () => {
     // arrange
-    const dbtRepository = new DbtRepository();
+    const dbtRepository = new DbtRepository('/workspace1');
 
     // act
     const name = getModelPathOrFullyQualifiedName('/workspace/models/model.sql', WORKSPACE, dbtRepository);
@@ -163,7 +163,7 @@ describe('Utils', () => {
 
   it('Should return fully qualified model name', () => {
     // arrange
-    const dbtRepository = new DbtRepository();
+    const dbtRepository = new DbtRepository('/workspace1');
 
     // act
     const name = getModelPathOrFullyQualifiedName('/workspace/dbt_packages/package/models/model.sql', WORKSPACE, dbtRepository);

@@ -2,7 +2,6 @@
   "nodes": {
     "model.salesforce_source.stg_salesforce__account_tmp": {
       "unique_id": "model.salesforce_source.stg_salesforce__account_tmp",
-      "root_path": "/Users/user/projects/project-with-packages/dbt_packages/salesforce_source",
       "original_file_path": "models/tmp/stg_salesforce__account_tmp.sql",
       "name": "stg_salesforce__account_tmp",
       "database": "singular-vector-135519",

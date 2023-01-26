@@ -25,6 +25,7 @@ export class FileChangeListener {
   ) {
     this.dbtProjectYmlPath = path.resolve(this.workspaceFolder, DbtRepository.DBT_PROJECT_FILE_NAME);
     this.packagesYmlPath = path.resolve(this.workspaceFolder, DbtRepository.DBT_PACKAGES_FILE_NAME);
+    this.dbtRepository.projectPath = this.workspaceFolder;
   }
 
   get onDbtProjectYmlChanged(): Event<void> {
@@ -56,13 +57,13 @@ export class FileChangeListener {
 
     params.changes = params.changes.filter(change => !change.uri.endsWith('.sql'));
     const manifestJsonPath = path.resolve(this.workspaceFolder, this.dbtRepository.dbtTargetPath, DbtRepository.DBT_MANIFEST_FILE_NAME);
-    const packagesPaths = this.dbtRepository.packagesInstallPaths.map(p => path.resolve(this.workspaceFolder, p));
+    const packagesPath = path.resolve(this.workspaceFolder, this.dbtRepository.packagesInstallPath);
 
     // For some paths we want to do action only once even we got several changes here
     if (this.containsChangeWithPath(params.changes, manifestJsonPath)) {
       this.updateManifestNodes();
     }
-    if (packagesPaths.some(p => this.changeStartsWithPath(params.changes, p))) {
+    if (this.changeStartsWithPath(params.changes, packagesPath)) {
       this.debouncedDbtPackagesChangedEmitter();
     }
 
@@ -92,7 +93,7 @@ export class FileChangeListener {
     this.dbtRepository.projectName = this.dbtProject.findProjectName();
     this.dbtRepository.macroPaths = this.normalizePaths(this.dbtProject.findMacroPaths());
     this.dbtRepository.modelPaths = this.normalizePaths(this.dbtProject.findModelPaths());
-    this.dbtRepository.packagesInstallPaths = this.normalizePaths(this.dbtProject.findPackagesInstallPaths());
+    this.dbtRepository.packagesInstallPath = path.normalize(this.dbtProject.findPackagesInstallPath());
   }
 
   normalizePaths(paths: string[]): string[] {

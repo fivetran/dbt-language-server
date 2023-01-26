@@ -19,26 +19,14 @@ describe('ModelCompletionProvider', () => {
   let modelCompletionProvider: ModelCompletionProvider;
 
   beforeEach(() => {
-    dbtRepository = new DbtRepository();
+    dbtRepository = new DbtRepository('/Users/user_name/project');
 
     dbtRepository.projectName = PROJECT_PACKAGE;
     const models: ManifestModel[] = [
-      createModel('model_1_id', '/models/model_1.sql', '/Users/user_name/project/models/model_1.sql', 'model_1', PROJECT_PACKAGE),
-      createModel('model_2_id', '/models/model_2.sql', '/Users/user_name/project/models/model_2.sql', 'model_2', PROJECT_PACKAGE),
-      createModel(
-        'installed_package_model_1_id',
-        '/dbt_packages/installed_package/models/installed_package_model_1.sql',
-        '/Users/user_name/project/dbt_packages/installed_package/models/installed_package_model_1.sql',
-        'installed_package_model_1',
-        INSTALLED_PACKAGE,
-      ),
-      createModel(
-        'installed_package_model_2_id',
-        '/dbt_packages/installed_package/models/installed_package_model_2.sql',
-        '/Users/user_name/project/dbt_packages/installed_package/models/installed_package_model_2.sql',
-        'installed_package_model_2',
-        INSTALLED_PACKAGE,
-      ),
+      createModel('model_1_id', 'models/model_1.sql', 'model_1', PROJECT_PACKAGE),
+      createModel('model_2_id', 'models/model_2.sql', 'model_2', PROJECT_PACKAGE),
+      createModel('installed_package_model_1_id', 'models/installed_package_model_1.sql', 'installed_package_model_1', INSTALLED_PACKAGE),
+      createModel('installed_package_model_2_id', 'models/installed_package_model_2.sql', 'installed_package_model_2', INSTALLED_PACKAGE),
     ];
     dbtRepository.updateDbtNodes([], [], new Dag(models.map(m => new DagNode(m))));
 
@@ -108,10 +96,9 @@ describe('ModelCompletionProvider', () => {
   });
 });
 
-function createModel(uniqueId: string, rootPath: string, originalFilePath: string, name: string, packageName: string): ManifestModel {
+function createModel(uniqueId: string, originalFilePath: string, name: string, packageName: string): ManifestModel {
   return {
     uniqueId,
-    rootPath,
     originalFilePath,
     name,
     packageName,

@@ -80,7 +80,7 @@ export class ModelDefinitionProvider implements DbtNodeDefinitionProvider {
 
   createLocationLink(manifestModel: ManifestModel, targetSelectionRange: Range, originSelectionRange: Range): LocationLink {
     return LocationLink.create(
-      URI.file(this.dbtRepository.getModelRawSqlPath(manifestModel)).toString(),
+      URI.file(this.dbtRepository.getNodeFullPath(manifestModel)).toString(),
       DbtDefinitionProvider.MAX_RANGE,
       targetSelectionRange,
       originSelectionRange,

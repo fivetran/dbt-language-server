@@ -124,8 +124,8 @@ export function getFilePathRelatedToWorkspace(docUri: string, workspaceFolder: s
 
 export function getModelPathOrFullyQualifiedName(docUri: string, workspaceFolder: string, dbtRepository: DbtRepository): string {
   const filePath = getFilePathRelatedToWorkspace(docUri, workspaceFolder);
-  if (dbtRepository.packagesInstallPaths.some(p => filePath.startsWith(p))) {
-    const startWithPackagesFolder = new RegExp(`^(${dbtRepository.packagesInstallPaths.join('|')}).`);
+  if (filePath.startsWith(dbtRepository.packagesInstallPath)) {
+    const startWithPackagesFolder = new RegExp(`^(${dbtRepository.packagesInstallPath}).`);
     return filePath.replaceAll(path.sep, '.').replace(startWithPackagesFolder, '').replace('models.', '').replace(/.sql$/, '');
   }
   return filePath;

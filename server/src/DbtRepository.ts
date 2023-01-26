@@ -2,7 +2,7 @@ import { deferred } from 'dbt-language-server-common';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Dag } from './dag/Dag';
-import { ManifestMacro, ManifestModel, ManifestSource } from './manifest/ManifestJson';
+import { ManifestMacro, ManifestModel, ManifestNode, ManifestSource } from './manifest/ManifestJson';
 
 export class DbtRepository {
   static readonly DBT_PROJECT_FILE_NAME = 'dbt_project.yml';
@@ -24,13 +24,13 @@ export class DbtRepository {
 
   static readonly DEFAULT_MACRO_PATHS = ['macros'];
   static readonly DEFAULT_MODEL_PATHS = ['models'];
-  static readonly DEFAULT_PACKAGES_PATHS = ['dbt_packages', 'dbt_modules'];
+  static readonly DEFAULT_PACKAGES_PATHS = 'dbt_packages';
 
   dbtTargetPath = DbtRepository.DEFAULT_TARGET_PATH;
   projectName?: string;
   macroPaths: string[] = DbtRepository.DEFAULT_MACRO_PATHS;
   modelPaths: string[] = DbtRepository.DEFAULT_MODEL_PATHS;
-  packagesInstallPaths: string[] = DbtRepository.DEFAULT_PACKAGES_PATHS;
+  packagesInstallPath = DbtRepository.DEFAULT_PACKAGES_PATHS;
 
   manifestParsedDeferred = deferred<void>();
 
@@ -41,6 +41,8 @@ export class DbtRepository {
   packageToModels = new Map<string, Set<ManifestModel>>();
   packageToMacros = new Map<string, Set<ManifestMacro>>();
   packageToSources = new Map<string, Map<string, Set<ManifestSource>>>();
+
+  constructor(public projectPath: string) {}
 
   manifestParsed(): Promise<void> {
     return this.manifestParsedDeferred.promise;
@@ -60,8 +62,14 @@ export class DbtRepository {
     return path.resolve(this.dbtTargetPath, 'compiled', model.packageName, model.originalFilePath);
   }
 
-  getModelRawSqlPath(model: ManifestModel): string {
-    return path.join(model.rootPath, model.originalFilePath);
+  getNodeFullPath(model: ManifestNode): string {
+    const inPackage = model.packageName !== this.projectName;
+    return path.join(
+      this.projectPath,
+      inPackage ? this.packagesInstallPath : '',
+      model.packageName === this.projectName ? '' : model.packageName,
+      model.originalFilePath,
+    );
   }
 
   getModelCompiledCode(model: ManifestModel): string | undefined {

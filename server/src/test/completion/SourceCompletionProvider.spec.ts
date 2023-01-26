@@ -15,14 +15,13 @@ describe('SourceCompletionProvider', () => {
   let sourceCompletionProvider: SourceCompletionProvider;
 
   beforeEach(() => {
-    dbtRepository = new DbtRepository();
+    dbtRepository = new DbtRepository('/Users/user_name/project');
 
     dbtRepository.projectName = PROJECT_PACKAGE;
     const sources = [
       {
         uniqueId: 'source_1_1_id',
-        rootPath: '/sources/source_1.sql',
-        originalFilePath: '/Users/user_name/project/sources/source_1.sql',
+        originalFilePath: 'sources/source_1.sql',
         name: 'table_1',
         packageName: PROJECT_PACKAGE,
         sourceName: 'source_1',
@@ -30,8 +29,7 @@ describe('SourceCompletionProvider', () => {
       },
       {
         uniqueId: 'source_1_2_id',
-        rootPath: '/sources/source_1.sql',
-        originalFilePath: '/Users/user_name/project/sources/source_1.sql',
+        originalFilePath: 'sources/source_1.sql',
         name: 'table_2',
         packageName: PROJECT_PACKAGE,
         sourceName: 'source_1',
@@ -39,8 +37,7 @@ describe('SourceCompletionProvider', () => {
       },
       {
         uniqueId: 'installed_package_source_1_1_id',
-        rootPath: '/dbt_packages/installed_package/sources/installed_package_source_1.sql',
-        originalFilePath: '/Users/user_name/project/dbt_packages/installed_package/sources/installed_package_source_1.sql',
+        originalFilePath: 'sources/installed_package_source_1.sql',
         name: 'installed_package_source_table_1',
         packageName: INSTALLED_PACKAGE,
         sourceName: 'package_source_1',
@@ -48,8 +45,7 @@ describe('SourceCompletionProvider', () => {
       },
       {
         uniqueId: 'installed_package_source_1_2_id',
-        rootPath: '/dbt_packages/installed_package/sources/installed_package_source_1.sql',
-        originalFilePath: '/Users/user_name/project/dbt_packages/installed_package/sources/installed_package_source_1.sql',
+        originalFilePath: 'sources/installed_package_source_1.sql',
         name: 'installed_package_source_table_2',
         packageName: INSTALLED_PACKAGE,
         sourceName: 'package_source_1',

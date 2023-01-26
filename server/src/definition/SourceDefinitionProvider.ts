@@ -1,5 +1,4 @@
 import * as fs from 'node:fs';
-import * as path from 'node:path';
 import { DefinitionLink, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
@@ -80,7 +79,7 @@ export class SourceDefinitionProvider implements DbtNodeDefinitionProvider {
       const targetRange = this.getSourceRange(sourceDefinitionFileLines, table);
       return [
         LocationLink.create(
-          URI.file(path.join(foundSource.rootPath, foundSource.originalFilePath)).toString(),
+          URI.file(this.dbtRepository.getNodeFullPath(foundSource)).toString(),
           targetRange ?? DbtDefinitionProvider.MAX_RANGE,
           targetRange ?? DbtDefinitionProvider.MAX_RANGE,
           tableSelectionRange,

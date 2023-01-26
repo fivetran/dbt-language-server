@@ -80,7 +80,7 @@ function createLspServerForProject(
   const progressReporter = new ProgressReporter(connection);
   const dbtProject = new DbtProject('.');
   const manifestParser = new ManifestParser();
-  const dbtRepository = new DbtRepository();
+  const dbtRepository = new DbtRepository(workspaceFolder);
   const fileChangeListener = new FileChangeListener(workspaceFolder, dbtProject, manifestParser, dbtRepository);
   const dbtProfileCreator = new DbtProfileCreator(dbtProject, path.join(homedir(), '.dbt', 'profiles.yml'));
   const statusSender = new DbtProjectStatusSender(notificationSender, workspaceFolder, featureFinder, fileChangeListener);
