@@ -99,7 +99,7 @@ jobs:
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
-            python-version: '3.10.7'
+            python-version: '3.9.12'
 
           - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install json-rpc==1.13.0 dbt-bigquery dbt-postgres dbt-rpc'
             os: macos-latest
@@ -115,7 +115,7 @@ jobs:
               Xvfb -ac :99 -screen 0 1280x1024x16 &
               export DISPLAY=:99
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
-            python-version: '3.10.7'
+            python-version: '3.9.12'
             SKIP_TESTS: 'vscode_commands.spec.js'
 
           - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-core==1.0.4 dbt-bigquery==1.0.0 dbt-postgres==1.0.4'
@@ -132,7 +132,7 @@ jobs:
             activate-venv: |
               cd ~/dbt_1_2_2_env/Scripts
               . activate
-            python-version: '3.10.7'
+            python-version: '3.9.12'
 
     name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.python-version }} ${{ matrix.use-dbt-rpc }}
 
