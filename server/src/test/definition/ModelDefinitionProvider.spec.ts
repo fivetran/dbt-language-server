@@ -17,10 +17,12 @@ describe('ModelDefinitionProvider', () => {
   const PROJECT_NAME = 'project';
   const PROJECT_MODEL = 'project_model';
 
-  const PACKAGE_MODEL_ROOT_PATH = `dbt_packages/${PACKAGE_NAME}/models/${PACKAGE_MODEL}.sql`;
-  const PROJECT_MODEL_ROOT_PATH = `models/${PROJECT_MODEL}.sql`;
+  const PACKAGE_MODEL_ORIGINAL_FILE_PATH = `models/${PACKAGE_MODEL}.sql`;
+  const PROJECT_MODEL_ORIGINAL_FILE_PATH = `models/${PROJECT_MODEL}.sql`;
+  const PACKAGE_MODEL_ROOT_PATH = `dbt_packages/${PACKAGE_NAME}/${PACKAGE_MODEL_ORIGINAL_FILE_PATH}`;
 
-  const DBT_REPOSITORY = new DbtRepository();
+  const DBT_REPOSITORY = new DbtRepository(PATH_TO_PROJECT);
+  DBT_REPOSITORY.projectName = PROJECT_NAME;
   const PROVIDER = new ModelDefinitionProvider(DBT_REPOSITORY);
 
   const MODEL_FILE_CONTENT =
@@ -33,28 +35,12 @@ describe('ModelDefinitionProvider', () => {
 
   before(() => {
     DBT_REPOSITORY.dag = new Dag([
-      new DagNode(createModel(`model.${PACKAGE_NAME}.${PACKAGE_MODEL}`, PACKAGE_MODEL_ROOT_PATH, PACKAGE_MODEL, PACKAGE_NAME)),
-      new DagNode(createModel(`model.${PROJECT_NAME}.${PROJECT_MODEL}`, PROJECT_MODEL_ROOT_PATH, PROJECT_MODEL, PROJECT_NAME)),
+      new DagNode(createModel(`model.${PACKAGE_NAME}.${PACKAGE_MODEL}`, PACKAGE_MODEL_ORIGINAL_FILE_PATH, PACKAGE_MODEL, PACKAGE_NAME)),
+      new DagNode(createModel(`model.${PROJECT_NAME}.${PROJECT_MODEL}`, PROJECT_MODEL_ORIGINAL_FILE_PATH, PROJECT_MODEL, PROJECT_NAME)),
     ]);
 
     modelDocument = TextDocument.create(`${PATH_TO_PROJECT}/models/${FILE_NAME}`, 'sql', 0, MODEL_FILE_CONTENT);
   });
-
-  function createModel(uniqueId: string, originalFilePath: string, name: string, packageName: string): ManifestModel {
-    return {
-      uniqueId,
-      rootPath: PATH_TO_PROJECT,
-      originalFilePath,
-      name,
-      packageName,
-      database: '',
-      schema: '',
-      rawCode: '',
-      compiledCode: '',
-      dependsOn: { nodes: [] },
-      refs: [],
-    };
-  }
 
   it('provideDefinitions should return definition for model from package (if package is specified)', () => {
     assertThat(
@@ -116,7 +102,7 @@ describe('ModelDefinitionProvider', () => {
       [
         {
           originSelectionRange: Range.create(3, 21, 3, 34),
-          targetUri: `file://${PATH_TO_PROJECT}/${PROJECT_MODEL_ROOT_PATH}`,
+          targetUri: `file://${PATH_TO_PROJECT}/${PROJECT_MODEL_ORIGINAL_FILE_PATH}`,
           targetRange: DbtDefinitionProvider.MAX_RANGE,
           targetSelectionRange: DbtDefinitionProvider.MAX_RANGE,
         },
@@ -124,3 +110,18 @@ describe('ModelDefinitionProvider', () => {
     );
   });
 });
+
+function createModel(uniqueId: string, originalFilePath: string, name: string, packageName: string): ManifestModel {
+  return {
+    uniqueId,
+    originalFilePath,
+    name,
+    packageName,
+    database: '',
+    schema: '',
+    rawCode: '',
+    compiledCode: '',
+    dependsOn: { nodes: [] },
+    refs: [],
+  };
+}

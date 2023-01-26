@@ -15,7 +15,7 @@ export class DagNodeFetcher {
       try {
         this.node = await retry(
           () => {
-            const node = this.dbtRepository.dag.nodes.find(n => pathEqual(this.dbtRepository.getModelRawSqlPath(n.getValue()), this.fullModelPath));
+            const node = this.dbtRepository.dag.nodes.find(n => pathEqual(this.dbtRepository.getNodeFullPath(n.getValue()), this.fullModelPath));
             if (node === undefined) {
               console.log('Model not found in manifest.json, retrying...');
               throw new Error('Model not found in manifest.json');

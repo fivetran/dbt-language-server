@@ -6,7 +6,6 @@ import { ManifestJson, ManifestMacro, ManifestModel, ManifestSource } from './Ma
 interface RawNode {
   resource_type: string;
   unique_id: string;
-  root_path: string;
   original_file_path: string;
   name: string;
   package_name: string;
@@ -71,7 +70,6 @@ export class ManifestParser {
         .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_MODEL)
         .map<ManifestModel>(n => ({
           uniqueId: n.unique_id,
-          rootPath: n.root_path,
           originalFilePath: n.original_file_path,
           name: n.name,
           packageName: n.package_name,
@@ -97,7 +95,6 @@ export class ManifestParser {
         .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_MACRO)
         .map<ManifestMacro>(n => ({
           uniqueId: n.unique_id,
-          rootPath: n.root_path,
           originalFilePath: n.original_file_path,
           name: n.name,
           packageName: n.package_name,
@@ -112,7 +109,6 @@ export class ManifestParser {
         .filter(n => n.resource_type === ManifestParser.RESOURCE_TYPE_SOURCE)
         .map<ManifestSource>(n => ({
           uniqueId: n.unique_id,
-          rootPath: n.root_path,
           originalFilePath: n.original_file_path,
           name: n.name,
           packageName: n.package_name,

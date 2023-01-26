@@ -2,7 +2,6 @@ import { Dag } from '../dag/Dag';
 
 export interface ManifestNode {
   uniqueId: string;
-  rootPath: string;
   originalFilePath: string;
   name: string;
   packageName: string;

@@ -96,7 +96,7 @@ export class ProjectChangeListener {
     for (const result of results) {
       const model = this.dbtRepository.dag.nodes.find(n => n.getValue().uniqueId === result.modelUniqueId)?.getValue();
       if (model) {
-        const uri = URI.file(this.dbtRepository.getModelRawSqlPath(model)).toString();
+        const uri = URI.file(this.dbtRepository.getNodeFullPath(model)).toString();
         let diagnostics: Diagnostic[] = [];
         if (result.analyzeResult.isErr()) {
           const { rawCode } = model;

@@ -25,14 +25,13 @@ export class DbtProject {
     return this.parsedProject;
   }
 
-  findProjectName(): string | undefined {
-    try {
-      const dbtProject = this.getProject();
-      const projectName = dbtProject[DbtRepository.DBT_PROJECT_NAME_FIELD];
-      return projectName as string | undefined;
-    } catch {
-      return undefined;
+  findProjectName(): string {
+    const dbtProject = this.getProject();
+    const projectName = dbtProject[DbtRepository.DBT_PROJECT_NAME_FIELD] as string | undefined;
+    if (projectName === undefined) {
+      throw new Error("'name' field is missing");
     }
+    return projectName;
   }
 
   findMacroPaths(): string[] {
@@ -67,22 +66,22 @@ export class DbtProject {
     return DbtRepository.DEFAULT_MODEL_PATHS;
   }
 
-  findPackagesInstallPaths(): string[] {
+  findPackagesInstallPath(): string {
     try {
       const dbtProject = this.getProject();
       const packagesInstallPath = dbtProject[DbtRepository.PACKAGES_INSTALL_PATH_FIELD];
       if (packagesInstallPath !== undefined) {
-        return [packagesInstallPath as string];
+        return packagesInstallPath as string;
       }
 
       const modulePath = dbtProject[DbtRepository.MODULE_PATH];
       if (modulePath !== undefined) {
-        return [modulePath as string];
+        return modulePath as string;
       }
     } catch {
       // do nothing
     }
-    return DbtRepository.DEFAULT_PACKAGES_PATHS;
+    return DbtRepository.DEFAULT_PACKAGES_PATH;
   }
 
   findTargetPath(): string {

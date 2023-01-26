@@ -13,9 +13,8 @@ import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 import path = require('node:path');
 
 describe('ProjectAnalyzer analyzeModelsTree', () => {
-  const ROOT_PATH = '/home/project';
   const ORIGINAL_FILE_PATH = 'models/model.sql';
-  const FILE_PATH = path.join(ROOT_PATH, ORIGINAL_FILE_PATH);
+  const FILE_PATH = path.join('/home/project', ORIGINAL_FILE_PATH);
   const COMPILED_SQL = 'select * from dataset.table t where t.id = dataset.udf(1)';
   const INTERNAL_TABLE_NAME_PATH = ['dataset', 'table'];
   const MAIN_TABLE_NAME_PATH = ['db', 'schema', 'main_table'];
@@ -24,7 +23,6 @@ describe('ProjectAnalyzer analyzeModelsTree', () => {
     uniqueId: 'id',
     name: 'main_table',
     packageName: 'packageName',
-    rootPath: ROOT_PATH,
     originalFilePath: ORIGINAL_FILE_PATH,
     database: 'db',
     schema: 'schema',
@@ -52,7 +50,7 @@ describe('ProjectAnalyzer analyzeModelsTree', () => {
     mockSqlHeaderAnalyzer = mock(SqlHeaderAnalyzer);
 
     when(mockDbtRepository.dag).thenReturn(new Dag([DAG_NODE]));
-    when(mockDbtRepository.getModelRawSqlPath(objectContaining({ originalFilePath: ORIGINAL_FILE_PATH }))).thenReturn(FILE_PATH);
+    when(mockDbtRepository.getNodeFullPath(objectContaining({ originalFilePath: ORIGINAL_FILE_PATH }))).thenReturn(FILE_PATH);
 
     when(mockSqlHeaderAnalyzer.getAllFunctionDeclarations(anything(), anything(), anything())).thenReturn(Promise.resolve([]));
 

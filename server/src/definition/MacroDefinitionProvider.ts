@@ -1,5 +1,4 @@
 import * as fs from 'node:fs';
-import * as path from 'node:path';
 import { DefinitionLink, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
@@ -41,7 +40,7 @@ export class MacroDefinitionProvider implements DbtNodeDefinitionProvider {
       return this.dbtRepository.macros
         .filter(m => m.name === macroName && (!packageIsSpecified || m.packageName === packageName))
         .map((m: ManifestMacro) => {
-          const macroFilePath = path.join(m.rootPath, m.originalFilePath);
+          const macroFilePath = this.dbtRepository.getNodeFullPath(m);
           const [definitionRange, selectionRange] = this.getMacroRange(m.name, macroFilePath);
           wordRange.end.character -= 1;
           return LocationLink.create(
