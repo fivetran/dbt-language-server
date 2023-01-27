@@ -58,13 +58,11 @@ describe('FeatureFinder', () => {
     const result = await new FeatureFinder({ path: PYTHON_PATH }, instance(mockCommandExecutor)).getAvailableDbt();
 
     // assert
-    if (process.platform !== 'win32') {
-      assertVersion(result[0], { major: 1, minor: 1, patch: 1 }, { major: 1, minor: 1, patch: 1 }, [
-        { name: 'databricks', version: { major: 1, minor: 1, patch: 1 } },
-        { name: 'bigquery', version: { major: 1, minor: 1, patch: 1 } },
-        { name: 'spark', version: { major: 1, minor: 1, patch: 0 } },
-      ]);
-    }
+    assertVersion(result[0], { major: 1, minor: 1, patch: 1 }, { major: 1, minor: 1, patch: 1 }, [
+      { name: 'databricks', version: { major: 1, minor: 1, patch: 1 } },
+      { name: 'bigquery', version: { major: 1, minor: 1, patch: 1 } },
+      { name: 'spark', version: { major: 1, minor: 1, patch: 0 } },
+    ]);
     assertThat(result[1], not(defined()));
     assertThat(result[2], not(defined()));
   });
