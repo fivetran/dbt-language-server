@@ -1,9 +1,10 @@
-import path = require('node:path');
+import { AxiosStatic } from 'axios';
 import { Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { DbtRepository } from '../DbtRepository';
 import { getWordRangeAtPosition } from './TextUtils';
+import path = require('node:path');
 
 export function rangesOverlap(range1: Range, range2: Range): boolean {
   return (
@@ -152,4 +153,8 @@ export async function wait(ms: number): Promise<void> {
   return new Promise(resolve => {
     setTimeout(resolve, ms);
   });
+}
+
+export async function getAxios(): Promise<AxiosStatic> {
+  return ((await import('axios')) as unknown as { default: AxiosStatic }).default; // Workaround for webpack, probably related to https://github.com/axios/axios/issues/5292
 }
