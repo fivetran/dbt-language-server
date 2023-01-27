@@ -71,15 +71,12 @@ jobs:
           npm config set script-shell bash
           npx vsce package -o ${FILE_NAME} --target ${{ matrix.target }} --githubBranch main
 
-      - name: fix cache issue on windows (use GNU tar instead BSD tar) # https://github.com/actions/toolkit/issues/552
-        if: matrix.os == 'windows-latest'
-        run: echo "C:/Program Files/Git/usr/bin/" >> $GITHUB_PATH
-
       - name: create cache
         uses: actions/cache@v3
         with:
           path: ./${{ env.FILE_NAME }}
           key: ${{ env.FILE_NAME }}
+          enableCrossOsArchive: true
 
   run-e2e-tests:
     if: github.actor != 'dependabot[bot]'
@@ -148,16 +145,13 @@ jobs:
       - name: checkout
         uses: actions/checkout@v3
 
-      - name: fix cache issue on windows (use GNU tar instead BSD tar) # https://github.com/actions/toolkit/issues/552
-        if: matrix.os == 'windows-latest'
-        run: echo "C:/Program Files/Git/usr/bin/" >> $GITHUB_PATH
-
       - name: load e2e tests and vsix from cache
         uses: actions/cache@v3
         id: cache
         with:
           path: ./${{ env.FILE_NAME }}
           key: ${{ env.FILE_NAME }}
+          enableCrossOsArchive: true
 
       - name: fail if cache not hit
         if: steps.cache.outputs.cache-hit != 'true'
@@ -357,6 +351,7 @@ jobs:
         with:
           path: ./${{ env.VSIX_NAME }}
           key: ${{ env.VSIX_NAME }}
+          enableCrossOsArchive: true
         env:
           VSIX_NAME: ${{ github.sha }}-darwin-x64.vsix
 
@@ -366,6 +361,7 @@ jobs:
         with:
           path: ./${{ env.VSIX_NAME }}
           key: ${{ env.VSIX_NAME }}
+          enableCrossOsArchive: true
         env:
           VSIX_NAME: ${{ github.sha }}-darwin-arm64.vsix
 
@@ -375,6 +371,7 @@ jobs:
         with:
           path: ./${{ env.VSIX_NAME }}
           key: ${{ env.VSIX_NAME }}
+          enableCrossOsArchive: true
         env:
           VSIX_NAME: ${{ github.sha }}-linux-x64.vsix
 
@@ -384,6 +381,7 @@ jobs:
         with:
           path: ./${{ env.VSIX_NAME }}
           key: ${{ env.VSIX_NAME }}
+          enableCrossOsArchive: true
         env:
           VSIX_NAME: ${{ github.sha }}-linux-arm64.vsix
 
@@ -393,6 +391,7 @@ jobs:
         with:
           path: ./${{ env.VSIX_NAME }}
           key: ${{ env.VSIX_NAME }}
+          enableCrossOsArchive: true
         env:
           VSIX_NAME: ${{ github.sha }}-win32-x64.vsix
 
