@@ -21,9 +21,6 @@ export class FeatureFinderBase {
   }
 
   protected async findDbtRpcPythonInfo(): Promise<DbtVersionInfo | undefined> {
-    if (process.platform === 'win32') {
-      return undefined;
-    }
     return this.findCommandPythonInfo(this.dbtCommandFactory.getDbtRpcWithPythonVersion());
   }
 

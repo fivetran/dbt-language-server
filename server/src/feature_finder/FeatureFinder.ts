@@ -206,9 +206,6 @@ export class FeatureFinder extends FeatureFinderBase {
   }
 
   private async findDbtRpcGlobalInfo(): Promise<DbtVersionInfo | undefined> {
-    if (process.platform === 'win32') {
-      return undefined;
-    }
     return this.findCommandInfo(this.dbtCommandFactory.getDbtRpcGlobalVersion());
   }
 
