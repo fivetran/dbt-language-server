@@ -9,7 +9,7 @@ import { DbtCommandFactory } from '../dbt_execution/DbtCommandFactory';
 import { InstallUtils } from '../InstallUtils';
 import { ProcessExecutor } from '../ProcessExecutor';
 import { Lazy } from '../utils/Lazy';
-import { randomNumber } from '../utils/Utils';
+import { getAxios, randomNumber } from '../utils/Utils';
 import { FeatureFinderBase } from './FeatureFinderBase';
 import findFreePortPmfy = require('find-free-port');
 
@@ -63,8 +63,8 @@ export class FeatureFinder extends FeatureFinderBase {
   }
 
   async getListOfPackages(): Promise<DbtPackageInfo[]> {
-    const axios = await import('axios');
-    const hubResponse = await axios.default.get<HubJson>('https://cdn.jsdelivr.net/gh/dbt-labs/hubcap@HEAD/hub.json');
+    const axios = await getAxios();
+    const hubResponse = await axios.get<HubJson>('https://cdn.jsdelivr.net/gh/dbt-labs/hubcap@HEAD/hub.json');
     const uriPromises = Object.entries<string[]>(hubResponse.data).flatMap(([gitHubUser, repositoryNames]) =>
       repositoryNames.map(r => this.getPackageInfo(gitHubUser, r)),
     );
@@ -74,8 +74,8 @@ export class FeatureFinder extends FeatureFinderBase {
 
   async getPackageInfo(gitHubUser: string, repositoryName: string): Promise<DbtPackageInfo | undefined> {
     try {
-      const axios = await import('axios');
-      const response = await axios.default.get<string>(
+      const axios = await getAxios();
+      const response = await axios.get<string>(
         `https://cdn.jsdelivr.net/gh/${gitHubUser}/${repositoryName}@HEAD/${DbtRepository.DBT_PROJECT_FILE_NAME}`,
       );
       const parsedYaml = yaml.parse(response.data, { uniqueKeys: false }) as { name: string | undefined };
@@ -99,8 +99,8 @@ export class FeatureFinder extends FeatureFinderBase {
     const result: DbtPackageVersions = {};
 
     if (packageInfo) {
-      const axios = await import('axios');
-      const tagsResult = await axios.default.get<{ ref: string }[]>(
+      const axios = await getAxios();
+      const tagsResult = await axios.get<{ ref: string }[]>(
         `https://api.github.com/repos/${packageInfo.gitHubUser}/${packageInfo.repositoryName}/git/refs/tags?per_page=100`,
       );
 
