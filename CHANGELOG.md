@@ -1,8 +1,8 @@
 # Changelog
 
-## Version 0.19.1 (01/01/1970)
+## Version 0.19.1 (30/01/2023)
 ## What's Changed
-* add support for int64 aliases: `INT`, `SMALLINT`, `INTEGER`, `BIGINT`, `TINYINT`, `BYTEINT`.
+* Added support for int64 aliases: `INT`, `SMALLINT`, `INTEGER`, `BIGINT`, `TINYINT`, `BYTEINT`.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.19.0...v0.19.1
 ---
