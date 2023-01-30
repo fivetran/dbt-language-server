@@ -14,6 +14,7 @@ import { JinjaPartType } from '../JinjaParser';
 const PROFILES_PATH = path.resolve('./server/src/test/profiles');
 
 export const BIG_QUERY_CONFIG = 'bigquery.yml';
+export const SNOWFLAKE_CONFIG = 'snowflake.yml';
 export const OTHERS_CONFIG = 'others.yml';
 
 export const BQ_OAUTH = 'bigquery-test_oauth';

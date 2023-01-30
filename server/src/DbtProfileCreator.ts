@@ -1,7 +1,7 @@
 import { Err, err, ok, Result } from 'neverthrow';
 import { URI } from 'vscode-uri';
 import { DbtProfile, DbtProfileType, ProfileYaml, TargetConfig } from './DbtProfile';
-import { BIG_QUERY_PROFILES, PROFILE_METHODS } from './DbtProfileType';
+import { BIG_QUERY_PROFILES, PROFILE_METHODS, SNOWFLAKE_PROFILES } from './DbtProfileType';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
 import { evalJinjaEnvVar } from './utils/JinjaUtils';
@@ -109,13 +109,19 @@ export class DbtProfileCreator {
 
     let dbtProfile: DbtProfile | undefined = undefined;
 
+    let profileBuilder = undefined;
+
     if (type.valueOf() === DbtProfileType.BigQuery) {
-      const profileBuilder = method ? BIG_QUERY_PROFILES.get(method) : undefined;
+      profileBuilder = method ? BIG_QUERY_PROFILES.get(method) : undefined;
       if (!profileBuilder) {
         return this.parseProfileError(`Unknown authentication method of '${type}' profile`, type, method);
       }
-      dbtProfile = profileBuilder();
+    } else if (type.valueOf() === DbtProfileType.Snowflake && targetConfig.account) {
+      profileBuilder = SNOWFLAKE_PROFILES.get('user-password');
+    }
 
+    if (profileBuilder) {
+      dbtProfile = profileBuilder();
       const result = dbtProfile.validateProfile(targetConfig);
       if (result.isErr()) {
         const docsUrl = dbtProfile.getDocsUrl();

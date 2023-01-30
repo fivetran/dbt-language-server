@@ -40,8 +40,10 @@ export interface TargetConfig {
   };
   keyfile?: string;
   scopes?: string[];
+  account?: string;
 }
 
 export enum DbtProfileType {
   BigQuery = 'bigquery',
+  Snowflake = 'snowflake',
 }

@@ -1,0 +1,72 @@
+correct_user_password:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: acc
+      user: username
+      password: password
+      role: role
+      database: database_name
+      warehouse: warehouse_name
+      schema: dbt_schema
+
+missing_user:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: acc
+      password: password
+      role: role
+      database: database_name
+      warehouse: warehouse_name
+      schema: dbt_schema
+
+missing_password:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: acc
+      user: username
+      role: role
+      database: database_name
+      warehouse: warehouse_name
+      schema: dbt_schema
+
+missing_database:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: acc
+      user: username
+      password: password
+      role: role
+      warehouse: warehouse_name
+      schema: dbt_schema
+
+missing_warehouse:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: acc
+      user: username
+      password: password
+      role: role
+      database: database_name
+      schema: dbt_schema
+
+missing_schema:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: acc
+      user: username
+      password: password
+      role: role
+      database: database_name
+      warehouse: warehouse_name
