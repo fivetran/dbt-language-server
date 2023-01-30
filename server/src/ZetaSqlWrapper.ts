@@ -80,6 +80,14 @@ export class ZetaSqlWrapper {
     return {
       name: 'catalog',
       constant: [{ namePath: ['_dbt_max_partition'], type: { typeKind: TypeKind.TYPE_DATE } }],
+      namedType: [
+        { name: 'int', type: { typeKind: TypeKind.TYPE_INT64 } },
+        { name: 'smallint', type: { typeKind: TypeKind.TYPE_INT64 } },
+        { name: 'integer', type: { typeKind: TypeKind.TYPE_INT64 } },
+        { name: 'bigint', type: { typeKind: TypeKind.TYPE_INT64 } },
+        { name: 'tinyint', type: { typeKind: TypeKind.TYPE_INT64 } },
+        { name: 'byteint', type: { typeKind: TypeKind.TYPE_INT64 } },
+      ],
     };
   }
 

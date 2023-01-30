@@ -4,8 +4,8 @@ config-version: 2
 
 profile: 'e2e-test-project-postgres'
 
-source-paths: ['models']
-data-paths: ['data']
+model-paths: ['models']
+seed-paths: ['data']
 analysis-paths: ['analysis']
 test-paths: ['tests']
 macro-paths: ['macros']
@@ -14,7 +14,7 @@ snapshot-paths: ['snapshots']
 target-path: 'target'
 clean-targets:
   - 'target'
-  - 'dbt_modules'
+  - 'dbt_packages'
 
 models:
   dbt_postgres_test:
