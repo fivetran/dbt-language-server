@@ -104,8 +104,7 @@ export class DbtProfileCreator {
 
     const target = evalJinjaEnvVar(profileWithValidatedFields.target);
     const targetConfig = DbtProfileCreator.evalTargetConfig(profileWithValidatedFields.outputs[target]) as Required<TargetConfig>;
-    const type = evalJinjaEnvVar(targetConfig.type);
-    const method = targetConfig.method ? evalJinjaEnvVar(targetConfig.method) : undefined;
+    const { type, method } = targetConfig;
 
     let dbtProfile: DbtProfile | undefined = undefined;
 

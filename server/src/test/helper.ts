@@ -1,4 +1,4 @@
-import { assertThat, defined, not } from 'hamjest';
+import { assertThat, defined, not, truthy } from 'hamjest';
 import { err } from 'neverthrow';
 import { ok } from 'node:assert';
 import * as path from 'node:path';
@@ -59,7 +59,7 @@ export function shouldPassValidProfile(config: string, profileName: string): voi
   const profile = profileCreator.createDbtProfile();
 
   // assert
-  assertThat('error' in profile, false);
+  assertThat(profile.isOk(), truthy());
 }
 
 export function sleep(ms: number): Promise<unknown> {
