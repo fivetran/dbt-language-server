@@ -1,6 +1,13 @@
 # Changelog
 
-## Version 0.19.0 (27/01/2022)
+## Version 0.19.1 (01/01/1970)
+## What's Changed
+* add support for int64 aliases: `INT`, `SMALLINT`, `INTEGER`, `BIGINT`, `TINYINT`, `BYTEINT`.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.19.0...v0.19.1
+---
+
+## Version 0.19.0 (27/01/2023)
 ## What's Changed
 * Fixed compilation issue when using dbt-core 1.4.0.
 * Added the ability to analyze project using the **Analyze current project** button at upper right corner of VS Code editor or context menu. This feature can be disabled using menu **Preferences** -> **Settings** -> **Extensions** -> **Wizard for dbt Core (TM)** -> **Wizard For Dbt Core(TM): Enable Entire Project Analysis**.
@@ -277,13 +284,3 @@
 
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.2.0...v0.3.0
----
-
-## Version 0.2.0 (11/03/2022)
-## What's Changed
-* Rename extension to **dbt Wizard**
-* Go to model/macros/source definition
-* Run extension for documents with `sql-bigquery` language id
-* Improve error display for dbt problems
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.1.0...v0.2.0
