@@ -1,4 +1,3 @@
-import { AxiosStatic } from 'axios';
 import { Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
@@ -155,6 +154,9 @@ export async function wait(ms: number): Promise<void> {
   });
 }
 
-export async function getAxios(): Promise<AxiosStatic> {
-  return ((await import('axios')) as unknown as { default: AxiosStatic }).default; // Workaround for webpack, probably related to https://github.com/axios/axios/issues/5292
+// Workaround for webpack, probably related to https://github.com/axios/axios/issues/5292
+/* eslint-disable-next-line @typescript-eslint/explicit-function-return-type */
+export async function getAxios() {
+  const axios = await import('axios');
+  return (axios as unknown as { default: typeof axios.default }).default; // Workaround for webpack, probably related to https://github.com/axios/axios/issues/5292
 }

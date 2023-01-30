@@ -14,7 +14,13 @@ with recursive referrers as (
 
     SELECT
         item,
-        rank() OVER (PARTITION BY category ORDER BY purchases DESC) as rank
+        rank() OVER (PARTITION BY category ORDER BY purchases DESC) as rank,
+        cast(null as int),
+        cast(null as smallint),
+        cast(null as integer),
+        cast(null as bigint),
+        cast(null as tinyint),
+        cast(null as byteint),
     FROM Produce
         qualify rank <= 3
 )

@@ -30,7 +30,7 @@ suite('Entire project analysis', () => {
 
     assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), hasSize(0));
     assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), hasSize(0));
-  });
+  }).timeout('100s');
 
   // TODO: Don't skip once tree will be analyzed on change
   test.skip('Should analyze dependant models and report about errors', async () => {
