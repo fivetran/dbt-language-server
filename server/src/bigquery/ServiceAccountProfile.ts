@@ -27,7 +27,11 @@ export class ServiceAccountProfile implements DbtProfile {
     return ok(undefined);
   }
 
-  async createClient(profile: Required<TargetConfig>): Promise<Result<DbtDestinationClient, string>> {
+  async createClient<T>(profile: T): Promise<Result<DbtDestinationClient, string>> {
+    return this.createClientInternal(profile as Required<TargetConfig>);
+  }
+
+  private async createClientInternal(profile: Required<TargetConfig>): Promise<Result<DbtDestinationClient, string>> {
     const { project } = profile;
     const keyFilePath = YamlParserUtils.replaceTilde(profile.keyfile);
 
