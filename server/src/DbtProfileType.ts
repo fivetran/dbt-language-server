@@ -1,5 +1,5 @@
 import { BigQueryOAuthProfile } from './bigquery/BigQueryOAuthProfile';
-import { OAuthTokenBasedProfile } from './bigquery/OAuthTokenBasedProfile';
+import { BigQueryOAuthTokenBasedProfile } from './bigquery/BigQueryOAuthTokenBasedProfile';
 import { ServiceAccountJsonProfile } from './bigquery/ServiceAccountJsonProfile';
 import { ServiceAccountProfile } from './bigquery/ServiceAccountProfile';
 import { DbtProfile, DbtProfileType } from './DbtProfile';
@@ -7,7 +7,7 @@ import { SnowflakeUserPassProfile } from './snowflake/SnowflakeUserPassProfile';
 
 export const BIG_QUERY_PROFILES = new Map<string, () => DbtProfile>([
   ['oauth', (): DbtProfile => new BigQueryOAuthProfile()],
-  ['oauth-secrets', (): DbtProfile => new OAuthTokenBasedProfile()],
+  ['oauth-secrets', (): DbtProfile => new BigQueryOAuthTokenBasedProfile()],
   ['service-account', (): DbtProfile => new ServiceAccountProfile()],
   ['service-account-json', (): DbtProfile => new ServiceAccountJsonProfile()],
 ]);

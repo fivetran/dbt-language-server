@@ -5,12 +5,12 @@ import { DbtDestinationClient } from '../DbtDestinationClient';
 import { DbtProfile, TargetConfig } from '../DbtProfile';
 import { BigQueryClient } from './BigQueryClient';
 
-export class OAuthTokenBasedProfile implements DbtProfile {
+export class BigQueryOAuthTokenBasedProfile implements DbtProfile {
   static readonly BQ_OAUTH_TOKEN_BASED_DOCS =
     '[Oauth Token-Based configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#oauth-token-based).';
 
   getDocsUrl(): string {
-    return OAuthTokenBasedProfile.BQ_OAUTH_TOKEN_BASED_DOCS;
+    return BigQueryOAuthTokenBasedProfile.BQ_OAUTH_TOKEN_BASED_DOCS;
   }
 
   validateProfile(targetConfig: TargetConfig): Result<void, string> {
