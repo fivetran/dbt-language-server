@@ -1,7 +1,7 @@
 import { BigQueryOAuthProfile } from './bigquery/BigQueryOAuthProfile';
 import { BigQueryOAuthTokenBasedProfile } from './bigquery/BigQueryOAuthTokenBasedProfile';
 import { BigQueryServiceAccountJsonProfile } from './bigquery/BigQueryServiceAccountJsonProfile';
-import { BigQueryServiceAccountProfile } from './bigquery/ServiceAccountProfile';
+import { BigQueryServiceAccountProfile } from './bigquery/BigQueryServiceAccountProfile';
 import { DbtProfile, DbtProfileType } from './DbtProfile';
 import { SnowflakeUserPassProfile } from './snowflake/SnowflakeUserPassProfile';
 

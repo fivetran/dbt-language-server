@@ -1,4 +1,4 @@
-import { ServiceAccountProfile } from '../../bigquery/ServiceAccountProfile';
+import { BigQueryServiceAccountProfile } from '../../bigquery/BigQueryServiceAccountProfile';
 import { YamlParserUtils } from '../../YamlParserUtils';
 import {
   BIG_QUERY_CONFIG,
@@ -16,7 +16,7 @@ describe('Service account profile', () => {
 
   it('Should require service account fields', () => {
     const profiles = YamlParserUtils.parseYamlFile(getConfigPath(BIG_QUERY_CONFIG));
-    const serviceAccountProfile = new ServiceAccountProfile();
+    const serviceAccountProfile = new BigQueryServiceAccountProfile();
     shouldRequireProfileField(profiles, serviceAccountProfile, BQ_SERVICE_ACCOUNT_MISSING_KEYFILE, 'keyfile');
   });
 });
