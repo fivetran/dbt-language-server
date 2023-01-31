@@ -32,8 +32,9 @@ export class SnowflakeUserPassProfile implements DbtProfile {
     return ok(undefined);
   }
 
-  async createClient<T>(profile: T): Promise<Result<DbtDestinationClient, string>> {
-    return this.createClientInternal(profile as z.infer<typeof SnowflakeUserPassProfile.SCHEMA>);
+  async createClient(profile: unknown): Promise<Result<DbtDestinationClient, string>> {
+    const parsedProfile = SnowflakeUserPassProfile.SCHEMA.parse(profile);
+    return this.createClientInternal(parsedProfile);
   }
 
   private async createClientInternal(profile: z.infer<typeof SnowflakeUserPassProfile.SCHEMA>): Promise<Result<DbtDestinationClient, string>> {

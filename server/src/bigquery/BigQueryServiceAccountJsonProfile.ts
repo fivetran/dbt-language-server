@@ -27,7 +27,7 @@ export class BigQueryServiceAccountJsonProfile implements DbtProfile {
     return this.validateKeyFileJson(keyFileJson);
   }
 
-  async createClient<T>(profile: T): Promise<Result<DbtDestinationClient, string>> {
+  async createClient(profile: unknown): Promise<Result<DbtDestinationClient, string>> {
     return this.createClientInternal(profile as Required<TargetConfig>);
   }
 

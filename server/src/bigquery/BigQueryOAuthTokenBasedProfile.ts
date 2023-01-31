@@ -57,7 +57,7 @@ export class BigQueryOAuthTokenBasedProfile implements DbtProfile {
     return ok(undefined);
   }
 
-  async createClient<T>(profile: T): Promise<Result<DbtDestinationClient, string>> {
+  async createClient(profile: unknown): Promise<Result<DbtDestinationClient, string>> {
     return this.createClientInternal(profile as Required<TargetConfig>);
   }
 
