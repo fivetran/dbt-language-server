@@ -5,12 +5,12 @@ import { DbtDestinationClient } from '../DbtDestinationClient';
 import { DbtProfile, TargetConfig } from '../DbtProfile';
 import { BigQueryClient } from './BigQueryClient';
 
-export class OAuthTokenBasedProfile implements DbtProfile {
+export class BigQueryOAuthTokenBasedProfile implements DbtProfile {
   static readonly BQ_OAUTH_TOKEN_BASED_DOCS =
     '[Oauth Token-Based configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#oauth-token-based).';
 
   getDocsUrl(): string {
-    return OAuthTokenBasedProfile.BQ_OAUTH_TOKEN_BASED_DOCS;
+    return BigQueryOAuthTokenBasedProfile.BQ_OAUTH_TOKEN_BASED_DOCS;
   }
 
   validateProfile(targetConfig: TargetConfig): Result<void, string> {
@@ -57,7 +57,11 @@ export class OAuthTokenBasedProfile implements DbtProfile {
     return ok(undefined);
   }
 
-  async createClient(profile: Required<TargetConfig>): Promise<Result<DbtDestinationClient, string>> {
+  async createClient(profile: unknown): Promise<Result<DbtDestinationClient, string>> {
+    return this.createClientInternal(profile as Required<TargetConfig>);
+  }
+
+  private async createClientInternal(profile: Required<TargetConfig>): Promise<Result<DbtDestinationClient, string>> {
     const { project } = profile;
     const { token } = profile;
     const refreshToken = profile.refresh_token;

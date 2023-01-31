@@ -13,6 +13,7 @@ suite('Entire project analysis', () => {
     assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), hasSize(0));
     assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), hasSize(0));
 
+    console.log('changing "*" to "name"');
     writeFileSync(PROJECT1_MODEL_URI.fsPath, getNewContent('name'));
 
     while (languages.getDiagnostics(DEPENDENT_MODEL_URI).length === 0) {
@@ -22,6 +23,7 @@ suite('Entire project analysis', () => {
     assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), hasSize(0));
     assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), hasSize(1));
 
+    console.log('changing "name" to "*"');
     writeFileSync(PROJECT1_MODEL_URI.fsPath, getNewContent('*'));
 
     while (languages.getDiagnostics(DEPENDENT_MODEL_URI).length === 1) {

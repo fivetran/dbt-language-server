@@ -5,12 +5,12 @@ import { DbtDestinationClient } from '../DbtDestinationClient';
 import { DbtProfile, TargetConfig } from '../DbtProfile';
 import { BigQueryClient } from './BigQueryClient';
 
-export class ServiceAccountJsonProfile implements DbtProfile {
+export class BigQueryServiceAccountJsonProfile implements DbtProfile {
   static readonly BQ_SERVICE_ACCOUNT_JSON_DOCS =
     '[Service Account JSON configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-json).';
 
   getDocsUrl(): string {
-    return ServiceAccountJsonProfile.BQ_SERVICE_ACCOUNT_JSON_DOCS;
+    return BigQueryServiceAccountJsonProfile.BQ_SERVICE_ACCOUNT_JSON_DOCS;
   }
 
   validateProfile(targetConfig: TargetConfig): Result<void, string> {
@@ -27,7 +27,11 @@ export class ServiceAccountJsonProfile implements DbtProfile {
     return this.validateKeyFileJson(keyFileJson);
   }
 
-  async createClient(profile: Required<TargetConfig>): Promise<Result<DbtDestinationClient, string>> {
+  async createClient(profile: unknown): Promise<Result<DbtDestinationClient, string>> {
+    return this.createClientInternal(profile as Required<TargetConfig>);
+  }
+
+  private async createClientInternal(profile: Required<TargetConfig>): Promise<Result<DbtDestinationClient, string>> {
     const { project } = profile;
     const keyFileJson = JSON.stringify(profile.keyfile_json);
 

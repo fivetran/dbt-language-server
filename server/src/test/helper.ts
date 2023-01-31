@@ -1,4 +1,4 @@
-import { assertThat, defined, not } from 'hamjest';
+import { assertThat, defined, not, truthy } from 'hamjest';
 import { err } from 'neverthrow';
 import { ok } from 'node:assert';
 import * as path from 'node:path';
@@ -14,6 +14,7 @@ import { JinjaPartType } from '../JinjaParser';
 const PROFILES_PATH = path.resolve('./server/src/test/profiles');
 
 export const BIG_QUERY_CONFIG = 'bigquery.yml';
+export const SNOWFLAKE_CONFIG = 'snowflake.yml';
 export const OTHERS_CONFIG = 'others.yml';
 
 export const BQ_OAUTH = 'bigquery-test_oauth';
@@ -58,7 +59,7 @@ export function shouldPassValidProfile(config: string, profileName: string): voi
   const profile = profileCreator.createDbtProfile();
 
   // assert
-  assertThat('error' in profile, false);
+  assertThat(profile.isOk(), truthy());
 }
 
 export function sleep(ms: number): Promise<unknown> {

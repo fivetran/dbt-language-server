@@ -6,7 +6,7 @@ import { DbtProfile, TargetConfig } from '../DbtProfile';
 import { ProcessExecutor } from '../ProcessExecutor';
 import { BigQueryClient } from './BigQueryClient';
 
-export class OAuthProfile implements DbtProfile {
+export class BigQueryOAuthProfile implements DbtProfile {
   static readonly BQ_OAUTH_DOCS =
     '[OAuth via gcloud configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#oauth-via-gcloud).';
   static readonly GCLOUD_NOT_INSTALLED_ERROR =
@@ -19,7 +19,7 @@ export class OAuthProfile implements DbtProfile {
   static processExecutor = new ProcessExecutor();
 
   getDocsUrl(): string {
-    return OAuthProfile.BQ_OAUTH_DOCS;
+    return BigQueryOAuthProfile.BQ_OAUTH_DOCS;
   }
 
   validateProfile(targetConfig: TargetConfig): Result<void, string> {
@@ -31,7 +31,11 @@ export class OAuthProfile implements DbtProfile {
     return ok(undefined);
   }
 
-  async createClient(profile: Required<TargetConfig>): Promise<Result<DbtDestinationClient, string>> {
+  async createClient(profile: unknown): Promise<Result<DbtDestinationClient, string>> {
+    return this.createClientInternal(profile as Required<TargetConfig>);
+  }
+
+  private async createClientInternal(profile: Required<TargetConfig>): Promise<Result<DbtDestinationClient, string>> {
     const { project } = profile;
     const options: BigQueryOptions = {
       projectId: project,
@@ -86,12 +90,12 @@ export class OAuthProfile implements DbtProfile {
   }
 
   private async authenticate(): Promise<Result<void, string>> {
-    const gcloudInstalledResult = await OAuthProfile.gcloudInstalled();
+    const gcloudInstalledResult = await BigQueryOAuthProfile.gcloudInstalled();
     if (gcloudInstalledResult.isErr()) {
       return err(gcloudInstalledResult.error);
     }
 
-    const authenticateResult = await OAuthProfile.authenticate();
+    const authenticateResult = await BigQueryOAuthProfile.authenticate();
     if (authenticateResult.isErr()) {
       return err(authenticateResult.error);
     }
@@ -101,20 +105,23 @@ export class OAuthProfile implements DbtProfile {
 
   private static authenticate(): Promise<Result<void, string>> {
     const authenticateCommand = 'gcloud auth application-default login';
-    const authenticatePromise = OAuthProfile.processExecutor
+    const authenticatePromise = BigQueryOAuthProfile.processExecutor
       .execProcess(authenticateCommand)
       .then(() => ok(undefined))
-      .catch(() => err(OAuthProfile.GCLOUD_AUTHENTICATION_ERROR));
+      .catch(() => err(BigQueryOAuthProfile.GCLOUD_AUTHENTICATION_ERROR));
 
-    const timeoutPromise = setTimeout(OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT, err(OAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT_ERROR));
+    const timeoutPromise = setTimeout(
+      BigQueryOAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT,
+      err(BigQueryOAuthProfile.GCLOUD_AUTHENTICATION_TIMEOUT_ERROR),
+    );
     return Promise.race([authenticatePromise, timeoutPromise]);
   }
 
   private static gcloudInstalled(): Promise<Result<void, string>> {
     const versionCommand = 'gcloud --version';
-    return OAuthProfile.processExecutor
+    return BigQueryOAuthProfile.processExecutor
       .execProcess(versionCommand)
       .then(() => ok(undefined))
-      .catch(() => err(OAuthProfile.GCLOUD_NOT_INSTALLED_ERROR));
+      .catch(() => err(BigQueryOAuthProfile.GCLOUD_NOT_INSTALLED_ERROR));
   }
 }

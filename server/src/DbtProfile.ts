@@ -19,7 +19,7 @@ export interface DbtProfile {
    * @param profile profile specified in profiles.yml
    * @returns authenticated client or error string otherwise
    */
-  createClient(profile: Required<TargetConfig>): Promise<Result<DbtDestinationClient, string>>;
+  createClient(profile: unknown): Promise<Result<DbtDestinationClient, string>>;
 }
 
 export interface ProfileYaml {
@@ -40,8 +40,10 @@ export interface TargetConfig {
   };
   keyfile?: string;
   scopes?: string[];
+  account?: string;
 }
 
 export enum DbtProfileType {
   BigQuery = 'bigquery',
+  Snowflake = 'snowflake',
 }

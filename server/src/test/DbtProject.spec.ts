@@ -6,6 +6,9 @@ import { YamlParserUtils } from '../YamlParserUtils';
 describe('DbtProject', () => {
   const PROJECT_PATH = '/Users/user_name/projects/project_name';
 
+  /* eslint-disable-next-line @typescript-eslint/unbound-method */
+  const { parseYamlFile } = YamlParserUtils;
+
   let dbtProjectInstance: DbtProject;
   let spiedDbtProject: DbtProject;
   let parseYamlFileCalls = 0;
@@ -20,6 +23,10 @@ describe('DbtProject', () => {
     };
 
     parseYamlFileCalls = 0;
+  });
+
+  after(() => {
+    YamlParserUtils.parseYamlFile = parseYamlFile;
   });
 
   it('findProjectName should call parseYamlFile once', () => {

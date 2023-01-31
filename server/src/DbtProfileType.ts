@@ -1,19 +1,17 @@
-import { OAuthProfile } from './bigquery/OAuthProfile';
-import { OAuthTokenBasedProfile } from './bigquery/OAuthTokenBasedProfile';
-import { ServiceAccountJsonProfile } from './bigquery/ServiceAccountJsonProfile';
-import { ServiceAccountProfile } from './bigquery/ServiceAccountProfile';
+import { BigQueryOAuthProfile } from './bigquery/BigQueryOAuthProfile';
+import { BigQueryOAuthTokenBasedProfile } from './bigquery/BigQueryOAuthTokenBasedProfile';
+import { BigQueryServiceAccountJsonProfile } from './bigquery/BigQueryServiceAccountJsonProfile';
+import { BigQueryServiceAccountProfile } from './bigquery/BigQueryServiceAccountProfile';
 import { DbtProfile, DbtProfileType } from './DbtProfile';
-
-const createOAuthProfile: () => DbtProfile = () => new OAuthProfile();
-const createOAuthTokenBasedProfile: () => DbtProfile = () => new OAuthTokenBasedProfile();
-const createServiceAccountProfile: () => DbtProfile = () => new ServiceAccountProfile();
-const createServiceAccountJsonProfile: () => DbtProfile = () => new ServiceAccountJsonProfile();
+import { SnowflakeUserPassProfile } from './snowflake/SnowflakeUserPassProfile';
 
 export const BIG_QUERY_PROFILES = new Map<string, () => DbtProfile>([
-  ['oauth', createOAuthProfile],
-  ['oauth-secrets', createOAuthTokenBasedProfile],
-  ['service-account', createServiceAccountProfile],
-  ['service-account-json', createServiceAccountJsonProfile],
+  ['oauth', (): DbtProfile => new BigQueryOAuthProfile()],
+  ['oauth-secrets', (): DbtProfile => new BigQueryOAuthTokenBasedProfile()],
+  ['service-account', (): DbtProfile => new BigQueryServiceAccountProfile()],
+  ['service-account-json', (): DbtProfile => new BigQueryServiceAccountJsonProfile()],
 ]);
+
+export const SNOWFLAKE_PROFILES = new Map<string, () => DbtProfile>([['user-password', (): DbtProfile => new SnowflakeUserPassProfile()]]);
 
 export const PROFILE_METHODS = new Map<DbtProfileType, string[]>([[DbtProfileType.BigQuery, [...BIG_QUERY_PROFILES.keys()]]]);

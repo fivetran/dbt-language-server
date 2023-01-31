@@ -5,12 +5,12 @@ import { DbtProfile, TargetConfig } from '../DbtProfile';
 import { YamlParserUtils } from '../YamlParserUtils';
 import { BigQueryClient } from './BigQueryClient';
 
-export class ServiceAccountProfile implements DbtProfile {
+export class BigQueryServiceAccountProfile implements DbtProfile {
   static readonly BQ_SERVICE_ACCOUNT_FILE_DOCS =
     '[Service Account File configuration](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile#service-account-file).';
 
   getDocsUrl(): string {
-    return ServiceAccountProfile.BQ_SERVICE_ACCOUNT_FILE_DOCS;
+    return BigQueryServiceAccountProfile.BQ_SERVICE_ACCOUNT_FILE_DOCS;
   }
 
   validateProfile(targetConfig: TargetConfig): Result<void, string> {
@@ -27,7 +27,11 @@ export class ServiceAccountProfile implements DbtProfile {
     return ok(undefined);
   }
 
-  async createClient(profile: Required<TargetConfig>): Promise<Result<DbtDestinationClient, string>> {
+  async createClient(profile: unknown): Promise<Result<DbtDestinationClient, string>> {
+    return this.createClientInternal(profile as Required<TargetConfig>);
+  }
+
+  private async createClientInternal(profile: Required<TargetConfig>): Promise<Result<DbtDestinationClient, string>> {
     const { project } = profile;
     const keyFilePath = YamlParserUtils.replaceTilde(profile.keyfile);
 
