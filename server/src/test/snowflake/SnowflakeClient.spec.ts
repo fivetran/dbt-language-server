@@ -11,7 +11,7 @@ describe('SnowflakeClient', () => {
       username: '',
       password: '',
     });
-    const client = new SnowflakeClient(connection);
+    const client = new SnowflakeClient('db', connection);
 
     // act
     const result = await client.test();

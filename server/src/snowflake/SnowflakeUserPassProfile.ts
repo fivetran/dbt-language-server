@@ -47,7 +47,7 @@ export class SnowflakeUserPassProfile implements DbtProfile {
       schema: profile.schema,
     });
 
-    const client = new SnowflakeClient(connection);
+    const client = new SnowflakeClient(profile.database, connection);
 
     const testResult = await client.test();
     if (testResult.isErr()) {

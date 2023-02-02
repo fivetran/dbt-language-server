@@ -1,15 +1,10 @@
 import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
-import { BigQuery, DatasetsResponse, RoutineMetadata, TableMetadata } from '@google-cloud/bigquery';
+import { BigQuery, Dataset as BqDataset, RoutineMetadata, TableMetadata } from '@google-cloud/bigquery';
 import { err, ok, Result } from 'neverthrow';
-import { DbtDestinationClient } from '../DbtDestinationClient';
+import { Dataset, DbtDestinationClient, Metadata, Table } from '../DbtDestinationClient';
 import { SchemaDefinition } from '../TableDefinition';
 import { BigQueryTypeKind, IStandardSqlDataType } from './BigQueryLibraryTypes';
-
-export interface Metadata {
-  schema: SchemaDefinition;
-  timePartitioning: boolean;
-}
 
 export interface Udf {
   nameParts: string[];
@@ -28,11 +23,7 @@ export class BigQueryClient implements DbtDestinationClient {
   private static readonly REQUESTED_SCHEMA_FIELDS = ['schema', 'timePartitioning'] as const;
   private static readonly JOINED_FIELDS = BigQueryClient.REQUESTED_SCHEMA_FIELDS.join(',');
 
-  project: string;
-
-  constructor(project: string, public bigQuerySupplier: () => BigQuery) {
-    this.project = project;
-  }
+  constructor(public defaultProject: string, public bigQuerySupplier: () => BigQuery) {}
 
   async test(): Promise<Result<void, string>> {
     try {
@@ -46,12 +37,18 @@ export class BigQueryClient implements DbtDestinationClient {
     return ok(undefined);
   }
 
-  async getDatasets(maxResults?: number): Promise<DatasetsResponse> {
-    return this.bigQuerySupplier().getDatasets({ maxResults });
+  async getDatasets(maxResults?: number): Promise<Dataset[]> {
+    const [bigQueryResult] = await this.bigQuerySupplier().getDatasets({ maxResults });
+    return bigQueryResult.map(d => ({ id: d.id })).filter((d): d is { id: string } => d.id !== undefined);
   }
 
-  async getTableMetadata(dataSet: string, tableName: string): Promise<Metadata | undefined> {
-    const dataset = this.bigQuerySupplier().dataset(dataSet);
+  async getTables(datasetName: string, projectName?: string): Promise<Table[]> {
+    const [tables] = await new BqDataset(this.bigQuerySupplier(), datasetName, { projectId: projectName }).getTables();
+    return tables.map(t => ({ id: t.id })).filter((t): t is { id: string } => t.id !== undefined);
+  }
+
+  async getTableMetadata(datasetName: string, tableName: string): Promise<Metadata | undefined> {
+    const dataset = this.bigQuerySupplier().dataset(datasetName);
     const table = dataset.table(tableName);
     try {
       const [metadata] = (await table.getMetadata({
