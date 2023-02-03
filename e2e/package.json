@@ -5,16 +5,16 @@
     "vscode": "^1.52.0"
   },
   "devDependencies": {
-    "@google-cloud/bigquery": "^6.0.3",
+    "@google-cloud/bigquery": "^6.1.0",
     "@types/glob": "^8.0.1",
     "@types/pg": "^8.6.6",
-    "@types/vscode": "^1.74.0",
-    "@vscode/test-electron": "^2.2.2",
+    "@types/vscode": "^1.74.1",
+    "@vscode/test-electron": "^2.2.3",
     "clipboardy": "^2.3.0",
     "dbt-language-server-common": "file:../common",
     "hamjest": "^3.7.3",
     "mocha": "^10.2.0",
     "path-equal": "^1.2.5",
-    "pg": "^8.8.0"
+    "pg": "^8.9.0"
   }
 }
