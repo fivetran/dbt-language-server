@@ -3,7 +3,7 @@ import { ParseLocationRangeProto__Output } from '@fivetrandevelopers/zetasql/lib
 import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
 import { StructFieldProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/StructFieldProto';
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
-import { ColumnDefinition } from '../TableDefinition';
+import { ColumnDefinition } from '../DbtDestinationClient';
 
 interface Node {
   node: string;

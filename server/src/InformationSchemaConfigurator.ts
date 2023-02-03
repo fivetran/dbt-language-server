@@ -1,5 +1,6 @@
 import { SimpleCatalogProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleCatalogProto';
-import { ColumnDefinition, TableDefinition } from './TableDefinition';
+import { ColumnDefinition } from './DbtDestinationClient';
+import { TableDefinition } from './TableDefinition';
 import { createType } from './utils/ZetaSqlUtils';
 import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 

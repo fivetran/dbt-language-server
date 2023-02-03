@@ -1,5 +1,4 @@
 import { Result } from 'neverthrow';
-import { SchemaDefinition } from './TableDefinition';
 
 export interface DbtDestinationClient {
   /**
@@ -29,4 +28,15 @@ export interface Table {
 export interface Metadata {
   schema: SchemaDefinition;
   timePartitioning: boolean;
+}
+
+export interface SchemaDefinition {
+  fields: ColumnDefinition[];
+}
+
+export interface ColumnDefinition {
+  name: string;
+  type: string;
+  fields?: ColumnDefinition[];
+  mode?: string;
 }

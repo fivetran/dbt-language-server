@@ -1,5 +1,4 @@
-import { Dataset, DbtDestinationClient, Table } from './DbtDestinationClient';
-import { ColumnDefinition } from './TableDefinition';
+import { ColumnDefinition, Dataset, DbtDestinationClient, Table } from './DbtDestinationClient';
 
 export class DestinationDefinition {
   activeProject: string;
