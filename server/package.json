@@ -8,7 +8,7 @@
     "@fivetrandevelopers/zetasql": "^1.7.0",
     "@google-cloud/bigquery": "^6.1.0",
     "async-retry": "^1.3.3",
-    "axios": "^1.1.0",
+    "axios": "^1.3.1",
     "dbt-language-server-common": "file:../common",
     "diff": "^5.1.0",
     "fast-diff": "^1.2.0",
