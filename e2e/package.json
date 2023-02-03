@@ -5,7 +5,7 @@
     "vscode": "^1.52.0"
   },
   "devDependencies": {
-    "@google-cloud/bigquery": "^6.0.3",
+    "@google-cloud/bigquery": "^6.1.0",
     "@types/glob": "^8.0.1",
     "@types/pg": "^8.6.6",
     "@types/vscode": "^1.74.1",
