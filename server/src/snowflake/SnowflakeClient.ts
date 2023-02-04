@@ -1,6 +1,6 @@
 import { err, ok, Result } from 'neverthrow';
 import { Connection, Statement } from 'snowflake-sdk';
-import { Dataset, DbtDestinationClient, Metadata, Table } from '../DbtDestinationClient';
+import { Dataset, DbtDestinationClient, Metadata, Table, Udf } from '../DbtDestinationClient';
 
 export class SnowflakeClient implements DbtDestinationClient {
   constructor(public defaultProject: string, private connection: Connection) {}
@@ -52,16 +52,8 @@ export class SnowflakeClient implements DbtDestinationClient {
     });
   }
 
-  private getValues(statement: Statement, columnName: string): Promise<{ id: string }[]> {
-    const stream = statement.streamRows();
-    const result: { id: string }[] = [];
-    stream.on('data', (row: { [key: string]: string }) => {
-      result.push({ id: row[columnName] });
-    });
-    return new Promise((resolve, reject) => {
-      stream.on('error', e => reject(e));
-      stream.on('end', () => resolve(result));
-    });
+  getUdf(_projectId: string | undefined, _dataSetId: string, _routineId: string): Promise<Udf | undefined> {
+    throw new Error('Method not implemented.');
   }
 
   connect(): Promise<string | undefined> {
@@ -74,6 +66,18 @@ export class SnowflakeClient implements DbtDestinationClient {
         }
         resolve(undefined);
       });
+    });
+  }
+
+  private getValues(statement: Statement, columnName: string): Promise<{ id: string }[]> {
+    const stream = statement.streamRows();
+    const result: { id: string }[] = [];
+    stream.on('data', (row: { [key: string]: string }) => {
+      result.push({ id: row[columnName] });
+    });
+    return new Promise((resolve, reject) => {
+      stream.on('error', e => reject(e));
+      stream.on('end', () => resolve(result));
     });
   }
 }

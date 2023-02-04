@@ -8,7 +8,6 @@ import { AnalyzeResult, ModelsAnalyzeResult, ProjectAnalyzer } from '../ProjectA
 import { SqlHeaderAnalyzer } from '../SqlHeaderAnalyzer';
 import { ZetaSqlParser } from '../ZetaSqlParser';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
-import { BigQueryClient } from './BigQueryClient';
 
 export class BigQueryContext {
   private static readonly ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux', 'win32'];
@@ -47,7 +46,7 @@ export class BigQueryContext {
           return err(clientResult.error);
         }
 
-        const bigQueryClient = clientResult.value as BigQueryClient;
+        const bigQueryClient = clientResult.value;
         this.destinationDefinition = new DestinationDefinition(bigQueryClient);
 
         this.projectAnalyzer = new ProjectAnalyzer(

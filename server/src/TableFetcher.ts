@@ -1,6 +1,6 @@
 import { ResolvedOutputColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedOutputColumnProto';
 import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
-import { BigQueryClient } from './bigquery/BigQueryClient';
+import { DbtDestinationClient } from './DbtDestinationClient';
 import { TableDefinition } from './TableDefinition';
 import { createSimpleColumn, createType } from './utils/ZetaSqlUtils';
 
@@ -8,10 +8,10 @@ export interface TableInformation {
   columns?: SimpleColumnProto[];
   timePartitioning: boolean;
 }
-export class BigQueryTableFetcher {
+export class TableFetcher {
   private tables: Map<string, Promise<TableInformation | undefined>> = new Map();
 
-  constructor(private bigQueryClient: BigQueryClient) {}
+  constructor(private client: DbtDestinationClient) {}
 
   fetchTable(table: TableDefinition): Promise<TableInformation | undefined> {
     const key = `${table.getDataSetName() ?? 'undefined'}.${table.getTableName()}`;
@@ -32,7 +32,7 @@ export class BigQueryTableFetcher {
     const tableName = table.getTableName();
 
     if (dataSetName && tableName) {
-      const metadata = await this.bigQueryClient.getTableMetadata(dataSetName, tableName);
+      const metadata = await this.client.getTableMetadata(dataSetName, tableName);
       if (metadata) {
         return {
           columns: metadata.schema.fields.map<ResolvedOutputColumnProto>(f => createSimpleColumn(f.name, createType(f))),

@@ -1,11 +1,11 @@
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { err, Result } from 'neverthrow';
-import { BigQueryClient } from './bigquery/BigQueryClient';
-import { BigQueryTableFetcher } from './BigQueryTableFetcher';
 import { DagNode } from './dag/DagNode';
+import { DbtDestinationClient } from './DbtDestinationClient';
 import { DbtRepository } from './DbtRepository';
 import { ManifestModel } from './manifest/ManifestJson';
 import { TableDefinition } from './TableDefinition';
+import { TableFetcher } from './TableFetcher';
 import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 
 export type ModelsAnalyzeResult = {
@@ -19,7 +19,7 @@ export class ProjectAnalyzer {
   constructor(
     private dbtRepository: DbtRepository,
     private projectName: string | undefined,
-    private bigQueryClient: BigQueryClient,
+    private destinationClient: DbtDestinationClient,
     private zetaSqlWrapper: ZetaSqlWrapper,
   ) {}
 
@@ -34,7 +34,7 @@ export class ProjectAnalyzer {
     const visited = new Set<string>();
     let queue = this.dbtRepository.dag.getRootNodes();
     const results: ModelsAnalyzeResult[] = [];
-    const bigQueryTableFetcher = new BigQueryTableFetcher(this.bigQueryClient);
+    const bigQueryTableFetcher = new TableFetcher(this.destinationClient);
     const visitedModels = new Map<string, Promise<AnalyzeResult>>();
 
     while (queue.length > 0) {
@@ -84,12 +84,12 @@ export class ProjectAnalyzer {
 
   /** Analyzes a single model and all models that depend on it */
   async analyzeModelTree(node: DagNode, sql: string): Promise<ModelsAnalyzeResult[]> {
-    const tableFetcher = new BigQueryTableFetcher(this.bigQueryClient);
+    const tableFetcher = new TableFetcher(this.destinationClient);
     return this.analyzeModelTreeInternal(node, tableFetcher, sql, new Map());
   }
 
   async analyzeSql(sql: string): Promise<AnalyzeResult> {
-    return this.analyzeModelCached(undefined, new BigQueryTableFetcher(this.bigQueryClient), sql, new Map());
+    return this.analyzeModelCached(undefined, new TableFetcher(this.destinationClient), sql, new Map());
   }
 
   dispose(): void {
@@ -100,7 +100,7 @@ export class ProjectAnalyzer {
 
   private async analyzeModelTreeInternal(
     node: DagNode,
-    tableFetcher: BigQueryTableFetcher,
+    tableFetcher: TableFetcher,
     sql: string | undefined,
     visitedModels: Map<string, Promise<AnalyzeResult>>,
   ): Promise<ModelsAnalyzeResult[]> {
@@ -130,7 +130,7 @@ export class ProjectAnalyzer {
 
   private async analyzeModelCached(
     model: ManifestModel | undefined,
-    bigQueryTableFetcher: BigQueryTableFetcher,
+    bigQueryTableFetcher: TableFetcher,
     sql: string | undefined,
     visitedModels: Map<string, Promise<AnalyzeResult>>,
   ): Promise<AnalyzeResult> {
@@ -148,7 +148,7 @@ export class ProjectAnalyzer {
 
   private async analyzeModelInternal(
     model: ManifestModel | undefined,
-    bigQueryTableFetcher: BigQueryTableFetcher,
+    bigQueryTableFetcher: TableFetcher,
     sql: string | undefined,
     visitedModels: Map<string, Promise<AnalyzeResult>>,
   ): Promise<AnalyzeResult> {
@@ -225,7 +225,7 @@ export class ProjectAnalyzer {
 
   private async analyzeAllEphemeralModels(
     model: ManifestModel | undefined,
-    bigQueryTableFetcher: BigQueryTableFetcher,
+    bigQueryTableFetcher: TableFetcher,
     visitedModels: Map<string, Promise<AnalyzeResult>>,
   ): Promise<void> {
     for (const node of model?.dependsOn.nodes ?? []) {

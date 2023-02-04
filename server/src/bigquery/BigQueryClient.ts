@@ -2,20 +2,8 @@ import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
 import { BigQuery, Dataset as BqDataset, RoutineMetadata, TableMetadata } from '@google-cloud/bigquery';
 import { err, ok, Result } from 'neverthrow';
-import { Dataset, DbtDestinationClient, Metadata, SchemaDefinition, Table } from '../DbtDestinationClient';
+import { Dataset, DbtDestinationClient, Metadata, SchemaDefinition, Table, Udf, UdfArgument } from '../DbtDestinationClient';
 import { BigQueryTypeKind, IStandardSqlDataType } from './BigQueryLibraryTypes';
-
-export interface Udf {
-  nameParts: string[];
-  arguments?: UdfArgument[];
-  returnType?: TypeProto;
-}
-
-export interface UdfArgument {
-  name?: string;
-  type: TypeProto;
-  argumentKind?: 'ARGUMENT_KIND_UNSPECIFIED' | 'FIXED_TYPE' | 'ANY_TYPE';
-}
 
 export class BigQueryClient implements DbtDestinationClient {
   private static readonly BQ_TEST_CLIENT_DATASETS_LIMIT = 1;
@@ -95,7 +83,7 @@ export class BigQueryClient implements DbtDestinationClient {
     return undefined;
   }
 
-  static toTypeProto(dataType?: IStandardSqlDataType): TypeProto {
+  private static toTypeProto(dataType?: IStandardSqlDataType): TypeProto {
     if (!dataType) {
       return {};
     }
@@ -114,7 +102,7 @@ export class BigQueryClient implements DbtDestinationClient {
     return type;
   }
 
-  static toTypeKind(bigQueryTypeKind?: BigQueryTypeKind): TypeKind {
+  private static toTypeKind(bigQueryTypeKind?: BigQueryTypeKind): TypeKind {
     switch (bigQueryTypeKind) {
       case 'TYPE_KIND_UNSPECIFIED': {
         return TypeKind.TYPE_UNKNOWN;

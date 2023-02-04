@@ -1,3 +1,4 @@
+import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
 import { Result } from 'neverthrow';
 
 export interface DbtDestinationClient {
@@ -12,6 +13,8 @@ export interface DbtDestinationClient {
   getTables(datasetName: string, projectName?: string): Promise<Table[]>;
 
   getTableMetadata(datasetName: string, tableName: string): Promise<Metadata | undefined>;
+
+  getUdf(projectId: string | undefined, dataSetId: string, routineId: string): Promise<Udf | undefined>;
 
   /** default project (`project` value of BigQuery config, `database` value for Snowflake config) */
   defaultProject: string;
@@ -39,4 +42,16 @@ export interface ColumnDefinition {
   type: string;
   fields?: ColumnDefinition[];
   mode?: string;
+}
+
+export interface Udf {
+  nameParts: string[];
+  arguments?: UdfArgument[];
+  returnType?: TypeProto;
+}
+
+export interface UdfArgument {
+  name?: string;
+  type: TypeProto;
+  argumentKind?: 'ARGUMENT_KIND_UNSPECIFIED' | 'FIXED_TYPE' | 'ANY_TYPE';
 }

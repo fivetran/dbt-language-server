@@ -2,9 +2,9 @@
 
 import { ok } from 'neverthrow';
 import { anything, instance, mock, objectContaining, spy, verify, when } from 'ts-mockito';
-import { BigQueryClient } from '../bigquery/BigQueryClient';
 import { Dag } from '../dag/Dag';
 import { DagNode } from '../dag/DagNode';
+import { DbtDestinationClient } from '../DbtDestinationClient';
 import { DbtRepository } from '../DbtRepository';
 import { ProjectAnalyzer } from '../ProjectAnalyzer';
 import { SqlHeaderAnalyzer } from '../SqlHeaderAnalyzer';
@@ -39,14 +39,14 @@ describe('ProjectAnalyzer analyzeModelsTree', () => {
 
   let projectAnalyzer: ProjectAnalyzer;
   let spiedProjectAnalyzer: ProjectAnalyzer;
-  let mockBigQueryClient: BigQueryClient;
+  let mockDestinationClient: DbtDestinationClient;
   let mockSqlHeaderAnalyzer: SqlHeaderAnalyzer;
   let mockZetaSqlWrapper: ZetaSqlWrapper;
 
   before(() => {
     const mockDbtRepository = mock(DbtRepository);
     mockZetaSqlWrapper = mock(ZetaSqlWrapper);
-    mockBigQueryClient = mock(BigQueryClient);
+    mockDestinationClient = mock<DbtDestinationClient>();
     mockSqlHeaderAnalyzer = mock(SqlHeaderAnalyzer);
 
     when(mockDbtRepository.dag).thenReturn(new Dag([DAG_NODE]));
@@ -54,11 +54,11 @@ describe('ProjectAnalyzer analyzeModelsTree', () => {
 
     when(mockSqlHeaderAnalyzer.getAllFunctionDeclarations(anything(), anything(), anything())).thenReturn(Promise.resolve([]));
 
-    projectAnalyzer = new ProjectAnalyzer(instance(mockDbtRepository), 'projectName', instance(mockBigQueryClient), instance(mockZetaSqlWrapper));
+    projectAnalyzer = new ProjectAnalyzer(instance(mockDbtRepository), 'projectName', instance(mockDestinationClient), instance(mockZetaSqlWrapper));
 
     when(mockZetaSqlWrapper.findTableNames(COMPILED_SQL)).thenReturn(Promise.resolve([new TableDefinition(INTERNAL_TABLE_NAME_PATH)]));
 
-    when(mockBigQueryClient.getTableMetadata('dataset', 'table')).thenReturn(
+    when(mockDestinationClient.getTableMetadata('dataset', 'table')).thenReturn(
       Promise.resolve({
         schema: {
           fields: [
@@ -72,7 +72,7 @@ describe('ProjectAnalyzer analyzeModelsTree', () => {
       }),
     );
 
-    when(mockBigQueryClient.getUdf(undefined, 'dataset', 'udf')).thenReturn(
+    when(mockDestinationClient.getUdf(undefined, 'dataset', 'udf')).thenReturn(
       Promise.resolve({
         nameParts: UDF_NAME_PATH,
       }),
