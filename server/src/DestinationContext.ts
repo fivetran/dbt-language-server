@@ -1,15 +1,15 @@
 import { err, ok, Result } from 'neverthrow';
 import { Emitter, Event } from 'vscode-languageserver';
-import { DagNode } from '../dag/DagNode';
-import { DbtProfileSuccess } from '../DbtProfileCreator';
-import { DbtRepository } from '../DbtRepository';
-import { DestinationDefinition } from '../DestinationDefinition';
-import { AnalyzeResult, ModelsAnalyzeResult, ProjectAnalyzer } from '../ProjectAnalyzer';
-import { SqlHeaderAnalyzer } from '../SqlHeaderAnalyzer';
-import { ZetaSqlParser } from '../ZetaSqlParser';
-import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
+import { DagNode } from './dag/DagNode';
+import { DbtProfileSuccess } from './DbtProfileCreator';
+import { DbtRepository } from './DbtRepository';
+import { DestinationDefinition } from './DestinationDefinition';
+import { AnalyzeResult, ModelsAnalyzeResult, ProjectAnalyzer } from './ProjectAnalyzer';
+import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
+import { ZetaSqlParser } from './ZetaSqlParser';
+import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 
-export class BigQueryContext {
+export class DestinationContext {
   private static readonly ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux', 'win32'];
   private static readonly NOT_INITIALIZED_ERROR = 'projectAnalyzer is not initialized';
 
@@ -38,7 +38,7 @@ export class BigQueryContext {
     ubuntuInWslWorks: boolean,
     projectName: string | undefined,
   ): Promise<Result<void, string>> {
-    if (BigQueryContext.ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) && profileResult.dbtProfile && ubuntuInWslWorks) {
+    if (DestinationContext.ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) && profileResult.dbtProfile && ubuntuInWslWorks) {
       try {
         const clientResult = await profileResult.dbtProfile.createClient(profileResult.targetConfig);
         if (clientResult.isErr()) {
@@ -46,21 +46,21 @@ export class BigQueryContext {
           return err(clientResult.error);
         }
 
-        const bigQueryClient = clientResult.value;
-        this.destinationDefinition = new DestinationDefinition(bigQueryClient);
+        const destinationClient = clientResult.value;
+        this.destinationDefinition = new DestinationDefinition(destinationClient);
 
         this.projectAnalyzer = new ProjectAnalyzer(
           dbtRepository,
           projectName,
-          bigQueryClient,
-          new ZetaSqlWrapper(bigQueryClient, new ZetaSqlParser(), new SqlHeaderAnalyzer()),
+          destinationClient,
+          new ZetaSqlWrapper(destinationClient, new ZetaSqlParser(), new SqlHeaderAnalyzer()),
         );
         await this.projectAnalyzer.initialize();
       } catch (e) {
         console.log(e instanceof Error ? e.stack : e);
         const message = e instanceof Error ? e.message : JSON.stringify(e);
         this.onDestinationPrepared();
-        return err(`BigQuery initialization failed. ${message}`);
+        return err(`Destination initialization failed. ${message}`);
       }
     }
     this.onDestinationPrepared();
@@ -69,21 +69,21 @@ export class BigQueryContext {
 
   async analyzeModelTree(node: DagNode, sql: string): Promise<ModelsAnalyzeResult[]> {
     if (!this.projectAnalyzer) {
-      throw new Error(BigQueryContext.NOT_INITIALIZED_ERROR);
+      throw new Error(DestinationContext.NOT_INITIALIZED_ERROR);
     }
     return this.projectAnalyzer.analyzeModelTree(node, sql);
   }
 
   async analyzeSql(sql: string): Promise<AnalyzeResult> {
     if (!this.projectAnalyzer) {
-      throw new Error(BigQueryContext.NOT_INITIALIZED_ERROR);
+      throw new Error(DestinationContext.NOT_INITIALIZED_ERROR);
     }
     return this.projectAnalyzer.analyzeSql(sql);
   }
 
   async analyzeProject(): Promise<ModelsAnalyzeResult[]> {
     if (!this.projectAnalyzer) {
-      throw new Error(BigQueryContext.NOT_INITIALIZED_ERROR);
+      throw new Error(DestinationContext.NOT_INITIALIZED_ERROR);
     }
     return this.projectAnalyzer.analyzeProject();
   }

@@ -44,12 +44,12 @@ import {
 } from 'vscode-languageserver';
 import { FileOperationFilter } from 'vscode-languageserver-protocol/lib/common/protocol.fileOperations';
 import { URI } from 'vscode-uri';
-import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { DbtProfileCreator, DbtProfileInfo } from '../DbtProfileCreator';
 import { DbtProject } from '../DbtProject';
 import { DbtRepository } from '../DbtRepository';
 import { Dbt } from '../dbt_execution/Dbt';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
+import { DestinationContext } from '../DestinationContext';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
 import { DbtDocumentKind } from '../document/DbtDocumentKind';
 import { DbtDocumentKindResolver } from '../document/DbtDocumentKindResolver';
@@ -97,7 +97,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     private dbtDefinitionProvider: DbtDefinitionProvider,
     private signatureHelpProvider: SignatureHelpProvider,
     private hoverProvider: HoverProvider,
-    private bigQueryContext: BigQueryContext,
+    private destinationContext: DestinationContext,
     private openedDocuments: Map<string, DbtTextDocument>,
     private projectChangeListener: ProjectChangeListener,
   ) {
@@ -214,7 +214,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     }
 
     const destinationInitResult = profileResult.isOk()
-      ? this.bigQueryContext
+      ? this.destinationContext
           .initialize(profileResult.value, this.dbtRepository, ubuntuInWslWorks, this.dbtProject.findProjectName())
           .then((initResult: Result<void, string>) => (initResult.isErr() ? this.showCreateContextWarning(initResult.error) : undefined))
       : Promise.resolve();
@@ -317,7 +317,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   }
 
   showCreateContextWarning(error: string): void {
-    this.showWarning(`Unable to initialize BigQuery. ${error}`);
+    this.showWarning(`Unable to initialize destination. ${error}`);
   }
 
   logStartupInfo(contextInfo: DbtProfileInfo, initTime: number, ubuntuInWslWorks: boolean): void {
@@ -384,7 +384,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
         this.onGlobalDbtErrorFixedEmitter,
         this.dbtRepository,
         this.dbt,
-        this.bigQueryContext,
+        this.destinationContext,
         this.diagnosticGenerator,
         this.signatureHelpProvider,
         this.hoverProvider,
@@ -509,7 +509,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   dispose(): void {
     console.log('Dispose start...');
     this.dbt.dispose();
-    this.bigQueryContext.dispose();
+    this.destinationContext.dispose();
     this.onGlobalDbtErrorFixedEmitter.dispose();
     console.log('Dispose end.');
   }

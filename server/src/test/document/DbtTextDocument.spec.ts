@@ -3,10 +3,10 @@
 import { assertThat } from 'hamjest';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, Range, TextDocumentSaveReason, VersionedTextDocumentIdentifier } from 'vscode-languageserver';
-import { BigQueryContext } from '../../bigquery/BigQueryContext';
 import { DbtRepository } from '../../DbtRepository';
 import { Dbt } from '../../dbt_execution/Dbt';
 import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
+import { DestinationContext } from '../../DestinationContext';
 import { DiagnosticGenerator } from '../../DiagnosticGenerator';
 import { DbtDocumentKind } from '../../document/DbtDocumentKind';
 import { DbtTextDocument } from '../../document/DbtTextDocument';
@@ -58,7 +58,7 @@ describe('DbtTextDocument', () => {
       onGlobalDbtErrorFixedEmitter,
       dbtRepository,
       instance(mockDbt),
-      new BigQueryContext(),
+      new DestinationContext(),
       new DiagnosticGenerator(dbtRepository),
       new SignatureHelpProvider(),
       new HoverProvider(),

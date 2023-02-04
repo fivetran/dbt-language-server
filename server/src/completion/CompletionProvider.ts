@@ -1,8 +1,8 @@
 import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { CompletionItem, CompletionParams, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { DbtRepository } from '../DbtRepository';
+import { DestinationContext } from '../DestinationContext';
 import { DbtTextDocument } from '../document/DbtTextDocument';
 import { JinjaParser, JinjaPartType } from '../JinjaParser';
 import { LogLevel } from '../Logger';
@@ -22,7 +22,7 @@ export class CompletionProvider {
     private compiledDocument: TextDocument,
     dbtRepository: DbtRepository,
     private jinjaParser: JinjaParser,
-    private bigQueryContext: BigQueryContext,
+    private destinationContext: DestinationContext,
   ) {
     this.dbtCompletionProvider = new DbtCompletionProvider(dbtRepository);
   }
@@ -59,7 +59,7 @@ export class CompletionProvider {
   }
 
   private async provideSqlCompletions(completionParams: CompletionParams, text: string, ast?: AnalyzeResponse): Promise<CompletionItem[]> {
-    if (this.bigQueryContext.isEmpty()) {
+    if (this.destinationContext.isEmpty()) {
       return [];
     }
 
@@ -69,7 +69,7 @@ export class CompletionProvider {
       const offset = this.compiledDocument.offsetAt(Position.create(line, completionParams.position.character));
       completionInfo = DbtTextDocument.ZETA_SQL_AST.getCompletionInfo(ast, offset);
     }
-    return this.sqlCompletionProvider.onSqlCompletion(text, completionParams, this.bigQueryContext.destinationDefinition, completionInfo);
+    return this.sqlCompletionProvider.onSqlCompletion(text, completionParams, this.destinationContext.destinationDefinition, completionInfo);
   }
 
   private getCompletionText(completionParams: CompletionParams): string {

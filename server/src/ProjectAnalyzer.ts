@@ -34,7 +34,7 @@ export class ProjectAnalyzer {
     const visited = new Set<string>();
     let queue = this.dbtRepository.dag.getRootNodes();
     const results: ModelsAnalyzeResult[] = [];
-    const bigQueryTableFetcher = new TableFetcher(this.destinationClient);
+    const tableFetcher = new TableFetcher(this.destinationClient);
     const visitedModels = new Map<string, Promise<AnalyzeResult>>();
 
     while (queue.length > 0) {
@@ -50,7 +50,7 @@ export class ProjectAnalyzer {
 
         const model = node.getValue();
         if (model.packageName === this.projectName) {
-          const analyzeResult = await this.analyzeModelCached(model, bigQueryTableFetcher, undefined, visitedModels);
+          const analyzeResult = await this.analyzeModelCached(model, tableFetcher, undefined, visitedModels);
           results.push({ modelUniqueId: model.uniqueId, analyzeResult });
 
           for (const child of node.children) {
@@ -130,7 +130,7 @@ export class ProjectAnalyzer {
 
   private async analyzeModelCached(
     model: ManifestModel | undefined,
-    bigQueryTableFetcher: TableFetcher,
+    tableFetcher: TableFetcher,
     sql: string | undefined,
     visitedModels: Map<string, Promise<AnalyzeResult>>,
   ): Promise<AnalyzeResult> {
@@ -138,7 +138,7 @@ export class ProjectAnalyzer {
     const cacheKey = model?.uniqueId;
     let promise = cacheKey ? visitedModels.get(cacheKey) : undefined;
     if (!promise) {
-      promise = this.analyzeModelInternal(model, bigQueryTableFetcher, sql, visitedModels);
+      promise = this.analyzeModelInternal(model, tableFetcher, sql, visitedModels);
       if (cacheKey) {
         visitedModels.set(cacheKey, promise);
       }
@@ -148,7 +148,7 @@ export class ProjectAnalyzer {
 
   private async analyzeModelInternal(
     model: ManifestModel | undefined,
-    bigQueryTableFetcher: TableFetcher,
+    tableFetcher: TableFetcher,
     sql: string | undefined,
     visitedModels: Map<string, Promise<AnalyzeResult>>,
   ): Promise<AnalyzeResult> {
@@ -159,7 +159,7 @@ export class ProjectAnalyzer {
 
     const tables = await this.zetaSqlWrapper.findTableNames(compiledSql);
     if (tables.length > 0) {
-      await this.analyzeAllEphemeralModels(model, bigQueryTableFetcher, visitedModels);
+      await this.analyzeAllEphemeralModels(model, tableFetcher, visitedModels);
     }
 
     for (const table of tables) {
@@ -168,7 +168,7 @@ export class ProjectAnalyzer {
         if (refId) {
           const refModel = this.dbtRepository.dag.nodes.find(n => n.getValue().uniqueId === refId)?.getValue();
           if (refModel) {
-            await this.analyzeModelCached(refModel, bigQueryTableFetcher, undefined, visitedModels);
+            await this.analyzeModelCached(refModel, tableFetcher, undefined, visitedModels);
           } else {
             console.log("Can't find ref model by id");
           }
@@ -182,7 +182,7 @@ export class ProjectAnalyzer {
       tables
         .filter(t => !this.zetaSqlWrapper.isTableRegistered(t))
         .map(t =>
-          bigQueryTableFetcher.fetchTable(t).then(ts => {
+          tableFetcher.fetchTable(t).then(ts => {
             if (ts) {
               t.columns = ts.columns;
               t.timePartitioning = ts.timePartitioning;
@@ -225,7 +225,7 @@ export class ProjectAnalyzer {
 
   private async analyzeAllEphemeralModels(
     model: ManifestModel | undefined,
-    bigQueryTableFetcher: TableFetcher,
+    tableFetcher: TableFetcher,
     visitedModels: Map<string, Promise<AnalyzeResult>>,
   ): Promise<void> {
     for (const node of model?.dependsOn.nodes ?? []) {
@@ -235,7 +235,7 @@ export class ProjectAnalyzer {
       if (dependsOnEphemeralModel) {
         const table = ProjectAnalyzer.createTableDefinition(dependsOnEphemeralModel);
         if (!this.zetaSqlWrapper.isTableRegistered(table)) {
-          await this.analyzeModelCached(dependsOnEphemeralModel, bigQueryTableFetcher, undefined, visitedModels);
+          await this.analyzeModelCached(dependsOnEphemeralModel, tableFetcher, undefined, visitedModels);
         }
       }
     }
