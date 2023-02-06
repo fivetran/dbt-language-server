@@ -51,10 +51,13 @@ type VoidFunc = () => void;
 
 const PROJECTS_PATH = path.resolve(__dirname, '../projects');
 const DOWNLOADS_PATH = path.resolve(__dirname, '../.downloads');
+
 export const TEST_FIXTURE_PATH = path.resolve(PROJECTS_PATH, 'test-fixture');
 export const POSTGRES_PATH = path.resolve(PROJECTS_PATH, 'postgres');
 export const COMPLETION_JINJA_PATH = path.resolve(PROJECTS_PATH, 'completion-jinja');
 export const SPECIAL_PYTHON_SETTINGS_PATH = path.resolve(PROJECTS_PATH, 'special-python-settings');
+export const SNOWFLAKE_PATH = path.resolve(PROJECTS_PATH, 'snowflake');
+
 export const PREVIEW_URI = 'query-preview:Preview?dbt-language-server';
 export const PROJECT1_PATH = path.resolve(PROJECTS_PATH, 'two-projects/project1');
 

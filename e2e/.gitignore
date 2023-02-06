@@ -1,3 +1,4 @@
 projects/**/logs
-projects/**/target/*
+projects/**/target
+projects/**/dbt_packages
 projects/**/temp_model*.sql
