@@ -56,7 +56,7 @@ describe('SnowflakeClient', () => {
   it('getTableMetadata should return correct result', async () => {
     // arrange
     const datasetName = 'DBT_LS_E2E_DATASET';
-    const tableName = 'TEST_TABLE1';
+    const tableName = 'test_table1';
 
     const mockStream = new PassThrough();
 
@@ -68,7 +68,7 @@ describe('SnowflakeClient', () => {
       mockConnection.execute(
         deepEqual({
           sqlText: 'select column_name,data_type from information_schema.columns where table_schema = :1 and table_name = :2',
-          binds: [datasetName, tableName],
+          binds: [datasetName.toUpperCase(), tableName.toUpperCase()],
         }),
       ),
     ).thenReturn(instance(mockStatement));

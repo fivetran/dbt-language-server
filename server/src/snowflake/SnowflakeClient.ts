@@ -24,7 +24,7 @@ export class SnowflakeClient implements DbtDestinationClient {
     const columnName = 'table_name'.toUpperCase();
     const statement = this.connection.execute({
       sqlText: `select ${columnName} from information_schema.tables where table_schema = :1 order by ${columnName}`,
-      binds: [datasetName],
+      binds: [datasetName.toUpperCase()],
     });
     return this.getValues(statement, columnName);
   }
@@ -34,7 +34,7 @@ export class SnowflakeClient implements DbtDestinationClient {
     const columnNames = ['column_name', 'data_type'];
     const statement = this.connection.execute({
       sqlText: `select ${columnNames.join(',')} from information_schema.columns where table_schema = :1 and table_name = :2`,
-      binds: [datasetName, tableName],
+      binds: [datasetName.toUpperCase(), tableName.toUpperCase()],
     });
 
     const stream = statement.streamRows();
