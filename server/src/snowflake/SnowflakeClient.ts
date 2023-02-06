@@ -11,7 +11,7 @@ export class SnowflakeClient implements DbtDestinationClient {
 
   /** Returns list of schemas in Snowflake terminology */
   async getDatasets(): Promise<Dataset[]> {
-    await this.connect();
+    await this.connectIfNeeded();
     const columnName = 'schema_name'.toUpperCase();
     const statement = this.connection.execute({
       sqlText: `select ${columnName} from information_schema.schemata order by ${columnName}`,
@@ -20,7 +20,7 @@ export class SnowflakeClient implements DbtDestinationClient {
   }
 
   async getTables(datasetName: string): Promise<Table[]> {
-    await this.connect();
+    await this.connectIfNeeded();
     const columnName = 'table_name'.toUpperCase();
     const statement = this.connection.execute({
       sqlText: `select ${columnName} from information_schema.tables where table_schema = :1 order by ${columnName}`,
@@ -30,7 +30,7 @@ export class SnowflakeClient implements DbtDestinationClient {
   }
 
   async getTableMetadata(datasetName: string, tableName: string): Promise<Metadata | undefined> {
-    await this.connect();
+    await this.connectIfNeeded();
     const columnNames = ['column_name', 'data_type'];
     const statement = this.connection.execute({
       sqlText: `select ${columnNames.join(',')} from information_schema.columns where table_schema = :1 and table_name = :2`,
@@ -52,21 +52,26 @@ export class SnowflakeClient implements DbtDestinationClient {
     });
   }
 
-  getUdf(_projectId: string | undefined, _dataSetId: string, _routineId: string): Promise<Udf | undefined> {
+  async getUdf(_projectId: string | undefined, _dataSetId: string, _routineId: string): Promise<Udf | undefined> {
+    await this.connectIfNeeded();
     throw new Error('Method not implemented.');
   }
 
-  connect(): Promise<string | undefined> {
+  private connect(): Promise<string | undefined> {
     return new Promise<string | undefined>(resolve => {
       this.connection.connect(error => {
         if (error) {
-          const errorMessage = `Test connection failed. Reason: ${error.message}.`;
+          const errorMessage = `Connection failed. Reason: ${error.message}.`;
           console.log(errorMessage);
           resolve(errorMessage);
         }
         resolve(undefined);
       });
     });
+  }
+
+  private connectIfNeeded(): Promise<string | undefined> {
+    return this.connection.isUp() ? Promise.resolve(undefined) : this.connect();
   }
 
   private getValues(statement: Statement, columnName: string): Promise<{ id: string }[]> {

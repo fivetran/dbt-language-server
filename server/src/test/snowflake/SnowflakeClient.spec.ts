@@ -74,7 +74,7 @@ describe('SnowflakeClient', () => {
     ).thenReturn(instance(mockStatement));
 
     const client = new SnowflakeClient('project', instance(mockConnection));
-    client.connect = (): Promise<string | undefined> => Promise.resolve(undefined);
+    client['connect'] = (): Promise<string | undefined> => Promise.resolve(undefined);
 
     // act
     const promise = client.getTableMetadata(datasetName, tableName);
