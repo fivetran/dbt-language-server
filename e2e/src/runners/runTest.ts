@@ -11,7 +11,9 @@ async function main(): Promise<void> {
     await prepareSnowflake();
     console.log('Snowflake prepared successfully');
   } catch (e) {
-    throw new Error(`Failed to prepare destination. Error: ${e instanceof Error ? e.message : String(e)}`);
+    console.error(`Failed to prepare destination. Error: ${e instanceof Error ? e.message : String(e)}`);
+    /* eslint-disable-next-line unicorn/no-process-exit */
+    process.exit(1);
   }
 
   await installVsCodeAndRunTests('index', path.resolve(__dirname, '../../projects/test-workspace.code-workspace'));
