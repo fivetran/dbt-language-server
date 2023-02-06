@@ -136,7 +136,7 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
       }),
 
       this.client.onDidChangeState(e => {
-        log(`Client ${this.dbtProjectUri.fsPath} switched to state ${State[e.newState]}`);
+        log(`Client ${this.dbtProjectUri.fsPath} switched from ${State[e.oldState]} to ${State[e.newState]} state`);
       }),
 
       this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),

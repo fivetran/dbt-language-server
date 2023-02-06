@@ -19,5 +19,6 @@ export function activate(context: ExtensionContext): ExtensionApi {
 
 // This method is called when extension is deactivated
 export function deactivate(): Thenable<void> | undefined {
+  log('Deactivating extension');
   return extensionClient.onDeactivate();
 }
