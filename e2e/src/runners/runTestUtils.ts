@@ -5,7 +5,7 @@ import * as fs from 'node:fs';
 import { homedir } from 'node:os';
 import * as path from 'node:path';
 import { Client } from 'pg';
-import { createConnection } from 'snowflake-sdk';
+import { createConnection, SnowflakeError, Statement } from 'snowflake-sdk';
 
 // Expected parameter: path to the folder with the extension package.json
 export async function installVsCodeAndRunTests(indexName: string, projectWithModelsPath: string): Promise<void> {
@@ -241,7 +241,8 @@ export async function prepareSnowflake(): Promise<void> {
   });
 
   await new Promise<void>((resolve, reject) => {
-    connection.execute({
+    const options = {
+      parameters: { MULTI_STATEMENT_COUNT: 4 }, // Missing in @types/snowflake-sdk
       sqlText: `create database if not exists e2e_db;
       create schema if not exists dbt_ls_e2e_dataset;
       create table if not exists dbt_ls_e2e_dataset.test_table1(
@@ -261,13 +262,18 @@ export async function prepareSnowflake(): Promise<void> {
         referrer_id STRING
       );`,
 
-      complete: (_err, stmt, _rows) => {
+      complete: (err: SnowflakeError | undefined, stmt: Statement, _rows: unknown[] | undefined): void => {
+        if (err) {
+          reject(err);
+        }
         const stream = stmt.streamRows();
         stream.on('error', e => reject(e));
         stream.on('data', row => console.log(row));
         stream.on('end', () => resolve());
       },
-    });
+    };
+
+    connection.execute(options);
   });
 }
 
