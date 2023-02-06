@@ -210,7 +210,7 @@ jobs:
 
           read pg_host pg_user pg_password pg_port pg_dbname pg_schema < <(echo $(echo ${PG_CONNECTION_PARAMS} | jq -r '.host, .user, .password, .port, .dbname, .schema'))
 
-          read sf_account sf_database sf_password sf_role sf_schema sf_user sf_warehouse < <(echo $(echo ${SNOWFLAKE_CONNECTION_PARAMS} | jq -r '.account, .database, .password, .role, .schema, .user, .warehouse'))
+          read sf_account sf_database sf_password sf_role sf_schema sf_user sf_warehouse < <(echo $(echo ${SNOWFLAKE_CONNECTION_PARAMS} | jq -r '.account, .database, .password, .role, .schema, .username, .warehouse'))
 
           cat <<EOT > ~/.dbt/profiles.yml
           e2e-test-project:
@@ -271,19 +271,20 @@ jobs:
                 keepalives_idle: 0
                 connect_timeout: 10
                 search_path: ${pg_schema}
+
           snowflake:
+            target: prod
             outputs:
               prod:
                 type: snowflake
                 account: ${sf_account}
                 database: ${sf_database}
-                password: ${sf_password}
+                password: '${sf_password}'
                 role: ${sf_role}
                 schema: ${sf_schema}
                 threads: 4
                 user: ${sf_user}
                 warehouse: ${sf_warehouse}
-            target: prod
           EOT
         env:
           BQ_SERVICE_ACCOUNT: ${{ secrets.BQ_SERVICE_ACCOUNT }}
