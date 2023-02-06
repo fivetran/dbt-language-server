@@ -17,13 +17,13 @@ export class TableFetcher {
     const key = `${table.getDataSetName() ?? 'undefined'}.${table.getTableName()}`;
     let promise = this.tables.get(key);
     if (promise === undefined) {
-      promise = this.fillTableSchemaFromBq(table);
+      promise = this.fillTableSchemaFromApiCallResult(table);
       this.tables.set(key, promise);
     }
     return promise;
   }
 
-  private async fillTableSchemaFromBq(table: TableDefinition): Promise<TableInformation | undefined> {
+  private async fillTableSchemaFromApiCallResult(table: TableDefinition): Promise<TableInformation | undefined> {
     if (table.containsInformationSchema()) {
       return undefined;
     }
