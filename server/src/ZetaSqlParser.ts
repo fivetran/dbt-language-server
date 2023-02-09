@@ -15,7 +15,7 @@ export class ZetaSqlParser {
     const functions: string[][] = [];
     const parseResult = await this.parse(sqlStatement, options);
     if (parseResult) {
-      traverse('astFunctionCallNode', parseResult.parsedStatement, (node: unknown) => {
+      traverse(parseResult.parsedStatement, 'astFunctionCallNode', (node: unknown) => {
         const typedNode = node as ASTFunctionCallProto__Output;
         const nameParts = typedNode.function?.names.map(n => n.idString);
         if (nameParts && nameParts.length > 1 && !functions.some(f => arraysAreEqual(f, nameParts))) {
