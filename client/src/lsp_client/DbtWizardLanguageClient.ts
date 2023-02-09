@@ -31,8 +31,14 @@ export abstract class DbtWizardLanguageClient implements Disposable {
   async initialize(): Promise<void> {
     this.client = this.initializeClient();
     await this.initCustomParams();
-    (await this.pythonExtension.onDidChangeExecutionDetails())(() => this.restart());
     this.initializeNotifications();
+    (await this.pythonExtension.onDidChangeExecutionDetails())(async (resource: Uri | undefined) => {
+      log(`onDidChangeExecutionDetails ${resource?.fsPath ?? 'undefined'} ${resource?.toString() ?? 'undefined'}`);
+      if (this.client.state === State.Running && this.dbtProjectUri.fsPath === resource?.fsPath) {
+        log('Python execution details changed, restarting...');
+        await this.restart();
+      }
+    });
   }
 
   initializeNotifications(): void {
@@ -75,7 +81,7 @@ export abstract class DbtWizardLanguageClient implements Disposable {
   }
 
   stop(): Promise<void> {
-    log(`Stop client ${DbtWizardLanguageClient.name}`);
+    log(`Stop client ${this.dbtProjectUri.fsPath}`);
     return this.client.stop();
   }
 
@@ -86,13 +92,14 @@ export abstract class DbtWizardLanguageClient implements Disposable {
   }
 
   async restart(): Promise<void> {
+    log(`Restart client ${this.dbtProjectUri.fsPath}`);
     await this.initCustomParams();
     this.statusHandler.onRestart(this.dbtProjectUri.fsPath);
     this.client.restart().catch(e => this.client.error('Restarting client failed', e, 'force'));
   }
 
   dispose(): void {
-    log(`Dispose ${DbtWizardLanguageClient.name}`);
+    log(`Dispose client ${this.dbtProjectUri.fsPath}`);
     this.disposables.forEach(disposable => {
       disposable.dispose();
     });

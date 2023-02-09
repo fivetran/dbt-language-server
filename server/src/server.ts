@@ -4,7 +4,6 @@ import * as sourceMapSupport from 'source-map-support';
 import { createConnection, InitializeError, InitializeParams, InitializeResult, ProposedFeatures, ResponseError } from 'vscode-languageserver/node';
 import { URI } from 'vscode-uri';
 import { z } from 'zod';
-import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtProfileCreator } from './DbtProfileCreator';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
@@ -13,6 +12,7 @@ import { Dbt, DbtMode } from './dbt_execution/Dbt';
 import { DbtCli } from './dbt_execution/DbtCli';
 import { DbtRpc } from './dbt_execution/DbtRpc';
 import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
+import { DestinationContext } from './DestinationContext';
 import { DiagnosticGenerator } from './DiagnosticGenerator';
 import { DbtDocumentKindResolver } from './document/DbtDocumentKindResolver';
 import { DbtTextDocument } from './document/DbtTextDocument';
@@ -90,12 +90,12 @@ function createLspServerForProject(
   const dbtDefinitionProvider = new DbtDefinitionProvider(dbtRepository);
   const signatureHelpProvider = new SignatureHelpProvider();
   const hoverProvider = new HoverProvider();
-  const bigQueryContext = new BigQueryContext();
+  const destinationContext = new DestinationContext();
   const openedDocuments = new Map<string, DbtTextDocument>();
 
   const projectChangeListener = new ProjectChangeListener(
     openedDocuments,
-    bigQueryContext,
+    destinationContext,
     dbtRepository,
     diagnosticGenerator,
     notificationSender,
@@ -121,7 +121,7 @@ function createLspServerForProject(
     dbtDefinitionProvider,
     signatureHelpProvider,
     hoverProvider,
-    bigQueryContext,
+    destinationContext,
     openedDocuments,
     projectChangeListener,
   );

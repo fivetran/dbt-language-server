@@ -1,38 +1,16 @@
 import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
-import { BigQuery, DatasetsResponse, RoutineMetadata, TableMetadata } from '@google-cloud/bigquery';
+import { BigQuery, Dataset as BqDataset, RoutineMetadata, TableMetadata } from '@google-cloud/bigquery';
 import { err, ok, Result } from 'neverthrow';
-import { DbtDestinationClient } from '../DbtDestinationClient';
-import { SchemaDefinition } from '../TableDefinition';
+import { Dataset, DbtDestinationClient, Metadata, SchemaDefinition, Table, Udf, UdfArgument } from '../DbtDestinationClient';
 import { BigQueryTypeKind, IStandardSqlDataType } from './BigQueryLibraryTypes';
-
-export interface Metadata {
-  schema: SchemaDefinition;
-  timePartitioning: boolean;
-}
-
-export interface Udf {
-  nameParts: string[];
-  arguments?: UdfArgument[];
-  returnType?: TypeProto;
-}
-
-export interface UdfArgument {
-  name?: string;
-  type: TypeProto;
-  argumentKind?: 'ARGUMENT_KIND_UNSPECIFIED' | 'FIXED_TYPE' | 'ANY_TYPE';
-}
 
 export class BigQueryClient implements DbtDestinationClient {
   private static readonly BQ_TEST_CLIENT_DATASETS_LIMIT = 1;
   private static readonly REQUESTED_SCHEMA_FIELDS = ['schema', 'timePartitioning'] as const;
   private static readonly JOINED_FIELDS = BigQueryClient.REQUESTED_SCHEMA_FIELDS.join(',');
 
-  project: string;
-
-  constructor(project: string, public bigQuerySupplier: () => BigQuery) {
-    this.project = project;
-  }
+  constructor(public defaultProject: string, public bigQuerySupplier: () => BigQuery) {}
 
   async test(): Promise<Result<void, string>> {
     try {
@@ -46,12 +24,18 @@ export class BigQueryClient implements DbtDestinationClient {
     return ok(undefined);
   }
 
-  async getDatasets(maxResults?: number): Promise<DatasetsResponse> {
-    return this.bigQuerySupplier().getDatasets({ maxResults });
+  async getDatasets(maxResults?: number): Promise<Dataset[]> {
+    const [bigQueryResult] = await this.bigQuerySupplier().getDatasets({ maxResults });
+    return bigQueryResult.map(d => ({ id: d.id })).filter((d): d is { id: string } => d.id !== undefined);
   }
 
-  async getTableMetadata(dataSet: string, tableName: string): Promise<Metadata | undefined> {
-    const dataset = this.bigQuerySupplier().dataset(dataSet);
+  async getTables(datasetName: string, projectName?: string): Promise<Table[]> {
+    const [tables] = await new BqDataset(this.bigQuerySupplier(), datasetName, { projectId: projectName }).getTables();
+    return tables.map(t => ({ id: t.id })).filter((t): t is { id: string } => t.id !== undefined);
+  }
+
+  async getTableMetadata(datasetName: string, tableName: string): Promise<Metadata | undefined> {
+    const dataset = this.bigQuerySupplier().dataset(datasetName);
     const table = dataset.table(tableName);
     try {
       const [metadata] = (await table.getMetadata({
@@ -99,7 +83,7 @@ export class BigQueryClient implements DbtDestinationClient {
     return undefined;
   }
 
-  static toTypeProto(dataType?: IStandardSqlDataType): TypeProto {
+  private static toTypeProto(dataType?: IStandardSqlDataType): TypeProto {
     if (!dataType) {
       return {};
     }
@@ -118,7 +102,7 @@ export class BigQueryClient implements DbtDestinationClient {
     return type;
   }
 
-  static toTypeKind(bigQueryTypeKind?: BigQueryTypeKind): TypeKind {
+  private static toTypeKind(bigQueryTypeKind?: BigQueryTypeKind): TypeKind {
     switch (bigQueryTypeKind) {
       case 'TYPE_KIND_UNSPECIFIED': {
         return TypeKind.TYPE_UNKNOWN;

@@ -12,7 +12,7 @@ import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql
 import { SimpleTableProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleTableProto';
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
 import { err, ok } from 'neverthrow';
-import { BigQueryClient, Udf } from './bigquery/BigQueryClient';
+import { DbtDestinationClient, Udf } from './DbtDestinationClient';
 import { FeatureFinder } from './feature_finder/FeatureFinder';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
 import { ProcessExecutor } from './ProcessExecutor';
@@ -38,7 +38,7 @@ export class ZetaSqlWrapper {
   private registeredFunctions = new Set<string>();
   private informationSchemaConfigurator = new InformationSchemaConfigurator();
 
-  constructor(private bigQueryClient: BigQueryClient, private zetaSqlParser: ZetaSqlParser, private sqlHeaderAnalyzer: SqlHeaderAnalyzer) {
+  constructor(private destinationClient: DbtDestinationClient, private zetaSqlParser: ZetaSqlParser, private sqlHeaderAnalyzer: SqlHeaderAnalyzer) {
     this.catalog = this.getDefaultCatalog();
   }
 
@@ -300,10 +300,10 @@ export class ZetaSqlWrapper {
 
   private async createUdfFromNamePath(namePath: string[]): Promise<Udf | undefined> {
     if (namePath.length === 2) {
-      return this.bigQueryClient.getUdf(undefined, namePath[0], namePath[1]);
+      return this.destinationClient.getUdf(undefined, namePath[0], namePath[1]);
     }
     if (namePath.length === 3) {
-      return this.bigQueryClient.getUdf(namePath[0], namePath[1], namePath[2]);
+      return this.destinationClient.getUdf(namePath[0], namePath[1], namePath[2]);
     }
     return undefined;
   }

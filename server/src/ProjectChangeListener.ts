@@ -1,8 +1,8 @@
 import { Diagnostic, FileChangeType, FileEvent } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
-import { BigQueryContext } from './bigquery/BigQueryContext';
 import { DbtRepository } from './DbtRepository';
 import { Dbt } from './dbt_execution/Dbt';
+import { DestinationContext } from './DestinationContext';
 import { DiagnosticGenerator } from './DiagnosticGenerator';
 import { DbtTextDocument } from './document/DbtTextDocument';
 import { FileChangeListener } from './FileChangeListener';
@@ -18,7 +18,7 @@ export class ProjectChangeListener {
 
   constructor(
     private openedDocuments: Map<string, DbtTextDocument>,
-    private bigQueryContext: BigQueryContext,
+    private destinationContext: DestinationContext,
     private dbtRepository: DbtRepository,
     private diagnosticGenerator: DiagnosticGenerator,
     private notificationSender: NotificationSender,
@@ -61,11 +61,11 @@ export class ProjectChangeListener {
     let mainModelResult: AnalyzeResult | undefined;
 
     if (node) {
-      const results = await this.bigQueryContext.analyzeModelTree(node, sql);
+      const results = await this.destinationContext.analyzeModelTree(node, sql);
       this.sendDiagnosticsForDocuments(results);
       mainModelResult = results.find(r => r.modelUniqueId === node.getValue().uniqueId)?.analyzeResult;
     } else {
-      const result = await this.bigQueryContext.analyzeSql(sql);
+      const result = await this.destinationContext.analyzeSql(sql);
       mainModelResult = result;
     }
     return mainModelResult;
@@ -83,10 +83,10 @@ export class ProjectChangeListener {
   }, ProjectChangeListener.PROJECT_COMPILE_DEBOUNCE_TIMEOUT);
 
   private async analyzeProject(): Promise<void> {
-    if (!this.enableEntireProjectAnalysis || this.bigQueryContext.isEmpty()) {
+    if (!this.enableEntireProjectAnalysis || this.destinationContext.isEmpty()) {
       return;
     }
-    const results = await this.bigQueryContext.analyzeProject();
+    const results = await this.destinationContext.analyzeProject();
     this.notificationSender.clearAllDiagnostics();
     this.sendDiagnosticsForDocuments(results);
     console.log(`Processed ${results.length} models. ${results.filter(r => r.analyzeResult.isErr()).length} errors found during analysis`);

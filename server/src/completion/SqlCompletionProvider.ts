@@ -321,26 +321,21 @@ export class SqlCompletionProvider {
     }
 
     const tables = await destinationDefinition.getTables(datasetName);
-    return tables
-      .filter(t => t.id)
-      .map<CompletionItem>(t => ({
-        label: t.id ?? '',
-        kind: CompletionItemKind.Value,
-        detail: `Table in ${destinationDefinition.activeProject}.${datasetName}`,
-      }));
+    return tables.map<CompletionItem>(t => ({
+      label: t.id,
+      kind: CompletionItemKind.Value,
+      detail: `Table in ${destinationDefinition.activeProject}.${datasetName}`,
+    }));
   }
 
   getDatasets(destinationDefinition?: DestinationDefinition): CompletionItem[] {
     return destinationDefinition
-      ? destinationDefinition
-          .getDatasets()
-          .filter(d => d.id)
-          .map<CompletionItem>(d => ({
-            label: d.id ?? '',
-            kind: CompletionItemKind.Value,
-            detail: `Dataset in ${destinationDefinition.activeProject}`,
-            commitCharacters: ['.'],
-          }))
+      ? destinationDefinition.getDatasets().map<CompletionItem>(d => ({
+          label: d.id,
+          kind: CompletionItemKind.Value,
+          detail: `Dataset in ${destinationDefinition.activeProject}`,
+          commitCharacters: ['.'],
+        }))
       : [];
   }
 

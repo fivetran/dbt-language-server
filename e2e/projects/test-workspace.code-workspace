@@ -20,6 +20,9 @@
     },
     {
       "path": "project-with-packages"
+    },
+    {
+      "path": "snowflake"
     }
   ],
   "settings": {

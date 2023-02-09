@@ -21,12 +21,12 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import { BigQueryContext } from '../bigquery/BigQueryContext';
 import { CompletionProvider } from '../completion/CompletionProvider';
 import { DbtRepository } from '../DbtRepository';
 import { Dbt } from '../dbt_execution/Dbt';
 import { DbtCompileJob } from '../dbt_execution/DbtCompileJob';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
+import { DestinationContext } from '../DestinationContext';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
 import { HoverProvider } from '../HoverProvider';
 import { JinjaParser } from '../JinjaParser';
@@ -71,7 +71,7 @@ export class DbtTextDocument {
     private onGlobalDbtErrorFixedEmitter: Emitter<void>,
     private dbtRepository: DbtRepository,
     private dbt: Dbt,
-    private bigQueryContext: BigQueryContext,
+    private destinationContext: DestinationContext,
     private diagnosticGenerator: DiagnosticGenerator,
     private signatureHelpProvider: SignatureHelpProvider,
     private hoverProvider: HoverProvider,
@@ -80,7 +80,13 @@ export class DbtTextDocument {
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
-    this.completionProvider = new CompletionProvider(this.rawDocument, this.compiledDocument, this.dbtRepository, this.jinjaParser, bigQueryContext);
+    this.completionProvider = new CompletionProvider(
+      this.rawDocument,
+      this.compiledDocument,
+      this.dbtRepository,
+      this.jinjaParser,
+      destinationContext,
+    );
     this.requireCompileOnSave = false;
 
     this.modelCompiler.onCompilationError(this.onCompilationError.bind(this));
@@ -88,7 +94,7 @@ export class DbtTextDocument {
     this.modelCompiler.onFinishAllCompilationJobs(this.onFinishAllCompilationTasks.bind(this));
     this.onGlobalDbtErrorFixedEmitter.event(this.onDbtErrorFixed.bind(this));
 
-    this.bigQueryContext.onContextInitialized(this.onContextInitialized.bind(this));
+    this.destinationContext.onContextInitialized(this.onContextInitialized.bind(this));
     this.dbt.onDbtReady(this.onDbtReady.bind(this));
   }
 
@@ -215,7 +221,7 @@ export class DbtTextDocument {
 
   canResendDiagnostics(): boolean {
     return (
-      this.bigQueryContext.contextInitialized &&
+      this.destinationContext.contextInitialized &&
       this.dbt.dbtReady &&
       !this.currentDbtError &&
       !this.modelCompiler.compilationInProgress &&
@@ -265,7 +271,7 @@ export class DbtTextDocument {
     this.fixGlobalDbtError();
 
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
-    if (this.bigQueryContext.contextInitialized) {
+    if (this.destinationContext.contextInitialized) {
       await this.updateAndSendDiagnosticsAndPreview();
     }
 
@@ -310,7 +316,7 @@ export class DbtTextDocument {
     let compiledDocDiagnostics: Diagnostic[] = [];
 
     if (
-      !this.bigQueryContext.isEmpty() &&
+      !this.destinationContext.isEmpty() &&
       this.dbtDocumentKind === DbtDocumentKind.MODEL &&
       compiledSql !== '' &&
       compiledSql !== DbtCompileJob.NO_RESULT_FROM_COMPILER

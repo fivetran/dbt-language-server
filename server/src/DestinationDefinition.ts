@@ -1,19 +1,17 @@
-import { Dataset, Table, TableField, TableMetadata } from '@google-cloud/bigquery';
-import { BigQueryClient } from './bigquery/BigQueryClient';
+import { ColumnDefinition, Dataset, DbtDestinationClient, Table } from './DbtDestinationClient';
 
 export class DestinationDefinition {
   activeProject: string;
   projects = new Map<string, Dataset[]>();
   tables = new Map<string, Table[]>();
-  columns = new Map<string, TableField[]>();
+  columns = new Map<string, ColumnDefinition[]>();
 
-  constructor(bigQueryClient: BigQueryClient) {
-    this.activeProject = bigQueryClient.project;
+  constructor(private client: DbtDestinationClient) {
+    this.activeProject = client.defaultProject;
 
-    bigQueryClient
+    client
       .getDatasets()
-      .then(datasetsResponse => {
-        const [datasets] = datasetsResponse;
+      .then(datasets => {
         this.projects.set(this.activeProject, datasets);
         return this.projects;
       })
@@ -35,13 +33,13 @@ export class DestinationDefinition {
     }
     let foundTables = this.tables.get(datasetName);
     if (!foundTables) {
-      [foundTables] = await dataset.getTables();
+      foundTables = await this.client.getTables(datasetName, projectName);
       this.tables.set(datasetName, foundTables);
     }
     return foundTables;
   }
 
-  async getColumns(datasetName: string, tableName: string, projectName?: string): Promise<TableField[]> {
+  async getColumns(datasetName: string, tableName: string, projectName?: string): Promise<ColumnDefinition[]> {
     const tables = await this.getTables(datasetName, projectName);
     const table = tables.find(t => t.id === tableName);
     if (!table) {
@@ -50,8 +48,8 @@ export class DestinationDefinition {
 
     let foundColumns = this.columns.get(datasetName);
     if (!foundColumns) {
-      const [metadata] = (await table.getMetadata()) as [TableMetadata, unknown];
-      foundColumns = metadata.schema?.fields;
+      const metadata = await this.client.getTableMetadata(datasetName, tableName);
+      foundColumns = metadata?.schema.fields;
       if (foundColumns) {
         this.columns.set(datasetName, foundColumns);
       }

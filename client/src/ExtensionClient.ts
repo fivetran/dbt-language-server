@@ -53,6 +53,7 @@ export class ExtensionClient {
       workspace.onDidOpenTextDocument(this.onDidOpenTextDocument.bind(this)),
       workspace.onDidChangeWorkspaceFolders(event => {
         for (const folder of event.removed) {
+          log(`Workspace folder removed, stopping client ${folder.uri.fsPath}`);
           this.dbtLanguageClientManager.stopClient(folder.uri.fsPath);
         }
       }),

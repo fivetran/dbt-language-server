@@ -38,16 +38,10 @@ export class SnowflakeUserPassProfile implements DbtProfile {
   }
 
   private async createClientInternal(profile: z.infer<typeof SnowflakeUserPassProfile.SCHEMA>): Promise<Result<DbtDestinationClient, string>> {
-    const connection = createConnection({
-      account: profile.account,
-      username: profile.user,
-      password: profile.password,
-      warehouse: profile.warehouse,
-      database: profile.database,
-      schema: profile.schema,
-    });
+    const { account, user: username, password, warehouse, database, schema } = profile;
+    const connection = createConnection({ account, username, password, warehouse, database, schema });
 
-    const client = new SnowflakeClient(connection);
+    const client = new SnowflakeClient(database, connection);
 
     const testResult = await client.test();
     if (testResult.isErr()) {

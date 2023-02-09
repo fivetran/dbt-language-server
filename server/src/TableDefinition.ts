@@ -110,14 +110,3 @@ export class TableDefinition {
     return arraysAreEqual(this.namePath, other.namePath) && this.catalogCount === other.catalogCount;
   }
 }
-
-export interface SchemaDefinition {
-  fields: ColumnDefinition[];
-}
-
-export interface ColumnDefinition {
-  name: string;
-  type: string;
-  fields?: ColumnDefinition[];
-  mode?: string;
-}

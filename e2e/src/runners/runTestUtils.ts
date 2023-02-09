@@ -5,6 +5,7 @@ import * as fs from 'node:fs';
 import { homedir } from 'node:os';
 import * as path from 'node:path';
 import { Client } from 'pg';
+import { createConnection, SnowflakeError, Statement } from 'snowflake-sdk';
 
 // Expected parameter: path to the folder with the extension package.json
 export async function installVsCodeAndRunTests(indexName: string, projectWithModelsPath: string): Promise<void> {
@@ -215,6 +216,65 @@ export async function preparePostgres(): Promise<void> {
   await client.query(recreateUsersTableQuery);
   await client.query(recreateOrdersTableQuery);
   await client.end();
+}
+
+export async function prepareSnowflake(): Promise<void> {
+  const content = fs.readFileSync(`${homedir()}/.dbt/snowflake.json`, 'utf8');
+  const connectionParams = JSON.parse(content) as {
+    account: string;
+    username: string;
+    password: string;
+    database: string;
+    warehouse: string;
+  };
+
+  const connection = createConnection(connectionParams);
+  await new Promise<void>((resolve, reject) => {
+    connection.connect(error => {
+      if (error) {
+        const errorMessage = `Connection to Snowflake failed. Reason: ${error.message}.`;
+        console.log(errorMessage);
+        reject(error);
+      }
+      resolve();
+    });
+  });
+
+  await new Promise<void>((resolve, reject) => {
+    const options = {
+      parameters: { MULTI_STATEMENT_COUNT: 4 }, // Missing in @types/snowflake-sdk
+      sqlText: `create database if not exists e2e_db;
+      create schema if not exists dbt_ls_e2e_dataset;
+      create table if not exists dbt_ls_e2e_dataset.test_table1(
+        id INTEGER,
+        time TIMESTAMP,
+        name STRING,
+        date DATE
+      );
+      create table if not exists dbt_ls_e2e_dataset.users(
+      id INTEGER,
+        name STRING,
+        division STRING,
+        role STRING,
+        email STRING,
+        phone STRING,
+        profile_id STRING,
+        referrer_id STRING
+      );`,
+
+      complete: (err: SnowflakeError | undefined, stmt: Statement, _rows: unknown[] | undefined): void => {
+        if (err) {
+          reject(err);
+        }
+        const stream = stmt.streamRows();
+        stream.on('error', e => reject(e));
+        stream.on('data', row => console.log(row));
+        stream.on('end', () => resolve());
+      },
+    };
+
+    connection.execute(options);
+  });
 }
 
 function installExtension(cli: string, args: string[], idOrPath: string, installPath: string): SpawnSyncReturns<string> {
