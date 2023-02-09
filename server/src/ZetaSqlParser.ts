@@ -6,8 +6,12 @@ import { promisify } from 'node:util';
 import { arraysAreEqual } from './utils/Utils';
 import { traverse } from './utils/ZetaSqlUtils';
 
+export interface ParseResult {
+  functions: string[][];
+}
+
 export class ZetaSqlParser {
-  async getAllFunctionCalls(sqlStatement: string, options?: LanguageOptionsProto): Promise<string[][]> {
+  async getParseResult(sqlStatement: string, options?: LanguageOptionsProto): Promise<ParseResult> {
     const functions: string[][] = [];
     const parseResult = await this.parse(sqlStatement, options);
     if (parseResult) {
@@ -18,7 +22,7 @@ export class ZetaSqlParser {
         }
       });
     }
-    return functions;
+    return { functions };
   }
 
   async parse(sqlStatement: string, options?: LanguageOptionsProto): Promise<ParseResponse__Output | undefined> {

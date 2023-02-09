@@ -310,8 +310,8 @@ export class ZetaSqlWrapper {
 
   private async getNewCustomFunctions(sql: string): Promise<string[][]> {
     const languageOptions = await this.getLanguageOptions();
-    const allFunctions = await this.zetaSqlParser.getAllFunctionCalls(sql, languageOptions?.serialize());
-    return allFunctions.filter(f => !this.registeredFunctions.has(f.join(',')));
+    const parseResult = await this.zetaSqlParser.getParseResult(sql, languageOptions?.serialize());
+    return parseResult.functions.filter(f => !this.registeredFunctions.has(f.join(',')));
   }
 
   static createSimpleColumn(name: string, type: TypeProto | null): SimpleColumnProto {
