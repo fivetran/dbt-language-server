@@ -12,7 +12,9 @@ export interface ParseResult {
 
 export class ZetaSqlParser {
   async getParseResult(sqlStatement: string, options?: LanguageOptionsProto): Promise<ParseResult> {
-    const functions: string[][] = [];
+    const result: ParseResult = {
+      functions: [],
+    };
     const parseResult = await this.parse(sqlStatement, options);
     if (parseResult) {
       traverse(
@@ -23,15 +25,15 @@ export class ZetaSqlParser {
             (node: unknown): void => {
               const typedNode = node as ASTFunctionCallProto__Output;
               const nameParts = typedNode.function?.names.map(n => n.idString);
-              if (nameParts && nameParts.length > 1 && !functions.some(f => arraysAreEqual(f, nameParts))) {
-                functions.push(nameParts);
+              if (nameParts && nameParts.length > 1 && !result.functions.some(f => arraysAreEqual(f, nameParts))) {
+                result.functions.push(nameParts);
               }
             },
           ],
         ]),
       );
     }
-    return { functions };
+    return result;
   }
 
   async parse(sqlStatement: string, options?: LanguageOptionsProto): Promise<ParseResponse__Output | undefined> {
