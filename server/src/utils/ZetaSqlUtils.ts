@@ -58,15 +58,16 @@ export function createType(newColumn: ColumnDefinition): TypeProto {
   return resultType;
 }
 
-export function traverse(unknownNode: unknown, nodeType: string, action: (node: unknown) => void): void {
+export function traverse(unknownNode: unknown, actions: Map<string, (node: unknown) => void>): void {
   const node = unknownNode as Node;
-  if (node.node === nodeType) {
+  const action = actions.get(node.node);
+  if (action) {
     action(node[node.node]);
   }
   for (const key of Object.keys(node)) {
     const child = node[key];
     if (typeof child === 'object' && child !== null) {
-      traverse(child, nodeType, action);
+      traverse(child, actions);
     }
   }
 }

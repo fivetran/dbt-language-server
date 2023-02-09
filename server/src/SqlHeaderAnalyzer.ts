@@ -19,22 +19,30 @@ export class SqlHeaderAnalyzer {
     const functions: FunctionProto[] = [];
     const asts = await this.analyze(sqlStatement, options, builtinFunctionOptions);
     for (const ast of asts) {
-      traverse(ast.resolvedStatement, 'resolvedCreateFunctionStmtNode', (node: unknown) => {
-        const typedNode = node as ResolvedCreateFunctionStmtProto__Output;
-        functions.push({
-          namePath: typedNode.parent?.namePath,
-          signature: [
-            {
-              argument: typedNode.signature?.argument.map(a => ({
-                kind: a.kind,
-                type: a.type,
-                numOccurrences: a.numOccurrences,
-              })),
-              returnType: typedNode.signature?.returnType,
+      traverse(
+        ast.resolvedStatement,
+        new Map([
+          [
+            'resolvedCreateFunctionStmtNode',
+            (node: unknown): void => {
+              const typedNode = node as ResolvedCreateFunctionStmtProto__Output;
+              functions.push({
+                namePath: typedNode.parent?.namePath,
+                signature: [
+                  {
+                    argument: typedNode.signature?.argument.map(a => ({
+                      kind: a.kind,
+                      type: a.type,
+                      numOccurrences: a.numOccurrences,
+                    })),
+                    returnType: typedNode.signature?.returnType,
+                  },
+                ],
+              });
             },
           ],
-        });
-      });
+        ]),
+      );
     }
     return functions;
   }
