@@ -58,11 +58,10 @@ export function createType(newColumn: ColumnDefinition): TypeProto {
   return resultType;
 }
 
-export function traverse<T>(nodeType: string, unknownNode: unknown, action: (node: T) => void): void {
+export function traverse(nodeType: string, unknownNode: unknown, action: (node: unknown) => void): void {
   const node = unknownNode as Node;
   if (node.node === nodeType) {
-    const typedNode = node[node.node] as T;
-    action(typedNode);
+    action(node[node.node]);
   }
   for (const key of Object.keys(node)) {
     const child = node[key];
