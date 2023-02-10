@@ -25,7 +25,7 @@ export class TelemetryClient {
     }
 
     if (packageJson) {
-      TelemetryClient.client = new TelemetryReporter(packageJson.name, packageJson.version, packageJson.aiKey);
+      TelemetryClient.client = new TelemetryReporter(packageJson.aiKey);
       context.subscriptions.push(TelemetryClient.client);
     } else {
       log('Telemetry was not activated');
