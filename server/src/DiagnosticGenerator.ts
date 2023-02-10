@@ -77,6 +77,16 @@ export class DiagnosticGenerator {
 
       result.raw.push(this.createErrorDiagnostic(rawDocText, positionInRawDoc, errorText));
       result.compiled.push(this.createErrorDiagnostic(compiledDocText, positionInCompiledDoc, errorText));
+    } else if (error !== '') {
+      // Example error: 'Non-concrete result signature for non-templated function: :LEAST_ARRAY (ARRAY<TIMESTAMP>) -> ANY TYPE'
+      const diagnostic: Diagnostic = {
+        severity: DiagnosticSeverity.Error,
+        range: Range.create(Position.create(0, 0), Position.create(0, 0)),
+        message: error,
+        source: DiagnosticGenerator.DIAGNOSTIC_SOURCE,
+      };
+      result.raw.push(diagnostic);
+      result.compiled.push(diagnostic);
     }
     return result;
   }
