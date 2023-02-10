@@ -5,13 +5,13 @@
     "vscode": "^1.52.0"
   },
   "dependencies": {
-    "@vscode/extension-telemetry": "^0.6.2",
+    "@vscode/extension-telemetry": "^0.7.5",
     "dbt-language-server-common": "file:../common",
     "vscode-languageclient": "^8.0.2"
   },
   "devDependencies": {
     "@google-cloud/bigquery": "^6.1.0",
-    "@types/vscode": "^1.74.1",
+    "@types/vscode": "^1.75.0",
     "@vscode/test-electron": "^2.2.3"
   }
 }
