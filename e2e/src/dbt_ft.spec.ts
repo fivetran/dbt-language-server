@@ -75,7 +75,9 @@ suite('dbt_ft', () => {
           // Do nothing
         });
 
-    await waitWithTimeout(analyzeFinishedPromise, 1000 * 60 * (isRunningOnCi() ? 20 : 4));
+    const timeout = 1000 * 60 * (isRunningOnCi() ? 20 : 4);
+    console.log(`Start analyzing with timeout ${timeout} ms`);
+    await waitWithTimeout(analyzeFinishedPromise, timeout);
 
     const allDiagnostics = languages.getDiagnostics();
 
