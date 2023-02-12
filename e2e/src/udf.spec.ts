@@ -1,23 +1,23 @@
+import { assertThat } from 'hamjest';
 import { EOL } from 'node:os';
 import { DiagnosticSeverity, Position, Range } from 'vscode';
 import { assertAllDiagnostics, assertDiagnostics } from './asserts';
-import { activateAndWait, appendText, createAndOpenTempModel, getDocUri, replaceText, setTestContent } from './helper';
+import { activateAndWait, appendText, createAndOpenTempModel, getDocUri, getPreviewText, replaceText, setTestContent } from './helper';
 
 suite('User defined function', () => {
-  const DOC_URI = getDocUri('udf.sql');
-
   const FOO_NOT_FOUND = 'Function not found: Foo';
   const BAR_NOT_FOUND = 'Function not found: bar';
   const ARGS_DOES_NOT_MATCH =
     'Number of arguments does not match for function :FOO. Supported signature: FOO(STRING, INT64, ARRAY<STRING>, STRUCT<headers STRING, body STRING>)';
 
   test('Should compile sql with persistent UDF', async () => {
-    await activateAndWait(DOC_URI);
+    const docUri = getDocUri('udf.sql');
+    await activateAndWait(docUri);
 
-    await assertDiagnostics(DOC_URI, []);
+    await assertDiagnostics(docUri, []);
 
     await appendText(' + dbt_ls_e2e_dataset.my_custom_sum1(1, 2)');
-    await assertDiagnostics(DOC_URI, [
+    await assertDiagnostics(docUri, [
       {
         severity: DiagnosticSeverity.Error,
         message: 'Function not found: dbt_ls_e2e_dataset.my_custom_sum1; Did you mean dbt_ls_e2e_dataset.my_custom_sum?',
@@ -109,5 +109,17 @@ FROM
     await replaceText(', bar()', ', bar() --'); // To change preview content
 
     await assertAllDiagnostics(uri, []);
+  });
+
+  test('Should compile sql with temp templated UDF', async () => {
+    // arrange
+    const docUri = getDocUri('temp_udfs.sql');
+
+    // act
+    await activateAndWait(docUri);
+
+    // assert
+    await assertDiagnostics(docUri, []);
+    assertThat(getPreviewText(), '\nselect ScalarUdf(1);');
   });
 });

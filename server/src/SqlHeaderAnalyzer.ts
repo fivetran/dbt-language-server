@@ -1,10 +1,12 @@
 import { ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
+import { _zetasql_FunctionEnums_Mode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/FunctionEnums';
 import { FunctionProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/FunctionProto';
 import { LanguageOptionsProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/LanguageOptionsProto';
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRecordType';
 import { ResolvedCreateFunctionStmtProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedCreateFunctionStmtProto';
+import { SignatureArgumentKind } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SignatureArgumentKind';
 import { ZetaSQLBuiltinFunctionOptionsProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ZetaSQLBuiltinFunctionOptionsProto';
 import { promisify } from 'node:util';
 import { traverse } from './utils/ZetaSqlUtils';
@@ -20,7 +22,7 @@ export class SqlHeaderAnalyzer {
     const asts = await this.analyze(sqlStatement, options, builtinFunctionOptions);
     for (const ast of asts) {
       traverse('resolvedCreateFunctionStmtNode', ast.resolvedStatement, (node: ResolvedCreateFunctionStmtProto__Output) => {
-        functions.push({
+        const func: FunctionProto = {
           namePath: node.parent?.namePath,
           signature: [
             {
@@ -32,7 +34,18 @@ export class SqlHeaderAnalyzer {
               returnType: node.signature?.returnType,
             },
           ],
-        });
+        };
+
+        if (node.signature?.argument.some(a => a.kind === SignatureArgumentKind.ARG_TYPE_ARBITRARY)) {
+          func.group = 'Templated_SQL_Function';
+          func.mode = _zetasql_FunctionEnums_Mode.SCALAR;
+          func.parseResumeLocation = {
+            input: node.code,
+          };
+          func.templatedSqlFunctionArgumentName = node.argumentNameList;
+        }
+
+        functions.push(func);
       });
     }
     return functions;
