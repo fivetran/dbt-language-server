@@ -1,19 +1,28 @@
 import { ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { ASTFunctionCallProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTFunctionCallProto';
+import { ASTSelectProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTSelectProto';
 import { LanguageOptionsProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/LanguageOptionsProto';
 import { ParseResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ParseResponse';
+import { ParseLocationRangeProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
 import { promisify } from 'node:util';
 import { arraysAreEqual } from './utils/Utils';
 import { traverse } from './utils/ZetaSqlUtils';
 
+export interface KnownColumn {
+  name: string;
+  parseLocationRange: ParseLocationRangeProto__Output;
+}
+
 export interface ParseResult {
   functions: string[][];
+  columns: KnownColumn[];
 }
 
 export class ZetaSqlParser {
   async getParseResult(sqlStatement: string, options?: LanguageOptionsProto): Promise<ParseResult> {
     const result: ParseResult = {
       functions: [],
+      columns: [],
     };
     const parseResult = await this.parse(sqlStatement, options);
     if (parseResult) {
@@ -27,6 +36,24 @@ export class ZetaSqlParser {
               const nameParts = typedNode.function?.names.map(n => n.idString);
               if (nameParts && nameParts.length > 1 && !result.functions.some(f => arraysAreEqual(f, nameParts))) {
                 result.functions.push(nameParts);
+              }
+            },
+          ],
+          [
+            'astSelectNode',
+            (node: unknown): void => {
+              const typedNode = node as ASTSelectProto__Output;
+              for (const column of typedNode.selectList?.columns ?? []) {
+                if (column.expression?.node === 'astGeneralizedPathExpressionNode') {
+                  const pathExpression = column.expression.astGeneralizedPathExpressionNode?.astPathExpressionNode;
+                  const parseLocationRange = pathExpression?.names[0].parent?.parent?.parseLocationRange;
+                  if (parseLocationRange) {
+                    result.columns.push({
+                      name: pathExpression.names[0].idString, // TODO: handle array with length > 1
+                      parseLocationRange,
+                    });
+                  }
+                }
               }
             },
           ],
