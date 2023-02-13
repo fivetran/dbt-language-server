@@ -49,9 +49,9 @@ export class DiagnosticGenerator {
     ];
   }
 
-  getDiagnosticsFromAst(astResult: AnalyzeResult, rawDocument: TextDocument, compiledDocument: TextDocument): RawAndCompiledDiagnostics {
+  getDiagnosticsFromAst(analyzeResult: AnalyzeResult, rawDocument: TextDocument, compiledDocument: TextDocument): RawAndCompiledDiagnostics {
     let result: RawAndCompiledDiagnostics = { raw: [], compiled: [] };
-    astResult.match(
+    analyzeResult.ast.match(
       ast => {
         result = this.createInformationDiagnostics(ast, rawDocument, compiledDocument);
       },

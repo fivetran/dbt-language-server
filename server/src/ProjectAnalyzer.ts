@@ -6,6 +6,7 @@ import { DbtRepository } from './DbtRepository';
 import { ManifestModel } from './manifest/ManifestJson';
 import { TableDefinition } from './TableDefinition';
 import { TableFetcher } from './TableFetcher';
+import { ParseResult } from './ZetaSqlParser';
 import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 
 export type ModelsAnalyzeResult = {
@@ -13,7 +14,10 @@ export type ModelsAnalyzeResult = {
   analyzeResult: AnalyzeResult;
 };
 
-export type AnalyzeResult = Result<AnalyzeResponse__Output, string>;
+export interface AnalyzeResult {
+  ast: Result<AnalyzeResponse__Output, string>;
+  parseResult: ParseResult;
+}
 
 export class ProjectAnalyzer {
   constructor(
@@ -70,7 +74,7 @@ export class ProjectAnalyzer {
 
   /** Filters all errors. Returns only root errors */
   private filterErrorResults(results: ModelsAnalyzeResult[]): ModelsAnalyzeResult[] {
-    const errorResults = results.filter(r => r.analyzeResult.isErr());
+    const errorResults = results.filter(r => r.analyzeResult.ast.isErr());
     const idToExclude = new Set(
       errorResults
         .filter(r => {
@@ -154,7 +158,13 @@ export class ProjectAnalyzer {
   ): Promise<AnalyzeResult> {
     const compiledSql = sql ?? this.getCompiledCode(model);
     if (compiledSql === undefined) {
-      return err(`Compiled SQL not found for model ${model?.uniqueId ?? 'undefined'}`);
+      return {
+        ast: err(`Compiled SQL not found for model ${model?.uniqueId ?? 'undefined'}`),
+        parseResult: {
+          functions: [],
+          columns: [],
+        },
+      };
     }
 
     const tables = await this.zetaSqlWrapper.findTableNames(compiledSql);
@@ -211,7 +221,10 @@ export class ProjectAnalyzer {
       this.zetaSqlWrapper.registerTable(table);
     }
 
-    return ast;
+    return {
+      ast,
+      parseResult,
+    };
   }
 
   private static createTableDefinition(model: ManifestModel): TableDefinition {

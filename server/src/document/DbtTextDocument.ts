@@ -324,9 +324,9 @@ export class DbtTextDocument {
       const astResult = await this.projectChangeListener.analyzeModelTree(this.rawDocument.uri, compiledSql);
       if (astResult) {
         const { fsPath } = URI.parse(this.rawDocument.uri);
-        if (astResult.isOk()) {
+        if (astResult.ast.isOk()) {
           console.log(`AST was successfully received for ${fsPath}`, LogLevel.Debug);
-          this.ast = astResult.value;
+          this.ast = astResult.ast.value;
         } else {
           console.log(`There was an error while analyzing ${fsPath}`, LogLevel.Debug);
           console.log(astResult, LogLevel.Debug);
