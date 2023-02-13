@@ -1,4 +1,4 @@
-import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
+import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { CompletionItem, CompletionParams, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtRepository } from '../DbtRepository';
@@ -27,7 +27,7 @@ export class CompletionProvider {
     this.dbtCompletionProvider = new DbtCompletionProvider(dbtRepository);
   }
 
-  async provideCompletionItems(completionParams: CompletionParams, ast?: AnalyzeResponse): Promise<CompletionItem[]> {
+  async provideCompletionItems(completionParams: CompletionParams, ast?: AnalyzeResponse__Output): Promise<CompletionItem[]> {
     const dbtCompletionItems = this.provideDbtCompletions(completionParams);
     if (dbtCompletionItems) {
       console.log(`dbtCompletionItems: ${dbtCompletionItems.map(i => i.insertText).join('|')}`, LogLevel.Debug);
@@ -58,7 +58,7 @@ export class CompletionProvider {
     return undefined;
   }
 
-  private async provideSqlCompletions(completionParams: CompletionParams, text: string, ast?: AnalyzeResponse): Promise<CompletionItem[]> {
+  private async provideSqlCompletions(completionParams: CompletionParams, text: string, ast?: AnalyzeResponse__Output): Promise<CompletionItem[]> {
     if (this.destinationContext.isEmpty()) {
       return [];
     }

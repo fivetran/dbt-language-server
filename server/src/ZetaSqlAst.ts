@@ -2,7 +2,7 @@
 
 import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { Type } from '@fivetrandevelopers/zetasql/lib/Type';
-import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
+import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ParseLocationRangeProto, ParseLocationRangeProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
 import { ResolvedFunctionCallProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedFunctionCallProto';
 import { ResolvedOutputColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedOutputColumnProto';
@@ -113,9 +113,9 @@ export class ZetaSqlAst {
     'withSubquery',
   ];
 
-  getHoverInfo(ast: AnalyzeResponse, text: string): HoverInfo {
+  getHoverInfo(ast: AnalyzeResponse__Output, text: string): HoverInfo {
     const result: HoverInfo = {};
-    const resolvedStatementNode = ast.resolvedStatement && ast.resolvedStatement.node ? ast.resolvedStatement[ast.resolvedStatement.node] : undefined;
+    const resolvedStatementNode = ast.resolvedStatement ? ast.resolvedStatement[ast.resolvedStatement.node] : undefined;
     if (resolvedStatementNode) {
       this.traversal(
         resolvedStatementNode,
@@ -149,7 +149,7 @@ export class ZetaSqlAst {
     return result;
   }
 
-  getCompletionInfo(ast: AnalyzeResponse, offset: number): CompletionInfo {
+  getCompletionInfo(ast: AnalyzeResponse__Output, offset: number): CompletionInfo {
     const completionInfo: CompletionInfo = {
       resolvedTables: new Map<string, string[]>(),
       withNames: new Set<string>(),
@@ -244,9 +244,9 @@ export class ZetaSqlAst {
     return completionInfo;
   }
 
-  getResolvedTables(ast: AnalyzeResponse, text: string): ResolvedTable[] {
+  getResolvedTables(ast: AnalyzeResponse__Output, text: string): ResolvedTable[] {
     const result: ResolvedTable[] = [];
-    const resolvedStatementNode = ast.resolvedStatement && ast.resolvedStatement.node ? ast.resolvedStatement[ast.resolvedStatement.node] : undefined;
+    const resolvedStatementNode = ast.resolvedStatement ? ast.resolvedStatement[ast.resolvedStatement.node] : undefined;
     if (resolvedStatementNode) {
       this.traversal(
         resolvedStatementNode,

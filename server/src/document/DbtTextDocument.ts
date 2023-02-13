@@ -1,4 +1,3 @@
-import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import * as path from 'node:path';
 import {
   CompletionItem,
@@ -35,6 +34,7 @@ import { ModelCompiler } from '../ModelCompiler';
 import { NotificationSender } from '../NotificationSender';
 import { PositionConverter } from '../PositionConverter';
 import { ProgressReporter } from '../ProgressReporter';
+import { AnalyzeResult } from '../ProjectAnalyzer';
 import { ProjectChangeListener } from '../ProjectChangeListener';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { getLineByPosition, getSignatureInfo } from '../utils/TextUtils';
@@ -51,7 +51,7 @@ export class DbtTextDocument {
   compiledDocument: TextDocument;
   requireCompileOnSave: boolean;
 
-  ast?: AnalyzeResponse;
+  analyzeResult?: AnalyzeResult;
   completionProvider: CompletionProvider;
 
   currentDbtError?: string;
@@ -326,7 +326,7 @@ export class DbtTextDocument {
         const { fsPath } = URI.parse(this.rawDocument.uri);
         if (astResult.ast.isOk()) {
           console.log(`AST was successfully received for ${fsPath}`, LogLevel.Debug);
-          this.ast = astResult.ast.value;
+          this.analyzeResult = astResult;
         } else {
           console.log(`There was an error while analyzing ${fsPath}`, LogLevel.Debug);
           console.log(astResult, LogLevel.Debug);
@@ -356,11 +356,14 @@ export class DbtTextDocument {
   onHover(hoverParams: HoverParams): Hover | null {
     const range = getIdentifierRangeAtPosition(hoverParams.position, this.rawDocument.getText());
     const text = this.rawDocument.getText(range);
-    return this.hoverProvider.hoverOnText(text, this.ast);
+    return this.hoverProvider.hoverOnText(text, this.analyzeResult?.ast.isOk() ? this.analyzeResult.ast.value : undefined);
   }
 
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[]> {
-    return this.completionProvider.provideCompletionItems(completionParams, this.ast);
+    return this.completionProvider.provideCompletionItems(
+      completionParams,
+      this.analyzeResult?.ast.isOk() ? this.analyzeResult.ast.value : undefined,
+    );
   }
 
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
