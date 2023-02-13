@@ -128,7 +128,7 @@ export class DbtLanguageClientManager {
 
   async initAndStartClient(client: DbtWizardLanguageClient): Promise<void> {
     await client.initialize();
-    client.start();
+    await client.start();
   }
 
   async ensureNoProjectClient(): Promise<void> {

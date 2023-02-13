@@ -32,13 +32,6 @@ export abstract class DbtWizardLanguageClient implements Disposable {
     this.client = this.initializeClient();
     await this.initCustomParams();
     this.initializeNotifications();
-    (await this.pythonExtension.onDidChangeExecutionDetails())(async (resource: Uri | undefined) => {
-      log(`onDidChangeExecutionDetails ${resource?.fsPath ?? 'undefined'} ${resource?.toString() ?? 'undefined'}`);
-      if (this.client.state === State.Running && this.dbtProjectUri.fsPath === resource?.fsPath) {
-        log('Python execution details changed, restarting...');
-        await this.restart();
-      }
-    });
   }
 
   initializeNotifications(): void {
@@ -76,8 +69,15 @@ export abstract class DbtWizardLanguageClient implements Disposable {
     this.client.clientOptions.initializationOptions = customInitParams;
   }
 
-  start(): void {
-    this.client.start().catch(e => log(`Error while starting server: ${e instanceof Error ? e.message : String(e)}`));
+  async start(): Promise<void> {
+    await this.client.start().catch(e => log(`Error while starting server: ${e instanceof Error ? e.message : String(e)}`));
+    (await this.pythonExtension.onDidChangeExecutionDetails())(async (resource: Uri | undefined) => {
+      log(`onDidChangeExecutionDetails ${resource?.fsPath ?? 'undefined'}`);
+      if (this.client.state === State.Running && this.dbtProjectUri.fsPath === resource?.fsPath) {
+        log('Python execution details changed, restarting...');
+        await this.restart();
+      }
+    });
   }
 
   stop(): Promise<void> {
