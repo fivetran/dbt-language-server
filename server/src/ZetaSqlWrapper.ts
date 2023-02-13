@@ -21,7 +21,7 @@ import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
 import { TableDefinition } from './TableDefinition';
 import { randomNumber } from './utils/Utils';
 import { createType } from './utils/ZetaSqlUtils';
-import { ZetaSqlParser } from './ZetaSqlParser';
+import { ParseResult, ZetaSqlParser } from './ZetaSqlParser';
 import findFreePortPmfy = require('find-free-port');
 import path = require('node:path');
 
@@ -154,8 +154,13 @@ export class ZetaSqlWrapper {
     }
   }
 
-  async registerPersistentUdfs(compiledSql: string): Promise<void> {
-    const namePaths = await this.getNewCustomFunctions(compiledSql);
+  async getParseResult(sql: string): Promise<ParseResult> {
+    const languageOptions = await this.getLanguageOptions();
+    return this.zetaSqlParser.getParseResult(sql, languageOptions?.serialize());
+  }
+
+  async registerPersistentUdfs(parseResult: ParseResult): Promise<void> {
+    const namePaths = parseResult.functions.filter(f => !this.registeredFunctions.has(f.join(',')));
     for (const namePath of namePaths) {
       const udf = await this.createUdfFromNamePath(namePath);
       if (udf) {
@@ -306,12 +311,6 @@ export class ZetaSqlWrapper {
       return this.destinationClient.getUdf(namePath[0], namePath[1], namePath[2]);
     }
     return undefined;
-  }
-
-  private async getNewCustomFunctions(sql: string): Promise<string[][]> {
-    const languageOptions = await this.getLanguageOptions();
-    const parseResult = await this.zetaSqlParser.getParseResult(sql, languageOptions?.serialize());
-    return parseResult.functions.filter(f => !this.registeredFunctions.has(f.join(',')));
   }
 
   static createSimpleColumn(name: string, type: TypeProto | null): SimpleColumnProto {

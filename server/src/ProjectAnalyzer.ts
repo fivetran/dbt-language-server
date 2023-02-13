@@ -199,7 +199,8 @@ export class ProjectAnalyzer {
         }
       });
 
-    await this.zetaSqlWrapper.registerPersistentUdfs(compiledSql);
+    const parseResult = await this.zetaSqlWrapper.getParseResult(compiledSql);
+    await this.zetaSqlWrapper.registerPersistentUdfs(parseResult);
     const tempUdfs = await this.zetaSqlWrapper.getTempUdfs(model?.config?.sqlHeader);
     const catalogWithTempUdfs = this.zetaSqlWrapper.createCatalogWithTempUdfs(tempUdfs);
 
