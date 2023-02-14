@@ -12,6 +12,7 @@ import { Dbt, DbtMode } from './dbt_execution/Dbt';
 import { DbtCli } from './dbt_execution/DbtCli';
 import { DbtRpc } from './dbt_execution/DbtRpc';
 import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
+import { SqlDefinitionProvider } from './definition/SqlDefinitionProvider';
 import { DestinationContext } from './DestinationContext';
 import { DiagnosticGenerator } from './DiagnosticGenerator';
 import { DbtDocumentKindResolver } from './document/DbtDocumentKindResolver';
@@ -88,6 +89,7 @@ function createLspServerForProject(
   const dbtDocumentKindResolver = new DbtDocumentKindResolver(dbtRepository);
   const diagnosticGenerator = new DiagnosticGenerator(dbtRepository);
   const dbtDefinitionProvider = new DbtDefinitionProvider(dbtRepository);
+  const sqlDefinitionProvider = new SqlDefinitionProvider(dbtRepository);
   const signatureHelpProvider = new SignatureHelpProvider();
   const hoverProvider = new HoverProvider();
   const destinationContext = new DestinationContext();
@@ -119,6 +121,7 @@ function createLspServerForProject(
     dbtDocumentKindResolver,
     diagnosticGenerator,
     dbtDefinitionProvider,
+    sqlDefinitionProvider,
     signatureHelpProvider,
     hoverProvider,
     destinationContext,

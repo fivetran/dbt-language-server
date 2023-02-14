@@ -50,6 +50,7 @@ import { DbtProject } from '../DbtProject';
 import { DbtRepository } from '../DbtRepository';
 import { Dbt } from '../dbt_execution/Dbt';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
+import { SqlDefinitionProvider } from '../definition/SqlDefinitionProvider';
 import { DestinationContext } from '../DestinationContext';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
 import { DbtDocumentKind } from '../document/DbtDocumentKind';
@@ -59,7 +60,6 @@ import { FeatureFinder } from '../feature_finder/FeatureFinder';
 import { FileChangeListener } from '../FileChangeListener';
 import { HoverProvider } from '../HoverProvider';
 import { JinjaParser } from '../JinjaParser';
-import { LogLevel } from '../Logger';
 import { ModelCompiler } from '../ModelCompiler';
 import { NotificationSender } from '../NotificationSender';
 import { ProcessExecutor } from '../ProcessExecutor';
@@ -96,6 +96,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     private dbtDocumentKindResolver: DbtDocumentKindResolver,
     private diagnosticGenerator: DiagnosticGenerator,
     private dbtDefinitionProvider: DbtDefinitionProvider,
+    private sqlDefinitionProvider: SqlDefinitionProvider,
     private signatureHelpProvider: SignatureHelpProvider,
     private hoverProvider: HoverProvider,
     private destinationContext: DestinationContext,
@@ -392,6 +393,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
         this.signatureHelpProvider,
         this.hoverProvider,
         this.dbtDefinitionProvider,
+        this.sqlDefinitionProvider,
         this.projectChangeListener,
       );
       this.openedDocuments.set(uri, document);
@@ -431,12 +433,9 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     return document?.onSignatureHelp(params);
   }
 
-  onDefinition(definitionParams: DefinitionParams): DefinitionLink[] | undefined {
+  async onDefinition(definitionParams: DefinitionParams): Promise<DefinitionLink[] | undefined> {
     const document = this.openedDocuments.get(definitionParams.textDocument.uri);
-    console.log(`onDefinition: ${document ? 'found' : 'not found'}`, LogLevel.Debug);
-    const result = document?.onDefinition(definitionParams);
-    console.log(`onDefinition result: ${result?.map(d => d.targetUri).join('|') ?? 'empty'}`, LogLevel.Debug);
-    return result;
+    return document?.onDefinition(definitionParams);
   }
 
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {

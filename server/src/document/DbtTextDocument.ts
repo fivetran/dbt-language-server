@@ -25,6 +25,7 @@ import { DbtRepository } from '../DbtRepository';
 import { Dbt } from '../dbt_execution/Dbt';
 import { DbtCompileJob } from '../dbt_execution/DbtCompileJob';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
+import { SqlDefinitionProvider } from '../definition/SqlDefinitionProvider';
 import { DestinationContext } from '../DestinationContext';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
 import { HoverProvider } from '../HoverProvider';
@@ -42,6 +43,10 @@ import { areRangesEqual, debounce, getIdentifierRangeAtPosition, getModelPathOrF
 import { ZetaSqlAst } from '../ZetaSqlAst';
 import { DbtDocumentKind } from './DbtDocumentKind';
 
+export interface QueryInformation {
+  columns: { name: string; rawRange: Range; compiledRange: Range }[];
+}
+
 export class DbtTextDocument {
   static DEBOUNCE_TIMEOUT = 300;
 
@@ -53,6 +58,7 @@ export class DbtTextDocument {
 
   analyzeResult?: AnalyzeResult;
   completionProvider: CompletionProvider;
+  queryInformation?: QueryInformation;
 
   currentDbtError?: string;
   firstSave = true;
@@ -76,6 +82,7 @@ export class DbtTextDocument {
     private signatureHelpProvider: SignatureHelpProvider,
     private hoverProvider: HoverProvider,
     private dbtDefinitionProvider: DbtDefinitionProvider,
+    private sqlDefinitionProvider: SqlDefinitionProvider,
     private projectChangeListener: ProjectChangeListener,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -321,23 +328,45 @@ export class DbtTextDocument {
       compiledSql !== '' &&
       compiledSql !== DbtCompileJob.NO_RESULT_FROM_COMPILER
     ) {
-      const astResult = await this.projectChangeListener.analyzeModelTree(this.rawDocument.uri, compiledSql);
-      if (astResult) {
+      const analyzeResult = await this.projectChangeListener.analyzeModelTree(this.rawDocument.uri, compiledSql);
+      if (analyzeResult) {
         const { fsPath } = URI.parse(this.rawDocument.uri);
-        if (astResult.ast.isOk()) {
+        if (analyzeResult.ast.isOk()) {
           console.log(`AST was successfully received for ${fsPath}`, LogLevel.Debug);
-          this.analyzeResult = astResult;
+          this.analyzeResult = analyzeResult;
+          this.queryInformation = this.getQueryInformation();
         } else {
           console.log(`There was an error while analyzing ${fsPath}`, LogLevel.Debug);
-          console.log(astResult, LogLevel.Debug);
+          console.log(analyzeResult, LogLevel.Debug);
         }
-        const diagnostics = this.diagnosticGenerator.getDiagnosticsFromAst(astResult, this.rawDocument, this.compiledDocument);
+        const diagnostics = this.diagnosticGenerator.getDiagnosticsFromAst(analyzeResult, this.rawDocument, this.compiledDocument);
         rawDocDiagnostics = diagnostics.raw;
         compiledDocDiagnostics = diagnostics.compiled;
       }
     }
 
     return [rawDocDiagnostics, compiledDocDiagnostics];
+  }
+
+  getQueryInformation(): QueryInformation {
+    const result: QueryInformation = {
+      columns: [],
+    };
+    const converter = new PositionConverter(this.rawDocument.getText(), this.compiledDocument.getText());
+
+    for (const column of this.analyzeResult?.parseResult.columns ?? []) {
+      const compiledStart = this.compiledDocument.positionAt(column.parseLocationRange.start);
+      const compiledEnd = this.compiledDocument.positionAt(column.parseLocationRange.end);
+      const start = converter.convertPositionBackward(compiledStart);
+      const end = converter.convertPositionBackward(compiledEnd);
+
+      result.columns.push({
+        name: column.name,
+        compiledRange: Range.create(compiledStart, compiledEnd),
+        rawRange: Range.create(start, end),
+      });
+    }
+    return result;
   }
 
   fixInformationDiagnostic(range: Range): void {
@@ -380,7 +409,7 @@ export class DbtTextDocument {
     return this.signatureHelpProvider.onSignatureHelp(textBeforeBracket, signatureInfo.parameterIndex, params.context?.activeSignatureHelp);
   }
 
-  onDefinition(definitionParams: DefinitionParams): DefinitionLink[] | undefined {
+  async onDefinition(definitionParams: DefinitionParams): Promise<DefinitionLink[] | undefined> {
     const jinjas = this.jinjaParser.findAllEffectiveJinjas(this.rawDocument);
     for (const jinja of jinjas) {
       if (positionInRange(definitionParams.position, jinja.range)) {
@@ -388,7 +417,14 @@ export class DbtTextDocument {
         return this.dbtDefinitionProvider.provideDefinitions(this.rawDocument, jinja, definitionParams.position, jinjaType);
       }
     }
-    return undefined;
+
+    return this.sqlDefinitionProvider.provideDefinitions(
+      definitionParams,
+      this.queryInformation,
+      this.analyzeResult,
+      this.rawDocument,
+      this.compiledDocument,
+    );
   }
 
   dispose(): void {

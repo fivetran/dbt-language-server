@@ -6,6 +6,7 @@ import { DbtRepository } from './DbtRepository';
 import { ManifestModel } from './manifest/ManifestJson';
 import { TableDefinition } from './TableDefinition';
 import { TableFetcher } from './TableFetcher';
+import { getTableRefUniqueId } from './utils/ManifestUtils';
 import { ParseResult } from './ZetaSqlParser';
 import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 
@@ -174,7 +175,7 @@ export class ProjectAnalyzer {
 
     for (const table of tables) {
       if (!this.zetaSqlWrapper.isTableRegistered(table)) {
-        const refId = this.getTableRefUniqueId(model, table.getTableName());
+        const refId = getTableRefUniqueId(model, table.getTableName(), this.dbtRepository);
         if (refId) {
           const refModel = this.dbtRepository.dag.nodes.find(n => n.getValue().uniqueId === refId)?.getValue();
           if (refModel) {
@@ -257,38 +258,5 @@ export class ProjectAnalyzer {
 
   private getCompiledCode(model?: ManifestModel): string | undefined {
     return model ? this.dbtRepository.getModelCompiledCode(model) : undefined;
-  }
-
-  private getTableRefUniqueId(model: ManifestModel | undefined, name: string): string | undefined {
-    if (!model || model.dependsOn.nodes.length === 0) {
-      return undefined;
-    }
-
-    const refFullName = this.getTableRefFullName(model, name);
-
-    if (refFullName) {
-      const joinedName = refFullName.join('.');
-      return model.dependsOn.nodes.find(n => n.endsWith(`.${joinedName}`));
-    }
-
-    return undefined;
-  }
-
-  private getTableRefFullName(model: ManifestModel, name: string): string[] | undefined {
-    const refFullName = ProjectAnalyzer.findModelRef(model, name);
-    if (refFullName) {
-      return refFullName;
-    }
-
-    const aliasedModel = this.dbtRepository.dag.nodes.find(n => n.getValue().alias === name)?.getValue();
-    if (aliasedModel && ProjectAnalyzer.findModelRef(model, aliasedModel.name)) {
-      return [aliasedModel.name];
-    }
-
-    return undefined;
-  }
-
-  private static findModelRef(model: ManifestModel, name: string): string[] | undefined {
-    return model.refs.find(ref => ref.indexOf(name) === ref.length - 1);
   }
 }
