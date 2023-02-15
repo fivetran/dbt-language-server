@@ -44,7 +44,7 @@ import { ZetaSqlAst } from '../ZetaSqlAst';
 import { DbtDocumentKind } from './DbtDocumentKind';
 
 export interface QueryInformation {
-  columns: { name: string; rawRange: Range; compiledRange: Range }[];
+  columns: { namePath: string[]; rawRange: Range; compiledRange: Range }[];
 }
 
 export class DbtTextDocument {
@@ -361,7 +361,7 @@ export class DbtTextDocument {
       const end = converter.convertPositionBackward(compiledEnd);
 
       result.columns.push({
-        name: column.name,
+        namePath: column.namePath,
         compiledRange: Range.create(compiledStart, compiledEnd),
         rawRange: Range.create(start, end),
       });

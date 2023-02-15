@@ -36,7 +36,11 @@ export class SqlDefinitionProvider {
 
         if (model) {
           for (const [tableName, tableInfo] of completionInfo.activeTables) {
-            if (tableInfo.columns.some(c => c.name === column.name)) {
+            if (
+              tableInfo.columns.some(
+                c => c.name === column.namePath.at(-1) && (!column.namePath.at(-2) || column.namePath.at(-2) === tableInfo.alias),
+              )
+            ) {
               const refId = getTableRefUniqueId(model, tableName, this.dbtRepository);
               if (refId) {
                 const refModel = this.dbtRepository.dag.nodes.find(n => n.getValue().uniqueId === refId)?.getValue();

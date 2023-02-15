@@ -9,7 +9,7 @@ import { arraysAreEqual } from './utils/Utils';
 import { traverse } from './utils/ZetaSqlUtils';
 
 export interface KnownColumn {
-  name: string;
+  namePath: string[];
   parseLocationRange: ParseLocationRangeProto__Output;
 }
 
@@ -46,10 +46,10 @@ export class ZetaSqlParser {
               for (const column of typedNode.selectList?.columns ?? []) {
                 if (column.expression?.node === 'astGeneralizedPathExpressionNode') {
                   const pathExpression = column.expression.astGeneralizedPathExpressionNode?.astPathExpressionNode;
-                  const parseLocationRange = pathExpression?.names[0].parent?.parent?.parseLocationRange;
+                  const parseLocationRange = pathExpression?.parent?.parent?.parent?.parseLocationRange;
                   if (parseLocationRange) {
                     result.columns.push({
-                      name: pathExpression.names[0].idString, // TODO: handle array with length > 1
+                      namePath: pathExpression.names.map(n => n.idString),
                       parseLocationRange,
                     });
                   }
