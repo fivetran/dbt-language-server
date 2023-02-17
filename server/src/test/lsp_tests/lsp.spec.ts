@@ -16,6 +16,7 @@ import {
   InitializedNotification,
   InitializeParams,
   InitializeRequest,
+  MessageActionItem,
   ProtocolConnection,
   Range,
   ShowMessageRequest,
@@ -48,9 +49,9 @@ describe('lsp tests', () => {
       console.log(`stderr: ${data}\n`);
     });
     connection = createProtocolConnection(new StreamMessageReader(child.stdout), new StreamMessageWriter(child.stdin));
-    connection.onRequest(ShowMessageRequest.type, (params: ShowMessageRequestParams) => {
+    connection.onRequest(ShowMessageRequest.type, (params: ShowMessageRequestParams): MessageActionItem | null => {
       console.log(params.message);
-      return 0;
+      return null;
     });
 
     connection.listen();
