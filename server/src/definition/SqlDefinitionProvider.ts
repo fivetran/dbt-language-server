@@ -1,9 +1,10 @@
-import { DefinitionLink, DefinitionParams, LocationLink } from 'vscode-languageserver';
+import { DefinitionLink, DefinitionParams, LocationLink, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { DbtRepository } from '../DbtRepository';
 import { DbtTextDocument, QueryInformation } from '../document/DbtTextDocument';
 import { DagNodeFetcher } from '../ModelFetcher';
+import { PositionConverter } from '../PositionConverter';
 import { AnalyzeResult } from '../ProjectAnalyzer';
 import { getTableRefUniqueId } from '../utils/ManifestUtils';
 import { positionInRange } from '../utils/Utils';
@@ -57,6 +58,21 @@ export class SqlDefinitionProvider {
               }
             }
           }
+        }
+      }
+      for (const [tableName, withSubqueryInfo] of completionInfo.withSubqueries) {
+        if (
+          withSubqueryInfo.columns.some(c => c.name === column.namePath.at(-1) && (!column.namePath.at(-2) || column.namePath.at(-2) === tableName))
+        ) {
+          let targetRange = DbtDefinitionProvider.MAX_RANGE;
+          if (withSubqueryInfo.parseLocationRange) {
+            const positionConverter = new PositionConverter(rawDocument.getText(), compiledDocument.getText());
+            const start = positionConverter.convertPositionBackward(compiledDocument.positionAt(withSubqueryInfo.parseLocationRange.start));
+            const end = positionConverter.convertPositionBackward(compiledDocument.positionAt(withSubqueryInfo.parseLocationRange.end));
+            targetRange = Range.create(start, end);
+          }
+
+          return [LocationLink.create(rawDocument.uri, targetRange, targetRange, column.rawRange)];
         }
       }
     }
