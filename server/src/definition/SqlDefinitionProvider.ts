@@ -2,12 +2,13 @@ import { DefinitionLink, DefinitionParams, LocationLink, Range } from 'vscode-la
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { DbtRepository } from '../DbtRepository';
-import { DbtTextDocument, QueryInformation } from '../document/DbtTextDocument';
+import { DbtTextDocument, QueryParseInformation } from '../document/DbtTextDocument';
 import { DagNodeFetcher } from '../ModelFetcher';
 import { PositionConverter } from '../PositionConverter';
 import { AnalyzeResult } from '../ProjectAnalyzer';
 import { getTableRefUniqueId } from '../utils/ManifestUtils';
-import { positionInRange } from '../utils/Utils';
+import { positionInRange, rangesOverlap } from '../utils/Utils';
+import { Location } from '../ZetaSqlAst';
 import { DbtDefinitionProvider } from './DbtDefinitionProvider';
 
 export class SqlDefinitionProvider {
@@ -15,7 +16,7 @@ export class SqlDefinitionProvider {
 
   async provideDefinitions(
     definitionParams: DefinitionParams,
-    queryInformation: QueryInformation | undefined,
+    queryInformation: QueryParseInformation | undefined,
     analyzeResult: AnalyzeResult | undefined,
     rawDocument: TextDocument,
     compiledDocument: TextDocument,
@@ -36,13 +37,15 @@ export class SqlDefinitionProvider {
         const model = node?.getValue();
 
         if (model) {
-          for (const [tableName, tableInfo] of completionInfo.activeTables) {
+          for (const [activeTableName, tableInfo] of completionInfo.activeTables) {
             if (
-              tableInfo.columns.some(
-                c => c.name === column.namePath.at(-1) && (!column.namePath.at(-2) || column.namePath.at(-2) === tableInfo.alias),
-              )
+              tableInfo.columns.some(c => {
+                const columnName = column.namePath.at(-1);
+                const tableName = column.namePath.at(-2);
+                return c.name === columnName && (!tableName || tableName === tableInfo.alias || tableName === activeTableName);
+              })
             ) {
-              const refId = getTableRefUniqueId(model, tableName, this.dbtRepository);
+              const refId = getTableRefUniqueId(model, activeTableName, this.dbtRepository);
               if (refId) {
                 const refModel = this.dbtRepository.dag.nodes.find(n => n.getValue().uniqueId === refId)?.getValue();
                 if (refModel) {
@@ -60,22 +63,36 @@ export class SqlDefinitionProvider {
           }
         }
       }
-      for (const [tableName, withSubqueryInfo] of completionInfo.withSubqueries) {
-        if (
-          withSubqueryInfo.columns.some(c => c.name === column.namePath.at(-1) && (!column.namePath.at(-2) || column.namePath.at(-2) === tableName))
-        ) {
-          let targetRange = DbtDefinitionProvider.MAX_RANGE;
-          if (withSubqueryInfo.parseLocationRange) {
-            const positionConverter = new PositionConverter(rawDocument.getText(), compiledDocument.getText());
-            const start = positionConverter.convertPositionBackward(compiledDocument.positionAt(withSubqueryInfo.parseLocationRange.start));
-            const end = positionConverter.convertPositionBackward(compiledDocument.positionAt(withSubqueryInfo.parseLocationRange.end));
-            targetRange = Range.create(start, end);
-          }
+      for (const [, withSubqueryInfo] of completionInfo.withSubqueries) {
+        let range = undefined;
+        if (withSubqueryInfo.parseLocationRange) {
+          range = SqlDefinitionProvider.toRange(withSubqueryInfo.parseLocationRange, compiledDocument);
+        }
 
-          return [LocationLink.create(rawDocument.uri, targetRange, targetRange, column.rawRange)];
+        if (!range || rangesOverlap(range, column.compiledRange)) {
+          const clickedColumn = withSubqueryInfo.columns.find(c => c.name === column.namePath.at(-1));
+          if (clickedColumn) {
+            let targetRange = DbtDefinitionProvider.MAX_RANGE;
+            const targetWith = completionInfo.withSubqueries.get(clickedColumn.fromTable);
+
+            if (targetWith && targetWith.parseLocationRange) {
+              const positionConverter = new PositionConverter(rawDocument.getText(), compiledDocument.getText());
+
+              const start = positionConverter.convertPositionBackward(compiledDocument.positionAt(targetWith.parseLocationRange.start));
+              const end = positionConverter.convertPositionBackward(compiledDocument.positionAt(targetWith.parseLocationRange.end));
+              targetRange = Range.create(start, end);
+              return [LocationLink.create(rawDocument.uri, targetRange, targetRange, column.rawRange)];
+            }
+          }
         }
       }
     }
     return undefined;
+  }
+
+  static toRange(location: Location, compiledDocument: TextDocument): Range {
+    const start = compiledDocument.positionAt(location.start);
+    const end = compiledDocument.positionAt(location.end);
+    return Range.create(start, end);
   }
 }

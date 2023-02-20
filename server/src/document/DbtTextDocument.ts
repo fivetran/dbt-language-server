@@ -43,7 +43,7 @@ import { areRangesEqual, debounce, getIdentifierRangeAtPosition, getModelPathOrF
 import { ZetaSqlAst } from '../ZetaSqlAst';
 import { DbtDocumentKind } from './DbtDocumentKind';
 
-export interface QueryInformation {
+export interface QueryParseInformation {
   columns: { namePath: string[]; rawRange: Range; compiledRange: Range }[];
 }
 
@@ -58,7 +58,7 @@ export class DbtTextDocument {
 
   analyzeResult?: AnalyzeResult;
   completionProvider: CompletionProvider;
-  queryInformation?: QueryInformation;
+  queryInformation?: QueryParseInformation;
 
   currentDbtError?: string;
   firstSave = true;
@@ -348,25 +348,22 @@ export class DbtTextDocument {
     return [rawDocDiagnostics, compiledDocDiagnostics];
   }
 
-  getQueryInformation(): QueryInformation {
-    const result: QueryInformation = {
-      columns: [],
-    };
+  getQueryInformation(): QueryParseInformation {
     const converter = new PositionConverter(this.rawDocument.getText(), this.compiledDocument.getText());
-
-    for (const column of this.analyzeResult?.parseResult.columns ?? []) {
-      const compiledStart = this.compiledDocument.positionAt(column.parseLocationRange.start);
-      const compiledEnd = this.compiledDocument.positionAt(column.parseLocationRange.end);
-      const start = converter.convertPositionBackward(compiledStart);
-      const end = converter.convertPositionBackward(compiledEnd);
-
-      result.columns.push({
-        namePath: column.namePath,
-        compiledRange: Range.create(compiledStart, compiledEnd),
-        rawRange: Range.create(start, end),
-      });
-    }
-    return result;
+    return {
+      columns:
+        this.analyzeResult?.parseResult.columns.map(c => {
+          const compiledStart = this.compiledDocument.positionAt(c.parseLocationRange.start);
+          const compiledEnd = this.compiledDocument.positionAt(c.parseLocationRange.end);
+          const start = converter.convertPositionBackward(compiledStart);
+          const end = converter.convertPositionBackward(compiledEnd);
+          return {
+            namePath: c.namePath,
+            compiledRange: Range.create(compiledStart, compiledEnd),
+            rawRange: Range.create(start, end),
+          };
+        }) ?? [],
+    };
   }
 
   fixInformationDiagnostic(range: Range): void {
