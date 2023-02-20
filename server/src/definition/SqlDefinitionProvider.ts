@@ -70,7 +70,7 @@ export class SqlDefinitionProvider {
         }
 
         if (!range || rangesOverlap(range, column.compiledRange)) {
-          const clickedColumn = withSubqueryInfo.columns.find(c => c.name === column.namePath.at(-1));
+          const clickedColumn = withSubqueryInfo.columns.find((c, i) => c.name === column.namePath.at(-1) && i === column.index);
           if (clickedColumn) {
             const targetWith = completionInfo.withSubqueries.get(clickedColumn.fromTable);
 

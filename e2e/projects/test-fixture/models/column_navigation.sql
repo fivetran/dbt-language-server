@@ -1,5 +1,5 @@
 with users_table as(
-    select email, id as user_id from {{ source('new_project', 'users') }}
+    select email, id as user_id, 2 as two from {{ source('new_project', 'users') }}
 ), test_table as(
     select 1 as one,
     2 as two, u1.division as dv
@@ -10,6 +10,7 @@ with users_table as(
     tt.dv,
     dv,
     tt.two,
+    ut.two,
     ut.email,
     email as email2
   from test_table as tt

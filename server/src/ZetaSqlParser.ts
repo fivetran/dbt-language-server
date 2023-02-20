@@ -11,6 +11,7 @@ import { traverse } from './utils/ZetaSqlUtils';
 export interface KnownColumn {
   namePath: string[];
   parseLocationRange: ParseLocationRangeProto__Output;
+  index: number;
 }
 
 export interface ParseResult {
@@ -43,7 +44,9 @@ export class ZetaSqlParser {
             'astSelectNode',
             (node: unknown): void => {
               const typedNode = node as ASTSelectProto__Output;
-              for (const column of typedNode.selectList?.columns ?? []) {
+              const columns = typedNode.selectList?.columns ?? [];
+              for (let i = 0; i < columns.length; i++) {
+                const column = columns[i];
                 if (column.expression?.node === 'astGeneralizedPathExpressionNode') {
                   const pathExpression = column.expression.astGeneralizedPathExpressionNode?.astPathExpressionNode;
                   const parseLocationRange = pathExpression?.parent?.parent?.parent?.parseLocationRange;
@@ -51,6 +54,7 @@ export class ZetaSqlParser {
                     result.columns.push({
                       namePath: pathExpression.names.map(n => n.idString),
                       parseLocationRange,
+                      index: i,
                     });
                   }
                 }

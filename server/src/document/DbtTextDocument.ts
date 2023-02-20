@@ -44,7 +44,7 @@ import { ZetaSqlAst } from '../ZetaSqlAst';
 import { DbtDocumentKind } from './DbtDocumentKind';
 
 export interface QueryParseInformation {
-  columns: { namePath: string[]; rawRange: Range; compiledRange: Range }[];
+  columns: { namePath: string[]; rawRange: Range; compiledRange: Range; index: number }[];
 }
 
 export class DbtTextDocument {
@@ -361,6 +361,7 @@ export class DbtTextDocument {
             namePath: c.namePath,
             compiledRange: Range.create(compiledStart, compiledEnd),
             rawRange: Range.create(start, end),
+            index: c.index,
           };
         }) ?? [],
     };
