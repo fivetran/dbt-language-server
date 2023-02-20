@@ -337,7 +337,7 @@ export class DbtTextDocument {
           this.queryInformation = this.getQueryInformation();
         } else {
           console.log(`There was an error while analyzing ${fsPath}`, LogLevel.Debug);
-          console.log(analyzeResult, LogLevel.Debug);
+          console.log(analyzeResult.ast, LogLevel.Debug);
         }
         const diagnostics = this.diagnosticGenerator.getDiagnosticsFromAst(analyzeResult, this.rawDocument, this.compiledDocument);
         rawDocDiagnostics = diagnostics.raw;

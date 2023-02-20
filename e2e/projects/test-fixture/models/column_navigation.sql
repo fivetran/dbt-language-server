@@ -4,6 +4,16 @@ with users_table as(
     select 1 as one,
     2 as two, u1.division as dv
     from {{ source('new_project', 'users') }} as u1
+), query_from_other_with as (
+  select
+    tt.one,
+    tt.dv,
+    dv,
+    tt.two,
+    ut.email,
+    email as email2
+  from test_table as tt
+  inner join users_table ut on tt.one = ut.user_id
 )
 select
     email, one,

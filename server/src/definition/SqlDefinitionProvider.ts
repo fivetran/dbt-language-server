@@ -72,7 +72,6 @@ export class SqlDefinitionProvider {
         if (!range || rangesOverlap(range, column.compiledRange)) {
           const clickedColumn = withSubqueryInfo.columns.find(c => c.name === column.namePath.at(-1));
           if (clickedColumn) {
-            let targetRange = DbtDefinitionProvider.MAX_RANGE;
             const targetWith = completionInfo.withSubqueries.get(clickedColumn.fromTable);
 
             if (targetWith && targetWith.parseLocationRange) {
@@ -80,7 +79,7 @@ export class SqlDefinitionProvider {
 
               const start = positionConverter.convertPositionBackward(compiledDocument.positionAt(targetWith.parseLocationRange.start));
               const end = positionConverter.convertPositionBackward(compiledDocument.positionAt(targetWith.parseLocationRange.end));
-              targetRange = Range.create(start, end);
+              const targetRange = Range.create(start, end);
               return [LocationLink.create(rawDocument.uri, targetRange, targetRange, column.rawRange)];
             }
           }
