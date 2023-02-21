@@ -44,7 +44,14 @@ import { ZetaSqlAst } from '../ZetaSqlAst';
 import { DbtDocumentKind } from './DbtDocumentKind';
 
 export interface QueryParseInformation {
-  columns: { namePath: string[]; rawRange: Range; compiledRange: Range; index: number }[];
+  selects: {
+    columns: {
+      namePath: string[];
+      rawRange: Range;
+      compiledRange: Range;
+    }[];
+    tableAliases: Map<string, string>;
+  }[];
 }
 
 export class DbtTextDocument {
@@ -350,20 +357,26 @@ export class DbtTextDocument {
 
   getQueryInformation(): QueryParseInformation {
     const converter = new PositionConverter(this.rawDocument.getText(), this.compiledDocument.getText());
+    if (this.analyzeResult) {
+      return {
+        selects: this.analyzeResult.parseResult.selects.map(s => ({
+          columns: s.columns.map(c => {
+            const compiledStart = this.compiledDocument.positionAt(c.parseLocationRange.start);
+            const compiledEnd = this.compiledDocument.positionAt(c.parseLocationRange.end);
+            const start = converter.convertPositionBackward(compiledStart);
+            const end = converter.convertPositionBackward(compiledEnd);
+            return {
+              namePath: c.namePath,
+              compiledRange: Range.create(compiledStart, compiledEnd),
+              rawRange: Range.create(start, end),
+            };
+          }),
+          tableAliases: s.tableAliases,
+        })),
+      };
+    }
     return {
-      columns:
-        this.analyzeResult?.parseResult.columns.map(c => {
-          const compiledStart = this.compiledDocument.positionAt(c.parseLocationRange.start);
-          const compiledEnd = this.compiledDocument.positionAt(c.parseLocationRange.end);
-          const start = converter.convertPositionBackward(compiledStart);
-          const end = converter.convertPositionBackward(compiledEnd);
-          return {
-            namePath: c.namePath,
-            compiledRange: Range.create(compiledStart, compiledEnd),
-            rawRange: Range.create(start, end),
-            index: c.index,
-          };
-        }) ?? [],
+      selects: [],
     };
   }
 

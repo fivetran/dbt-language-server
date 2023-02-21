@@ -26,33 +26,35 @@ export class SqlHeaderAnalyzer {
         new Map([
           [
             'resolvedCreateFunctionStmtNode',
-            (node: unknown): void => {
-              const typedNode = node as ResolvedCreateFunctionStmtProto__Output;
+            {
+              actionBefore: (node: unknown): void => {
+                const typedNode = node as ResolvedCreateFunctionStmtProto__Output;
 
-              const func: FunctionProto = {
-                namePath: typedNode.parent?.namePath,
-                signature: [
-                  {
-                    argument: typedNode.signature?.argument.map(a => ({
-                      kind: a.kind,
-                      type: a.type,
-                      numOccurrences: a.numOccurrences,
-                    })),
-                    returnType: typedNode.signature?.returnType,
-                  },
-                ],
-              };
-
-              if (typedNode.signature?.argument.some(a => a.kind === SignatureArgumentKind.ARG_TYPE_ARBITRARY)) {
-                func.group = 'Templated_SQL_Function';
-                func.mode = _zetasql_FunctionEnums_Mode.SCALAR;
-                func.parseResumeLocation = {
-                  input: typedNode.code,
+                const func: FunctionProto = {
+                  namePath: typedNode.parent?.namePath,
+                  signature: [
+                    {
+                      argument: typedNode.signature?.argument.map(a => ({
+                        kind: a.kind,
+                        type: a.type,
+                        numOccurrences: a.numOccurrences,
+                      })),
+                      returnType: typedNode.signature?.returnType,
+                    },
+                  ],
                 };
-                func.templatedSqlFunctionArgumentName = typedNode.argumentNameList;
-              }
 
-              functions.push(func);
+                if (typedNode.signature?.argument.some(a => a.kind === SignatureArgumentKind.ARG_TYPE_ARBITRARY)) {
+                  func.group = 'Templated_SQL_Function';
+                  func.mode = _zetasql_FunctionEnums_Mode.SCALAR;
+                  func.parseResumeLocation = {
+                    input: typedNode.code,
+                  };
+                  func.templatedSqlFunctionArgumentName = typedNode.argumentNameList;
+                }
+
+                functions.push(func);
+              },
             },
           ],
         ]),

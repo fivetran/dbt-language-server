@@ -29,7 +29,7 @@ suite('Definitions for columns', () => {
     await assertDefinitionsForColumn('email', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, usersTableSelectRange);
 
     // For main select
-    line += 5;
+    line += 11;
     await assertDefinitionsForColumn('email', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, usersTableSelectRange);
     await assertDefinitionsForColumn('one', docUri, new Position(line, 12), new Range(line, 11, line, 14), docUri, testTableSelectRange);
     line++;

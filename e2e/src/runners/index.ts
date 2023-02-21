@@ -6,5 +6,5 @@ export async function run(): Promise<void> {
   if (skipFromEnvString) {
     testsToSkip.push(...skipFromEnvString.split(','));
   }
-  return indexMain('70s', '../**/column_navigation.spec.js', testsToSkip);
+  return indexMain('70s', '../**/*.spec.js', testsToSkip);
 }

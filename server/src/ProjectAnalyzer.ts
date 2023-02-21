@@ -163,7 +163,7 @@ export class ProjectAnalyzer {
         ast: err(`Compiled SQL not found for model ${model?.uniqueId ?? 'undefined'}`),
         parseResult: {
           functions: [],
-          columns: [],
+          selects: [],
         },
       };
     }
