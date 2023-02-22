@@ -29,10 +29,14 @@ select
     test_table.two,
     test_table.dv,
     dv,
-    now,
-    current_time_of_day.hour
+    ct2.now,
+    ct1.hour,
+    star.star_test1,
+    another_alias.star_test1
 from test_table
 inner join users_table on users_table.user_id = test_table.one
 inner join {{ ref('table_exists') }} as t on t.id = test_table.one
-cross join {{ ref('current_time_of_day') }}
+cross join {{ ref('current_time_of_day') }} as ct1
+cross join {{ ref('current_time_of_day') }} as ct2
 inner join star on star.star_test1 = test_table.one
+inner join star as another_alias on another_alias.star_test1 = test_table.one

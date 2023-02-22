@@ -9,54 +9,52 @@ suite('Definitions for columns', () => {
 
     const tableExistsDoc = getDocUri('table_exists.sql');
     const currentTimeDoc = getDocUri('current_time_of_day.sql');
-    const usersTableSelectRange = new Range(1, 4, 1, 83);
-    const testTableSelectRange = new Range(3, 4, 5, 51);
+    const usersSelectRange = new Range(1, 4, 1, 83);
+    const testSelectRange = new Range(3, 4, 5, 51);
+    const startSelectRange = new Range(18, 2, 21, 20);
 
     // For query_from_other_with
     let line = 8;
-    await assertDefinitionsForColumn('tt.one', docUri, new Position(line, 5), new Range(line, 4, line, 10), docUri, testTableSelectRange);
+    await assertColumnDefinitions('tt.one', docUri, new Position(line, 5), new Range(line, 4, line, 10), docUri, testSelectRange);
     line++;
-    await assertDefinitionsForColumn('tt.dv', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, testTableSelectRange);
+    await assertColumnDefinitions('tt.dv', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, testSelectRange);
     line++;
-    await assertDefinitionsForColumn('dv', docUri, new Position(line, 5), new Range(line, 4, line, 6), docUri, testTableSelectRange);
+    await assertColumnDefinitions('dv', docUri, new Position(line, 5), new Range(line, 4, line, 6), docUri, testSelectRange);
     line++;
-    await assertDefinitionsForColumn('tt.two', docUri, new Position(line, 5), new Range(line, 4, line, 10), docUri, testTableSelectRange);
+    await assertColumnDefinitions('tt.two', docUri, new Position(line, 5), new Range(line, 4, line, 10), docUri, testSelectRange);
     line++;
-    await assertDefinitionsForColumn('ut.two', docUri, new Position(line, 5), new Range(line, 4, line, 10), docUri, usersTableSelectRange);
+    await assertColumnDefinitions('ut.two', docUri, new Position(line, 5), new Range(line, 4, line, 10), docUri, usersSelectRange);
     line++;
-    await assertDefinitionsForColumn('ut.email', docUri, new Position(line, 5), new Range(line, 4, line, 12), docUri, usersTableSelectRange);
+    await assertColumnDefinitions('ut.email', docUri, new Position(line, 5), new Range(line, 4, line, 12), docUri, usersSelectRange);
     line++;
-    await assertDefinitionsForColumn('email', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, usersTableSelectRange);
+    await assertColumnDefinitions('email', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, usersSelectRange);
 
     // For main select
     line += 11;
-    await assertDefinitionsForColumn('email', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, usersTableSelectRange);
-    await assertDefinitionsForColumn('one', docUri, new Position(line, 12), new Range(line, 11, line, 14), docUri, testTableSelectRange);
+    await assertColumnDefinitions('email', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, usersSelectRange);
+    await assertColumnDefinitions('one', docUri, new Position(line, 12), new Range(line, 11, line, 14), docUri, testSelectRange);
     line++;
-    await assertDefinitionsForColumn('id', docUri, new Position(line, 5), new Range(line, 4, line, 6), tableExistsDoc, MAX_RANGE);
+    await assertColumnDefinitions('id', docUri, new Position(line, 5), new Range(line, 4, line, 6), tableExistsDoc, MAX_RANGE);
     line++;
-    await assertDefinitionsForColumn('t.id', docUri, new Position(line, 5), new Range(line, 4, line, 8), tableExistsDoc, MAX_RANGE);
+    await assertColumnDefinitions('t.id', docUri, new Position(line, 5), new Range(line, 4, line, 8), tableExistsDoc, MAX_RANGE);
     line++;
-    await assertDefinitionsForColumn('test_table.two', docUri, new Position(line, 5), new Range(line, 4, line, 18), docUri, testTableSelectRange);
+    await assertColumnDefinitions('test_table.two', docUri, new Position(line, 5), new Range(line, 4, line, 18), docUri, testSelectRange);
     line++;
-    await assertDefinitionsForColumn('test_table.dv', docUri, new Position(line, 5), new Range(line, 4, line, 17), docUri, testTableSelectRange);
+    await assertColumnDefinitions('test_table.dv', docUri, new Position(line, 5), new Range(line, 4, line, 17), docUri, testSelectRange);
     line++;
-    await assertDefinitionsForColumn('dv', docUri, new Position(line, 5), new Range(line, 4, line, 6), docUri, testTableSelectRange);
+    await assertColumnDefinitions('dv', docUri, new Position(line, 5), new Range(line, 4, line, 6), docUri, testSelectRange);
     line++;
-    await assertDefinitionsForColumn('now', docUri, new Position(line, 5), new Range(line, 4, line, 7), currentTimeDoc, MAX_RANGE);
+    await assertColumnDefinitions('ct2.now', docUri, new Position(line, 5), new Range(line, 4, line, 11), currentTimeDoc, MAX_RANGE);
     line++;
-    await assertDefinitionsForColumn(
-      'current_time_of_day.hour',
-      docUri,
-      new Position(line, 5),
-      new Range(line, 4, line, 28),
-      currentTimeDoc,
-      MAX_RANGE,
-    );
+    await assertColumnDefinitions('ct1.hour', docUri, new Position(line, 5), new Range(line, 4, line, 12), currentTimeDoc, MAX_RANGE);
+    line++;
+    await assertColumnDefinitions('star.star_test1', docUri, new Position(line, 5), new Range(line, 4, line, 19), docUri, startSelectRange);
+    line++;
+    await assertColumnDefinitions('another_alias.star_test1', docUri, new Position(line, 5), new Range(line, 4, line, 28), docUri, startSelectRange);
   });
 });
 
-function assertDefinitionsForColumn(
+function assertColumnDefinitions(
   columnName: string,
   docUri: Uri,
   clickPosition: Position,

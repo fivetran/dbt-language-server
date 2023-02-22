@@ -31,22 +31,22 @@ export class SqlDefinitionProvider {
           analyzeResult.ast.value,
           compiledDocument.offsetAt(column.compiledRange.start),
         );
-        if (completionInfo.activeTables) {
+        if (completionInfo.activeTables.length > 0) {
           const { fsPath } = URI.parse(rawDocument.uri);
           const modelFetcher = new DagNodeFetcher(this.dbtRepository, fsPath);
           const node = await modelFetcher.getDagNode();
           const model = node?.getValue();
 
           if (model) {
-            for (const [activeTableName, tableInfo] of completionInfo.activeTables) {
+            for (const table of completionInfo.activeTables) {
               if (
-                tableInfo.columns.some(c => {
+                table.columns.some(c => {
                   const columnName = column.namePath.at(-1);
                   const tableName = column.namePath.at(-2);
-                  return c.name === columnName && (!tableName || tableName === tableInfo.alias || tableName === activeTableName);
+                  return c.name === columnName && (!tableName || tableName === table.alias || tableName === table.name);
                 })
               ) {
-                const refId = getTableRefUniqueId(model, activeTableName, this.dbtRepository);
+                const refId = getTableRefUniqueId(model, table.name, this.dbtRepository);
                 if (refId) {
                   const refModel = this.dbtRepository.dag.nodes.find(n => n.getValue().uniqueId === refId)?.getValue();
                   if (refModel) {

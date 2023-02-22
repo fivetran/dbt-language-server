@@ -154,6 +154,7 @@ export class ZetaSqlAst {
       resolvedTables: new Map<string, string[]>(),
       withNames: new Set<string>(),
       withSubqueries: new Map<string, WithSubqueryInfo>(),
+      activeTables: [],
     };
 
     const parentNodes: {
@@ -161,7 +162,7 @@ export class ZetaSqlAst {
       parseLocationRange: ParseLocationRangeProto__Output;
       value: unknown;
       activeTableLocationRanges?: ParseLocationRangeProto__Output[];
-      activeTables?: Map<string, ActiveTableInfo>;
+      activeTables: ActiveTableInfo[];
     }[] = [];
 
     const { resolvedStatement } = ast;
@@ -173,7 +174,7 @@ export class ZetaSqlAst {
           if (nodeName !== NODE.resolvedTableScanNode) {
             const parseLocationRange = this.getParseLocationRange(node);
             if (parseLocationRange) {
-              parentNodes.push({ name: nodeName, parseLocationRange, value: node });
+              parentNodes.push({ name: nodeName, parseLocationRange, value: node, activeTables: [] });
             }
           }
 
@@ -278,16 +279,17 @@ export class ZetaSqlAst {
             if (nodeName === NODE.resolvedTableScanNode) {
               if (rangeContainsRange(parentNode.parseLocationRange, parseLocationRange) && positionInRange(offset, parentNode.parseLocationRange)) {
                 parentNode.activeTableLocationRanges = parentNode.activeTableLocationRanges ?? [];
-                parentNode.activeTables = parentNode.activeTables ?? new Map<string, ActiveTableInfo>();
                 parentNode.activeTableLocationRanges.push(parseLocationRange);
 
                 if (!positionInRange(offset, parseLocationRange)) {
                   const tableScanNode: ResolvedTableScanProto__Output = node;
                   const tables = parentNode.activeTables;
-                  const tableName = tableScanNode.table?.name;
-                  if (tableName && !tables.has(tableName) && tableScanNode.parent?.columnList) {
-                    tables.set(tableName, {
-                      alias: tableScanNode.alias || undefined, // for some tables alias is '' in ast
+                  const name = tableScanNode.table?.name;
+                  const alias = tableScanNode.alias || undefined; // for some tables alias is '' in ast
+                  if (name && !tables.some(t => t.name === name && t.alias === alias) && tableScanNode.parent?.columnList) {
+                    tables.push({
+                      name,
+                      alias,
                       columns: tableScanNode.parent.columnList.map<ResolvedColumn>(c => ({
                         name: c.name,
                         type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind as TypeKind] : undefined,
@@ -418,7 +420,7 @@ export interface HoverInfo {
 export interface CompletionInfo {
   resolvedTables: Map<string, string[]>;
   activeTableLocationRanges?: Location[];
-  activeTables?: Map<string, ActiveTableInfo>;
+  activeTables: ActiveTableInfo[];
   withNames: Set<string>;
   withSubqueries: Map<string, WithSubqueryInfo>;
 }
@@ -429,6 +431,7 @@ export interface WithSubqueryInfo {
 }
 
 export interface ActiveTableInfo {
+  name: string;
   alias?: string;
   columns: ResolvedColumn[];
 }
