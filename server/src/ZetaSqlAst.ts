@@ -168,6 +168,7 @@ export class ZetaSqlAst {
     const { resolvedStatement } = ast;
     const resolvedStatementNode = resolvedStatement?.node ? resolvedStatement[resolvedStatement.node] : undefined;
     if (resolvedStatementNode) {
+      let activeTablesFound = false;
       this.traversal(
         resolvedStatementNode,
         (node: unknown, nodeName?: string) => {
@@ -269,7 +270,7 @@ export class ZetaSqlAst {
         },
         resolvedStatement?.node,
         (node: any, nodeName?: string) => {
-          if (parentNodes.length > 0 && completionInfo.activeTableLocationRanges === undefined) {
+          if (parentNodes.length > 0 && !activeTablesFound) {
             const parseLocationRange = this.getParseLocationRange(node);
             if (!parseLocationRange) {
               return;
@@ -304,6 +305,10 @@ export class ZetaSqlAst {
               if (n?.activeTableLocationRanges && n.activeTableLocationRanges.length > 0) {
                 completionInfo.activeTableLocationRanges = n.activeTableLocationRanges;
                 completionInfo.activeTables = n.activeTables;
+                activeTablesFound = true;
+              } else if (positionInRange(offset, parentNode.parseLocationRange)) {
+                completionInfo.activeTableLocationRanges = [];
+                activeTablesFound = true;
               }
             }
           }

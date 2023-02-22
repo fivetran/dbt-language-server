@@ -15,11 +15,13 @@ with users_table as (
     email as email2
   from test_table as tt
   inner join users_table ut on tt.one = ut.user_id
+), id_source as (
+  select 1 as id
 ), star as (
   select 
     1 as star_test1,
-    2 as star_test2,
-    3 as star_test3,
+    id as star_id
+  from id_source
 )
 select
     star.*,

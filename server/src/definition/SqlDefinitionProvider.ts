@@ -89,6 +89,7 @@ export class SqlDefinitionProvider {
                 return [LocationLink.create(rawDocument.uri, targetRange, targetRange, column.rawRange)];
               }
             }
+            break;
           }
         }
       }

@@ -9,9 +9,11 @@ suite('Definitions for columns', () => {
 
     const tableExistsDoc = getDocUri('table_exists.sql');
     const currentTimeDoc = getDocUri('current_time_of_day.sql');
+
     const usersSelectRange = new Range(1, 4, 1, 83);
     const testSelectRange = new Range(3, 4, 5, 51);
-    const startSelectRange = new Range(18, 2, 21, 20);
+    const starSelectRange = new Range(20, 2, 23, 16);
+    const idSourceSelectRange = new Range(18, 2, 18, 16);
 
     // For query_from_other_with
     let line = 8;
@@ -29,8 +31,12 @@ suite('Definitions for columns', () => {
     line++;
     await assertColumnDefinitions('email', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, usersSelectRange);
 
+    // For star
+    line += 8;
+    await assertColumnDefinitions('id', docUri, new Position(line, 5), new Range(line, 4, line, 6), docUri, idSourceSelectRange);
+
     // For main select
-    line += 11;
+    line += 5;
     await assertColumnDefinitions('email', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, usersSelectRange);
     await assertColumnDefinitions('one', docUri, new Position(line, 12), new Range(line, 11, line, 14), docUri, testSelectRange);
     line++;
@@ -48,9 +54,9 @@ suite('Definitions for columns', () => {
     line++;
     await assertColumnDefinitions('ct1.hour', docUri, new Position(line, 5), new Range(line, 4, line, 12), currentTimeDoc, MAX_RANGE);
     line++;
-    await assertColumnDefinitions('star.star_test1', docUri, new Position(line, 5), new Range(line, 4, line, 19), docUri, startSelectRange);
+    await assertColumnDefinitions('star.star_test1', docUri, new Position(line, 5), new Range(line, 4, line, 19), docUri, starSelectRange);
     line++;
-    await assertColumnDefinitions('another_alias.star_test1', docUri, new Position(line, 5), new Range(line, 4, line, 28), docUri, startSelectRange);
+    await assertColumnDefinitions('another_alias.star_test1', docUri, new Position(line, 5), new Range(line, 4, line, 28), docUri, starSelectRange);
   });
 });
 
