@@ -40,8 +40,12 @@ suite('Definitions for columns', () => {
     line += 4;
     await assertColumnDefinitions('email', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, usersSelectRange);
 
+    // For group_external
+    line += 5;
+    await assertColumnDefinitions('id', docUri, new Position(line, 5), new Range(line, 4, line, 6), tableExistsDoc, MAX_RANGE);
+
     // For main select
-    line += 6;
+    line += 7;
     await assertColumnDefinitions('email', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, usersSelectRange);
     await assertColumnDefinitions('one', docUri, new Position(line, 12), new Range(line, 11, line, 14), docUri, testSelectRange);
     line++;

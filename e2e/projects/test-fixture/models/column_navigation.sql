@@ -27,6 +27,12 @@ with users_table as (
     email as grouping_email, count(*) as groupint_count
   from users_table
   group by 1
+), group_external as (
+  select
+    id,
+    min(id)
+  from {{ ref('table_exists') }} 
+  group by 1
 )
 select
     star.*,

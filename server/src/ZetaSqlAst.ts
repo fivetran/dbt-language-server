@@ -328,7 +328,7 @@ export class ZetaSqlAst {
                 completionInfo.activeTableLocationRanges = n.activeTableLocationRanges;
                 completionInfo.activeTables = n.activeTables;
                 activeTablesFound = true;
-              } else if (positionInRange(offset, parentNode.parseLocationRange)) {
+              } else if (positionInRange(offset, parentNode.parseLocationRange) && nodeName === NODE.resolvedProjectScanNode) {
                 completionInfo.activeTableLocationRanges = [];
                 activeTablesFound = true;
               }
