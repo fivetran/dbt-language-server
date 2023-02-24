@@ -308,6 +308,7 @@ export class ZetaSqlAst {
                   const tableScanNode: ResolvedTableScanProto__Output = node;
                   const tables = parentNode.activeTables;
                   const name = tableScanNode.table?.name;
+                  const tableNameRange = tableScanNode.parent?.parent?.parseLocationRange ?? undefined;
                   const alias = tableScanNode.alias || undefined; // for some tables alias is '' in ast
                   if (name && !tables.some(t => t.name === name && t.alias === alias) && tableScanNode.parent?.columnList) {
                     tables.push({
@@ -318,6 +319,7 @@ export class ZetaSqlAst {
                         type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind as TypeKind] : undefined,
                         fromTable: c.tableName,
                       })),
+                      tableNameRange,
                     });
                   }
                 }
@@ -461,6 +463,7 @@ export interface ActiveTableInfo {
   name: string;
   alias?: string;
   columns: ResolvedColumn[];
+  tableNameRange?: Location;
 }
 
 export interface ResolvedColumn {

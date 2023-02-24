@@ -1,8 +1,12 @@
 with users_table as (
-    select email, id as user_id, 2 as two from {{ source('new_project', 'users') }}
+  select
+    email,
+    id as user_id, 2 as two
+  from {{ source('new_project', 'users') }}
 ), test_table as (
     select 1 as one,
-    2 as two, u1.division as dv
+    2 as two,
+    u1.division as dv
     from {{ source('new_project', 'users') }} as u1
 ), query_from_other_with as (
   select

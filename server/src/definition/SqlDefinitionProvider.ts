@@ -60,6 +60,14 @@ export class SqlDefinitionProvider {
                     ];
                   }
                 }
+                if (table.tableNameRange) {
+                  const positionConverter = new PositionConverter(rawDocument.getText(), compiledDocument.getText());
+                  const start = positionConverter.convertPositionBackward(compiledDocument.positionAt(table.tableNameRange.start));
+                  const end = positionConverter.convertPositionBackward(compiledDocument.positionAt(table.tableNameRange.end));
+                  const targetRange = Range.create(start, end);
+
+                  return [LocationLink.create(rawDocument.uri, targetRange, targetRange, column.rawRange)];
+                }
               }
             }
           }
