@@ -2,6 +2,7 @@
 
 import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { Type } from '@fivetrandevelopers/zetasql/lib/Type';
+import { AnyResolvedAggregateScanBaseProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/AnyResolvedAggregateScanBaseProto';
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ParseLocationRangeProto, ParseLocationRangeProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
 import { ResolvedFunctionCallProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedFunctionCallProto';
@@ -207,18 +208,19 @@ export class ZetaSqlAst {
                 const subqueryNode = subquery[subquery.node];
                 if (subqueryNode && 'parent' in subqueryNode) {
                   const scanProto = subqueryNode.parent;
+                  let activeWith: WithSubqueryInfo | undefined = undefined;
                   if (scanProto) {
-                    let withSubquery = completionInfo.withSubqueries.get(withEntry.withQueryName);
-                    if (!withSubquery) {
-                      withSubquery = {
+                    activeWith = completionInfo.withSubqueries.get(withEntry.withQueryName);
+                    if (!activeWith) {
+                      activeWith = {
                         columns: [],
                         parseLocationRange: scanProto.parent?.parseLocationRange ?? undefined,
                       };
-                      completionInfo.withSubqueries.set(withEntry.withQueryName, withSubquery);
+                      completionInfo.withSubqueries.set(withEntry.withQueryName, activeWith);
                     }
                     scanProto.columnList.forEach(c => {
                       if (c.name) {
-                        withSubquery?.columns.push({
+                        activeWith?.columns.push({
                           name: c.name,
                           type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind as TypeKind] : undefined,
                           fromTable: c.tableName,
@@ -226,7 +228,7 @@ export class ZetaSqlAst {
                       }
                     });
                   }
-                  if ('inputScan' in subqueryNode) {
+                  if ('inputScan' in subqueryNode && activeWith) {
                     const { inputScan } = subqueryNode;
                     if (inputScan) {
                       const inputScanNode = inputScan[inputScan.node];
@@ -236,6 +238,26 @@ export class ZetaSqlAst {
                           inputScanNode.parent?.columnList.forEach((c, i) => {
                             if (c.name !== existingWith.columns[i].name) {
                               existingWith.columns[i].name = c.name;
+                            }
+                          });
+                        }
+                      } else if (inputScan.node === 'resolvedAggregateScanBaseNode') {
+                        const aggregateScanBase = inputScanNode as AnyResolvedAggregateScanBaseProto__Output;
+                        // TODO: check 'resolvedAnonymizedAggregateScanNode'
+                        if (aggregateScanBase.node === 'resolvedAggregateScanNode') {
+                          const aggregateScan = aggregateScanBase[aggregateScanBase.node];
+                          aggregateScan?.parent?.groupByList.forEach(g => {
+                            if (g.expr?.node === 'resolvedColumnRefNode') {
+                              const columnRef = g.expr[g.expr.node];
+                              const column = columnRef?.column;
+                              const groupedColumn = g.column;
+                              if (column && groupedColumn) {
+                                const foundColumn = activeWith?.columns.find(c => c.name === groupedColumn.name);
+                                if (foundColumn) {
+                                  foundColumn.fromTable = column.tableName;
+                                  foundColumn.name = column.name;
+                                }
+                              }
                             }
                           });
                         }

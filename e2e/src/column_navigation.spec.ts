@@ -13,6 +13,7 @@ suite('Definitions for columns', () => {
     const usersSelectRange = new Range(1, 4, 1, 83);
     const testSelectRange = new Range(3, 4, 5, 51);
     const starSelectRange = new Range(20, 2, 23, 16);
+    const grTableSelectRange = new Range(25, 2, 28, 12);
     const idSourceSelectRange = new Range(18, 2, 18, 16);
 
     // For query_from_other_with
@@ -35,8 +36,12 @@ suite('Definitions for columns', () => {
     line += 8;
     await assertColumnDefinitions('id', docUri, new Position(line, 5), new Range(line, 4, line, 6), docUri, idSourceSelectRange);
 
+    // For gr_table
+    line += 4;
+    await assertColumnDefinitions('email', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, usersSelectRange);
+
     // For main select
-    line += 5;
+    line += 6;
     await assertColumnDefinitions('email', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, usersSelectRange);
     await assertColumnDefinitions('one', docUri, new Position(line, 12), new Range(line, 11, line, 14), docUri, testSelectRange);
     line++;
@@ -57,6 +62,8 @@ suite('Definitions for columns', () => {
     await assertColumnDefinitions('star.star_test1', docUri, new Position(line, 5), new Range(line, 4, line, 19), docUri, starSelectRange);
     line++;
     await assertColumnDefinitions('another_alias.star_test1', docUri, new Position(line, 5), new Range(line, 4, line, 28), docUri, starSelectRange);
+    line++;
+    await assertColumnDefinitions('grouping_email', docUri, new Position(line, 5), new Range(line, 4, line, 18), docUri, grTableSelectRange);
   });
 });
 
@@ -68,7 +75,7 @@ function assertColumnDefinitions(
   targetUri: Uri,
   targetRange: Range,
 ): Promise<void> {
-  console.log(`Check definitions for column ${columnName}`);
+  console.log(`Check definitions for column ${columnName}. Click line: ${clickPosition.line}`);
   return assertDefinitions(docUri, clickPosition, [
     {
       originSelectionRange,

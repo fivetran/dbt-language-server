@@ -22,6 +22,11 @@ with users_table as (
     1 as star_test1,
     id as star_id
   from id_source
+), gr_table as (
+  select 
+    email as grouping_email, count(*) as groupint_count
+  from users_table
+  group by 1
 )
 select
     star.*,
@@ -34,7 +39,8 @@ select
     ct2.now,
     ct1.hour,
     star.star_test1,
-    another_alias.star_test1
+    another_alias.star_test1,
+    grouping_email
 from test_table
 inner join users_table on users_table.user_id = test_table.one
 inner join {{ ref('table_exists') }} as t on t.id = test_table.one
@@ -42,3 +48,4 @@ cross join {{ ref('current_time_of_day') }} as ct1
 cross join {{ ref('current_time_of_day') }} as ct2
 inner join star on star.star_test1 = test_table.one
 inner join star as another_alias on another_alias.star_test1 = test_table.one
+inner join gr_table on grouping_email = email
