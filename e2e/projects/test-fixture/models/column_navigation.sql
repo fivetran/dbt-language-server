@@ -16,7 +16,8 @@ with users_table as (
     tt.two,
     ut.two,
     ut.email,
-    email as email2
+    email as email2,
+    coalesce(tt.one, ut.two, tt.two)
   from test_table as tt
   inner join users_table ut on tt.one = ut.user_id
 ), id_source as (

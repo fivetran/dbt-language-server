@@ -12,9 +12,9 @@ suite('Definitions for columns', () => {
 
     const usersSelectRange = new Range(1, 2, 4, 43);
     const testSelectRange = new Range(6, 4, 9, 51);
-    const starSelectRange = new Range(24, 2, 27, 16);
-    const grTableSelectRange = new Range(29, 2, 32, 12);
-    const idSourceSelectRange = new Range(22, 2, 22, 16);
+    const starSelectRange = new Range(25, 2, 28, 16);
+    const grTableSelectRange = new Range(30, 2, 33, 12);
+    const idSourceSelectRange = new Range(23, 2, 23, 16);
 
     const usersFromRange = new Range(4, 7, 4, 43);
     const testFromRange = new Range(9, 9, 9, 45);
@@ -43,6 +43,10 @@ suite('Definitions for columns', () => {
     await assertColumnDefinitions('ut.email', docUri, new Position(line, 5), new Range(line, 4, line, 12), docUri, usersSelectRange);
     line++;
     await assertColumnDefinitions('email', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, usersSelectRange);
+    line++;
+    await assertColumnDefinitions('coalesce tt.one', docUri, new Position(line, 14), new Range(line, 13, line, 19), docUri, testSelectRange);
+    await assertColumnDefinitions('coalesce ut.two', docUri, new Position(line, 22), new Range(line, 21, line, 27), docUri, usersSelectRange);
+    await assertColumnDefinitions('coalesce tt.two', docUri, new Position(line, 30), new Range(line, 29, line, 35), docUri, testSelectRange);
 
     // For star
     line += 8;
@@ -55,9 +59,11 @@ suite('Definitions for columns', () => {
     // For group_external
     line += 5;
     await assertColumnDefinitions('id', docUri, new Position(line, 5), new Range(line, 4, line, 6), tableExistsDoc, MAX_RANGE);
+    line++;
+    await assertColumnDefinitions('min(id)', docUri, new Position(line, 9), new Range(line, 8, line, 10), tableExistsDoc, MAX_RANGE);
 
     // For main select
-    line += 7;
+    line += 6;
     await assertColumnDefinitions('email', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, usersSelectRange);
     await assertColumnDefinitions('one', docUri, new Position(line, 12), new Range(line, 11, line, 14), docUri, testSelectRange);
     line++;

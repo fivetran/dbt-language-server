@@ -1,4 +1,5 @@
 import { ZetaSQLClient } from '@fivetrandevelopers/zetasql';
+import { AnyASTExpressionProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/AnyASTExpressionProto';
 import { ASTFunctionCallProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTFunctionCallProto';
 import { ASTSelectProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTSelectProto';
 import { ASTTablePathExpressionProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTTablePathExpressionProto';
@@ -62,18 +63,8 @@ export class ZetaSqlParser {
                   };
                   parentSelect.push(select);
                   result.selects.push(select);
-                  for (const column of typedNode.selectList?.columns ?? []) {
-                    if (column.expression?.node === 'astGeneralizedPathExpressionNode') {
-                      const pathExpression = column.expression.astGeneralizedPathExpressionNode?.astPathExpressionNode;
-                      const parseLocationRange = pathExpression?.parent?.parent?.parent?.parseLocationRange;
-                      if (parseLocationRange) {
-                        select.columns.push({
-                          namePath: pathExpression.names.map(n => n.idString),
-                          parseLocationRange,
-                        });
-                      }
-                    }
-                  }
+
+                  typedNode.selectList?.columns.forEach(c => select.columns.push(...this.getColumns(c.expression)));
                 }
               },
               actionAfter: () => parentSelect.pop(),
@@ -101,6 +92,27 @@ export class ZetaSqlParser {
       );
     }
     return result;
+  }
+
+  getColumns(node: AnyASTExpressionProto__Output | null): KnownColumn[] {
+    if (!node) {
+      return [];
+    }
+    const nodeName = node.node;
+    const columns: KnownColumn[] = [];
+    if (nodeName === 'astGeneralizedPathExpressionNode') {
+      const pathExpression = node.astGeneralizedPathExpressionNode?.astPathExpressionNode;
+      const parseLocationRange = pathExpression?.parent?.parent?.parent?.parseLocationRange;
+      if (parseLocationRange) {
+        columns.push({
+          namePath: pathExpression.names.map(n => n.idString),
+          parseLocationRange,
+        });
+      }
+    } else if (nodeName === 'astFunctionCallNode') {
+      node.astFunctionCallNode?.arguments.forEach(c => columns.push(...this.getColumns(c)));
+    }
+    return columns;
   }
 
   async parse(sqlStatement: string, options?: LanguageOptionsProto): Promise<ParseResponse__Output | undefined> {
