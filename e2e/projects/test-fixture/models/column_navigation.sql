@@ -38,6 +38,10 @@ with users_table as (
     min(id)
   from {{ ref('table_exists') }} 
   group by 1
+), select_distinct as (
+  select distinct
+    star_test1 as this_is_one
+  from star
 )
 select
     star.*,
@@ -51,7 +55,8 @@ select
     ct1.hour,
     star.star_test1,
     another_alias.star_test1,
-    grouping_email
+    grouping_email,
+    this_is_one
 from test_table
 inner join users_table on users_table.user_id = test_table.one
 inner join {{ ref('table_exists') }} as t on t.id = test_table.one
@@ -60,3 +65,4 @@ cross join {{ ref('current_time_of_day') }} as ct2
 inner join star on star.star_test1 = test_table.one
 inner join star as another_alias on another_alias.star_test1 = test_table.one
 inner join gr_table on grouping_email = email
+cross join select_distinct

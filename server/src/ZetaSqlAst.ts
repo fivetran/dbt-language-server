@@ -329,10 +329,21 @@ export class ZetaSqlAst {
       // TODO: check 'resolvedAnonymizedAggregateScanNode'
       if (aggregateScanBase && aggregateScanBase.node === 'resolvedAggregateScanNode') {
         const aggregateScan = aggregateScanBase[aggregateScanBase.node];
+        if (!completionInfo.withSubqueries.get(withQueryName)) {
+          completionInfo.withSubqueries.set(withQueryName, {
+            columns:
+              aggregateScan?.parent?.parent?.columnList.map<ResolvedColumn>(c => ({
+                name: c.name,
+                type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind as TypeKind] : undefined,
+                fromTable: c.tableName,
+              })) ?? [],
+            parseLocationRange: aggregateScan?.parent?.parent?.parent?.parseLocationRange ?? undefined,
+          });
+        }
+
         aggregateScan?.parent?.groupByList.forEach(g => {
           if (g.expr?.node === 'resolvedColumnRefNode') {
-            const columnRef = g.expr[g.expr.node];
-            const column = columnRef?.column;
+            const column = g.expr[g.expr.node]?.column;
             const groupedColumn = g.column;
             const foundWith = completionInfo.withSubqueries.get(withQueryName);
             if (column && groupedColumn && foundWith) {

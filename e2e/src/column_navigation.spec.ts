@@ -15,6 +15,7 @@ suite('Definitions for columns', () => {
     const starSelectRange = new Range(25, 2, 28, 16);
     const grTableSelectRange = new Range(30, 2, 33, 12);
     const idSourceSelectRange = new Range(23, 2, 23, 16);
+    const distinctSelectRange = new Range(41, 2, 43, 11);
 
     const usersFromRange = new Range(4, 7, 4, 43);
     const testFromRange = new Range(9, 9, 9, 45);
@@ -62,8 +63,12 @@ suite('Definitions for columns', () => {
     line++;
     await assertColumnDefinitions('min(id)', docUri, new Position(line, 9), new Range(line, 8, line, 10), tableExistsDoc, MAX_RANGE);
 
+    // For select_distinct
+    line += 5;
+    await assertColumnDefinitions('star_test1', docUri, new Position(line, 5), new Range(line, 4, line, 14), docUri, starSelectRange);
+
     // For main select
-    line += 6;
+    line += 5;
     await assertColumnDefinitions('email', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, usersSelectRange);
     await assertColumnDefinitions('one', docUri, new Position(line, 12), new Range(line, 11, line, 14), docUri, testSelectRange);
     line++;
@@ -86,6 +91,8 @@ suite('Definitions for columns', () => {
     await assertColumnDefinitions('another_alias.star_test1', docUri, new Position(line, 5), new Range(line, 4, line, 28), docUri, starSelectRange);
     line++;
     await assertColumnDefinitions('grouping_email', docUri, new Position(line, 5), new Range(line, 4, line, 18), docUri, grTableSelectRange);
+    line++;
+    await assertColumnDefinitions('this_is_one', docUri, new Position(line, 5), new Range(line, 4, line, 15), docUri, distinctSelectRange);
   });
 });
 
