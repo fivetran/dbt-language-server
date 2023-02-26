@@ -3,6 +3,7 @@
 import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { Type } from '@fivetrandevelopers/zetasql/lib/Type';
 import { AnyResolvedAggregateScanBaseProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/AnyResolvedAggregateScanBaseProto';
+import { AnyResolvedScanProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/AnyResolvedScanProto';
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ParseLocationRangeProto, ParseLocationRangeProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
 import { ResolvedFunctionCallProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedFunctionCallProto';
@@ -203,69 +204,7 @@ export class ZetaSqlAst {
             withEntryList.map(w => w.withQueryName).forEach(n => completionInfo.withNames.add(n)); // TODO: delete completionInfo.withNames
 
             for (const withEntry of withEntryList) {
-              const subquery = withEntry.withSubquery;
-              if (subquery) {
-                const subqueryNode = subquery[subquery.node];
-                if (subqueryNode && 'parent' in subqueryNode) {
-                  const scanProto = subqueryNode.parent;
-                  let activeWith: WithSubqueryInfo | undefined = undefined;
-                  if (scanProto) {
-                    activeWith = completionInfo.withSubqueries.get(withEntry.withQueryName);
-                    if (!activeWith) {
-                      activeWith = {
-                        columns: [],
-                        parseLocationRange: scanProto.parent?.parseLocationRange ?? undefined,
-                      };
-                      completionInfo.withSubqueries.set(withEntry.withQueryName, activeWith);
-                    }
-                    scanProto.columnList.forEach(c => {
-                      if (c.name) {
-                        activeWith?.columns.push({
-                          name: c.name,
-                          type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind as TypeKind] : undefined,
-                          fromTable: c.tableName,
-                        });
-                      }
-                    });
-                  }
-                  if ('inputScan' in subqueryNode && activeWith) {
-                    const { inputScan } = subqueryNode;
-                    if (inputScan) {
-                      const inputScanNode = inputScan[inputScan.node];
-                      if (inputScanNode && 'withQueryName' in inputScanNode) {
-                        const existingWith = completionInfo.withSubqueries.get(inputScanNode.withQueryName);
-                        if (existingWith) {
-                          inputScanNode.parent?.columnList.forEach((c, i) => {
-                            if (c.name !== existingWith.columns[i].name) {
-                              existingWith.columns[i].name = c.name;
-                            }
-                          });
-                        }
-                      } else if (inputScan.node === 'resolvedAggregateScanBaseNode') {
-                        const aggregateScanBase = inputScanNode as AnyResolvedAggregateScanBaseProto__Output;
-                        // TODO: check 'resolvedAnonymizedAggregateScanNode'
-                        if (aggregateScanBase.node === 'resolvedAggregateScanNode') {
-                          const aggregateScan = aggregateScanBase[aggregateScanBase.node];
-                          aggregateScan?.parent?.groupByList.forEach(g => {
-                            if (g.expr?.node === 'resolvedColumnRefNode') {
-                              const columnRef = g.expr[g.expr.node];
-                              const column = columnRef?.column;
-                              const groupedColumn = g.column;
-                              if (column && groupedColumn) {
-                                const foundColumn = activeWith?.columns.find(c => c.name === groupedColumn.name);
-                                if (foundColumn) {
-                                  foundColumn.fromTable = column.tableName;
-                                  foundColumn.name = column.name;
-                                }
-                              }
-                            }
-                          });
-                        }
-                      }
-                    }
-                  }
-                }
-              }
+              this.getWithSubqueryInfo(withEntry.withSubquery, completionInfo, withEntry.withQueryName);
             }
 
             const { query } = resolvedWithScan;
@@ -340,6 +279,71 @@ export class ZetaSqlAst {
       );
     }
     return completionInfo;
+  }
+
+  getWithSubqueryInfo(node: AnyResolvedScanProto__Output | null, completionInfo: CompletionInfo, withQueryName: string): void {
+    if (node) {
+      const subqueryNode = node[node.node];
+      if (subqueryNode && 'parent' in subqueryNode) {
+        const scanProto = subqueryNode.parent;
+        let activeWith: WithSubqueryInfo | undefined = undefined;
+        if (scanProto) {
+          activeWith = completionInfo.withSubqueries.get(withQueryName);
+          if (!activeWith) {
+            activeWith = {
+              columns: [],
+              parseLocationRange: scanProto.parent?.parseLocationRange ?? undefined,
+            };
+            completionInfo.withSubqueries.set(withQueryName, activeWith);
+          }
+          scanProto.columnList.forEach(c => {
+            if (c.name) {
+              activeWith?.columns.push({
+                name: c.name,
+                type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind as TypeKind] : undefined,
+                fromTable: c.tableName,
+              });
+            }
+          });
+        }
+        if ('inputScan' in subqueryNode && activeWith) {
+          const { inputScan } = subqueryNode;
+          if (inputScan) {
+            const inputScanNode = inputScan[inputScan.node];
+            if (inputScanNode && 'withQueryName' in inputScanNode) {
+              const existingWith = completionInfo.withSubqueries.get(inputScanNode.withQueryName);
+              if (existingWith) {
+                inputScanNode.parent?.columnList.forEach((c, i) => {
+                  if (c.name !== existingWith.columns[i].name) {
+                    existingWith.columns[i].name = c.name;
+                  }
+                });
+              }
+            } else if (inputScan.node === 'resolvedAggregateScanBaseNode') {
+              const aggregateScanBase = inputScanNode as AnyResolvedAggregateScanBaseProto__Output;
+              // TODO: check 'resolvedAnonymizedAggregateScanNode'
+              if (aggregateScanBase.node === 'resolvedAggregateScanNode') {
+                const aggregateScan = aggregateScanBase[aggregateScanBase.node];
+                aggregateScan?.parent?.groupByList.forEach(g => {
+                  if (g.expr?.node === 'resolvedColumnRefNode') {
+                    const columnRef = g.expr[g.expr.node];
+                    const column = columnRef?.column;
+                    const groupedColumn = g.column;
+                    if (column && groupedColumn) {
+                      const foundColumn = activeWith?.columns.find(c => c.name === groupedColumn.name);
+                      if (foundColumn) {
+                        foundColumn.fromTable = column.tableName;
+                        foundColumn.name = column.name;
+                      }
+                    }
+                  }
+                });
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   getResolvedTables(ast: AnalyzeResponse__Output, text: string): ResolvedTable[] {
