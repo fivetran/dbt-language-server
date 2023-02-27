@@ -40,7 +40,7 @@ import { ProjectChangeListener } from '../ProjectChangeListener';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { getLineByPosition, getSignatureInfo } from '../utils/TextUtils';
 import { areRangesEqual, debounce, getIdentifierRangeAtPosition, getModelPathOrFullyQualifiedName, positionInRange } from '../utils/Utils';
-import { ZetaSqlAst } from '../ZetaSqlAst';
+import { Location, ZetaSqlAst } from '../ZetaSqlAst';
 import { DbtDocumentKind } from './DbtDocumentKind';
 
 export interface QueryParseInformation {
@@ -51,6 +51,7 @@ export interface QueryParseInformation {
       compiledRange: Range;
     }[];
     tableAliases: Map<string, string>;
+    parseLocationRange: Location;
   }[];
 }
 
@@ -372,6 +373,7 @@ export class DbtTextDocument {
             };
           }),
           tableAliases: s.tableAliases,
+          parseLocationRange: s.parseLocationRange,
         })),
       };
     }

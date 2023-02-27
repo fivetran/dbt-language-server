@@ -8,6 +8,7 @@ import { PositionConverter } from '../PositionConverter';
 import { AnalyzeResult } from '../ProjectAnalyzer';
 import { getTableRefUniqueId } from '../utils/ManifestUtils';
 import { positionInRange, rangesOverlap } from '../utils/Utils';
+import { rangesEqual } from '../utils/ZetaSqlUtils';
 import { Location } from '../ZetaSqlAst';
 import { DbtDefinitionProvider } from './DbtDefinitionProvider';
 
@@ -75,7 +76,7 @@ export class SqlDefinitionProvider {
         for (const [, withSubqueryInfo] of completionInfo.withSubqueries) {
           let range = undefined;
           if (withSubqueryInfo.parseLocationRange) {
-            range = SqlDefinitionProvider.toRange(withSubqueryInfo.parseLocationRange, compiledDocument);
+            range = SqlDefinitionProvider.toCompiledRange(withSubqueryInfo.parseLocationRange, compiledDocument);
           }
 
           if (!range || rangesOverlap(range, column.compiledRange)) {
@@ -87,14 +88,29 @@ export class SqlDefinitionProvider {
             });
             if (clickedColumn) {
               const targetWith = completionInfo.withSubqueries.get(clickedColumn.fromTable);
-
-              if (targetWith && targetWith.parseLocationRange) {
+              const targetSelectLocation = targetWith?.parseLocationRange;
+              if (targetWith && targetSelectLocation) {
                 const positionConverter = new PositionConverter(rawDocument.getText(), compiledDocument.getText());
 
-                const start = positionConverter.convertPositionBackward(compiledDocument.positionAt(targetWith.parseLocationRange.start));
-                const end = positionConverter.convertPositionBackward(compiledDocument.positionAt(targetWith.parseLocationRange.end));
-                const targetRange = Range.create(start, end);
-                return [LocationLink.create(rawDocument.uri, targetRange, targetRange, column.rawRange)];
+                const targetRange = Range.create(
+                  positionConverter.convertPositionBackward(compiledDocument.positionAt(targetSelectLocation.start)),
+                  positionConverter.convertPositionBackward(compiledDocument.positionAt(targetSelectLocation.end)),
+                );
+
+                const targetSelect = queryInformation.selects.find(s => rangesEqual(targetSelectLocation, s.parseLocationRange));
+
+                let targetColumnRawRange = targetRange;
+                if (targetSelect) {
+                  const targetColumn = targetSelect.columns.find(c => c.namePath.at(-1) === clickedColumn.name);
+                  if (targetColumn) {
+                    targetColumnRawRange = Range.create(
+                      positionConverter.convertPositionBackward(targetColumn.compiledRange.start),
+                      positionConverter.convertPositionBackward(targetColumn.compiledRange.end),
+                    );
+                  }
+                }
+
+                return [LocationLink.create(rawDocument.uri, targetRange, targetColumnRawRange, column.rawRange)];
               }
             }
             break;
@@ -106,7 +122,7 @@ export class SqlDefinitionProvider {
     return undefined;
   }
 
-  static toRange(location: Location, compiledDocument: TextDocument): Range {
+  static toCompiledRange(location: Location, compiledDocument: TextDocument): Range {
     const start = compiledDocument.positionAt(location.start);
     const end = compiledDocument.positionAt(location.end);
     return Range.create(start, end);

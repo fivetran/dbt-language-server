@@ -18,7 +18,7 @@ export function rangeContainsRange(outerRange: ParseLocationRangeProto__Output, 
   return outerRange.start <= innerRange.start && innerRange.end <= outerRange.end;
 }
 
-export function rangesEqual(range1: ParseLocationRangeProto__Output, range2: ParseLocationRangeProto__Output): boolean {
+export function rangesEqual(range1: { start: number; end: number }, range2: { start: number; end: number }): boolean {
   return range1.start === range2.start && range1.end === range2.end;
 }
 
