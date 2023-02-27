@@ -100,17 +100,42 @@ export class ZetaSqlParser {
     }
     const nodeName = node.node;
     const columns: KnownColumn[] = [];
-    if (nodeName === 'astGeneralizedPathExpressionNode') {
-      const pathExpression = node.astGeneralizedPathExpressionNode?.astPathExpressionNode;
-      const parseLocationRange = pathExpression?.parent?.parent?.parent?.parseLocationRange;
-      if (parseLocationRange) {
-        columns.push({
-          namePath: pathExpression.names.map(n => n.idString),
-          parseLocationRange,
-        });
+    switch (nodeName) {
+      case 'astGeneralizedPathExpressionNode': {
+        const pathExpression = node.astGeneralizedPathExpressionNode?.astPathExpressionNode;
+        const parseLocationRange = pathExpression?.parent?.parent?.parent?.parseLocationRange;
+        if (parseLocationRange) {
+          columns.push({
+            namePath: pathExpression.names.map(n => n.idString),
+            parseLocationRange,
+          });
+        }
+        break;
       }
-    } else if (nodeName === 'astFunctionCallNode') {
-      node.astFunctionCallNode?.arguments.forEach(c => columns.push(...this.getColumns(c)));
+      case 'astFunctionCallNode': {
+        node.astFunctionCallNode?.arguments.forEach(c => columns.push(...this.getColumns(c)));
+        break;
+      }
+      case 'astDotStarWithModifiersNode': {
+        node.astDotStarWithModifiersNode?.modifiers?.exceptList?.identifiers.forEach(i => {
+          if (i.parent?.parent?.parseLocationRange) {
+            columns.push({
+              namePath: [i.idString],
+              parseLocationRange: i.parent.parent.parseLocationRange,
+            });
+          }
+        });
+        break;
+      }
+      case 'astBinaryExpressionNode': {
+        if (node.astBinaryExpressionNode?.lhs) {
+          columns.push(...this.getColumns(node.astBinaryExpressionNode.lhs));
+        }
+        break;
+      }
+      default: {
+        break;
+      }
     }
     return columns;
   }
