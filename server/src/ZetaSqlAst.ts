@@ -8,6 +8,7 @@ import { ParseLocationRangeProto, ParseLocationRangeProto__Output } from '@fivet
 import { ResolvedFunctionCallProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedFunctionCallProto';
 import { ResolvedOutputColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedOutputColumnProto';
 import { ResolvedQueryStmtProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedQueryStmtProto';
+import { ResolvedScanProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedScanProto';
 import { ResolvedTableScanProto, ResolvedTableScanProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedTableScanProto';
 import { ResolvedWithScanProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedWithScanProto';
 import { extractDatasetFromFullName } from './utils/Utils';
@@ -286,26 +287,7 @@ export class ZetaSqlAst {
     }
     const subqueryNode = node[node.node];
     if (subqueryNode && 'parent' in subqueryNode) {
-      const scanProto = subqueryNode.parent;
-      if (scanProto) {
-        let activeWith = completionInfo.withSubqueries.get(withQueryName);
-        if (!activeWith) {
-          activeWith = {
-            columns: [],
-            parseLocationRange: scanProto.parent?.parseLocationRange ?? undefined,
-          };
-          completionInfo.withSubqueries.set(withQueryName, activeWith);
-        }
-        scanProto.columnList.forEach(c => {
-          if (c.name) {
-            activeWith?.columns.push({
-              name: c.name,
-              type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind as TypeKind] : undefined,
-              fromTable: c.tableName,
-            });
-          }
-        });
-      }
+      this.setWithSubquery(subqueryNode.parent, completionInfo, withQueryName);
       if ('inputScan' in subqueryNode) {
         const { inputScan } = subqueryNode;
         if (inputScan) {
@@ -329,17 +311,7 @@ export class ZetaSqlAst {
       // TODO: check 'resolvedAnonymizedAggregateScanNode'
       if (aggregateScanBase && aggregateScanBase.node === 'resolvedAggregateScanNode') {
         const aggregateScan = aggregateScanBase[aggregateScanBase.node];
-        if (!completionInfo.withSubqueries.get(withQueryName)) {
-          completionInfo.withSubqueries.set(withQueryName, {
-            columns:
-              aggregateScan?.parent?.parent?.columnList.map<ResolvedColumn>(c => ({
-                name: c.name,
-                type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind as TypeKind] : undefined,
-                fromTable: c.tableName,
-              })) ?? [],
-            parseLocationRange: aggregateScan?.parent?.parent?.parent?.parseLocationRange ?? undefined,
-          });
-        }
+        this.setWithSubquery(aggregateScan?.parent?.parent, completionInfo, withQueryName);
 
         aggregateScan?.parent?.groupByList.forEach(g => {
           if (g.expr?.node === 'resolvedColumnRefNode') {
@@ -356,6 +328,20 @@ export class ZetaSqlAst {
           }
         });
       }
+    }
+  }
+
+  setWithSubquery(scanProto: ResolvedScanProto__Output | undefined | null, completionInfo: CompletionInfo, withQueryName: string): void {
+    if (!completionInfo.withSubqueries.has(withQueryName)) {
+      completionInfo.withSubqueries.set(withQueryName, {
+        columns:
+          scanProto?.columnList.map<ResolvedColumn>(c => ({
+            name: c.name,
+            type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind as TypeKind] : undefined,
+            fromTable: c.tableName,
+          })) ?? [],
+        parseLocationRange: scanProto?.parent?.parseLocationRange ?? undefined,
+      });
     }
   }
 
