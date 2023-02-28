@@ -135,7 +135,7 @@ jobs:
                 method: service-account
                 project: ${project_id}
                 keyfile: ${keyFilePath}
-                dataset: z_dbt_pavel
+                dataset: z_dbt_wizard
                 threads: 4
               prod:
                 type: bigquery
