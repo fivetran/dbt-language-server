@@ -170,7 +170,7 @@ jobs:
           ls -la
 
       - name: install dbt
-        run: ${PYTHON_INSTALL_LOC} -m pip install "dbt-bigquery>=1.3.0,<1.4.0" dbt-rpc
+        run: ${PYTHON_INSTALL_LOC} -m pip install pytz "dbt-bigquery>=1.3.0,<1.4.0" dbt-rpc
         env:
           PYTHON_INSTALL_LOC: '${{ steps.setup-python.outputs.python-path }}'
 
