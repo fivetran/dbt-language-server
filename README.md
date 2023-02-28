@@ -66,7 +66,11 @@ Hover over SQL functions to see their definitions and required parameters.
 If you press `Cmd` and hover over a macro, model, or source name, a preview of the declaration will appear.
 You can jump to the definition with `Cmd+Click` or open the definition to the side with `Cmd+Alt+Click`.
 
-![Function signature help](images/go-to-definition.gif)
+![Go to definition](images/go-to-definition.gif)
+
+If you use BigQuery you can go to column definition with `Cmd+Click`.
+
+![Go to column definition](images/go-to-column-definition.gif)
 
 ### dbt status
 
