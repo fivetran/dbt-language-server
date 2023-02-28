@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.20.0 (01/01/1970)
+## Version 0.20.0 (28/02/2023)
 ## What's Changed
 * Add support for `ANY` type in temporary UDFs, for example:
 ```sql
