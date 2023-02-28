@@ -116,23 +116,6 @@ export class ZetaSqlParser {
         node.astFunctionCallNode?.arguments.forEach(c => columns.push(...this.getColumns(c)));
         break;
       }
-      case 'astDotStarWithModifiersNode': {
-        node.astDotStarWithModifiersNode?.modifiers?.exceptList?.identifiers.forEach(i => {
-          if (i.parent?.parent?.parseLocationRange) {
-            columns.push({
-              namePath: [i.idString],
-              parseLocationRange: i.parent.parent.parseLocationRange,
-            });
-          }
-        });
-        break;
-      }
-      case 'astBinaryExpressionNode': {
-        if (node.astBinaryExpressionNode?.lhs) {
-          columns.push(...this.getColumns(node.astBinaryExpressionNode.lhs));
-        }
-        break;
-      }
       default: {
         break;
       }
