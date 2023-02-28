@@ -14,7 +14,7 @@ export abstract class Dbt {
   dbtReady: boolean;
   onDbtReadyEmitter: Emitter<void>;
 
-  constructor(private connection: _Connection, protected progressReporter: ProgressReporter, private notificationSender: NotificationSender) {
+  constructor(protected connection: _Connection, protected progressReporter: ProgressReporter, protected notificationSender: NotificationSender) {
     this.dbtReady = false;
     this.onDbtReadyEmitter = new Emitter<void>();
   }
@@ -57,24 +57,6 @@ export abstract class Dbt {
       }
     } else {
       this.onRpcServerFindFailed();
-    }
-  }
-
-  async suggestToUpdateDbtRpc(message: string, python: string): Promise<void> {
-    const actions = { title: 'Upgrade dbt-rpc', id: 'upgrade' };
-    const errorMessageResult = await this.connection.window.showErrorMessage(`${message}. Would you like to upgrade dbt-rpc?`, actions);
-
-    if (errorMessageResult?.id === 'upgrade') {
-      console.log('Trying to upgrade dbt-rpc');
-      const sendLog = (data: string): void => this.notificationSender.sendInstallLatestDbtLog(data);
-      const installResult = await InstallUtils.updateDbtRpc(python, sendLog);
-      if (installResult.isOk()) {
-        this.notificationSender.sendRestart();
-      } else {
-        this.finishWithError(installResult.error);
-      }
-    } else {
-      this.finishWithError(message);
     }
   }
 
