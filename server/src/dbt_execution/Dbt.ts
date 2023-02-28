@@ -42,12 +42,12 @@ export abstract class Dbt {
   async suggestToInstallDbt(python: string, dbtProfileType: string): Promise<void> {
     const actions = { title: 'Install', id: 'install' };
     const errorMessageResult = await this.connection.window.showErrorMessage(
-      `dbt is not installed. Would you like to install dbt, dbt-rpc and ${dbtProfileType} adapter?`,
+      `dbt is not installed. Would you like to install dbt and ${dbtProfileType} adapter?`,
       actions,
     );
 
     if (errorMessageResult?.id === 'install') {
-      console.log(`Trying to install dbt, dbt-rpc and ${dbtProfileType} adapter`);
+      console.log(`Trying to install dbt, and ${dbtProfileType} adapter`);
       const sendLog = (data: string): void => this.notificationSender.sendInstallLatestDbtLog(data);
       const installResult = await InstallUtils.installDbt(python, dbtProfileType, sendLog, sendLog);
       if (installResult.isOk()) {

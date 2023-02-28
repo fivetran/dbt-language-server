@@ -16,9 +16,6 @@ export class InstallUtils {
     if (dbtProfileType) {
       packages.push(InstallUtils.buildAdapterPackageName(dbtProfileType));
     }
-    if (process.platform !== 'win32') {
-      packages.push(InstallUtils.DBT_RPC);
-    }
     return packages;
   }
 
