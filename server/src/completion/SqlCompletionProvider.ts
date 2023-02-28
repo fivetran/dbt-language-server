@@ -245,7 +245,7 @@ export class SqlCompletionProvider {
   ): Promise<CompletionItem[]> {
     const result: CompletionItem[] = [];
 
-    if (completionInfo?.activeTables) {
+    if (completionInfo && completionInfo.activeTables.length > 0) {
       if (completionParams.context?.triggerKind === CompletionTriggerKind.TriggerCharacter) {
         result.push(...this.getColumnsForActiveTable(text, completionInfo.activeTables));
       } else {
@@ -276,38 +276,38 @@ export class SqlCompletionProvider {
     }));
   }
 
-  getColumnsForActiveTables(tables: Map<string, ActiveTableInfo>): CompletionItem[] {
-    if (tables.size === 1) {
+  getColumnsForActiveTables(tables: ActiveTableInfo[]): CompletionItem[] {
+    if (tables.length === 1) {
       const [tableInfo] = tables;
-      return tableInfo[1].columns.map<CompletionItem>(c => ({
+      return tableInfo.columns.map<CompletionItem>(c => ({
         label: c.name,
         kind: CompletionItemKind.Value,
-        detail: `${tableInfo[0]} ${String(c.type)}`,
+        detail: `${tableInfo.name} ${String(c.type)}`,
         sortText: `1${c.name}`,
       }));
     }
 
-    if (tables.size > 1) {
-      return [...tables.entries()].flatMap(e => {
-        const [tableName] = e;
-        return e[1].columns.map<CompletionItem>(column => ({
-          label: `${tableName}.${column.name}`,
+    if (tables.length > 1) {
+      return tables.flatMap(table => {
+        const { name } = table;
+        return table.columns.map<CompletionItem>(column => ({
+          label: `${name}.${column.name}`,
           kind: CompletionItemKind.Value,
           detail: `${String(column.type)}`,
-          sortText: `1${tableName}.${column.name}`,
+          sortText: `1${name}.${column.name}`,
         }));
       });
     }
     return [];
   }
 
-  getColumnsForActiveTable(text: string, tables: Map<string, ActiveTableInfo>): CompletionItem[] {
-    for (const [tableName, tableInfo] of tables) {
-      if (text === tableName || text === tableInfo.alias) {
-        return tableInfo.columns.map<CompletionItem>(column => ({
+  getColumnsForActiveTable(text: string, tables: ActiveTableInfo[]): CompletionItem[] {
+    for (const table of tables) {
+      if (text === table.name || text === table.alias) {
+        return table.columns.map<CompletionItem>(column => ({
           label: `${column.name}`,
           kind: CompletionItemKind.Value,
-          detail: `${tableName} ${String(column.type)}`,
+          detail: `${table.name} ${String(column.type)}`,
           sortText: `1${column.name}`,
         }));
       }

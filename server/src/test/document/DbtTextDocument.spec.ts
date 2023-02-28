@@ -6,6 +6,7 @@ import { Emitter, Range, TextDocumentSaveReason, VersionedTextDocumentIdentifier
 import { DbtRepository } from '../../DbtRepository';
 import { Dbt } from '../../dbt_execution/Dbt';
 import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
+import { SqlDefinitionProvider } from '../../definition/SqlDefinitionProvider';
 import { DestinationContext } from '../../DestinationContext';
 import { DiagnosticGenerator } from '../../DiagnosticGenerator';
 import { DbtDocumentKind } from '../../document/DbtDocumentKind';
@@ -63,6 +64,7 @@ describe('DbtTextDocument', () => {
       new SignatureHelpProvider(),
       new HoverProvider(),
       new DbtDefinitionProvider(dbtRepository),
+      new SqlDefinitionProvider(dbtRepository),
       mock(ProjectChangeListener),
     );
   });

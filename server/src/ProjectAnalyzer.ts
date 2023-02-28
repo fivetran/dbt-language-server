@@ -6,6 +6,8 @@ import { DbtRepository } from './DbtRepository';
 import { ManifestModel } from './manifest/ManifestJson';
 import { TableDefinition } from './TableDefinition';
 import { TableFetcher } from './TableFetcher';
+import { getTableRefUniqueId } from './utils/ManifestUtils';
+import { ParseResult } from './ZetaSqlParser';
 import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 
 export type ModelsAnalyzeResult = {
@@ -13,7 +15,10 @@ export type ModelsAnalyzeResult = {
   analyzeResult: AnalyzeResult;
 };
 
-export type AnalyzeResult = Result<AnalyzeResponse__Output, string>;
+export interface AnalyzeResult {
+  ast: Result<AnalyzeResponse__Output, string>;
+  parseResult: ParseResult;
+}
 
 export class ProjectAnalyzer {
   constructor(
@@ -70,7 +75,7 @@ export class ProjectAnalyzer {
 
   /** Filters all errors. Returns only root errors */
   private filterErrorResults(results: ModelsAnalyzeResult[]): ModelsAnalyzeResult[] {
-    const errorResults = results.filter(r => r.analyzeResult.isErr());
+    const errorResults = results.filter(r => r.analyzeResult.ast.isErr());
     const idToExclude = new Set(
       errorResults
         .filter(r => {
@@ -154,7 +159,13 @@ export class ProjectAnalyzer {
   ): Promise<AnalyzeResult> {
     const compiledSql = sql ?? this.getCompiledCode(model);
     if (compiledSql === undefined) {
-      return err(`Compiled SQL not found for model ${model?.uniqueId ?? 'undefined'}`);
+      return {
+        ast: err(`Compiled SQL not found for model ${model?.uniqueId ?? 'undefined'}`),
+        parseResult: {
+          functions: [],
+          selects: [],
+        },
+      };
     }
 
     const tables = await this.zetaSqlWrapper.findTableNames(compiledSql);
@@ -164,7 +175,7 @@ export class ProjectAnalyzer {
 
     for (const table of tables) {
       if (!this.zetaSqlWrapper.isTableRegistered(table)) {
-        const refId = this.getTableRefUniqueId(model, table.getTableName());
+        const refId = getTableRefUniqueId(model, table.getTableName(), this.dbtRepository);
         if (refId) {
           const refModel = this.dbtRepository.dag.nodes.find(n => n.getValue().uniqueId === refId)?.getValue();
           if (refModel) {
@@ -199,7 +210,8 @@ export class ProjectAnalyzer {
         }
       });
 
-    await this.zetaSqlWrapper.registerPersistentUdfs(compiledSql);
+    const parseResult = await this.zetaSqlWrapper.getParseResult(compiledSql);
+    await this.zetaSqlWrapper.registerPersistentUdfs(parseResult);
     const tempUdfs = await this.zetaSqlWrapper.getTempUdfs(model?.config?.sqlHeader);
     const catalogWithTempUdfs = this.zetaSqlWrapper.createCatalogWithTempUdfs(tempUdfs);
 
@@ -210,7 +222,10 @@ export class ProjectAnalyzer {
       this.zetaSqlWrapper.registerTable(table);
     }
 
-    return ast;
+    return {
+      ast,
+      parseResult,
+    };
   }
 
   private static createTableDefinition(model: ManifestModel): TableDefinition {
@@ -243,38 +258,5 @@ export class ProjectAnalyzer {
 
   private getCompiledCode(model?: ManifestModel): string | undefined {
     return model ? this.dbtRepository.getModelCompiledCode(model) : undefined;
-  }
-
-  private getTableRefUniqueId(model: ManifestModel | undefined, name: string): string | undefined {
-    if (!model || model.dependsOn.nodes.length === 0) {
-      return undefined;
-    }
-
-    const refFullName = this.getTableRefFullName(model, name);
-
-    if (refFullName) {
-      const joinedName = refFullName.join('.');
-      return model.dependsOn.nodes.find(n => n.endsWith(`.${joinedName}`));
-    }
-
-    return undefined;
-  }
-
-  private getTableRefFullName(model: ManifestModel, name: string): string[] | undefined {
-    const refFullName = ProjectAnalyzer.findModelRef(model, name);
-    if (refFullName) {
-      return refFullName;
-    }
-
-    const aliasedModel = this.dbtRepository.dag.nodes.find(n => n.getValue().alias === name)?.getValue();
-    if (aliasedModel && ProjectAnalyzer.findModelRef(model, aliasedModel.name)) {
-      return [aliasedModel.name];
-    }
-
-    return undefined;
-  }
-
-  private static findModelRef(model: ManifestModel, name: string): string[] | undefined {
-    return model.refs.find(ref => ref.indexOf(name) === ref.length - 1);
   }
 }

@@ -2,13 +2,15 @@
 
 import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { Type } from '@fivetrandevelopers/zetasql/lib/Type';
-import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
+import { AnyResolvedScanProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/AnyResolvedScanProto';
+import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ParseLocationRangeProto, ParseLocationRangeProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
 import { ResolvedFunctionCallProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedFunctionCallProto';
 import { ResolvedOutputColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedOutputColumnProto';
 import { ResolvedQueryStmtProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedQueryStmtProto';
-import { ResolvedTableScanProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedTableScanProto';
-import { ResolvedWithScanProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedWithScanProto';
+import { ResolvedScanProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedScanProto';
+import { ResolvedTableScanProto, ResolvedTableScanProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedTableScanProto';
+import { ResolvedWithScanProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedWithScanProto';
 import { extractDatasetFromFullName } from './utils/Utils';
 import { positionInRange, rangeContainsRange, rangesEqual } from './utils/ZetaSqlUtils';
 
@@ -113,9 +115,9 @@ export class ZetaSqlAst {
     'withSubquery',
   ];
 
-  getHoverInfo(ast: AnalyzeResponse, text: string): HoverInfo {
+  getHoverInfo(ast: AnalyzeResponse__Output, text: string): HoverInfo {
     const result: HoverInfo = {};
-    const resolvedStatementNode = ast.resolvedStatement && ast.resolvedStatement.node ? ast.resolvedStatement[ast.resolvedStatement.node] : undefined;
+    const resolvedStatementNode = ast.resolvedStatement ? ast.resolvedStatement[ast.resolvedStatement.node] : undefined;
     if (resolvedStatementNode) {
       this.traversal(
         resolvedStatementNode,
@@ -149,10 +151,12 @@ export class ZetaSqlAst {
     return result;
   }
 
-  getCompletionInfo(ast: AnalyzeResponse, offset: number): CompletionInfo {
+  getCompletionInfo(ast: AnalyzeResponse__Output, offset: number): CompletionInfo {
     const completionInfo: CompletionInfo = {
       resolvedTables: new Map<string, string[]>(),
       withNames: new Set<string>(),
+      withSubqueries: new Map<string, WithSubqueryInfo>(),
+      activeTables: [],
     };
 
     const parentNodes: {
@@ -160,19 +164,20 @@ export class ZetaSqlAst {
       parseLocationRange: ParseLocationRangeProto__Output;
       value: unknown;
       activeTableLocationRanges?: ParseLocationRangeProto__Output[];
-      activeTables?: Map<string, ActiveTableInfo>;
+      activeTables: ActiveTableInfo[];
     }[] = [];
 
     const { resolvedStatement } = ast;
     const resolvedStatementNode = resolvedStatement?.node ? resolvedStatement[resolvedStatement.node] : undefined;
     if (resolvedStatementNode) {
+      let activeTablesFound = false;
       this.traversal(
         resolvedStatementNode,
         (node: unknown, nodeName?: string) => {
           if (nodeName !== NODE.resolvedTableScanNode) {
             const parseLocationRange = this.getParseLocationRange(node);
             if (parseLocationRange) {
-              parentNodes.push({ name: nodeName, parseLocationRange, value: node });
+              parentNodes.push({ name: nodeName, parseLocationRange, value: node, activeTables: [] });
             }
           }
 
@@ -194,15 +199,39 @@ export class ZetaSqlAst {
           }
 
           if (nodeName === NODE.resolvedWithScanNode) {
-            (node as ResolvedWithScanProto).withEntryList
-              ?.map(w => w.withQueryName)
-              .filter((n): n is string => n !== undefined)
-              .forEach(n => completionInfo.withNames.add(n));
+            const resolvedWithScan = node as ResolvedWithScanProto__Output;
+            const { withEntryList } = resolvedWithScan;
+            withEntryList.map(w => w.withQueryName).forEach(n => completionInfo.withNames.add(n)); // TODO: delete completionInfo.withNames
+
+            for (const withEntry of withEntryList) {
+              this.getWithSubqueryInfo(withEntry.withSubquery, completionInfo, withEntry.withQueryName);
+            }
+
+            const { query } = resolvedWithScan;
+            if (query) {
+              const queryNode = query[query.node];
+              if (queryNode && 'parent' in queryNode) {
+                const withSubquery: WithSubqueryInfo = {
+                  columns: [],
+                };
+                completionInfo.withSubqueries.set('___mainQuery', withSubquery);
+
+                queryNode.parent?.columnList.forEach(c => {
+                  if (c.name) {
+                    withSubquery.columns.push({
+                      name: c.name,
+                      type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind as TypeKind] : undefined,
+                      fromTable: c.tableName,
+                    });
+                  }
+                });
+              }
+            }
           }
         },
         resolvedStatement?.node,
         (node: any, nodeName?: string) => {
-          if (parentNodes.length > 0 && completionInfo.activeTableLocationRanges === undefined) {
+          if (parentNodes.length > 0 && !activeTablesFound) {
             const parseLocationRange = this.getParseLocationRange(node);
             if (!parseLocationRange) {
               return;
@@ -212,20 +241,24 @@ export class ZetaSqlAst {
             if (nodeName === NODE.resolvedTableScanNode) {
               if (rangeContainsRange(parentNode.parseLocationRange, parseLocationRange) && positionInRange(offset, parentNode.parseLocationRange)) {
                 parentNode.activeTableLocationRanges = parentNode.activeTableLocationRanges ?? [];
-                parentNode.activeTables = parentNode.activeTables ?? new Map<string, ActiveTableInfo>();
                 parentNode.activeTableLocationRanges.push(parseLocationRange);
 
                 if (!positionInRange(offset, parseLocationRange)) {
-                  const tableScanNode: ResolvedTableScanProto = node;
+                  const tableScanNode: ResolvedTableScanProto__Output = node;
                   const tables = parentNode.activeTables;
-                  const tableName = tableScanNode.table?.name;
-                  if (tableName && !tables.has(tableName) && tableScanNode.parent?.columnList) {
-                    tables.set(tableName, {
-                      alias: tableScanNode.alias || undefined, // for some tables alias is '' in ast
+                  const name = tableScanNode.table?.name;
+                  const tableNameRange = tableScanNode.parent?.parent?.parseLocationRange ?? undefined;
+                  const alias = tableScanNode.alias || undefined; // for some tables alias is '' in ast
+                  if (name && !tables.some(t => t.name === name && t.alias === alias) && tableScanNode.parent?.columnList) {
+                    tables.push({
+                      name,
+                      alias,
                       columns: tableScanNode.parent.columnList.map<ResolvedColumn>(c => ({
-                        name: c.name ?? '',
+                        name: c.name,
                         type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind as TypeKind] : undefined,
+                        fromTable: c.tableName,
                       })),
+                      tableNameRange,
                     });
                   }
                 }
@@ -235,6 +268,10 @@ export class ZetaSqlAst {
               if (n?.activeTableLocationRanges && n.activeTableLocationRanges.length > 0) {
                 completionInfo.activeTableLocationRanges = n.activeTableLocationRanges;
                 completionInfo.activeTables = n.activeTables;
+                activeTablesFound = true;
+              } else if (positionInRange(offset, parentNode.parseLocationRange) && nodeName === NODE.resolvedProjectScanNode) {
+                completionInfo.activeTableLocationRanges = [];
+                activeTablesFound = true;
               }
             }
           }
@@ -244,9 +281,73 @@ export class ZetaSqlAst {
     return completionInfo;
   }
 
-  getResolvedTables(ast: AnalyzeResponse, text: string): ResolvedTable[] {
+  getWithSubqueryInfo(node: AnyResolvedScanProto__Output | null, completionInfo: CompletionInfo, withQueryName: string): void {
+    if (!node) {
+      return;
+    }
+    const subqueryNode = node[node.node];
+    if (subqueryNode && 'parent' in subqueryNode) {
+      this.setWithSubquery(subqueryNode.parent, completionInfo, withQueryName);
+      if ('inputScan' in subqueryNode) {
+        const { inputScan } = subqueryNode;
+        if (inputScan) {
+          const inputScanNode = inputScan[inputScan.node];
+          if (inputScanNode && 'withQueryName' in inputScanNode) {
+            const existingWith = completionInfo.withSubqueries.get(inputScanNode.withQueryName);
+            if (existingWith) {
+              inputScanNode.parent?.columnList.forEach((c, i) => {
+                if (c.name !== existingWith.columns[i].name) {
+                  existingWith.columns[i].name = c.name;
+                }
+              });
+            }
+          } else {
+            this.getWithSubqueryInfo(inputScan, completionInfo, withQueryName);
+          }
+        }
+      }
+    } else if (node.node === 'resolvedAggregateScanBaseNode') {
+      const aggregateScanBase = node[node.node];
+      // TODO: check 'resolvedAnonymizedAggregateScanNode'
+      if (aggregateScanBase && aggregateScanBase.node === 'resolvedAggregateScanNode') {
+        const aggregateScan = aggregateScanBase[aggregateScanBase.node];
+        this.setWithSubquery(aggregateScan?.parent?.parent, completionInfo, withQueryName);
+
+        aggregateScan?.parent?.groupByList.forEach(g => {
+          if (g.expr?.node === 'resolvedColumnRefNode') {
+            const column = g.expr[g.expr.node]?.column;
+            const groupedColumn = g.column;
+            const foundWith = completionInfo.withSubqueries.get(withQueryName);
+            if (column && groupedColumn && foundWith) {
+              const foundColumn = foundWith.columns.find(c => c.name === groupedColumn.name);
+              if (foundColumn) {
+                foundColumn.fromTable = column.tableName;
+                foundColumn.name = column.name;
+              }
+            }
+          }
+        });
+      }
+    }
+  }
+
+  setWithSubquery(scanProto: ResolvedScanProto__Output | undefined | null, completionInfo: CompletionInfo, withQueryName: string): void {
+    if (!completionInfo.withSubqueries.has(withQueryName)) {
+      completionInfo.withSubqueries.set(withQueryName, {
+        columns:
+          scanProto?.columnList.map<ResolvedColumn>(c => ({
+            name: c.name,
+            type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind as TypeKind] : undefined,
+            fromTable: c.tableName,
+          })) ?? [],
+        parseLocationRange: scanProto?.parent?.parseLocationRange ?? undefined,
+      });
+    }
+  }
+
+  getResolvedTables(ast: AnalyzeResponse__Output, text: string): ResolvedTable[] {
     const result: ResolvedTable[] = [];
-    const resolvedStatementNode = ast.resolvedStatement && ast.resolvedStatement.node ? ast.resolvedStatement[ast.resolvedStatement.node] : undefined;
+    const resolvedStatementNode = ast.resolvedStatement ? ast.resolvedStatement[ast.resolvedStatement.node] : undefined;
     if (resolvedStatementNode) {
       this.traversal(
         resolvedStatementNode,
@@ -261,10 +362,7 @@ export class ZetaSqlAst {
                 result.push({
                   schema: dataset,
                   name,
-                  location: {
-                    start: parseLocationRange.start,
-                    end: parseLocationRange.end,
-                  },
+                  location: { start: parseLocationRange.start, end: parseLocationRange.end },
                 });
               }
             }
@@ -341,6 +439,7 @@ const NODE = {
   resolvedTableScanNode: 'resolvedTableScanNode',
   resolvedFunctionCallNode: 'resolvedFunctionCallNode',
   resolvedWithScanNode: 'resolvedWithScanNode',
+  resolvedProjectScanNode: 'resolvedProjectScanNode',
 };
 
 export interface HoverInfo {
@@ -353,18 +452,27 @@ export interface HoverInfo {
 export interface CompletionInfo {
   resolvedTables: Map<string, string[]>;
   activeTableLocationRanges?: Location[];
-  activeTables?: Map<string, ActiveTableInfo>;
+  activeTables: ActiveTableInfo[];
   withNames: Set<string>;
+  withSubqueries: Map<string, WithSubqueryInfo>;
+}
+
+export interface WithSubqueryInfo {
+  columns: ResolvedColumn[];
+  parseLocationRange?: Location;
 }
 
 export interface ActiveTableInfo {
+  name: string;
   alias?: string;
   columns: ResolvedColumn[];
+  tableNameRange?: Location;
 }
 
 export interface ResolvedColumn {
   name: string;
   type?: string;
+  fromTable: string;
 }
 
 export interface ResolvedTable {

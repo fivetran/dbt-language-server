@@ -18,7 +18,7 @@ export function rangeContainsRange(outerRange: ParseLocationRangeProto__Output, 
   return outerRange.start <= innerRange.start && innerRange.end <= outerRange.end;
 }
 
-export function rangesEqual(range1: ParseLocationRangeProto__Output, range2: ParseLocationRangeProto__Output): boolean {
+export function rangesEqual(range1: { start: number; end: number }, range2: { start: number; end: number }): boolean {
   return range1.start === range2.start && range1.end === range2.end;
 }
 
@@ -58,17 +58,32 @@ export function createType(newColumn: ColumnDefinition): TypeProto {
   return resultType;
 }
 
-export function traverse<T>(nodeType: string, unknownNode: unknown, action: (node: T) => void): void {
+export function traverse(
+  unknownNode: unknown,
+  actions: Map<
+    string,
+    {
+      actionBefore: (node: unknown) => void;
+      actionAfter?: (node: unknown) => void;
+    }
+  >,
+): void {
   const node = unknownNode as Node;
-  if (node.node === nodeType) {
-    const typedNode = node[node.node] as T;
-    action(typedNode);
+
+  const nodeActions = actions.get(node.node);
+  if (nodeActions) {
+    nodeActions.actionBefore(node[node.node]);
   }
+
   for (const key of Object.keys(node)) {
     const child = node[key];
     if (typeof child === 'object' && child !== null) {
-      traverse(nodeType, child, action);
+      traverse(child, actions);
     }
+  }
+
+  if (nodeActions?.actionAfter) {
+    nodeActions.actionAfter(node[node.node]);
   }
 }
 

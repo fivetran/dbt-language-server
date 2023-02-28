@@ -11,17 +11,16 @@ import { SimpleCatalogProto } from '@fivetrandevelopers/zetasql/lib/types/zetasq
 import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
 import { SimpleTableProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleTableProto';
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
-import { err, ok } from 'neverthrow';
+import { err, ok, Result } from 'neverthrow';
 import { DbtDestinationClient, Udf } from './DbtDestinationClient';
 import { FeatureFinder } from './feature_finder/FeatureFinder';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
 import { ProcessExecutor } from './ProcessExecutor';
-import { AnalyzeResult } from './ProjectAnalyzer';
 import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
 import { TableDefinition } from './TableDefinition';
 import { randomNumber } from './utils/Utils';
 import { createType } from './utils/ZetaSqlUtils';
-import { ZetaSqlParser } from './ZetaSqlParser';
+import { ParseResult, ZetaSqlParser } from './ZetaSqlParser';
 import findFreePortPmfy = require('find-free-port');
 import path = require('node:path');
 
@@ -154,8 +153,13 @@ export class ZetaSqlWrapper {
     }
   }
 
-  async registerPersistentUdfs(compiledSql: string): Promise<void> {
-    const namePaths = await this.getNewCustomFunctions(compiledSql);
+  async getParseResult(sql: string): Promise<ParseResult> {
+    const languageOptions = await this.getLanguageOptions();
+    return this.zetaSqlParser.getParseResult(sql, languageOptions?.serialize());
+  }
+
+  async registerPersistentUdfs(parseResult: ParseResult): Promise<void> {
+    const namePaths = parseResult.functions.filter(f => !this.registeredFunctions.has(f.join(',')));
     for (const namePath of namePaths) {
       const udf = await this.createUdfFromNamePath(namePath);
       if (udf) {
@@ -164,7 +168,7 @@ export class ZetaSqlWrapper {
     }
   }
 
-  async getAstOrError(compiledSql: string, catalog: SimpleCatalogProto): Promise<AnalyzeResult> {
+  async getAstOrError(compiledSql: string, catalog: SimpleCatalogProto): Promise<Result<AnalyzeResponse__Output, string>> {
     try {
       const ast = await this.analyze(compiledSql, catalog);
       return ok(ast);
@@ -306,12 +310,6 @@ export class ZetaSqlWrapper {
       return this.destinationClient.getUdf(namePath[0], namePath[1], namePath[2]);
     }
     return undefined;
-  }
-
-  private async getNewCustomFunctions(sql: string): Promise<string[][]> {
-    const languageOptions = await this.getLanguageOptions();
-    const allFunctions = await this.zetaSqlParser.getAllFunctionCalls(sql, languageOptions?.serialize());
-    return allFunctions.filter(f => !this.registeredFunctions.has(f.join(',')));
   }
 
   static createSimpleColumn(name: string, type: TypeProto | null): SimpleColumnProto {

@@ -106,7 +106,7 @@
   "files.autoSave": "afterDelay",
 
   "explorer.autoRevealExclude": {
-    "**/node_modules": true
+    "**/node_modules": false
   },
   "yaml.schemas": {
     "https://json.schemastore.org/github-workflow.json": [

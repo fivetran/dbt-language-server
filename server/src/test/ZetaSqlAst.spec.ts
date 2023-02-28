@@ -1,17 +1,17 @@
-import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
+import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ParseLocationRangeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
 import { assertThat } from 'hamjest';
 import * as fs from 'node:fs';
 import { ZetaSqlAst } from '../ZetaSqlAst';
 
 describe('ZetaSqlAst', () => {
-  const AST = new Map<string, AnalyzeResponse>();
+  const AST = new Map<string, AnalyzeResponse__Output>();
 
-  function getAst(fileName: string): AnalyzeResponse {
+  function getAst(fileName: string): AnalyzeResponse__Output {
     let ast = AST.get(fileName);
     if (!ast) {
       const data = fs.readFileSync(`./server/src/test/ast/${fileName}.json`, 'utf8');
-      ast = JSON.parse(data) as AnalyzeResponse;
+      ast = JSON.parse(data) as AnalyzeResponse__Output;
       AST.set(fileName, ast);
     }
     return ast;

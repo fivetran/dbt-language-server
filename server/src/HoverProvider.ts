@@ -1,6 +1,6 @@
 import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { Type } from '@fivetrandevelopers/zetasql/lib/Type';
-import { AnalyzeResponse } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
+import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { Hover, MarkupKind } from 'vscode-languageserver';
 import { HelpProviderWords } from './HelpProviderWords';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
@@ -11,7 +11,7 @@ export class HoverProvider {
 
   signatureHelpProvider = new SignatureHelpProvider();
 
-  hoverOnText(text: string, ast: AnalyzeResponse | undefined): Hover | null {
+  hoverOnText(text: string, ast: AnalyzeResponse__Output | undefined): Hover | null {
     const index = HelpProviderWords.findIndex(w => w.name === text.toLocaleLowerCase());
     if (index !== -1) {
       const [firstSignature] = HelpProviderWords[index].signatures;
