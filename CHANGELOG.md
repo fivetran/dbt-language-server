@@ -1,5 +1,20 @@
 # Changelog
 
+## Version 0.20.0 (28/02/2023)
+## What's Changed
+* Add support for `ANY` type in temporary UDFs, for example:
+```sql
+CREATE TEMP FUNCTION ScalarUdf(a ANY TYPE)
+AS (
+  a + 1
+);
+```
+* Add support for [go to column definition](https://github.com/fivetran/dbt-language-server/blob/main/images/go-to-column-definition.gif?raw=true) for BigQuery users.
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.19.1...v0.20.0
+---
+
 ## Version 0.19.1 (30/01/2023)
 ## What's Changed
 * Added support for int64 aliases: `INT`, `SMALLINT`, `INTEGER`, `BIGINT`, `TINYINT`, `BYTEINT`.
@@ -274,13 +289,3 @@
 * Fix restart issue when dbt-rpc command is not found
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.3.0...v0.3.1
----
-
-## Version 0.3.0 (29/03/2022)
-## What's Changed
-* Support Apple M1 target
-* Support number of features for all [dbt adapters](https://docs.getdbt.com/docs/available-adapters#dbt-labs-supported) (see [Features](https://github.com/fivetran/dbt-language-server#features))
-* Set icon for extension
-
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.2.0...v0.3.0
