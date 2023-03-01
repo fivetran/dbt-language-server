@@ -14,7 +14,7 @@ export abstract class Dbt {
   dbtReady: boolean;
   onDbtReadyEmitter: Emitter<void>;
 
-  constructor(private connection: _Connection, protected progressReporter: ProgressReporter, private notificationSender: NotificationSender) {
+  constructor(protected connection: _Connection, protected progressReporter: ProgressReporter, protected notificationSender: NotificationSender) {
     this.dbtReady = false;
     this.onDbtReadyEmitter = new Emitter<void>();
   }
@@ -42,12 +42,12 @@ export abstract class Dbt {
   async suggestToInstallDbt(python: string, dbtProfileType: string): Promise<void> {
     const actions = { title: 'Install', id: 'install' };
     const errorMessageResult = await this.connection.window.showErrorMessage(
-      `dbt is not installed. Would you like to install dbt, dbt-rpc and ${dbtProfileType} adapter?`,
+      `dbt/adapters are not installed. Would you like to install dbt and ${dbtProfileType} adapter?`,
       actions,
     );
 
     if (errorMessageResult?.id === 'install') {
-      console.log(`Trying to install dbt, dbt-rpc and ${dbtProfileType} adapter`);
+      console.log(`Trying to install dbt, and ${dbtProfileType} adapter`);
       const sendLog = (data: string): void => this.notificationSender.sendInstallLatestDbtLog(data);
       const installResult = await InstallUtils.installDbt(python, dbtProfileType, sendLog, sendLog);
       if (installResult.isOk()) {
@@ -57,24 +57,6 @@ export abstract class Dbt {
       }
     } else {
       this.onRpcServerFindFailed();
-    }
-  }
-
-  async suggestToUpdateDbtRpc(message: string, python: string): Promise<void> {
-    const actions = { title: 'Upgrade dbt-rpc', id: 'upgrade' };
-    const errorMessageResult = await this.connection.window.showErrorMessage(`${message}. Would you like to upgrade dbt-rpc?`, actions);
-
-    if (errorMessageResult?.id === 'upgrade') {
-      console.log('Trying to upgrade dbt-rpc');
-      const sendLog = (data: string): void => this.notificationSender.sendInstallLatestDbtLog(data);
-      const installResult = await InstallUtils.updateDbtRpc(python, sendLog);
-      if (installResult.isOk()) {
-        this.notificationSender.sendRestart();
-      } else {
-        this.finishWithError(installResult.error);
-      }
-    } else {
-      this.finishWithError(message);
     }
   }
 

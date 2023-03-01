@@ -2,6 +2,7 @@ import { _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { FeatureFinder } from '../feature_finder/FeatureFinder';
 import { FileChangeListener } from '../FileChangeListener';
+import { InstallUtils } from '../InstallUtils';
 import { NotificationSender } from '../NotificationSender';
 import { ProgressReporter } from '../ProgressReporter';
 import { Dbt } from './Dbt';
@@ -61,6 +62,24 @@ export class DbtRpc extends Dbt {
           );
         }
       }
+    }
+  }
+
+  async suggestToUpdateDbtRpc(message: string, python: string): Promise<void> {
+    const actions = { title: 'Upgrade dbt-rpc', id: 'upgrade' };
+    const errorMessageResult = await this.connection.window.showErrorMessage(`${message}. Would you like to upgrade dbt-rpc?`, actions);
+
+    if (errorMessageResult?.id === 'upgrade') {
+      console.log('Trying to upgrade dbt-rpc');
+      const sendLog = (data: string): void => this.notificationSender.sendInstallLatestDbtLog(data);
+      const installResult = await InstallUtils.updateDbtRpc(python, sendLog);
+      if (installResult.isOk()) {
+        this.notificationSender.sendRestart();
+      } else {
+        this.finishWithError(installResult.error);
+      }
+    } else {
+      this.finishWithError(message);
     }
   }
 
