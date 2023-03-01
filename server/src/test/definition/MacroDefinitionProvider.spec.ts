@@ -3,7 +3,7 @@ import { DbtRepository } from '../../DbtRepository';
 import { MacroDefinitionProvider } from '../../definition/MacroDefinitionProvider';
 
 describe('MacroDefinitionProvider', () => {
-  const DBT_REPOSITORY = new DbtRepository('project_path');
+  const DBT_REPOSITORY = new DbtRepository('project_path', Promise.resolve(undefined));
   const PROVIDER = new MacroDefinitionProvider(DBT_REPOSITORY);
 
   it('getStartMacroMatch should return one match', () => {

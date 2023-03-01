@@ -15,7 +15,7 @@ describe('SourceCompletionProvider', () => {
   let sourceCompletionProvider: SourceCompletionProvider;
 
   beforeEach(() => {
-    dbtRepository = new DbtRepository('/Users/user_name/project');
+    dbtRepository = new DbtRepository('/Users/user_name/project', Promise.resolve(undefined));
 
     dbtRepository.projectName = PROJECT_PACKAGE;
     const sources = [

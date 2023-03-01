@@ -1,8 +1,9 @@
+import { assertThat, endsWith } from 'hamjest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Position, Range } from 'vscode';
 import { assertDefinitions } from './asserts';
-import { activateAndWaitManifestParsed, getCustomDocUri, getDocUri, MAX_RANGE, TEST_FIXTURE_PATH } from './helper';
+import { activateAndWaitManifestParsed, getCustomDocUri, getDocUri, MAX_RANGE, TEST_FIXTURE_PATH, triggerDefinition } from './helper';
 
 const REF_SQL_DOC_URI = getDocUri('ref_sql.sql');
 const PACKAGE_REF_DOC_URI = getDocUri('package_ref.sql');
@@ -66,6 +67,18 @@ suite('macro definitions', () => {
         targetSelectionRange: new Range(4, 9, 4, 9),
       },
     ]);
+  });
+
+  test('Should suggest definitions for macros of global_project', async () => {
+    const docUri = getCustomDocUri('test-fixture/macros/generate_schema_name.sql');
+    await activateAndWaitManifestParsed(docUri, TEST_FIXTURE_PATH);
+
+    const definitions = await triggerDefinition(docUri, new Position(5, 8));
+
+    assertThat(definitions.length, 1);
+    const definition = definitions[0];
+    assertThat(definition.originSelectionRange, new Range(5, 7, 5, 35));
+    assertThat(definition.targetUri.path, endsWith('site-packages/dbt/include/global_project/macros/get_custom_name/get_custom_schema.sql'));
   });
 });
 

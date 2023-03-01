@@ -12,7 +12,7 @@ describe('MacroCompletionProvider', () => {
   let macroCompletionProvider: MacroCompletionProvider;
 
   beforeEach(() => {
-    dbtRepository = new DbtRepository('/Users/user_name/project');
+    dbtRepository = new DbtRepository('/Users/user_name/project', Promise.resolve(undefined));
 
     dbtRepository.projectName = PROJECT_PACKAGE;
     const macros = [

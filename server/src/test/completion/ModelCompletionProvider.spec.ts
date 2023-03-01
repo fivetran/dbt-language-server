@@ -19,7 +19,7 @@ describe('ModelCompletionProvider', () => {
   let modelCompletionProvider: ModelCompletionProvider;
 
   beforeEach(() => {
-    dbtRepository = new DbtRepository('/Users/user_name/project');
+    dbtRepository = new DbtRepository('/Users/user_name/project', Promise.resolve(undefined));
 
     dbtRepository.projectName = PROJECT_PACKAGE;
     const models: ManifestModel[] = [

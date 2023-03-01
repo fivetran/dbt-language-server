@@ -7,7 +7,7 @@ import { SourceDefinitionProvider } from '../../definition/SourceDefinitionProvi
 describe('SourceDefinitionProvider', () => {
   const SOURCE_FILE_NAME = 'users_orders.yml';
 
-  const DBT_REPOSITORY = new DbtRepository('project_path');
+  const DBT_REPOSITORY = new DbtRepository('project_path', Promise.resolve(undefined));
   const PROVIDER = new SourceDefinitionProvider(DBT_REPOSITORY);
 
   let sourceDefinitionLines: string[];

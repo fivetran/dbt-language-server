@@ -12,6 +12,7 @@ import { Lazy } from '../utils/Lazy';
 import { getAxios, randomNumber } from '../utils/Utils';
 import { FeatureFinderBase } from './FeatureFinderBase';
 import findFreePortPmfy = require('find-free-port');
+import path = require('node:path');
 
 interface HubJson {
   [key: string]: string[];
@@ -20,6 +21,7 @@ interface HubJson {
 export class FeatureFinder extends FeatureFinderBase {
   private static readonly WSL_UBUNTU_DEFAULT_NAME = 'Ubuntu-20.04';
   private static readonly WSL_UBUNTU_ENV_NAME = 'WIZARD_FOR_DBT_WSL_UBUNTU_NAME';
+  static readonly PROCESS_EXECUTOR = new ProcessExecutor();
 
   static getWslUbuntuName(): string {
     const valueFromEnv = process.env[FeatureFinder.WSL_UBUNTU_ENV_NAME];
@@ -120,7 +122,7 @@ export class FeatureFinder extends FeatureFinderBase {
     if (process.platform === 'win32') {
       try {
         const text = 'Wizard for dbt Core (TM)';
-        const result = await new ProcessExecutor().execProcess(`wsl -d ${FeatureFinder.getWslUbuntuName()} echo "${text}"`);
+        const result = await FeatureFinder.PROCESS_EXECUTOR.execProcess(`wsl -d ${FeatureFinder.getWslUbuntuName()} echo "${text}"`);
         return result.stdout.includes(text);
       } catch {
         console.log('Error while running wsl');
@@ -128,6 +130,19 @@ export class FeatureFinder extends FeatureFinderBase {
       }
     }
     return true;
+  }
+
+  async getGlobalProjectPath(): Promise<string | undefined> {
+    const python = this.pythonInfo?.path;
+    if (python) {
+      const result = await FeatureFinder.PROCESS_EXECUTOR.execProcess(
+        `${python} -c 'from distutils.sysconfig import get_python_lib; print(get_python_lib())'`,
+      );
+      if (result.stdout) {
+        return path.join(result.stdout.trim(), 'dbt', 'include', 'global_project');
+      }
+    }
+    return undefined;
   }
 
   async getAvailableDbt(): Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]> {
