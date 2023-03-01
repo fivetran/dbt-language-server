@@ -42,7 +42,16 @@ export class DbtRepository {
   packageToMacros = new Map<string, Set<ManifestMacro>>();
   packageToSources = new Map<string, Map<string, Set<ManifestSource>>>();
 
-  constructor(public projectPath: string) {}
+  globalProjectPath?: string;
+
+  constructor(public projectPath: string, globalProjectPath: Promise<string | undefined>) {
+    globalProjectPath
+      .then(p => {
+        this.globalProjectPath = p;
+        return undefined;
+      })
+      .catch(() => console.log('Error when getting global_project path'));
+  }
 
   manifestParsed(): Promise<void> {
     return this.manifestParsedDeferred.promise;
@@ -63,7 +72,11 @@ export class DbtRepository {
   }
 
   getNodeFullPath(model: ManifestNode): string {
+    if (model.packageName === 'dbt' && this.globalProjectPath) {
+      return path.join(this.globalProjectPath, model.originalFilePath);
+    }
     const inPackage = model.packageName !== this.projectName;
+
     return path.join(
       this.projectPath,
       inPackage ? this.packagesInstallPath : '',

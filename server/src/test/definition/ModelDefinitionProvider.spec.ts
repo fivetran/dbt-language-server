@@ -21,7 +21,7 @@ describe('ModelDefinitionProvider', () => {
   const PROJECT_MODEL_ORIGINAL_FILE_PATH = `models/${PROJECT_MODEL}.sql`;
   const PACKAGE_MODEL_ROOT_PATH = `dbt_packages/${PACKAGE_NAME}/${PACKAGE_MODEL_ORIGINAL_FILE_PATH}`;
 
-  const DBT_REPOSITORY = new DbtRepository(PATH_TO_PROJECT);
+  const DBT_REPOSITORY = new DbtRepository(PATH_TO_PROJECT, Promise.resolve(undefined));
   DBT_REPOSITORY.projectName = PROJECT_NAME;
   const PROVIDER = new ModelDefinitionProvider(DBT_REPOSITORY);
 

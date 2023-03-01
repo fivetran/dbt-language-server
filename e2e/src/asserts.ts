@@ -51,10 +51,13 @@ export async function assertDefinitions(docUri: Uri, position: Position, expecte
   assertThat(definitions.length, expectedDefinitions.length);
 
   for (let i = 0; i < definitions.length; i++) {
-    assertThat(definitions[i].originSelectionRange, expectedDefinitions[i].originSelectionRange);
-    assertThat(definitions[i].targetUri.path, expectedDefinitions[i].targetUri.path);
-    assertThat(definitions[i].targetRange, expectedDefinitions[i].targetRange);
-    assertThat(definitions[i].targetSelectionRange, expectedDefinitions[i].targetSelectionRange);
+    const definition = definitions[i];
+    const expectedDefinition = expectedDefinitions[i];
+
+    assertThat(definition.originSelectionRange, expectedDefinition.originSelectionRange);
+    assertThat(definition.targetUri.path, expectedDefinition.targetUri.path);
+    assertThat(definition.targetRange, expectedDefinition.targetRange);
+    assertThat(definition.targetSelectionRange, expectedDefinition.targetSelectionRange);
   }
 }
 
