@@ -140,7 +140,7 @@ export class DbtProfileCreator {
     Object.entries(targetConfig).forEach(([key, value]) => {
       if (typeof value === 'string') {
         targetConfig[key] = evalJinjaEnvVar(value);
-      } else if (typeof value === 'object') {
+      } else if (typeof value === 'object' && value !== null) {
         targetConfig[key] = DbtProfileCreator.evalTargetConfig(value as { [index: string]: unknown });
       }
     });
