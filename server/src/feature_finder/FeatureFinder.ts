@@ -136,7 +136,7 @@ export class FeatureFinder extends FeatureFinderBase {
     const python = this.pythonInfo?.path;
     if (python) {
       const result = await FeatureFinder.PROCESS_EXECUTOR.execProcess(
-        `${python} -c 'from distutils.sysconfig import get_python_lib; print(get_python_lib())'`,
+        `${python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"`,
       );
       if (result.stdout) {
         return path.join(result.stdout.trim(), 'dbt', 'include', 'global_project');
