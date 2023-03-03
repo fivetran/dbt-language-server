@@ -9,14 +9,14 @@
     "@types/glob": "^8.1.0",
     "@types/pg": "^8.6.6",
     "@types/snowflake-sdk": "^1.6.12",
-    "@types/vscode": "^1.75.1",
-    "@vscode/test-electron": "^2.2.3",
+    "@types/vscode": "^1.76.0",
+    "@vscode/test-electron": "^2.3.0",
     "clipboardy": "^2.3.0",
     "dbt-language-server-common": "file:../common",
     "hamjest": "^3.7.3",
     "mocha": "^10.2.0",
     "path-equal": "^1.2.5",
     "pg": "^8.9.0",
-    "snowflake-sdk": "^1.6.18"
+    "snowflake-sdk": "^1.6.19"
   }
 }
