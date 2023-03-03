@@ -78,7 +78,7 @@ export class ZetaSqlWrapper {
   getDefaultCatalog(): SimpleCatalogProto {
     return {
       name: 'catalog',
-      constant: [{ namePath: ['_dbt_max_partition'], type: { typeKind: TypeKind.TYPE_DATE } }],
+      constant: [{ namePath: ['_dbt_max_partition'], type: { typeKind: TypeKind.TYPE_TIMESTAMP } }],
       namedType: [
         { name: 'int', type: { typeKind: TypeKind.TYPE_INT64 } },
         { name: 'smallint', type: { typeKind: TypeKind.TYPE_INT64 } },
