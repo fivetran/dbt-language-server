@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 0.20.1 (03/03/2023)
+## What's Changed
+* Fix wrong `_dbt_max_partition` type.
+* Fix go to definition for macros of dbt global_project.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.20.0...v0.20.1
+---
+
 ## Version 0.20.0 (28/02/2023)
 ## What's Changed
 * Add support for `ANY` type in temporary UDFs, for example:
@@ -281,11 +289,3 @@ AS (
 
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.3.1...v0.4.0
----
-
-## Version 0.3.1 (02/04/2022)
-## What's Changed
-* Fix changelog population
-* Fix restart issue when dbt-rpc command is not found
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.3.0...v0.3.1
