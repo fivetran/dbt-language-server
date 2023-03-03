@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.20.1 (01/01/1970)
+## Version 0.20.1 (03/03/2023)
 ## What's Changed
 * Fix wrong `_dbt_max_partition` type.
 * Fix go to definition for macros of dbt global_project.
