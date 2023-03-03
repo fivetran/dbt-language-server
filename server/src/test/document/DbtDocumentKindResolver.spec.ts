@@ -11,7 +11,7 @@ describe('DbtDocumentKindResolver', () => {
   let dbtDocumentKindResolver: DbtDocumentKindResolver;
 
   before(() => {
-    dbtRepository = new DbtRepository(PROJECT_PATH);
+    dbtRepository = new DbtRepository(PROJECT_PATH, Promise.resolve(undefined));
     dbtDocumentKindResolver = new DbtDocumentKindResolver(dbtRepository);
   });
 

@@ -47,7 +47,7 @@ describe('DbtTextDocument', () => {
     when(mockDbt.dbtReady).thenReturn(true);
     when(mockDbt.onDbtReady).thenReturn(onDbtReadyEmitter.event);
 
-    const dbtRepository = new DbtRepository('project_path');
+    const dbtRepository = new DbtRepository('project_path', Promise.resolve(undefined));
     document = new DbtTextDocument(
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
       DbtDocumentKind.MODEL,
