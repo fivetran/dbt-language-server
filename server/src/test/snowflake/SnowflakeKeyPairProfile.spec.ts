@@ -1,18 +1,18 @@
-import { SnowflakeUserPassProfile } from '../../snowflake/SnowflakeUserPassProfile';
+import { SnowflakeKeyPairProfile } from '../../snowflake/SnowflakeKeyPairProfile';
 import { YamlParserUtils } from '../../YamlParserUtils';
 import { getConfigPath, shouldPassValidProfile, shouldRequireProfileField, SNOWFLAKE_CONFIG } from '../helper';
 
-describe('SnowflakeUserPassProfile', () => {
+describe('SnowflakeKeyPairProfile', () => {
   it('Should pass valid profile', () => {
-    shouldPassValidProfile(SNOWFLAKE_CONFIG, 'correct_user_password');
+    shouldPassValidProfile(SNOWFLAKE_CONFIG, 'correct_key_pair');
   });
 
   it('Should require user', () => {
     shouldRequireField('user');
   });
 
-  it('Should require password', () => {
-    shouldRequireField('password');
+  it('Should require private_key_path', () => {
+    shouldRequireField('private_key_path');
   });
 
   it('Should require database', () => {
@@ -30,6 +30,6 @@ describe('SnowflakeUserPassProfile', () => {
 
 function shouldRequireField(field: string): void {
   const profiles = YamlParserUtils.parseYamlFile(getConfigPath(SNOWFLAKE_CONFIG));
-  const oauthTokenBasedProfile = new SnowflakeUserPassProfile();
-  shouldRequireProfileField(profiles, oauthTokenBasedProfile, `user_password_missing_${field}`, field);
+  const oauthTokenBasedProfile = new SnowflakeKeyPairProfile();
+  shouldRequireProfileField(profiles, oauthTokenBasedProfile, `key_pair_missing_${field}`, field);
 }
