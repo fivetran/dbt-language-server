@@ -1,5 +1,4 @@
 import { CustomInitParams, DbtCompilerType, NO_PROJECT_PATH } from 'dbt-language-server-common';
-import { homedir } from 'node:os';
 import * as sourceMapSupport from 'source-map-support';
 import { createConnection, InitializeError, InitializeParams, InitializeResult, ProposedFeatures, ResponseError } from 'vscode-languageserver/node';
 import { URI } from 'vscode-uri';
@@ -32,7 +31,6 @@ import { ProgressReporter } from './ProgressReporter';
 import { ProjectChangeListener } from './ProjectChangeListener';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { DbtProjectStatusSender } from './status_bar/DbtProjectStatusSender';
-import path = require('path');
 
 sourceMapSupport.install({ handleUncaughtExceptions: false });
 
@@ -83,7 +81,7 @@ function createLspServerForProject(
   const manifestParser = new ManifestParser();
   const dbtRepository = new DbtRepository(workspaceFolder, featureFinder.getGlobalProjectPath());
   const fileChangeListener = new FileChangeListener(workspaceFolder, dbtProject, manifestParser, dbtRepository);
-  const dbtProfileCreator = new DbtProfileCreator(dbtProject, path.join(homedir(), '.dbt', 'profiles.yml'));
+  const dbtProfileCreator = new DbtProfileCreator(dbtProject, featureFinder.profilesYmlPath);
   const statusSender = new DbtProjectStatusSender(notificationSender, workspaceFolder, featureFinder, fileChangeListener);
   const dbt = createDbt(customInitParams.dbtCompiler, featureFinder, progressReporter, fileChangeListener, notificationSender);
   const dbtDocumentKindResolver = new DbtDocumentKindResolver(dbtRepository);

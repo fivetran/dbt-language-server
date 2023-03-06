@@ -86,7 +86,7 @@ export class DbtProfileCreator {
       return err({ message });
     }
 
-    const rawProfile = (profiles as Record<string, unknown>)[profileName] as ProfileYaml | undefined;
+    const rawProfile = profiles ? ((profiles as Record<string, unknown>)[profileName] as ProfileYaml | undefined) : undefined;
     if (!rawProfile) {
       return err({
         message: `Couldn't find credentials for profile '${profileName}'. Check your [${this.profilesPath}](${URI.file(

@@ -15,7 +15,7 @@ export class DbtProjectStatusSender extends NoProjectStatusSender {
     super(notificationSender, featureFinder);
     this.fileChangeListener.onDbtPackagesYmlChanged(e => this.onDbtPackagesYmlChanged(e));
     featureFinder.packagesYmlExistsPromise
-      .then(packagesYmlFound => this.sendPackagesStatus(packagesYmlFound))
+      .then(packagesYmlFound => this.sendYmlStatus(packagesYmlFound, featureFinder.profilesYmlPath))
       .catch(e => console.log(`Error while finding packages.yml: ${e instanceof Error ? e.message : String(e)}`));
   }
 
@@ -23,11 +23,14 @@ export class DbtProjectStatusSender extends NoProjectStatusSender {
     return this.projectPath;
   }
 
-  sendPackagesStatus(packagesYmlFound: boolean): void {
+  sendYmlStatus(packagesYmlFound: boolean, profilesYmlPath?: string): void {
     const statusNotification: StatusNotification = {
       projectPath: this.projectPath,
       packagesStatus: { packagesYmlFound },
     };
+    if (profilesYmlPath) {
+      statusNotification.profilesYmlStatus = { profilesYmlPath };
+    }
 
     this.notificationSender.sendStatus(statusNotification);
   }
@@ -35,11 +38,11 @@ export class DbtProjectStatusSender extends NoProjectStatusSender {
   onDbtPackagesYmlChanged(e: FileChangeType): void {
     switch (e) {
       case FileChangeType.Created: {
-        this.sendPackagesStatus(true);
+        this.sendYmlStatus(true);
         break;
       }
       case FileChangeType.Deleted: {
-        this.sendPackagesStatus(false);
+        this.sendYmlStatus(false);
         break;
       }
       default:

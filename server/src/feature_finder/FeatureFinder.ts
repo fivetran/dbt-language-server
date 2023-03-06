@@ -1,5 +1,7 @@
 import { DbtPackageInfo, DbtPackageVersions, DbtVersionInfo, PythonInfo } from 'dbt-language-server-common';
+import * as fs from 'node:fs';
 import { promises as fsPromises } from 'node:fs';
+import { homedir } from 'node:os';
 import * as semver from 'semver';
 import * as yaml from 'yaml';
 import { DbtRepository } from '../DbtRepository';
@@ -35,6 +37,7 @@ export class FeatureFinder extends FeatureFinderBase {
   packagesYmlExistsPromise: Promise<boolean>;
   packageInfosPromise = new Lazy(() => this.getListOfPackages());
   ubuntuInWslWorks: Promise<boolean>;
+  profilesYmlPath: string;
 
   constructor(pythonInfo: PythonInfo | undefined, dbtCommandExecutor: DbtCommandExecutor) {
     super(pythonInfo, dbtCommandExecutor);
@@ -43,6 +46,7 @@ export class FeatureFinder extends FeatureFinderBase {
     this.availableCommandsPromise = this.getAvailableDbt();
     this.packagesYmlExistsPromise = this.packagesYmlExists();
     this.ubuntuInWslWorks = this.checkUbuntuInWslWorks();
+    this.profilesYmlPath = path.resolve(this.getProfilesYmlPath());
   }
 
   runPostInitTasks(): Promise<unknown> {
@@ -226,5 +230,20 @@ export class FeatureFinder extends FeatureFinderBase {
 
   private async findDbtGlobalInfo(): Promise<DbtVersionInfo | undefined> {
     return this.findCommandInfo(this.dbtCommandFactory.getDbtGlobalVersion());
+  }
+
+  private getProfilesYmlPath(): string {
+    const profilesYml = 'profiles.yml';
+    const dirFromEnv = process.env['DBT_PROFILES_DIR'];
+    if (dirFromEnv) {
+      return path.join(dirFromEnv, profilesYml);
+    }
+
+    const profilesPathInCurrentDir = path.join('.', profilesYml);
+    if (fs.existsSync(profilesPathInCurrentDir)) {
+      return profilesPathInCurrentDir;
+    }
+
+    return path.join(homedir(), '.dbt', profilesYml);
   }
 }

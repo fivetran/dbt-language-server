@@ -7,6 +7,7 @@ export interface StatusNotification {
   pythonStatus?: PythonStatus;
   dbtStatus?: DbtStatus;
   packagesStatus?: PackagesStatus;
+  profilesYmlStatus?: ProfilesYmlStatus;
 }
 
 export interface DbtStatus {
@@ -15,6 +16,10 @@ export interface DbtStatus {
 
 export interface PackagesStatus {
   packagesYmlFound: boolean;
+}
+
+export interface ProfilesYmlStatus {
+  profilesYmlPath: string;
 }
 
 export interface DbtVersionInfo {
