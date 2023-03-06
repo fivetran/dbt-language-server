@@ -11,7 +11,7 @@ correct_user_password:
       warehouse: warehouse_name
       schema: dbt_schema
 
-missing_user:
+user_password_missing_user:
   target: dev
   outputs:
     dev:
@@ -23,7 +23,7 @@ missing_user:
       warehouse: warehouse_name
       schema: dbt_schema
 
-missing_password:
+user_password_missing_password:
   target: dev
   outputs:
     dev:
@@ -35,7 +35,7 @@ missing_password:
       warehouse: warehouse_name
       schema: dbt_schema
 
-missing_database:
+user_password_missing_database:
   target: dev
   outputs:
     dev:
@@ -47,7 +47,7 @@ missing_database:
       warehouse: warehouse_name
       schema: dbt_schema
 
-missing_warehouse:
+user_password_missing_warehouse:
   target: dev
   outputs:
     dev:
@@ -59,7 +59,7 @@ missing_warehouse:
       database: database_name
       schema: dbt_schema
 
-missing_schema:
+user_password_missing_schema:
   target: dev
   outputs:
     dev:
@@ -68,5 +68,84 @@ missing_schema:
       user: username
       password: password
       role: role
+      database: database_name
+      warehouse: warehouse_name
+
+correct_key_pair:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: acc
+      user: username
+      role: role
+      private_key_path: path/to/private.key
+      private_key_passphrase: passphrase
+      database: database_name
+      warehouse: warehouse_name
+      schema: dbt_schema
+
+key_pair_missing_user:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: acc
+      role: role
+      private_key_path: path/to/private.key
+      private_key_passphrase: passphrase
+      database: database_name
+      warehouse: warehouse_name
+      schema: dbt_schema
+
+key_pair_missing_private_key_path:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: acc
+      user: username
+      role: role
+      private_key_passphrase: passphrase
+      database: database_name
+      warehouse: warehouse_name
+      schema: dbt_schema
+
+key_pair_missing_database:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: acc
+      user: username
+      role: role
+      private_key_path: path/to/private.key
+      private_key_passphrase: passphrase
+      warehouse: warehouse_name
+      schema: dbt_schema
+
+key_pair_missing_warehouse:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: acc
+      user: username
+      role: role
+      private_key_path: path/to/private.key
+      private_key_passphrase: passphrase
+      database: database_name
+      schema: dbt_schema
+
+key_pair_missing_schema:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: acc
+      user: username
+      role: role
+      private_key_path: path/to/private.key
+      private_key_passphrase: passphrase
       database: database_name
       warehouse: warehouse_name
