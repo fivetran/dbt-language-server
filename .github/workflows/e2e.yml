@@ -37,6 +37,7 @@ jobs:
         with:
           node-version: '19.x'
           cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
 
       - name: build and test
         run: |
@@ -95,6 +96,7 @@ jobs:
         with:
           node-version: '19.x'
           cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
 
       - name: build tests
         run: | # ignore postinstall script and install dependencies for e2e
