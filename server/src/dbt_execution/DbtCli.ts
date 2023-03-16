@@ -31,7 +31,7 @@ export class DbtCli extends Dbt {
       const slash = await import('slash');
       parameters.push('-m', slash.default(modelName));
     }
-    const compileCliCommand = new DbtCommand(parameters, this.pythonPathForCli);
+    const compileCliCommand = new DbtCommand(this.featureFinder.profilesYmlDir, parameters, this.pythonPathForCli);
     return DbtCli.DBT_COMMAND_EXECUTOR.execute(compileCliCommand);
   }
 
@@ -68,7 +68,7 @@ export class DbtCli extends Dbt {
   }
 
   async deps(): Promise<void> {
-    const depsCommand = new DbtCommand(['deps'], this.pythonPathForCli);
+    const depsCommand = new DbtCommand(this.featureFinder.profilesYmlDir, ['deps'], this.pythonPathForCli);
     await DbtCli.DBT_COMMAND_EXECUTOR.execute(depsCommand);
   }
 

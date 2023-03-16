@@ -48,6 +48,7 @@ const customInitParamsSchema = z.object({
   lspMode: z.union([z.literal('dbtProject'), z.literal('noProject')]),
   enableEntireProjectAnalysis: z.boolean(),
   disableLogger: z.optional(z.boolean()),
+  profilesDir: z.optional(z.string()),
 });
 
 connection.onInitialize((params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> => {
@@ -74,14 +75,14 @@ function createLspServerForProject(
   workspaceFolder: string,
   notificationSender: NotificationSender,
 ): LspServerBase<FeatureFinderBase> {
-  const featureFinder = new FeatureFinder(customInitParams.pythonInfo, new DbtCommandExecutor());
+  const featureFinder = new FeatureFinder(customInitParams.pythonInfo, new DbtCommandExecutor(), customInitParams.profilesDir);
 
   const progressReporter = new ProgressReporter(connection);
   const dbtProject = new DbtProject('.');
   const manifestParser = new ManifestParser();
   const dbtRepository = new DbtRepository(workspaceFolder, featureFinder.getGlobalProjectPath());
   const fileChangeListener = new FileChangeListener(workspaceFolder, dbtProject, manifestParser, dbtRepository);
-  const dbtProfileCreator = new DbtProfileCreator(dbtProject, featureFinder.profilesYmlPath);
+  const dbtProfileCreator = new DbtProfileCreator(dbtProject, featureFinder.getProfilesYmlPath());
   const statusSender = new DbtProjectStatusSender(notificationSender, workspaceFolder, featureFinder, fileChangeListener);
   const dbt = createDbt(customInitParams.dbtCompiler, featureFinder, progressReporter, fileChangeListener, notificationSender);
   const dbtDocumentKindResolver = new DbtDocumentKindResolver(dbtRepository);

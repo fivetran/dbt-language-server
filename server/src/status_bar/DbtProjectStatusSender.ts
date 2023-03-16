@@ -15,7 +15,7 @@ export class DbtProjectStatusSender extends NoProjectStatusSender {
     super(notificationSender, featureFinder);
     this.fileChangeListener.onDbtPackagesYmlChanged(e => this.onDbtPackagesYmlChanged(e));
     featureFinder.packagesYmlExistsPromise
-      .then(packagesYmlFound => this.sendYmlStatus(packagesYmlFound, featureFinder.profilesYmlPath))
+      .then(packagesYmlFound => this.sendYmlStatus(packagesYmlFound, featureFinder.getProfilesYmlPath()))
       .catch(e => console.log(`Error while finding packages.yml: ${e instanceof Error ? e.message : String(e)}`));
   }
 

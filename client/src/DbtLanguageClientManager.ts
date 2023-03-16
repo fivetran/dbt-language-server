@@ -138,6 +138,12 @@ export class DbtLanguageClientManager {
     }
   }
 
+  restartAll(): void {
+    for (const client of this.clients.values()) {
+      client.restart().catch(e => log(`Error while restarting client ${e instanceof Error ? e.message : String(e)}`));
+    }
+  }
+
   stopClient(projectPath: string): void {
     const client = this.getClientByPath(projectPath);
     if (client) {

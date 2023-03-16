@@ -63,6 +63,12 @@ export class ExtensionClient {
           this.dbtLanguageClientManager.applyPreviewDiagnostics();
         }
       }),
+
+      workspace.onDidChangeConfiguration(e => {
+        if (e.affectsConfiguration('WizardForDbtCore(TM).profilesDir')) {
+          this.dbtLanguageClientManager.restartAll();
+        }
+      }),
     );
     workspace.textDocuments.forEach(t =>
       this.onDidOpenTextDocument(t).catch(e => log(`Error while opening text document ${e instanceof Error ? e.message : String(e)}`)),

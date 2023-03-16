@@ -21,41 +21,41 @@ export class DbtCommandFactory {
     `${DbtCommandFactory.PORT_PARAM}`,
   ];
 
-  constructor(public python: string | undefined) {}
+  constructor(private python: string | undefined, private profilesDir: string) {}
 
   getDbtRpcWithPythonVersion(): Command {
-    return this.getDbtRpcCommand([DbtCommandFactory.VERSION_PARAM], this.python);
+    return this.getDbtRpcCommand(this.profilesDir, [DbtCommandFactory.VERSION_PARAM], this.python);
   }
 
   getDbtRpcGlobalVersion(): Command {
-    return this.getDbtRpcCommand([DbtCommandFactory.VERSION_PARAM]);
+    return this.getDbtRpcCommand(this.profilesDir, [DbtCommandFactory.VERSION_PARAM]);
   }
 
   getDbtRpcRun(): Command {
-    return this.getDbtRpcCommand(DbtCommandFactory.DBT_RPC_PARAMS, this.python);
+    return this.getDbtRpcCommand(this.profilesDir, DbtCommandFactory.DBT_RPC_PARAMS, this.python);
   }
 
   getGlobalDbtRpcRun(): Command {
-    return this.getDbtRpcCommand(DbtCommandFactory.DBT_RPC_PARAMS);
+    return this.getDbtRpcCommand(this.profilesDir, DbtCommandFactory.DBT_RPC_PARAMS);
   }
 
   getDbtWithPythonVersion(): Command {
-    return this.getDbtCommand([DbtCommandFactory.VERSION_PARAM], this.python);
+    return this.getDbtCommand(this.profilesDir, [DbtCommandFactory.VERSION_PARAM], this.python);
   }
 
   getDbtGlobalVersion(): Command {
-    return this.getDbtCommand([DbtCommandFactory.VERSION_PARAM]);
+    return this.getDbtCommand(this.profilesDir, [DbtCommandFactory.VERSION_PARAM]);
   }
 
   getLegacyDbtRpcRun(): Command {
-    return this.getDbtCommand(DbtCommandFactory.LEGACY_DBT_PARAMS, this.python);
+    return this.getDbtCommand(this.profilesDir, DbtCommandFactory.LEGACY_DBT_PARAMS, this.python);
   }
 
-  private getDbtRpcCommand(params: string[], python?: string): Command {
-    return new DbtRpcCommand(params, python);
+  private getDbtRpcCommand(profilesDir: string, params: string[], python?: string): Command {
+    return new DbtRpcCommand(profilesDir, params, python);
   }
 
-  private getDbtCommand(params: string[], python?: string): Command {
-    return new DbtCommand(params, python);
+  private getDbtCommand(profilesDir: string, params: string[], python?: string): Command {
+    return new DbtCommand(profilesDir, params, python);
   }
 }

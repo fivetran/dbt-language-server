@@ -1,13 +1,10 @@
 import { DbtPackageInfo, DbtPackageVersions, DbtVersionInfo, PythonInfo } from 'dbt-language-server-common';
-import * as fs from 'node:fs';
 import { promises as fsPromises } from 'node:fs';
-import { homedir } from 'node:os';
 import * as semver from 'semver';
 import * as yaml from 'yaml';
 import { DbtRepository } from '../DbtRepository';
 import { Command } from '../dbt_execution/commands/Command';
 import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor';
-import { DbtCommandFactory } from '../dbt_execution/DbtCommandFactory';
 import { InstallUtils } from '../InstallUtils';
 import { ProcessExecutor } from '../ProcessExecutor';
 import { Lazy } from '../utils/Lazy';
@@ -23,6 +20,7 @@ interface HubJson {
 export class FeatureFinder extends FeatureFinderBase {
   private static readonly WSL_UBUNTU_DEFAULT_NAME = 'Ubuntu-20.04';
   private static readonly WSL_UBUNTU_ENV_NAME = 'WIZARD_FOR_DBT_WSL_UBUNTU_NAME';
+
   static readonly PROCESS_EXECUTOR = new ProcessExecutor();
 
   static getWslUbuntuName(): string {
@@ -37,16 +35,13 @@ export class FeatureFinder extends FeatureFinderBase {
   packagesYmlExistsPromise: Promise<boolean>;
   packageInfosPromise = new Lazy(() => this.getListOfPackages());
   ubuntuInWslWorks: Promise<boolean>;
-  profilesYmlPath: string;
 
-  constructor(pythonInfo: PythonInfo | undefined, dbtCommandExecutor: DbtCommandExecutor) {
-    super(pythonInfo, dbtCommandExecutor);
+  constructor(pythonInfo: PythonInfo | undefined, dbtCommandExecutor: DbtCommandExecutor, profilesDir: string | undefined) {
+    super(pythonInfo, dbtCommandExecutor, profilesDir);
 
-    this.dbtCommandFactory = new DbtCommandFactory(pythonInfo?.path);
     this.availableCommandsPromise = this.getAvailableDbt();
     this.packagesYmlExistsPromise = this.packagesYmlExists();
     this.ubuntuInWslWorks = this.checkUbuntuInWslWorks();
-    this.profilesYmlPath = path.resolve(this.getProfilesYmlPath());
   }
 
   runPostInitTasks(): Promise<unknown> {
@@ -230,20 +225,5 @@ export class FeatureFinder extends FeatureFinderBase {
 
   private async findDbtGlobalInfo(): Promise<DbtVersionInfo | undefined> {
     return this.findCommandInfo(this.dbtCommandFactory.getDbtGlobalVersion());
-  }
-
-  private getProfilesYmlPath(): string {
-    const profilesYml = 'profiles.yml';
-    const dirFromEnv = process.env['DBT_PROFILES_DIR'];
-    if (dirFromEnv) {
-      return path.join(dirFromEnv, profilesYml);
-    }
-
-    const profilesPathInCurrentDir = path.join('.', profilesYml);
-    if (fs.existsSync(profilesPathInCurrentDir)) {
-      return profilesPathInCurrentDir;
-    }
-
-    return path.join(homedir(), '.dbt', profilesYml);
   }
 }

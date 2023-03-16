@@ -1,12 +1,14 @@
 import { AdapterInfo, DbtVersionInfo, Version } from 'dbt-language-server-common';
 import { assertThat, defined, not } from 'hamjest';
 import { ok } from 'node:assert';
+import { homedir } from 'node:os';
 import { deepEqual, instance, mock, when } from 'ts-mockito';
 import { DbtCommand } from '../dbt_execution/commands/DbtCommand';
 import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor';
 import { DbtRpcCommand } from '../dbt_execution/commands/DbtRpcCommand';
 import { DbtCommandFactory } from '../dbt_execution/DbtCommandFactory';
 import { FeatureFinder } from '../feature_finder/FeatureFinder';
+import path = require('node:path');
 
 describe('FeatureFinder', () => {
   const PYTHON_PATH = 'path/to/python';
@@ -40,10 +42,11 @@ describe('FeatureFinder', () => {
     stdout: '',
   });
 
-  const RPC_WITH_PYTHON = new DbtRpcCommand([DbtCommandFactory.VERSION_PARAM], PYTHON_PATH);
-  const DBT_WITH_PYTHON = new DbtCommand([DbtCommandFactory.VERSION_PARAM], PYTHON_PATH);
-  const RPC_GLOBAL = new DbtRpcCommand([DbtCommandFactory.VERSION_PARAM]);
-  const DBT_GLOBAL = new DbtCommand([DbtCommandFactory.VERSION_PARAM]);
+  const PROFILES_PATH = path.join(homedir(), '.dbt');
+  const RPC_WITH_PYTHON = new DbtRpcCommand(PROFILES_PATH, [DbtCommandFactory.VERSION_PARAM], PYTHON_PATH);
+  const DBT_WITH_PYTHON = new DbtCommand(PROFILES_PATH, [DbtCommandFactory.VERSION_PARAM], PYTHON_PATH);
+  const RPC_GLOBAL = new DbtRpcCommand(PROFILES_PATH, [DbtCommandFactory.VERSION_PARAM]);
+  const DBT_GLOBAL = new DbtCommand(PROFILES_PATH, [DbtCommandFactory.VERSION_PARAM]);
 
   let mockCommandExecutor: DbtCommandExecutor;
   before(() => {
@@ -55,7 +58,7 @@ describe('FeatureFinder', () => {
     when(mockCommandExecutor.execute(deepEqual(RPC_WITH_PYTHON))).thenReturn(VERSION_COMMAND_RESULT);
 
     // act
-    const result = await new FeatureFinder({ path: PYTHON_PATH }, instance(mockCommandExecutor)).getAvailableDbt();
+    const result = await createFeatureFinder(mockCommandExecutor).getAvailableDbt();
 
     // assert
     assertVersion(result[0], { major: 1, minor: 1, patch: 1 }, { major: 1, minor: 1, patch: 1 }, [
@@ -72,7 +75,7 @@ describe('FeatureFinder', () => {
     when(mockCommandExecutor.execute(deepEqual(RPC_WITH_PYTHON))).thenReturn(LEGACY_VERSION_COMMAND_RESULT);
 
     // act
-    const result = await new FeatureFinder({ path: PYTHON_PATH }, instance(mockCommandExecutor)).getAvailableDbt();
+    const result = await createFeatureFinder(mockCommandExecutor).getAvailableDbt();
 
     // assert
     assertVersion(result[0], { major: 0, minor: 20, patch: 1 }, { major: 1, minor: 0, patch: 0 }, [
@@ -93,7 +96,7 @@ describe('FeatureFinder', () => {
     when(mockCommandExecutor.execute(deepEqual(DBT_GLOBAL))).thenReturn(VERSION_COMMAND_RESULT);
 
     // act
-    const result = await new FeatureFinder({ path: PYTHON_PATH }, instance(mockCommandExecutor)).getAvailableDbt();
+    const result = await createFeatureFinder(mockCommandExecutor).getAvailableDbt();
 
     // assert
     for (let i = 0; i < 4; i++) {
@@ -104,6 +107,10 @@ describe('FeatureFinder', () => {
       ]);
     }
   });
+
+  function createFeatureFinder(mockExecutor: DbtCommandExecutor): FeatureFinder {
+    return new FeatureFinder({ path: PYTHON_PATH }, instance(mockExecutor), undefined);
+  }
 });
 
 function assertVersion(

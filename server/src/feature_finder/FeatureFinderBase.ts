@@ -1,7 +1,10 @@
 import { AdapterInfo, DbtVersionInfo, getStringVersion, PythonInfo, Version } from 'dbt-language-server-common';
+import * as fs from 'node:fs';
+import { homedir } from 'node:os';
 import { Command } from '../dbt_execution/commands/Command';
 import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor';
 import { DbtCommandFactory } from '../dbt_execution/DbtCommandFactory';
+import path = require('node:path');
 
 export class FeatureFinderBase {
   private static readonly DBT_INSTALLED_VERSION_PATTERN = /installed.*:\s+(\d+)\.(\d+)\.(\d+)/;
@@ -9,11 +12,19 @@ export class FeatureFinderBase {
   private static readonly DBT_ADAPTER_PATTERN = /- (\w+):.*/g;
   private static readonly DBT_ADAPTER_VERSION_PATTERN = /:\s+(\d+)\.(\d+)\.(\d+)/;
 
+  private static readonly PROFILES_YML = 'profiles.yml';
+
   dbtCommandFactory: DbtCommandFactory;
   versionInfo?: DbtVersionInfo;
+  profilesYmlDir: string;
 
-  constructor(public pythonInfo: PythonInfo | undefined, private dbtCommandExecutor: DbtCommandExecutor) {
-    this.dbtCommandFactory = new DbtCommandFactory(pythonInfo?.path);
+  constructor(public pythonInfo: PythonInfo | undefined, private dbtCommandExecutor: DbtCommandExecutor, profilesDir: string | undefined) {
+    this.profilesYmlDir = path.resolve(FeatureFinderBase.getProfilesYmlDir(profilesDir));
+    this.dbtCommandFactory = new DbtCommandFactory(pythonInfo?.path, this.profilesYmlDir);
+  }
+
+  getProfilesYmlPath(): string {
+    return path.join(this.profilesYmlDir, FeatureFinderBase.PROFILES_YML);
   }
 
   getPythonPath(): string | undefined {
@@ -75,5 +86,23 @@ export class FeatureFinderBase {
           patch: Number(matchResults[3]),
         }
       : undefined;
+  }
+
+  private static getProfilesYmlDir(profilesDir?: string): string {
+    if (profilesDir) {
+      return profilesDir;
+    }
+
+    const dirFromEnv = process.env['DBT_PROFILES_DIR'];
+    if (dirFromEnv) {
+      return dirFromEnv;
+    }
+
+    const currentDir = '.';
+    if (fs.existsSync(path.join(currentDir, FeatureFinderBase.PROFILES_YML))) {
+      return currentDir;
+    }
+
+    return path.join(homedir(), '.dbt');
   }
 }
