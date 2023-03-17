@@ -20,12 +20,7 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import { CompletionProvider } from '../completion/CompletionProvider';
 import { DbtRepository } from '../DbtRepository';
-import { Dbt } from '../dbt_execution/Dbt';
-import { DbtCompileJob } from '../dbt_execution/DbtCompileJob';
-import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
-import { SqlDefinitionProvider } from '../definition/SqlDefinitionProvider';
 import { DestinationContext } from '../DestinationContext';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
 import { HoverProvider } from '../HoverProvider';
@@ -38,9 +33,14 @@ import { ProgressReporter } from '../ProgressReporter';
 import { AnalyzeResult } from '../ProjectAnalyzer';
 import { ProjectChangeListener } from '../ProjectChangeListener';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
+import { Location, ZetaSqlAst } from '../ZetaSqlAst';
+import { CompletionProvider } from '../completion/CompletionProvider';
+import { Dbt } from '../dbt_execution/Dbt';
+import { DbtCompileJob } from '../dbt_execution/DbtCompileJob';
+import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
+import { SqlDefinitionProvider } from '../definition/SqlDefinitionProvider';
 import { getLineByPosition, getSignatureInfo } from '../utils/TextUtils';
 import { areRangesEqual, debounce, getIdentifierRangeAtPosition, getModelPathOrFullyQualifiedName, positionInRange } from '../utils/Utils';
-import { Location, ZetaSqlAst } from '../ZetaSqlAst';
 import { DbtDocumentKind } from './DbtDocumentKind';
 
 export interface QueryParseInformation {

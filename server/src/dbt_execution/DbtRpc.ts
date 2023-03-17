@@ -1,10 +1,10 @@
 import { _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
-import { FeatureFinder } from '../feature_finder/FeatureFinder';
 import { FileChangeListener } from '../FileChangeListener';
 import { InstallUtils } from '../InstallUtils';
 import { NotificationSender } from '../NotificationSender';
 import { ProgressReporter } from '../ProgressReporter';
+import { FeatureFinder } from '../feature_finder/FeatureFinder';
 import { Dbt } from './Dbt';
 import { DbtCompileJob } from './DbtCompileJob';
 import { DbtRpcClient } from './DbtRpcClient';

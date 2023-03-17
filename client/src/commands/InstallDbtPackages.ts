@@ -1,5 +1,5 @@
 import { DbtPackageInfo, DbtPackageVersions } from 'dbt-language-server-common';
-import { commands, env, QuickInputButtons, QuickPickItem, QuickPickItemKind, Selection, ThemeIcon, Uri } from 'vscode';
+import { QuickInputButtons, QuickPickItem, QuickPickItemKind, Selection, ThemeIcon, Uri, commands, env } from 'vscode';
 import { DbtLanguageClientManager } from '../DbtLanguageClientManager';
 import { DbtWizardQuickPick } from '../QuickPick';
 import { Command } from './CommandManager';

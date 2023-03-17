@@ -6,6 +6,7 @@ import * as path from 'node:path';
 import { performance } from 'node:perf_hooks';
 
 import {
+  _Connection,
   CodeAction,
   CodeActionKind,
   CodeActionParams,
@@ -40,15 +41,14 @@ import {
   TextDocumentSyncKind,
   TextEdit,
   WillSaveTextDocumentParams,
-  _Connection,
 } from 'vscode-languageserver';
 import { FileOperationFilter } from 'vscode-languageserver-protocol/lib/common/protocol.fileOperations';
 import { URI } from 'vscode-uri';
+import { Dbt } from '../dbt_execution/Dbt';
 import { DbtProfileType } from '../DbtProfile';
 import { DbtProfileCreator, DbtProfileInfo } from '../DbtProfileCreator';
 import { DbtProject } from '../DbtProject';
 import { DbtRepository } from '../DbtRepository';
-import { Dbt } from '../dbt_execution/Dbt';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
 import { SqlDefinitionProvider } from '../definition/SqlDefinitionProvider';
 import { DestinationContext } from '../DestinationContext';

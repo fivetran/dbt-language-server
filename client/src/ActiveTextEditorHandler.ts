@@ -2,8 +2,8 @@ import { NO_PROJECT_PATH } from 'dbt-language-server-common';
 import { Disposable, TextEditor, window } from 'vscode';
 import { DbtLanguageClientManager } from './DbtLanguageClientManager';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
-import { StatusHandler } from './status/StatusHandler';
 import { isDocumentSupported } from './Utils';
+import { StatusHandler } from './status/StatusHandler';
 
 export class ActiveTextEditorHandler {
   handler: Disposable;

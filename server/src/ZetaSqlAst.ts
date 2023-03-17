@@ -3,7 +3,6 @@
 import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { Type } from '@fivetrandevelopers/zetasql/lib/Type';
 import { AnyResolvedScanProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/AnyResolvedScanProto';
-import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { ParseLocationRangeProto, ParseLocationRangeProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
 import { ResolvedFunctionCallProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedFunctionCallProto';
 import { ResolvedOutputColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedOutputColumnProto';
@@ -11,6 +10,7 @@ import { ResolvedQueryStmtProto } from '@fivetrandevelopers/zetasql/lib/types/ze
 import { ResolvedScanProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedScanProto';
 import { ResolvedTableScanProto, ResolvedTableScanProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedTableScanProto';
 import { ResolvedWithScanProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedWithScanProto';
+import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { extractDatasetFromFullName } from './utils/Utils';
 import { positionInRange, rangeContainsRange, rangesEqual } from './utils/ZetaSqlUtils';
 

@@ -1,7 +1,7 @@
 import { assertThat, hasSize } from 'hamjest';
 import { writeFileSync } from 'node:fs';
 import { languages } from 'vscode';
-import { activateAndWait, activateAndWaitManifestParsed, getCustomDocUri, PROJECT1_PATH, replaceText, sleep } from './helper';
+import { PROJECT1_PATH, activateAndWait, activateAndWaitManifestParsed, getCustomDocUri, replaceText, sleep } from './helper';
 
 suite('Entire project analysis', () => {
   const MODELS_PATH = 'two-projects/project1/models';

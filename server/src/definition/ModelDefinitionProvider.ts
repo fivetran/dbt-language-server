@@ -1,9 +1,9 @@
 import { DefinitionLink, LocationLink, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import { Dag } from '../dag/Dag';
 import { DbtRepository } from '../DbtRepository';
 import { ParseNode } from '../JinjaParser';
+import { Dag } from '../dag/Dag';
 import { ManifestModel } from '../manifest/ManifestJson';
 import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { getAbsolutePosition, getAbsoluteRange, getRelativePosition, positionInRange, truncateAtBothSides } from '../utils/Utils';

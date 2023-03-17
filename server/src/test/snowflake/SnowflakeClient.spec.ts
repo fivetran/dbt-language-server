@@ -2,7 +2,7 @@ import { assertThat, hasItem, hasItems } from 'hamjest';
 import { ok } from 'node:assert';
 import { PassThrough } from 'node:stream';
 import { setTimeout } from 'node:timers/promises';
-import { Connection, createConnection, Statement } from 'snowflake-sdk';
+import { Connection, Statement, createConnection } from 'snowflake-sdk';
 import { deepEqual, instance, mock, when } from 'ts-mockito';
 import { SnowflakeClient } from '../../snowflake/SnowflakeClient';
 

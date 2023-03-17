@@ -1,6 +1,6 @@
 import { BigQuery, BigQueryOptions } from '@google-cloud/bigquery';
 import { ExternalAccountClientOptions } from 'google-auth-library';
-import { err, ok, Result } from 'neverthrow';
+import { Result, err, ok } from 'neverthrow';
 import { DbtDestinationClient } from '../DbtDestinationClient';
 import { DbtProfile, TargetConfig } from '../DbtProfile';
 import { BigQueryClient } from './BigQueryClient';

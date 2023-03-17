@@ -1,5 +1,5 @@
 import { assertThat, containsString, endsWith, hasSize } from 'hamjest';
-import { Diagnostic, DiagnosticSeverity, languages, Position, Range } from 'vscode';
+import { Diagnostic, DiagnosticSeverity, Position, Range, languages } from 'vscode';
 import { assertAllDiagnostics } from './asserts';
 import {
   activateAndWait,

@@ -3,9 +3,9 @@ import { CompletionItem, CompletionParams, Position, Range } from 'vscode-langua
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtRepository } from '../DbtRepository';
 import { DestinationContext } from '../DestinationContext';
-import { DbtTextDocument } from '../document/DbtTextDocument';
 import { JinjaParser, JinjaPartType } from '../JinjaParser';
 import { LogLevel } from '../Logger';
+import { DbtTextDocument } from '../document/DbtTextDocument';
 import { DiffUtils } from '../utils/DiffUtils';
 import { comparePositions, getIdentifierRangeAtPosition } from '../utils/Utils';
 import { DbtCompletionProvider } from './DbtCompletionProvider';

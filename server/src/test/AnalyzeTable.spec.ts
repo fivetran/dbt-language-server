@@ -2,14 +2,14 @@
 
 import { ok } from 'neverthrow';
 import { anything, instance, mock, objectContaining, spy, verify, when } from 'ts-mockito';
-import { Dag } from '../dag/Dag';
-import { DagNode } from '../dag/DagNode';
 import { DbtDestinationClient } from '../DbtDestinationClient';
 import { DbtRepository } from '../DbtRepository';
 import { ProjectAnalyzer } from '../ProjectAnalyzer';
 import { SqlHeaderAnalyzer } from '../SqlHeaderAnalyzer';
 import { TableDefinition } from '../TableDefinition';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
+import { Dag } from '../dag/Dag';
+import { DagNode } from '../dag/DagNode';
 import path = require('node:path');
 
 describe('ProjectAnalyzer analyzeModelsTree', () => {

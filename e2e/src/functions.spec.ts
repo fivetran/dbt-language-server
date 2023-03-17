@@ -1,6 +1,6 @@
 import { assertThat, hasSize, instanceOf, startsWith } from 'hamjest';
-import { commands, Hover, MarkdownString, Position } from 'vscode';
-import { activateAndWaitManifestParsed, executeSignatureHelpProvider, getDocUri, setTestContent, TEST_FIXTURE_PATH } from './helper';
+import { Hover, MarkdownString, Position, commands } from 'vscode';
+import { TEST_FIXTURE_PATH, activateAndWaitManifestParsed, executeSignatureHelpProvider, getDocUri, setTestContent } from './helper';
 
 suite('Functions', () => {
   const DOC_URI = getDocUri('functions.sql');
