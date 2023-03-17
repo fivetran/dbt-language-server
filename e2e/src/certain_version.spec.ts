@@ -1,6 +1,6 @@
 import { assertThat, startsWith } from 'hamjest';
 import { LanguageStatusSeverity } from 'vscode';
-import { activateAndWait, getCustomDocUri, getLanguageStatusItems, getPreviewText, SPECIAL_PYTHON_SETTINGS_PATH } from './helper';
+import { SPECIAL_PYTHON_SETTINGS_PATH, activateAndWait, getCustomDocUri, getLanguageStatusItems, getPreviewText } from './helper';
 
 suite('Certain version', () => {
   const DOC_URI = getCustomDocUri('special-python-settings/models/version.sql');

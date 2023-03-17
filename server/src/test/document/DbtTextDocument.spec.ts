@@ -4,13 +4,8 @@ import { assertThat } from 'hamjest';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, Range, TextDocumentSaveReason, VersionedTextDocumentIdentifier } from 'vscode-languageserver';
 import { DbtRepository } from '../../DbtRepository';
-import { Dbt } from '../../dbt_execution/Dbt';
-import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
-import { SqlDefinitionProvider } from '../../definition/SqlDefinitionProvider';
 import { DestinationContext } from '../../DestinationContext';
 import { DiagnosticGenerator } from '../../DiagnosticGenerator';
-import { DbtDocumentKind } from '../../document/DbtDocumentKind';
-import { DbtTextDocument } from '../../document/DbtTextDocument';
 import { HoverProvider } from '../../HoverProvider';
 import { JinjaParser } from '../../JinjaParser';
 import { ModelCompiler } from '../../ModelCompiler';
@@ -18,6 +13,11 @@ import { NotificationSender } from '../../NotificationSender';
 import { ProgressReporter } from '../../ProgressReporter';
 import { ProjectChangeListener } from '../../ProjectChangeListener';
 import { SignatureHelpProvider } from '../../SignatureHelpProvider';
+import { Dbt } from '../../dbt_execution/Dbt';
+import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
+import { SqlDefinitionProvider } from '../../definition/SqlDefinitionProvider';
+import { DbtDocumentKind } from '../../document/DbtDocumentKind';
+import { DbtTextDocument } from '../../document/DbtTextDocument';
 import { sleep } from '../helper';
 
 describe('DbtTextDocument', () => {

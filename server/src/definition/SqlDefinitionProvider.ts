@@ -2,14 +2,14 @@ import { DefinitionLink, DefinitionParams, LocationLink, Range } from 'vscode-la
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { DbtRepository } from '../DbtRepository';
-import { DbtTextDocument, QueryParseInformation } from '../document/DbtTextDocument';
 import { DagNodeFetcher } from '../ModelFetcher';
 import { PositionConverter } from '../PositionConverter';
 import { AnalyzeResult } from '../ProjectAnalyzer';
+import { Location } from '../ZetaSqlAst';
+import { DbtTextDocument, QueryParseInformation } from '../document/DbtTextDocument';
 import { getTableRefUniqueId } from '../utils/ManifestUtils';
 import { positionInRange, rangesOverlap } from '../utils/Utils';
 import { rangesEqual } from '../utils/ZetaSqlUtils';
-import { Location } from '../ZetaSqlAst';
 import { DbtDefinitionProvider } from './DbtDefinitionProvider';
 
 export class SqlDefinitionProvider {

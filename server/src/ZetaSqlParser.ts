@@ -1,11 +1,11 @@
 import { ZetaSQLClient } from '@fivetrandevelopers/zetasql';
-import { AnyASTExpressionProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/AnyASTExpressionProto';
 import { ASTFunctionCallProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTFunctionCallProto';
 import { ASTSelectProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTSelectProto';
 import { ASTTablePathExpressionProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTTablePathExpressionProto';
+import { AnyASTExpressionProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/AnyASTExpressionProto';
 import { LanguageOptionsProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/LanguageOptionsProto';
-import { ParseResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ParseResponse';
 import { ParseLocationRangeProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
+import { ParseResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ParseResponse';
 import { promisify } from 'node:util';
 import { arraysAreEqual } from './utils/Utils';
 import { traverse } from './utils/ZetaSqlUtils';

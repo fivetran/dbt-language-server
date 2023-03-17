@@ -2,13 +2,13 @@ import { assertThat, containsString } from 'hamjest';
 import { Position, Range, Uri } from 'vscode';
 import { assertDefinitions } from './asserts';
 import {
+  MAX_RANGE,
   activateAndWait,
   activateAndWaitManifestParsed,
   getAbsolutePath,
   getCustomDocUri,
   getPreviewText,
   installDbtPackages,
-  MAX_RANGE,
 } from './helper';
 
 suite('Extension should work inside dbt package', () => {

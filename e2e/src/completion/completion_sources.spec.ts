@@ -1,6 +1,6 @@
 import { CompletionItem, CompletionItemKind, Position } from 'vscode';
 import { assertCompletions } from '../asserts';
-import { activateAndWaitManifestParsed, getCustomDocUri, getTextInQuotesIfNeeded, POSTGRES_PATH } from '../helper';
+import { POSTGRES_PATH, activateAndWaitManifestParsed, getCustomDocUri, getTextInQuotesIfNeeded } from '../helper';
 
 suite('Should suggest sources completions', () => {
   const PROJECT_FILE_NAME = `${POSTGRES_PATH}/models/active_users.sql`;

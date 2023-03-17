@@ -3,8 +3,8 @@ import * as vscode from 'vscode';
 import { CompletionItem, CompletionItemKind } from 'vscode';
 import { assertCompletions } from '../asserts';
 import {
-  activateAndWaitManifestParsed,
   COMPLETION_JINJA_PATH,
+  activateAndWaitManifestParsed,
   getCustomDocUri,
   getTextInQuotesIfNeeded,
   setTestContent,

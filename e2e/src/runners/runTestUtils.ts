@@ -1,11 +1,11 @@
 import { BigQuery, Dataset, TableField } from '@google-cloud/bigquery';
-import { downloadAndUnzipVSCode, resolveCliArgsFromVSCodeExecutablePath, runTests, SilentReporter } from '@vscode/test-electron';
-import { spawnSync, SpawnSyncReturns } from 'node:child_process';
+import { SilentReporter, downloadAndUnzipVSCode, resolveCliArgsFromVSCodeExecutablePath, runTests } from '@vscode/test-electron';
+import { SpawnSyncReturns, spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import { homedir } from 'node:os';
 import * as path from 'node:path';
 import { Client } from 'pg';
-import { createConnection, SnowflakeError, Statement } from 'snowflake-sdk';
+import { SnowflakeError, Statement, createConnection } from 'snowflake-sdk';
 
 // Expected parameter: path to the folder with the extension package.json
 export async function installVsCodeAndRunTests(indexName: string, projectWithModelsPath: string): Promise<void> {

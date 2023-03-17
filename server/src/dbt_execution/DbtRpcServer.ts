@@ -1,8 +1,8 @@
 import { ExecException } from 'node:child_process';
 import { LogLevel } from '../Logger';
+import { DbtRpcClient } from './DbtRpcClient';
 import { Command } from './commands/Command';
 import { DbtCommandExecutor } from './commands/DbtCommandExecutor';
-import { DbtRpcClient } from './DbtRpcClient';
 
 export class DbtRpcServer {
   static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();

@@ -8,9 +8,9 @@ import { DbtDestinationClient, Udf } from '../DbtDestinationClient';
 import { InformationSchemaConfigurator } from '../InformationSchemaConfigurator';
 import { SqlHeaderAnalyzer } from '../SqlHeaderAnalyzer';
 import { TableDefinition } from '../TableDefinition';
-import { arraysAreEqual } from '../utils/Utils';
 import { ZetaSqlParser } from '../ZetaSqlParser';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
+import { arraysAreEqual } from '../utils/Utils';
 
 describe('ZetaSqlWrapper table/udf registration', () => {
   const PROJECT_ID = 'project_id';

@@ -1,8 +1,8 @@
 import { StatusNotification } from 'dbt-language-server-common';
 import { FileChangeType } from 'vscode-languageserver';
-import { FeatureFinder } from '../feature_finder/FeatureFinder';
 import { FileChangeListener } from '../FileChangeListener';
 import { NotificationSender } from '../NotificationSender';
+import { FeatureFinder } from '../feature_finder/FeatureFinder';
 import { NoProjectStatusSender } from './NoProjectStatusSender';
 
 export class DbtProjectStatusSender extends NoProjectStatusSender {

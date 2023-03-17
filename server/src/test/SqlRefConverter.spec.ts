@@ -1,11 +1,11 @@
 import { assertThat } from 'hamjest';
 import { Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { SqlRefConverter } from '../SqlRefConverter';
+import { ResolvedTable } from '../ZetaSqlAst';
 import { Dag } from '../dag/Dag';
 import { DagNode } from '../dag/DagNode';
 import { ManifestModel } from '../manifest/ManifestJson';
-import { SqlRefConverter } from '../SqlRefConverter';
-import { ResolvedTable } from '../ZetaSqlAst';
 
 describe('SqlRefConverter', () => {
   const SQL_REF_CONVERTER = new SqlRefConverter();

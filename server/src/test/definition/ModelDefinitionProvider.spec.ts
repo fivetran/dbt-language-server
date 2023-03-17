@@ -1,9 +1,9 @@
 import { assertThat } from 'hamjest';
 import { Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { DbtRepository } from '../../DbtRepository';
 import { Dag } from '../../dag/Dag';
 import { DagNode } from '../../dag/DagNode';
-import { DbtRepository } from '../../DbtRepository';
 import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
 import { ModelDefinitionProvider } from '../../definition/ModelDefinitionProvider';
 import { ManifestModel } from '../../manifest/ManifestJson';

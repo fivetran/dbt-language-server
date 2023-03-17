@@ -1,6 +1,6 @@
 import { assertThat, startsWith } from 'hamjest';
 import { LanguageStatusSeverity } from 'vscode';
-import { createAndOpenTempModel, executeCreateFile, getLanguageStatusItems, sleep, TEST_FIXTURE_PATH } from './helper';
+import { TEST_FIXTURE_PATH, createAndOpenTempModel, executeCreateFile, getLanguageStatusItems, sleep } from './helper';
 
 suite('Language status items', () => {
   test('Should show items for project and then common items without project', async () => {

@@ -1,6 +1,6 @@
 import { Position, Range, Uri } from 'vscode';
 import { assertDefinitions } from './asserts';
-import { activateAndWait, getDocUri, MAX_RANGE } from './helper';
+import { MAX_RANGE, activateAndWait, getDocUri } from './helper';
 
 suite('Definitions for columns', () => {
   test('Should suggest definitions for different columns', async () => {

@@ -3,7 +3,7 @@ import { assertThat, containsString, isEmpty } from 'hamjest';
 import * as fs from 'node:fs';
 import { writeFileSync } from 'node:fs';
 import * as path from 'node:path';
-import { DiagnosticSeverity, languages, Uri } from 'vscode';
+import { DiagnosticSeverity, Uri, languages } from 'vscode';
 import { activateAndWait, sleep, waitWithTimeout } from './helper';
 
 suite('dbt_ft', () => {

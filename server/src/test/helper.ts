@@ -5,11 +5,11 @@ import * as path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import { instance, mock, when } from 'ts-mockito';
 import { CompletionItem } from 'vscode-languageserver';
-import { DbtNodeCompletionProvider } from '../completion/DbtCompletionProvider';
 import { DbtProfile, ProfileYaml } from '../DbtProfile';
 import { DbtProfileCreator } from '../DbtProfileCreator';
 import { DbtProject } from '../DbtProject';
 import { JinjaPartType } from '../JinjaParser';
+import { DbtNodeCompletionProvider } from '../completion/DbtCompletionProvider';
 
 const PROFILES_PATH = path.resolve('./server/src/test/profiles');
 

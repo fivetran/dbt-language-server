@@ -1,14 +1,14 @@
 import { Diagnostic, FileChangeType, FileEvent } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { DbtRepository } from './DbtRepository';
-import { Dbt } from './dbt_execution/Dbt';
 import { DestinationContext } from './DestinationContext';
 import { DiagnosticGenerator } from './DiagnosticGenerator';
-import { DbtTextDocument } from './document/DbtTextDocument';
 import { FileChangeListener } from './FileChangeListener';
 import { DagNodeFetcher } from './ModelFetcher';
 import { NotificationSender } from './NotificationSender';
 import { AnalyzeResult, ModelsAnalyzeResult } from './ProjectAnalyzer';
+import { Dbt } from './dbt_execution/Dbt';
+import { DbtTextDocument } from './document/DbtTextDocument';
 import { debounce } from './utils/Utils';
 
 export class ProjectChangeListener {

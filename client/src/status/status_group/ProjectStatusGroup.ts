@@ -1,7 +1,7 @@
 import { PackagesStatus, StatusNotification } from 'dbt-language-server-common';
 import { LanguageStatusSeverity, RelativePattern, Uri } from 'vscode';
-import { InstallDbtPackages } from '../../commands/InstallDbtPackages';
 import { PACKAGES_YML, PROFILES_YML, PROFILES_YML_DEFAULT_URI } from '../../Utils';
+import { InstallDbtPackages } from '../../commands/InstallDbtPackages';
 import { LanguageStatusItems } from '../LanguageStatusItems';
 import { StatusItemData } from '../StatusItemData';
 import { StatusGroupBase } from './StatusGroupBase';

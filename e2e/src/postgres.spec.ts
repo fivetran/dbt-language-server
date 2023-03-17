@@ -2,13 +2,13 @@ import { assertThat, instanceOf } from 'hamjest';
 import { MarkdownString, Position, Range } from 'vscode';
 import { assertDefinitions } from './asserts';
 import {
+  MAX_RANGE,
+  POSTGRES_PATH,
   activateAndWait,
   activateAndWaitManifestParsed,
   executeSignatureHelpProvider,
   getCustomDocUri,
   getPreviewText,
-  MAX_RANGE,
-  POSTGRES_PATH,
 } from './helper';
 
 const ACTIVE_USERS_URI = getCustomDocUri('postgres/models/active_users.sql');
