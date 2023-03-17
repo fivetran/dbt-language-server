@@ -24,7 +24,7 @@ export class ProjectChangeListener {
     private notificationSender: NotificationSender,
     private dbt: Dbt,
     private enableEntireProjectAnalysis: boolean,
-    fileChangeListener: FileChangeListener,
+    private fileChangeListener: FileChangeListener,
   ) {
     fileChangeListener.onSqlModelChanged(c => this.onSqlModelChanged(c));
   }
@@ -43,6 +43,7 @@ export class ProjectChangeListener {
     try {
       this.dbt.refresh();
       await this.dbt.compileProject(this.dbtRepository);
+      this.fileChangeListener.updateManifestNodes();
       this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
     } finally {
       this.analysisInProgress = false;
