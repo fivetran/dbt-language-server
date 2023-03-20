@@ -7,7 +7,7 @@ export abstract class Command {
     public python?: string,
     public env?: NodeJS.ProcessEnv,
   ) {
-    parameters.push('--profiles-dir', profilesDir);
+    parameters.unshift('--profiles-dir', profilesDir);
   }
 
   toString(): string {
