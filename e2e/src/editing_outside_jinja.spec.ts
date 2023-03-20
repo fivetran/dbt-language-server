@@ -21,6 +21,7 @@ suite('Editing outside jinja without recompilation', () => {
     const initialPreview = getPreviewText();
 
     await replaceText('  )', '   ');
+    assertThat(getPreviewText(), getMainEditorText());
     await assertAllDiagnostics(DOC_URI, DIAGNOSTICS);
 
     await replaceText('select u.id', 'select u.i');
