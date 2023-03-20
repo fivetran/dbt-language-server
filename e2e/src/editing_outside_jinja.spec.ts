@@ -19,6 +19,13 @@ suite('Editing outside jinja without recompilation', () => {
     await activateAndWait(DOC_URI);
     const initialContent = getMainEditorText();
     const initialPreview = getPreviewText();
+    assertThat(
+      initialPreview,
+      `
+
+select u.id from \`singular-vector-135519\`.\`dbt_ls_e2e_dataset\`.\`users\` u
+inner join \`singular-vector-135519\`.\`dbt_ls_e2e_dataset\`.\`test_table1\` t1 on u.name = t1.name`,
+    );
 
     await replaceText('  )', '   ');
     assertThat(getPreviewText(), getMainEditorText());
