@@ -41,6 +41,9 @@ export interface TargetConfig {
   keyfile?: string;
   scopes?: string[];
   account?: string;
+  password?: string;
+  private_key_path?: string;
+  private_key_passphrase?: string;
 }
 
 export enum DbtProfileType {

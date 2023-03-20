@@ -1,15 +1,15 @@
 import { EventEmitter } from 'node:events';
 import { FileType, Selection, TextDocument, Uri, window, workspace } from 'vscode';
 import { log } from './Logger';
-import { DbtLanguageClient } from './lsp_client/DbtLanguageClient';
-import { DbtWizardLanguageClient } from './lsp_client/DbtWizardLanguageClient';
-import { NoProjectLanguageClient } from './lsp_client/NoProjectLanguageClient';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
-import { StatusHandler } from './status/StatusHandler';
 import { DBT_PROJECT_YML, isDocumentSupported } from './Utils';
 import { WorkspaceHelper } from './WorkspaceHelper';
+import { DbtLanguageClient } from './lsp_client/DbtLanguageClient';
+import { DbtWizardLanguageClient } from './lsp_client/DbtWizardLanguageClient';
+import { NoProjectLanguageClient } from './lsp_client/NoProjectLanguageClient';
+import { StatusHandler } from './status/StatusHandler';
 
 export class DbtLanguageClientManager {
   workspaceHelper = new WorkspaceHelper();

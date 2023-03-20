@@ -9,10 +9,10 @@ import {
   BQ_MISSING_METHOD,
   BQ_MISSING_PROJECT,
   BQ_MISSING_TYPE,
-  getConfigPath,
   OTHERS_CONFIG,
   OTHERS_UNKNOWN_TYPE,
   UNKNOWN_TYPE,
+  getConfigPath,
 } from './helper';
 
 describe('Profiles Validation', () => {

@@ -1,7 +1,7 @@
 import { InitializeError, InitializeParams, InitializeResult, ResponseError, _Connection } from 'vscode-languageserver';
-import { FeatureFinderBase } from '../feature_finder/FeatureFinderBase';
 import { InstallUtils } from '../InstallUtils';
 import { NotificationSender } from '../NotificationSender';
+import { FeatureFinderBase } from '../feature_finder/FeatureFinderBase';
 
 export abstract class LspServerBase<T extends FeatureFinderBase> {
   constructor(protected connection: _Connection, protected notificationSender: NotificationSender, protected featureFinder: T) {}

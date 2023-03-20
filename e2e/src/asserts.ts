@@ -1,6 +1,6 @@
 import { assertThat, greaterThanOrEqualTo, hasItem, hasProperties, hasSize } from 'hamjest';
 import { ok } from 'node:assert';
-import { CompletionItem, DefinitionLink, Diagnostic, DiagnosticRelatedInformation, languages, Location, Position, Range, Uri } from 'vscode';
+import { CompletionItem, DefinitionLink, Diagnostic, DiagnosticRelatedInformation, Location, Position, Range, Uri, languages } from 'vscode';
 import { PREVIEW_URI, sleep, triggerCompletion, triggerDefinition } from './helper';
 
 export async function assertAllDiagnostics(uri: Uri, rawDiagnostics: Diagnostic[], compiledDiagnostics?: Diagnostic[]): Promise<void> {

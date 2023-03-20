@@ -1,7 +1,7 @@
 import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
 import { BigQuery, Dataset as BqDataset, RoutineMetadata, TableMetadata } from '@google-cloud/bigquery';
-import { err, ok, Result } from 'neverthrow';
+import { Result, err, ok } from 'neverthrow';
 import { Dataset, DbtDestinationClient, Metadata, SchemaDefinition, Table, Udf, UdfArgument } from '../DbtDestinationClient';
 import { BigQueryTypeKind, IStandardSqlDataType } from './BigQueryLibraryTypes';
 

@@ -3,10 +3,10 @@ import { assertThat, defined, not } from 'hamjest';
 import { ok } from 'node:assert';
 import { homedir } from 'node:os';
 import { deepEqual, instance, mock, when } from 'ts-mockito';
+import { DbtCommandFactory } from '../dbt_execution/DbtCommandFactory';
 import { DbtCommand } from '../dbt_execution/commands/DbtCommand';
 import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor';
 import { DbtRpcCommand } from '../dbt_execution/commands/DbtRpcCommand';
-import { DbtCommandFactory } from '../dbt_execution/DbtCommandFactory';
 import { FeatureFinder } from '../feature_finder/FeatureFinder';
 import path = require('node:path');
 

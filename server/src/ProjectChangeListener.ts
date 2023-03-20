@@ -1,14 +1,14 @@
 import { Diagnostic, FileChangeType, FileEvent } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { DbtRepository } from './DbtRepository';
-import { Dbt } from './dbt_execution/Dbt';
 import { DestinationContext } from './DestinationContext';
 import { DiagnosticGenerator } from './DiagnosticGenerator';
-import { DbtTextDocument } from './document/DbtTextDocument';
 import { FileChangeListener } from './FileChangeListener';
 import { DagNodeFetcher } from './ModelFetcher';
 import { NotificationSender } from './NotificationSender';
 import { AnalyzeResult, ModelsAnalyzeResult } from './ProjectAnalyzer';
+import { Dbt } from './dbt_execution/Dbt';
+import { DbtTextDocument } from './document/DbtTextDocument';
 import { debounce } from './utils/Utils';
 
 export class ProjectChangeListener {
@@ -24,7 +24,7 @@ export class ProjectChangeListener {
     private notificationSender: NotificationSender,
     private dbt: Dbt,
     private enableEntireProjectAnalysis: boolean,
-    fileChangeListener: FileChangeListener,
+    private fileChangeListener: FileChangeListener,
   ) {
     fileChangeListener.onSqlModelChanged(c => this.onSqlModelChanged(c));
   }
@@ -43,6 +43,7 @@ export class ProjectChangeListener {
     try {
       this.dbt.refresh();
       await this.dbt.compileProject(this.dbtRepository);
+      this.fileChangeListener.updateManifestNodes();
       this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
     } finally {
       this.analysisInProgress = false;

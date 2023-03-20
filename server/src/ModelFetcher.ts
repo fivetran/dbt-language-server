@@ -1,6 +1,6 @@
 import * as retry from 'async-retry';
-import { DagNode } from './dag/DagNode';
 import { DbtRepository } from './DbtRepository';
+import { DagNode } from './dag/DagNode';
 
 export class DagNodeFetcher {
   node: DagNode | undefined;

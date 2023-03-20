@@ -1,13 +1,13 @@
 import { _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
-import { FeatureFinder } from '../feature_finder/FeatureFinder';
 import { NotificationSender } from '../NotificationSender';
 import { ProgressReporter } from '../ProgressReporter';
-import { DbtCommand } from './commands/DbtCommand';
-import { DbtCommandExecutor } from './commands/DbtCommandExecutor';
+import { FeatureFinder } from '../feature_finder/FeatureFinder';
 import { Dbt } from './Dbt';
 import { DbtCliCompileJob } from './DbtCliCompileJob';
 import { DbtCompileJob } from './DbtCompileJob';
+import { DbtCommand } from './commands/DbtCommand';
+import { DbtCommandExecutor } from './commands/DbtCommandExecutor';
 
 export class DbtCli extends Dbt {
   static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();

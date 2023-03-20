@@ -7,9 +7,9 @@ import { log } from '../Logger';
 import { OutputChannelProvider } from '../OutputChannelProvider';
 import { ProgressHandler } from '../ProgressHandler';
 import SqlPreviewContentProvider from '../SqlPreviewContentProvider';
-import { StatusHandler } from '../status/StatusHandler';
 import { TelemetryClient } from '../TelemetryClient';
 import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from '../Utils';
+import { StatusHandler } from '../status/StatusHandler';
 import { DbtWizardLanguageClient } from './DbtWizardLanguageClient';
 
 export class DbtLanguageClient extends DbtWizardLanguageClient {

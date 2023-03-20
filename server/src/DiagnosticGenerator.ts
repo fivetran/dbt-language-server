@@ -4,10 +4,10 @@ import { Diagnostic, DiagnosticSeverity, Position, Range } from 'vscode-language
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { DbtRepository } from './DbtRepository';
-import { DbtTextDocument } from './document/DbtTextDocument';
 import { PositionConverter } from './PositionConverter';
 import { AnalyzeResult } from './ProjectAnalyzer';
 import { SqlRefConverter } from './SqlRefConverter';
+import { DbtTextDocument } from './document/DbtTextDocument';
 import { getIdentifierRangeAtPosition } from './utils/Utils';
 
 interface RawAndCompiledDiagnostics {

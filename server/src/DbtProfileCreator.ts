@@ -115,8 +115,12 @@ export class DbtProfileCreator {
       if (!profileBuilder) {
         return this.parseProfileError(`Unknown authentication method of '${type}' profile`, type, method);
       }
-    } else if (type.valueOf() === DbtProfileType.Snowflake && targetConfig.account) {
-      profileBuilder = SNOWFLAKE_PROFILES.get('user-password');
+    } else if (type.valueOf() === DbtProfileType.Snowflake) {
+      if (targetConfig.account && targetConfig.password) {
+        profileBuilder = SNOWFLAKE_PROFILES.get('user-password');
+      } else if (targetConfig.account && targetConfig.private_key_path) {
+        profileBuilder = SNOWFLAKE_PROFILES.get('key-pair');
+      }
     }
 
     if (profileBuilder) {

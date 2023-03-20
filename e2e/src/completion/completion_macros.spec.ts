@@ -1,7 +1,7 @@
 import { assertThat, defined } from 'hamjest';
 import { CompletionItem, CompletionItemKind, Position } from 'vscode';
 import { assertCompletions } from '../asserts';
-import { activateAndWaitManifestParsed, getCustomDocUri, POSTGRES_PATH, triggerCompletion } from '../helper';
+import { POSTGRES_PATH, activateAndWaitManifestParsed, getCustomDocUri, triggerCompletion } from '../helper';
 
 suite('Should suggest macros completions', () => {
   const PROJECT_FILE_NAME = `${POSTGRES_PATH}/models/active_users_orders_count.sql`;

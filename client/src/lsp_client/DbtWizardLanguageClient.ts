@@ -1,5 +1,5 @@
 import { CustomInitParams, DbtCompilerType, LspModeType, StatusNotification } from 'dbt-language-server-common';
-import { commands, Uri, workspace } from 'vscode';
+import { Uri, commands, workspace } from 'vscode';
 import { Disposable, State } from 'vscode-languageclient';
 import { LanguageClient, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 import { log } from '../Logger';

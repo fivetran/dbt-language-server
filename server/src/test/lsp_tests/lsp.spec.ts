@@ -7,21 +7,21 @@ import {
   CompletionParams,
   CompletionRequest,
   CompletionTriggerKind,
-  createProtocolConnection,
   DidChangeTextDocumentNotification,
   DidChangeTextDocumentParams,
   DidOpenTextDocumentNotification,
   DidOpenTextDocumentParams,
   ExitNotification,
-  InitializedNotification,
   InitializeParams,
   InitializeRequest,
+  InitializedNotification,
   MessageActionItem,
   ProtocolConnection,
   Range,
   ShowMessageRequest,
   ShowMessageRequestParams,
   ShutdownRequest,
+  createProtocolConnection,
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { SNIPPET_TESTS } from './snippet_tests';

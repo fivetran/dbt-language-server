@@ -1,9 +1,9 @@
 import { Emitter, Event } from 'vscode-languageserver';
 import { DbtRepository } from './DbtRepository';
+import { LogLevel } from './Logger';
 import { Dbt } from './dbt_execution/Dbt';
 import { DbtCompileJob } from './dbt_execution/DbtCompileJob';
 import { DbtRpcCompileJob } from './dbt_execution/DbtRpcCompileJob';
-import { LogLevel } from './Logger';
 import { wait } from './utils/Utils';
 
 export class ModelCompiler {
