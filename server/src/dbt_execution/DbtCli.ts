@@ -8,6 +8,7 @@ import { DbtCliCompileJob } from './DbtCliCompileJob';
 import { DbtCompileJob } from './DbtCompileJob';
 import { DbtCommand } from './commands/DbtCommand';
 import { DbtCommandExecutor } from './commands/DbtCommandExecutor';
+import slash = require('slash');
 
 export class DbtCli extends Dbt {
   static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
@@ -28,8 +29,7 @@ export class DbtCli extends Dbt {
   }> {
     const parameters = ['compile'];
     if (modelName) {
-      const slash = await import('slash');
-      parameters.push('-m', slash.default(modelName));
+      parameters.push('-m', slash(modelName));
     }
     const compileCliCommand = new DbtCommand(this.featureFinder.profilesYmlDir, parameters, this.pythonPathForCli);
     return DbtCli.DBT_COMMAND_EXECUTOR.execute(compileCliCommand);

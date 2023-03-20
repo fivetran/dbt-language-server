@@ -5,6 +5,7 @@ import { Command } from '../dbt_execution/commands/Command';
 import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor';
 import { DbtCommandFactory } from '../dbt_execution/DbtCommandFactory';
 import path = require('node:path');
+import slash = require('slash');
 
 export class FeatureFinderBase {
   private static readonly DBT_INSTALLED_VERSION_PATTERN = /installed.*:\s+(\d+)\.(\d+)\.(\d+)/;
@@ -19,7 +20,7 @@ export class FeatureFinderBase {
   profilesYmlDir: string;
 
   constructor(public pythonInfo: PythonInfo | undefined, private dbtCommandExecutor: DbtCommandExecutor, profilesDir: string | undefined) {
-    this.profilesYmlDir = path.resolve(FeatureFinderBase.getProfilesYmlDir(profilesDir));
+    this.profilesYmlDir = slash(path.resolve(FeatureFinderBase.getProfilesYmlDir(profilesDir)));
     this.dbtCommandFactory = new DbtCommandFactory(pythonInfo?.path, this.profilesYmlDir);
   }
 
