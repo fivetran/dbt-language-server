@@ -64,11 +64,7 @@ export class ExtensionClient {
         }
       }),
 
-      workspace.onDidChangeConfiguration(e => {
-        if (e.affectsConfiguration('WizardForDbtCore(TM).profilesDir')) {
-          this.dbtLanguageClientManager.restartAll();
-        }
-      }),
+      workspace.onDidChangeConfiguration(e => this.dbtLanguageClientManager.onDidChangeConfiguration(e)),
     );
     workspace.textDocuments.forEach(t =>
       this.onDidOpenTextDocument(t).catch(e => log(`Error while opening text document ${e instanceof Error ? e.message : String(e)}`)),

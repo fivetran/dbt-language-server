@@ -1,6 +1,17 @@
 import { LspModeType, TelemetryEvent } from 'dbt-language-server-common';
 import { EventEmitter } from 'node:events';
-import { Diagnostic, DiagnosticCollection, Disposable, RelativePattern, TextDocument, TextEditor, Uri, window, workspace } from 'vscode';
+import {
+  ConfigurationChangeEvent,
+  Diagnostic,
+  DiagnosticCollection,
+  Disposable,
+  RelativePattern,
+  TextDocument,
+  TextEditor,
+  Uri,
+  window,
+  workspace,
+} from 'vscode';
 import { LanguageClient, LanguageClientOptions, State, WorkDoneProgress } from 'vscode-languageclient/node';
 import { LS_MANIFEST_PARSED_EVENT } from '../ExtensionApi';
 import { log } from '../Logger';
@@ -42,6 +53,12 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
           openFunc(editor.document).catch(e => log(`Error while opening document: ${e instanceof Error ? e.message : String(e)}`));
         }
       }
+    }
+  }
+
+  onDidChangeConfiguration(e: ConfigurationChangeEvent): void {
+    if (e.affectsConfiguration('WizardForDbtCore(TM).profilesDir', this.client.clientOptions.workspaceFolder)) {
+      this.restart().catch(e_ => log(`Error while restarting client ${e_ instanceof Error ? e_.message : String(e_)}`));
     }
   }
 
