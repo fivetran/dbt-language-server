@@ -9,6 +9,7 @@ import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor
 import { DbtRpcCommand } from '../dbt_execution/commands/DbtRpcCommand';
 import { FeatureFinder } from '../feature_finder/FeatureFinder';
 import path = require('node:path');
+import slash = require('slash');
 
 describe('FeatureFinder', () => {
   const PYTHON_PATH = 'path/to/python';
@@ -42,11 +43,11 @@ describe('FeatureFinder', () => {
     stdout: '',
   });
 
-  const PROFILES_PATH = path.join(homedir(), '.dbt');
-  const RPC_WITH_PYTHON = new DbtRpcCommand(PROFILES_PATH, [DbtCommandFactory.VERSION_PARAM], PYTHON_PATH);
-  const DBT_WITH_PYTHON = new DbtCommand(PROFILES_PATH, [DbtCommandFactory.VERSION_PARAM], PYTHON_PATH);
-  const RPC_GLOBAL = new DbtRpcCommand(PROFILES_PATH, [DbtCommandFactory.VERSION_PARAM]);
-  const DBT_GLOBAL = new DbtCommand(PROFILES_PATH, [DbtCommandFactory.VERSION_PARAM]);
+  const PROFILES_DIR = slash(path.join(homedir(), '.dbt'));
+  const RPC_WITH_PYTHON = new DbtRpcCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM], PYTHON_PATH);
+  const DBT_WITH_PYTHON = new DbtCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM], PYTHON_PATH);
+  const RPC_GLOBAL = new DbtRpcCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM]);
+  const DBT_GLOBAL = new DbtCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM]);
 
   let mockCommandExecutor: DbtCommandExecutor;
   before(() => {
