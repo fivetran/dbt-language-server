@@ -88,12 +88,14 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
           }
 
           pendingOpenRequests.set(data.uri.fsPath, next);
-          setTimeout(() => {
-            if (pendingOpenRequests.delete(data.uri.fsPath)) {
-              log(`Open request cancelled for ${data.uri.fsPath}`);
-            }
-          }, 3000);
           return Promise.resolve();
+        },
+        didClose: (data: TextDocument, next: (data: TextDocument) => Promise<void>): Promise<void> => {
+          if (pendingOpenRequests.delete(data.uri.fsPath)) {
+            log(`Open request cancelled for ${data.uri.fsPath}`);
+            return Promise.resolve();
+          }
+          return next(data);
         },
       },
     };
