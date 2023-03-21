@@ -1,6 +1,6 @@
-import { PackagesStatus, StatusNotification } from 'dbt-language-server-common';
+import { PackagesStatus, ProfilesYmlStatus, StatusNotification } from 'dbt-language-server-common';
 import { LanguageStatusSeverity, RelativePattern, Uri } from 'vscode';
-import { PACKAGES_YML, PROFILES_YML, PROFILES_YML_DEFAULT_URI } from '../../Utils';
+import { PACKAGES_YML, PROFILES_YML } from '../../Utils';
 import { InstallDbtPackages } from '../../commands/InstallDbtPackages';
 import { LanguageStatusItems } from '../LanguageStatusItems';
 import { StatusItemData } from '../StatusItemData';
@@ -9,11 +9,7 @@ import path = require('node:path');
 
 export class ProjectStatusGroup extends StatusGroupBase {
   private dbtPackagesData?: StatusItemData;
-  private profilesYmlData: StatusItemData = {
-    severity: LanguageStatusSeverity.Information,
-    text: PROFILES_YML,
-    detail: `[Open](${PROFILES_YML_DEFAULT_URI.toString()})`,
-  };
+  private profilesYmlData?: StatusItemData;
 
   constructor(projectPath: string, items: LanguageStatusItems) {
     const filters = [{ pattern: new RelativePattern(Uri.file(projectPath), '**/*') }];
@@ -43,6 +39,9 @@ export class ProjectStatusGroup extends StatusGroupBase {
     if (status.packagesStatus) {
       this.updateDbtPackagesStatusItemData(status.packagesStatus);
     }
+    if (status.profilesYmlStatus) {
+      this.updateProfilesYmlStatusItemData(status.profilesYmlStatus);
+    }
   }
 
   private updateDbtPackagesUi(): void {
@@ -59,7 +58,11 @@ export class ProjectStatusGroup extends StatusGroupBase {
   }
 
   private updateProfilesYmlUi(): void {
-    this.items.profilesYml.setState(this.profilesYmlData.severity, this.profilesYmlData.text, this.profilesYmlData.detail);
+    if (this.profilesYmlData) {
+      this.items.profilesYml.setState(this.profilesYmlData.severity, this.profilesYmlData.text, this.profilesYmlData.detail);
+    } else {
+      this.items.dbtPackages.setBusy();
+    }
   }
 
   private updateDbtPackagesStatusItemData(packagesStatus: PackagesStatus): void {
@@ -77,5 +80,13 @@ export class ProjectStatusGroup extends StatusGroupBase {
           detail: '',
           command,
         };
+  }
+
+  private updateProfilesYmlStatusItemData(profilesYmlStatus: ProfilesYmlStatus): void {
+    this.profilesYmlData = {
+      severity: LanguageStatusSeverity.Information,
+      text: PROFILES_YML,
+      detail: `[Open](${Uri.file(profilesYmlStatus.profilesYmlPath).toString()})`,
+    };
   }
 }

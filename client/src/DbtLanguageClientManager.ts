@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import { FileType, Selection, TextDocument, Uri, window, workspace } from 'vscode';
+import { ConfigurationChangeEvent, FileType, Selection, TextDocument, Uri, window, workspace } from 'vscode';
 import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
 import { ProgressHandler } from './ProgressHandler';
@@ -25,6 +25,12 @@ export class DbtLanguageClientManager {
     private statusHandler: StatusHandler,
   ) {
     previewContentProvider.onDidChange(() => this.applyPreviewDiagnostics());
+  }
+
+  onDidChangeConfiguration(e: ConfigurationChangeEvent): void {
+    for (const client of this.clients.values()) {
+      client.onDidChangeConfiguration(e);
+    }
   }
 
   applyPreviewDiagnostics(): void {

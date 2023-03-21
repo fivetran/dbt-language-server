@@ -95,7 +95,7 @@ You can install dbt packages by running `WizardForDbtCore(TM).installDbtPackages
 
 ## How to get set up
 
-The extension works on MacOS, Linux, and Windows (for Windows, see the additional information in the [Windows Support](docs/WindowsSupport.md) article). It supports the default locations for `profiles.yml` and `dbt_project.yml` files.
+The extension works on MacOS, Linux, and Windows (for Windows, see the additional information in the [Windows Support](docs/WindowsSupport.md) article). It supports the default location of `dbt_project.yml` file. To customize the location of `profiles.yml` file use `WizardForDbtCore(TM).profilesDir` setting.
 
 Prior to using the extension, you need to perform the following steps in the VS Code Terminal:
 

@@ -5,7 +5,6 @@ import * as yaml from 'yaml';
 import { DbtRepository } from '../DbtRepository';
 import { InstallUtils } from '../InstallUtils';
 import { ProcessExecutor } from '../ProcessExecutor';
-import { DbtCommandFactory } from '../dbt_execution/DbtCommandFactory';
 import { Command } from '../dbt_execution/commands/Command';
 import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor';
 import { Lazy } from '../utils/Lazy';
@@ -21,6 +20,7 @@ interface HubJson {
 export class FeatureFinder extends FeatureFinderBase {
   private static readonly WSL_UBUNTU_DEFAULT_NAME = 'Ubuntu-20.04';
   private static readonly WSL_UBUNTU_ENV_NAME = 'WIZARD_FOR_DBT_WSL_UBUNTU_NAME';
+
   static readonly PROCESS_EXECUTOR = new ProcessExecutor();
 
   static getWslUbuntuName(): string {
@@ -36,10 +36,9 @@ export class FeatureFinder extends FeatureFinderBase {
   packageInfosPromise = new Lazy(() => this.getListOfPackages());
   ubuntuInWslWorks: Promise<boolean>;
 
-  constructor(pythonInfo: PythonInfo | undefined, dbtCommandExecutor: DbtCommandExecutor) {
-    super(pythonInfo, dbtCommandExecutor);
+  constructor(pythonInfo: PythonInfo | undefined, dbtCommandExecutor: DbtCommandExecutor, profilesDir: string | undefined) {
+    super(pythonInfo, dbtCommandExecutor, profilesDir);
 
-    this.dbtCommandFactory = new DbtCommandFactory(pythonInfo?.path);
     this.availableCommandsPromise = this.getAvailableDbt();
     this.packagesYmlExistsPromise = this.packagesYmlExists();
     this.ubuntuInWslWorks = this.checkUbuntuInWslWorks();

@@ -80,8 +80,9 @@ export async function openDocument(docUri: Uri): Promise<void> {
 
 export async function activateAndWait(docUri: Uri): Promise<void> {
   const existingEditor = findExistingEditor(docUri);
-  const doNotWaitChanges = existingEditor && existingEditor.document.getText() === window.activeTextEditor?.document.getText() && getPreviewEditor();
-  const activateFinished = doNotWaitChanges ? Promise.resolve() : createChangePromise('preview');
+  const waitOnlySwitchingBetweenTabs =
+    existingEditor && existingEditor.document.getText() === window.activeTextEditor?.document.getText() && getPreviewEditor();
+  const activateFinished = waitOnlySwitchingBetweenTabs ? sleep(400) : createChangePromise('preview');
 
   await openDocument(docUri);
   await showPreview();

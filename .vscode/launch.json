@@ -22,7 +22,8 @@
       "preLaunchTask": {
         "type": "npm",
         "script": "watch"
-      }
+      },
+      "outFiles": ["${workspaceFolder}/client/out/**/*.js"]
     },
     {
       "name": "Attach to Server",
@@ -31,7 +32,8 @@
       "port": 6009,
       "restart": true,
       "timeout": 30000,
-      "skipFiles": ["<node_internals>/**"]
+      "skipFiles": ["<node_internals>/**"],
+      "outFiles": ["${workspaceFolder}/server/out/**/*.js"]
     },
     {
       "name": "Attach to Server 6010",
@@ -39,22 +41,23 @@
       "request": "attach",
       "port": 6010,
       "restart": true,
-      "skipFiles": ["<node_internals>/**"]
+      "skipFiles": ["<node_internals>/**"],
+      "outFiles": ["${workspaceFolder}/server/out/**/*.js"]
     },
     {
       "name": "Debug Server Unit Tests",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
       "stopOnEntry": false,
       "args": [
         "-r",
         "ts-node/register",
-        "${workspaceRoot}/server/src/test/**/*.spec.ts",
+        "${workspaceFolder}/server/src/test/**/*.spec.ts",
         "--no-timeouts"
       ],
       "console": "integratedTerminal",
-      "cwd": "${workspaceRoot}/server",
+      "cwd": "${workspaceFolder}/server",
       "skipFiles": ["<node_internals>/**"]
     },
     {
@@ -62,7 +65,8 @@
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/markdown_parser/src/Parser.ts",
-      "preLaunchTask": "npm: build"
+      "preLaunchTask": "npm: build",
+      "outFiles": ["${workspaceFolder}/markdown_parser/out/**/*.js"]
     },
     {
       "name": "E2E Tests Client",
@@ -71,16 +75,17 @@
       "preLaunchTask": "prepare_e2e",
       "runtimeExecutable": "${execPath}",
       "args": [
-        // "--extensionDevelopmentPath=${workspaceRoot}/e2e-tests/extension",
-        "--extensionDevelopmentPath=${workspaceRoot}",
-        "--extensionTestsPath=${workspaceRoot}/e2e/out/runners/index",
-        "${workspaceRoot}/e2e/projects/test-workspace.code-workspace"
+        // "--extensionDevelopmentPath=${workspaceFolder}/e2e-tests/extension",
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--extensionTestsPath=${workspaceFolder}/e2e/out/runners/index",
+        "${workspaceFolder}/e2e/projects/test-workspace.code-workspace"
       ],
       "env": {
         "DBT_LS_ENABLE_DEBUG_LOGS": "true",
         "CLI_PATH": "code",
         "LOCAL_RUN": "true"
-      }
+      },
+      "outFiles": ["${workspaceRoot}/client/out/test/**/*.js"]
     },
     {
       "name": "dbt_ft Tests Client",
@@ -89,16 +94,17 @@
       "preLaunchTask": "prepare_e2e",
       "runtimeExecutable": "${execPath}",
       "args": [
-        "--extensionDevelopmentPath=${workspaceRoot}",
-        "--extensionTestsPath=${workspaceRoot}/e2e/out/runners/index_dbt_ft",
-        "${workspaceRoot}/../analytics/dbt_ft_prod"
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--extensionTestsPath=${workspaceFolder}/e2e/out/runners/index_dbt_ft",
+        "${workspaceFolder}/../analytics/dbt_ft_prod"
       ],
       "env": {
         "CLI_PATH": "code",
         "LOCAL_RUN": "true",
         "DBT_LS_DISABLE_TELEMETRY": "true",
         "DBT_LS_ENABLE_DEBUG_LOGS": "true"
-      }
+      },
+      "outFiles": ["${workspaceRoot}/client/out/test/**/*.js"]
     }
   ],
   "compounds": [

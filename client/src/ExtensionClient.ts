@@ -63,6 +63,8 @@ export class ExtensionClient {
           this.dbtLanguageClientManager.applyPreviewDiagnostics();
         }
       }),
+
+      workspace.onDidChangeConfiguration(e => this.dbtLanguageClientManager.onDidChangeConfiguration(e)),
     );
     workspace.textDocuments.forEach(t =>
       this.onDidOpenTextDocument(t).catch(e => log(`Error while opening text document ${e instanceof Error ? e.message : String(e)}`)),

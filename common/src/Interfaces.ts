@@ -17,4 +17,5 @@ export interface CustomInitParams {
   lspMode: LspModeType;
   enableEntireProjectAnalysis: boolean;
   disableLogger?: boolean;
+  profilesDir?: string;
 }

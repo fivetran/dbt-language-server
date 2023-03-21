@@ -23,6 +23,7 @@ import { createType } from './utils/ZetaSqlUtils';
 import { ParseResult, ZetaSqlParser } from './ZetaSqlParser';
 import findFreePortPmfy = require('find-free-port');
 import path = require('node:path');
+import slash = require('slash');
 
 export class ZetaSqlWrapper {
   static readonly PARTITION_TIME = '_PARTITIONTIME';
@@ -46,8 +47,7 @@ export class ZetaSqlWrapper {
 
     console.log(`Starting zetasql on port ${port}`);
     if (process.platform === 'win32') {
-      const slash = await import('slash');
-      const fsPath = slash.default(path.normalize(`${__dirname}/../remote_server_executable`));
+      const fsPath = slash(path.normalize(`${__dirname}/../remote_server_executable`));
       const wslPath = `/mnt/${fsPath.replace(':', '')}`;
       console.log(`Path in WSL: ${wslPath}`);
       const stdHandler = (data: string): void => {

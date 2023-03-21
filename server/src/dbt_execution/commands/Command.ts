@@ -1,11 +1,14 @@
 export abstract class Command {
   constructor(
     private name: string,
+    profilesDir: string,
     private parameters: string[],
     private pathToPythonMain: string,
     public python?: string,
     public env?: NodeJS.ProcessEnv,
-  ) {}
+  ) {
+    parameters.unshift('--profiles-dir', profilesDir);
+  }
 
   toString(): string {
     return this.python ? this.getPython() : this.getGlobal();
