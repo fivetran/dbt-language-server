@@ -42,7 +42,7 @@ export abstract class Dbt {
   async suggestToInstallDbt(python: string, dbtProfileType: string): Promise<void> {
     const actions = { title: 'Install', id: 'install' };
     const errorMessageResult = await this.connection.window.showErrorMessage(
-      `dbt/adapters are not installed. Would you like to install dbt and ${dbtProfileType} adapter?`,
+      `dbt/adapters are not installed. You can specify [python environment](command:python.setInterpreter) that contains dbt with needed adapter. Otherwise you can install dbt and ${dbtProfileType} adapter by pressing Install button.`,
       actions,
     );
 
