@@ -63,6 +63,7 @@ import { JinjaParser } from '../JinjaParser';
 import { ModelCompiler } from '../ModelCompiler';
 import { NotificationSender } from '../NotificationSender';
 import { ProcessExecutor } from '../ProcessExecutor';
+import { ProgressReporter } from '../ProgressReporter';
 import { ProjectChangeListener } from '../ProjectChangeListener';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { DbtProjectStatusSender } from '../status_bar/DbtProjectStatusSender';
@@ -86,6 +87,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     featureFinder: FeatureFinder,
     private workspaceFolder: string,
     private dbt: Dbt,
+    private progressReporter: ProgressReporter,
     private dbtProject: DbtProject,
     private dbtRepository: DbtRepository,
     private fileChangeListener: FileChangeListener,
@@ -380,6 +382,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
         dbtDocumentKind,
         this.workspaceFolder,
         this.notificationSender,
+        this.progressReporter,
         new ModelCompiler(this.dbt, this.dbtRepository),
         new JinjaParser(),
         this.onGlobalDbtErrorFixedEmitter,

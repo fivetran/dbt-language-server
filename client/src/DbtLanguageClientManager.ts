@@ -2,6 +2,7 @@ import { EventEmitter } from 'node:events';
 import { ConfigurationChangeEvent, FileType, Selection, TextDocument, Uri, window, workspace } from 'vscode';
 import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
+import { ProgressHandler } from './ProgressHandler';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 import { DBT_PROJECT_YML, isDocumentSupported } from './Utils';
 import { WorkspaceHelper } from './WorkspaceHelper';
@@ -13,6 +14,7 @@ import { StatusHandler } from './status/StatusHandler';
 export class DbtLanguageClientManager {
   workspaceHelper = new WorkspaceHelper();
   clients: Map<string, DbtLanguageClient> = new Map();
+  progressHandler = new ProgressHandler();
   noProjectClient?: NoProjectLanguageClient;
 
   constructor(
@@ -121,6 +123,7 @@ export class DbtLanguageClientManager {
         this.serverAbsolutePath,
         projectUri,
         this.previewContentProvider,
+        this.progressHandler,
         this.manifestParsedEventEmitter,
         this.statusHandler,
       );

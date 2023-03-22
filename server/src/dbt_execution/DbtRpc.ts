@@ -3,6 +3,7 @@ import { DbtRepository } from '../DbtRepository';
 import { FileChangeListener } from '../FileChangeListener';
 import { InstallUtils } from '../InstallUtils';
 import { NotificationSender } from '../NotificationSender';
+import { ProgressReporter } from '../ProgressReporter';
 import { FeatureFinder } from '../feature_finder/FeatureFinder';
 import { Dbt } from './Dbt';
 import { DbtCompileJob } from './DbtCompileJob';
@@ -17,10 +18,11 @@ export class DbtRpc extends Dbt {
   constructor(
     private featureFinder: FeatureFinder,
     connection: _Connection,
+    progressReporter: ProgressReporter,
     private fileChangeListener: FileChangeListener,
     notificationSender: NotificationSender,
   ) {
-    super(connection, notificationSender);
+    super(connection, progressReporter, notificationSender);
     this.fileChangeListener.onDbtProjectYmlChanged(() => this.refresh());
     this.fileChangeListener.onDbtPackagesYmlChanged(() => this.refresh());
     this.fileChangeListener.onDbtPackagesChanged(() => this.refresh());

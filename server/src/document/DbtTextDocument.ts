@@ -29,6 +29,7 @@ import { LogLevel } from '../Logger';
 import { ModelCompiler } from '../ModelCompiler';
 import { NotificationSender } from '../NotificationSender';
 import { PositionConverter } from '../PositionConverter';
+import { ProgressReporter } from '../ProgressReporter';
 import { AnalyzeResult } from '../ProjectAnalyzer';
 import { ProjectChangeListener } from '../ProjectChangeListener';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
@@ -78,6 +79,7 @@ export class DbtTextDocument {
     private dbtDocumentKind: DbtDocumentKind,
     private workspaceFolder: string,
     private notificationSender: NotificationSender,
+    private progressReporter: ProgressReporter,
     private modelCompiler: ModelCompiler,
     private jinjaParser: JinjaParser,
     private onGlobalDbtErrorFixedEmitter: Emitter<void>,
@@ -104,6 +106,7 @@ export class DbtTextDocument {
 
     this.modelCompiler.onCompilationError(this.onCompilationError.bind(this));
     this.modelCompiler.onCompilationFinished(this.onCompilationFinished.bind(this));
+    this.modelCompiler.onFinishAllCompilationJobs(this.onFinishAllCompilationTasks.bind(this));
     this.onGlobalDbtErrorFixedEmitter.event(this.onDbtErrorFixed.bind(this));
 
     this.destinationContext.onContextInitialized(this.onContextInitialized.bind(this));
@@ -217,8 +220,11 @@ export class DbtTextDocument {
   }
 
   forceRecompile(): void {
-    if (this.dbtDocumentKind === DbtDocumentKind.MODEL && this.dbt.dbtReady) {
-      this.debouncedCompile();
+    if (this.dbtDocumentKind === DbtDocumentKind.MODEL) {
+      this.progressReporter.sendStart(this.rawDocument.uri);
+      if (this.dbt.dbtReady) {
+        this.debouncedCompile();
+      }
     }
   }
 
@@ -239,6 +245,7 @@ export class DbtTextDocument {
   }
 
   debouncedCompile = debounce(async () => {
+    this.progressReporter.sendStart(this.rawDocument.uri);
     await this.modelCompiler.compile(this.getModelPathOrFullyQualifiedName(), this.modelIsNotBlank());
   }, DbtTextDocument.DEBOUNCE_TIMEOUT);
 
@@ -281,6 +288,10 @@ export class DbtTextDocument {
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
     if (this.destinationContext.contextInitialized) {
       await this.updateAndSendDiagnosticsAndPreview();
+    }
+
+    if (!this.modelCompiler.compilationInProgress) {
+      this.progressReporter.sendFinish(this.rawDocument.uri);
     }
   }
 
@@ -378,6 +389,10 @@ export class DbtTextDocument {
 
   sendDiagnostics(): void {
     this.notificationSender.sendDiagnostics(this.rawDocument.uri, this.rawDocDiagnostics, this.compiledDocDiagnostics);
+  }
+
+  onFinishAllCompilationTasks(): void {
+    this.progressReporter.sendFinish(this.rawDocument.uri);
   }
 
   onHover(hoverParams: HoverParams): Hover | null {

@@ -12,6 +12,7 @@ export class ModelCompiler {
 
   private onCompilationErrorEmitter = new Emitter<string>();
   private onCompilationFinishedEmitter = new Emitter<string>();
+  private onFinishAllCompilationJobsEmitter = new Emitter<void>();
 
   compilationInProgress = false;
 
@@ -21,6 +22,10 @@ export class ModelCompiler {
 
   get onCompilationFinished(): Event<string> {
     return this.onCompilationFinishedEmitter.event;
+  }
+
+  get onFinishAllCompilationJobs(): Event<void> {
+    return this.onFinishAllCompilationJobsEmitter.event;
   }
 
   constructor(private dbt: Dbt, private dbtRepository: DbtRepository) {}
@@ -83,5 +88,6 @@ export class ModelCompiler {
     }
     this.pollIsRunning = false;
     this.compilationInProgress = false;
+    this.onFinishAllCompilationJobsEmitter.fire();
   }
 }

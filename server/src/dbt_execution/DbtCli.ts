@@ -1,6 +1,7 @@
 import { _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { NotificationSender } from '../NotificationSender';
+import { ProgressReporter } from '../ProgressReporter';
 import { FeatureFinder } from '../feature_finder/FeatureFinder';
 import { Dbt } from './Dbt';
 import { DbtCliCompileJob } from './DbtCliCompileJob';
@@ -13,8 +14,13 @@ export class DbtCli extends Dbt {
   static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
   pythonPathForCli?: string;
 
-  constructor(private featureFinder: FeatureFinder, connection: _Connection, notificationSender: NotificationSender) {
-    super(connection, notificationSender);
+  constructor(
+    private featureFinder: FeatureFinder,
+    connection: _Connection,
+    progressReporter: ProgressReporter,
+    notificationSender: NotificationSender,
+  ) {
+    super(connection, progressReporter, notificationSender);
   }
 
   async compile(modelName?: string): Promise<{
