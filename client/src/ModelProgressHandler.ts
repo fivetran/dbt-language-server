@@ -3,7 +3,7 @@ import { ProgressLocation, window } from 'vscode';
 import { WorkDoneProgressBegin, WorkDoneProgressEnd, WorkDoneProgressReport } from 'vscode-languageserver-protocol';
 import { log } from './Logger';
 
-export class ProgressHandler {
+export class ModelProgressHandler {
   progressDeferred?: DeferredResult<void>;
 
   onProgress(value: WorkDoneProgressBegin | WorkDoneProgressReport | WorkDoneProgressEnd): void {
