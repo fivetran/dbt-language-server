@@ -38,7 +38,7 @@ export class DbtCli extends Dbt {
   async prepareImplementation(dbtProfileType?: string): Promise<void> {
     this.pythonPathForCli = await this.featureFinder.findInformationForCli();
 
-    if (!this.featureFinder.versionInfo?.installedVersion || this.featureFinder.versionInfo.installedAdapters.length === 0) {
+    if (!this.featureFinder.versionInfo?.installedVersion || !this.featureFinder.versionInfo.installedAdapters.some(a => a.name === dbtProfileType)) {
       try {
         if (dbtProfileType && this.featureFinder.pythonInfo) {
           await this.suggestToInstallDbt(this.featureFinder.pythonInfo.path, dbtProfileType);
