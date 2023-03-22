@@ -45,6 +45,10 @@ export class ProjectChangeListener {
     this.projectProgressReporter.sendAnalyzeProgressMessage('dbt compile', 0);
     this.analysisInProgress = true;
     try {
+      if (this.enableEntireProjectAnalysis && !this.destinationContext.isEmpty()) {
+        this.notificationSender.clearAllDiagnostics();
+      }
+
       this.dbt.refresh();
       await this.dbt.compileProject(this.dbtRepository);
       this.fileChangeListener.updateManifestNodes();
@@ -95,7 +99,6 @@ export class ProjectChangeListener {
     const results = await this.destinationContext.analyzeProject((completedCount: number, modelsCount: number) => {
       this.projectProgressReporter.sendAnalyzeProgress(completedCount, modelsCount);
     });
-    this.notificationSender.clearAllDiagnostics();
     this.sendDiagnosticsForDocuments(results);
     console.log(`Processed ${results.length} models. ${results.filter(r => r.analyzeResult.ast.isErr()).length} errors found during analysis`);
   }
