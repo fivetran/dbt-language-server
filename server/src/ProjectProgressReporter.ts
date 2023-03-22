@@ -10,7 +10,7 @@ export class ProjectProgressReporter {
     this.connection
       .sendProgress(WorkDoneProgress.type, ProjectProgressReporter.PROJECT_PROGRESS, {
         kind: 'begin',
-        title: 'Analyzing',
+        title: 'Analyzing project',
       })
       .catch(e => console.log(`Failed to send progress: ${e instanceof Error ? e.message : String(e)}`));
   }
