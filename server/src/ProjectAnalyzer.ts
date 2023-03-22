@@ -20,10 +20,12 @@ export interface AnalyzeResult {
   parseResult: ParseResult;
 }
 
+export type AnalyzeTrackerFunc = (completedCount: number, modelsCount: number) => void;
+
 export class ProjectAnalyzer {
   constructor(
     private dbtRepository: DbtRepository,
-    private projectName: string | undefined,
+    private projectName: string,
     private destinationClient: DbtDestinationClient,
     private zetaSqlWrapper: ZetaSqlWrapper,
   ) {}
@@ -33,14 +35,17 @@ export class ProjectAnalyzer {
   }
 
   /** Analyzes models from project starting from the roots and stopping if there is error in node */
-  async analyzeProject(): Promise<ModelsAnalyzeResult[]> {
+  async analyzeProject(analyzeTracker: AnalyzeTrackerFunc): Promise<ModelsAnalyzeResult[]> {
     console.log('Project analysis started...');
 
     const visited = new Set<string>();
-    let queue = this.dbtRepository.dag.getRootNodes();
+    let queue = this.dbtRepository.dag.getRootNodes(this.projectName);
+    const modelCount = this.dbtRepository.dag.getNodesCount(this.projectName);
+
     const results: ModelsAnalyzeResult[] = [];
     const tableFetcher = new TableFetcher(this.destinationClient);
     const visitedModels = new Map<string, Promise<AnalyzeResult>>();
+    analyzeTracker(visited.size, modelCount);
 
     while (queue.length > 0) {
       const currentLevel = queue;
@@ -54,19 +59,17 @@ export class ProjectAnalyzer {
         visited.add(id);
 
         const model = node.getValue();
-        if (model.packageName === this.projectName) {
-          const analyzeResult = await this.analyzeModelCached(model, tableFetcher, undefined, visitedModels);
-          results.push({ modelUniqueId: model.uniqueId, analyzeResult });
-
-          for (const child of node.children) {
-            if (!visited.has(child.getValue().uniqueId)) {
-              queue.push(child);
-            }
+        const analyzeResult = await this.analyzeModelCached(model, tableFetcher, undefined, visitedModels);
+        results.push({ modelUniqueId: model.uniqueId, analyzeResult });
+        for (const child of node.children) {
+          if (!visited.has(child.getValue().uniqueId)) {
+            queue.push(child);
           }
         }
       });
 
       await Promise.all(promises);
+      analyzeTracker(visited.size, modelCount);
     }
 
     console.log('Project analysis completed');

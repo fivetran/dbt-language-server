@@ -4,7 +4,7 @@ import { DagNode } from './dag/DagNode';
 import { DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtRepository } from './DbtRepository';
 import { DestinationDefinition } from './DestinationDefinition';
-import { AnalyzeResult, ModelsAnalyzeResult, ProjectAnalyzer } from './ProjectAnalyzer';
+import { AnalyzeResult, AnalyzeTrackerFunc, ModelsAnalyzeResult, ProjectAnalyzer } from './ProjectAnalyzer';
 import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
 import { ZetaSqlParser } from './ZetaSqlParser';
 import { ZetaSqlWrapper } from './ZetaSqlWrapper';
@@ -36,7 +36,7 @@ export class DestinationContext {
     profileResult: DbtProfileSuccess,
     dbtRepository: DbtRepository,
     ubuntuInWslWorks: boolean,
-    projectName: string | undefined,
+    projectName: string,
   ): Promise<Result<void, string>> {
     if (DestinationContext.ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) && profileResult.dbtProfile && ubuntuInWslWorks) {
       try {
@@ -81,11 +81,11 @@ export class DestinationContext {
     return this.projectAnalyzer.analyzeSql(sql);
   }
 
-  async analyzeProject(): Promise<ModelsAnalyzeResult[]> {
+  async analyzeProject(analyzeTracker: AnalyzeTrackerFunc): Promise<ModelsAnalyzeResult[]> {
     if (!this.projectAnalyzer) {
       throw new Error(DestinationContext.NOT_INITIALIZED_ERROR);
     }
-    return this.projectAnalyzer.analyzeProject();
+    return this.projectAnalyzer.analyzeProject(analyzeTracker);
   }
 
   dispose(): void {

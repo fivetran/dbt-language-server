@@ -10,7 +10,6 @@ import { HoverProvider } from '../../HoverProvider';
 import { JinjaParser } from '../../JinjaParser';
 import { ModelCompiler } from '../../ModelCompiler';
 import { NotificationSender } from '../../NotificationSender';
-import { ProgressReporter } from '../../ProgressReporter';
 import { ProjectChangeListener } from '../../ProjectChangeListener';
 import { SignatureHelpProvider } from '../../SignatureHelpProvider';
 import { Dbt } from '../../dbt_execution/Dbt';
@@ -39,7 +38,6 @@ describe('DbtTextDocument', () => {
     mockModelCompiler = mock(ModelCompiler);
     when(mockModelCompiler.onCompilationError).thenReturn(onCompilationErrorEmitter.event);
     when(mockModelCompiler.onCompilationFinished).thenReturn(onCompilationFinishedEmitter.event);
-    when(mockModelCompiler.onFinishAllCompilationJobs).thenReturn(new Emitter<void>().event);
 
     mockJinjaParser = mock(JinjaParser);
 
@@ -53,7 +51,6 @@ describe('DbtTextDocument', () => {
       DbtDocumentKind.MODEL,
       '',
       mock(NotificationSender),
-      mock(ProgressReporter),
       instance(mockModelCompiler),
       instance(mockJinjaParser),
       onGlobalDbtErrorFixedEmitter,

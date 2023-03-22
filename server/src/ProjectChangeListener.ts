@@ -7,6 +7,7 @@ import { FileChangeListener } from './FileChangeListener';
 import { DagNodeFetcher } from './ModelFetcher';
 import { NotificationSender } from './NotificationSender';
 import { AnalyzeResult, ModelsAnalyzeResult } from './ProjectAnalyzer';
+import { ProjectProgressReporter } from './ProjectProgressReporter';
 import { Dbt } from './dbt_execution/Dbt';
 import { DbtTextDocument } from './document/DbtTextDocument';
 import { debounce } from './utils/Utils';
@@ -25,6 +26,7 @@ export class ProjectChangeListener {
     private dbt: Dbt,
     private enableEntireProjectAnalysis: boolean,
     private fileChangeListener: FileChangeListener,
+    private projectProgressReporter: ProjectProgressReporter,
   ) {
     fileChangeListener.onSqlModelChanged(c => this.onSqlModelChanged(c));
   }
@@ -39,13 +41,16 @@ export class ProjectChangeListener {
       return;
     }
     console.log('Starting to recompile/reanalyze the project');
+    this.projectProgressReporter.sendAnalyzeBegin();
+    this.projectProgressReporter.sendAnalyzeProgressMessage('dbt compile', 0);
     this.analysisInProgress = true;
     try {
       this.dbt.refresh();
       await this.dbt.compileProject(this.dbtRepository);
       this.fileChangeListener.updateManifestNodes();
-      this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
+      await this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
     } finally {
+      this.projectProgressReporter.sendAnalyzeEnd();
       this.analysisInProgress = false;
     }
   }
@@ -87,7 +92,9 @@ export class ProjectChangeListener {
     if (!this.enableEntireProjectAnalysis || this.destinationContext.isEmpty()) {
       return;
     }
-    const results = await this.destinationContext.analyzeProject();
+    const results = await this.destinationContext.analyzeProject((completedCount: number, modelsCount: number) => {
+      this.projectProgressReporter.sendAnalyzeProgress(completedCount, modelsCount);
+    });
     this.notificationSender.clearAllDiagnostics();
     this.sendDiagnosticsForDocuments(results);
     console.log(`Processed ${results.length} models. ${results.filter(r => r.analyzeResult.ast.isErr()).length} errors found during analysis`);

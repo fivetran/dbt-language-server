@@ -12,8 +12,8 @@ import { FileChangeListener } from './FileChangeListener';
 import { HoverProvider } from './HoverProvider';
 import { Logger } from './Logger';
 import { NotificationSender } from './NotificationSender';
-import { ProgressReporter } from './ProgressReporter';
 import { ProjectChangeListener } from './ProjectChangeListener';
+import { ProjectProgressReporter } from './ProjectProgressReporter';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { Dbt, DbtMode } from './dbt_execution/Dbt';
 import { DbtCli } from './dbt_execution/DbtCli';
@@ -77,14 +77,14 @@ function createLspServerForProject(
 ): LspServerBase<FeatureFinderBase> {
   const featureFinder = new FeatureFinder(customInitParams.pythonInfo, new DbtCommandExecutor(), customInitParams.profilesDir);
 
-  const progressReporter = new ProgressReporter(connection);
+  const projectProgressReporter = new ProjectProgressReporter(connection);
   const dbtProject = new DbtProject('.');
   const manifestParser = new ManifestParser();
   const dbtRepository = new DbtRepository(workspaceFolder, featureFinder.getGlobalProjectPath());
   const fileChangeListener = new FileChangeListener(workspaceFolder, dbtProject, manifestParser, dbtRepository);
   const dbtProfileCreator = new DbtProfileCreator(dbtProject, featureFinder.getProfilesYmlPath());
   const statusSender = new DbtProjectStatusSender(notificationSender, workspaceFolder, featureFinder, fileChangeListener);
-  const dbt = createDbt(customInitParams.dbtCompiler, featureFinder, progressReporter, fileChangeListener, notificationSender);
+  const dbt = createDbt(customInitParams.dbtCompiler, featureFinder, fileChangeListener, notificationSender);
   const dbtDocumentKindResolver = new DbtDocumentKindResolver(dbtRepository);
   const diagnosticGenerator = new DiagnosticGenerator(dbtRepository);
   const dbtDefinitionProvider = new DbtDefinitionProvider(dbtRepository);
@@ -103,6 +103,7 @@ function createLspServerForProject(
     dbt,
     customInitParams.enableEntireProjectAnalysis,
     fileChangeListener,
+    projectProgressReporter,
   );
 
   return new LspServer(
@@ -111,7 +112,6 @@ function createLspServerForProject(
     featureFinder,
     workspaceFolder,
     dbt,
-    progressReporter,
     dbtProject,
     dbtRepository,
     fileChangeListener,
@@ -132,7 +132,6 @@ function createLspServerForProject(
 function createDbt(
   dbtCompiler: DbtCompilerType,
   featureFinder: FeatureFinder,
-  progressReporter: ProgressReporter,
   fileChangeListener: FileChangeListener,
   notificationSender: NotificationSender,
 ): Dbt {
@@ -140,8 +139,8 @@ function createDbt(
   console.log(`ModelCompiler mode: ${DbtMode[dbtMode]}.`);
 
   return dbtMode === DbtMode.DBT_RPC
-    ? new DbtRpc(featureFinder, connection, progressReporter, fileChangeListener, notificationSender)
-    : new DbtCli(featureFinder, connection, progressReporter, notificationSender);
+    ? new DbtRpc(featureFinder, connection, fileChangeListener, notificationSender)
+    : new DbtCli(featureFinder, connection, notificationSender);
 }
 
 function getDbtMode(dbtCompiler: DbtCompilerType, featureFinder: FeatureFinder): DbtMode {

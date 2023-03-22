@@ -2,7 +2,6 @@ import { Emitter, Event, _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { InstallUtils } from '../InstallUtils';
 import { NotificationSender } from '../NotificationSender';
-import { ProgressReporter } from '../ProgressReporter';
 import { DbtCompileJob } from './DbtCompileJob';
 
 export enum DbtMode {
@@ -14,7 +13,7 @@ export abstract class Dbt {
   dbtReady: boolean;
   onDbtReadyEmitter: Emitter<void>;
 
-  constructor(protected connection: _Connection, protected progressReporter: ProgressReporter, protected notificationSender: NotificationSender) {
+  constructor(protected connection: _Connection, protected notificationSender: NotificationSender) {
     this.dbtReady = false;
     this.onDbtReadyEmitter = new Emitter<void>();
   }
@@ -61,7 +60,6 @@ export abstract class Dbt {
   }
 
   finishWithError(message: string): void {
-    this.progressReporter.sendFinish();
     this.connection.window.showErrorMessage(message);
   }
 

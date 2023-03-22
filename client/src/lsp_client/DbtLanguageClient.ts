@@ -16,7 +16,7 @@ import { LanguageClient, LanguageClientOptions, State, WorkDoneProgress } from '
 import { LS_MANIFEST_PARSED_EVENT } from '../ExtensionApi';
 import { log } from '../Logger';
 import { OutputChannelProvider } from '../OutputChannelProvider';
-import { ProgressHandler } from '../ProgressHandler';
+import { ProjectProgressHandler } from '../ProjectProgressHandler';
 import SqlPreviewContentProvider from '../SqlPreviewContentProvider';
 import { TelemetryClient } from '../TelemetryClient';
 import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from '../Utils';
@@ -25,6 +25,7 @@ import { DbtWizardLanguageClient } from './DbtWizardLanguageClient';
 
 export class DbtLanguageClient extends DbtWizardLanguageClient {
   pendingOpenRequests = new Map<string, (data: TextDocument) => Promise<void>>();
+  projectProgressHandler = new ProjectProgressHandler();
 
   constructor(
     private port: number,
@@ -32,7 +33,6 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
     private serverAbsolutePath: string,
     dbtProjectUri: Uri,
     private previewContentProvider: SqlPreviewContentProvider,
-    private progressHandler: ProgressHandler,
     private manifestParsedEventEmitter: EventEmitter,
     statusHandler: StatusHandler,
   ) {
@@ -158,7 +158,7 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
         log(`Client ${this.dbtProjectUri.fsPath} switched from ${State[e.oldState]} to ${State[e.newState]} state`);
       }),
 
-      this.client.onProgress(WorkDoneProgress.type, 'Progress', v => this.progressHandler.onProgress(v)),
+      this.client.onProgress(WorkDoneProgress.type, 'Project_Progress', v => this.projectProgressHandler.onProgress(v)),
     );
   }
 
