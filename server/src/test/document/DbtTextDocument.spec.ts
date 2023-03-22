@@ -9,8 +9,8 @@ import { DiagnosticGenerator } from '../../DiagnosticGenerator';
 import { HoverProvider } from '../../HoverProvider';
 import { JinjaParser } from '../../JinjaParser';
 import { ModelCompiler } from '../../ModelCompiler';
+import { ModelProgressReporter } from '../../ModelProgressReporter';
 import { NotificationSender } from '../../NotificationSender';
-import { ProgressReporter } from '../../ProgressReporter';
 import { ProjectChangeListener } from '../../ProjectChangeListener';
 import { SignatureHelpProvider } from '../../SignatureHelpProvider';
 import { Dbt } from '../../dbt_execution/Dbt';
@@ -53,7 +53,7 @@ describe('DbtTextDocument', () => {
       DbtDocumentKind.MODEL,
       '',
       mock(NotificationSender),
-      mock(ProgressReporter),
+      mock(ModelProgressReporter),
       instance(mockModelCompiler),
       instance(mockJinjaParser),
       onGlobalDbtErrorFixedEmitter,
