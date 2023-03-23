@@ -1,4 +1,4 @@
-import { mock, verifyAll, when } from 'strong-mock';
+import { instance, mock, objectContaining, when } from 'ts-mockito';
 import { WorkDoneProgress, _Connection } from 'vscode-languageserver';
 import { ProjectProgressReporter } from '../ProjectProgressReporter';
 
@@ -8,48 +8,56 @@ describe('ProjectProgressReporter', () => {
 
   beforeEach(() => {
     mockConnection = mock<_Connection>();
-    reporter = new ProjectProgressReporter(mockConnection);
-  });
-
-  afterEach(() => {
-    verifyAll();
+    reporter = new ProjectProgressReporter(instance(mockConnection));
   });
 
   it('should send analyze begin progress', () => {
     // arrange
-    when(() =>
-      mockConnection.sendProgress(WorkDoneProgress.type, ProjectProgressReporter.PROJECT_PROGRESS, {
-        kind: 'begin',
-        title: 'Analyzing project',
-      }),
+    when(
+      mockConnection.sendProgress(
+        WorkDoneProgress.type,
+        ProjectProgressReporter.PROJECT_PROGRESS,
+        objectContaining({
+          kind: 'begin',
+          title: 'Analyzing project',
+        }),
+      ),
     ).thenResolve();
 
-    // act,
+    // act, assert
     reporter.sendAnalyzeBegin();
   });
 
   it('should send analyze progress with model count', () => {
     // arrange
-    const analyzedModelsCount = 5;
-    const modelsCount = 10;
-    when(() =>
-      mockConnection.sendProgress(WorkDoneProgress.type, ProjectProgressReporter.PROJECT_PROGRESS, {
-        kind: 'report',
-        message: `${analyzedModelsCount}/${modelsCount} models`,
-        percentage: (analyzedModelsCount * 100) / modelsCount,
-      }),
+    const analyzedModelCount = 5;
+    const modelCount = 10;
+    when(
+      mockConnection.sendProgress(
+        WorkDoneProgress.type,
+        ProjectProgressReporter.PROJECT_PROGRESS,
+        objectContaining({
+          kind: 'report',
+          message: `${analyzedModelCount}/${modelCount} models`,
+          percentage: (analyzedModelCount * 100) / modelCount,
+        }),
+      ),
     ).thenResolve();
 
     // act, assert
-    reporter.sendAnalyzeProgress(analyzedModelsCount, modelsCount);
+    reporter.sendAnalyzeProgress(analyzedModelCount, modelCount);
   });
 
   it('should send analyze end progress', () => {
     // arrange
-    when(() =>
-      mockConnection.sendProgress(WorkDoneProgress.type, ProjectProgressReporter.PROJECT_PROGRESS, {
-        kind: 'end',
-      }),
+    when(
+      mockConnection.sendProgress(
+        WorkDoneProgress.type,
+        ProjectProgressReporter.PROJECT_PROGRESS,
+        objectContaining({
+          kind: 'end',
+        }),
+      ),
     ).thenResolve();
 
     // act, assert

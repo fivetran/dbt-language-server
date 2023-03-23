@@ -206,7 +206,6 @@
     "prettier": "^2.8.4",
     "prettier-plugin-organize-imports": "^3.2.2",
     "size-limit": "^8.0.0",
-    "strong-mock": "^8.0.1",
     "ts-loader": "^9.4.2",
     "ts-mockito": "^2.6.1",
     "ts-node": "^10.9.1",
