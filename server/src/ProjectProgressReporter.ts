@@ -16,7 +16,7 @@ export class ProjectProgressReporter {
   }
 
   sendAnalyzeProgress(analyzedModelsCount: number, modelsCount: number): void {
-    this.sendAnalyzeProgressMessage(`${analyzedModelsCount}/${modelsCount} models`, analyzedModelsCount / modelsCount);
+    this.sendAnalyzeProgressMessage(`${analyzedModelsCount}/${modelsCount} models`, (analyzedModelsCount * 100) / modelsCount);
   }
 
   sendAnalyzeProgressMessage(message: string, percentage: number): void {
