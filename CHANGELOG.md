@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.21.0 (01/01/1970)
+## Version 0.21.0 (24/03/2023)
 ## What's Changed
 * Add the ability to customize the location of `profiles.yml` file useing `WizardForDbtCore(TM).profilesDir` setting.
 * Improve error message when dbt or adapter not found.
