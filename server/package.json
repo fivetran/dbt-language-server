@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@types/async-retry": "1.4.5",
-    "@types/diff": "^5.0.2",
+    "@types/diff": "^5.0.3",
     "@types/semver": "^7.3.13",
     "@types/snowflake-sdk": "^1.6.12",
     "@types/source-map-support": "^0.5.6",
