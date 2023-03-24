@@ -27,9 +27,9 @@ import { HoverProvider } from '../HoverProvider';
 import { JinjaParser } from '../JinjaParser';
 import { LogLevel } from '../Logger';
 import { ModelCompiler } from '../ModelCompiler';
+import { ModelProgressReporter } from '../ModelProgressReporter';
 import { NotificationSender } from '../NotificationSender';
 import { PositionConverter } from '../PositionConverter';
-import { ProgressReporter } from '../ProgressReporter';
 import { AnalyzeResult } from '../ProjectAnalyzer';
 import { ProjectChangeListener } from '../ProjectChangeListener';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
@@ -79,7 +79,7 @@ export class DbtTextDocument {
     private dbtDocumentKind: DbtDocumentKind,
     private workspaceFolder: string,
     private notificationSender: NotificationSender,
-    private progressReporter: ProgressReporter,
+    private modelProgressReporter: ModelProgressReporter,
     private modelCompiler: ModelCompiler,
     private jinjaParser: JinjaParser,
     private onGlobalDbtErrorFixedEmitter: Emitter<void>,
@@ -221,7 +221,7 @@ export class DbtTextDocument {
 
   forceRecompile(): void {
     if (this.dbtDocumentKind === DbtDocumentKind.MODEL) {
-      this.progressReporter.sendStart(this.rawDocument.uri);
+      this.modelProgressReporter.sendStart(this.rawDocument.uri);
       if (this.dbt.dbtReady) {
         this.debouncedCompile();
       }
@@ -245,7 +245,7 @@ export class DbtTextDocument {
   }
 
   debouncedCompile = debounce(async () => {
-    this.progressReporter.sendStart(this.rawDocument.uri);
+    this.modelProgressReporter.sendStart(this.rawDocument.uri);
     await this.modelCompiler.compile(this.getModelPathOrFullyQualifiedName(), this.modelIsNotBlank());
   }, DbtTextDocument.DEBOUNCE_TIMEOUT);
 
@@ -291,7 +291,7 @@ export class DbtTextDocument {
     }
 
     if (!this.modelCompiler.compilationInProgress) {
-      this.progressReporter.sendFinish(this.rawDocument.uri);
+      this.modelProgressReporter.sendFinish(this.rawDocument.uri);
     }
   }
 
@@ -392,7 +392,7 @@ export class DbtTextDocument {
   }
 
   onFinishAllCompilationTasks(): void {
-    this.progressReporter.sendFinish(this.rawDocument.uri);
+    this.modelProgressReporter.sendFinish(this.rawDocument.uri);
   }
 
   onHover(hoverParams: HoverParams): Hover | null {

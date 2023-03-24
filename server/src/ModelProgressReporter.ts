@@ -1,6 +1,6 @@
 import { WorkDoneProgress, _Connection } from 'vscode-languageserver';
 
-export class ProgressReporter {
+export class ModelProgressReporter {
   static uris = new Set<string>();
   static token = 'Progress';
 
@@ -8,10 +8,10 @@ export class ProgressReporter {
 
   sendStart(uri?: string): void {
     if (uri) {
-      ProgressReporter.uris.add(uri);
+      ModelProgressReporter.uris.add(uri);
     }
     this.connection
-      .sendProgress(WorkDoneProgress.type, ProgressReporter.token, {
+      .sendProgress(WorkDoneProgress.type, ModelProgressReporter.token, {
         kind: 'begin',
         title: 'Wizard for dbt Core (TM)',
       })
@@ -20,11 +20,11 @@ export class ProgressReporter {
 
   sendFinish(uri?: string): void {
     if (uri) {
-      ProgressReporter.uris.delete(uri);
+      ModelProgressReporter.uris.delete(uri);
     }
-    if (ProgressReporter.uris.size === 0) {
+    if (ModelProgressReporter.uris.size === 0) {
       this.connection
-        .sendProgress(WorkDoneProgress.type, ProgressReporter.token, { kind: 'end' })
+        .sendProgress(WorkDoneProgress.type, ModelProgressReporter.token, { kind: 'end' })
         .catch(e => console.log(`Failed to send progress: ${e instanceof Error ? e.message : String(e)}`));
     }
   }

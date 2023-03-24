@@ -52,7 +52,7 @@ describe('ProjectAnalyzer analyzeModelsTree', () => {
     when(mockDbtRepository.dag).thenReturn(new Dag([DAG_NODE]));
     when(mockDbtRepository.getNodeFullPath(objectContaining({ originalFilePath: ORIGINAL_FILE_PATH }))).thenReturn(FILE_PATH);
 
-    when(mockSqlHeaderAnalyzer.getAllFunctionDeclarations(anything(), anything(), anything())).thenReturn(Promise.resolve([]));
+    when(mockSqlHeaderAnalyzer.getAllFunctionDeclarations(anything(), anything(), anything())).thenResolve([]);
 
     projectAnalyzer = new ProjectAnalyzer(instance(mockDbtRepository), 'projectName', instance(mockDestinationClient), instance(mockZetaSqlWrapper));
 

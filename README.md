@@ -43,7 +43,7 @@ If a hardcoded table name can be converted to a dbt ref, the extension can conve
 ### Error highlighting
 
 Hover over misspelled column and table names to see suggested fixes. SQL syntax errors are also highlighted for your review.
-To check the entire project for errors you can use **Analyze current project** button at upper right corner of VS Code editor or in the context menu.
+To check the entire project for errors you can use **Analyze current project** button at upper right corner of VS Code editor or in the context menu (progress is displayed in the status bar).
 
 ![Error highlighting](images/error-highlighting.gif)
 
