@@ -5,7 +5,7 @@
     "vscode": "^1.52.0"
   },
   "devDependencies": {
-    "@google-cloud/bigquery": "^6.1.0",
+    "@google-cloud/bigquery": "^6.2.0",
     "@types/glob": "^8.1.0",
     "@types/pg": "^8.6.6",
     "@types/snowflake-sdk": "^1.6.12",
@@ -17,6 +17,6 @@
     "mocha": "^10.2.0",
     "path-equal": "^1.2.5",
     "pg": "^8.10.0",
-    "snowflake-sdk": "^1.6.19"
+    "snowflake-sdk": "^1.6.20"
   }
 }

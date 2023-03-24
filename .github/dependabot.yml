@@ -5,56 +5,56 @@
 
 version: 2
 updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "friday"
-      time: "06:00" #UTC
+      interval: 'weekly'
+      day: 'friday'
+      time: '06:00' #UTC
     reviewers:
-      - "pgrivachev"
+      - 'pgrivachev'
 
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "friday"
-      time: "06:00" #UTC
+      interval: 'weekly'
+      day: 'friday'
+      time: '06:00' #UTC
     reviewers:
-      - "pgrivachev"
+      - 'pgrivachev'
 
-  - package-ecosystem: "npm"
-    directory: "/server"
+  - package-ecosystem: 'npm'
+    directory: '/server'
     schedule:
-      interval: "weekly"
-      day: "friday"
-      time: "06:00" #UTC
+      interval: 'weekly'
+      day: 'friday'
+      time: '06:00' #UTC
     reviewers:
-      - "pgrivachev"
-      
-  - package-ecosystem: "npm"
-    directory: "/client"
-    schedule:
-      interval: "weekly"
-      day: "friday"
-      time: "06:00" #UTC
-    reviewers:
-      - "pgrivachev"
+      - 'pgrivachev'
 
-  - package-ecosystem: "npm"
-    directory: "/e2e"
+  - package-ecosystem: 'npm'
+    directory: '/client'
     schedule:
-      interval: "weekly"
-      day: "friday"
-      time: "06:00" #UTC
+      interval: 'weekly'
+      day: 'friday'
+      time: '06:00' #UTC
     reviewers:
-      - "pgrivachev"
+      - 'pgrivachev'
 
-  - package-ecosystem: "npm"
-    directory: "/markdown_parser"
+  - package-ecosystem: 'npm'
+    directory: '/e2e'
     schedule:
-      interval: "weekly"
-      day: "friday"
-      time: "06:00" #UTC
+      interval: 'weekly'
+      day: 'friday'
+      time: '06:00' #UTC
     reviewers:
-      - "pgrivachev"
+      - 'pgrivachev'
+
+  - package-ecosystem: 'npm'
+    directory: '/markdown_parser'
+    schedule:
+      interval: 'weekly'
+      day: 'friday'
+      time: '06:00' #UTC
+    reviewers:
+      - 'pgrivachev'

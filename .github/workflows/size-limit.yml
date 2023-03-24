@@ -1,12 +1,12 @@
-name: "BundleSize"
+name: 'BundleSize'
 on:
   pull_request:
     paths:
-      - ".github/workflows/size-limit.yml"
-      - "server/**"
-      - "client/**"
-      - "package.json"
-      - "!**.md"
+      - '.github/workflows/size-limit.yml'
+      - 'server/**'
+      - 'client/**'
+      - 'package.json'
+      - '!**.md'
 
 jobs:
   size:
