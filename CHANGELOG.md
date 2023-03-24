@@ -1,5 +1,15 @@
 # Changelog
 
+## Version 0.21.0 (24/03/2023)
+## What's Changed
+* Add the ability to customize the location of `profiles.yml` file useing `WizardForDbtCore(TM).profilesDir` setting.
+* Improve error message when dbt or adapter not found.
+* Show error if dbt adapter not found.
+* Show project analysis progress in the status bar.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.20.1...v0.21.0
+---
+
 ## Version 0.20.1 (03/03/2023)
 ## What's Changed
 * Fix wrong `_dbt_max_partition` type.
@@ -278,14 +288,3 @@ AS (
 
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.4.0...v0.4.1
----
-
-## Version 0.4.0 (12/04/2022)
-## What's Changed
-* Add the ability to compile models inside dbt packages
-* Fix bugs with signature hints
-* Show functions signature hints on hover
-* Autocompletion for all dbt models, macros and sources
-
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.3.1...v0.4.0
