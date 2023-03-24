@@ -1,4 +1,4 @@
-name: "Combine Dependabot PRs"
+name: 'Combine Dependabot PRs'
 on:
   workflow_dispatch:
 
@@ -9,12 +9,12 @@ jobs:
       - uses: actions/checkout@v3
       - uses: maadhattah/combine-dependabot-prs@main
         with:
-          branchPrefix: "dependabot"
+          branchPrefix: 'dependabot'
           mustBeGreen: false
-          combineBranchName: "combined-prs"
-          includeLabel: ""
-          ignoreLabel: "nocombine"
-          baseBranch: "main"
+          combineBranchName: 'combined-prs'
+          includeLabel: ''
+          ignoreLabel: 'nocombine'
+          baseBranch: 'main'
           openPR: true
           allowSkipped: false
         env:

@@ -21,7 +21,7 @@ jobs:
       - name: create pull request
         uses: peter-evans/create-pull-request@v4
         with:
-          commit-message: Update CHANGELOG.md
+          commit-message: Update CHANGELOG.md [skip ci]
           delete-branch: true
-          title: Update CHANGELOG.md
+          title: Update CHANGELOG.md [skip ci]
           reviewers: pgrivachev

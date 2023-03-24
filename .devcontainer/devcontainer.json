@@ -15,8 +15,7 @@
   },
 
   // Add the IDs of extensions you want installed when the container is created.
-  "extensions": [ 
-  ],
+  "extensions": [],
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
@@ -38,6 +37,6 @@
   "mounts": [
     "source=/Users/user/.dbt/,target=/home/vscode/.dbt/,type=bind,readonly",
     "source=/Users/user/.dbt/your-project-credentials.json,target=/Users/user/.dbt/your-project-credentials.json,type=bind,readonly",
-    "source=/Users/user/test-project,target=/home/vscode/test-project,type=bind",
+    "source=/Users/user/test-project,target=/home/vscode/test-project,type=bind"
   ]
 }
