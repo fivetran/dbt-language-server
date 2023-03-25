@@ -27,7 +27,7 @@ export class DbtCli extends Dbt {
     stdout: string;
     stderr: string;
   }> {
-    const parameters = ['--no-use-colors', 'compile'];
+    const parameters = ['--no-anonymous-usage-stats', '--no-use-colors', 'compile'];
     if (modelName) {
       parameters.push('-m', slash(modelName));
     }
