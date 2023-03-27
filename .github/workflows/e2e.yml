@@ -21,8 +21,8 @@ on:
           - 'prod'
 
   schedule:
-    # Runs “At minute 0 past every 2nd hour.” (see https://crontab.guru/#0_*/2_*_*_*)
-    - cron: '0 */2 * * *'
+    # Runs “At minute 0 past every 6nd hour.” (see https://crontab.guru/#0_*/6_*_*_*)
+    - cron: '0 */6 * * *'
 
 jobs:
   package:
