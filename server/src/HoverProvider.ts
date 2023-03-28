@@ -1,4 +1,4 @@
-import { TypeKind } from '@fivetrandevelopers/zetasql';
+import { TypeKind__Output } from '@fivetrandevelopers/zetasql';
 import { Type } from '@fivetrandevelopers/zetasql/lib/Type';
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { Hover, MarkupKind } from 'vscode-languageserver';
@@ -34,7 +34,7 @@ export class HoverProvider {
       if (outputColumn.column?.tableName === '$query' || outputColumn.column?.name !== outputColumn.name) {
         hint = `Alias: ${String(outputColumn.name)}`;
       } else if (outputColumn.name) {
-        hint = this.getColumnHint(outputColumn.column?.tableName, outputColumn.name, outputColumn.column?.type?.typeKind as TypeKind);
+        hint = this.getColumnHint(outputColumn.column.tableName, outputColumn.name, outputColumn.column.type?.typeKind);
       }
     } else if (hoverInfo.withQueryName) {
       hint = `Temporary table introduced in a WITH clause: ${hoverInfo.withQueryName}`;
@@ -54,7 +54,7 @@ export class HoverProvider {
       : null;
   }
 
-  getColumnHint(tableName?: string, columnName?: string, columnTypeKind?: TypeKind): string {
+  getColumnHint(tableName?: string, columnName?: string, columnTypeKind?: TypeKind__Output): string {
     const type = columnTypeKind ? Type.TYPE_KIND_NAMES[columnTypeKind] : 'unknown';
     return `Table: ${String(tableName)}\nColumn: ${String(columnName)}\nType: ${type}`;
   }

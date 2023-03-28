@@ -20,21 +20,21 @@ describe('ZetaSqlWrapper table/udf registration', () => {
   const ONE_COLUMN_NAME = 'one_column_name';
   const TWO_COLUMN_NAME = 'two_column_name';
 
-  const ONE_COLUMN = {
+  const ONE_COLUMN: SimpleColumnProto = {
     name: ONE_COLUMN_NAME,
     type: { typeKind: TypeKind.TYPE_STRING },
   };
-  const TWO_COLUMN = {
+  const TWO_COLUMN: SimpleColumnProto = {
     name: TWO_COLUMN_NAME,
     type: { typeKind: TypeKind.TYPE_STRING },
   };
 
-  const PARTITION_TIME_COLUMN = {
+  const PARTITION_TIME_COLUMN: SimpleColumnProto = {
     name: ZetaSqlWrapper.PARTITION_TIME,
     type: { typeKind: TypeKind.TYPE_TIMESTAMP },
   };
 
-  const PARTITION_DATE_COLUMN = {
+  const PARTITION_DATE_COLUMN: SimpleColumnProto = {
     name: ZetaSqlWrapper.PARTITION_DATE,
     type: { typeKind: TypeKind.TYPE_DATE },
   };
@@ -193,9 +193,9 @@ describe('ZetaSqlWrapper table/udf registration', () => {
   it('register should update changed column', () => {
     // arrange
     const tableDefinition = new TableDefinition([PROJECT_ID, DATA_SET, TABLE]);
-    const oneColumnWithNewType = {
+    const oneColumnWithNewType: SimpleColumnProto = {
       name: ONE_COLUMN_NAME,
-      type: { typeKind: ONE_COLUMN.type.typeKind + 1 },
+      type: { typeKind: TypeKind.TYPE_BOOL },
     };
     tableDefinition.columns = [ONE_COLUMN];
     registerTable(zetaSqlWrapper, tableDefinition);

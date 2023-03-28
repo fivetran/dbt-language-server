@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 
-import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { Type } from '@fivetrandevelopers/zetasql/lib/Type';
 import { AnyResolvedScanProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/AnyResolvedScanProto';
 import { ParseLocationRangeProto, ParseLocationRangeProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
-import { ResolvedFunctionCallProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedFunctionCallProto';
-import { ResolvedOutputColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedOutputColumnProto';
-import { ResolvedQueryStmtProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedQueryStmtProto';
+import { ResolvedFunctionCallProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedFunctionCallProto';
+import { ResolvedOutputColumnProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedOutputColumnProto';
+import { ResolvedQueryStmtProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedQueryStmtProto';
 import { ResolvedScanProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedScanProto';
 import { ResolvedTableScanProto, ResolvedTableScanProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedTableScanProto';
 import { ResolvedWithScanProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedWithScanProto';
@@ -123,20 +122,20 @@ export class ZetaSqlAst {
         resolvedStatementNode,
         (node: unknown, nodeName?: string) => {
           if (nodeName === NODE.resolvedQueryStmtNode) {
-            const queryStmtNode = node as ResolvedQueryStmtProto;
-            result.outputColumn = queryStmtNode.outputColumnList?.find(c => c.name === text);
-            if (!result.outputColumn && queryStmtNode.outputColumnList?.find(c => c.column?.tableName === text)) {
+            const queryStmtNode = node as ResolvedQueryStmtProto__Output;
+            result.outputColumn = queryStmtNode.outputColumnList.find(c => c.name === text);
+            if (!result.outputColumn && queryStmtNode.outputColumnList.some(c => c.column?.tableName === text)) {
               result.tableName = text;
             }
           }
           if (nodeName === NODE.resolvedTableScanNode) {
-            const tableScanNode = node as ResolvedTableScanProto;
+            const tableScanNode = node as ResolvedTableScanProto__Output;
             if (tableScanNode.table?.fullName === text || tableScanNode.table?.name === text) {
-              result.tableName = tableScanNode.table.fullName ?? tableScanNode.table.name;
+              result.tableName = tableScanNode.table.fullName || tableScanNode.table.name;
             }
           }
           if (nodeName === NODE.resolvedFunctionCallNode) {
-            const functionCallNode = node as ResolvedFunctionCallProto;
+            const functionCallNode = node as ResolvedFunctionCallProto__Output;
             if (functionCallNode.parent?.function?.name === `ZetaSQL:${text}`) {
               result.function = true;
             }
@@ -220,7 +219,7 @@ export class ZetaSqlAst {
                   if (c.name) {
                     withSubquery.columns.push({
                       name: c.name,
-                      type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind as TypeKind] : undefined,
+                      type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind] : undefined,
                       fromTable: c.tableName,
                     });
                   }
@@ -255,7 +254,7 @@ export class ZetaSqlAst {
                       alias,
                       columns: tableScanNode.parent.columnList.map<ResolvedColumn>(c => ({
                         name: c.name,
-                        type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind as TypeKind] : undefined,
+                        type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind] : undefined,
                         fromTable: c.tableName,
                       })),
                       tableNameRange,
@@ -337,7 +336,7 @@ export class ZetaSqlAst {
         columns:
           scanProto?.columnList.map<ResolvedColumn>(c => ({
             name: c.name,
-            type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind as TypeKind] : undefined,
+            type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind] : undefined,
             fromTable: c.tableName,
           })) ?? [],
         parseLocationRange: scanProto?.parent?.parseLocationRange ?? undefined,
@@ -443,7 +442,7 @@ const NODE = {
 };
 
 export interface HoverInfo {
-  outputColumn?: ResolvedOutputColumnProto;
+  outputColumn?: ResolvedOutputColumnProto__Output;
   withQueryName?: string;
   tableName?: string;
   function?: boolean;
