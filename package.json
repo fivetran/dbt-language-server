@@ -173,7 +173,7 @@
     "build:size": "npm run build && npm run vscode:prepublish",
     "watch": "tsc -b -w",
     "postinstall": "cd client && npm install --install-links=false && cd ../server && npm install --install-links=false && cd ../markdown_parser && npm install && cd ../e2e && npm install --install-links=false && cd ..",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint --cache . --ext .ts",
     "lint-config": "eslint --print-config .eslintrc.json",
     "lint-fix": "eslint . --ext .ts --fix",
     "test": "mocha",
