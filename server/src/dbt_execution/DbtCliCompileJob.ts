@@ -7,8 +7,8 @@ import { DbtCli } from './DbtCli';
 import { DbtCompileJob } from './DbtCompileJob';
 
 export class DbtCliCompileJob extends DbtCompileJob {
-  static COMPILE_MODEL_TIMEOUT_MS = 30_000;
-  static COMPILE_PROJECT_TIMEOUT_MS = 100_000;
+  static COMPILE_MODEL_TIMEOUT_MS = 110_000;
+  static COMPILE_PROJECT_TIMEOUT_MS = 300_000;
   static COMPILE_MODEL_TIMEOUT_EXCEEDED = 'dbt compile timeout exceeded';
 
   private process?: ChildProcess;
