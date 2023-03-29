@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 0.21.1 (01/01/1970)
+## What's Changed
+* Fix "dbt compile timeout exceeded" issue.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.21.0...v0.21.1
+---
+
 ## Version 0.21.0 (24/03/2023)
 ## What's Changed
 * Add the ability to customize the location of `profiles.yml` file useing `WizardForDbtCore(TM).profilesDir` setting.
@@ -275,16 +282,3 @@ AS (
 * Fix issue with finding package install path
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.4.1...v0.4.2
----
-
-## Version 0.4.1 (29/04/2022)
-## What's Changed
-* Fix problems with macros preview
-* Fix wrong diff results in some cases
-* Support nested structs and array of structs
-* Add support `qualify`, `recursive` and other ZetaSQL features in development
-* Fix preview for models with `materialized='ephemeral'`
-* Add additional logs
-
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.4.0...v0.4.1
