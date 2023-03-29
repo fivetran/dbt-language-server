@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.21.1 (01/01/1970)
+## Version 0.21.1 (29/03/2023)
 ## What's Changed
 * Fix "dbt compile timeout exceeded" issue.
 
