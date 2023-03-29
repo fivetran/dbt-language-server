@@ -7,9 +7,9 @@ import { DbtCli } from './DbtCli';
 import { DbtCompileJob } from './DbtCompileJob';
 
 export class DbtCliCompileJob extends DbtCompileJob {
-  static COMPILE_MODEL_TIMEOUT_MS = 30_000;
-  static COMPILE_PROJECT_TIMEOUT_MS = 100_000;
-  static COMPILE_MODEL_TIMEOUT_EXCEEDED = 'dbt compile timeout exceeded';
+  static COMPILE_MODEL_TIMEOUT_MS = 110_000;
+  static COMPILE_PROJECT_TIMEOUT_MS = 300_000;
+  static TIMEOUT_EXCEEDED_ERROR = 'dbt compile timeout exceeded';
 
   private process?: ChildProcess;
 
@@ -38,7 +38,7 @@ export class DbtCliCompileJob extends DbtCompileJob {
       await runWithTimeout(
         promise,
         this.modelPath ? DbtCliCompileJob.COMPILE_MODEL_TIMEOUT_MS : DbtCliCompileJob.COMPILE_PROJECT_TIMEOUT_MS,
-        DbtCliCompileJob.COMPILE_MODEL_TIMEOUT_EXCEEDED,
+        DbtCliCompileJob.TIMEOUT_EXCEEDED_ERROR,
       );
     } catch (e: unknown) {
       if (e instanceof Object && 'stdout' in e) {
