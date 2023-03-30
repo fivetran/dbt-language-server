@@ -30,7 +30,6 @@ describe('DbtTextDocument', () => {
 
   const onCompilationErrorEmitter = new Emitter<string>();
   const onCompilationFinishedEmitter = new Emitter<string>();
-  const onGlobalDbtErrorFixedEmitter = new Emitter<void>();
   const onDbtReadyEmitter = new Emitter<void>();
 
   beforeEach(() => {
@@ -56,7 +55,6 @@ describe('DbtTextDocument', () => {
       mock(ModelProgressReporter),
       instance(mockModelCompiler),
       instance(mockJinjaParser),
-      onGlobalDbtErrorFixedEmitter,
       dbtRepository,
       instance(mockDbt),
       new DestinationContext(),
@@ -170,30 +168,22 @@ describe('DbtTextDocument', () => {
     verify(mockModelCompiler.compile(anything(), true)).once();
   });
 
-  it('Should set hasDbtError flag on dbt compilation error', () => {
+  it('Should set dbtErrorUri on dbt compilation error', () => {
     // act
+    DbtTextDocument.dbtErrorUri = undefined;
     onCompilationErrorEmitter.fire('error');
 
     // assert
-    assertThat(document.currentDbtError, 'error');
+    assertThat(DbtTextDocument.dbtErrorUri, 'uri');
   });
 
-  it('Should reset hasDbtError flag on dbt compilation finished', () => {
+  it('Should reset dbtErrorUri on dbt compilation finished', () => {
     // act
-    document.currentDbtError = 'error';
+    DbtTextDocument.dbtErrorUri = 'uri';
     onCompilationFinishedEmitter.fire('select 1;');
 
     // assert
-    assertThat(document.currentDbtError, undefined);
-  });
-
-  it('Should reset hasDbtError flag on dbt error fixed', () => {
-    // act
-    document.currentDbtError = 'error';
-    onGlobalDbtErrorFixedEmitter.fire();
-
-    // assert
-    assertThat(document.currentDbtError, undefined);
+    assertThat(DbtTextDocument.dbtErrorUri, undefined);
   });
 
   it('Should compile dbt document when dbt ready', async () => {

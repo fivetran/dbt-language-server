@@ -26,7 +26,6 @@ import {
   DidOpenTextDocumentParams,
   DidRenameFilesNotification,
   DidSaveTextDocumentParams,
-  Emitter,
   ExecuteCommandParams,
   Hover,
   HoverParams,
@@ -78,7 +77,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   hasConfigurationCapability = false;
   hasDidChangeWatchedFilesCapability = false;
   initStart = performance.now();
-  onGlobalDbtErrorFixedEmitter = new Emitter<void>();
 
   constructor(
     connection: _Connection,
@@ -382,7 +380,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
         this.modelProgressReporter,
         new ModelCompiler(this.dbt, this.dbtRepository),
         new JinjaParser(),
-        this.onGlobalDbtErrorFixedEmitter,
         this.dbtRepository,
         this.dbt,
         this.destinationContext,
@@ -479,7 +476,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     this.dbt.refresh();
 
     for (const document of this.openedDocuments.values()) {
-      if (document.currentDbtError) {
+      if (DbtTextDocument.dbtErrorUri) {
         document.forceRecompile();
         return;
       }
@@ -509,7 +506,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     console.log('Dispose start...');
     this.dbt.dispose();
     this.destinationContext.dispose();
-    this.onGlobalDbtErrorFixedEmitter.dispose();
     console.log('Dispose end.');
   }
 }
