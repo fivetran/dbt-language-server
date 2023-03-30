@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.21.2 (01/01/1970)
+## Version 0.21.2 (30/03/2023)
 ## What's Changed
 * Fix empty preview issue.
 
