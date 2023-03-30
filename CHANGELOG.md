@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 0.21.2 (30/03/2023)
+## What's Changed
+* Fix empty preview issue.
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.21.0...v0.21.2
+---
+
 ## Version 0.21.1 (29/03/2023)
 ## What's Changed
 * Fix "dbt compile timeout exceeded" issue.
@@ -274,11 +282,3 @@ AS (
 
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.4.2...v0.5.0
----
-
-## Version 0.4.2 (04/05/2022)
-## What's Changed
-* Fix parsing `dbt_project.yml` from package
-* Fix issue with finding package install path
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.4.1...v0.4.2
