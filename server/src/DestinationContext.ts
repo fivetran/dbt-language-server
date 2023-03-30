@@ -38,7 +38,7 @@ export class DestinationContext {
     ubuntuInWslWorks: boolean,
     projectName: string,
   ): Promise<Result<void, string>> {
-    if (DestinationContext.ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) && profileResult.dbtProfile && ubuntuInWslWorks) {
+    if (profileResult.dbtProfile && this.canUseDestination(profileResult, ubuntuInWslWorks)) {
       try {
         const clientResult = await profileResult.dbtProfile.createClient(profileResult.targetConfig);
         if (clientResult.isErr()) {
@@ -65,6 +65,14 @@ export class DestinationContext {
     }
     this.onDestinationPrepared();
     return ok(undefined);
+  }
+
+  canUseDestination(profileResult: DbtProfileSuccess, ubuntuInWslWorks: boolean): boolean {
+    return (
+      DestinationContext.ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) &&
+      profileResult.type?.toLowerCase().trim() === 'bigquery' &&
+      ubuntuInWslWorks
+    );
   }
 
   async analyzeModelTree(node: DagNode, sql: string): Promise<ModelsAnalyzeResult[]> {

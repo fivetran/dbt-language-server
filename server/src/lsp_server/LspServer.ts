@@ -45,7 +45,6 @@ import {
 import { FileOperationFilter } from 'vscode-languageserver-protocol/lib/common/protocol.fileOperations';
 import { URI } from 'vscode-uri';
 import { Dbt } from '../dbt_execution/Dbt';
-import { DbtProfileType } from '../DbtProfile';
 import { DbtProfileCreator, DbtProfileInfo } from '../DbtProfileCreator';
 import { DbtProject } from '../DbtProject';
 import { DbtRepository } from '../DbtRepository';
@@ -215,13 +214,11 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       await this.showWslWarning();
     }
 
-    const destinationInitResult =
-      profileResult.isOk() &&
-      (profileResult.value.targetConfig.type === DbtProfileType.BigQuery || process.env['DBT_LS_ENABLE_DEBUG_LOGS'] === 'true') // TODO: delete this temp condition
-        ? this.destinationContext
-            .initialize(profileResult.value, this.dbtRepository, ubuntuInWslWorks, this.dbtProject.findProjectName())
-            .then((initResult: Result<void, string>) => (initResult.isErr() ? this.showCreateContextWarning(initResult.error) : undefined))
-        : Promise.resolve();
+    const destinationInitResult = profileResult.isOk()
+      ? this.destinationContext
+          .initialize(profileResult.value, this.dbtRepository, ubuntuInWslWorks, this.dbtProject.findProjectName())
+          .then((initResult: Result<void, string>) => (initResult.isErr() ? this.showCreateContextWarning(initResult.error) : undefined))
+      : Promise.resolve();
 
     const prepareDbt = this.dbt.prepare(dbtProfileType).then(_ => this.statusSender.sendStatus());
 
