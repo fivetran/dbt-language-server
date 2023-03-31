@@ -19,11 +19,12 @@ import { SqlDefinitionProvider } from '../../definition/SqlDefinitionProvider';
 import { DbtDocumentKind } from '../../document/DbtDocumentKind';
 import { DbtTextDocument } from '../../document/DbtTextDocument';
 import { sleep } from '../helper';
+import path = require('node:path');
 
 describe('DbtTextDocument', () => {
   const TEXT = 'select 1;';
-  const PROJECT_PATH = '/project/path';
-  const FILE_URI = `${PROJECT_PATH}/models/model.sql`;
+  const PROJECT_PATH = path.normalize('/project/path');
+  const FILE_URI = 'file:///project/path/models/model.sql';
 
   let document: DbtTextDocument;
   let mockModelCompiler: ModelCompiler;
