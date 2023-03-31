@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
 import { assertThat } from 'hamjest';
+import { ok } from 'node:assert';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, Range, TextDocumentSaveReason, VersionedTextDocumentIdentifier } from 'vscode-languageserver';
 import { DbtRepository } from '../../DbtRepository';
@@ -170,20 +171,20 @@ describe('DbtTextDocument', () => {
 
   it('Should set dbtErrorUri on dbt compilation error', () => {
     // act
-    DbtTextDocument.dbtErrorUri = undefined;
+    DbtTextDocument.dbtError = undefined;
     onCompilationErrorEmitter.fire('error');
 
     // assert
-    assertThat(DbtTextDocument.dbtErrorUri, 'uri');
+    ok(DbtTextDocument.dbtError);
   });
 
   it('Should reset dbtErrorUri on dbt compilation finished', () => {
     // act
-    DbtTextDocument.dbtErrorUri = 'uri';
+    DbtTextDocument.dbtError = { uri: 'uri', error: 'error' };
     onCompilationFinishedEmitter.fire('select 1;');
 
     // assert
-    assertThat(DbtTextDocument.dbtErrorUri, undefined);
+    assertThat(DbtTextDocument.dbtError, undefined);
   });
 
   it('Should compile dbt document when dbt ready', async () => {
