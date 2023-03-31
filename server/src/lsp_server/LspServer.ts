@@ -476,7 +476,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     this.dbt.refresh();
 
     for (const document of this.openedDocuments.values()) {
-      if (DbtTextDocument.dbtError) {
+      if (this.projectChangeListener.currentDbtError) {
         document.forceRecompile();
         return;
       }

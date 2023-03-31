@@ -1,3 +1,4 @@
+import { Result } from 'neverthrow';
 import { Emitter, Event, _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { InstallUtils } from '../InstallUtils';
@@ -33,7 +34,7 @@ export abstract class Dbt {
 
   protected abstract prepareImplementation(dbtProfileType?: string): Promise<void>;
 
-  abstract compileProject(dbtRepository: DbtRepository): Promise<void>;
+  abstract compileProject(dbtRepository: DbtRepository): Promise<Result<void, string>>;
 
   abstract createCompileJob(modelPath: string, dbtRepository: DbtRepository, allowFallback: boolean): DbtCompileJob;
 

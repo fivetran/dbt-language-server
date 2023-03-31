@@ -29,7 +29,7 @@ export class DiagnosticGenerator {
 
   constructor(private dbtRepository: DbtRepository) {}
 
-  getDbtErrorDiagnostics(dbtCompilationError: string, currentModelPath: string, workspaceFolder: string): [Diagnostic[], string | undefined] {
+  getDbtErrorDiagnostics(dbtCompilationError: string, workspaceFolder: string): [Diagnostic[], string | undefined] {
     let errorLine = 0;
     const lineMatch = dbtCompilationError.match(DiagnosticGenerator.DBT_ERROR_LINE_PATTERN);
     if (lineMatch && lineMatch.length > 1) {
@@ -37,7 +37,7 @@ export class DiagnosticGenerator {
     }
     const message = dbtCompilationError.includes(DiagnosticGenerator.AUTH_ERROR) ? DiagnosticGenerator.AUTH_ERROR : dbtCompilationError;
 
-    const otherFileUri = this.getOtherFileUri(dbtCompilationError, currentModelPath, workspaceFolder);
+    const fileUri = this.getFileUri(dbtCompilationError, workspaceFolder);
 
     return [
       [
@@ -48,7 +48,7 @@ export class DiagnosticGenerator {
           source: DiagnosticGenerator.DIAGNOSTIC_SOURCE,
         },
       ],
-      otherFileUri,
+      fileUri,
     ];
   }
 
@@ -118,13 +118,11 @@ export class DiagnosticGenerator {
     };
   }
 
-  private getOtherFileUri(dbtCompilationError: string, currentModelPath: string, workspaceFolder: string): string | undefined {
-    if (!dbtCompilationError.includes(currentModelPath)) {
-      const match = dbtCompilationError.match(DiagnosticGenerator.DBT_COMPILATION_ERROR_PATTERN);
-      if (match && match.length > 2) {
-        const modelPath = match[2];
-        return URI.file(path.join(workspaceFolder, modelPath)).toString();
-      }
+  private getFileUri(dbtCompilationError: string, workspaceFolder: string): string | undefined {
+    const match = dbtCompilationError.match(DiagnosticGenerator.DBT_COMPILATION_ERROR_PATTERN);
+    if (match && match.length > 2) {
+      const modelPath = match[2];
+      return URI.file(path.join(workspaceFolder, modelPath)).toString();
     }
     return undefined;
   }

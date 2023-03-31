@@ -53,11 +53,6 @@ export interface QueryParseInformation {
   }[];
 }
 
-interface CurrentDbtError {
-  uri: string;
-  error: string;
-}
-
 export class DbtTextDocument {
   static DEBOUNCE_TIMEOUT = 300;
 
@@ -71,7 +66,6 @@ export class DbtTextDocument {
   completionProvider: CompletionProvider;
   queryInformation?: QueryParseInformation;
 
-  static dbtError?: CurrentDbtError;
   firstSave = true;
 
   rawDocDiagnostics: Diagnostic[] = [];
@@ -137,8 +131,8 @@ export class DbtTextDocument {
         }
         this.debouncedCompile();
       }
-    } else if (DbtTextDocument.dbtError) {
-      await this.onCompilationError(DbtTextDocument.dbtError.error);
+    } else if (this.projectChangeListener.currentDbtError) {
+      await this.onCompilationError(this.projectChangeListener.currentDbtError.error);
     } else {
       await this.onCompilationFinished(this.compiledDocument.getText());
     }
@@ -239,7 +233,7 @@ export class DbtTextDocument {
     return (
       this.destinationContext.contextInitialized &&
       this.dbt.dbtReady &&
-      !DbtTextDocument.dbtError &&
+      !this.projectChangeListener.currentDbtError &&
       !this.modelCompiler.compilationInProgress &&
       this.compiledDocument.getText() !== this.rawDocument.getText()
     );
@@ -264,15 +258,7 @@ export class DbtTextDocument {
     await this.updateAndSendDiagnosticsAndPreview(dbtCompilationError);
   }
 
-  fixGlobalDbtError(): void {
-    if (DbtTextDocument.dbtError) {
-      DbtTextDocument.dbtError = undefined;
-    }
-  }
-
   async onCompilationFinished(compiledSql: string): Promise<void> {
-    this.fixGlobalDbtError();
-
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
     if (this.destinationContext.contextInitialized) {
       await this.updateAndSendDiagnosticsAndPreview();
@@ -295,30 +281,14 @@ export class DbtTextDocument {
   }
 
   async updateDiagnostics(dbtCompilationError?: string): Promise<void> {
-    if (DbtTextDocument.dbtError) {
-      this.notificationSender.sendDiagnostics(DbtTextDocument.dbtError.uri, [], []);
-    }
+    this.projectChangeListener.setDbtError(this.rawDocument.uri, dbtCompilationError);
 
     if (dbtCompilationError) {
-      const diagnosticsInfo = this.diagnosticGenerator.getDbtErrorDiagnostics(
-        dbtCompilationError,
-        this.getModelPathOrFullyQualifiedName(),
-        this.workspaceFolder,
-      );
-      const [diagnostics, otherFileUri] = diagnosticsInfo;
-
-      this.compiledDocDiagnostics = [];
-      this.rawDocDiagnostics = otherFileUri === undefined ? diagnostics : [];
-
-      if (otherFileUri !== undefined) {
-        this.notificationSender.sendDiagnostics(otherFileUri, diagnostics, diagnostics);
-      }
-      DbtTextDocument.dbtError = { uri: this.rawDocument.uri, error: dbtCompilationError };
+      this.rawDocDiagnostics = this.compiledDocDiagnostics = [];
     } else {
       [this.rawDocDiagnostics, this.compiledDocDiagnostics] = await this.createDiagnostics(this.compiledDocument.getText());
+      this.sendDiagnostics();
     }
-
-    this.sendDiagnostics();
   }
 
   async createDiagnostics(compiledSql: string): Promise<[Diagnostic[], Diagnostic[]]> {

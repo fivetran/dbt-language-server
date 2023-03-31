@@ -12,10 +12,16 @@ import { Dbt } from './dbt_execution/Dbt';
 import { DbtTextDocument } from './document/DbtTextDocument';
 import { debounce } from './utils/Utils';
 
+interface CurrentDbtError {
+  uri: string;
+  error: string;
+}
+
 export class ProjectChangeListener {
   private static PROJECT_COMPILE_DEBOUNCE_TIMEOUT = 1000;
 
   private analysisInProgress = false;
+  currentDbtError?: CurrentDbtError;
 
   constructor(
     private openedDocuments: Map<string, DbtTextDocument>,
@@ -27,6 +33,7 @@ export class ProjectChangeListener {
     private enableEntireProjectAnalysis: boolean,
     private fileChangeListener: FileChangeListener,
     private projectProgressReporter: ProjectProgressReporter,
+    private workspaceFolder: string,
   ) {
     fileChangeListener.onSqlModelChanged(c => this.onSqlModelChanged(c));
   }
@@ -50,13 +57,38 @@ export class ProjectChangeListener {
       }
 
       this.dbt.refresh();
-      await this.dbt.compileProject(this.dbtRepository);
-      this.fileChangeListener.updateManifestNodes();
-      await this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
+      const compileResult = await this.dbt.compileProject(this.dbtRepository);
+      if (compileResult.isOk()) {
+        this.fileChangeListener.updateManifestNodes();
+        await this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
+      } else {
+        this.setDbtError(this.getAnyModelUri(), compileResult.error);
+      }
     } finally {
       this.projectProgressReporter.sendAnalyzeEnd();
       this.analysisInProgress = false;
     }
+  }
+
+  setDbtError(activeDocumentUri: string, error: string | undefined): void {
+    if (error) {
+      const diagnosticsInfo = this.diagnosticGenerator.getDbtErrorDiagnostics(error, this.workspaceFolder);
+
+      const newUri = diagnosticsInfo[1] ?? activeDocumentUri;
+      if (this.currentDbtError && newUri !== this.currentDbtError.uri) {
+        this.notificationSender.clearDiagnostics(this.currentDbtError.uri);
+      }
+      this.currentDbtError = { uri: newUri, error };
+      this.notificationSender.sendDiagnostics(this.currentDbtError.uri, diagnosticsInfo[0], []);
+    } else if (this.currentDbtError) {
+      this.notificationSender.clearDiagnostics(this.currentDbtError.uri);
+      this.currentDbtError = undefined;
+    }
+  }
+
+  getAnyModelUri(): string {
+    const model = this.dbtRepository.dag.nodes[0].getValue();
+    return URI.file(this.dbtRepository.getNodeFullPath(model)).toString();
   }
 
   forceCompileAndAnalyzeProject(): void {

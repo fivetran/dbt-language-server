@@ -1,3 +1,4 @@
+import { Result, err, ok } from 'neverthrow';
 import { _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { FileChangeListener } from '../FileChangeListener';
@@ -83,7 +84,7 @@ export class DbtRpc extends Dbt {
     }
   }
 
-  async compileProject(dbtRepository: DbtRepository): Promise<void> {
+  async compileProject(dbtRepository: DbtRepository): Promise<Result<void, string>> {
     // Compilation can be started for a short time after the server receives a SIGHUP signal
     await this.dbtRpcServer.ensureCompilationFinished();
 
@@ -93,9 +94,11 @@ export class DbtRpc extends Dbt {
 
     if (result.isOk()) {
       console.log('Project compiled successfully');
-    } else {
-      console.log(`There was an error while project compilation: ${result.error}`);
+      return ok(undefined);
     }
+
+    console.log(`There was an error while project compilation: ${result.error}`);
+    return err(result.error);
   }
 
   getError(): string {

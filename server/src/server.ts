@@ -106,6 +106,7 @@ function createLspServerForProject(
     customInitParams.enableEntireProjectAnalysis,
     fileChangeListener,
     projectProgressReporter,
+    workspaceFolder,
   );
 
   return new LspServer(

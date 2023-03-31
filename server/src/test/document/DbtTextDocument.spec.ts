@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
 import { assertThat } from 'hamjest';
-import { ok } from 'node:assert';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Emitter, Range, TextDocumentSaveReason, VersionedTextDocumentIdentifier } from 'vscode-languageserver';
 import { DbtRepository } from '../../DbtRepository';
@@ -28,6 +27,8 @@ describe('DbtTextDocument', () => {
   let mockModelCompiler: ModelCompiler;
   let mockJinjaParser: JinjaParser;
   let mockDbt: Dbt;
+  let mockProjectChangeListener: ProjectChangeListener;
+  let destinationContext: DestinationContext;
 
   const onCompilationErrorEmitter = new Emitter<string>();
   const onCompilationFinishedEmitter = new Emitter<string>();
@@ -37,6 +38,7 @@ describe('DbtTextDocument', () => {
     DbtTextDocument.DEBOUNCE_TIMEOUT = 0;
 
     mockModelCompiler = mock(ModelCompiler);
+    mockProjectChangeListener = mock(ProjectChangeListener);
     when(mockModelCompiler.onCompilationError).thenReturn(onCompilationErrorEmitter.event);
     when(mockModelCompiler.onCompilationFinished).thenReturn(onCompilationFinishedEmitter.event);
     when(mockModelCompiler.onFinishAllCompilationJobs).thenReturn(new Emitter<void>().event);
@@ -48,6 +50,7 @@ describe('DbtTextDocument', () => {
     when(mockDbt.onDbtReady).thenReturn(onDbtReadyEmitter.event);
 
     const dbtRepository = new DbtRepository('project_path', Promise.resolve(undefined));
+    destinationContext = new DestinationContext();
     document = new DbtTextDocument(
       { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
       DbtDocumentKind.MODEL,
@@ -58,13 +61,13 @@ describe('DbtTextDocument', () => {
       instance(mockJinjaParser),
       dbtRepository,
       instance(mockDbt),
-      new DestinationContext(),
+      destinationContext,
       new DiagnosticGenerator(dbtRepository),
       new SignatureHelpProvider(),
       new HoverProvider(),
       new DbtDefinitionProvider(dbtRepository),
       new SqlDefinitionProvider(dbtRepository),
-      mock(ProjectChangeListener),
+      instance(mockProjectChangeListener),
     );
   });
 
@@ -171,20 +174,19 @@ describe('DbtTextDocument', () => {
 
   it('Should set dbtErrorUri on dbt compilation error', () => {
     // act
-    DbtTextDocument.dbtError = undefined;
     onCompilationErrorEmitter.fire('error');
 
     // assert
-    ok(DbtTextDocument.dbtError);
+    verify(mockProjectChangeListener.setDbtError('uri', 'error')).once();
   });
 
   it('Should reset dbtErrorUri on dbt compilation finished', () => {
     // act
-    DbtTextDocument.dbtError = { uri: 'uri', error: 'error' };
+    destinationContext.contextInitialized = true;
     onCompilationFinishedEmitter.fire('select 1;');
 
     // assert
-    assertThat(DbtTextDocument.dbtError, undefined);
+    verify(mockProjectChangeListener.setDbtError('uri', undefined)).once();
   });
 
   it('Should compile dbt document when dbt ready', async () => {

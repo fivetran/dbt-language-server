@@ -1,3 +1,4 @@
+import { Result, err, ok } from 'neverthrow';
 import { _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { ModelProgressReporter } from '../ModelProgressReporter';
@@ -55,16 +56,18 @@ export class DbtCli extends Dbt {
     return new DbtCliCompileJob(modelPath, dbtRepository, allowFallback, this);
   }
 
-  async compileProject(dbtRepository: DbtRepository): Promise<void> {
+  async compileProject(dbtRepository: DbtRepository): Promise<Result<void, string>> {
     const job = this.createCompileJob(undefined, dbtRepository, true);
     console.log('Starting project compilation');
     const result = await job.start();
 
     if (result.isOk()) {
       console.log('Project compiled successfully');
-    } else {
-      console.log(`There was an error while project compilation ${result.error}`);
+      return ok(undefined);
     }
+
+    console.log(`There was an error while project compilation ${result.error}`);
+    return err(result.error);
   }
 
   async deps(): Promise<void> {

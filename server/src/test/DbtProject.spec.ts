@@ -33,7 +33,7 @@ describe('DbtProject', () => {
     dbtProjectInstance.findProjectName();
     dbtProjectInstance.findProjectName();
 
-    verify(spiedDbtProject.getProject()).times(2);
+    verify(spiedDbtProject.getProject()).twice();
     assertThat(parseYamlFileCalls, 1);
   });
 
@@ -42,7 +42,7 @@ describe('DbtProject', () => {
     dbtProjectInstance.setParsedProjectOutdated();
     dbtProjectInstance.findProjectName();
 
-    verify(spiedDbtProject.getProject()).times(2);
+    verify(spiedDbtProject.getProject()).twice();
     assertThat(parseYamlFileCalls, 2);
   });
 });

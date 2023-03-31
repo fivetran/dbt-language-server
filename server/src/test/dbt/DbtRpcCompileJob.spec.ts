@@ -90,8 +90,8 @@ describe('DbtRpcCompileJob', () => {
 
     // assert
     assertThat(compileJob.result, ok(COMPILED_SQL));
-    verify(mockDbtRpcClient.compile(MODEL)).times(1);
-    verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(1);
+    verify(mockDbtRpcClient.compile(MODEL)).once();
+    verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).once();
   });
   it('start should retry in case of compileModel error', async () => {
     // arrange
@@ -107,8 +107,8 @@ describe('DbtRpcCompileJob', () => {
 
     // assert
     assertThat(compileJob.result, ok(COMPILED_SQL));
-    verify(mockDbtRpcClient.compile(MODEL)).times(2);
-    verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(1);
+    verify(mockDbtRpcClient.compile(MODEL)).twice();
+    verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).once();
   });
 
   it('start should retry in case of compile method returns undefined', async () => {
@@ -125,7 +125,7 @@ describe('DbtRpcCompileJob', () => {
 
     // assert
     assertThat(compileJob.result, ok(COMPILED_SQL));
-    verify(mockDbtRpcClient.compile(MODEL)).times(2);
+    verify(mockDbtRpcClient.compile(MODEL)).twice();
   });
 
   it('start should retry compile method max times and fail due to network error', async () => {
@@ -176,7 +176,7 @@ describe('DbtRpcCompileJob', () => {
 
     // assert
     assertThat(compileJob.result, err(COMPILE_MODEL_ERROR));
-    verify(mockDbtRpcClient.compile(MODEL)).times(1);
+    verify(mockDbtRpcClient.compile(MODEL)).once();
   });
 
   it('forceStop should stop compile method during retrying', async () => {
@@ -212,8 +212,8 @@ describe('DbtRpcCompileJob', () => {
 
     // assert
     assertThat(compileJob.result, ok(COMPILED_SQL));
-    verify(mockDbtRpcClient.compile(MODEL)).times(1);
-    verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(2);
+    verify(mockDbtRpcClient.compile(MODEL)).once();
+    verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).twice();
   });
 
   it('start should retry in case of pollOnceCompileResultRunning returns undefined', async () => {
@@ -230,8 +230,8 @@ describe('DbtRpcCompileJob', () => {
 
     // assert
     assertThat(compileJob.result, ok(COMPILED_SQL));
-    verify(mockDbtRpcClient.compile(MODEL)).times(1);
-    verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(2);
+    verify(mockDbtRpcClient.compile(MODEL)).once();
+    verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).twice();
   });
 
   it('start should retry maximum MAX_RETRIES_FOR_UNKNOWN_ERROR in case of pollOnceCompileResultRunning returns undefined', async () => {
@@ -249,7 +249,7 @@ describe('DbtRpcCompileJob', () => {
 
     // assert
     assertThat(compileJob.result, err(DbtRpcCompileJob.NETWORK_ERROR));
-    verify(mockDbtRpcClient.compile(MODEL)).times(1);
+    verify(mockDbtRpcClient.compile(MODEL)).once();
     verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(DbtRpcCompileJob.MAX_RETRIES_FOR_UNKNOWN_ERROR + 1);
   });
 
@@ -267,8 +267,8 @@ describe('DbtRpcCompileJob', () => {
 
     // assert
     assertThat(compileJob.result, err(COMPILE_MODEL_ERROR));
-    verify(mockDbtRpcClient.compile(MODEL)).times(1);
-    verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(1);
+    verify(mockDbtRpcClient.compile(MODEL)).once();
+    verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).once();
   });
 
   it('start should return JOB_IS_NOT_COMPLETED error after all retries', async () => {
@@ -286,7 +286,7 @@ describe('DbtRpcCompileJob', () => {
 
     // assert
     assertThat(compileJob.result, err(DbtRpcCompileJob.JOB_IS_NOT_COMPLETED));
-    verify(mockDbtRpcClient.compile(MODEL)).times(1);
+    verify(mockDbtRpcClient.compile(MODEL)).once();
     verify(mockDbtRpcClient.pollOnceCompileResult(TOKEN)).times(DbtRpcCompileJob.POLL_MAX_RETRIES_FOR_MODEL + 1);
   });
 });
