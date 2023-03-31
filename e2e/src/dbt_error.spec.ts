@@ -22,14 +22,18 @@ suite('dbt errors', () => {
     await activateAndWait(DOC_WITH_ERROR);
     await replaceText(ORIGINAL_LINE, LINE_WITH_ERROR);
 
-    await assertAllDiagnostics(DOC_WITH_ERROR, [
-      {
-        severity: DiagnosticSeverity.Error,
-        range: new Range(ERROR_LINE, 0, ERROR_LINE, DBT_ERROR_HIGHLIGHT_LAST_CHAR),
-        message: ERROR_IN_CURRENT_FILE,
-        relatedInformation: [],
-      },
-    ]);
+    await assertAllDiagnostics(
+      DOC_WITH_ERROR,
+      [
+        {
+          severity: DiagnosticSeverity.Error,
+          range: new Range(ERROR_LINE, 0, ERROR_LINE, DBT_ERROR_HIGHLIGHT_LAST_CHAR),
+          message: ERROR_IN_CURRENT_FILE,
+          relatedInformation: [],
+        },
+      ],
+      [],
+    );
 
     // 2. Should show error for another document
     await activateAndWait(DOC_WITHOUT_ERROR);
