@@ -17,14 +17,9 @@ export class FileChangeListener {
   private dbtProjectYmlPath: string;
   private packagesYmlPath: string;
 
-  constructor(
-    private workspaceFolder: string,
-    private dbtProject: DbtProject,
-    private manifestParser: ManifestParser,
-    private dbtRepository: DbtRepository,
-  ) {
-    this.dbtProjectYmlPath = path.resolve(this.workspaceFolder, DbtRepository.DBT_PROJECT_FILE_NAME);
-    this.packagesYmlPath = path.resolve(this.workspaceFolder, DbtRepository.DBT_PACKAGES_FILE_NAME);
+  constructor(private dbtProject: DbtProject, private manifestParser: ManifestParser, private dbtRepository: DbtRepository) {
+    this.dbtProjectYmlPath = path.resolve(this.dbtRepository.projectPath, DbtRepository.DBT_PROJECT_FILE_NAME);
+    this.packagesYmlPath = path.resolve(this.dbtRepository.projectPath, DbtRepository.DBT_PACKAGES_FILE_NAME);
   }
 
   get onDbtProjectYmlChanged(): Event<void> {
@@ -55,8 +50,8 @@ export class FileChangeListener {
     }
 
     params.changes = params.changes.filter(change => !change.uri.endsWith('.sql'));
-    const manifestJsonPath = path.resolve(this.workspaceFolder, this.dbtRepository.dbtTargetPath, DbtRepository.DBT_MANIFEST_FILE_NAME);
-    const packagesPath = path.resolve(this.workspaceFolder, this.dbtRepository.packagesInstallPath);
+    const manifestJsonPath = path.resolve(this.dbtRepository.projectPath, this.dbtRepository.dbtTargetPath, DbtRepository.DBT_MANIFEST_FILE_NAME);
+    const packagesPath = path.resolve(this.dbtRepository.projectPath, this.dbtRepository.packagesInstallPath);
 
     // For some paths we want to do action only once even we got several changes here
     if (this.containsChangeWithPath(params.changes, manifestJsonPath)) {

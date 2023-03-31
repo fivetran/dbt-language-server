@@ -29,7 +29,7 @@ export class DiagnosticGenerator {
 
   constructor(private dbtRepository: DbtRepository) {}
 
-  getDbtErrorDiagnostics(dbtCompilationError: string, workspaceFolder: string): [Diagnostic[], string | undefined] {
+  getDbtErrorDiagnostics(dbtCompilationError: string): [Diagnostic[], string | undefined] {
     let errorLine = 0;
     const lineMatch = dbtCompilationError.match(DiagnosticGenerator.DBT_ERROR_LINE_PATTERN);
     if (lineMatch && lineMatch.length > 1) {
@@ -37,7 +37,7 @@ export class DiagnosticGenerator {
     }
     const message = dbtCompilationError.includes(DiagnosticGenerator.AUTH_ERROR) ? DiagnosticGenerator.AUTH_ERROR : dbtCompilationError;
 
-    const fileUri = this.getFileUri(dbtCompilationError, workspaceFolder);
+    const fileUri = this.getFileUri(dbtCompilationError);
 
     return [
       [
@@ -118,11 +118,11 @@ export class DiagnosticGenerator {
     };
   }
 
-  private getFileUri(dbtCompilationError: string, workspaceFolder: string): string | undefined {
+  private getFileUri(dbtCompilationError: string): string | undefined {
     const match = dbtCompilationError.match(DiagnosticGenerator.DBT_COMPILATION_ERROR_PATTERN);
     if (match && match.length > 2) {
       const modelPath = match[2];
-      return URI.file(path.join(workspaceFolder, modelPath)).toString();
+      return URI.file(path.join(this.dbtRepository.projectPath, modelPath)).toString();
     }
     return undefined;
   }

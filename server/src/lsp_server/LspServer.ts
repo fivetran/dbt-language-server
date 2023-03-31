@@ -82,7 +82,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     connection: _Connection,
     notificationSender: NotificationSender,
     featureFinder: FeatureFinder,
-    private workspaceFolder: string,
     private dbt: Dbt,
     private modelProgressReporter: ModelProgressReporter,
     private dbtProject: DbtProject,
@@ -101,11 +100,11 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     private projectChangeListener: ProjectChangeListener,
   ) {
     super(connection, notificationSender, featureFinder);
-    this.filesFilter = [{ scheme: 'file', pattern: { glob: `${workspaceFolder}/**/*`, matches: 'file' } }];
+    this.filesFilter = [{ scheme: 'file', pattern: { glob: `${dbtRepository.projectPath}/**/*`, matches: 'file' } }];
   }
 
   onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> {
-    console.log(`Starting server for folder ${this.workspaceFolder}.`);
+    console.log(`Starting server for folder ${this.dbtRepository.projectPath}.`);
 
     this.initializeEvents();
 
@@ -366,7 +365,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
         return;
       }
 
-      const dbtDocumentKind = this.dbtDocumentKindResolver.getDbtDocumentKind(this.workspaceFolder, uri);
+      const dbtDocumentKind = this.dbtDocumentKindResolver.getDbtDocumentKind(uri);
       if (![DbtDocumentKind.MACRO, DbtDocumentKind.MODEL].includes(dbtDocumentKind)) {
         console.log('Not supported dbt document kind');
         return;
@@ -375,7 +374,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       document = new DbtTextDocument(
         params.textDocument,
         dbtDocumentKind,
-        this.workspaceFolder,
         this.notificationSender,
         this.modelProgressReporter,
         new ModelCompiler(this.dbt, this.dbtRepository),

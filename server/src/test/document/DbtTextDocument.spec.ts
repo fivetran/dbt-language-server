@@ -22,6 +22,8 @@ import { sleep } from '../helper';
 
 describe('DbtTextDocument', () => {
   const TEXT = 'select 1;';
+  const PROJECT_PATH = '/project/path';
+  const FILE_URI = `${PROJECT_PATH}/models/model.sql`;
 
   let document: DbtTextDocument;
   let mockModelCompiler: ModelCompiler;
@@ -49,12 +51,11 @@ describe('DbtTextDocument', () => {
     when(mockDbt.dbtReady).thenReturn(true);
     when(mockDbt.onDbtReady).thenReturn(onDbtReadyEmitter.event);
 
-    const dbtRepository = new DbtRepository('project_path', Promise.resolve(undefined));
+    const dbtRepository = new DbtRepository(PROJECT_PATH, Promise.resolve(undefined));
     destinationContext = new DestinationContext();
     document = new DbtTextDocument(
-      { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
+      { uri: FILE_URI, languageId: 'sql', version: 1, text: TEXT },
       DbtDocumentKind.MODEL,
-      '',
       mock(NotificationSender),
       mock(ModelProgressReporter),
       instance(mockModelCompiler),
@@ -164,7 +165,7 @@ describe('DbtTextDocument', () => {
     when(mockJinjaParser.isJinjaModified(anything(), anything())).thenReturn(false);
 
     // act
-    document.didChangeTextDocument({ textDocument: VersionedTextDocumentIdentifier.create('uri', 1), contentChanges: [] });
+    document.didChangeTextDocument({ textDocument: VersionedTextDocumentIdentifier.create(FILE_URI, 1), contentChanges: [] });
     await document.didSaveTextDocument(true);
     await sleepMoreThanDebounceTime();
 
@@ -177,7 +178,7 @@ describe('DbtTextDocument', () => {
     onCompilationErrorEmitter.fire('error');
 
     // assert
-    verify(mockProjectChangeListener.setDbtError('uri', 'error')).once();
+    verify(mockProjectChangeListener.setDbtError(FILE_URI, 'error')).once();
   });
 
   it('Should reset dbtErrorUri on dbt compilation finished', () => {
@@ -186,7 +187,7 @@ describe('DbtTextDocument', () => {
     onCompilationFinishedEmitter.fire('select 1;');
 
     // assert
-    verify(mockProjectChangeListener.setDbtError('uri', undefined)).once();
+    verify(mockProjectChangeListener.setDbtError(FILE_URI, undefined)).once();
   });
 
   it('Should compile dbt document when dbt ready', async () => {

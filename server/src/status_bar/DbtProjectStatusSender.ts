@@ -1,5 +1,6 @@
 import { StatusNotification } from 'dbt-language-server-common';
 import { FileChangeType } from 'vscode-languageserver';
+import { DbtRepository } from '../DbtRepository';
 import { FileChangeListener } from '../FileChangeListener';
 import { NotificationSender } from '../NotificationSender';
 import { FeatureFinder } from '../feature_finder/FeatureFinder';
@@ -8,7 +9,7 @@ import { NoProjectStatusSender } from './NoProjectStatusSender';
 export class DbtProjectStatusSender extends NoProjectStatusSender {
   constructor(
     notificationSender: NotificationSender,
-    private projectPath: string,
+    private dbtRepository: DbtRepository,
     featureFinder: FeatureFinder,
     private fileChangeListener: FileChangeListener,
   ) {
@@ -20,12 +21,12 @@ export class DbtProjectStatusSender extends NoProjectStatusSender {
   }
 
   override getProjectPath(): string {
-    return this.projectPath;
+    return this.dbtRepository.projectPath;
   }
 
   sendYmlStatus(packagesYmlFound: boolean, profilesYmlPath?: string): void {
     const statusNotification: StatusNotification = {
-      projectPath: this.projectPath,
+      projectPath: this.dbtRepository.projectPath,
       packagesStatus: { packagesYmlFound },
     };
     if (profilesYmlPath) {

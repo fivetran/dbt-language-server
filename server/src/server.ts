@@ -83,9 +83,9 @@ function createLspServerForProject(
   const dbtProject = new DbtProject('.');
   const manifestParser = new ManifestParser();
   const dbtRepository = new DbtRepository(workspaceFolder, featureFinder.getGlobalProjectPath());
-  const fileChangeListener = new FileChangeListener(workspaceFolder, dbtProject, manifestParser, dbtRepository);
+  const fileChangeListener = new FileChangeListener(dbtProject, manifestParser, dbtRepository);
   const dbtProfileCreator = new DbtProfileCreator(dbtProject, featureFinder.getProfilesYmlPath());
-  const statusSender = new DbtProjectStatusSender(notificationSender, workspaceFolder, featureFinder, fileChangeListener);
+  const statusSender = new DbtProjectStatusSender(notificationSender, dbtRepository, featureFinder, fileChangeListener);
   const dbt = createDbt(customInitParams.dbtCompiler, featureFinder, modelProgressReporter, fileChangeListener, notificationSender);
   const dbtDocumentKindResolver = new DbtDocumentKindResolver(dbtRepository);
   const diagnosticGenerator = new DiagnosticGenerator(dbtRepository);
@@ -106,14 +106,12 @@ function createLspServerForProject(
     customInitParams.enableEntireProjectAnalysis,
     fileChangeListener,
     projectProgressReporter,
-    workspaceFolder,
   );
 
   return new LspServer(
     connection,
     notificationSender,
     featureFinder,
-    workspaceFolder,
     dbt,
     modelProgressReporter,
     dbtProject,

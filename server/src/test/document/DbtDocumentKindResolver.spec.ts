@@ -17,7 +17,7 @@ describe('DbtDocumentKindResolver', () => {
 
   it('Should determine MACRO for documents located in default location', () => {
     const documentUri = 'file:///Users/user_name/dbt_project/macros/macro.sql';
-    shouldReturnCorrectDocumentKind(PROJECT_PATH, documentUri, DbtDocumentKind.MACRO);
+    shouldReturnCorrectDocumentKind(documentUri, DbtDocumentKind.MACRO);
   });
 
   it('Should determine MACRO for documents located in overridden location', () => {
@@ -26,13 +26,13 @@ describe('DbtDocumentKindResolver', () => {
     const firstDocumentUri = 'file:///Users/user_name/dbt_project/macros_first/macro.sql';
     const secondDocumentUri = 'file:///Users/user_name/dbt_project/macros_second/macro.sql';
 
-    shouldReturnCorrectDocumentKind(PROJECT_PATH, firstDocumentUri, DbtDocumentKind.MACRO);
-    shouldReturnCorrectDocumentKind(PROJECT_PATH, secondDocumentUri, DbtDocumentKind.MACRO);
+    shouldReturnCorrectDocumentKind(firstDocumentUri, DbtDocumentKind.MACRO);
+    shouldReturnCorrectDocumentKind(secondDocumentUri, DbtDocumentKind.MACRO);
   });
 
   it('Should determine MODEL for documents located in default location', () => {
     const documentUri = 'file:///Users/user_name/dbt_project/models/model.sql';
-    shouldReturnCorrectDocumentKind(PROJECT_PATH, documentUri, DbtDocumentKind.MODEL);
+    shouldReturnCorrectDocumentKind(documentUri, DbtDocumentKind.MODEL);
   });
 
   it('Should determine MODEL for documents located in overridden location', () => {
@@ -41,13 +41,13 @@ describe('DbtDocumentKindResolver', () => {
     const firstDocumentUri = 'file:///Users/user_name/dbt_project/models_first/model.sql';
     const secondDocumentUri = 'file:///Users/user_name/dbt_project/models_second/model.sql';
 
-    shouldReturnCorrectDocumentKind(PROJECT_PATH, firstDocumentUri, DbtDocumentKind.MODEL);
-    shouldReturnCorrectDocumentKind(PROJECT_PATH, secondDocumentUri, DbtDocumentKind.MODEL);
+    shouldReturnCorrectDocumentKind(firstDocumentUri, DbtDocumentKind.MODEL);
+    shouldReturnCorrectDocumentKind(secondDocumentUri, DbtDocumentKind.MODEL);
   });
 
   it("Shouldn't determine document kind in root folder", () => {
     const rootDocumentUri = 'file:///Users/user_name/dbt_project/model.sql';
-    shouldReturnCorrectDocumentKind(PROJECT_PATH, rootDocumentUri, DbtDocumentKind.UNKNOWN);
+    shouldReturnCorrectDocumentKind(rootDocumentUri, DbtDocumentKind.UNKNOWN);
   });
 
   it('Should determine document kind for documents located inside package', () => {
@@ -57,12 +57,12 @@ describe('DbtDocumentKindResolver', () => {
     const packageResolveResult = path.normalize(`${PROJECT_PATH}/dbt_packages/package_name`);
     dbtDocumentKindResolver.resolveDbtPackagePath = (): string | undefined => packageResolveResult;
 
-    shouldReturnCorrectDocumentKind(PROJECT_PATH, packageMacroDocumentUri, DbtDocumentKind.MACRO);
-    shouldReturnCorrectDocumentKind(PROJECT_PATH, packageModelDocumentUri, DbtDocumentKind.MODEL);
+    shouldReturnCorrectDocumentKind(packageMacroDocumentUri, DbtDocumentKind.MACRO);
+    shouldReturnCorrectDocumentKind(packageModelDocumentUri, DbtDocumentKind.MODEL);
   });
 
-  function shouldReturnCorrectDocumentKind(workspaceFolder: string, documentUri: string, expectedDocumentKind: DbtDocumentKind): void {
-    const dbtDocumentKind = dbtDocumentKindResolver.getDbtDocumentKind(workspaceFolder, documentUri);
+  function shouldReturnCorrectDocumentKind(documentUri: string, expectedDocumentKind: DbtDocumentKind): void {
+    const dbtDocumentKind = dbtDocumentKindResolver.getDbtDocumentKind(documentUri);
     assertThat(dbtDocumentKind, expectedDocumentKind);
   }
 });

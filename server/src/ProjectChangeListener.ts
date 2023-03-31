@@ -11,6 +11,7 @@ import { ProjectProgressReporter } from './ProjectProgressReporter';
 import { Dbt } from './dbt_execution/Dbt';
 import { DbtTextDocument } from './document/DbtTextDocument';
 import { debounce } from './utils/Utils';
+import path = require('node:path');
 
 interface CurrentDbtError {
   uri: string;
@@ -33,7 +34,6 @@ export class ProjectChangeListener {
     private enableEntireProjectAnalysis: boolean,
     private fileChangeListener: FileChangeListener,
     private projectProgressReporter: ProjectProgressReporter,
-    private workspaceFolder: string,
   ) {
     fileChangeListener.onSqlModelChanged(c => this.onSqlModelChanged(c));
   }
@@ -62,7 +62,7 @@ export class ProjectChangeListener {
         this.fileChangeListener.updateManifestNodes();
         await this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
       } else {
-        this.setDbtError(this.getAnyModelUri(), compileResult.error);
+        this.setDbtError(this.getAnyDbtProjectYmlUri(), compileResult.error);
       }
     } finally {
       this.projectProgressReporter.sendAnalyzeEnd();
@@ -72,7 +72,7 @@ export class ProjectChangeListener {
 
   setDbtError(activeDocumentUri: string, error: string | undefined): void {
     if (error) {
-      const diagnosticsInfo = this.diagnosticGenerator.getDbtErrorDiagnostics(error, this.workspaceFolder);
+      const diagnosticsInfo = this.diagnosticGenerator.getDbtErrorDiagnostics(error);
 
       const newUri = diagnosticsInfo[1] ?? activeDocumentUri;
       if (this.currentDbtError && newUri !== this.currentDbtError.uri) {
@@ -86,9 +86,8 @@ export class ProjectChangeListener {
     }
   }
 
-  getAnyModelUri(): string {
-    const model = this.dbtRepository.dag.nodes[0].getValue();
-    return URI.file(this.dbtRepository.getNodeFullPath(model)).toString();
+  getAnyDbtProjectYmlUri(): string {
+    return URI.file(path.join(this.dbtRepository.projectPath, 'dbt_project.yml')).toString();
   }
 
   forceCompileAndAnalyzeProject(): void {

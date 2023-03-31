@@ -8,11 +8,11 @@ import { DbtDocumentKind } from './DbtDocumentKind';
 export class DbtDocumentKindResolver {
   constructor(private dbtRepository: DbtRepository) {}
 
-  getDbtDocumentKind(workspaceFolder: string, uri: string): DbtDocumentKind {
-    const filePath = getFilePathRelatedToWorkspace(uri, workspaceFolder);
+  getDbtDocumentKind(uri: string): DbtDocumentKind {
+    const filePath = getFilePathRelatedToWorkspace(uri, this.dbtRepository.projectPath);
 
     if (filePath.startsWith(this.dbtRepository.packagesInstallPath)) {
-      const dbtPackagePath = this.resolveDbtPackagePath(workspaceFolder, filePath);
+      const dbtPackagePath = this.resolveDbtPackagePath(this.dbtRepository.projectPath, filePath);
       if (!dbtPackagePath) {
         console.log('Dbt package root folder not found');
         return DbtDocumentKind.UNKNOWN;

@@ -74,7 +74,6 @@ export class DbtTextDocument {
   constructor(
     doc: TextDocumentItem,
     private dbtDocumentKind: DbtDocumentKind,
-    private workspaceFolder: string,
     private notificationSender: NotificationSender,
     private modelProgressReporter: ModelProgressReporter,
     private modelCompiler: ModelCompiler,
@@ -249,7 +248,7 @@ export class DbtTextDocument {
   }
 
   getModelPathOrFullyQualifiedName(): string {
-    return getModelPathOrFullyQualifiedName(this.rawDocument.uri, this.workspaceFolder, this.dbtRepository);
+    return getModelPathOrFullyQualifiedName(this.rawDocument.uri, this.dbtRepository.projectPath, this.dbtRepository);
   }
 
   async onCompilationError(dbtCompilationError: string): Promise<void> {

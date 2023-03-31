@@ -1,11 +1,10 @@
 import { assertThat } from 'hamjest';
-import { mock } from 'ts-mockito';
+import { instance, mock, when } from 'ts-mockito';
 import { DiagnosticSeverity, Range } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
 
 describe('DiagnosticGenerator', () => {
-  const DIAGNOSTIC_GENERATOR = new DiagnosticGenerator(mock(DbtRepository));
   const MODEL_NAME = 'simple_select_dbt';
   const MODEL_PATH = `models/${MODEL_NAME}.sql`;
   const ERROR_LINE = 2;
@@ -16,9 +15,15 @@ describe('DiagnosticGenerator', () => {
   11:03:41
   11:03:43  Encountered an error:${AUTH_ERROR_MAIN_PART}11:03:43  Traceback (most recent call last):`;
   const WORKSPACE_FOLDER = '/Users/user/project';
+  const MOCK_DBT_REPOSITORY = mock(DbtRepository);
+  const DIAGNOSTIC_GENERATOR = new DiagnosticGenerator(instance(MOCK_DBT_REPOSITORY));
+
+  before(() => {
+    when(MOCK_DBT_REPOSITORY.projectPath).thenReturn(WORKSPACE_FOLDER);
+  });
 
   function shouldReturnDbtDiagnostics(rawMessage: string, expectedMessage: string, expectedErrorLine: number, expectedUri?: string): void {
-    const diagnostics = DIAGNOSTIC_GENERATOR.getDbtErrorDiagnostics(rawMessage, WORKSPACE_FOLDER);
+    const diagnostics = DIAGNOSTIC_GENERATOR.getDbtErrorDiagnostics(rawMessage);
 
     assertThat(diagnostics, [
       [
