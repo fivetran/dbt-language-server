@@ -4,7 +4,6 @@ import { ProcessExecutor } from './ProcessExecutor';
 
 export class InstallUtils {
   static readonly DBT_CORE = 'dbt-core';
-  static readonly DBT_RPC = 'dbt-rpc';
   static readonly DBT_PREFIX = 'dbt';
 
   static readonly UPGRADE_PARAM = '--upgrade';
@@ -29,10 +28,6 @@ export class InstallUtils {
     return InstallUtils.installPythonPackages(python, packagesToInstall, true, onStdoutData, onStderrData);
   }
 
-  static async updateDbtRpc(python: string, onData?: (data: string) => void): Promise<Result<string, string>> {
-    return InstallUtils.installPythonPackages(python, [InstallUtils.DBT_RPC], true, onData, onData);
-  }
-
   static async installDbtAdapter(
     python: string,
     dbtAdapter: string,
@@ -40,14 +35,6 @@ export class InstallUtils {
     onStderrData?: (data: string) => void,
   ): Promise<Result<string, string>> {
     return InstallUtils.installPythonPackages(python, [dbtAdapter], true, onStdoutData, onStderrData);
-  }
-
-  static async installLatestDbtRpc(python: string, dbtProfileType?: string): Promise<Result<string, string>> {
-    const packages = [InstallUtils.DBT_RPC];
-    if (dbtProfileType) {
-      packages.push(InstallUtils.buildAdapterPackageName(dbtProfileType));
-    }
-    return InstallUtils.installPythonPackages(python, packages);
   }
 
   static async installPythonPackages(

@@ -44,10 +44,10 @@ export class DbtCli extends Dbt {
         if (dbtProfileType && this.featureFinder.pythonInfo) {
           await this.suggestToInstallDbt(this.featureFinder.pythonInfo.path, dbtProfileType);
         } else {
-          this.onRpcServerFindFailed();
+          this.onDbtFindFailed();
         }
       } catch {
-        this.onRpcServerFindFailed();
+        this.onDbtFindFailed();
       }
     }
   }

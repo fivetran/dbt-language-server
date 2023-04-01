@@ -48,17 +48,6 @@
           "description": "Which directory to look in for the profiles.yml file. Absolute path or relative to the directory containing dbt_project.yml. This parameter will be used in each dbt command.",
           "scope": "resource"
         },
-        "WizardForDbtCore(TM).dbtCompiler": {
-          "type": "string",
-          "order": 1,
-          "enum": [
-            "Auto",
-            "dbt-rpc",
-            "dbt"
-          ],
-          "default": "Auto",
-          "description": "Command used to compile models."
-        },
         "WizardForDbtCore(TM).trace.server": {
           "scope": "window",
           "type": "string",

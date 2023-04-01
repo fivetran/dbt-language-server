@@ -6,11 +6,6 @@ import { ModelProgressReporter } from '../ModelProgressReporter';
 import { NotificationSender } from '../NotificationSender';
 import { DbtCompileJob } from './DbtCompileJob';
 
-export enum DbtMode {
-  DBT_RPC,
-  CLI,
-}
-
 export abstract class Dbt {
   dbtReady: boolean;
   onDbtReadyEmitter: Emitter<void>;
@@ -61,7 +56,7 @@ export abstract class Dbt {
         this.finishWithError(installResult.error);
       }
     } else {
-      this.onRpcServerFindFailed();
+      this.onDbtFindFailed();
     }
   }
 
@@ -78,7 +73,7 @@ export abstract class Dbt {
     return this.onDbtReadyEmitter.event;
   }
 
-  onRpcServerFindFailed(): void {
+  onDbtFindFailed(): void {
     this.finishWithError(this.getError());
   }
 }

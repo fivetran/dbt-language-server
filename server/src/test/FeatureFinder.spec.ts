@@ -6,7 +6,6 @@ import { deepEqual, instance, mock, when } from 'ts-mockito';
 import { DbtCommandFactory } from '../dbt_execution/DbtCommandFactory';
 import { DbtCommand } from '../dbt_execution/commands/DbtCommand';
 import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor';
-import { DbtRpcCommand } from '../dbt_execution/commands/DbtRpcCommand';
 import { FeatureFinder } from '../feature_finder/FeatureFinder';
 import path = require('node:path');
 import slash = require('slash');
@@ -44,9 +43,7 @@ describe('FeatureFinder', () => {
   });
 
   const PROFILES_DIR = slash(path.join(homedir(), '.dbt'));
-  const RPC_WITH_PYTHON = new DbtRpcCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM], PYTHON_PATH);
   const DBT_WITH_PYTHON = new DbtCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM], PYTHON_PATH);
-  const RPC_GLOBAL = new DbtRpcCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM]);
   const DBT_GLOBAL = new DbtCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM]);
 
   let mockCommandExecutor: DbtCommandExecutor;
@@ -56,7 +53,7 @@ describe('FeatureFinder', () => {
 
   it('getAvailableDbt should return all information about installed dbt and adapters', async () => {
     // arrange
-    when(mockCommandExecutor.execute(deepEqual(RPC_WITH_PYTHON))).thenReturn(VERSION_COMMAND_RESULT);
+    when(mockCommandExecutor.execute(deepEqual(DBT_WITH_PYTHON))).thenReturn(VERSION_COMMAND_RESULT);
 
     // act
     const result = await createFeatureFinder(mockCommandExecutor).getAvailableDbt();
@@ -73,7 +70,7 @@ describe('FeatureFinder', () => {
 
   it('getAvailableDbt should return all information about installed dbt and adapters for legacy dbt version', async () => {
     // arrange
-    when(mockCommandExecutor.execute(deepEqual(RPC_WITH_PYTHON))).thenReturn(LEGACY_VERSION_COMMAND_RESULT);
+    when(mockCommandExecutor.execute(deepEqual(DBT_WITH_PYTHON))).thenReturn(LEGACY_VERSION_COMMAND_RESULT);
 
     // act
     const result = await createFeatureFinder(mockCommandExecutor).getAvailableDbt();
@@ -91,16 +88,14 @@ describe('FeatureFinder', () => {
 
   it('getAvailableDbt should return all information about all available commands', async () => {
     // arrange
-    when(mockCommandExecutor.execute(deepEqual(RPC_WITH_PYTHON))).thenReturn(VERSION_COMMAND_RESULT);
     when(mockCommandExecutor.execute(deepEqual(DBT_WITH_PYTHON))).thenReturn(VERSION_COMMAND_RESULT);
-    when(mockCommandExecutor.execute(deepEqual(RPC_GLOBAL))).thenReturn(VERSION_COMMAND_RESULT);
     when(mockCommandExecutor.execute(deepEqual(DBT_GLOBAL))).thenReturn(VERSION_COMMAND_RESULT);
 
     // act
     const result = await createFeatureFinder(mockCommandExecutor).getAvailableDbt();
 
     // assert
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 2; i++) {
       assertVersion(result[i], { major: 1, minor: 1, patch: 1 }, { major: 1, minor: 1, patch: 1 }, [
         { name: 'databricks', version: { major: 1, minor: 1, patch: 1 } },
         { name: 'bigquery', version: { major: 1, minor: 1, patch: 1 } },

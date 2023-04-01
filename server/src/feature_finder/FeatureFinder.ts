@@ -3,9 +3,7 @@ import { promises as fsPromises } from 'node:fs';
 import * as semver from 'semver';
 import * as yaml from 'yaml';
 import { DbtRepository } from '../DbtRepository';
-import { InstallUtils } from '../InstallUtils';
 import { ProcessExecutor } from '../ProcessExecutor';
-import { Command } from '../dbt_execution/commands/Command';
 import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor';
 import { Lazy } from '../utils/Lazy';
 import { getAxios, randomNumber } from '../utils/Utils';
@@ -46,12 +44,6 @@ export class FeatureFinder extends FeatureFinderBase {
 
   runPostInitTasks(): Promise<unknown> {
     return this.packageInfosPromise.get();
-  }
-
-  getPythonVersion(): [number, number] | undefined {
-    return this.pythonInfo?.version && this.pythonInfo.version.length >= 2
-      ? [Number(this.pythonInfo.version[0]), Number(this.pythonInfo.version[1])]
-      : undefined;
   }
 
   async packagesYmlExists(): Promise<boolean> {
@@ -145,49 +137,12 @@ export class FeatureFinder extends FeatureFinderBase {
   }
 
   async getAvailableDbt(): Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]> {
-    const settledResults = await Promise.allSettled([
-      this.findDbtRpcPythonInfo(),
-      this.findDbtPythonInfo(),
-      this.findDbtRpcGlobalInfo(),
-      this.findDbtGlobalInfo(),
-    ]);
-    const [dbtRpcPythonVersion, dbtPythonVersion, dbtRpcGlobalVersion, dbtGlobalVersion] = settledResults.map(v =>
-      v.status === 'fulfilled' ? v.value : undefined,
-    );
+    const settledResults = await Promise.allSettled([this.findDbtPythonInfo(), this.findDbtGlobalInfo()]);
+    const [dbtPythonVersion, dbtGlobalVersion] = settledResults.map(v => (v.status === 'fulfilled' ? v.value : undefined));
 
-    console.log(
-      this.getLogString('dbtRpcGlobalVersion', dbtRpcGlobalVersion) +
-        this.getLogString('dbtPythonVersion', dbtPythonVersion) +
-        this.getLogString('dbtRpcPythonVersion', dbtRpcPythonVersion) +
-        this.getLogString('dbtGlobalVersion', dbtGlobalVersion),
-    );
+    console.log(this.getLogString('dbtPythonVersion', dbtPythonVersion) + this.getLogString('dbtGlobalVersion', dbtGlobalVersion));
 
-    return [dbtRpcPythonVersion, dbtPythonVersion, dbtRpcGlobalVersion, dbtGlobalVersion];
-  }
-
-  /** Tries to find a suitable command to start the server first in the current Python environment and then in the global scope.
-   * Installs dbt-rpc for dbt version > 1.0.0.
-   * @returns {Command} or `undefined` if nothing is found
-   */
-  async findDbtRpcCommand(dbtProfileType?: string): Promise<Command | undefined> {
-    const [dbtRpcPythonVersion, dbtPythonVersion, dbtRpcGlobalVersion] = await this.availableCommandsPromise;
-
-    if (dbtRpcPythonVersion?.installedVersion) {
-      this.versionInfo = dbtRpcPythonVersion;
-      return this.dbtCommandFactory.getDbtRpcRun();
-    }
-    if (dbtPythonVersion?.installedVersion) {
-      this.versionInfo = dbtPythonVersion;
-      return dbtPythonVersion.installedVersion.major >= 1
-        ? this.installAndFindCommandForV1(dbtProfileType)
-        : this.dbtCommandFactory.getLegacyDbtRpcRun();
-    }
-    if (dbtRpcGlobalVersion?.installedVersion) {
-      this.versionInfo = dbtRpcGlobalVersion;
-      return this.dbtCommandFactory.getGlobalDbtRpcRun();
-    }
-
-    return undefined;
+    return [dbtPythonVersion, dbtGlobalVersion];
   }
 
   async findInformationForCli(): Promise<string | undefined> {
@@ -207,20 +162,6 @@ export class FeatureFinder extends FeatureFinderBase {
 
   findFreePort(): Promise<number> {
     return findFreePortPmfy(randomNumber(1024, 65_535));
-  }
-
-  private async installAndFindCommandForV1(dbtProfileType?: string): Promise<Command | undefined> {
-    if (this.pythonInfo) {
-      const installResult = await InstallUtils.installLatestDbtRpc(this.pythonInfo.path, dbtProfileType);
-      if (installResult.isOk()) {
-        return this.dbtCommandFactory.getDbtRpcRun();
-      }
-    }
-    return undefined;
-  }
-
-  private async findDbtRpcGlobalInfo(): Promise<DbtVersionInfo | undefined> {
-    return this.findCommandInfo(this.dbtCommandFactory.getDbtRpcGlobalVersion());
   }
 
   private async findDbtGlobalInfo(): Promise<DbtVersionInfo | undefined> {

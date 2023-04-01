@@ -80,7 +80,7 @@ export class DbtLanguageClientManager {
     return this.clients.get(projectPath);
   }
 
-  /** We expect the dbt project folder to be the folder containing the dbt_project.yml file. This folder is used to run dbt-rpc. */
+  /** We expect the dbt project folder to be the folder containing the dbt_project.yml file. */
   async getOuterMostDbtProjectUri(fileUri: Uri): Promise<Uri | undefined> {
     const folder = workspace.getWorkspaceFolder(fileUri);
     if (!folder) {

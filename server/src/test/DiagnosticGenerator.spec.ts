@@ -43,7 +43,7 @@ describe('DiagnosticGenerator', () => {
   });
 
   it('Should return diagnostic for current file highlight first line', () => {
-    const message = 'RPC server failed to compile project';
+    const message = 'Failed to compile project';
     shouldReturnDbtDiagnostics(message, message, 0);
   });
 

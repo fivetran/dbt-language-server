@@ -3,7 +3,6 @@ import { DbtRepository } from './DbtRepository';
 import { LogLevel } from './Logger';
 import { Dbt } from './dbt_execution/Dbt';
 import { DbtCompileJob } from './dbt_execution/DbtCompileJob';
-import { DbtRpcCompileJob } from './dbt_execution/DbtRpcCompileJob';
 import { wait } from './utils/Utils';
 
 export class ModelCompiler {
@@ -68,12 +67,7 @@ export class ModelCompiler {
           }
 
           if (result.isErr()) {
-            if (result.error === DbtRpcCompileJob.JOB_IS_NOT_COMPLETED) {
-              // Don't fire any event and don't change preview result
-              console.log('Compilation did not complete correctly');
-            } else {
-              this.onCompilationErrorEmitter.fire(result.error);
-            }
+            this.onCompilationErrorEmitter.fire(result.error);
           } else {
             this.onCompilationFinishedEmitter.fire(result.value);
           }

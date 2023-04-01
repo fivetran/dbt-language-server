@@ -74,7 +74,7 @@ code --remote wsl+<distro name> <path in WSL>
 
      "extensions": ["Fivetran.dbt-language-server"],
 
-     "onCreateCommand": "pip install dbt-bigquery dbt-rpc",
+     "onCreateCommand": "pip install dbt-bigquery",
 
      "remoteUser": "vscode",
 

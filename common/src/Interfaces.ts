@@ -8,12 +8,10 @@ export interface PythonInfo {
   version?: string[];
 }
 
-export type DbtCompilerType = 'Auto' | 'dbt-rpc' | 'dbt';
 export type LspModeType = 'dbtProject' | 'noProject';
 
 export interface CustomInitParams {
   pythonInfo?: PythonInfo;
-  dbtCompiler: DbtCompilerType;
   lspMode: LspModeType;
   enableEntireProjectAnalysis: boolean;
   disableLogger?: boolean;

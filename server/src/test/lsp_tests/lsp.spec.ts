@@ -57,7 +57,6 @@ describe('lsp tests', () => {
     connection.listen();
 
     const initializationOptions: CustomInitParams = {
-      dbtCompiler: 'Auto',
       lspMode: 'dbtProject',
       enableEntireProjectAnalysis: true,
       disableLogger: true,
