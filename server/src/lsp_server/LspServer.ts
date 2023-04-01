@@ -219,11 +219,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
 
     const prepareDbt = this.dbt.prepare(dbtProfileType).then(_ => this.statusSender.sendStatus());
 
-    this.dbtRepository
-      .manifestParsed()
-      .then(() => this.notificationSender.sendLanguageServerManifestParsed())
-      .catch(e => console.log(`Manifest was not parsed: ${e instanceof Error ? e.message : String(e)}`));
-
     await Promise.allSettled([prepareDbt, destinationInitResult]);
 
     this.projectChangeListener
@@ -348,10 +343,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   }
 
   async onDidSaveTextDocument(params: DidSaveTextDocumentParams): Promise<void> {
-    if (!(await this.isLanguageServerReady())) {
-      return;
-    }
-
     const document = this.openedDocuments.get(params.textDocument.uri);
     await document?.didSaveTextDocument(true);
   }
@@ -361,10 +352,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     let document = this.openedDocuments.get(uri);
 
     if (!document) {
-      if (!(await this.isLanguageServerReady())) {
-        return;
-      }
-
       const dbtDocumentKind = this.dbtDocumentKindResolver.getDbtDocumentKind(uri);
       if (![DbtDocumentKind.MACRO, DbtDocumentKind.MODEL].includes(dbtDocumentKind)) {
         console.log('Not supported dbt document kind');
@@ -394,20 +381,8 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     }
   }
 
-  async onDidChangeTextDocument(params: DidChangeTextDocumentParams): Promise<void> {
-    if (!(await this.isLanguageServerReady())) {
-      return;
-    }
+  onDidChangeTextDocument(params: DidChangeTextDocumentParams): void {
     this.openedDocuments.get(params.textDocument.uri)?.didChangeTextDocument(params);
-  }
-
-  async isLanguageServerReady(): Promise<boolean> {
-    try {
-      await this.dbtRepository.manifestParsed();
-      return true;
-    } catch {
-      return false;
-    }
   }
 
   onHover(hoverParams: HoverParams): Hover | null | undefined {

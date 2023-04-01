@@ -83,6 +83,11 @@ function createLspServerForProject(
   const dbtProject = new DbtProject('.');
   const manifestParser = new ManifestParser();
   const dbtRepository = new DbtRepository(workspaceFolder, featureFinder.getGlobalProjectPath());
+  dbtRepository
+    .manifestParsed()
+    .then(() => notificationSender.sendLanguageServerManifestParsed())
+    .catch(e => console.log(`Manifest was not parsed: ${e instanceof Error ? e.message : String(e)}`));
+
   const fileChangeListener = new FileChangeListener(dbtProject, manifestParser, dbtRepository);
   const dbtProfileCreator = new DbtProfileCreator(dbtProject, featureFinder.getProfilesYmlPath());
   const statusSender = new DbtProjectStatusSender(notificationSender, dbtRepository, featureFinder, fileChangeListener);
