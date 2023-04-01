@@ -30,7 +30,7 @@ export class DbtCli extends Dbt {
   }> {
     const parameters = ['--no-anonymous-usage-stats', '--no-use-colors', 'compile'];
     if (modelName) {
-      parameters.push('-m', slash(modelName));
+      parameters.push('-m', `+${slash(modelName)}`);
     }
     const compileCliCommand = new DbtCommand(this.featureFinder.profilesYmlDir, parameters, this.pythonPathForCli);
     return DbtCli.DBT_COMMAND_EXECUTOR.execute(compileCliCommand);
