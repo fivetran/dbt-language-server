@@ -86,19 +86,19 @@ jobs:
       fail-fast: false
       matrix:
         include: # Run tests on latest version and version used in https://github.com/fivetran/analytics/blob/main/dbt_ft_prod/dbt_project.yml#L9 (require-dbt-version)
-          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install pytz dbt-bigquery==1.3.0 dbt-snowflake==1.3.0 dbt-postgres==1.3.0'
+          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery==1.3.0 dbt-snowflake==1.3.0 dbt-postgres==1.3.0'
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
             python-version: '3.9.12'
 
-          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install pytz dbt-bigquery dbt-snowflake dbt-postgres'
+          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-snowflake dbt-postgres'
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
             python-version: '3.10.7'
 
-          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install pytz dbt-bigquery dbt-snowflake dbt-postgres'
+          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-snowflake dbt-postgres'
             os: ubuntu-latest
             target: linux-x64
             prepare-for-tests: |
@@ -108,7 +108,7 @@ jobs:
             python-version: '3.10.7'
             SKIP_TESTS: 'vscode_commands.spec.js'
 
-          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install pytz dbt-bigquery dbt-snowflake dbt-postgres'
+          - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-snowflake dbt-postgres'
             os: windows-latest
             target: win32-x64
             add-colon-to-key-file-path: |
@@ -178,7 +178,7 @@ jobs:
         run: | # https://github.com/dbt-labs/dbt-core/issues/4745
           ${PYTHON_INSTALL_LOC} -m venv ~/dbt_1_2_2_env
           ${{ matrix.activate-venv }}
-          python -m pip install pytz dbt-core==1.2.2 dbt-bigquery==1.2.0
+          python -m pip install dbt-core==1.2.2 dbt-bigquery==1.2.0
           python -m pip list | grep dbt
           dbt --version
         env:
