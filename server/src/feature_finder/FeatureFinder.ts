@@ -29,7 +29,7 @@ export class FeatureFinder extends FeatureFinderBase {
     return FeatureFinder.WSL_UBUNTU_DEFAULT_NAME;
   }
 
-  availableCommandsPromise: Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]>;
+  availableCommandsPromise: Promise<[DbtVersionInfo?, DbtVersionInfo?]>;
   packagesYmlExistsPromise: Promise<boolean>;
   packageInfosPromise = new Lazy(() => this.getListOfPackages());
   ubuntuInWslWorks: Promise<boolean>;
@@ -136,7 +136,7 @@ export class FeatureFinder extends FeatureFinderBase {
     return undefined;
   }
 
-  async getAvailableDbt(): Promise<[DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?, DbtVersionInfo?]> {
+  async getAvailableDbt(): Promise<[DbtVersionInfo?, DbtVersionInfo?]> {
     const settledResults = await Promise.allSettled([this.findDbtPythonInfo(), this.findDbtGlobalInfo()]);
     const [dbtPythonVersion, dbtGlobalVersion] = settledResults.map(v => (v.status === 'fulfilled' ? v.value : undefined));
 
@@ -146,7 +146,7 @@ export class FeatureFinder extends FeatureFinderBase {
   }
 
   async findInformationForCli(): Promise<string | undefined> {
-    const [, dbtPythonVersion, , dbtGlobalVersion] = await this.availableCommandsPromise;
+    const [dbtPythonVersion, dbtGlobalVersion] = await this.availableCommandsPromise;
 
     if (dbtPythonVersion?.installedVersion) {
       this.versionInfo = dbtPythonVersion;
