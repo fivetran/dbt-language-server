@@ -12,7 +12,7 @@ Note: Turning on [Auto Save](https://code.visualstudio.com/docs/editor/codebasic
   - [Query preview](#query-preview)
   - [SQL to ref conversion](#sql-to-ref-conversion)
   - [Error highlighting (BQ only)](#error-highlighting)
-  - [Auto-completion of columns, tables, and refs](#auto-completion-of-columns-tables-and-refs)
+  - [Auto-completion of columns, tables, and refs (BQ only)](#auto-completion-of-columns-tables-and-refs)
   - [Function signature help (BQ only)](#function-signature-help)
   - [Go to Definition](#go-to-definition)
   - [dbt status](#dbt-status)
