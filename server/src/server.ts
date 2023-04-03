@@ -1,4 +1,4 @@
-import { CustomInitParams, DbtCompilerType, NO_PROJECT_PATH } from 'dbt-language-server-common';
+import { CustomInitParams, NO_PROJECT_PATH } from 'dbt-language-server-common';
 import * as sourceMapSupport from 'source-map-support';
 import { InitializeError, InitializeParams, InitializeResult, ProposedFeatures, ResponseError, createConnection } from 'vscode-languageserver/node';
 import { URI } from 'vscode-uri';
@@ -16,9 +16,7 @@ import { NotificationSender } from './NotificationSender';
 import { ProjectChangeListener } from './ProjectChangeListener';
 import { ProjectProgressReporter } from './ProjectProgressReporter';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
-import { Dbt, DbtMode } from './dbt_execution/Dbt';
 import { DbtCli } from './dbt_execution/DbtCli';
-import { DbtRpc } from './dbt_execution/DbtRpc';
 import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
 import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
 import { SqlDefinitionProvider } from './definition/SqlDefinitionProvider';
@@ -45,7 +43,6 @@ const customInitParamsSchema = z.object({
       version: z.optional(z.array(z.string())),
     }),
   ),
-  dbtCompiler: z.union([z.literal('Auto'), z.literal('dbt-rpc'), z.literal('dbt')]),
   lspMode: z.union([z.literal('dbtProject'), z.literal('noProject')]),
   enableEntireProjectAnalysis: z.boolean(),
   disableLogger: z.optional(z.boolean()),
@@ -83,10 +80,15 @@ function createLspServerForProject(
   const dbtProject = new DbtProject('.');
   const manifestParser = new ManifestParser();
   const dbtRepository = new DbtRepository(workspaceFolder, featureFinder.getGlobalProjectPath());
-  const fileChangeListener = new FileChangeListener(workspaceFolder, dbtProject, manifestParser, dbtRepository);
+  dbtRepository
+    .manifestParsed()
+    .then(() => notificationSender.sendLanguageServerManifestParsed())
+    .catch(e => console.log(`Manifest was not parsed: ${e instanceof Error ? e.message : String(e)}`));
+
+  const fileChangeListener = new FileChangeListener(dbtProject, manifestParser, dbtRepository);
   const dbtProfileCreator = new DbtProfileCreator(dbtProject, featureFinder.getProfilesYmlPath());
-  const statusSender = new DbtProjectStatusSender(notificationSender, workspaceFolder, featureFinder, fileChangeListener);
-  const dbt = createDbt(customInitParams.dbtCompiler, featureFinder, modelProgressReporter, fileChangeListener, notificationSender);
+  const statusSender = new DbtProjectStatusSender(notificationSender, dbtRepository, featureFinder, fileChangeListener);
+  const dbt = new DbtCli(featureFinder, connection, modelProgressReporter, notificationSender);
   const dbtDocumentKindResolver = new DbtDocumentKindResolver(dbtRepository);
   const diagnosticGenerator = new DiagnosticGenerator(dbtRepository);
   const dbtDefinitionProvider = new DbtDefinitionProvider(dbtRepository);
@@ -112,7 +114,6 @@ function createLspServerForProject(
     connection,
     notificationSender,
     featureFinder,
-    workspaceFolder,
     dbt,
     modelProgressReporter,
     dbtProject,
@@ -130,46 +131,6 @@ function createLspServerForProject(
     openedDocuments,
     projectChangeListener,
   );
-}
-
-function createDbt(
-  dbtCompiler: DbtCompilerType,
-  featureFinder: FeatureFinder,
-  modelProgressReporter: ModelProgressReporter,
-  fileChangeListener: FileChangeListener,
-  notificationSender: NotificationSender,
-): Dbt {
-  const dbtMode = getDbtMode(dbtCompiler, featureFinder);
-  console.log(`ModelCompiler mode: ${DbtMode[dbtMode]}.`);
-
-  return dbtMode === DbtMode.DBT_RPC
-    ? new DbtRpc(featureFinder, connection, modelProgressReporter, fileChangeListener, notificationSender)
-    : new DbtCli(featureFinder, connection, modelProgressReporter, notificationSender);
-}
-
-function getDbtMode(dbtCompiler: DbtCompilerType, featureFinder: FeatureFinder): DbtMode {
-  switch (dbtCompiler) {
-    case 'Auto': {
-      if (process.platform === 'win32') {
-        return DbtMode.CLI;
-      }
-      const pythonVersion = featureFinder.getPythonVersion();
-      // https://github.com/dbt-labs/dbt-rpc/issues/85
-      if (pythonVersion !== undefined && pythonVersion[0] >= 3 && pythonVersion[1] >= 10) {
-        return DbtMode.CLI;
-      }
-      return process.env['USE_DBT_RPC'] === 'true' ? DbtMode.DBT_RPC : DbtMode.CLI;
-    }
-    case 'dbt-rpc': {
-      return DbtMode.DBT_RPC;
-    }
-    case 'dbt': {
-      return DbtMode.CLI;
-    }
-    default: {
-      return DbtMode.CLI;
-    }
-  }
 }
 
 connection.listen();

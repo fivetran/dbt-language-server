@@ -1,3 +1,4 @@
+import { Result, err, ok } from 'neverthrow';
 import { _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { ModelProgressReporter } from '../ModelProgressReporter';
@@ -27,9 +28,9 @@ export class DbtCli extends Dbt {
     stdout: string;
     stderr: string;
   }> {
-    const parameters = ['compile'];
+    const parameters = ['--no-anonymous-usage-stats', '--no-use-colors', 'compile'];
     if (modelName) {
-      parameters.push('-m', slash(modelName));
+      parameters.push('-m', `+${slash(modelName)}`);
     }
     const compileCliCommand = new DbtCommand(this.featureFinder.profilesYmlDir, parameters, this.pythonPathForCli);
     return DbtCli.DBT_COMMAND_EXECUTOR.execute(compileCliCommand);
@@ -43,10 +44,10 @@ export class DbtCli extends Dbt {
         if (dbtProfileType && this.featureFinder.pythonInfo) {
           await this.suggestToInstallDbt(this.featureFinder.pythonInfo.path, dbtProfileType);
         } else {
-          this.onRpcServerFindFailed();
+          this.onDbtFindFailed();
         }
       } catch {
-        this.onRpcServerFindFailed();
+        this.onDbtFindFailed();
       }
     }
   }
@@ -55,16 +56,18 @@ export class DbtCli extends Dbt {
     return new DbtCliCompileJob(modelPath, dbtRepository, allowFallback, this);
   }
 
-  async compileProject(dbtRepository: DbtRepository): Promise<void> {
+  async compileProject(dbtRepository: DbtRepository): Promise<Result<void, string>> {
     const job = this.createCompileJob(undefined, dbtRepository, true);
     console.log('Starting project compilation');
     const result = await job.start();
 
     if (result.isOk()) {
       console.log('Project compiled successfully');
-    } else {
-      console.log(`There was an error while project compilation ${result.error}`);
+      return ok(undefined);
     }
+
+    console.log(`There was an error while project compilation ${result.error}`);
+    return err(result.error);
   }
 
   async deps(): Promise<void> {

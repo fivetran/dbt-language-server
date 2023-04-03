@@ -32,10 +32,6 @@ export class FeatureFinderBase {
     return this.pythonInfo?.path;
   }
 
-  protected async findDbtRpcPythonInfo(): Promise<DbtVersionInfo | undefined> {
-    return this.findCommandPythonInfo(this.dbtCommandFactory.getDbtRpcWithPythonVersion());
-  }
-
   protected async findDbtPythonInfo(): Promise<DbtVersionInfo | undefined> {
     return this.findCommandPythonInfo(this.dbtCommandFactory.getDbtWithPythonVersion());
   }

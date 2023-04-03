@@ -1,4 +1,3 @@
-import * as path from 'node:path';
 import {
   CompletionItem,
   CompletionParams,
@@ -7,7 +6,6 @@ import {
   Diagnostic,
   DiagnosticSeverity,
   DidChangeTextDocumentParams,
-  Emitter,
   Hover,
   HoverParams,
   Range,
@@ -68,7 +66,6 @@ export class DbtTextDocument {
   completionProvider: CompletionProvider;
   queryInformation?: QueryParseInformation;
 
-  currentDbtError?: string;
   firstSave = true;
 
   rawDocDiagnostics: Diagnostic[] = [];
@@ -77,12 +74,10 @@ export class DbtTextDocument {
   constructor(
     doc: TextDocumentItem,
     private dbtDocumentKind: DbtDocumentKind,
-    private workspaceFolder: string,
     private notificationSender: NotificationSender,
     private modelProgressReporter: ModelProgressReporter,
     private modelCompiler: ModelCompiler,
     private jinjaParser: JinjaParser,
-    private onGlobalDbtErrorFixedEmitter: Emitter<void>,
     private dbtRepository: DbtRepository,
     private dbt: Dbt,
     private destinationContext: DestinationContext,
@@ -107,7 +102,6 @@ export class DbtTextDocument {
     this.modelCompiler.onCompilationError(this.onCompilationError.bind(this));
     this.modelCompiler.onCompilationFinished(this.onCompilationFinished.bind(this));
     this.modelCompiler.onFinishAllCompilationJobs(this.onFinishAllCompilationTasks.bind(this));
-    this.onGlobalDbtErrorFixedEmitter.event(this.onDbtErrorFixed.bind(this));
 
     this.destinationContext.onContextInitialized(this.onContextInitialized.bind(this));
     this.dbt.onDbtReady(this.onDbtReady.bind(this));
@@ -127,17 +121,14 @@ export class DbtTextDocument {
     this.firstSave = false;
   }
 
-  async didSaveTextDocument(refresh: boolean): Promise<void> {
+  async didSaveTextDocument(): Promise<void> {
     if (this.requireCompileOnSave) {
       if (this.dbt.dbtReady) {
         this.requireCompileOnSave = false;
-        if (refresh) {
-          this.dbt.refresh();
-        }
         this.debouncedCompile();
       }
-    } else if (this.currentDbtError) {
-      await this.onCompilationError(this.currentDbtError);
+    } else if (this.projectChangeListener.currentDbtError) {
+      await this.onCompilationError(this.projectChangeListener.currentDbtError.error);
     } else {
       await this.onCompilationFinished(this.compiledDocument.getText());
     }
@@ -153,7 +144,7 @@ export class DbtTextDocument {
         },
       ],
     });
-    await this.didSaveTextDocument(false);
+    await this.didSaveTextDocument();
   }
 
   didChangeTextDocument(params: DidChangeTextDocumentParams): void {
@@ -193,7 +184,7 @@ export class DbtTextDocument {
   }
 
   async onDbtReady(): Promise<void> {
-    await this.didSaveTextDocument(true);
+    await this.didSaveTextDocument();
   }
 
   isDbtCompileNeeded(changes: TextDocumentContentChangeEvent[]): boolean {
@@ -238,7 +229,7 @@ export class DbtTextDocument {
     return (
       this.destinationContext.contextInitialized &&
       this.dbt.dbtReady &&
-      !this.currentDbtError &&
+      !this.projectChangeListener.currentDbtError &&
       !this.modelCompiler.compilationInProgress &&
       this.compiledDocument.getText() !== this.rawDocument.getText()
     );
@@ -254,37 +245,16 @@ export class DbtTextDocument {
   }
 
   getModelPathOrFullyQualifiedName(): string {
-    return getModelPathOrFullyQualifiedName(this.rawDocument.uri, this.workspaceFolder, this.dbtRepository);
+    return getModelPathOrFullyQualifiedName(this.rawDocument.uri, this.dbtRepository.projectPath, this.dbtRepository);
   }
 
   async onCompilationError(dbtCompilationError: string): Promise<void> {
     console.log(`dbt compilation error: ${dbtCompilationError}`);
-    this.currentDbtError = dbtCompilationError;
     TextDocument.update(this.compiledDocument, [{ text: this.rawDocument.getText() }], this.compiledDocument.version);
-
     await this.updateAndSendDiagnosticsAndPreview(dbtCompilationError);
   }
 
-  onDbtErrorFixed(): void {
-    if (this.currentDbtError) {
-      this.currentDbtError = undefined;
-      this.rawDocDiagnostics = [];
-      this.compiledDocDiagnostics = [];
-      this.sendDiagnostics();
-      this.requireCompileOnSave = true;
-    }
-  }
-
-  fixGlobalDbtError(): void {
-    if (this.currentDbtError) {
-      this.currentDbtError = undefined;
-      this.onGlobalDbtErrorFixedEmitter.fire();
-    }
-  }
-
   async onCompilationFinished(compiledSql: string): Promise<void> {
-    this.fixGlobalDbtError();
-
     TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
     if (this.destinationContext.contextInitialized) {
       await this.updateAndSendDiagnosticsAndPreview();
@@ -307,23 +277,14 @@ export class DbtTextDocument {
   }
 
   async updateDiagnostics(dbtCompilationError?: string): Promise<void> {
+    this.projectChangeListener.setDbtError(this.rawDocument.uri, dbtCompilationError);
+
     if (dbtCompilationError) {
-      const diagnosticsInfo = this.diagnosticGenerator.getDbtErrorDiagnostics(
-        dbtCompilationError,
-        this.getModelPathOrFullyQualifiedName(),
-        this.workspaceFolder,
-      );
-      const otherFileUri = diagnosticsInfo[1];
-      this.rawDocDiagnostics = this.compiledDocDiagnostics = otherFileUri === undefined ? diagnosticsInfo[0] : [];
-      if (otherFileUri !== undefined) {
-        const diagnostics = diagnosticsInfo[0];
-        this.notificationSender.sendDiagnostics(otherFileUri, diagnostics, diagnostics);
-      }
+      this.rawDocDiagnostics = this.compiledDocDiagnostics = [];
     } else {
       [this.rawDocDiagnostics, this.compiledDocDiagnostics] = await this.createDiagnostics(this.compiledDocument.getText());
+      this.sendDiagnostics();
     }
-
-    this.sendDiagnostics();
   }
 
   async createDiagnostics(compiledSql: string): Promise<[Diagnostic[], Diagnostic[]]> {
@@ -441,13 +402,6 @@ export class DbtTextDocument {
   }
 
   dispose(): void {
-    const { uri } = this.rawDocument;
-    const fileName = uri.slice(uri.lastIndexOf(path.sep));
-
-    if (this.currentDbtError?.includes(fileName)) {
-      this.fixGlobalDbtError();
-    }
-
     this.notificationSender.clearDiagnostics(this.rawDocument.uri);
   }
 }

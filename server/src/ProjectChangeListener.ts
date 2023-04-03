@@ -11,11 +11,18 @@ import { ProjectProgressReporter } from './ProjectProgressReporter';
 import { Dbt } from './dbt_execution/Dbt';
 import { DbtTextDocument } from './document/DbtTextDocument';
 import { debounce } from './utils/Utils';
+import path = require('node:path');
+
+interface CurrentDbtError {
+  uri: string;
+  error: string;
+}
 
 export class ProjectChangeListener {
   private static PROJECT_COMPILE_DEBOUNCE_TIMEOUT = 1000;
 
   private analysisInProgress = false;
+  currentDbtError?: CurrentDbtError;
 
   constructor(
     private openedDocuments: Map<string, DbtTextDocument>,
@@ -49,14 +56,37 @@ export class ProjectChangeListener {
         this.notificationSender.clearAllDiagnostics();
       }
 
-      this.dbt.refresh();
-      await this.dbt.compileProject(this.dbtRepository);
-      this.fileChangeListener.updateManifestNodes();
-      await this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
+      const compileResult = await this.dbt.compileProject(this.dbtRepository);
+      if (compileResult.isOk()) {
+        this.fileChangeListener.updateManifestNodes();
+        await this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
+      } else {
+        this.setDbtError(this.getAnyDbtProjectYmlUri(), compileResult.error);
+      }
     } finally {
       this.projectProgressReporter.sendAnalyzeEnd();
       this.analysisInProgress = false;
     }
+  }
+
+  setDbtError(activeDocumentUri: string, error: string | undefined): void {
+    if (error) {
+      const diagnosticsInfo = this.diagnosticGenerator.getDbtErrorDiagnostics(error);
+
+      const newUri = diagnosticsInfo[1] ?? activeDocumentUri;
+      if (this.currentDbtError && newUri !== this.currentDbtError.uri) {
+        this.notificationSender.clearDiagnostics(this.currentDbtError.uri);
+      }
+      this.currentDbtError = { uri: newUri, error };
+      this.notificationSender.sendDiagnostics(this.currentDbtError.uri, diagnosticsInfo[0], []);
+    } else if (this.currentDbtError) {
+      this.notificationSender.clearDiagnostics(this.currentDbtError.uri);
+      this.currentDbtError = undefined;
+    }
+  }
+
+  getAnyDbtProjectYmlUri(): string {
+    return URI.file(path.join(this.dbtRepository.projectPath, 'dbt_project.yml')).toString();
   }
 
   forceCompileAndAnalyzeProject(): void {

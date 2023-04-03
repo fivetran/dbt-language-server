@@ -20,6 +20,8 @@ export class DiagnosticGenerator {
   private static readonly DBT_COMPILATION_ERROR_PATTERN = /(Compilation Error in model \w+ \((.*)\)(?:\r\n?|\n).*)(?:\r\n?|\n)/;
   private static readonly SQL_COMPILATION_ERROR_PATTERN = /(.*?) \[at (\d+):(\d+)\]/;
 
+  private static readonly AUTH_ERROR = 'Reauthentication is needed. Please run `gcloud auth login --update-adc` to reauthenticate.';
+
   static readonly DIAGNOSTIC_SOURCE = 'Wizard for dbt Core (TM)';
   static readonly DBT_ERROR_HIGHLIGHT_LAST_CHAR = 100;
 
@@ -27,25 +29,26 @@ export class DiagnosticGenerator {
 
   constructor(private dbtRepository: DbtRepository) {}
 
-  getDbtErrorDiagnostics(dbtCompilationError: string, currentModelPath: string, workspaceFolder: string): [Diagnostic[], string | undefined] {
+  getDbtErrorDiagnostics(dbtCompilationError: string): [Diagnostic[], string | undefined] {
     let errorLine = 0;
     const lineMatch = dbtCompilationError.match(DiagnosticGenerator.DBT_ERROR_LINE_PATTERN);
     if (lineMatch && lineMatch.length > 1) {
       errorLine = Number(lineMatch[1]) - 1;
     }
+    const message = dbtCompilationError.includes(DiagnosticGenerator.AUTH_ERROR) ? DiagnosticGenerator.AUTH_ERROR : dbtCompilationError;
 
-    const otherFileUri = this.getOtherFileUri(dbtCompilationError, currentModelPath, workspaceFolder);
+    const fileUri = this.getFileUri(dbtCompilationError);
 
     return [
       [
         {
           severity: DiagnosticSeverity.Error,
           range: this.getDbtErrorRange(errorLine),
-          message: dbtCompilationError,
+          message,
           source: DiagnosticGenerator.DIAGNOSTIC_SOURCE,
         },
       ],
-      otherFileUri,
+      fileUri,
     ];
   }
 
@@ -115,13 +118,11 @@ export class DiagnosticGenerator {
     };
   }
 
-  private getOtherFileUri(dbtCompilationError: string, currentModelPath: string, workspaceFolder: string): string | undefined {
-    if (!dbtCompilationError.includes(currentModelPath)) {
-      const match = dbtCompilationError.match(DiagnosticGenerator.DBT_COMPILATION_ERROR_PATTERN);
-      if (match && match.length > 2) {
-        const modelPath = match[2];
-        return URI.file(path.join(workspaceFolder, modelPath)).toString();
-      }
+  private getFileUri(dbtCompilationError: string): string | undefined {
+    const match = dbtCompilationError.match(DiagnosticGenerator.DBT_COMPILATION_ERROR_PATTERN);
+    if (match && match.length > 2) {
+      const modelPath = match[2];
+      return URI.file(path.join(this.dbtRepository.projectPath, modelPath)).toString();
     }
     return undefined;
   }

@@ -2,7 +2,7 @@ import { assertThat } from 'hamjest';
 import { EOL } from 'node:os';
 import { DiagnosticSeverity, Position, Range } from 'vscode';
 import { assertAllDiagnostics, assertDiagnostics } from './asserts';
-import { activateAndWait, appendText, createAndOpenTempModel, getDocUri, getPreviewText, replaceText, setTestContent } from './helper';
+import { activateAndWait, appendText, createAndOpenTempModel, getDocUri, getPreviewText, replaceText, setTestContent, sleep } from './helper';
 
 suite('User defined function', () => {
   const FOO_NOT_FOUND = 'Function not found: Foo';
@@ -63,6 +63,7 @@ FROM
 
     await replaceText('x sting, y INT64', 'x string, y INT64, arr ARRAY<string>, s STRUCT<headers STRING, body STRING>', false);
     await replaceText('AS val;', 'AS val; --'); // To change preview content
+    await sleep(400);
     await assertAllDiagnostics(
       uri,
       [

@@ -10,10 +10,10 @@
       "runtimeExecutable": "${execPath}",
       "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
       "autoAttachChildProcesses": true,
+      "smartStep": true,
       "env": {
         "DBT_LS_DISABLE_TELEMETRY": "true",
         "DBT_LS_ENABLE_DEBUG_LOGS": "true"
-        // "USE_DBT_RPC": "true"
         // "DBT_LS_POST_REQUEST_TIMEOUT": "20000"
         // "NODE_OPTIONS": "--unhandled-rejections=warn"
         // "NODE_OPTIONS": "--trace-warnings"
@@ -31,6 +31,7 @@
       "request": "attach",
       "port": 6009,
       "restart": true,
+      "smartStep": true,
       "timeout": 30000,
       "skipFiles": ["<node_internals>/**"],
       "outFiles": ["${workspaceFolder}/server/out/**/*.js"]
@@ -41,6 +42,7 @@
       "request": "attach",
       "port": 6010,
       "restart": true,
+      "smartStep": true,
       "skipFiles": ["<node_internals>/**"],
       "outFiles": ["${workspaceFolder}/server/out/**/*.js"]
     },
@@ -74,6 +76,8 @@
       "request": "launch",
       "preLaunchTask": "prepare_e2e",
       "runtimeExecutable": "${execPath}",
+      "autoAttachChildProcesses": true,
+      "smartStep": true,
       "args": [
         // "--extensionDevelopmentPath=${workspaceFolder}/e2e-tests/extension",
         "--extensionDevelopmentPath=${workspaceFolder}",
@@ -85,7 +89,10 @@
         "CLI_PATH": "code",
         "LOCAL_RUN": "true"
       },
-      "outFiles": ["${workspaceRoot}/client/out/test/**/*.js"]
+      "outFiles": [
+        "${workspaceFolder}/client/out/**/*.js",
+        "${workspaceFolder}/e2e/out/**/*.js"
+      ]
     },
     {
       "name": "dbt_ft Tests Client",
@@ -110,11 +117,13 @@
   "compounds": [
     {
       "name": "Client + Server",
-      "configurations": ["Launch Client", "Attach to Server"]
+      "configurations": ["Launch Client", "Attach to Server"],
+      "stopAll": true
     },
     {
       "name": "E2E Tests Client + Server",
-      "configurations": ["E2E Tests Client", "Attach to Server"]
+      "configurations": ["E2E Tests Client", "Attach to Server"],
+      "stopAll": true
     }
   ]
 }

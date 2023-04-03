@@ -13,7 +13,6 @@ import {
   Command,
   CompletionItem,
   CompletionParams,
-  CreateFilesParams,
   DefinitionLink,
   DefinitionParams,
   DeleteFilesParams,
@@ -26,7 +25,6 @@ import {
   DidOpenTextDocumentParams,
   DidRenameFilesNotification,
   DidSaveTextDocumentParams,
-  Emitter,
   ExecuteCommandParams,
   Hover,
   HoverParams,
@@ -78,13 +76,11 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   hasConfigurationCapability = false;
   hasDidChangeWatchedFilesCapability = false;
   initStart = performance.now();
-  onGlobalDbtErrorFixedEmitter = new Emitter<void>();
 
   constructor(
     connection: _Connection,
     notificationSender: NotificationSender,
     featureFinder: FeatureFinder,
-    private workspaceFolder: string,
     private dbt: Dbt,
     private modelProgressReporter: ModelProgressReporter,
     private dbtProject: DbtProject,
@@ -103,11 +99,11 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     private projectChangeListener: ProjectChangeListener,
   ) {
     super(connection, notificationSender, featureFinder);
-    this.filesFilter = [{ scheme: 'file', pattern: { glob: `${workspaceFolder}/**/*`, matches: 'file' } }];
+    this.filesFilter = [{ scheme: 'file', pattern: { glob: `${dbtRepository.projectPath}/**/*`, matches: 'file' } }];
   }
 
   onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> {
-    console.log(`Starting server for folder ${this.workspaceFolder}.`);
+    console.log(`Starting server for folder ${this.dbtRepository.projectPath}.`);
 
     this.initializeEvents();
 
@@ -173,7 +169,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
 
     this.connection.onShutdown(() => this.onShutdown('Client'));
 
-    this.connection.workspace.onDidCreateFiles(this.onDidCreateFiles.bind(this));
     this.connection.workspace.onDidRenameFiles(this.onDidRenameFiles.bind(this));
     this.connection.workspace.onDidDeleteFiles(this.onDidDeleteFiles.bind(this));
   }
@@ -221,11 +216,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       : Promise.resolve();
 
     const prepareDbt = this.dbt.prepare(dbtProfileType).then(_ => this.statusSender.sendStatus());
-
-    this.dbtRepository
-      .manifestParsed()
-      .then(() => this.notificationSender.sendLanguageServerManifestParsed())
-      .catch(e => console.log(`Manifest was not parsed: ${e instanceof Error ? e.message : String(e)}`));
 
     await Promise.allSettled([prepareDbt, destinationInitResult]);
 
@@ -351,12 +341,8 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   }
 
   async onDidSaveTextDocument(params: DidSaveTextDocumentParams): Promise<void> {
-    if (!(await this.isLanguageServerReady())) {
-      return;
-    }
-
     const document = this.openedDocuments.get(params.textDocument.uri);
-    await document?.didSaveTextDocument(true);
+    await document?.didSaveTextDocument();
   }
 
   async onDidOpenTextDocument(params: DidOpenTextDocumentParams): Promise<void> {
@@ -364,11 +350,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     let document = this.openedDocuments.get(uri);
 
     if (!document) {
-      if (!(await this.isLanguageServerReady())) {
-        return;
-      }
-
-      const dbtDocumentKind = this.dbtDocumentKindResolver.getDbtDocumentKind(this.workspaceFolder, uri);
+      const dbtDocumentKind = this.dbtDocumentKindResolver.getDbtDocumentKind(uri);
       if (![DbtDocumentKind.MACRO, DbtDocumentKind.MODEL].includes(dbtDocumentKind)) {
         console.log('Not supported dbt document kind');
         return;
@@ -377,12 +359,10 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       document = new DbtTextDocument(
         params.textDocument,
         dbtDocumentKind,
-        this.workspaceFolder,
         this.notificationSender,
         this.modelProgressReporter,
         new ModelCompiler(this.dbt, this.dbtRepository),
         new JinjaParser(),
-        this.onGlobalDbtErrorFixedEmitter,
         this.dbtRepository,
         this.dbt,
         this.destinationContext,
@@ -399,20 +379,8 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     }
   }
 
-  async onDidChangeTextDocument(params: DidChangeTextDocumentParams): Promise<void> {
-    if (!(await this.isLanguageServerReady())) {
-      return;
-    }
+  onDidChangeTextDocument(params: DidChangeTextDocumentParams): void {
     this.openedDocuments.get(params.textDocument.uri)?.didChangeTextDocument(params);
-  }
-
-  async isLanguageServerReady(): Promise<boolean> {
-    try {
-      await this.dbtRepository.manifestParsed();
-      return true;
-    } catch {
-      return false;
-    }
   }
 
   onHover(hoverParams: HoverParams): Hover | null | undefined {
@@ -471,15 +439,9 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     this.dbt.deps().catch(e => console.log(`Error while running dbt deps: ${e instanceof Error ? e.message : String(e)}`));
   }
 
-  onDidCreateFiles(_params: CreateFilesParams): void {
-    this.dbt.refresh();
-  }
-
   onDidRenameFiles(params: RenameFilesParams): void {
-    this.dbt.refresh();
-
     for (const document of this.openedDocuments.values()) {
-      if (document.currentDbtError) {
+      if (this.projectChangeListener.currentDbtError) {
         document.forceRecompile();
         return;
       }
@@ -489,7 +451,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   }
 
   onDidDeleteFiles(params: DeleteFilesParams): void {
-    this.dbt.refresh();
     this.disposeOutdatedDocuments(params.files.map(f => f.uri));
   }
 
@@ -509,7 +470,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     console.log('Dispose start...');
     this.dbt.dispose();
     this.destinationContext.dispose();
-    this.onGlobalDbtErrorFixedEmitter.dispose();
     console.log('Dispose end.');
   }
 }

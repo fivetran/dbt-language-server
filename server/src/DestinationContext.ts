@@ -1,4 +1,4 @@
-import { err, ok, Result } from 'neverthrow';
+import { Err, err, ok, Result } from 'neverthrow';
 import { Emitter, Event } from 'vscode-languageserver';
 import { DagNode } from './dag/DagNode';
 import { DbtProfileSuccess } from './DbtProfileCreator';
@@ -42,8 +42,7 @@ export class DestinationContext {
       try {
         const clientResult = await profileResult.dbtProfile.createClient(profileResult.targetConfig);
         if (clientResult.isErr()) {
-          console.log(clientResult.error);
-          return err(clientResult.error);
+          return this.onError(clientResult.error);
         }
 
         const destinationClient = clientResult.value;
@@ -57,14 +56,18 @@ export class DestinationContext {
         );
         await this.projectAnalyzer.initialize();
       } catch (e) {
-        console.log(e instanceof Error ? e.stack : e);
         const message = e instanceof Error ? e.message : JSON.stringify(e);
-        this.onDestinationPrepared();
-        return err(`Destination initialization failed. ${message}`);
+        return this.onError(message);
       }
     }
     this.onDestinationPrepared();
     return ok(undefined);
+  }
+
+  onError(message: string): Err<void, string> {
+    console.log(message);
+    this.onDestinationPrepared();
+    return err(`Destination initialization failed. ${message}`);
   }
 
   canUseDestination(profileResult: DbtProfileSuccess, ubuntuInWslWorks: boolean): boolean {

@@ -19,24 +19,29 @@ import { SqlDefinitionProvider } from '../../definition/SqlDefinitionProvider';
 import { DbtDocumentKind } from '../../document/DbtDocumentKind';
 import { DbtTextDocument } from '../../document/DbtTextDocument';
 import { sleep } from '../helper';
+import path = require('node:path');
 
 describe('DbtTextDocument', () => {
   const TEXT = 'select 1;';
+  const PROJECT_PATH = path.normalize('/project/path');
+  const FILE_URI = 'file:///project/path/models/model.sql';
 
   let document: DbtTextDocument;
   let mockModelCompiler: ModelCompiler;
   let mockJinjaParser: JinjaParser;
   let mockDbt: Dbt;
+  let mockProjectChangeListener: ProjectChangeListener;
+  let destinationContext: DestinationContext;
 
   const onCompilationErrorEmitter = new Emitter<string>();
   const onCompilationFinishedEmitter = new Emitter<string>();
-  const onGlobalDbtErrorFixedEmitter = new Emitter<void>();
   const onDbtReadyEmitter = new Emitter<void>();
 
   beforeEach(() => {
     DbtTextDocument.DEBOUNCE_TIMEOUT = 0;
 
     mockModelCompiler = mock(ModelCompiler);
+    mockProjectChangeListener = mock(ProjectChangeListener);
     when(mockModelCompiler.onCompilationError).thenReturn(onCompilationErrorEmitter.event);
     when(mockModelCompiler.onCompilationFinished).thenReturn(onCompilationFinishedEmitter.event);
     when(mockModelCompiler.onFinishAllCompilationJobs).thenReturn(new Emitter<void>().event);
@@ -47,25 +52,24 @@ describe('DbtTextDocument', () => {
     when(mockDbt.dbtReady).thenReturn(true);
     when(mockDbt.onDbtReady).thenReturn(onDbtReadyEmitter.event);
 
-    const dbtRepository = new DbtRepository('project_path', Promise.resolve(undefined));
+    const dbtRepository = new DbtRepository(PROJECT_PATH, Promise.resolve(undefined));
+    destinationContext = new DestinationContext();
     document = new DbtTextDocument(
-      { uri: 'uri', languageId: 'sql', version: 1, text: TEXT },
+      { uri: FILE_URI, languageId: 'sql', version: 1, text: TEXT },
       DbtDocumentKind.MODEL,
-      '',
       mock(NotificationSender),
       mock(ModelProgressReporter),
       instance(mockModelCompiler),
       instance(mockJinjaParser),
-      onGlobalDbtErrorFixedEmitter,
       dbtRepository,
       instance(mockDbt),
-      new DestinationContext(),
+      destinationContext,
       new DiagnosticGenerator(dbtRepository),
       new SignatureHelpProvider(),
       new HoverProvider(),
       new DbtDefinitionProvider(dbtRepository),
       new SqlDefinitionProvider(dbtRepository),
-      mock(ProjectChangeListener),
+      instance(mockProjectChangeListener),
     );
   });
 
@@ -103,18 +107,15 @@ describe('DbtTextDocument', () => {
     await sleepMoreThanDebounceTime();
 
     document.willSaveTextDocument(TextDocumentSaveReason.Manual);
-    await document.didSaveTextDocument(true);
+    await document.didSaveTextDocument();
     await sleepMoreThanDebounceTime();
 
     // assert
-    verify(mockDbt.refresh()).once();
     verify(mockModelCompiler.compile(anything(), true)).twice();
   });
 
   it('Should not compile for first save in Auto save mode', async () => {
     // arrange
-    let count = 0;
-    when(mockDbt.refresh()).thenCall(() => count++);
     when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(true);
 
     // act
@@ -122,11 +123,10 @@ describe('DbtTextDocument', () => {
     await sleepMoreThanDebounceTime();
 
     document.willSaveTextDocument(TextDocumentSaveReason.AfterDelay);
-    await document.didSaveTextDocument(true);
+    await document.didSaveTextDocument();
     await sleepMoreThanDebounceTime();
 
     // assert
-    assertThat(count, 0);
     verify(mockModelCompiler.compile(anything(), true)).once();
   });
 
@@ -162,38 +162,29 @@ describe('DbtTextDocument', () => {
     when(mockJinjaParser.isJinjaModified(anything(), anything())).thenReturn(false);
 
     // act
-    document.didChangeTextDocument({ textDocument: VersionedTextDocumentIdentifier.create('uri', 1), contentChanges: [] });
-    await document.didSaveTextDocument(true);
+    document.didChangeTextDocument({ textDocument: VersionedTextDocumentIdentifier.create(FILE_URI, 1), contentChanges: [] });
+    await document.didSaveTextDocument();
     await sleepMoreThanDebounceTime();
 
     // assert
     verify(mockModelCompiler.compile(anything(), true)).once();
   });
 
-  it('Should set hasDbtError flag on dbt compilation error', () => {
+  it('Should set dbtErrorUri on dbt compilation error', () => {
     // act
     onCompilationErrorEmitter.fire('error');
 
     // assert
-    assertThat(document.currentDbtError, 'error');
+    verify(mockProjectChangeListener.setDbtError(FILE_URI, 'error')).once();
   });
 
-  it('Should reset hasDbtError flag on dbt compilation finished', () => {
+  it('Should reset dbtErrorUri on dbt compilation finished', () => {
     // act
-    document.currentDbtError = 'error';
+    destinationContext.contextInitialized = true;
     onCompilationFinishedEmitter.fire('select 1;');
 
     // assert
-    assertThat(document.currentDbtError, undefined);
-  });
-
-  it('Should reset hasDbtError flag on dbt error fixed', () => {
-    // act
-    document.currentDbtError = 'error';
-    onGlobalDbtErrorFixedEmitter.fire();
-
-    // assert
-    assertThat(document.currentDbtError, undefined);
+    verify(mockProjectChangeListener.setDbtError(FILE_URI, undefined)).once();
   });
 
   it('Should compile dbt document when dbt ready', async () => {

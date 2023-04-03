@@ -1,4 +1,4 @@
-import { CustomInitParams, DbtCompilerType, LspModeType, StatusNotification } from 'dbt-language-server-common';
+import { CustomInitParams, LspModeType, StatusNotification } from 'dbt-language-server-common';
 import { Uri, commands, workspace } from 'vscode';
 import { Disposable, State } from 'vscode-languageclient';
 import { LanguageClient, ServerOptions, TransportKind } from 'vscode-languageclient/node';
@@ -61,7 +61,6 @@ export abstract class DbtWizardLanguageClient implements Disposable {
     const configuration = workspace.getConfiguration('WizardForDbtCore(TM)', this.client.clientOptions.workspaceFolder);
     const customInitParams: CustomInitParams = {
       pythonInfo: await this.pythonExtension.getPythonInfo(this.client.clientOptions.workspaceFolder),
-      dbtCompiler: configuration.get<DbtCompilerType>('dbtCompiler', 'Auto'),
       enableEntireProjectAnalysis: configuration.get<boolean>('enableEntireProjectAnalysis', true),
       lspMode: this.getLspMode(),
       profilesDir: configuration.get<string | undefined>('profilesDir', undefined),

@@ -48,17 +48,6 @@
           "description": "Which directory to look in for the profiles.yml file. Absolute path or relative to the directory containing dbt_project.yml. This parameter will be used in each dbt command.",
           "scope": "resource"
         },
-        "WizardForDbtCore(TM).dbtCompiler": {
-          "type": "string",
-          "order": 1,
-          "enum": [
-            "Auto",
-            "dbt-rpc",
-            "dbt"
-          ],
-          "default": "Auto",
-          "description": "Command used to compile models."
-        },
         "WizardForDbtCore(TM).trace.server": {
           "scope": "window",
           "type": "string",
@@ -173,7 +162,7 @@
     "build:size": "npm run build && npm run vscode:prepublish",
     "watch": "tsc -b -w",
     "postinstall": "cd client && npm install --install-links=false && cd ../server && npm install --install-links=false && cd ../markdown_parser && npm install && cd ../e2e && npm install --install-links=false && cd ..",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint --cache . --ext .ts",
     "lint-config": "eslint --print-config .eslintrc.json",
     "lint-fix": "eslint . --ext .ts --fix",
     "test": "mocha",

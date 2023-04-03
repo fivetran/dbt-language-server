@@ -11,19 +11,17 @@ export class NoProjectFeatureFinder extends FeatureFinderBase {
   }
 
   async getAvailableDbt(): Promise<[DbtVersionInfo?, DbtVersionInfo?]> {
-    const settledResults = await Promise.allSettled([this.findDbtRpcPythonInfo(), this.findDbtPythonInfo()]);
-    const [dbtRpcPythonVersion, dbtPythonVersion] = settledResults.map(v => (v.status === 'fulfilled' ? v.value : undefined));
+    const settledResults = await Promise.allSettled([this.findDbtPythonInfo()]);
+    const [dbtPythonVersion] = settledResults.map(v => (v.status === 'fulfilled' ? v.value : undefined));
 
-    console.log(this.getLogString('dbtRpcPythonVersion', dbtRpcPythonVersion) + this.getLogString('dbtPythonVersion', dbtPythonVersion));
+    console.log(this.getLogString('dbtPythonVersion', dbtPythonVersion));
 
-    return [dbtRpcPythonVersion, dbtPythonVersion];
+    return [dbtPythonVersion];
   }
 
   async findDbtForNoProjectStatus(): Promise<void> {
-    const [dbtRpcPythonVersion, dbtPythonVersion] = await this.availableCommandsPromise;
-    if (dbtRpcPythonVersion) {
-      this.versionInfo = dbtRpcPythonVersion;
-    } else if (dbtPythonVersion) {
+    const [dbtPythonVersion] = await this.availableCommandsPromise;
+    if (dbtPythonVersion) {
       this.versionInfo = dbtPythonVersion;
     }
   }
