@@ -10,7 +10,11 @@ export class BigQueryClient implements DbtDestinationClient {
   private static readonly REQUESTED_SCHEMA_FIELDS = ['schema', 'timePartitioning'] as const;
   private static readonly JOINED_FIELDS = BigQueryClient.REQUESTED_SCHEMA_FIELDS.join(',');
 
-  constructor(public defaultProject: string, public bigQuerySupplier: () => BigQuery) {}
+  bigQuery: BigQuery;
+
+  constructor(public defaultProject: string, private updateCredentials: () => BigQuery) {
+    this.bigQuery = this.updateCredentials();
+  }
 
   async test(): Promise<Result<void, string>> {
     try {
@@ -25,26 +29,32 @@ export class BigQueryClient implements DbtDestinationClient {
   }
 
   async getDatasets(maxResults?: number): Promise<Dataset[]> {
-    const [bigQueryResult] = await this.bigQuerySupplier().getDatasets({ maxResults });
-    return bigQueryResult.map(d => ({ id: d.id })).filter((d): d is { id: string } => d.id !== undefined);
+    return this.executeOperation(async () => {
+      const [bigQueryResult] = await this.bigQuery.getDatasets({ maxResults });
+      return bigQueryResult.map(d => ({ id: d.id })).filter((d): d is { id: string } => d.id !== undefined);
+    });
   }
 
   async getTables(datasetName: string, projectName?: string): Promise<Table[]> {
-    const [tables] = await new BqDataset(this.bigQuerySupplier(), datasetName, { projectId: projectName }).getTables();
-    return tables.map(t => ({ id: t.id })).filter((t): t is { id: string } => t.id !== undefined);
+    return this.executeOperation(async () => {
+      const [tables] = await new BqDataset(this.bigQuery, datasetName, { projectId: projectName }).getTables();
+      return tables.map(t => ({ id: t.id })).filter((t): t is { id: string } => t.id !== undefined);
+    });
   }
 
   async getTableMetadata(datasetName: string, tableName: string): Promise<Metadata | undefined> {
-    const dataset = this.bigQuerySupplier().dataset(datasetName);
-    const table = dataset.table(tableName);
     try {
-      const [metadata] = (await table.getMetadata({
-        fields: BigQueryClient.JOINED_FIELDS,
-      })) as [Pick<TableMetadata, (typeof BigQueryClient.REQUESTED_SCHEMA_FIELDS)[number]>, unknown];
-      return {
-        schema: metadata.schema as SchemaDefinition,
-        timePartitioning: metadata.timePartitioning !== undefined,
-      };
+      return await this.executeOperation(async () => {
+        const dataset = this.bigQuery.dataset(datasetName);
+        const table = dataset.table(tableName);
+        const [metadata] = (await table.getMetadata({
+          fields: BigQueryClient.JOINED_FIELDS,
+        })) as [Pick<TableMetadata, (typeof BigQueryClient.REQUESTED_SCHEMA_FIELDS)[number]>, unknown];
+        return {
+          schema: metadata.schema as SchemaDefinition,
+          timePartitioning: metadata.timePartitioning !== undefined,
+        };
+      });
     } catch (e) {
       console.log(`error while getting table metadata: ${e instanceof Error ? e.message : String(e)}`);
       return undefined;
@@ -52,35 +62,53 @@ export class BigQueryClient implements DbtDestinationClient {
   }
 
   async getUdf(projectId: string | undefined, dataSetId: string, routineId: string): Promise<Udf | undefined> {
-    const dataSet = this.bigQuerySupplier().dataset(dataSetId, { projectId });
-
     try {
-      const existsResult = await dataSet.exists();
-      if (!existsResult[0]) {
-        return undefined;
-      }
+      return await this.executeOperation(async () => {
+        const dataSet = this.bigQuery.dataset(dataSetId, { projectId });
 
-      const [metadata] = (await dataSet.routine(routineId).getMetadata()) as [RoutineMetadata, unknown];
-      const nameParts = [dataSetId, routineId];
-      if (projectId) {
-        nameParts.splice(0, 0, projectId);
-      }
-      const udf: Udf = { nameParts };
-      if (metadata.arguments) {
-        udf.arguments = metadata.arguments.map<UdfArgument>(a => ({
-          name: a.name,
-          type: BigQueryClient.toTypeProto(a.dataType),
-          argumentKind: a.argumentKind,
-        }));
-      }
-      if (metadata.returnType) {
-        udf.returnType = BigQueryClient.toTypeProto(metadata.returnType);
-      }
-      return udf;
+        const existsResult = await dataSet.exists();
+        if (!existsResult[0]) {
+          return undefined;
+        }
+
+        const [metadata] = (await dataSet.routine(routineId).getMetadata()) as [RoutineMetadata, unknown];
+        const nameParts = [dataSetId, routineId];
+        if (projectId) {
+          nameParts.splice(0, 0, projectId);
+        }
+        const udf: Udf = { nameParts };
+        if (metadata.arguments) {
+          udf.arguments = metadata.arguments.map<UdfArgument>(a => ({
+            name: a.name,
+            type: BigQueryClient.toTypeProto(a.dataType),
+            argumentKind: a.argumentKind,
+          }));
+        }
+        if (metadata.returnType) {
+          udf.returnType = BigQueryClient.toTypeProto(metadata.returnType);
+        }
+        return udf;
+      });
     } catch (e) {
       console.log(`Error while getting UDF metadata: ${e instanceof Error ? e.message : ''}`);
+      return undefined;
     }
-    return undefined;
+  }
+
+  private async executeOperation<T>(operation: () => Promise<T>): Promise<T> {
+    try {
+      return await operation();
+    } catch (e) {
+      if (e instanceof Object) {
+        if (('code' in e && (e.code === 401 || e.code === '401')) || ('message' in e && e.message === 'invalid_grant')) {
+          this.bigQuery = this.updateCredentials();
+          return await operation();
+        }
+        throw e;
+      } else {
+        throw e;
+      }
+    }
   }
 
   private static toTypeProto(dataType?: IStandardSqlDataType): TypeProto {

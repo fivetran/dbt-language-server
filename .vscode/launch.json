@@ -117,11 +117,13 @@
   "compounds": [
     {
       "name": "Client + Server",
-      "configurations": ["Launch Client", "Attach to Server"]
+      "configurations": ["Launch Client", "Attach to Server"],
+      "stopAll": true
     },
     {
       "name": "E2E Tests Client + Server",
-      "configurations": ["E2E Tests Client", "Attach to Server"]
+      "configurations": ["E2E Tests Client", "Attach to Server"],
+      "stopAll": true
     }
   ]
 }

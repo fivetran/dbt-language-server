@@ -41,14 +41,7 @@ export class BigQueryOAuthProfile implements DbtProfile {
       projectId: project,
     };
 
-    let bigQuery = new BigQuery(options);
-    const bigQueryClient = new BigQueryClient(project, () => {
-      const expireDate = bigQuery.authClient.cachedCredential?.credentials.expiry_date;
-      if (expireDate && Date.now() - expireDate > -1000) {
-        bigQuery = new BigQuery(options);
-      }
-      return bigQuery;
-    });
+    const bigQueryClient = new BigQueryClient(project, () => new BigQuery(options));
 
     const credentialsResult = await this.checkDefaultCredentials(bigQueryClient);
     if (credentialsResult.isOk()) {
@@ -61,24 +54,16 @@ export class BigQueryOAuthProfile implements DbtProfile {
     const authenticateResult = await this.authenticate();
     if (authenticateResult.isErr()) {
       console.log(authenticateResult.error);
-      return err(authenticateResult.error);
+      return ok(bigQueryClient);
     }
 
     console.log('gcloud authentication succeeded');
-    bigQuery = new BigQuery(options);
-
-    const secondTestResult = await bigQueryClient.test();
-    if (secondTestResult.isErr()) {
-      return err(secondTestResult.error);
-    }
-
     return ok(bigQueryClient);
   }
 
   private async checkDefaultCredentials(bigQueryClient: BigQueryClient): Promise<Result<void, string>> {
-    return bigQueryClient
-      .bigQuerySupplier()
-      .authClient.getCredentials()
+    return bigQueryClient.bigQuery.authClient
+      .getCredentials()
       .then(() => {
         console.log('Default Credentials found');
         return ok(undefined);
