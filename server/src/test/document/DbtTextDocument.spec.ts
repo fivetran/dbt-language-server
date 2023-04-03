@@ -107,18 +107,15 @@ describe('DbtTextDocument', () => {
     await sleepMoreThanDebounceTime();
 
     document.willSaveTextDocument(TextDocumentSaveReason.Manual);
-    await document.didSaveTextDocument(true);
+    await document.didSaveTextDocument();
     await sleepMoreThanDebounceTime();
 
     // assert
-    verify(mockDbt.refresh()).once();
     verify(mockModelCompiler.compile(anything(), true)).twice();
   });
 
   it('Should not compile for first save in Auto save mode', async () => {
     // arrange
-    let count = 0;
-    when(mockDbt.refresh()).thenCall(() => count++);
     when(mockJinjaParser.hasJinjas(TEXT)).thenReturn(true);
 
     // act
@@ -126,11 +123,10 @@ describe('DbtTextDocument', () => {
     await sleepMoreThanDebounceTime();
 
     document.willSaveTextDocument(TextDocumentSaveReason.AfterDelay);
-    await document.didSaveTextDocument(true);
+    await document.didSaveTextDocument();
     await sleepMoreThanDebounceTime();
 
     // assert
-    assertThat(count, 0);
     verify(mockModelCompiler.compile(anything(), true)).once();
   });
 
@@ -167,7 +163,7 @@ describe('DbtTextDocument', () => {
 
     // act
     document.didChangeTextDocument({ textDocument: VersionedTextDocumentIdentifier.create(FILE_URI, 1), contentChanges: [] });
-    await document.didSaveTextDocument(true);
+    await document.didSaveTextDocument();
     await sleepMoreThanDebounceTime();
 
     // assert

@@ -19,8 +19,6 @@ export abstract class Dbt {
     this.onDbtReadyEmitter = new Emitter<void>();
   }
 
-  abstract refresh(): void;
-
   async prepare(dbtProfileType?: string): Promise<void> {
     await this.prepareImplementation(dbtProfileType);
     this.dbtReady = true;

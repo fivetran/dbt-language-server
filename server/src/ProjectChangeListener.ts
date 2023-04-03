@@ -56,7 +56,6 @@ export class ProjectChangeListener {
         this.notificationSender.clearAllDiagnostics();
       }
 
-      this.dbt.refresh();
       const compileResult = await this.dbt.compileProject(this.dbtRepository);
       if (compileResult.isOk()) {
         this.fileChangeListener.updateManifestNodes();

@@ -13,7 +13,6 @@ import {
   Command,
   CompletionItem,
   CompletionParams,
-  CreateFilesParams,
   DefinitionLink,
   DefinitionParams,
   DeleteFilesParams,
@@ -170,7 +169,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
 
     this.connection.onShutdown(() => this.onShutdown('Client'));
 
-    this.connection.workspace.onDidCreateFiles(this.onDidCreateFiles.bind(this));
     this.connection.workspace.onDidRenameFiles(this.onDidRenameFiles.bind(this));
     this.connection.workspace.onDidDeleteFiles(this.onDidDeleteFiles.bind(this));
   }
@@ -344,7 +342,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
 
   async onDidSaveTextDocument(params: DidSaveTextDocumentParams): Promise<void> {
     const document = this.openedDocuments.get(params.textDocument.uri);
-    await document?.didSaveTextDocument(true);
+    await document?.didSaveTextDocument();
   }
 
   async onDidOpenTextDocument(params: DidOpenTextDocumentParams): Promise<void> {
@@ -441,13 +439,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     this.dbt.deps().catch(e => console.log(`Error while running dbt deps: ${e instanceof Error ? e.message : String(e)}`));
   }
 
-  onDidCreateFiles(_params: CreateFilesParams): void {
-    this.dbt.refresh();
-  }
-
   onDidRenameFiles(params: RenameFilesParams): void {
-    this.dbt.refresh();
-
     for (const document of this.openedDocuments.values()) {
       if (this.projectChangeListener.currentDbtError) {
         document.forceRecompile();
@@ -459,7 +451,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   }
 
   onDidDeleteFiles(params: DeleteFilesParams): void {
-    this.dbt.refresh();
     this.disposeOutdatedDocuments(params.files.map(f => f.uri));
   }
 
