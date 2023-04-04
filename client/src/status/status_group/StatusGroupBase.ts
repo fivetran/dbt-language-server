@@ -116,45 +116,22 @@ export abstract class StatusGroupBase {
   }
 
   private updateDbtStatusItemData(status: DbtStatus): void {
-    if (status.versionInfo?.installedVersion) {
-      if (!status.versionInfo.latestVersion) {
-        this.dbtData = {
-          severity: LanguageStatusSeverity.Warning,
-          text: `dbt ${getStringVersion(status.versionInfo.installedVersion)}`,
+    this.dbtData = status.versionInfo?.installedVersion
+      ? {
+          severity:
+            status.versionInfo.latestVersion && compareVersions(status.versionInfo.latestVersion, status.versionInfo.installedVersion) === 0
+              ? LanguageStatusSeverity.Information
+              : LanguageStatusSeverity.Warning,
+          text: `dbt Core ${getStringVersion(status.versionInfo.installedVersion)}`,
           detail: 'installed version',
-          command: this.installDbtCommand('Update To Latest Version'),
+          command: this.installDbtCommand('Install different version'),
+        }
+      : {
+          severity: LanguageStatusSeverity.Error,
+          text: LanguageStatusItems.DBT_DEFAULT_TEXT,
+          detail: 'not found',
+          command: this.installDbtCommand('Install dbt Core'),
         };
-        return;
-      }
-
-      const compareResult = compareVersions(status.versionInfo.installedVersion, status.versionInfo.latestVersion);
-      // For v1.0.0 dbt CLI returns that latest version is 1.0.0, in later versions looks like it is fixed
-      const versionGreaterThanOne = compareVersions(status.versionInfo.installedVersion, { major: 1, minor: 0, patch: 0 }) > 0;
-      if (compareResult === 0 && versionGreaterThanOne) {
-        this.dbtData = {
-          severity: LanguageStatusSeverity.Information,
-          text: `dbt ${getStringVersion(status.versionInfo.installedVersion)}`,
-          detail: 'latest version installed',
-          command: undefined,
-        };
-        return;
-      }
-
-      this.dbtData = {
-        severity: LanguageStatusSeverity.Warning,
-        text: `dbt ${getStringVersion(status.versionInfo.installedVersion)}`,
-        detail: `installed version. Latest version: ${getStringVersion(status.versionInfo.latestVersion)}`,
-        command: this.installDbtCommand('Update To Latest Version'),
-      };
-      return;
-    }
-
-    this.dbtData = {
-      severity: LanguageStatusSeverity.Error,
-      text: LanguageStatusItems.DBT_DEFAULT_TEXT,
-      detail: 'not found',
-      command: this.installDbtCommand('Install Latest Version'),
-    };
   }
 
   private updateDbtAdaptersStatusItemData(adaptersInfo: AdapterInfo[]): void {

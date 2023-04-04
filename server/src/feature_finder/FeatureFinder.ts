@@ -31,7 +31,7 @@ export class FeatureFinder extends FeatureFinderBase {
 
   availableCommandsPromise: Promise<[DbtVersionInfo?, DbtVersionInfo?]>;
   packagesYmlExistsPromise: Promise<boolean>;
-  packageInfosPromise = new Lazy(() => this.getListOfPackages());
+  packageInfosPromise = new Lazy(() => this.getListOfDbtPackages());
   ubuntuInWslWorks: Promise<boolean>;
 
   constructor(pythonInfo: PythonInfo | undefined, dbtCommandExecutor: DbtCommandExecutor, profilesDir: string | undefined) {
@@ -42,8 +42,8 @@ export class FeatureFinder extends FeatureFinderBase {
     this.ubuntuInWslWorks = this.checkUbuntuInWslWorks();
   }
 
-  runPostInitTasks(): Promise<unknown> {
-    return this.packageInfosPromise.get();
+  async runPostInitTasks(): Promise<void> {
+    await this.packageInfosPromise.get();
   }
 
   async packagesYmlExists(): Promise<boolean> {
@@ -55,7 +55,7 @@ export class FeatureFinder extends FeatureFinderBase {
     }
   }
 
-  async getListOfPackages(): Promise<DbtPackageInfo[]> {
+  async getListOfDbtPackages(): Promise<DbtPackageInfo[]> {
     const axios = await getAxios();
     const hubResponse = await axios.get<HubJson>('https://cdn.jsdelivr.net/gh/dbt-labs/hubcap@HEAD/hub.json');
     const uriPromises = Object.entries<string[]>(hubResponse.data).flatMap(([gitHubUser, repositoryNames]) =>
@@ -86,7 +86,7 @@ export class FeatureFinder extends FeatureFinderBase {
     return undefined;
   }
 
-  async packageVersions(dbtPackage: string): Promise<DbtPackageVersions> {
+  async getDbtPackageVersions(dbtPackage: string): Promise<DbtPackageVersions> {
     const packages = await this.packageInfosPromise.get();
     const packageInfo = packages.find(p => p.installString === dbtPackage);
     const result: DbtPackageVersions = {};

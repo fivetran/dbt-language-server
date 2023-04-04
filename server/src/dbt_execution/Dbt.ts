@@ -47,7 +47,7 @@ export abstract class Dbt {
     if (errorMessageResult?.id === 'install') {
       console.log(`Trying to install dbt, and ${dbtProfileType} adapter`);
       const sendLog = (data: string): void => this.notificationSender.sendInstallLatestDbtLog(data);
-      const installResult = await InstallUtils.installDbt(python, dbtProfileType, sendLog, sendLog);
+      const installResult = await InstallUtils.installDbt(python, undefined, dbtProfileType, sendLog, sendLog);
       if (installResult.isOk()) {
         this.notificationSender.sendRestart();
       } else {

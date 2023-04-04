@@ -186,7 +186,9 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     this.connection.onNotification('custom/analyzeEntireProject', () => this.onAnalyzeEntireProject());
 
     this.connection.onRequest('WizardForDbtCore(TM)/getListOfPackages', () => this.featureFinder.packageInfosPromise.get());
-    this.connection.onRequest('WizardForDbtCore(TM)/getPackageVersions', (dbtPackage: string) => this.featureFinder.packageVersions(dbtPackage));
+    this.connection.onRequest('WizardForDbtCore(TM)/getPackageVersions', (dbtPackage: string) =>
+      this.featureFinder.getDbtPackageVersions(dbtPackage),
+    );
     this.connection.onRequest('WizardForDbtCore(TM)/addNewDbtPackage', (dbtPackage: SelectedDbtPackage) => this.onAddNewDbtPackage(dbtPackage));
   }
 

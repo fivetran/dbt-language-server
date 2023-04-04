@@ -21,15 +21,16 @@ export abstract class LspServerBase<T extends FeatureFinderBase> {
   }
 
   initializeNotifications(): void {
-    this.connection.onNotification('WizardForDbtCore(TM)/installLatestDbt', () => this.installLatestDbt());
+    this.connection.onNotification('WizardForDbtCore(TM)/installLatestDbt', (version: string) => this.installLatestDbt(version));
     this.connection.onNotification('WizardForDbtCore(TM)/installDbtAdapter', (dbtAdapter: string) => this.installDbtAdapter(dbtAdapter));
+    this.connection.onRequest('WizardForDbtCore(TM)/getDbtCoreInstallVersions', () => this.featureFinder.getDbtCoreInstallVersions());
   }
 
-  async installLatestDbt(): Promise<void> {
+  async installLatestDbt(version: string): Promise<void> {
     const pythonPath = this.featureFinder.getPythonPath();
     if (pythonPath) {
       const sendLog = (data: string): void => this.notificationSender.sendInstallLatestDbtLog(data);
-      const installResult = await InstallUtils.installDbt(pythonPath, undefined, sendLog, sendLog);
+      const installResult = await InstallUtils.installDbt(pythonPath, version, undefined, sendLog, sendLog);
 
       if (installResult.isOk()) {
         this.notificationSender.sendRestart();

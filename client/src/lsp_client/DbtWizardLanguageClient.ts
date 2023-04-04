@@ -91,6 +91,10 @@ export abstract class DbtWizardLanguageClient implements Disposable {
     }
   }
 
+  sendRequest<R>(method: string, param?: unknown): Promise<R> {
+    return this.client.sendRequest(method, param);
+  }
+
   async restart(): Promise<void> {
     log(`Restart client ${this.dbtProjectUri.fsPath}`);
     await this.initCustomParams();
