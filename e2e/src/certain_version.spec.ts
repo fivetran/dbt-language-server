@@ -22,7 +22,7 @@ suite('Certain version', () => {
     assertThat(items.python.busy, false);
 
     assertThat(items.dbt.busy, false);
-    assertThat(items.dbt.text, `dbt ${VENV_VERSION}`);
+    assertThat(items.dbt.text, `dbt Core ${VENV_VERSION}`);
     assertThat(items.dbt.detail, startsWith('installed version. Latest version: '));
     assertThat(items.dbt.severity, LanguageStatusSeverity.Warning);
     assertThat(items.dbt.command?.title, 'Update To Latest Version');
