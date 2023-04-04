@@ -358,8 +358,8 @@ export async function executeSignatureHelpProvider(docUri: Uri, position: Positi
   return commands.executeCommand<SignatureHelp>('vscode.executeSignatureHelpProvider', docUri, position, triggerChar);
 }
 
-export async function executeInstallLatestDbt(): Promise<void> {
-  return commands.executeCommand('WizardForDbtCore(TM).installLatestDbt', undefined, true);
+export async function executeInstallDbtCore(): Promise<void> {
+  return commands.executeCommand('WizardForDbtCore(TM).installDbtCore', undefined, true);
 }
 
 export async function executeCreateDbtProject(fsPath: string): Promise<void> {

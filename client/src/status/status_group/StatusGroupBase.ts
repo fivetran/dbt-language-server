@@ -150,6 +150,6 @@ export abstract class StatusGroupBase {
   }
 
   installDbtCommand(title: string): Command {
-    return { command: 'WizardForDbtCore(TM).installLatestDbt', title, arguments: [this.projectPath] };
+    return { command: 'WizardForDbtCore(TM).installDbtCore', title, arguments: [this.projectPath] };
   }
 }

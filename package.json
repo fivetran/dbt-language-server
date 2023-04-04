@@ -86,8 +86,8 @@
         "category": "WizardForDbtCore(TM)"
       },
       {
-        "command": "WizardForDbtCore(TM).installLatestDbt",
-        "title": "Install Latest dbt",
+        "command": "WizardForDbtCore(TM).installDbtCore",
+        "title": "Install dbt Core",
         "category": "WizardForDbtCore(TM)"
       },
       {

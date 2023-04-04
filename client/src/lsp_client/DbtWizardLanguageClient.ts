@@ -40,9 +40,9 @@ export abstract class DbtWizardLanguageClient implements Disposable {
         this.statusHandler.changeStatus(statusNotification);
       }),
 
-      this.client.onNotification('WizardForDbtCore(TM)/installLatestDbtLog', async (data: string) => {
-        this.outputChannelProvider.getInstallLatestDbtChannel().show();
-        this.outputChannelProvider.getInstallLatestDbtChannel().append(data);
+      this.client.onNotification('WizardForDbtCore(TM)/installDbtCoreLog', async (data: string) => {
+        this.outputChannelProvider.getInstallDbtCoreChannel().show();
+        this.outputChannelProvider.getInstallDbtCoreChannel().append(data);
         await commands.executeCommand('workbench.action.focusActiveEditorGroup');
       }),
 

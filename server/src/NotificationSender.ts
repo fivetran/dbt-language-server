@@ -48,8 +48,8 @@ export class NotificationSender {
     this.sendNotification('WizardForDbtCore(TM)/installDbtAdapterLog', data);
   }
 
-  sendInstallLatestDbtLog(data: string): void {
-    this.sendNotification('WizardForDbtCore(TM)/installLatestDbtLog', data);
+  sendInstallDbtCoreLog(data: string): void {
+    this.sendNotification('WizardForDbtCore(TM)/installDbtCoreLog', data);
   }
 
   private sendNotification(method: string, params?: unknown): void {

@@ -4,8 +4,8 @@ import { ActiveTextEditorHandler } from './ActiveTextEditorHandler';
 import { CommandManager } from './commands/CommandManager';
 import { Compile } from './commands/Compile';
 import { InstallDbtAdapters } from './commands/InstallDbtAdapters';
+import { InstallDbtCore } from './commands/InstallDbtCore';
 import { InstallDbtPackages } from './commands/InstallDbtPackages';
-import { InstallLatestDbt } from './commands/InstallLatestDbt';
 import { OpenOrCreatePackagesYml } from './commands/OpenOrCreatePackagesYml';
 import { Restart } from './commands/Restart';
 import { DbtLanguageClientManager } from './DbtLanguageClientManager';
@@ -114,7 +114,7 @@ export class ExtensionClient {
     this.commandManager.register(new Compile(this.dbtLanguageClientManager));
     this.commandManager.register(new AnalyzeEntireProject(this.dbtLanguageClientManager));
     this.commandManager.register(new CreateDbtProject(this.context.globalState));
-    this.commandManager.register(new InstallLatestDbt(this.dbtLanguageClientManager, this.outputChannelProvider));
+    this.commandManager.register(new InstallDbtCore(this.dbtLanguageClientManager, this.outputChannelProvider));
     this.commandManager.register(new InstallDbtAdapters(this.dbtLanguageClientManager, this.outputChannelProvider));
     this.commandManager.register(new OpenOrCreatePackagesYml());
     this.commandManager.register(new Restart(this.dbtLanguageClientManager));

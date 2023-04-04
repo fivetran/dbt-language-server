@@ -16,7 +16,7 @@ suite('VS Code Commands', () => {
   //   await activateAndWait(VERSION_DOC_URI);
 
   //   assertThat(getPreviewText(), VENV_VERSION);
-  //   await executeInstallLatestDbt();
+  //   await executeInstallDbtCore();
 
   //   await waitPreviewModification();
 

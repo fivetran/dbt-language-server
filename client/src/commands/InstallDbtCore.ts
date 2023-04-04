@@ -6,8 +6,8 @@ import { DbtWizardQuickPick } from '../QuickPick';
 import { Command } from './CommandManager';
 import { NoProjectCommand } from './NoProjectCommand';
 
-export class InstallLatestDbt extends NoProjectCommand implements Command {
-  readonly id = 'WizardForDbtCore(TM).installLatestDbt';
+export class InstallDbtCore extends NoProjectCommand implements Command {
+  readonly id = 'WizardForDbtCore(TM).installDbtCore';
 
   constructor(dbtLanguageClientManager: DbtLanguageClientManager, private outputChannelProvider: OutputChannelProvider) {
     super(dbtLanguageClientManager);
@@ -25,8 +25,8 @@ export class InstallLatestDbt extends NoProjectCommand implements Command {
             ? await window.showInformationMessage(`Are you sure you want to install dbt-core ${version}?`, { modal: true }, 'Yes', 'No')
             : 'Yes';
         if (answer === 'Yes') {
-          client.sendNotification('WizardForDbtCore(TM)/installLatestDbt', version);
-          this.outputChannelProvider.getInstallLatestDbtChannel().show();
+          client.sendNotification('WizardForDbtCore(TM)/installDbtCore', version);
+          this.outputChannelProvider.getInstallDbtCoreChannel().show();
           await commands.executeCommand('workbench.action.focusActiveEditorGroup');
         }
       }
