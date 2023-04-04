@@ -94,7 +94,7 @@ export abstract class StatusGroupBase {
     } else {
       this.items.dbtAdapters.setState(this.dbtAdaptersData.severity, this.dbtAdaptersData.text, this.dbtAdaptersData.detail, {
         command: 'WizardForDbtCore(TM).installDbtAdapters',
-        title: 'Install dbt Adapters',
+        title: 'Install different adapter',
         arguments: [this.projectPath],
       });
     }
