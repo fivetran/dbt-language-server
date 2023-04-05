@@ -1,4 +1,4 @@
-import { assertThat, containsString, startsWith, undef } from 'hamjest';
+import { assertThat, containsString, startsWith } from 'hamjest';
 import { LanguageStatusSeverity } from 'vscode';
 import { SPECIAL_PYTHON_SETTINGS_PATH, activateAndWait, getCustomDocUri, getLanguageStatusItems, getPreviewText } from './helper';
 
@@ -41,7 +41,7 @@ suite('Certain version', () => {
 
     assertThat(items.profilesYml.busy, false);
     assertThat(items.profilesYml.text, 'e2e-test-workspace-project1');
-    assertThat(items.profilesYml.detail, undef());
+    assertThat(items.profilesYml.detail, 'Current profile');
     assertThat(items.profilesYml.severity, LanguageStatusSeverity.Information);
     assertThat(items.profilesYml.command?.title, 'Install dbt packages');
   }
