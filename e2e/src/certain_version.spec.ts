@@ -25,7 +25,7 @@ suite('Certain version', () => {
     assertThat(items.dbt.text, `dbt Core ${VENV_VERSION}`);
     assertThat(items.dbt.detail, startsWith('installed version. Latest version: '));
     assertThat(items.dbt.severity, LanguageStatusSeverity.Warning);
-    assertThat(items.dbt.command?.title, 'Update To Latest Version');
+    assertThat(items.dbt.command?.title, 'Install different version');
 
     assertThat(items.dbtAdapters.busy, false);
     assertThat(items.dbtAdapters.detail, 'installed dbt adapters');
