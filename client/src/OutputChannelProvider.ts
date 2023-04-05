@@ -5,6 +5,7 @@ export class OutputChannelProvider {
   private traceChannel = window.createOutputChannel('Wizard for dbt Core (TM) Trace');
   private installDbtCoreChannel?: OutputChannel;
   private installDbtAdaptersChannel?: OutputChannel;
+  private dbtDepsChannel?: OutputChannel;
 
   getMainLogChannel(): OutputChannel {
     return this.mainLogChannel;
@@ -26,5 +27,12 @@ export class OutputChannelProvider {
       this.installDbtAdaptersChannel = window.createOutputChannel('Install dbt Adapters');
     }
     return this.installDbtAdaptersChannel;
+  }
+
+  getDbtDepsChannel(): OutputChannel {
+    if (!this.dbtDepsChannel) {
+      this.dbtDepsChannel = window.createOutputChannel('Install dbt packages');
+    }
+    return this.dbtDepsChannel;
   }
 }

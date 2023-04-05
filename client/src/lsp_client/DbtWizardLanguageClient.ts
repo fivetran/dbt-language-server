@@ -10,6 +10,7 @@ import { StatusHandler } from '../status/StatusHandler';
 export abstract class DbtWizardLanguageClient implements Disposable {
   static readonly CLIENT_ID = 'WizardForDbtCore(TM)';
   static readonly CLIENT_NAME = 'Wizard for dbt Core (TM)';
+  static readonly FOCUS_EDITOR_COMMAND = 'workbench.action.focusActiveEditorGroup';
 
   static createServerOptions(port: number, module: string): ServerOptions {
     const debugOptions = { execArgv: ['--nolazy', `--inspect=${port}`] };
@@ -43,12 +44,17 @@ export abstract class DbtWizardLanguageClient implements Disposable {
       this.client.onNotification('WizardForDbtCore(TM)/installDbtCoreLog', async (data: string) => {
         this.outputChannelProvider.getInstallDbtCoreChannel().show();
         this.outputChannelProvider.getInstallDbtCoreChannel().append(data);
-        await commands.executeCommand('workbench.action.focusActiveEditorGroup');
+        await commands.executeCommand(DbtWizardLanguageClient.FOCUS_EDITOR_COMMAND);
       }),
 
       this.client.onNotification('WizardForDbtCore(TM)/installDbtAdapterLog', async (data: string) => {
         this.outputChannelProvider.getInstallDbtAdaptersChannel().append(data);
-        await commands.executeCommand('workbench.action.focusActiveEditorGroup');
+        await commands.executeCommand(DbtWizardLanguageClient.FOCUS_EDITOR_COMMAND);
+      }),
+
+      this.client.onNotification('WizardForDbtCore(TM)/dbtDepsLog', async (data: string) => {
+        this.outputChannelProvider.getDbtDepsChannel().append(data);
+        await commands.executeCommand(DbtWizardLanguageClient.FOCUS_EDITOR_COMMAND);
       }),
 
       this.client.onNotification('WizardForDbtCore(TM)/restart', async () => {

@@ -1,6 +1,7 @@
 import { DbtPackageInfo, DbtPackageVersions } from 'dbt-language-server-common';
 import { QuickInputButtons, QuickPickItem, QuickPickItemKind, Selection, ThemeIcon, Uri, commands, env, workspace } from 'vscode';
 import { DbtLanguageClientManager } from '../DbtLanguageClientManager';
+import { OutputChannelProvider } from '../OutputChannelProvider';
 import { DbtWizardQuickPick } from '../QuickPick';
 import { PACKAGES_YML } from '../Utils';
 import { Command } from './CommandManager';
@@ -19,7 +20,7 @@ export class InstallDbtPackages implements Command {
 
   selectedPackage?: string;
 
-  constructor(private dbtLanguageClientManager: DbtLanguageClientManager) {}
+  constructor(private dbtLanguageClientManager: DbtLanguageClientManager, private outputChannelProvider: OutputChannelProvider) {}
 
   async execute(projectPath?: string): Promise<void> {
     if (projectPath) {
@@ -59,6 +60,7 @@ export class InstallDbtPackages implements Command {
       } while (backPressed);
 
       if (packageName && version) {
+        this.outputChannelProvider.getDbtDepsChannel().show();
         await client.sendRequest<number>('WizardForDbtCore(TM)/addNewDbtPackage', { packageName, version });
         const textEditor = await OpenOrCreatePackagesYml.openOrCreateConfig(client.getProjectUri().fsPath);
 

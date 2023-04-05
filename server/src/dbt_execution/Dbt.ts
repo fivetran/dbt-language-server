@@ -33,7 +33,7 @@ export abstract class Dbt {
 
   abstract getError(): string;
 
-  abstract deps(): Promise<void>;
+  abstract deps(onStdoutData: (data: string) => void, onStderrData: (data: string) => void): Promise<void>;
 
   abstract dispose(): void;
 

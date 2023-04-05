@@ -438,7 +438,8 @@ export class LspServer extends LspServerBase<FeatureFinder> {
 
   onAddNewDbtPackage(dbtPackage: SelectedDbtPackage): void {
     this.dbtProject.addNewDbtPackage(dbtPackage.packageName, dbtPackage.version);
-    this.dbt.deps().catch(e => console.log(`Error while running dbt deps: ${e instanceof Error ? e.message : String(e)}`));
+    const sendLog = (data: string): void => this.notificationSender.sendDbtDepsLog(data);
+    this.dbt.deps(sendLog, sendLog).catch(e => console.log(`Error while running dbt deps: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   onDidRenameFiles(params: RenameFilesParams): void {

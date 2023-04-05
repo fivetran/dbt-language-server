@@ -52,6 +52,10 @@ export class NotificationSender {
     this.sendNotification('WizardForDbtCore(TM)/installDbtCoreLog', data);
   }
 
+  sendDbtDepsLog(data: string): void {
+    this.sendNotification('WizardForDbtCore(TM)/dbtDepsLog', data);
+  }
+
   private sendNotification(method: string, params?: unknown): void {
     this.connection
       .sendNotification(method, params)
