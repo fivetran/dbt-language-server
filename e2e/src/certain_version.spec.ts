@@ -43,6 +43,6 @@ suite('Certain version', () => {
     assertThat(items.profilesYml.text, 'e2e-test-workspace-project1');
     assertThat(items.profilesYml.detail, 'Current profile');
     assertThat(items.profilesYml.severity, LanguageStatusSeverity.Information);
-    assertThat(items.profilesYml.command?.title, 'Install dbt packages');
+    assertThat(items.profilesYml.command?.title, 'Change target credentials');
   }
 });
