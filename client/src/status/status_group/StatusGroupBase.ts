@@ -116,14 +116,20 @@ export abstract class StatusGroupBase {
   }
 
   private updateDbtStatusItemData(status: DbtStatus): void {
-    this.dbtData = status.versionInfo?.installedVersion
+    const latestVersion = status.versionInfo?.latestVersion;
+    const installedVersion = status.versionInfo?.installedVersion;
+    const latestInstalled = latestVersion && installedVersion && compareVersions(latestVersion, installedVersion) === 0;
+
+    let installedDetails = 'installed version';
+    if (latestVersion && installedVersion) {
+      installedDetails = latestInstalled ? 'latest version installed' : `installed version. Latest version: ${getStringVersion(latestVersion)}`;
+    }
+
+    this.dbtData = installedVersion
       ? {
-          severity:
-            status.versionInfo.latestVersion && compareVersions(status.versionInfo.latestVersion, status.versionInfo.installedVersion) === 0
-              ? LanguageStatusSeverity.Information
-              : LanguageStatusSeverity.Warning,
-          text: `dbt Core ${getStringVersion(status.versionInfo.installedVersion)}`,
-          detail: 'installed version',
+          severity: latestInstalled ? LanguageStatusSeverity.Information : LanguageStatusSeverity.Warning,
+          text: `dbt Core ${getStringVersion(installedVersion)}`,
+          detail: installedDetails,
           command: this.installDbtCommand('Install different version'),
         }
       : {
