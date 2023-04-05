@@ -11,7 +11,7 @@ export class InstallUtils {
   static readonly PROCESS_EXECUTOR = new ProcessExecutor();
 
   static getFullDbtInstallationPackages(dbtVersion?: string, dbtProfileType?: string): string[] {
-    const packages = [InstallUtils.DBT_CORE + (dbtVersion ? `==${dbtVersion}` : '')];
+    const packages = [InstallUtils.withVersion(InstallUtils.DBT_CORE, dbtVersion)];
     if (dbtProfileType) {
       packages.push(InstallUtils.buildAdapterPackageName(dbtProfileType));
     }
@@ -32,10 +32,11 @@ export class InstallUtils {
   static async installDbtAdapter(
     python: string,
     dbtAdapter: string,
+    version?: string,
     onStdoutData?: (data: string) => void,
     onStderrData?: (data: string) => void,
   ): Promise<Result<string, string>> {
-    return InstallUtils.installPythonPackages(python, [dbtAdapter], false, onStdoutData, onStderrData);
+    return InstallUtils.installPythonPackages(python, [InstallUtils.withVersion(dbtAdapter, version)], false, onStdoutData, onStderrData);
   }
 
   static async installPythonPackages(
@@ -61,7 +62,11 @@ export class InstallUtils {
     }
   }
 
-  static buildAdapterPackageName(dbtProfileType: string): string {
+  private static buildAdapterPackageName(dbtProfileType: string): string {
     return `${InstallUtils.DBT_PREFIX}-${dbtProfileType}`;
+  }
+
+  private static withVersion(packageName: string, version: string | undefined): string {
+    return version ? `${packageName}==${version}` : packageName;
   }
 }

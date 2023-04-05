@@ -72,4 +72,9 @@ export interface SelectedDbtPackage {
   version: string;
 }
 
+export interface DbtAdapter {
+  name: string;
+  version: string;
+}
+
 export const NO_PROJECT_PATH = '/';

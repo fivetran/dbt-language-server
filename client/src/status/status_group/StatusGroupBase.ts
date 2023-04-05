@@ -27,7 +27,7 @@ export abstract class StatusGroupBase {
           }
         : {
             severity: LanguageStatusSeverity.Information,
-            text: 'dbt project',
+            text: 'Current project',
             detail: this.projectPath,
           };
 
@@ -65,7 +65,7 @@ export abstract class StatusGroupBase {
   private updateActiveDbtProjectUi(): void {
     this.items.activeDbtProject.setState(this.activeDbtProjectData.severity, this.activeDbtProjectData.text, this.activeDbtProjectData.detail, {
       command: 'WizardForDbtCore(TM).createDbtProject',
-      title: 'Create New dbt Project',
+      title: 'Create new project',
     });
   }
 

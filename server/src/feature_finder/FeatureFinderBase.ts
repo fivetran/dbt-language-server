@@ -34,7 +34,13 @@ export class FeatureFinderBase {
   }
 
   async getDbtCoreInstallVersions(): Promise<string[]> {
-    return this.getPipPackageVersions('dbt-core');
+    const versions = await this.getPipPackageVersions('dbt-core');
+    return versions.filter(v => !/[a-zA-Z]/.test(v) && Number(v[0]) >= 1);
+  }
+
+  async getDbtAdapterVersions(adapterName: string): Promise<string[]> {
+    const versions = await this.getPipPackageVersions(adapterName);
+    return versions.filter(v => !/[a-zA-Z]/.test(v));
   }
 
   protected async findDbtPythonInfo(): Promise<DbtVersionInfo | undefined> {
@@ -60,7 +66,7 @@ export class FeatureFinderBase {
     try {
       const axios = await getAxios();
       const response = await axios.get(url);
-      return Object.keys((response.data as { releases: { [key: string]: unknown } }).releases).filter(r => !/[a-zA-Z]/.test(r) && Number(r[0]) >= 1);
+      return Object.keys((response.data as { releases: { [key: string]: unknown } }).releases);
     } catch (e) {
       console.log(`Failed to get package versions: ${e instanceof Error ? e.message : String(e)}`);
       return [];

@@ -1,4 +1,4 @@
-import { assertThat, startsWith } from 'hamjest';
+import { assertThat, containsString, startsWith } from 'hamjest';
 import { LanguageStatusSeverity } from 'vscode';
 import { SPECIAL_PYTHON_SETTINGS_PATH, activateAndWait, getCustomDocUri, getLanguageStatusItems, getPreviewText } from './helper';
 
@@ -16,7 +16,7 @@ suite('Certain version', () => {
   function assertLanguageStatusItems(): void {
     const items = getLanguageStatusItems();
     assertThat(items.activeDbtProject.busy, false);
-    assertThat(items.activeDbtProject.text, 'dbt project');
+    assertThat(items.activeDbtProject.text, 'Current project');
     assertThat(items.activeDbtProject.detail, SPECIAL_PYTHON_SETTINGS_PATH);
 
     assertThat(items.python.busy, false);
@@ -28,8 +28,10 @@ suite('Certain version', () => {
     assertThat(items.dbt.command?.title, 'Install different version');
 
     assertThat(items.dbtAdapters.busy, false);
+    assertThat(items.dbtAdapters.text, containsString('bigquery'));
     assertThat(items.dbtAdapters.detail, 'installed dbt adapters');
     assertThat(items.dbtAdapters.severity, LanguageStatusSeverity.Information);
+    assertThat(items.dbt.command?.title, 'Install different adapter');
 
     assertThat(items.dbtPackages.busy, false);
     assertThat(items.dbtPackages.text, 'No packages.yml');
