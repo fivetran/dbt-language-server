@@ -19,6 +19,7 @@ export interface PackagesStatus {
 }
 
 export interface ProfilesYmlStatus {
+  activeProfileName: string;
   profilesYmlPath: string;
 }
 

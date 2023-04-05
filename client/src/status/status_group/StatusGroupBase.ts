@@ -75,7 +75,7 @@ export abstract class StatusGroupBase {
     } else {
       this.items.python.setState(this.pythonData.severity, this.pythonData.text, this.pythonData.detail, {
         command: 'python.setInterpreter',
-        title: 'Set Interpreter',
+        title: 'Change interpreter',
       });
     }
   }
@@ -105,7 +105,7 @@ export abstract class StatusGroupBase {
       ? {
           severity: LanguageStatusSeverity.Information,
           text: status.path,
-          detail: 'python interpreter path',
+          detail: 'python interpreter',
         }
       : {
           severity: LanguageStatusSeverity.Error,

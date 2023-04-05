@@ -1,9 +1,11 @@
 import { DbtPackageInfo, DbtPackageVersions } from 'dbt-language-server-common';
-import { QuickInputButtons, QuickPickItem, QuickPickItemKind, Selection, ThemeIcon, Uri, commands, env } from 'vscode';
+import { QuickInputButtons, QuickPickItem, QuickPickItemKind, Selection, ThemeIcon, Uri, commands, env, workspace } from 'vscode';
 import { DbtLanguageClientManager } from '../DbtLanguageClientManager';
 import { DbtWizardQuickPick } from '../QuickPick';
+import { PACKAGES_YML } from '../Utils';
 import { Command } from './CommandManager';
 import { OpenOrCreatePackagesYml } from './OpenOrCreatePackagesYml';
+import path = require('node:path');
 
 export class InstallDbtPackages implements Command {
   static readonly ID = 'WizardForDbtCore(TM).installDbtPackages';
@@ -20,6 +22,16 @@ export class InstallDbtPackages implements Command {
   constructor(private dbtLanguageClientManager: DbtLanguageClientManager) {}
 
   async execute(projectPath?: string): Promise<void> {
+    if (projectPath) {
+      const profilesUri = Uri.file(path.join(projectPath, PACKAGES_YML));
+      try {
+        await workspace.fs.stat(profilesUri);
+        await commands.executeCommand('vscode.open', profilesUri);
+      } catch {
+        // file does not exist
+      }
+    }
+
     const client =
       projectPath === undefined
         ? await this.dbtLanguageClientManager.getClientForActiveDocument()
