@@ -1,5 +1,16 @@
 # Changelog
 
+## Version 0.22.0 (06/04/2023)
+## What's Changed
+* Display only a single dbt-related error, if present.
+* Added support to install specific versions of dbt-core and dbt adapters.
+* Show progress during dbt package installation.
+* Resolved the issue with re-authentication when using oAuth BigQuery configuration.
+* Removed dbt-rpc support as it is being deprecated soon.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.21.2...v0.22.0
+---
+
 ## Version 0.21.2 (30/03/2023)
 ## What's Changed
 * Fix empty preview issue.
@@ -269,16 +280,3 @@ AS (
 * Improve Readme.md
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.5.0...v0.6.0
----
-
-## Version 0.5.0 (26/05/2022)
-## What's Changed
-* Upgrade ZetaSQL to Apr 21, 2022 version
-* Add support for `_PARTITIONTIME`, `_PARTITIONDATE` and `INFORMATION_SCHEMA` keywords
-* Fix incorrect text position calculation
-* Show error when `dbt-rpc` fails to start
-* Restart language server in case of error
-* Fix conflict with other extension
-
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.4.2...v0.5.0
