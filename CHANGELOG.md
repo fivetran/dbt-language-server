@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.22.0 (01/01/1970)
+## Version 0.22.0 (06/04/2023)
 ## What's Changed
 * Display only a single dbt-related error, if present.
 * Added support to install specific versions of dbt-core and dbt adapters.
