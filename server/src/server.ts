@@ -87,7 +87,7 @@ function createLspServerForProject(
 
   const fileChangeListener = new FileChangeListener(dbtProject, manifestParser, dbtRepository);
   const dbtProfileCreator = new DbtProfileCreator(dbtProject, featureFinder.getProfilesYmlPath());
-  const statusSender = new DbtProjectStatusSender(notificationSender, dbtRepository, featureFinder, fileChangeListener);
+  const statusSender = new DbtProjectStatusSender(notificationSender, dbtRepository, featureFinder, fileChangeListener, dbtProject.findProfileName());
   const dbt = new DbtCli(featureFinder, connection, modelProgressReporter, notificationSender);
   const dbtDocumentKindResolver = new DbtDocumentKindResolver(dbtRepository);
   const diagnosticGenerator = new DiagnosticGenerator(dbtRepository);

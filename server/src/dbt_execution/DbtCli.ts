@@ -70,9 +70,13 @@ export class DbtCli extends Dbt {
     return err(result.error);
   }
 
-  async deps(): Promise<void> {
-    const depsCommand = new DbtCommand(this.featureFinder.profilesYmlDir, ['deps'], this.pythonPathForCli);
-    await DbtCli.DBT_COMMAND_EXECUTOR.execute(depsCommand);
+  async deps(onStdoutData: (data: string) => void, onStderrData: (data: string) => void): Promise<void> {
+    const depsCommand = new DbtCommand(
+      this.featureFinder.profilesYmlDir,
+      ['--no-anonymous-usage-stats', '--no-use-colors', 'deps'],
+      this.pythonPathForCli,
+    );
+    await DbtCli.DBT_COMMAND_EXECUTOR.execute(depsCommand, onStdoutData, onStderrData);
   }
 
   refresh(): void {

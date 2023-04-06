@@ -186,7 +186,9 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     this.connection.onNotification('custom/analyzeEntireProject', () => this.onAnalyzeEntireProject());
 
     this.connection.onRequest('WizardForDbtCore(TM)/getListOfPackages', () => this.featureFinder.packageInfosPromise.get());
-    this.connection.onRequest('WizardForDbtCore(TM)/getPackageVersions', (dbtPackage: string) => this.featureFinder.packageVersions(dbtPackage));
+    this.connection.onRequest('WizardForDbtCore(TM)/getPackageVersions', (dbtPackage: string) =>
+      this.featureFinder.getDbtPackageVersions(dbtPackage),
+    );
     this.connection.onRequest('WizardForDbtCore(TM)/addNewDbtPackage', (dbtPackage: SelectedDbtPackage) => this.onAddNewDbtPackage(dbtPackage));
   }
 
@@ -436,7 +438,8 @@ export class LspServer extends LspServerBase<FeatureFinder> {
 
   onAddNewDbtPackage(dbtPackage: SelectedDbtPackage): void {
     this.dbtProject.addNewDbtPackage(dbtPackage.packageName, dbtPackage.version);
-    this.dbt.deps().catch(e => console.log(`Error while running dbt deps: ${e instanceof Error ? e.message : String(e)}`));
+    const sendLog = (data: string): void => this.notificationSender.sendDbtDepsLog(data);
+    this.dbt.deps(sendLog, sendLog).catch(e => console.log(`Error while running dbt deps: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   onDidRenameFiles(params: RenameFilesParams): void {

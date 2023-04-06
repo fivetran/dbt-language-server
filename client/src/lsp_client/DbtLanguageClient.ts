@@ -173,10 +173,6 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
     this.sendNotification('WizardForDbtCore(TM)/resendDiagnostics', uri);
   }
 
-  sendRequest<R>(method: string, param?: unknown): Promise<R> {
-    return this.client.sendRequest(method, param);
-  }
-
   getDiagnostics(): DiagnosticCollection | undefined {
     return this.client.diagnostics;
   }

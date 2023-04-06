@@ -3,8 +3,9 @@ import { OutputChannel, window } from 'vscode';
 export class OutputChannelProvider {
   private mainLogChannel = window.createOutputChannel('Wizard for dbt Core (TM)');
   private traceChannel = window.createOutputChannel('Wizard for dbt Core (TM) Trace');
-  private installLatestDbtChannel?: OutputChannel;
+  private installDbtCoreChannel?: OutputChannel;
   private installDbtAdaptersChannel?: OutputChannel;
+  private dbtDepsChannel?: OutputChannel;
 
   getMainLogChannel(): OutputChannel {
     return this.mainLogChannel;
@@ -14,11 +15,11 @@ export class OutputChannelProvider {
     return this.traceChannel;
   }
 
-  getInstallLatestDbtChannel(): OutputChannel {
-    if (!this.installLatestDbtChannel) {
-      this.installLatestDbtChannel = window.createOutputChannel('Install Latest dbt');
+  getInstallDbtCoreChannel(): OutputChannel {
+    if (!this.installDbtCoreChannel) {
+      this.installDbtCoreChannel = window.createOutputChannel('Install dbt Core');
     }
-    return this.installLatestDbtChannel;
+    return this.installDbtCoreChannel;
   }
 
   getInstallDbtAdaptersChannel(): OutputChannel {
@@ -26,5 +27,12 @@ export class OutputChannelProvider {
       this.installDbtAdaptersChannel = window.createOutputChannel('Install dbt Adapters');
     }
     return this.installDbtAdaptersChannel;
+  }
+
+  getDbtDepsChannel(): OutputChannel {
+    if (!this.dbtDepsChannel) {
+      this.dbtDepsChannel = window.createOutputChannel('Install dbt packages');
+    }
+    return this.dbtDepsChannel;
   }
 }

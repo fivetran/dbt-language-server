@@ -33,7 +33,7 @@ export abstract class Dbt {
 
   abstract getError(): string;
 
-  abstract deps(): Promise<void>;
+  abstract deps(onStdoutData: (data: string) => void, onStderrData: (data: string) => void): Promise<void>;
 
   abstract dispose(): void;
 
@@ -46,8 +46,8 @@ export abstract class Dbt {
 
     if (errorMessageResult?.id === 'install') {
       console.log(`Trying to install dbt, and ${dbtProfileType} adapter`);
-      const sendLog = (data: string): void => this.notificationSender.sendInstallLatestDbtLog(data);
-      const installResult = await InstallUtils.installDbt(python, dbtProfileType, sendLog, sendLog);
+      const sendLog = (data: string): void => this.notificationSender.sendInstallDbtCoreLog(data);
+      const installResult = await InstallUtils.installDbt(python, undefined, dbtProfileType, sendLog, sendLog);
       if (installResult.isOk()) {
         this.notificationSender.sendRestart();
       } else {

@@ -12,11 +12,12 @@ export class DbtProjectStatusSender extends NoProjectStatusSender {
     private dbtRepository: DbtRepository,
     featureFinder: FeatureFinder,
     private fileChangeListener: FileChangeListener,
+    profileName: string,
   ) {
     super(notificationSender, featureFinder);
     this.fileChangeListener.onDbtPackagesYmlChanged(e => this.onDbtPackagesYmlChanged(e));
     featureFinder.packagesYmlExistsPromise
-      .then(packagesYmlFound => this.sendYmlStatus(packagesYmlFound, featureFinder.getProfilesYmlPath()))
+      .then(packagesYmlFound => this.sendYmlStatus(packagesYmlFound, profileName, featureFinder.getProfilesYmlPath()))
       .catch(e => console.log(`Error while finding packages.yml: ${e instanceof Error ? e.message : String(e)}`));
   }
 
@@ -24,13 +25,13 @@ export class DbtProjectStatusSender extends NoProjectStatusSender {
     return this.dbtRepository.projectPath;
   }
 
-  sendYmlStatus(packagesYmlFound: boolean, profilesYmlPath?: string): void {
+  sendYmlStatus(packagesYmlFound: boolean, activeProfileName?: string, profilesYmlPath?: string): void {
     const statusNotification: StatusNotification = {
       projectPath: this.dbtRepository.projectPath,
       packagesStatus: { packagesYmlFound },
     };
-    if (profilesYmlPath) {
-      statusNotification.profilesYmlStatus = { profilesYmlPath };
+    if (activeProfileName && profilesYmlPath) {
+      statusNotification.profilesYmlStatus = { activeProfileName, profilesYmlPath };
     }
 
     this.notificationSender.sendStatus(statusNotification);

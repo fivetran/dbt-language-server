@@ -1,3 +1,4 @@
+import { DbtAdapter } from 'dbt-language-server-common';
 import { InitializeError, InitializeParams, InitializeResult, ResponseError, _Connection } from 'vscode-languageserver';
 import { InstallUtils } from '../InstallUtils';
 import { NotificationSender } from '../NotificationSender';
@@ -21,15 +22,21 @@ export abstract class LspServerBase<T extends FeatureFinderBase> {
   }
 
   initializeNotifications(): void {
-    this.connection.onNotification('WizardForDbtCore(TM)/installLatestDbt', () => this.installLatestDbt());
-    this.connection.onNotification('WizardForDbtCore(TM)/installDbtAdapter', (dbtAdapter: string) => this.installDbtAdapter(dbtAdapter));
+    this.connection.onNotification('WizardForDbtCore(TM)/installDbtCore', (version: string) => this.installDbtCore(version));
+    this.connection.onNotification('WizardForDbtCore(TM)/installDbtAdapter', (dbtAdapter: DbtAdapter) =>
+      this.installDbtAdapter(dbtAdapter.name, dbtAdapter.version),
+    );
+    this.connection.onRequest('WizardForDbtCore(TM)/getDbtCoreInstallVersions', () => this.featureFinder.getDbtCoreInstallVersions());
+    this.connection.onRequest('WizardForDbtCore(TM)/getDbtAdapterVersions', (adapterName: string) =>
+      this.featureFinder.getDbtAdapterVersions(adapterName),
+    );
   }
 
-  async installLatestDbt(): Promise<void> {
+  async installDbtCore(version: string): Promise<void> {
     const pythonPath = this.featureFinder.getPythonPath();
     if (pythonPath) {
-      const sendLog = (data: string): void => this.notificationSender.sendInstallLatestDbtLog(data);
-      const installResult = await InstallUtils.installDbt(pythonPath, undefined, sendLog, sendLog);
+      const sendLog = (data: string): void => this.notificationSender.sendInstallDbtCoreLog(data);
+      const installResult = await InstallUtils.installDbt(pythonPath, version, undefined, sendLog, sendLog);
 
       if (installResult.isOk()) {
         this.notificationSender.sendRestart();
@@ -37,11 +44,11 @@ export abstract class LspServerBase<T extends FeatureFinderBase> {
     }
   }
 
-  async installDbtAdapter(dbtAdapter: string): Promise<void> {
+  async installDbtAdapter(dbtAdapter: string, version?: string): Promise<void> {
     const pythonPath = this.featureFinder.getPythonPath();
     if (pythonPath) {
       const sendLog = (data: string): void => this.notificationSender.sendInstallDbtAdapterLog(data);
-      const installResult = await InstallUtils.installDbtAdapter(pythonPath, dbtAdapter, sendLog, sendLog);
+      const installResult = await InstallUtils.installDbtAdapter(pythonPath, dbtAdapter, version, sendLog, sendLog);
 
       if (installResult.isOk()) {
         this.notificationSender.sendRestart();

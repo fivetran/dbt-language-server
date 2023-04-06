@@ -1,11 +1,10 @@
 import { PackagesStatus, ProfilesYmlStatus, StatusNotification } from 'dbt-language-server-common';
 import { LanguageStatusSeverity, RelativePattern, Uri } from 'vscode';
-import { PACKAGES_YML, PROFILES_YML } from '../../Utils';
+import { PACKAGES_YML } from '../../Utils';
 import { InstallDbtPackages } from '../../commands/InstallDbtPackages';
 import { LanguageStatusItems } from '../LanguageStatusItems';
 import { StatusItemData } from '../StatusItemData';
 import { StatusGroupBase } from './StatusGroupBase';
-import path = require('node:path');
 
 export class ProjectStatusGroup extends StatusGroupBase {
   private dbtPackagesData?: StatusItemData;
@@ -59,19 +58,23 @@ export class ProjectStatusGroup extends StatusGroupBase {
 
   private updateProfilesYmlUi(): void {
     if (this.profilesYmlData) {
-      this.items.profilesYml.setState(this.profilesYmlData.severity, this.profilesYmlData.text, this.profilesYmlData.detail);
+      this.items.profilesYml.setState(
+        this.profilesYmlData.severity,
+        this.profilesYmlData.text,
+        this.profilesYmlData.detail,
+        this.profilesYmlData.command,
+      );
     } else {
       this.items.dbtPackages.setBusy();
     }
   }
 
   private updateDbtPackagesStatusItemData(packagesStatus: PackagesStatus): void {
-    const command = { command: InstallDbtPackages.ID, title: 'Install dbt Packages', arguments: [this.projectPath] };
+    const command = { command: InstallDbtPackages.ID, title: 'Install dbt packages', arguments: [this.projectPath] };
     this.dbtPackagesData = packagesStatus.packagesYmlFound
       ? {
           severity: LanguageStatusSeverity.Information,
           text: PACKAGES_YML,
-          detail: `[Open](${Uri.file(path.join(this.projectPath, 'packages.yml')).toString()})`,
           command,
         }
       : {
@@ -85,8 +88,9 @@ export class ProjectStatusGroup extends StatusGroupBase {
   private updateProfilesYmlStatusItemData(profilesYmlStatus: ProfilesYmlStatus): void {
     this.profilesYmlData = {
       severity: LanguageStatusSeverity.Information,
-      text: PROFILES_YML,
-      detail: `[Open](${Uri.file(profilesYmlStatus.profilesYmlPath).toString()})`,
+      text: profilesYmlStatus.activeProfileName,
+      detail: 'Current profile',
+      command: { command: 'vscode.open', title: 'Change target credentials', arguments: [Uri.file(profilesYmlStatus.profilesYmlPath).toString()] },
     };
   }
 }

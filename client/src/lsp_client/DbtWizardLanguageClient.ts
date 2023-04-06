@@ -10,6 +10,7 @@ import { StatusHandler } from '../status/StatusHandler';
 export abstract class DbtWizardLanguageClient implements Disposable {
   static readonly CLIENT_ID = 'WizardForDbtCore(TM)';
   static readonly CLIENT_NAME = 'Wizard for dbt Core (TM)';
+  static readonly FOCUS_EDITOR_COMMAND = 'workbench.action.focusActiveEditorGroup';
 
   static createServerOptions(port: number, module: string): ServerOptions {
     const debugOptions = { execArgv: ['--nolazy', `--inspect=${port}`] };
@@ -40,15 +41,20 @@ export abstract class DbtWizardLanguageClient implements Disposable {
         this.statusHandler.changeStatus(statusNotification);
       }),
 
-      this.client.onNotification('WizardForDbtCore(TM)/installLatestDbtLog', async (data: string) => {
-        this.outputChannelProvider.getInstallLatestDbtChannel().show();
-        this.outputChannelProvider.getInstallLatestDbtChannel().append(data);
-        await commands.executeCommand('workbench.action.focusActiveEditorGroup');
+      this.client.onNotification('WizardForDbtCore(TM)/installDbtCoreLog', async (data: string) => {
+        this.outputChannelProvider.getInstallDbtCoreChannel().show();
+        this.outputChannelProvider.getInstallDbtCoreChannel().append(data);
+        await commands.executeCommand(DbtWizardLanguageClient.FOCUS_EDITOR_COMMAND);
       }),
 
       this.client.onNotification('WizardForDbtCore(TM)/installDbtAdapterLog', async (data: string) => {
         this.outputChannelProvider.getInstallDbtAdaptersChannel().append(data);
-        await commands.executeCommand('workbench.action.focusActiveEditorGroup');
+        await commands.executeCommand(DbtWizardLanguageClient.FOCUS_EDITOR_COMMAND);
+      }),
+
+      this.client.onNotification('WizardForDbtCore(TM)/dbtDepsLog', async (data: string) => {
+        this.outputChannelProvider.getDbtDepsChannel().append(data);
+        await commands.executeCommand(DbtWizardLanguageClient.FOCUS_EDITOR_COMMAND);
       }),
 
       this.client.onNotification('WizardForDbtCore(TM)/restart', async () => {
@@ -89,6 +95,10 @@ export abstract class DbtWizardLanguageClient implements Disposable {
     if (this.client.state === State.Running) {
       this.client.sendNotification(method, params).catch(e => log(`Error while sending notification: ${e instanceof Error ? e.message : String(e)}`));
     }
+  }
+
+  sendRequest<R>(method: string, param?: unknown): Promise<R> {
+    return this.client.sendRequest(method, param);
   }
 
   async restart(): Promise<void> {

@@ -4,6 +4,7 @@ import { homedir } from 'node:os';
 import { Command } from '../dbt_execution/commands/Command';
 import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor';
 import { DbtCommandFactory } from '../dbt_execution/DbtCommandFactory';
+import { getAxios } from '../utils/Utils';
 import path = require('node:path');
 import slash = require('slash');
 
@@ -32,6 +33,16 @@ export class FeatureFinderBase {
     return this.pythonInfo?.path;
   }
 
+  async getDbtCoreInstallVersions(): Promise<string[]> {
+    const versions = await this.getPipPackageVersions('dbt-core');
+    return versions.filter(v => !/[a-zA-Z]/.test(v) && Number(v[0]) >= 1);
+  }
+
+  async getDbtAdapterVersions(adapterName: string): Promise<string[]> {
+    const versions = await this.getPipPackageVersions(adapterName);
+    return versions.filter(v => !/[a-zA-Z]/.test(v));
+  }
+
   protected async findDbtPythonInfo(): Promise<DbtVersionInfo | undefined> {
     return this.findCommandPythonInfo(this.dbtCommandFactory.getDbtWithPythonVersion());
   }
@@ -48,6 +59,18 @@ export class FeatureFinderBase {
       latestVersion,
       installedAdapters,
     };
+  }
+
+  private async getPipPackageVersions(packageName: string): Promise<string[]> {
+    const url = `https://pypi.org/pypi/${packageName}/json`;
+    try {
+      const axios = await getAxios();
+      const response = await axios.get(url);
+      return Object.keys((response.data as { releases: { [key: string]: unknown } }).releases);
+    } catch (e) {
+      console.log(`Failed to get package versions: ${e instanceof Error ? e.message : String(e)}`);
+      return [];
+    }
   }
 
   private async findCommandPythonInfo(command: Command): Promise<DbtVersionInfo | undefined> {

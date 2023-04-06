@@ -12,7 +12,7 @@ export const DBT_ADAPTERS = [
   'dbt-redshift',
   'dbt-bigquery',
   'dbt-snowflake',
-  'dbt-spark[PyHive]',
+  'dbt-spark',
   'dbt-clickhouse',
   'dbt-databricks',
   'dbt-firebolt',
@@ -31,7 +31,6 @@ export const DBT_ADAPTERS = [
   'dbt-synapse',
   'dbt-exasol',
   'dbt-dremio',
-  'git+https://github.com/Tomme/dbt-athena.git',
   'dbt-vertica',
   'dbt-glue',
   'dbt-greenplum',
@@ -39,6 +38,13 @@ export const DBT_ADAPTERS = [
   'dbt-sqlite',
   'dbt-mysql',
   'dbt-ibmdb2',
+  'dbt-hive',
+  'dbt-athena-community',
+  'dbt-doris',
+  'dbt-infer',
+  'dbt-databend-cloud',
+  'dbt-fal',
+  'dbt-decodable',
 ];
 
 export function isDocumentSupported(document: TextDocument): boolean {

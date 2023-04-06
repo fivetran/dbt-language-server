@@ -19,6 +19,7 @@ export interface PackagesStatus {
 }
 
 export interface ProfilesYmlStatus {
+  activeProfileName: string;
   profilesYmlPath: string;
 }
 
@@ -69,6 +70,11 @@ export type DbtPackageVersions = { [key: string]: string };
 
 export interface SelectedDbtPackage {
   packageName: string;
+  version: string;
+}
+
+export interface DbtAdapter {
+  name: string;
   version: string;
 }
 

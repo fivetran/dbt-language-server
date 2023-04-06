@@ -1,4 +1,4 @@
-import { assertThat, startsWith } from 'hamjest';
+import { assertThat, containsString, startsWith } from 'hamjest';
 import { LanguageStatusSeverity } from 'vscode';
 import { SPECIAL_PYTHON_SETTINGS_PATH, activateAndWait, getCustomDocUri, getLanguageStatusItems, getPreviewText } from './helper';
 
@@ -16,28 +16,33 @@ suite('Certain version', () => {
   function assertLanguageStatusItems(): void {
     const items = getLanguageStatusItems();
     assertThat(items.activeDbtProject.busy, false);
-    assertThat(items.activeDbtProject.text, 'dbt project');
+    assertThat(items.activeDbtProject.text, 'Current project');
     assertThat(items.activeDbtProject.detail, SPECIAL_PYTHON_SETTINGS_PATH);
 
     assertThat(items.python.busy, false);
 
     assertThat(items.dbt.busy, false);
-    assertThat(items.dbt.text, `dbt ${VENV_VERSION}`);
+    assertThat(items.dbt.text, `dbt Core ${VENV_VERSION}`);
     assertThat(items.dbt.detail, startsWith('installed version. Latest version: '));
     assertThat(items.dbt.severity, LanguageStatusSeverity.Warning);
-    assertThat(items.dbt.command?.title, 'Update To Latest Version');
+    assertThat(items.dbt.command?.title, 'Install different version');
 
     assertThat(items.dbtAdapters.busy, false);
+    assertThat(items.dbtAdapters.text, containsString('bigquery'));
     assertThat(items.dbtAdapters.detail, 'installed dbt adapters');
     assertThat(items.dbtAdapters.severity, LanguageStatusSeverity.Information);
+    assertThat(items.dbtAdapters.command?.title, 'Install different adapter');
 
     assertThat(items.dbtPackages.busy, false);
     assertThat(items.dbtPackages.text, 'No packages.yml');
     assertThat(items.dbtPackages.detail, '');
     assertThat(items.dbtPackages.severity, LanguageStatusSeverity.Information);
-    assertThat(items.dbtPackages.command?.title, 'Install dbt Packages');
+    assertThat(items.dbtPackages.command?.title, 'Install dbt packages');
 
     assertThat(items.profilesYml.busy, false);
-    assertThat(items.profilesYml.text, 'profiles.yml');
+    assertThat(items.profilesYml.text, 'e2e-test-workspace-project1');
+    assertThat(items.profilesYml.detail, 'Current profile');
+    assertThat(items.profilesYml.severity, LanguageStatusSeverity.Information);
+    assertThat(items.profilesYml.command?.title, 'Change target credentials');
   }
 });

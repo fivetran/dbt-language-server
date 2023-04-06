@@ -27,7 +27,7 @@ export abstract class StatusGroupBase {
           }
         : {
             severity: LanguageStatusSeverity.Information,
-            text: 'dbt project',
+            text: 'Current project',
             detail: this.projectPath,
           };
 
@@ -65,7 +65,7 @@ export abstract class StatusGroupBase {
   private updateActiveDbtProjectUi(): void {
     this.items.activeDbtProject.setState(this.activeDbtProjectData.severity, this.activeDbtProjectData.text, this.activeDbtProjectData.detail, {
       command: 'WizardForDbtCore(TM).createDbtProject',
-      title: 'Create New dbt Project',
+      title: 'Create new project',
     });
   }
 
@@ -75,7 +75,7 @@ export abstract class StatusGroupBase {
     } else {
       this.items.python.setState(this.pythonData.severity, this.pythonData.text, this.pythonData.detail, {
         command: 'python.setInterpreter',
-        title: 'Set Interpreter',
+        title: 'Change interpreter',
       });
     }
   }
@@ -94,7 +94,7 @@ export abstract class StatusGroupBase {
     } else {
       this.items.dbtAdapters.setState(this.dbtAdaptersData.severity, this.dbtAdaptersData.text, this.dbtAdaptersData.detail, {
         command: 'WizardForDbtCore(TM).installDbtAdapters',
-        title: 'Install dbt Adapters',
+        title: 'Install different adapter',
         arguments: [this.projectPath],
       });
     }
@@ -105,7 +105,7 @@ export abstract class StatusGroupBase {
       ? {
           severity: LanguageStatusSeverity.Information,
           text: status.path,
-          detail: 'python interpreter path',
+          detail: 'python interpreter',
         }
       : {
           severity: LanguageStatusSeverity.Error,
@@ -116,45 +116,28 @@ export abstract class StatusGroupBase {
   }
 
   private updateDbtStatusItemData(status: DbtStatus): void {
-    if (status.versionInfo?.installedVersion) {
-      if (!status.versionInfo.latestVersion) {
-        this.dbtData = {
-          severity: LanguageStatusSeverity.Warning,
-          text: `dbt ${getStringVersion(status.versionInfo.installedVersion)}`,
-          detail: 'installed version',
-          command: this.installDbtCommand('Update To Latest Version'),
-        };
-        return;
-      }
+    const latestVersion = status.versionInfo?.latestVersion;
+    const installedVersion = status.versionInfo?.installedVersion;
+    const latestInstalled = latestVersion && installedVersion && compareVersions(latestVersion, installedVersion) === 0;
 
-      const compareResult = compareVersions(status.versionInfo.installedVersion, status.versionInfo.latestVersion);
-      // For v1.0.0 dbt CLI returns that latest version is 1.0.0, in later versions looks like it is fixed
-      const versionGreaterThanOne = compareVersions(status.versionInfo.installedVersion, { major: 1, minor: 0, patch: 0 }) > 0;
-      if (compareResult === 0 && versionGreaterThanOne) {
-        this.dbtData = {
-          severity: LanguageStatusSeverity.Information,
-          text: `dbt ${getStringVersion(status.versionInfo.installedVersion)}`,
-          detail: 'latest version installed',
-          command: undefined,
-        };
-        return;
-      }
-
-      this.dbtData = {
-        severity: LanguageStatusSeverity.Warning,
-        text: `dbt ${getStringVersion(status.versionInfo.installedVersion)}`,
-        detail: `installed version. Latest version: ${getStringVersion(status.versionInfo.latestVersion)}`,
-        command: this.installDbtCommand('Update To Latest Version'),
-      };
-      return;
+    let installedDetails = 'installed version';
+    if (latestVersion && installedVersion) {
+      installedDetails = latestInstalled ? 'latest version installed' : `installed version. Latest version: ${getStringVersion(latestVersion)}`;
     }
 
-    this.dbtData = {
-      severity: LanguageStatusSeverity.Error,
-      text: LanguageStatusItems.DBT_DEFAULT_TEXT,
-      detail: 'not found',
-      command: this.installDbtCommand('Install Latest Version'),
-    };
+    this.dbtData = installedVersion
+      ? {
+          severity: latestInstalled ? LanguageStatusSeverity.Information : LanguageStatusSeverity.Warning,
+          text: `dbt Core ${getStringVersion(installedVersion)}`,
+          detail: installedDetails,
+          command: this.installDbtCommand('Install different version'),
+        }
+      : {
+          severity: LanguageStatusSeverity.Error,
+          text: LanguageStatusItems.DBT_DEFAULT_TEXT,
+          detail: 'not found',
+          command: this.installDbtCommand('Install dbt Core'),
+        };
   }
 
   private updateDbtAdaptersStatusItemData(adaptersInfo: AdapterInfo[]): void {
@@ -173,6 +156,6 @@ export abstract class StatusGroupBase {
   }
 
   installDbtCommand(title: string): Command {
-    return { command: 'WizardForDbtCore(TM).installLatestDbt', title, arguments: [this.projectPath] };
+    return { command: 'WizardForDbtCore(TM).installDbtCore', title, arguments: [this.projectPath] };
   }
 }
