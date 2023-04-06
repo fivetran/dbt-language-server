@@ -111,7 +111,7 @@
         {
           "command": "WizardForDbtCore(TM).showQueryPreview",
           "group": "navigation",
-          "when": "editorLangId =~ /^sql$|^jinja-sql$|^sql-bigquery$/ && !editorReadonly"
+          "when": "editorLangId =~ /^sql$|^jinja-sql$|^snowflake-sql$|^sql-bigquery$/ && !editorReadonly"
         },
         {
           "command": "WizardForDbtCore(TM).analyzeEntireProject",
@@ -136,7 +136,7 @@
         {
           "submenu": "dbt",
           "group": "navigation",
-          "when": "editorLangId =~ /^sql$|^jinja-sql$|^sql-bigquery$/ && !editorReadonly"
+          "when": "editorLangId =~ /^sql$|^jinja-sql$|^snowflake-sql$|^sql-bigquery$/ && !editorReadonly"
         }
       ]
     },
