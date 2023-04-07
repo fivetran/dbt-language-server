@@ -73,7 +73,8 @@ export class DestinationContext {
   canUseDestination(profileResult: DbtProfileSuccess, ubuntuInWslWorks: boolean): boolean {
     return (
       DestinationContext.ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) &&
-      profileResult.type?.toLowerCase().trim() === 'bigquery' &&
+      (profileResult.type?.toLowerCase().trim() === 'bigquery' ||
+        (profileResult.type?.toLowerCase().trim() === 'snowflake' && process.env['DBT_LS_ENABLE_DEBUG_LOGS'] === 'true')) && // TODO: change this condition when snowflake is supported
       ubuntuInWslWorks
     );
   }
