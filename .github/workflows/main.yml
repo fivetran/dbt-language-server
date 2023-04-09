@@ -56,7 +56,9 @@ jobs:
 
       - name: delete libraries for other platforms
         run: |
-          cd server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql/
+          cd server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql
+          find . ! -name '${{ matrix.zetasql-lib }}' -type f -exec rm -f {} +
+          cd ../../../zetasql-snowflake/lib/zetasql
           find . ! -name '${{ matrix.zetasql-lib }}' -type f -exec rm -f {} +
 
       - name: delete executable for Ubuntu in WSL
