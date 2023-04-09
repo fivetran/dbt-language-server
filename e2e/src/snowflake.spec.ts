@@ -13,9 +13,8 @@ suite('Snowflake', () => {
     // assert
     assertThat(
       getPreviewText(),
-      `select * from dbt_ls_e2e_dataset.test_table1
-left join dbt_ls_e2e_dataset.users on test_table1.name=users.name
-`,
+      `select * from e2e_db.dbt_ls_e2e_dataset_dbt_ls_e2e_dataset.test_table1 as tt
+inner join lateral (select * from e2e_db.dbt_ls_e2e_dataset_dbt_ls_e2e_dataset.users as u);`,
     );
     await assertAllDiagnostics(docUri, []);
   });
