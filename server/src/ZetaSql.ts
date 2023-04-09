@@ -17,8 +17,11 @@ export class ZetaSql {
   constructor(private destination: SupportedDestinations) {}
 
   async initialize(): Promise<void> {
+    console.log(`Loading ZetaSQL library for ${this.destination.toString()}`);
     this.zetaSql =
       this.destination === 'bigquery' ? await import('@fivetrandevelopers/zetasql') : await import('@fivetrandevelopers/zetasql-snowflake');
+
+    console.log(`ZetaSQL library loaded ${JSON.stringify([...this.zetaSql.TypeFactory.EXTERNAL_MODE_SIMPLE_TYPE_KIND_NAMES])}`);
   }
 
   initializeClient(port: number): void {
