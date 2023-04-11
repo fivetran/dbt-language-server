@@ -7,10 +7,19 @@ import { ExtractTableNamesFromStatementRequest } from '@fivetrandevelopers/zetas
 import { ExtractTableNamesFromStatementResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ExtractTableNamesFromStatementResponse';
 import { ParseResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ParseResponse';
 import { promisify } from 'node:util';
+import { ProcessExecutor } from './ProcessExecutor';
+import { FeatureFinder } from './feature_finder/FeatureFinder';
+import { randomNumber } from './utils/Utils';
+import findFreePortPmfy = require('find-free-port');
+import path = require('node:path');
+import slash = require('slash');
 
 export type SupportedDestinations = 'bigquery' | 'snowflake';
 
-export class ZetaSql {
+export class ZetaSqlApi {
+  private static readonly MIN_PORT = 1024;
+  private static readonly MAX_PORT = 65_535;
+
   private zetaSql?: typeof import('@fivetrandevelopers/zetasql/lib/index') | typeof import('@fivetrandevelopers/zetasql-snowflake/lib/index');
   private languageOptions?: LanguageOptionsProto;
 
@@ -22,6 +31,25 @@ export class ZetaSql {
       this.destination === 'bigquery' ? await import('@fivetrandevelopers/zetasql') : await import('@fivetrandevelopers/zetasql-snowflake');
 
     console.log(`ZetaSQL library loaded ${JSON.stringify([...this.zetaSql.TypeFactory.EXTERNAL_MODE_SIMPLE_TYPE_KIND_NAMES])}`);
+
+    const port = await findFreePortPmfy(randomNumber(ZetaSqlApi.MIN_PORT, ZetaSqlApi.MAX_PORT));
+    console.log(`Starting zetasql on port ${port}`);
+    if (process.platform === 'win32') {
+      const fsPath = slash(path.normalize(`${__dirname}/../remote_server_${this.destination.toString()}`));
+      const wslPath = `/mnt/${fsPath.replace(':', '')}`;
+      console.log(`Path in WSL: ${wslPath}`);
+      const stdHandler = (data: string): void => {
+        console.log(data);
+      };
+      new ProcessExecutor()
+        .execProcess(`wsl -d ${FeatureFinder.getWslUbuntuName()} "${wslPath}" ${port}`, stdHandler, stdHandler)
+        .catch(e => console.log(e));
+    } else {
+      this.zetaSql.runServer(port).catch(e => console.log(e));
+    }
+
+    this.initializeClient(port);
+    await this.testConnection();
   }
 
   initializeClient(port: number): void {

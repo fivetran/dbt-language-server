@@ -8,7 +8,7 @@ import { DbtDestinationClient, Udf } from '../DbtDestinationClient';
 import { InformationSchemaConfigurator } from '../InformationSchemaConfigurator';
 import { SqlHeaderAnalyzer } from '../SqlHeaderAnalyzer';
 import { TableDefinition } from '../TableDefinition';
-import { ZetaSql } from '../ZetaSql';
+import { ZetaSqlApi } from '../ZetaSqlApi';
 import { ZetaSqlParser } from '../ZetaSqlParser';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 import { arraysAreEqual } from '../utils/Utils';
@@ -43,7 +43,7 @@ describe('ZetaSqlWrapper table/udf registration', () => {
   let zetaSqlWrapper: ZetaSqlWrapper;
 
   before(() => {
-    zetaSqlWrapper = new ZetaSqlWrapper(mock<DbtDestinationClient>(), mock(ZetaSql), mock(ZetaSqlParser), mock(SqlHeaderAnalyzer));
+    zetaSqlWrapper = new ZetaSqlWrapper(mock<DbtDestinationClient>(), mock(ZetaSqlApi), mock(ZetaSqlParser), mock(SqlHeaderAnalyzer));
   });
 
   function shouldRegisterTable(
@@ -90,7 +90,7 @@ describe('ZetaSqlWrapper table/udf registration', () => {
     expectedProjectId?: string,
   ): void {
     // arrange, act
-    zetaSqlWrapper = new ZetaSqlWrapper(mock<DbtDestinationClient>(), mock(ZetaSql), mock(ZetaSqlParser), mock(SqlHeaderAnalyzer));
+    zetaSqlWrapper = new ZetaSqlWrapper(mock<DbtDestinationClient>(), mock(ZetaSqlApi), mock(ZetaSqlParser), mock(SqlHeaderAnalyzer));
     const rootCatalog = registerTable(zetaSqlWrapper, tableDefinition);
 
     // assert
@@ -260,7 +260,7 @@ describe('ZetaSqlWrapper table/udf registration', () => {
     // arrange
     const tempUdfs = [{ namePath: ['temp_udf'] }];
     const innerCatalogs = [{ name: 'inner_catalog' }];
-    zetaSqlWrapper = new ZetaSqlWrapper(mock<DbtDestinationClient>(), mock(ZetaSql), mock(ZetaSqlParser), mock(SqlHeaderAnalyzer));
+    zetaSqlWrapper = new ZetaSqlWrapper(mock<DbtDestinationClient>(), mock(ZetaSqlApi), mock(ZetaSqlParser), mock(SqlHeaderAnalyzer));
     zetaSqlWrapper['catalog'].catalog = innerCatalogs;
 
     // act

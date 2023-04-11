@@ -11,24 +11,15 @@ import { ExtractTableNamesFromStatementResponse__Output } from '@fivetrandevelop
 import { Result, err, ok } from 'neverthrow';
 import { DbtDestinationClient, Udf } from './DbtDestinationClient';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
-import { ProcessExecutor } from './ProcessExecutor';
 import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
 import { TableDefinition } from './TableDefinition';
-import { ZetaSql } from './ZetaSql';
+import { ZetaSqlApi } from './ZetaSqlApi';
 import { ParseResult, ZetaSqlParser } from './ZetaSqlParser';
-import { FeatureFinder } from './feature_finder/FeatureFinder';
-import { randomNumber } from './utils/Utils';
 import { createType } from './utils/ZetaSqlUtils';
-import findFreePortPmfy = require('find-free-port');
-import path = require('node:path');
-import slash = require('slash');
 
 export class ZetaSqlWrapper {
   static readonly PARTITION_TIME = '_PARTITIONTIME';
   static readonly PARTITION_DATE = '_PARTITIONDATE';
-
-  private static readonly MIN_PORT = 1024;
-  private static readonly MAX_PORT = 65_535;
 
   private catalog: SimpleCatalogProto;
   private registeredTables: TableDefinition[] = [];
@@ -37,7 +28,7 @@ export class ZetaSqlWrapper {
 
   constructor(
     private destinationClient: DbtDestinationClient,
-    private zetaSql: ZetaSql,
+    private zetaSqlApi: ZetaSqlApi,
     private zetaSqlParser: ZetaSqlParser,
     private sqlHeaderAnalyzer: SqlHeaderAnalyzer,
   ) {
@@ -45,31 +36,12 @@ export class ZetaSqlWrapper {
   }
 
   async initializeZetaSql(): Promise<void> {
-    const port = await findFreePortPmfy(randomNumber(ZetaSqlWrapper.MIN_PORT, ZetaSqlWrapper.MAX_PORT));
-
-    await this.zetaSql.initialize();
-    console.log(`Starting zetasql on port ${port}`);
-    if (process.platform === 'win32') {
-      const fsPath = slash(path.normalize(`${__dirname}/../remote_server_executable`));
-      const wslPath = `/mnt/${fsPath.replace(':', '')}`;
-      console.log(`Path in WSL: ${wslPath}`);
-      const stdHandler = (data: string): void => {
-        console.log(data);
-      };
-      new ProcessExecutor()
-        .execProcess(`wsl -d ${FeatureFinder.getWslUbuntuName()} "${wslPath}" ${port}`, stdHandler, stdHandler)
-        .catch(e => console.log(e));
-    } else {
-      this.zetaSql.runServer(port).catch(e => console.log(e));
-    }
-
-    this.zetaSql.initializeClient(port);
-    await this.zetaSql.testConnection();
+    await this.zetaSqlApi.initialize();
   }
 
   async registerAllLanguageFeatures(): Promise<void> {
     if (!this.catalog.builtinFunctionOptions) {
-      const languageOptions = await this.zetaSql.getLanguageOptions();
+      const languageOptions = await this.zetaSqlApi.getLanguageOptions();
       if (languageOptions) {
         this.catalog.builtinFunctionOptions = {
           languageOptions,
@@ -157,7 +129,7 @@ export class ZetaSqlWrapper {
   }
 
   async getParseResult(sql: string): Promise<ParseResult> {
-    const languageOptions = await this.zetaSql.getLanguageOptions();
+    const languageOptions = await this.zetaSqlApi.getLanguageOptions();
     return this.zetaSqlParser.getParseResult(sql, languageOptions);
   }
 
@@ -182,7 +154,7 @@ export class ZetaSqlWrapper {
 
   async getTempUdfs(sqlHeader?: string): Promise<FunctionProto[]> {
     if (sqlHeader) {
-      const languageOptions = await this.zetaSql.getLanguageOptions();
+      const languageOptions = await this.zetaSqlApi.getLanguageOptions();
       return this.sqlHeaderAnalyzer.getAllFunctionDeclarations(sqlHeader, languageOptions, this.catalog.builtinFunctionOptions);
     }
     return [];
@@ -204,7 +176,7 @@ export class ZetaSqlWrapper {
   }
 
   async terminateServer(): Promise<void> {
-    await this.zetaSql.terminateServer();
+    await this.zetaSqlApi.terminateServer();
   }
 
   static addColumn(table: SimpleTableProto, newColumn: SimpleColumnProto): void {
@@ -283,7 +255,7 @@ export class ZetaSqlWrapper {
   }
 
   private async analyze(sqlStatement: string, simpleCatalog: SimpleCatalogProto): Promise<AnalyzeResponse__Output> {
-    const response = await this.zetaSql.analyze({
+    const response = await this.zetaSqlApi.analyze({
       sqlStatement,
       simpleCatalog,
 
@@ -316,8 +288,8 @@ export class ZetaSqlWrapper {
   }
 
   private async extractTableNamesFromStatement(sqlStatement: string): Promise<ExtractTableNamesFromStatementResponse__Output> {
-    const options = await this.zetaSql.getLanguageOptions();
-    const response = await this.zetaSql.extractTableNamesFromStatement({
+    const options = await this.zetaSqlApi.getLanguageOptions();
+    const response = await this.zetaSqlApi.extractTableNamesFromStatement({
       sqlStatement,
       options,
     });

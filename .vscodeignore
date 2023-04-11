@@ -19,4 +19,4 @@
 !server/out/snowflake/**/*
 !server/node_modules/**/*
 
-!server/remote_server_executable
+!server/remote_server_*

@@ -6,7 +6,7 @@ import { DbtRepository } from './DbtRepository';
 import { DestinationDefinition } from './DestinationDefinition';
 import { AnalyzeResult, AnalyzeTrackerFunc, ModelsAnalyzeResult, ProjectAnalyzer } from './ProjectAnalyzer';
 import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
-import { SupportedDestinations, ZetaSql } from './ZetaSql';
+import { SupportedDestinations, ZetaSqlApi } from './ZetaSqlApi';
 import { ZetaSqlParser } from './ZetaSqlParser';
 import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 
@@ -50,12 +50,12 @@ export class DestinationContext {
         this.destinationDefinition = new DestinationDefinition(destinationClient);
 
         const destination: SupportedDestinations = profileResult.type?.toLowerCase().trim() === 'snowflake' ? 'snowflake' : 'bigquery';
-        const zetaSql = new ZetaSql(destination);
+        const zetaSqlApi = new ZetaSqlApi(destination);
         this.projectAnalyzer = new ProjectAnalyzer(
           dbtRepository,
           projectName,
           destinationClient,
-          new ZetaSqlWrapper(destinationClient, zetaSql, new ZetaSqlParser(zetaSql), new SqlHeaderAnalyzer(zetaSql)),
+          new ZetaSqlWrapper(destinationClient, zetaSqlApi, new ZetaSqlParser(zetaSqlApi), new SqlHeaderAnalyzer(zetaSqlApi)),
         );
         await this.projectAnalyzer.initialize();
       } catch (e) {

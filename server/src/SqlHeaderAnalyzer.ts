@@ -7,13 +7,13 @@ import { ResolvedCreateFunctionStmtProto__Output } from '@fivetrandevelopers/zet
 import { SignatureArgumentKind } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SignatureArgumentKind';
 import { ZetaSQLBuiltinFunctionOptionsProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ZetaSQLBuiltinFunctionOptionsProto';
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
-import { ZetaSql } from './ZetaSql';
+import { ZetaSqlApi } from './ZetaSqlApi';
 import { traverse } from './utils/ZetaSqlUtils';
 
 export class SqlHeaderAnalyzer {
   static readonly FUNCTIONS_COUNT_LIMIT = 100;
 
-  constructor(private readonly zetaSql: ZetaSql) {}
+  constructor(private readonly zetaSqlApi: ZetaSqlApi) {}
 
   async getAllFunctionDeclarations(
     sqlStatement: string,
@@ -76,7 +76,7 @@ export class SqlHeaderAnalyzer {
       let result = undefined;
       let count = 0;
       do {
-        result = await this.zetaSql.analyze({
+        result = await this.zetaSqlApi.analyze({
           parseResumeLocation: {
             input: sql,
             bytePosition,
