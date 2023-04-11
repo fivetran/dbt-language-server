@@ -100,7 +100,10 @@ export class DbtTextDocument {
     this.requireCompileOnSave = false;
 
     this.modelCompiler.onCompilationError(this.onCompilationError.bind(this));
-    this.modelCompiler.onCompilationFinished(this.onCompilationFinished.bind(this));
+    this.modelCompiler.onCompilationFinished(async (compiledSql: string) => {
+      projectChangeListener.updateManifest();
+      await this.onCompilationFinished(compiledSql);
+    });
     this.modelCompiler.onFinishAllCompilationJobs(this.onFinishAllCompilationTasks.bind(this));
 
     this.destinationContext.onContextInitialized(this.onContextInitialized.bind(this));
