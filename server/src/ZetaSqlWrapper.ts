@@ -47,6 +47,7 @@ export class ZetaSqlWrapper {
   async initializeZetaSql(): Promise<void> {
     const port = await findFreePortPmfy(randomNumber(ZetaSqlWrapper.MIN_PORT, ZetaSqlWrapper.MAX_PORT));
 
+    await this.zetaSql.initialize();
     console.log(`Starting zetasql on port ${port}`);
     if (process.platform === 'win32') {
       const fsPath = slash(path.normalize(`${__dirname}/../remote_server_executable`));
@@ -59,7 +60,6 @@ export class ZetaSqlWrapper {
         .execProcess(`wsl -d ${FeatureFinder.getWslUbuntuName()} "${wslPath}" ${port}`, stdHandler, stdHandler)
         .catch(e => console.log(e));
     } else {
-      await this.zetaSql.initialize();
       this.zetaSql.runServer(port).catch(e => console.log(e));
     }
 
