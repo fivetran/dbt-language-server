@@ -3,7 +3,15 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Position, Range } from 'vscode';
 import { assertDefinitions } from './asserts';
-import { MAX_RANGE, TEST_FIXTURE_PATH, activateAndWaitManifestParsed, getCustomDocUri, getDocUri, triggerDefinition } from './helper';
+import {
+  MAX_RANGE,
+  TEST_FIXTURE_PATH,
+  activateAndWait,
+  activateAndWaitManifestParsed,
+  getCustomDocUri,
+  getDocUri,
+  triggerDefinition,
+} from './helper';
 
 const REF_SQL_DOC_URI = getDocUri('ref_sql.sql');
 const PACKAGE_REF_DOC_URI = getDocUri('package_ref.sql');
@@ -84,7 +92,7 @@ suite('macro definitions', () => {
 
 suite('source definitions', () => {
   test('Should suggest definitions for source', async () => {
-    await activateAndWaitManifestParsed(PACKAGE_REF_DOC_URI, TEST_FIXTURE_PATH);
+    await activateAndWait(PACKAGE_REF_DOC_URI);
 
     await assertDefinitions(PACKAGE_REF_DOC_URI, new Position(4, 33), [
       {
