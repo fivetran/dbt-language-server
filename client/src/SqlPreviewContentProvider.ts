@@ -32,6 +32,11 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
 
   updateText(uri: string, previewText: string): void {
     const currentValue = this.previewInfos.get(uri);
+    if (process.env['DBT_LS_DISABLE_TELEMETRY'] === 'true') {
+      // TODO: remove
+      log(`updateText: ${uri}: ${previewText}`);
+    }
+
     this.previewInfos.set(uri, {
       previewText,
       diagnostics: currentValue?.diagnostics ?? [],
@@ -48,6 +53,10 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
       d.severity = DiagnosticSeverity.Error;
     });
     const currentValue = this.previewInfos.get(uri);
+    if (process.env['DBT_LS_DISABLE_TELEMETRY'] === 'true') {
+      // TODO: remove
+      log(`updateDiagnostics: ${uri}: ${currentValue?.previewText ?? ''}`);
+    }
     this.previewInfos.set(uri, {
       previewText: currentValue?.previewText ?? '',
       diagnostics: diagnostics.map<Diagnostic>(d => {
