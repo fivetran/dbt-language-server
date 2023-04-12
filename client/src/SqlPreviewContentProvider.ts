@@ -9,6 +9,7 @@ import {
   TextDocumentContentProvider,
   Uri,
 } from 'vscode';
+import { log } from './Logger';
 
 interface PreviewInfo {
   previewText: string;
@@ -92,6 +93,10 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
   }
 
   provideTextDocumentContent(): string {
+    if (process.env['DBT_LS_DISABLE_TELEMETRY'] === 'true') {
+      // TODO: remove
+      log(`provideTextDocumentContent: ${this.activeDocUri.toString()}`);
+    }
     return this.previewInfos.get(this.activeDocUri.toString())?.previewText ?? '';
   }
 }
