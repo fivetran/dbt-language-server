@@ -28,7 +28,6 @@ suite('Editing outside jinja without recompilation', () => {
         console.log('Preview text:');
         console.log(e.document.getText());
       });
-    console.log(initialContent);
 
     assertThat(
       initialPreview,

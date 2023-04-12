@@ -110,6 +110,7 @@ function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
     ) {
       return;
     }
+    console.log(`Preview changed: ${e.contentChanges[0].text}`); // TODO: remove
     previewPromiseResolve();
   } else if (e.document === doc && documentPromiseResolve) {
     documentPromiseResolve();
