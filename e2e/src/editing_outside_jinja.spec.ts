@@ -1,8 +1,8 @@
 import { assertThat } from 'hamjest';
 import { EOL } from 'node:os';
-import { DiagnosticSeverity, Range, window } from 'vscode';
+import { DiagnosticSeverity, Range } from 'vscode';
 import { assertAllDiagnostics } from './asserts';
-import { PREVIEW_URI, activateAndWait, getCustomDocUri, getMainEditorText, getPreviewText, replaceText, setTestContent } from './helper';
+import { activateAndWait, getCustomDocUri, getMainEditorText, getPreviewText, replaceText, setTestContent } from './helper';
 import path = require('node:path');
 
 suite('Editing outside jinja without recompilation', () => {
@@ -19,15 +19,6 @@ suite('Editing outside jinja without recompilation', () => {
     await activateAndWait(DOC_URI);
     const initialContent = getMainEditorText();
     const initialPreview = getPreviewText();
-
-    // TODO: remove these logs
-    console.log(initialContent);
-    window.visibleTextEditors
-      .filter(e => e.document.uri.toString() === PREVIEW_URI)
-      .forEach(e => {
-        console.log('Preview text:');
-        console.log(e.document.getText());
-      });
 
     assertThat(
       initialPreview,

@@ -9,7 +9,6 @@ import {
   TextDocumentContentProvider,
   Uri,
 } from 'vscode';
-import { log } from './Logger';
 
 interface PreviewInfo {
   previewText: string;
@@ -32,10 +31,6 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
 
   updateText(uri: string, previewText: string): void {
     const currentValue = this.previewInfos.get(uri);
-    if (process.env['DBT_LS_DISABLE_TELEMETRY'] === 'true') {
-      // TODO: remove
-      log(`updateText: ${uri}: ${previewText}`);
-    }
 
     this.previewInfos.set(uri, {
       previewText,
@@ -53,10 +48,6 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
       d.severity = DiagnosticSeverity.Error;
     });
     const currentValue = this.previewInfos.get(uri);
-    if (process.env['DBT_LS_DISABLE_TELEMETRY'] === 'true') {
-      // TODO: remove
-      log(`updateDiagnostics: ${uri}: ${currentValue?.previewText ?? ''}`);
-    }
     this.previewInfos.set(uri, {
       previewText: currentValue?.previewText ?? '',
       diagnostics: diagnostics.map<Diagnostic>(d => {
@@ -102,11 +93,6 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
   }
 
   provideTextDocumentContent(): string {
-    if (process.env['DBT_LS_DISABLE_TELEMETRY'] === 'true') {
-      // TODO: remove
-      log(`provideTextDocumentContent: ${this.activeDocUri.toString()}`);
-      log(`provideTextDocumentContent value: ${this.previewInfos.get(this.activeDocUri.toString())?.previewText ?? ''}`);
-    }
     return this.previewInfos.get(this.activeDocUri.toString())?.previewText ?? '';
   }
 }
