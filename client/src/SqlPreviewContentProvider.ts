@@ -105,6 +105,7 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
     if (process.env['DBT_LS_DISABLE_TELEMETRY'] === 'true') {
       // TODO: remove
       log(`provideTextDocumentContent: ${this.activeDocUri.toString()}`);
+      log(`provideTextDocumentContent value: ${this.previewInfos.get(this.activeDocUri.toString())?.previewText ?? ''}`);
     }
     return this.previewInfos.get(this.activeDocUri.toString())?.previewText ?? '';
   }
