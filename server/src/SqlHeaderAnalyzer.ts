@@ -1,4 +1,3 @@
-import { ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { _zetasql_FunctionEnums_Mode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/FunctionEnums';
 import { FunctionProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/FunctionProto';
@@ -8,11 +7,14 @@ import { ResolvedCreateFunctionStmtProto__Output } from '@fivetrandevelopers/zet
 import { SignatureArgumentKind } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SignatureArgumentKind';
 import { ZetaSQLBuiltinFunctionOptionsProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ZetaSQLBuiltinFunctionOptionsProto';
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
-import { promisify } from 'node:util';
+import { ZetaSqlApi } from './ZetaSqlApi';
 import { traverse } from './utils/ZetaSqlUtils';
 
 export class SqlHeaderAnalyzer {
   static readonly FUNCTIONS_COUNT_LIMIT = 100;
+
+  constructor(private readonly zetaSqlApi: ZetaSqlApi) {}
+
   async getAllFunctionDeclarations(
     sqlStatement: string,
     options?: LanguageOptionsProto,
@@ -68,14 +70,13 @@ export class SqlHeaderAnalyzer {
     options?: LanguageOptionsProto,
     builtinFunctionOptions?: ZetaSQLBuiltinFunctionOptionsProto | null,
   ): Promise<AnalyzeResponse__Output[]> {
-    const analyze = promisify(ZetaSQLClient.API.analyze.bind(ZetaSQLClient.API));
     const asts: AnalyzeResponse__Output[] = [];
     try {
       let bytePosition = 0;
       let result = undefined;
       let count = 0;
       do {
-        result = await analyze({
+        result = await this.zetaSqlApi.analyze({
           parseResumeLocation: {
             input: sql,
             bytePosition,

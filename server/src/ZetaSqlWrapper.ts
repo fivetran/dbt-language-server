@@ -1,75 +1,50 @@
-import { runServer, terminateServer, TypeKind, ZetaSQLClient } from '@fivetrandevelopers/zetasql';
-import { LanguageOptions } from '@fivetrandevelopers/zetasql/lib/LanguageOptions';
+import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { FunctionProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/FunctionProto';
-import { LanguageFeature } from '@fivetrandevelopers/zetasql/lib/types/zetasql/LanguageFeature';
-import { LanguageVersion } from '@fivetrandevelopers/zetasql/lib/types/zetasql/LanguageVersion';
-import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
-import { ExtractTableNamesFromStatementResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ExtractTableNamesFromStatementResponse';
 import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRecordType';
 import { SimpleCatalogProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleCatalogProto';
 import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
 import { SimpleTableProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleTableProto';
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
-import { err, ok, Result } from 'neverthrow';
+import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
+import { ExtractTableNamesFromStatementResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ExtractTableNamesFromStatementResponse';
+import { Result, err, ok } from 'neverthrow';
 import { DbtDestinationClient, Udf } from './DbtDestinationClient';
-import { FeatureFinder } from './feature_finder/FeatureFinder';
 import { InformationSchemaConfigurator } from './InformationSchemaConfigurator';
-import { ProcessExecutor } from './ProcessExecutor';
 import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
 import { TableDefinition } from './TableDefinition';
-import { randomNumber } from './utils/Utils';
-import { createType } from './utils/ZetaSqlUtils';
+import { ZetaSqlApi } from './ZetaSqlApi';
 import { ParseResult, ZetaSqlParser } from './ZetaSqlParser';
-import findFreePortPmfy = require('find-free-port');
-import path = require('node:path');
-import slash = require('slash');
+import { createType } from './utils/ZetaSqlUtils';
 
 export class ZetaSqlWrapper {
   static readonly PARTITION_TIME = '_PARTITIONTIME';
   static readonly PARTITION_DATE = '_PARTITIONDATE';
 
-  private static readonly MIN_PORT = 1024;
-  private static readonly MAX_PORT = 65_535;
-
   private catalog: SimpleCatalogProto;
-  private languageOptions: LanguageOptions | undefined;
   private registeredTables: TableDefinition[] = [];
   private registeredFunctions = new Set<string>();
   private informationSchemaConfigurator = new InformationSchemaConfigurator();
 
-  constructor(private destinationClient: DbtDestinationClient, private zetaSqlParser: ZetaSqlParser, private sqlHeaderAnalyzer: SqlHeaderAnalyzer) {
+  constructor(
+    private destinationClient: DbtDestinationClient,
+    private zetaSqlApi: ZetaSqlApi,
+    private zetaSqlParser: ZetaSqlParser,
+    private sqlHeaderAnalyzer: SqlHeaderAnalyzer,
+  ) {
     this.catalog = this.getDefaultCatalog();
   }
 
   async initializeZetaSql(): Promise<void> {
-    const port = await findFreePortPmfy(randomNumber(ZetaSqlWrapper.MIN_PORT, ZetaSqlWrapper.MAX_PORT));
-
-    console.log(`Starting zetasql on port ${port}`);
-    if (process.platform === 'win32') {
-      const fsPath = slash(path.normalize(`${__dirname}/../remote_server_executable`));
-      const wslPath = `/mnt/${fsPath.replace(':', '')}`;
-      console.log(`Path in WSL: ${wslPath}`);
-      const stdHandler = (data: string): void => {
-        console.log(data);
-      };
-      new ProcessExecutor()
-        .execProcess(`wsl -d ${FeatureFinder.getWslUbuntuName()} "${wslPath}" ${port}`, stdHandler, stdHandler)
-        .catch(e => console.log(e));
-    } else {
-      runServer(port).catch(e => console.log(e));
-    }
-
-    ZetaSQLClient.init(port);
-    await this.getClient().testConnection();
+    await this.zetaSqlApi.initialize();
   }
 
   async registerAllLanguageFeatures(): Promise<void> {
     if (!this.catalog.builtinFunctionOptions) {
-      const languageOptions = await this.getLanguageOptions();
+      const languageOptions = await this.zetaSqlApi.getLanguageOptions();
       if (languageOptions) {
         this.catalog.builtinFunctionOptions = {
-          languageOptions: languageOptions.serialize(),
+          languageOptions,
         };
       }
     }
@@ -154,8 +129,8 @@ export class ZetaSqlWrapper {
   }
 
   async getParseResult(sql: string): Promise<ParseResult> {
-    const languageOptions = await this.getLanguageOptions();
-    return this.zetaSqlParser.getParseResult(sql, languageOptions?.serialize());
+    const languageOptions = await this.zetaSqlApi.getLanguageOptions();
+    return this.zetaSqlParser.getParseResult(sql, languageOptions);
   }
 
   async registerPersistentUdfs(parseResult: ParseResult): Promise<void> {
@@ -179,8 +154,8 @@ export class ZetaSqlWrapper {
 
   async getTempUdfs(sqlHeader?: string): Promise<FunctionProto[]> {
     if (sqlHeader) {
-      const languageOptions = await this.getLanguageOptions();
-      return this.sqlHeaderAnalyzer.getAllFunctionDeclarations(sqlHeader, languageOptions?.serialize(), this.catalog.builtinFunctionOptions);
+      const languageOptions = await this.zetaSqlApi.getLanguageOptions();
+      return this.sqlHeaderAnalyzer.getAllFunctionDeclarations(sqlHeader, languageOptions, this.catalog.builtinFunctionOptions);
     }
     return [];
   }
@@ -201,7 +176,7 @@ export class ZetaSqlWrapper {
   }
 
   async terminateServer(): Promise<void> {
-    await terminateServer();
+    await this.zetaSqlApi.terminateServer();
   }
 
   static addColumn(table: SimpleTableProto, newColumn: SimpleColumnProto): void {
@@ -212,10 +187,6 @@ export class ZetaSqlWrapper {
       table.column = table.column ?? [];
       table.column.push(newColumn);
     }
-  }
-
-  private getClient(): ZetaSQLClient {
-    return ZetaSQLClient.getInstance();
   }
 
   private static addChildCatalog(parent: SimpleCatalogProto, name: string): SimpleCatalogProto {
@@ -284,7 +255,7 @@ export class ZetaSqlWrapper {
   }
 
   private async analyze(sqlStatement: string, simpleCatalog: SimpleCatalogProto): Promise<AnalyzeResponse__Output> {
-    const response = await this.getClient().analyze({
+    const response = await this.zetaSqlApi.analyze({
       sqlStatement,
       simpleCatalog,
 
@@ -317,10 +288,10 @@ export class ZetaSqlWrapper {
   }
 
   private async extractTableNamesFromStatement(sqlStatement: string): Promise<ExtractTableNamesFromStatementResponse__Output> {
-    const languageOptions = await this.getLanguageOptions();
-    const response = await this.getClient().extractTableNamesFromStatement({
+    const options = await this.zetaSqlApi.getLanguageOptions();
+    const response = await this.zetaSqlApi.extractTableNamesFromStatement({
       sqlStatement,
-      options: languageOptions?.serialize(),
+      options,
     });
     if (!response) {
       throw new Error('Table names not found');
@@ -331,21 +302,5 @@ export class ZetaSqlWrapper {
 
   private createUnknownError(message: string): string {
     return `${message} [at 1:1]`;
-  }
-
-  private async getLanguageOptions(): Promise<LanguageOptions | undefined> {
-    if (!this.languageOptions) {
-      try {
-        this.languageOptions = await new LanguageOptions().enableMaximumLanguageFeatures();
-        const featuresForVersion = await LanguageOptions.getLanguageFeaturesForVersion(LanguageVersion.VERSION_CURRENT);
-        featuresForVersion.forEach(f => this.languageOptions?.enableLanguageFeature(f));
-        this.languageOptions.enableLanguageFeature(LanguageFeature.FEATURE_INTERVAL_TYPE);
-        // https://github.com/google/zetasql/issues/115#issuecomment-1210881670
-        this.languageOptions.options.reservedKeywords = ['QUALIFY'];
-      } catch (e) {
-        console.log(e instanceof Error ? e.stack : e);
-      }
-    }
-    return this.languageOptions;
   }
 }

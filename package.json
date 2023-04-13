@@ -169,9 +169,8 @@
     "clean": "rm -rf common/out client/out server/out e2e/out",
     "clean-node-modules": "rm -rf node_modules && rm -rf client/node_modules && rm -rf server/node_modules",
     "clean-install": "npm run clean && npm run clean-node-modules && npm ci",
-    "prepare-zetasql": "cp -R ./server/node_modules/@fivetrandevelopers/zetasql/lib/protos/ ./server/out/protos/ && cp -R ./server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql/ ./server/out/zetasql/",
-    "webpack": "npm run clean && tsc --project common/tsconfig.json && webpack --mode production --config ./client/webpack.config.js && webpack --mode production --config ./server/webpack.config.js && npm run prepare-zetasql",
-    "webpack:dev": "npm run clean && webpack --mode none --config ./client/webpack.config.js && webpack --mode none --config ./server/webpack.config.js && npm run prepare-zetasql",
+    "webpack": "npm run clean && tsc --project common/tsconfig.json && webpack --mode production --config ./client/webpack.config.js && webpack --mode production --config ./server/webpack.config.js",
+    "webpack:dev": "npm run clean && webpack --mode none --config ./client/webpack.config.js && webpack --mode none --config ./server/webpack.config.js",
     "prepare": "husky install"
   },
   "devDependencies": {

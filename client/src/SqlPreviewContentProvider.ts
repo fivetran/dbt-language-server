@@ -31,6 +31,7 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
 
   updateText(uri: string, previewText: string): void {
     const currentValue = this.previewInfos.get(uri);
+
     this.previewInfos.set(uri, {
       previewText,
       diagnostics: currentValue?.diagnostics ?? [],

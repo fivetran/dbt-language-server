@@ -19,6 +19,7 @@ suite('Editing outside jinja without recompilation', () => {
     await activateAndWait(DOC_URI);
     const initialContent = getMainEditorText();
     const initialPreview = getPreviewText();
+
     assertThat(
       initialPreview,
       `

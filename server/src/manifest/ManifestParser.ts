@@ -29,6 +29,9 @@ interface RawNode {
 }
 
 interface RawManifest {
+  metadata: {
+    generated_at: string;
+  };
   nodes: RawNode[] | undefined;
   macros: RawNode[] | undefined;
   sources: RawNode[] | undefined;
@@ -43,21 +46,32 @@ export class ManifestParser {
 
   static readonly DAG_GENERATOR = new DagGenerator();
 
-  /** we don't continue parse manifest if there is no compiled code */
+  lastGeneratedAt?: Date;
+
+  /** We don't continue parse manifest if there is no compiled code */
   parse(targetPath: string): ManifestJson | undefined {
     const manifestPath = ManifestParser.getManifestPath(targetPath);
     const content = readFileSync(manifestPath, 'utf8');
     const manifest = JSON.parse(content) as RawManifest;
+
     const { nodes, macros, sources } = manifest;
 
     const models = this.parseModelDefinitions(nodes);
-    return models.some(m => m.compiledCode)
-      ? {
-          macros: this.parseMacroDefinitions(macros),
-          sources: this.parseSourceDefinitions(sources),
-          dag: ManifestParser.DAG_GENERATOR.generateDbtGraph(models),
-        }
-      : undefined;
+    if (models.some(m => m.compiledCode)) {
+      const generatedAt = new Date(manifest.metadata.generated_at);
+      if (this.lastGeneratedAt && generatedAt <= this.lastGeneratedAt) {
+        return undefined;
+      }
+      this.lastGeneratedAt = generatedAt;
+
+      return {
+        macros: this.parseMacroDefinitions(macros),
+        sources: this.parseSourceDefinitions(sources),
+        dag: ManifestParser.DAG_GENERATOR.generateDbtGraph(models),
+      };
+    }
+
+    return undefined;
   }
 
   static getManifestPath(targetPath: string): string {

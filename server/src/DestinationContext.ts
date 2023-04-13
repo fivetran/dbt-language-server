@@ -6,6 +6,7 @@ import { DbtRepository } from './DbtRepository';
 import { DestinationDefinition } from './DestinationDefinition';
 import { AnalyzeResult, AnalyzeTrackerFunc, ModelsAnalyzeResult, ProjectAnalyzer } from './ProjectAnalyzer';
 import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
+import { SupportedDestinations, ZetaSqlApi } from './ZetaSqlApi';
 import { ZetaSqlParser } from './ZetaSqlParser';
 import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 
@@ -48,11 +49,13 @@ export class DestinationContext {
         const destinationClient = clientResult.value;
         this.destinationDefinition = new DestinationDefinition(destinationClient);
 
+        const destination: SupportedDestinations = profileResult.type?.toLowerCase().trim() === 'snowflake' ? 'snowflake' : 'bigquery';
+        const zetaSqlApi = new ZetaSqlApi(destination);
         this.projectAnalyzer = new ProjectAnalyzer(
           dbtRepository,
           projectName,
           destinationClient,
-          new ZetaSqlWrapper(destinationClient, new ZetaSqlParser(), new SqlHeaderAnalyzer()),
+          new ZetaSqlWrapper(destinationClient, zetaSqlApi, new ZetaSqlParser(zetaSqlApi), new SqlHeaderAnalyzer(zetaSqlApi)),
         );
         await this.projectAnalyzer.initialize();
       } catch (e) {
@@ -73,7 +76,8 @@ export class DestinationContext {
   canUseDestination(profileResult: DbtProfileSuccess, ubuntuInWslWorks: boolean): boolean {
     return (
       DestinationContext.ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) &&
-      profileResult.type?.toLowerCase().trim() === 'bigquery' &&
+      (profileResult.type?.toLowerCase().trim() === 'bigquery' ||
+        (profileResult.type?.toLowerCase().trim() === 'snowflake' && process.env['DBT_LS_ENABLE_DEBUG_LOGS'] === 'true')) && // TODO: change this condition when snowflake is supported
       ubuntuInWslWorks
     );
   }

@@ -54,7 +54,6 @@ export async function installVsCodeAndRunTests(indexName: string, projectWithMod
         EXTENSIONS_INSTALL_PATH: extensionsInstallPath,
         DBT_LS_DISABLE_TELEMETRY: 'true',
         DBT_LS_ENABLE_DEBUG_LOGS: 'true',
-        DBT_LS_POST_REQUEST_TIMEOUT: '20000',
       },
     });
     /* eslint-disable-next-line unicorn/no-process-exit */

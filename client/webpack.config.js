@@ -15,6 +15,10 @@ module.exports = withDefaults({
     path: path.join(__dirname, 'out'),
   },
   externals: {
-    'applicationinsights-native-metrics': 'commonjs applicationinsights-native-metrics', // See: https://github.com/microsoft/vscode-extension-telemetry/issues/41,
+    // https://github.com/microsoft/vscode-extension-telemetry/issues/150
+    'applicationinsights-native-metrics': 'commonjs applicationinsights-native-metrics',
+    '@opentelemetry/instrumentation': 'commonjs @opentelemetry/instrumentation',
+    '@azure/opentelemetry-instrumentation-azure-sdk': 'commonjs @azure/opentelemetry-instrumentation-azure-sdk',
+    '@azure/functions-core': 'commonjs @azure/functions-core',
   },
 });

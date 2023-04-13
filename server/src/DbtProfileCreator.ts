@@ -104,7 +104,8 @@ export class DbtProfileCreator {
 
     const target = evalJinjaEnvVar(profileWithValidatedFields.target);
     const targetConfig = DbtProfileCreator.evalTargetConfig(profileWithValidatedFields.outputs[target]) as Required<TargetConfig>;
-    const { type, method } = targetConfig;
+    const { type } = targetConfig;
+    let { method } = targetConfig;
 
     let dbtProfile: DbtProfile | undefined = undefined;
 
@@ -118,8 +119,10 @@ export class DbtProfileCreator {
     } else if (type.valueOf() === DbtProfileType.Snowflake) {
       if (targetConfig.account && targetConfig.password) {
         profileBuilder = SNOWFLAKE_PROFILES.get('user-password');
+        method = 'user-password';
       } else if (targetConfig.account && targetConfig.private_key_path) {
         profileBuilder = SNOWFLAKE_PROFILES.get('key-pair');
+        method = 'key-pair';
       }
     }
 

@@ -42,6 +42,10 @@ export class ProjectChangeListener {
     this.enableEntireProjectAnalysis = value;
   }
 
+  updateManifest(): void {
+    this.fileChangeListener.updateManifestNodes();
+  }
+
   async compileAndAnalyzeProject(): Promise<void> {
     if (this.analysisInProgress) {
       console.log('Analysis is already in progress. Skip recompiling/reanalyzing the project');
@@ -58,7 +62,7 @@ export class ProjectChangeListener {
 
       const compileResult = await this.dbt.compileProject(this.dbtRepository);
       if (compileResult.isOk()) {
-        this.fileChangeListener.updateManifestNodes();
+        this.updateManifest();
         await this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
       } else {
         this.setDbtError(this.getAnyDbtProjectYmlUri(), compileResult.error);

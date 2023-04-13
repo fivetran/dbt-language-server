@@ -9,7 +9,6 @@ module.exports = withDefaults({
   context: path.join(__dirname),
   entry: {
     server: './src/server.ts',
-    runServerAddon: './node_modules/@fivetrandevelopers/zetasql/lib/runServerAddon.js',
   },
   output: {
     filename: '[name].js',
@@ -17,5 +16,6 @@ module.exports = withDefaults({
   },
   externals: {
     'ffi-napi': 'commonjs ffi-napi', // there is an issue when running native modules with webpack
+    'coffee-script': 'commonjs coffee-script',
   },
 });

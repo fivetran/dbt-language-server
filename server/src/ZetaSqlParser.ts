@@ -1,4 +1,3 @@
-import { ZetaSQLClient } from '@fivetrandevelopers/zetasql';
 import { ASTFunctionCallProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTFunctionCallProto';
 import { ASTSelectProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTSelectProto';
 import { ASTTablePathExpressionProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTTablePathExpressionProto';
@@ -6,7 +5,7 @@ import { AnyASTExpressionProto__Output } from '@fivetrandevelopers/zetasql/lib/t
 import { LanguageOptionsProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/LanguageOptionsProto';
 import { ParseLocationRangeProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
 import { ParseResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/ParseResponse';
-import { promisify } from 'node:util';
+import { ZetaSqlApi } from './ZetaSqlApi';
 import { arraysAreEqual } from './utils/Utils';
 import { traverse } from './utils/ZetaSqlUtils';
 
@@ -26,6 +25,8 @@ export interface ParseResult {
 }
 
 export class ZetaSqlParser {
+  constructor(private readonly zetaSqlApi: ZetaSqlApi) {}
+
   async getParseResult(sqlStatement: string, options?: LanguageOptionsProto): Promise<ParseResult> {
     const result: ParseResult = {
       functions: [],
@@ -124,12 +125,8 @@ export class ZetaSqlParser {
   }
 
   async parse(sqlStatement: string, options?: LanguageOptionsProto): Promise<ParseResponse__Output | undefined> {
-    const parse = promisify(ZetaSQLClient.API.parse.bind(ZetaSQLClient.API));
     try {
-      return await parse({
-        sqlStatement,
-        options,
-      });
+      return await this.zetaSqlApi.parse(sqlStatement, options);
     } catch (e) {
       console.log(e);
     }

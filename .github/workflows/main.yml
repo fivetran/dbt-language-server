@@ -56,12 +56,12 @@ jobs:
 
       - name: delete libraries for other platforms
         run: |
-          cd server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql/
-          find . ! -name '${{ matrix.zetasql-lib }}' -type f -exec rm -f {} +
+          find server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql -maxdepth 1 -type f ! -name '${{ matrix.zetasql-lib }}' -exec rm -f {} \;
+          find server/node_modules/@fivetrandevelopers/zetasql-snowflake/lib/snowflake -maxdepth 1 -type f ! -name '${{ matrix.zetasql-lib }}' -exec rm -f {} \;
 
       - name: delete executable for Ubuntu in WSL
         if: matrix.os != 'windows-latest'
-        run: rm server/remote_server_executable
+        run: rm server/remote_server_bigquery
 
       - name: set variable for prepare_node_modules.sh script
         run: echo ${{ matrix.target }} > target_os
