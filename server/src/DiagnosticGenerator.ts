@@ -17,7 +17,7 @@ interface RawAndCompiledDiagnostics {
 
 export class DiagnosticGenerator {
   private static readonly DBT_ERROR_LINE_PATTERN = /\n\s*line (\d+)\s*\n/;
-  private static readonly DBT_COMPILATION_ERROR_PATTERN = /(Compilation Error in model \w+ \((.*)\)(?:\r\n?|\n).*)(?:\r\n?|\n)/;
+  private static readonly DBT_COMPILATION_ERROR_PATTERN = /(Error in model \w+ \((.*)\)(?:\r\n?|\n).*)(?:\r\n?|\n)/;
   private static readonly SQL_COMPILATION_ERROR_PATTERN = /(.*?) \[at (\d+):(\d+)\]/;
 
   private static readonly AUTH_ERROR = 'Reauthentication is needed. Please run `gcloud auth login --update-adc` to reauthenticate.';
