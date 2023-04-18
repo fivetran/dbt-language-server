@@ -8,7 +8,7 @@ describe('DiagnosticGenerator', () => {
   const MODEL_NAME = 'simple_select_dbt';
   const MODEL_PATH = `models/${MODEL_NAME}.sql`;
   const ERROR_LINE = 2;
-  const DBT_ERROR = `Compilation Error in model ${MODEL_NAME} (${MODEL_PATH})\n  unexpected '}'\n    line ${ERROR_LINE}\n      select * from {{ var('project_name') }.dbt_ls_e2e_dataset.test_table1`;
+  const DBT_ERROR = `Runtime Error in model ${MODEL_NAME} (${MODEL_PATH})\n  unexpected '}'\n    line ${ERROR_LINE}\n      select * from {{ var('project_name') }.dbt_ls_e2e_dataset.test_table1`;
   const AUTH_ERROR_MAIN_PART = 'Reauthentication is needed. Please run `gcloud auth login --update-adc` to reauthenticate.';
   const AUTH_ERROR = `11:03:41  Running with dbt=1.4.5
   11:03:41  Found 23 models, 2 tests, 0 snapshots, 0 analyses, 340 macros, 0 operations, 0 seed files, 1 source, 0 exposures, 0 metrics
