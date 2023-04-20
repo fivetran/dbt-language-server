@@ -1,0 +1,8 @@
+WITH bool_values AS (
+SELECT TRUE AS value
+UNION ALL
+SELECT TRUE
+UNION ALL
+SELECT FALSE
+)
+SELECT BOOLXOR_AGG(value) AS boolxor_result FROM bool_values;
