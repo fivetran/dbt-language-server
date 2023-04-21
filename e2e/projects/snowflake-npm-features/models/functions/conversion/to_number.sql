@@ -1,0 +1,1 @@
+SELECT TO_NUMBER('12345.67', '99999.99') AS number_value;

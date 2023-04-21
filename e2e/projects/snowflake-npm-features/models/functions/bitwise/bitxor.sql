@@ -1,0 +1,1 @@
+SELECT BITXOR(5, 3);

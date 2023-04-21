@@ -1,0 +1,1 @@
+SELECT TRY_CAST('12345.6789' AS DOUBLE) AS double_value;

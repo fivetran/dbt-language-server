@@ -1,0 +1,1 @@
+SELECT BITNOT(5);
