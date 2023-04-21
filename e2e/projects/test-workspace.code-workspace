@@ -23,6 +23,9 @@
     },
     {
       "path": "snowflake"
+    },
+    {
+      "path": "snowflake-npm-features"
     }
   ],
   "settings": {
