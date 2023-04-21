@@ -1,0 +1,1 @@
+SELECT BITAND(5, 3);

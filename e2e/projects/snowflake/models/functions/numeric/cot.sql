@@ -1,0 +1,1 @@
+SELECT COT(10);

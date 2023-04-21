@@ -1,0 +1,14 @@
+WITH sales AS (
+  SELECT 1 as id, 101 as product_id, '2023-01-01' as sale_date, 30 as price
+  UNION ALL
+  SELECT 2, 102, '2023-01-02', 60
+  UNION ALL
+  SELECT 3, 103, '2023-01-03', 120
+  UNION ALL
+  SELECT 4, 104, '2023-01-04', 40
+  UNION ALL
+  SELECT 5, 105, '2023-01-05', 90
+)
+
+SELECT * FROM sales
+WHERE price NOT BETWEEN 50 AND 100;
