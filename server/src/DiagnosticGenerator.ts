@@ -20,7 +20,7 @@ export class DiagnosticGenerator {
   private static readonly DBT_COMPILATION_ERROR_PATTERN = /(Error in model \w+ \((.*)\)(?:\r\n?|\n).*)(?:\r\n?|\n)/;
   private static readonly SQL_COMPILATION_ERROR_PATTERN = /(.*?) \[at (\d+):(\d+)\]/;
 
-  private static readonly AUTH_ERROR = 'Reauthentication is needed. Please run `gcloud auth login --update-adc` to reauthenticate.';
+  private static readonly AUTH_ERROR_PATTERN = /Reauthentication is needed. Please run .* to reauthenticate\./;
 
   static readonly DIAGNOSTIC_SOURCE = 'Wizard for dbt Core (TM)';
   static readonly DBT_ERROR_HIGHLIGHT_LAST_CHAR = 100;
@@ -35,7 +35,9 @@ export class DiagnosticGenerator {
     if (lineMatch && lineMatch.length > 1) {
       errorLine = Number(lineMatch[1]) - 1;
     }
-    const message = dbtCompilationError.includes(DiagnosticGenerator.AUTH_ERROR) ? DiagnosticGenerator.AUTH_ERROR : dbtCompilationError;
+
+    const errorMatch = dbtCompilationError.match(DiagnosticGenerator.AUTH_ERROR_PATTERN);
+    const message = errorMatch ? errorMatch[0] : dbtCompilationError;
 
     const fileUri = this.getFileUri(dbtCompilationError);
 
