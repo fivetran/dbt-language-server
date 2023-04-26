@@ -3,7 +3,7 @@ import { DiagnosticSeverity, Range } from 'vscode';
 import { assertAllDiagnostics } from './asserts';
 import { SNOWFLAKE_PATH, activateAndWait, getCustomDocUri, getPreviewText, replaceText } from './helper';
 
-suite('Snowflake', () => {
+suite.skip('Snowflake', () => {
   test('Should compile simple SQL', async () => {
     const docUri = getCustomDocUri(`${SNOWFLAKE_PATH}/models/join_tables.sql`);
 

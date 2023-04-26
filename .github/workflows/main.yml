@@ -57,11 +57,17 @@ jobs:
       - name: delete libraries for other platforms
         run: |
           find server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql -maxdepth 1 -type f ! -name '${{ matrix.zetasql-lib }}' -exec rm -f {} \;
-          find server/node_modules/@fivetrandevelopers/zetasql-snowflake/lib/snowflake -maxdepth 1 -type f ! -name '${{ matrix.zetasql-lib }}' -exec rm -f {} \;
+          # TODO: uncomment when zetasql-snowflake is ready
+          # find server/node_modules/@fivetrandevelopers/zetasql-snowflake/lib/snowflake -maxdepth 1 -type f ! -name '${{ matrix.zetasql-lib }}' -exec rm -f {} \;
+          find server/node_modules/@fivetrandevelopers/zetasql-snowflake/lib/snowflake -maxdepth 1 -type f -exec rm -f {} \;
+          rm server/remote_server_snowflake
 
       - name: delete executable for Ubuntu in WSL
         if: matrix.os != 'windows-latest'
-        run: rm server/remote_server_bigquery
+        run: |
+          rm server/remote_server_bigquery
+          # TODO: uncomment when zetasql-snowflake is ready
+          # rm server/remote_server_snowflake
 
       - name: set variable for prepare_node_modules.sh script
         run: echo ${{ matrix.target }} > target_os
