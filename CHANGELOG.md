@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 0.23.0 (26/04/2023)
+## What's Changed
+* Enhanced OAuth error message for better clarity.
+* Resolved "No connection established" error occurring when running on WSL with Ubuntu 20.04.
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.22.0...v0.22.1
+---
+
 ## Version 0.22.0 (06/04/2023)
 ## What's Changed
 * Display only a single dbt-related error, if present.
@@ -261,22 +270,3 @@ AS (
 * Improve performance for models with a lot of tables
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.6.0...v0.6.1
----
-
-## Version 0.6.0 (07/07/2022)
-## What's Changed
-* dbt models autocompletion improvements
-* Refresh dbt-rpc server after packages installation
-* Use diagnostics to highlight the ability to convert sql to ref
-* Add query preview button on top panel
-* Improve sources definitions suggestions
-* Prompt to install dbt if it is not installed
-* Do not show warning for non BigQuery profiles
-* Support working with multiple dbt profiles
-* Fix issue with adding/deleting columns in models during development
-* Support table suggestion from `with` clause
-* Support persistent UDFs
-* Fix issue with not showing signatures in some cases
-* Improve Readme.md
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.5.0...v0.6.0
