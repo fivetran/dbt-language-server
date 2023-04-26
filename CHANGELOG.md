@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.23.0 (01/01/1970)
+## Version 0.23.0 (26/04/2023)
 ## What's Changed
 * Enhanced OAuth error message for better clarity.
 * Resolved "No connection established" error occurring when running on WSL with Ubuntu 20.04.
