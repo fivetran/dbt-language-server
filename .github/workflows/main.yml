@@ -19,11 +19,11 @@ jobs:
             target: darwin-arm64
             zetasql-lib: libremote_server_arm.dylib
 
-          - os: ubuntu-latest
+          - os: ubuntu-20.04
             target: linux-x64
             zetasql-lib: libremote_server.so
 
-          - os: ubuntu-latest
+          - os: ubuntu-20.04
             target: linux-arm64
             zetasql-lib: libremote_server_arm.so
 
