@@ -38,6 +38,8 @@ export class ProjectAnalyzer {
   async analyzeProject(analyzeTracker: AnalyzeTrackerFunc): Promise<ModelsAnalyzeResult[]> {
     console.log('Project analysis started...');
 
+    this.zetaSqlWrapper.resetCatalog();
+
     const visited = new Set<string>();
     let queue = this.dbtRepository.dag.getRootNodes(this.projectName);
     const modelCount = this.dbtRepository.dag.getNodesCount(this.projectName);
