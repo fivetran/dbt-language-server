@@ -39,8 +39,9 @@ jobs:
 
       - name: delete libraries for other platforms
         run: |
-          cd server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql/
-          find . ! -name 'libremote_server.dylib' -type f -exec rm -f {} +
+          find server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql -maxdepth 1 -type f ! -name 'libremote_server.dylib' -exec rm -f {} \;
+          rm server/remote_server_bigquery
+          rm server/remote_server_snowflake
 
       - name: set variable for prepare_node_modules.sh script
         run: echo darwin-x64 > target_os
