@@ -75,7 +75,7 @@ jobs:
       - name: package to vsix file
         run: |
           npm config set script-shell bash
-          npx vsce package -o ${FILE_NAME} --target ${{ matrix.target }} --githubBranch main
+          npx @vscode/vsce package -o ${FILE_NAME} --target ${{ matrix.target }} --githubBranch main
 
       - name: create cache
         uses: actions/cache@v3
@@ -450,4 +450,4 @@ jobs:
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         env:
           VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
-        run: npx vsce publish --githubBranch main --packagePath $(find . -iname "*.vsix")
+        run: npx @vscode/vsce publish --githubBranch main --packagePath $(find . -iname "*.vsix")
