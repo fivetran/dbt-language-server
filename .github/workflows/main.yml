@@ -161,10 +161,7 @@ jobs:
           path: ./${{ env.FILE_NAME }}
           key: ${{ env.FILE_NAME }}
           enableCrossOsArchive: true
-
-      - name: fail if cache not hit
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: exit 1
+          fail-on-cache-miss: true
 
       - name: setup WSL
         if: matrix.os == 'windows-latest'
@@ -380,6 +377,7 @@ jobs:
           path: ./${{ env.VSIX_NAME }}
           key: ${{ env.VSIX_NAME }}
           enableCrossOsArchive: true
+          fail-on-cache-miss: true
         env:
           VSIX_NAME: ${{ github.sha }}-darwin-x64.vsix
 
@@ -390,6 +388,7 @@ jobs:
           path: ./${{ env.VSIX_NAME }}
           key: ${{ env.VSIX_NAME }}
           enableCrossOsArchive: true
+          fail-on-cache-miss: true
         env:
           VSIX_NAME: ${{ github.sha }}-darwin-arm64.vsix
 
@@ -400,6 +399,7 @@ jobs:
           path: ./${{ env.VSIX_NAME }}
           key: ${{ env.VSIX_NAME }}
           enableCrossOsArchive: true
+          fail-on-cache-miss: true
         env:
           VSIX_NAME: ${{ github.sha }}-linux-x64.vsix
 
@@ -410,6 +410,7 @@ jobs:
           path: ./${{ env.VSIX_NAME }}
           key: ${{ env.VSIX_NAME }}
           enableCrossOsArchive: true
+          fail-on-cache-miss: true
         env:
           VSIX_NAME: ${{ github.sha }}-linux-arm64.vsix
 
@@ -420,12 +421,9 @@ jobs:
           path: ./${{ env.VSIX_NAME }}
           key: ${{ env.VSIX_NAME }}
           enableCrossOsArchive: true
+          fail-on-cache-miss: true
         env:
           VSIX_NAME: ${{ github.sha }}-win32-x64.vsix
-
-      - name: fail if cache not hit
-        if: steps.darwin-x64-cache.outputs.cache-hit != 'true' || steps.darwin-arm64-cache.outputs.cache-hit != 'true' || steps.linux-x64-cache.outputs.cache-hit != 'true' || steps.linux-arm64-cache.outputs.cache-hit != 'true' || steps.windows-cache.outputs.cache-hit != 'true'
-        run: exit 1
 
       - name: 'google auth using service account json'
         uses: 'google-github-actions/auth@v1'
