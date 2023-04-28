@@ -1,9 +1,13 @@
 import { DbtCommandFactory } from '../DbtCommandFactory';
 
 export abstract class Command {
-  constructor(private name: string, profilesDir: string, private parameters: string[], public python?: string, public dbtLess1point5?: boolean) {
+  constructor(private name: string, profilesDir: string, private parameters: string[], public dbtLess1point5: boolean, public python?: string) {
     if (!parameters.includes(DbtCommandFactory.VERSION_PARAM)) {
-      parameters.unshift('--profiles-dir', profilesDir);
+      if (dbtLess1point5) {
+        parameters.unshift('--profiles-dir', profilesDir);
+      } else {
+        parameters.push('--profiles-dir', profilesDir);
+      }
     }
   }
 

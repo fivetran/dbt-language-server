@@ -29,11 +29,12 @@ export class DbtCli extends Dbt {
     stdout: string;
     stderr: string;
   }> {
-    const parameters = ['--no-anonymous-usage-stats', '--no-use-colors', 'compile'];
+    const noStats = this.dbtLess1point5 ? '--no-anonymous-usage-stats' : '--no-send-anonymous-usage-stats';
+    const parameters = [noStats, '--no-use-colors', 'compile'];
     if (modelName) {
       parameters.push('-m', `+${slash(modelName)}`);
     }
-    const compileCliCommand = new DbtCommand(this.featureFinder.profilesYmlDir, parameters, this.pythonPathForCli, this.dbtLess1point5);
+    const compileCliCommand = new DbtCommand(this.featureFinder.profilesYmlDir, parameters, this.dbtLess1point5, this.pythonPathForCli);
     return DbtCli.DBT_COMMAND_EXECUTOR.execute(compileCliCommand);
   }
 
@@ -77,8 +78,8 @@ export class DbtCli extends Dbt {
     const depsCommand = new DbtCommand(
       this.featureFinder.profilesYmlDir,
       ['--no-anonymous-usage-stats', '--no-use-colors', 'deps'],
-      this.pythonPathForCli,
       this.dbtLess1point5,
+      this.pythonPathForCli,
     );
     await DbtCli.DBT_COMMAND_EXECUTOR.execute(depsCommand, onStdoutData, onStderrData);
   }

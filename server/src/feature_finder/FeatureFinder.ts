@@ -179,7 +179,9 @@ export class FeatureFinder extends FeatureFinderBase {
 
     return {
       pythonPath: undefined,
-      dbtLess1point5: false,
+      dbtLess1point5: Boolean(
+        this.versionInfo?.installedVersion && this.versionInfo.installedVersion.major <= 1 && this.versionInfo.installedVersion.minor < 5,
+      ),
     };
   }
 

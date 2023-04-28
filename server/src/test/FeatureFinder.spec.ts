@@ -48,9 +48,9 @@ describe('FeatureFinder', () => {
   });
 
   const PROFILES_DIR = slash(path.join(homedir(), '.dbt'));
-  const DBT_WITH_PYTHON_OLD = new DbtCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM], PYTHON_PATH, true);
-  const DBT_WITH_PYTHON_NEW = new DbtCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM], PYTHON_PATH);
-  const DBT_GLOBAL = new DbtCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM]);
+  const DBT_WITH_PYTHON_OLD = new DbtCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM], true, PYTHON_PATH);
+  const DBT_WITH_PYTHON_NEW = new DbtCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM], false, PYTHON_PATH);
+  const DBT_GLOBAL = new DbtCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM], false);
 
   let mockCommandExecutor: DbtCommandExecutor;
   before(() => {
