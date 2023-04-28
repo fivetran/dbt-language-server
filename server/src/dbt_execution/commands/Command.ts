@@ -1,13 +1,10 @@
+import { DbtCommandFactory } from '../DbtCommandFactory';
+
 export abstract class Command {
-  constructor(
-    private name: string,
-    profilesDir: string,
-    private parameters: string[],
-    private pathToPythonMain: string,
-    public python?: string,
-    public env?: NodeJS.ProcessEnv,
-  ) {
-    parameters.unshift('--profiles-dir', profilesDir);
+  constructor(private name: string, profilesDir: string, private parameters: string[], public python?: string, public dbtLess1point5?: boolean) {
+    if (!parameters.includes(DbtCommandFactory.VERSION_PARAM)) {
+      parameters.unshift('--profiles-dir', profilesDir);
+    }
   }
 
   toString(): string {
@@ -24,6 +21,7 @@ export abstract class Command {
 
   private getPython(): string {
     const quotedParameters = this.parameters.map(p => `'${p}'`).toString();
-    return `${String(this.python)} -c "import ${this.pathToPythonMain}; ${this.pathToPythonMain}.main([${quotedParameters}])"`;
+    const code = this.dbtLess1point5 ? 'import dbt.main; dbt.main.main' : 'import dbt.cli.main; dbt.cli.main.cli';
+    return `${String(this.python)} -c "${code}([${quotedParameters}])"`;
   }
 }

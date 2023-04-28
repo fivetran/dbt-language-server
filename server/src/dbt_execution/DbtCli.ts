@@ -14,6 +14,7 @@ import slash = require('slash');
 export class DbtCli extends Dbt {
   static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
   pythonPathForCli?: string;
+  dbtLess1point5 = false;
 
   constructor(
     private featureFinder: FeatureFinder,
@@ -32,12 +33,14 @@ export class DbtCli extends Dbt {
     if (modelName) {
       parameters.push('-m', `+${slash(modelName)}`);
     }
-    const compileCliCommand = new DbtCommand(this.featureFinder.profilesYmlDir, parameters, this.pythonPathForCli);
+    const compileCliCommand = new DbtCommand(this.featureFinder.profilesYmlDir, parameters, this.pythonPathForCli, this.dbtLess1point5);
     return DbtCli.DBT_COMMAND_EXECUTOR.execute(compileCliCommand);
   }
 
   async prepareImplementation(dbtProfileType?: string): Promise<void> {
-    this.pythonPathForCli = await this.featureFinder.findInformationForCli();
+    const cliInfo = await this.featureFinder.findInformationForCli();
+    this.pythonPathForCli = cliInfo.pythonPath;
+    this.dbtLess1point5 = cliInfo.dbtLess1point5;
 
     if (!this.featureFinder.versionInfo?.installedVersion || !this.featureFinder.versionInfo.installedAdapters.some(a => a.name === dbtProfileType)) {
       try {
@@ -75,6 +78,7 @@ export class DbtCli extends Dbt {
       this.featureFinder.profilesYmlDir,
       ['--no-anonymous-usage-stats', '--no-use-colors', 'deps'],
       this.pythonPathForCli,
+      this.dbtLess1point5,
     );
     await DbtCli.DBT_COMMAND_EXECUTOR.execute(depsCommand, onStdoutData, onStderrData);
   }

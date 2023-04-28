@@ -43,16 +43,26 @@ export class FeatureFinderBase {
     return versions.filter(v => !/[a-zA-Z]/.test(v));
   }
 
+  protected async findDbtPythonInfoOld(): Promise<DbtVersionInfo | undefined> {
+    return this.findCommandPythonInfo(this.dbtCommandFactory.getDbtWithPythonVersionOld());
+  }
+
   protected async findDbtPythonInfo(): Promise<DbtVersionInfo | undefined> {
     return this.findCommandPythonInfo(this.dbtCommandFactory.getDbtWithPythonVersion());
   }
 
   protected async findCommandInfo(command: Command): Promise<DbtVersionInfo> {
-    const { stderr } = await this.dbtCommandExecutor.execute(command);
+    const { stdout, stderr } = await this.dbtCommandExecutor.execute(command);
 
-    const installedVersion = FeatureFinderBase.readVersionByPattern(stderr, FeatureFinderBase.DBT_INSTALLED_VERSION_PATTERN);
-    const latestVersion = FeatureFinderBase.readVersionByPattern(stderr, FeatureFinderBase.DBT_LATEST_VERSION_PATTERN);
-    const installedAdapters = FeatureFinderBase.getInstalledAdapters(stderr.slice(stderr.indexOf('Plugins:')));
+    let installedVersion = FeatureFinderBase.readVersionByPattern(stderr, FeatureFinderBase.DBT_INSTALLED_VERSION_PATTERN);
+    let latestVersion = FeatureFinderBase.readVersionByPattern(stderr, FeatureFinderBase.DBT_LATEST_VERSION_PATTERN);
+    let installedAdapters = FeatureFinderBase.getInstalledAdapters(stderr.slice(stderr.indexOf('Plugins:')));
+
+    if (!installedVersion) {
+      installedVersion = FeatureFinderBase.readVersionByPattern(stdout, FeatureFinderBase.DBT_INSTALLED_VERSION_PATTERN);
+      latestVersion = FeatureFinderBase.readVersionByPattern(stdout, FeatureFinderBase.DBT_LATEST_VERSION_PATTERN);
+      installedAdapters = FeatureFinderBase.getInstalledAdapters(stdout.slice(stdout.indexOf('Plugins:')));
+    }
 
     return {
       installedVersion,
