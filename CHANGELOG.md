@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 0.24.0 (01/01/1970)
+## What's Changed
+* Resolved false errors that occurred when switching between branches.
+* Added compatibility with dbt 1.5.0.
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.23.0...v0.24.0
+---
+
 ## Version 0.23.0 (26/04/2023)
 ## What's Changed
 * Enhanced OAuth error message for better clarity.
@@ -261,12 +270,3 @@ AS (
 * Add setting `dbtWizard.dbtCompiler` to specify which command the extension will use to compile models.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.6.1...v0.6.2
----
-
-## Version 0.6.1 (12/07/2022)
-## What's Changed
-* Fix an issue when go to definition didn't work for models from packages if package is not specified
-* Go to definition now works in all jinja blocks
-* Improve performance for models with a lot of tables
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.6.0...v0.6.1
