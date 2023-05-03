@@ -3,26 +3,24 @@ import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor
 import { FeatureFinderBase } from './FeatureFinderBase';
 
 export class NoProjectFeatureFinder extends FeatureFinderBase {
-  availableCommandsPromise: Promise<[DbtVersionInfo?, DbtVersionInfo?]>;
+  private availableCommandsPromise: Promise<[DbtVersionInfo | undefined, DbtVersionInfo | undefined]>;
 
   constructor(pythonInfo: PythonInfo | undefined, dbtCommandExecutor: DbtCommandExecutor) {
     super(pythonInfo, dbtCommandExecutor, undefined);
     this.availableCommandsPromise = this.getAvailableDbt();
   }
 
-  async getAvailableDbt(): Promise<[DbtVersionInfo?, DbtVersionInfo?]> {
-    const settledResults = await Promise.allSettled([this.findDbtPythonInfo()]);
-    const [dbtPythonVersion] = settledResults.map(v => (v.status === 'fulfilled' ? v.value : undefined));
+  async getAvailableDbt(): Promise<[DbtVersionInfo | undefined, DbtVersionInfo | undefined]> {
+    const settledResults = await Promise.allSettled([this.findDbtPythonInfoOld(), this.findDbtPythonInfo()]);
+    const [dbtPythonVersionOld, dbtPythonVersion] = settledResults.map(v => (v.status === 'fulfilled' ? v.value : undefined));
 
-    console.log(this.getLogString('dbtPythonVersion', dbtPythonVersion));
+    console.log(this.getLogString('dbtPythonVersionOld', dbtPythonVersionOld) + this.getLogString('dbtPythonVersion', dbtPythonVersion));
 
-    return [dbtPythonVersion];
+    return [dbtPythonVersionOld, dbtPythonVersion];
   }
 
   async findDbtForNoProjectStatus(): Promise<void> {
-    const [dbtPythonVersion] = await this.availableCommandsPromise;
-    if (dbtPythonVersion) {
-      this.versionInfo = dbtPythonVersion;
-    }
+    const [dbtPythonVersionOld, dbtPythonVersion] = await this.availableCommandsPromise;
+    this.versionInfo = dbtPythonVersion?.installedVersion ? dbtPythonVersion : dbtPythonVersionOld;
   }
 }

@@ -344,6 +344,7 @@ export class SqlCompletionProvider {
       label: k,
       kind: CompletionItemKind.Keyword,
       insertText: `${k} `,
+      sortText: `3${k}`,
       detail: '',
     }));
   }
@@ -356,6 +357,7 @@ export class SqlCompletionProvider {
       documentation: w.signatures[0].description,
       insertTextFormat: InsertTextFormat.Snippet,
       insertText: `${w.name}($0)`,
+      sortText: `2${w.name}($0)`,
       command: Command.create('triggerParameterHints', 'editor.action.triggerParameterHints'),
     }));
   }

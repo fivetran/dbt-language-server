@@ -15,6 +15,11 @@ interface HubJson {
   [key: string]: string[];
 }
 
+interface InformationForCli {
+  pythonPath: string | undefined;
+  dbtLess1point5: boolean;
+}
+
 export class FeatureFinder extends FeatureFinderBase {
   private static readonly WSL_UBUNTU_DEFAULT_NAME = 'Ubuntu-20.04';
   private static readonly WSL_UBUNTU_ENV_NAME = 'WIZARD_FOR_DBT_WSL_UBUNTU_NAME';
@@ -29,7 +34,7 @@ export class FeatureFinder extends FeatureFinderBase {
     return FeatureFinder.WSL_UBUNTU_DEFAULT_NAME;
   }
 
-  availableCommandsPromise: Promise<[DbtVersionInfo?, DbtVersionInfo?]>;
+  availableCommandsPromise: Promise<[DbtVersionInfo | undefined, DbtVersionInfo | undefined, DbtVersionInfo | undefined]>;
   packagesYmlExistsPromise: Promise<boolean>;
   packageInfosPromise = new Lazy(() => this.getListOfDbtPackages());
   ubuntuInWslWorks: Promise<boolean>;
@@ -136,28 +141,48 @@ export class FeatureFinder extends FeatureFinderBase {
     return undefined;
   }
 
-  async getAvailableDbt(): Promise<[DbtVersionInfo?, DbtVersionInfo?]> {
-    const settledResults = await Promise.allSettled([this.findDbtPythonInfo(), this.findDbtGlobalInfo()]);
-    const [dbtPythonVersion, dbtGlobalVersion] = settledResults.map(v => (v.status === 'fulfilled' ? v.value : undefined));
+  async getAvailableDbt(): Promise<[DbtVersionInfo | undefined, DbtVersionInfo | undefined, DbtVersionInfo | undefined]> {
+    const settledResults = await Promise.allSettled([this.findDbtPythonInfoOld(), this.findDbtPythonInfo(), this.findDbtGlobalInfo()]);
+    const [dbtPythonVersionOld, dbtPythonVersion, dbtGlobalVersion] = settledResults.map(v => (v.status === 'fulfilled' ? v.value : undefined));
 
-    console.log(this.getLogString('dbtPythonVersion', dbtPythonVersion) + this.getLogString('dbtGlobalVersion', dbtGlobalVersion));
+    console.log(
+      this.getLogString('dbtPythonVersionOld', dbtPythonVersionOld) +
+        this.getLogString('dbtPythonVersion', dbtPythonVersion) +
+        this.getLogString('dbtGlobalVersion', dbtGlobalVersion),
+    );
 
-    return [dbtPythonVersion, dbtGlobalVersion];
+    return [dbtPythonVersionOld, dbtPythonVersion, dbtGlobalVersion];
   }
 
-  async findInformationForCli(): Promise<string | undefined> {
-    const [dbtPythonVersion, dbtGlobalVersion] = await this.availableCommandsPromise;
+  async findInformationForCli(): Promise<InformationForCli> {
+    const [dbtPythonVersionOld, dbtPythonVersion, dbtGlobalVersion] = await this.availableCommandsPromise;
 
     if (dbtPythonVersion?.installedVersion) {
       this.versionInfo = dbtPythonVersion;
-      return this.getPythonPath();
+      return {
+        pythonPath: this.getPythonPath(),
+        dbtLess1point5: false,
+      };
+    }
+
+    if (dbtPythonVersionOld?.installedVersion) {
+      this.versionInfo = dbtPythonVersionOld;
+      return {
+        pythonPath: this.getPythonPath(),
+        dbtLess1point5: true,
+      };
     }
 
     if (dbtGlobalVersion?.installedVersion) {
       this.versionInfo = dbtGlobalVersion;
     }
 
-    return undefined;
+    return {
+      pythonPath: undefined,
+      dbtLess1point5: Boolean(
+        this.versionInfo?.installedVersion && this.versionInfo.installedVersion.major <= 1 && this.versionInfo.installedVersion.minor < 5,
+      ),
+    };
   }
 
   findFreePort(): Promise<number> {

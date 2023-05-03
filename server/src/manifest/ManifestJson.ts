@@ -15,7 +15,7 @@ export interface ManifestModel extends ManifestNode {
   dependsOn: {
     nodes: string[];
   };
-  refs: string[][];
+  refs: (string[] | { name: string; package?: string })[];
   alias?: string;
   config?: {
     sqlHeader?: string;

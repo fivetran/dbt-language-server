@@ -18,6 +18,10 @@ enum DbtInitState {
 export class CreateDbtProject implements Command {
   readonly id = 'WizardForDbtCore(TM).createDbtProject';
 
+  static readonly PYTHON_CODE_OLD = 'dbt.main; dbt.main.main';
+  static readonly PYTHON_CODE = 'dbt.cli.main; dbt.cli.main.cli';
+  static readonly INSTALLED_SUBSTRIG = 'installed:';
+
   static readonly TERMINAL_NAME = 'Create dbt project';
   static readonly SETTINGS_JSON_CONTENT = `{
   "files.autoSave": "afterDelay"
@@ -99,15 +103,26 @@ export class CreateDbtProject implements Command {
     }
 
     const promisifiedExec = promisify(exec);
-    const pythonCommand = `${pythonInfo.path} -c "import dbt.main; dbt.main.main(['--version'])"`;
+    const pythonOldCommand = `${pythonInfo.path} -c "import ${CreateDbtProject.PYTHON_CODE_OLD}(['--version'])"`;
+    const pythonNewCommand = `${pythonInfo.path} -c "import ${CreateDbtProject.PYTHON_CODE}(['--version'])"`;
     const cliCommand = 'dbt --version';
 
-    const settledResults = await Promise.allSettled([promisifiedExec(pythonCommand), promisifiedExec(cliCommand)]);
-    const [pythonVersion, cliVersion] = settledResults.map(v => (v.status === 'fulfilled' ? v.value : undefined));
-    if (pythonVersion && pythonVersion.stderr.length > 0) {
-      return `${pythonInfo.path} -c "import dbt.main; dbt.main.main(['init'])"`;
+    const settledResults = await Promise.allSettled([
+      promisifiedExec(pythonOldCommand),
+      promisifiedExec(pythonNewCommand),
+      promisifiedExec(cliCommand),
+    ]);
+    const [pythonOldVersion, pythonNewVersion, cliVersion] = settledResults.map(v => (v.status === 'fulfilled' ? v.value : undefined));
+    if (pythonNewVersion && pythonNewVersion.stdout.includes(CreateDbtProject.INSTALLED_SUBSTRIG)) {
+      return `${pythonInfo.path} -c "import ${CreateDbtProject.PYTHON_CODE}(['init'])"`;
     }
-    if (cliVersion && cliVersion.stderr.length > 0) {
+    if (pythonOldVersion && pythonOldVersion.stderr.includes(CreateDbtProject.INSTALLED_SUBSTRIG)) {
+      return `${pythonInfo.path} -c "import ${CreateDbtProject.PYTHON_CODE_OLD}(['init'])"`;
+    }
+    if (
+      cliVersion &&
+      (cliVersion.stderr.includes(CreateDbtProject.INSTALLED_SUBSTRIG) || cliVersion.stdout.includes(CreateDbtProject.INSTALLED_SUBSTRIG))
+    ) {
       return 'dbt init';
     }
     return undefined;

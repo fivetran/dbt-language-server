@@ -13,6 +13,6 @@ export class DbtCommandExecutor {
     stdout: string;
     stderr: string;
   }> {
-    return DbtCommandExecutor.PROCESS_EXECUTOR.execProcess(command.toString(), onStdoutData, onStderrData, command.env);
+    return DbtCommandExecutor.PROCESS_EXECUTOR.execProcess(command.toString(), onStdoutData, onStderrData);
   }
 }

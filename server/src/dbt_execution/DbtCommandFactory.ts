@@ -6,15 +6,19 @@ export class DbtCommandFactory {
 
   constructor(private python: string | undefined, private profilesDir: string) {}
 
+  getDbtWithPythonVersionOld(): Command {
+    return this.getDbtCommand(this.profilesDir, [DbtCommandFactory.VERSION_PARAM], true, this.python);
+  }
+
   getDbtWithPythonVersion(): Command {
-    return this.getDbtCommand(this.profilesDir, [DbtCommandFactory.VERSION_PARAM], this.python);
+    return this.getDbtCommand(this.profilesDir, [DbtCommandFactory.VERSION_PARAM], false, this.python);
   }
 
   getDbtGlobalVersion(): Command {
-    return this.getDbtCommand(this.profilesDir, [DbtCommandFactory.VERSION_PARAM]);
+    return this.getDbtCommand(this.profilesDir, [DbtCommandFactory.VERSION_PARAM], false);
   }
 
-  private getDbtCommand(profilesDir: string, params: string[], python?: string): Command {
-    return new DbtCommand(profilesDir, params, python);
+  private getDbtCommand(profilesDir: string, params: string[], dbtLess1point5: boolean, python?: string): Command {
+    return new DbtCommand(profilesDir, params, dbtLess1point5, python);
   }
 }

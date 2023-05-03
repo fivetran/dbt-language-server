@@ -31,5 +31,15 @@ function getTableRefFullName(model: ManifestModel, name: string, dbtRepository: 
 }
 
 function findModelRef(model: ManifestModel, name: string): string[] | undefined {
-  return model.refs.find(ref => ref.indexOf(name) === ref.length - 1);
+  const result = model.refs.find(ref => {
+    if ('name' in ref) {
+      return ref.name === name;
+    }
+    return ref.indexOf(name) === ref.length - 1;
+  });
+
+  if (result && 'name' in result) {
+    return result.package ? [result.package, result.name] : [result.name];
+  }
+  return result;
 }

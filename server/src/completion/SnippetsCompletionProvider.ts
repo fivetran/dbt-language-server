@@ -3,61 +3,51 @@ import { Command, CompletionItem, CompletionItemKind, InsertTextFormat } from 'v
 
 export class SnippetsCompletionProvider {
   static readonly SNIPPETS = [
-    SnippetsCompletionProvider.createSnippet(
-      'ref',
-      'dbt Ref',
-      '1ref',
-      "{{ ref('$0') }}",
-      Command.create('triggerSuggest', 'editor.action.triggerSuggest'),
-    ),
+    SnippetsCompletionProvider.createSnippet('ref', 'dbt Ref', "{{ ref('$0') }}", Command.create('triggerSuggest', 'editor.action.triggerSuggest')),
 
     SnippetsCompletionProvider.createSnippet(
       'config',
       'dbt Config',
-      '1config',
       `{{${EOL}  config(${EOL}    schema='$1'${EOL}    materialized='$\{2|table,view,incremental,ephemeral|}'${EOL}  )${EOL}}}${EOL}`,
     ),
 
-    SnippetsCompletionProvider.createSnippet('if', 'dbt If', '1if', `{% if $\{1:condition} %}${EOL}  $\{2}${EOL}{% endif %}`),
+    SnippetsCompletionProvider.createSnippet('if', 'dbt If', `{% if $\{1:condition} %}${EOL}  $\{2}${EOL}{% endif %}`),
     SnippetsCompletionProvider.createSnippet(
       'ifelse',
       'dbt If-Else',
-      '1ifelse',
       `{% if $\{1:condition} %}${EOL}  $\{2}${EOL}{% else %}${EOL}  ${EOL}{% endif %}`,
     ),
 
-    SnippetsCompletionProvider.createSnippet('for', 'dbt For-In', '1for', `{% for $\{1:item} in $\{2:array} %}${EOL}  $\{3}${EOL}{% endfor %}`),
+    SnippetsCompletionProvider.createSnippet('for', 'dbt For-In', `{% for $\{1:item} in $\{2:array} %}${EOL}  $\{3}${EOL}{% endfor %}`),
 
-    SnippetsCompletionProvider.createSnippet('macro', 'dbt Macro', '1macro', `{% macro $\{1:name}($\{2:args}) %}${EOL}  $\{3}${EOL}{% endmacro %}`),
+    SnippetsCompletionProvider.createSnippet('macro', 'dbt Macro', `{% macro $\{1:name}($\{2:args}) %}${EOL}  $\{3}${EOL}{% endmacro %}`),
 
-    SnippetsCompletionProvider.createSnippet('set', 'dbt Set', '1set', '{% set ${1:var_name} = ${2:value} %}'),
-    SnippetsCompletionProvider.createSnippet('setblock', 'dbt Set Block', '1setblock', `{% set $\{1:name} %}${EOL}  $\{2}${EOL}{% endset %}`),
+    SnippetsCompletionProvider.createSnippet('set', 'dbt Set', '{% set ${1:var_name} = ${2:value} %}'),
+    SnippetsCompletionProvider.createSnippet('setblock', 'dbt Set Block', `{% set $\{1:name} %}${EOL}  $\{2}${EOL}{% endset %}`),
 
     SnippetsCompletionProvider.createSnippet(
       'statement',
       'dbt Statement Blocks',
-      '1statement',
       `{% call statement($\{1:name}, fetch_result=$\{2|True,False|}) %}${EOL}  $\{3}${EOL}{% endcall %}`,
     ),
 
     SnippetsCompletionProvider.createSnippet(
       'source',
       'dbt Source',
-      '1source',
       "{{ source('$1', '$2') }}",
       Command.create('triggerSuggest', 'editor.action.triggerSuggest'),
     ),
 
-    SnippetsCompletionProvider.createSnippet('block', 'dbt Block', '1block', '{% $1 %}'),
-    SnippetsCompletionProvider.createSnippet('comment', 'dbt Comment', '1comment', '{# $1 #}'),
+    SnippetsCompletionProvider.createSnippet('block', 'dbt Block', '{% $1 %}'),
+    SnippetsCompletionProvider.createSnippet('comment', 'dbt Comment', '{# $1 #}'),
   ];
 
-  static createSnippet(label: string, detail: string, sortText: string, insertText: string, command?: Command): CompletionItem {
+  static createSnippet(label: string, detail: string, insertText: string, command?: Command): CompletionItem {
     return {
       label,
       kind: CompletionItemKind.Snippet,
       detail,
-      sortText,
+      sortText: `2${label}`,
       insertText,
       insertTextFormat: InsertTextFormat.Snippet,
       command,

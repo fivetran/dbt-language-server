@@ -8,7 +8,7 @@ export const SNIPPET_TESTS = [
       {
         label: 'ref',
         detail: 'dbt Ref',
-        sortText: '1ref',
+        sortText: '2ref',
         insertText: "{{ ref('$0') }}",
         insertTextFormat: InsertTextFormat.Snippet,
         kind: CompletionItemKind.Snippet,
@@ -25,7 +25,7 @@ export const SNIPPET_TESTS = [
       {
         label: 'config',
         detail: 'dbt Config',
-        sortText: '1config',
+        sortText: '2config',
         insertText: `{{${EOL}  config(${EOL}    schema='$1'${EOL}    materialized='$\{2|table,view,incremental,ephemeral|}'${EOL}  )${EOL}}}${EOL}`,
         insertTextFormat: InsertTextFormat.Snippet,
         kind: CompletionItemKind.Snippet,
@@ -38,7 +38,7 @@ export const SNIPPET_TESTS = [
       {
         label: 'if',
         detail: 'dbt If',
-        sortText: '1if',
+        sortText: '2if',
         insertText: `{% if $\{1:condition} %}${EOL}  $\{2}${EOL}{% endif %}`,
         insertTextFormat: InsertTextFormat.Snippet,
         kind: CompletionItemKind.Snippet,
@@ -46,7 +46,7 @@ export const SNIPPET_TESTS = [
       {
         label: 'ifelse',
         detail: 'dbt If-Else',
-        sortText: '1ifelse',
+        sortText: '2ifelse',
         insertText: `{% if $\{1:condition} %}${EOL}  $\{2}${EOL}{% else %}${EOL}  ${EOL}{% endif %}`,
         insertTextFormat: InsertTextFormat.Snippet,
         kind: CompletionItemKind.Snippet,
@@ -59,7 +59,7 @@ export const SNIPPET_TESTS = [
       {
         label: 'for',
         detail: 'dbt For-In',
-        sortText: '1for',
+        sortText: '2for',
         insertText: `{% for $\{1:item} in $\{2:array} %}${EOL}  $\{3}${EOL}{% endfor %}`,
         insertTextFormat: InsertTextFormat.Snippet,
         kind: CompletionItemKind.Snippet,
@@ -72,7 +72,7 @@ export const SNIPPET_TESTS = [
       {
         label: 'macro',
         detail: 'dbt Macro',
-        sortText: '1macro',
+        sortText: '2macro',
         insertText: `{% macro $\{1:name}($\{2:args}) %}${EOL}  $\{3}${EOL}{% endmacro %}`,
         insertTextFormat: InsertTextFormat.Snippet,
         kind: CompletionItemKind.Snippet,
@@ -85,7 +85,7 @@ export const SNIPPET_TESTS = [
       {
         label: 'set',
         detail: 'dbt Set',
-        sortText: '1set',
+        sortText: '2set',
         insertText: '{% set ${1:var_name} = ${2:value} %}',
         insertTextFormat: InsertTextFormat.Snippet,
         kind: CompletionItemKind.Snippet,
@@ -93,7 +93,7 @@ export const SNIPPET_TESTS = [
       {
         label: 'setblock',
         detail: 'dbt Set Block',
-        sortText: '1setblock',
+        sortText: '2setblock',
         insertText: `{% set $\{1:name} %}${EOL}  $\{2}${EOL}{% endset %}`,
         insertTextFormat: InsertTextFormat.Snippet,
         kind: CompletionItemKind.Snippet,
@@ -106,7 +106,7 @@ export const SNIPPET_TESTS = [
       {
         label: 'statement',
         detail: 'dbt Statement Blocks',
-        sortText: '1statement',
+        sortText: '2statement',
         insertText: `{% call statement($\{1:name}, fetch_result=$\{2|True,False|}) %}${EOL}  $\{3}${EOL}{% endcall %}`,
         insertTextFormat: InsertTextFormat.Snippet,
         kind: CompletionItemKind.Snippet,
@@ -119,7 +119,7 @@ export const SNIPPET_TESTS = [
       {
         label: 'source',
         detail: 'dbt Source',
-        sortText: '1source',
+        sortText: '2source',
         insertText: "{{ source('$1', '$2') }}",
         insertTextFormat: InsertTextFormat.Snippet,
         kind: CompletionItemKind.Snippet,
@@ -136,7 +136,7 @@ export const SNIPPET_TESTS = [
       {
         label: 'block',
         detail: 'dbt Block',
-        sortText: '1block',
+        sortText: '2block',
         insertText: '{% $1 %}',
         insertTextFormat: InsertTextFormat.Snippet,
         kind: CompletionItemKind.Snippet,
@@ -149,7 +149,7 @@ export const SNIPPET_TESTS = [
       {
         label: 'comment',
         detail: 'dbt Comment',
-        sortText: '1comment',
+        sortText: '2comment',
         insertText: '{# $1 #}',
         insertTextFormat: InsertTextFormat.Snippet,
         kind: CompletionItemKind.Snippet,

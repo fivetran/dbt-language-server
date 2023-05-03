@@ -32,9 +32,14 @@ describe('FeatureFinder', () => {
                                 - snowflake: 0.20.1
                                 - redshift: 0.20.1
                                 - postgres: 0.20.1`;
-  const VERSION_COMMAND_RESULT = Promise.resolve({
+  const VERSION_COMMAND_RESULT_OLD = Promise.resolve({
     stderr: VERSION_OUTPUT,
     stdout: '',
+  });
+
+  const VERSION_COMMAND_RESULT_NEW = Promise.resolve({
+    stderr: '',
+    stdout: VERSION_OUTPUT,
   });
 
   const LEGACY_VERSION_COMMAND_RESULT = Promise.resolve({
@@ -43,8 +48,9 @@ describe('FeatureFinder', () => {
   });
 
   const PROFILES_DIR = slash(path.join(homedir(), '.dbt'));
-  const DBT_WITH_PYTHON = new DbtCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM], PYTHON_PATH);
-  const DBT_GLOBAL = new DbtCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM]);
+  const DBT_WITH_PYTHON_OLD = new DbtCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM], true, PYTHON_PATH);
+  const DBT_WITH_PYTHON_NEW = new DbtCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM], false, PYTHON_PATH);
+  const DBT_GLOBAL = new DbtCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM], false);
 
   let mockCommandExecutor: DbtCommandExecutor;
   before(() => {
@@ -53,7 +59,7 @@ describe('FeatureFinder', () => {
 
   it('getAvailableDbt should return all information about installed dbt and adapters', async () => {
     // arrange
-    when(mockCommandExecutor.execute(deepEqual(DBT_WITH_PYTHON))).thenReturn(VERSION_COMMAND_RESULT);
+    when(mockCommandExecutor.execute(deepEqual(DBT_WITH_PYTHON_OLD))).thenReturn(VERSION_COMMAND_RESULT_OLD);
 
     // act
     const result = await createFeatureFinder(mockCommandExecutor).getAvailableDbt();
@@ -65,11 +71,12 @@ describe('FeatureFinder', () => {
       { name: 'spark', version: { major: 1, minor: 1, patch: 0 } },
     ]);
     assertThat(result[1], not(defined()));
+    assertThat(result[2], not(defined()));
   });
 
   it('getAvailableDbt should return all information about installed dbt and adapters for legacy dbt version', async () => {
     // arrange
-    when(mockCommandExecutor.execute(deepEqual(DBT_WITH_PYTHON))).thenReturn(LEGACY_VERSION_COMMAND_RESULT);
+    when(mockCommandExecutor.execute(deepEqual(DBT_WITH_PYTHON_OLD))).thenReturn(LEGACY_VERSION_COMMAND_RESULT);
 
     // act
     const result = await createFeatureFinder(mockCommandExecutor).getAvailableDbt();
@@ -82,18 +89,20 @@ describe('FeatureFinder', () => {
       { name: 'postgres', version: { major: 0, minor: 20, patch: 1 } },
     ]);
     assertThat(result[1], not(defined()));
+    assertThat(result[2], not(defined()));
   });
 
   it('getAvailableDbt should return all information about all available commands', async () => {
     // arrange
-    when(mockCommandExecutor.execute(deepEqual(DBT_WITH_PYTHON))).thenReturn(VERSION_COMMAND_RESULT);
-    when(mockCommandExecutor.execute(deepEqual(DBT_GLOBAL))).thenReturn(VERSION_COMMAND_RESULT);
+    when(mockCommandExecutor.execute(deepEqual(DBT_WITH_PYTHON_OLD))).thenReturn(VERSION_COMMAND_RESULT_OLD);
+    when(mockCommandExecutor.execute(deepEqual(DBT_WITH_PYTHON_NEW))).thenReturn(VERSION_COMMAND_RESULT_NEW);
+    when(mockCommandExecutor.execute(deepEqual(DBT_GLOBAL))).thenReturn(VERSION_COMMAND_RESULT_NEW);
 
     // act
     const result = await createFeatureFinder(mockCommandExecutor).getAvailableDbt();
 
     // assert
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 3; i++) {
       assertVersion(result[i], { major: 1, minor: 1, patch: 1 }, { major: 1, minor: 1, patch: 1 }, [
         { name: 'databricks', version: { major: 1, minor: 1, patch: 1 } },
         { name: 'bigquery', version: { major: 1, minor: 1, patch: 1 } },
