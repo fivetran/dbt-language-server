@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.24.0 (01/01/1970)
+## Version 0.24.0 (03/05/2023)
 ## What's Changed
 * Resolved false errors that occurred when switching between branches.
 * Added compatibility with dbt 1.5.0.
