@@ -19,7 +19,7 @@ export async function installVsCodeAndRunTests(indexName: string, projectWithMod
     const extensionsInstallPath = path.join(defaultCachePath, 'extensions');
     console.log('extensionsInstallPath resolved');
 
-    const vscodeExecutablePath = await downloadAndUnzipVSCode('stable', undefined, new SilentReporter());
+    const vscodeExecutablePath = await downloadAndUnzipVSCode('1.77.3', undefined, new SilentReporter()); // TODO: update version
     console.log(`Extension successfully downloaded and unzipped to ${vscodeExecutablePath}`);
     const [cli, ...args] = resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath);
     console.log('cli and args resolved');
