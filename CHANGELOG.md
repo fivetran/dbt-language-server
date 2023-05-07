@@ -2,7 +2,7 @@
 
 ## Version 0.25.0 (07/05/2023)
 ## What's Changed
-* Resolved crash issue in Visual Studio Code 1.78.0
+* Resolved crash issue in Visual Studio Code 1.78.0.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.24.0...v0.25.0
 ---
