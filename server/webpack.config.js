@@ -14,8 +14,5 @@ module.exports = withDefaults({
     filename: '[name].js',
     path: path.join(__dirname, 'out'),
   },
-  externals: {
-    'ffi-napi': 'commonjs ffi-napi', // there is an issue when running native modules with webpack
-    'coffee-script': 'commonjs coffee-script',
-  },
+  externals: {},
 });
