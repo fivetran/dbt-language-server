@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.25.0 (01/01/1970)
+## Version 0.25.0 (07/05/2023)
 ## What's Changed
 * Resolved crash issue in Visual Studio Code 1.78.0
 
