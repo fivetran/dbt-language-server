@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 0.25.0 (07/05/2023)
+## What's Changed
+* Resolved crash issue in Visual Studio Code 1.78.0.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.24.0...v0.25.0
+---
+
 ## Version 0.24.0 (03/05/2023)
 ## What's Changed
 * Resolved false errors that occurred when switching between branches.
@@ -262,11 +269,3 @@ AS (
 * Fix issue with `_dbt_max_partition` dbt specific keyword.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.6.2...v0.6.3
----
-
-## Version 0.6.2 (20/07/2022)
-## What's Changed
-* Fix working with python >= 3.10. Now extension uses dbt CLI in such case.
-* Add setting `dbtWizard.dbtCompiler` to specify which command the extension will use to compile models.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.6.1...v0.6.2
