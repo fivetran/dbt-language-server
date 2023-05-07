@@ -17,6 +17,5 @@
 !server/out/**/*.js.map
 !server/out/zetasql/**/*
 !server/out/snowflake/**/*
-!server/node_modules/**/*
 
 !server/remote_server_*
