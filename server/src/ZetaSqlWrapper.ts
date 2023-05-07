@@ -175,8 +175,8 @@ export class ZetaSqlWrapper {
     return this.registeredTables.some(t => t.equals(table));
   }
 
-  async terminateServer(): Promise<void> {
-    await this.zetaSqlApi.terminateServer();
+  terminateServer(): void {
+    this.zetaSqlApi.terminateServer();
   }
 
   static addColumn(table: SimpleTableProto, newColumn: SimpleColumnProto): void {

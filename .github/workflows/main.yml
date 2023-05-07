@@ -13,19 +13,19 @@ jobs:
         include:
           - os: macos-latest
             target: darwin-x64
-            zetasql-lib: libremote_server.dylib
+            zetasql-lib: remote_server
 
           - os: macos-latest # TODO: use M1 runner when possible
             target: darwin-arm64
-            zetasql-lib: libremote_server_arm.dylib
+            zetasql-lib: remote_server_arm
 
           - os: ubuntu-20.04
             target: linux-x64
-            zetasql-lib: libremote_server.so
+            zetasql-lib: remote_server.so
 
           - os: ubuntu-20.04
             target: linux-arm64
-            zetasql-lib: libremote_server_arm.so
+            zetasql-lib: remote_server_arm.so
 
           - os: windows-latest
             target: win32-x64

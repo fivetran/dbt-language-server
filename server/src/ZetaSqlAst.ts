@@ -173,7 +173,7 @@ export class ZetaSqlAst {
       this.traversal(
         resolvedStatementNode,
         (node: unknown, nodeName?: string) => {
-          if (nodeName !== NODE.resolvedTableScanNode) {
+          if (nodeName !== NODE.resolvedTableScanNode && nodeName !== NODE.resolvedJoinScanNode) {
             const parseLocationRange = this.getParseLocationRange(node);
             if (parseLocationRange) {
               parentNodes.push({ name: nodeName, parseLocationRange, value: node, activeTables: [] });
@@ -436,6 +436,7 @@ type ActionFunction = (node: any, nodeName?: string) => void;
 const NODE = {
   resolvedQueryStmtNode: 'resolvedQueryStmtNode',
   resolvedTableScanNode: 'resolvedTableScanNode',
+  resolvedJoinScanNode: 'resolvedJoinScanNode',
   resolvedFunctionCallNode: 'resolvedFunctionCallNode',
   resolvedWithScanNode: 'resolvedWithScanNode',
   resolvedProjectScanNode: 'resolvedProjectScanNode',

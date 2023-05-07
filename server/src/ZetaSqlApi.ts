@@ -70,10 +70,10 @@ export class ZetaSqlApi {
     await this.zetaSql.runServer(port);
   }
 
-  async terminateServer(): Promise<void> {
+  terminateServer(): void {
     this.assertZetaSqlIsDefined(this.zetaSql);
 
-    await this.zetaSql.terminateServer();
+    this.zetaSql.terminateServer();
   }
 
   async analyze(request: AnalyzeRequest): Promise<AnalyzeResponse__Output | undefined> {
