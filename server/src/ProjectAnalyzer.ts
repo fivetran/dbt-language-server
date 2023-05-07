@@ -103,9 +103,7 @@ export class ProjectAnalyzer {
   }
 
   dispose(): void {
-    this.zetaSqlWrapper
-      .terminateServer()
-      .catch(e => console.log(`Failed to terminate zetasql server: ${e instanceof Error ? e.message : String(e)}`));
+    this.zetaSqlWrapper.terminateServer();
   }
 
   private async analyzeModelTreeInternal(
