@@ -36,7 +36,7 @@ export class ZetaSqlApi {
     console.log(`Starting zetasql on port ${port}`);
     if (process.platform === 'win32') {
       const subfolder = this.destination === 'bigquery' ? 'zetasql' : 'snowflake';
-      const fsPath = slash(path.normalize(`${__dirname}/${subfolder}/remote_server`));
+      const fsPath = slash(path.normalize(`${__dirname}/${subfolder}/remote_server.so`));
       const wslPath = `/mnt/${fsPath.replace(':', '')}`;
       console.log(`Path in WSL: ${wslPath}`);
       const stdHandler = (data: string): void => console.log(data);
