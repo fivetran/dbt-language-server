@@ -115,7 +115,7 @@ jobs:
             SKIP_TESTS: 'vscode_commands.spec.js'
 
           - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-snowflake dbt-postgres'
-            os: windows-latest
+            os: ubuntu-20.04
             target: win32-x64
             add-colon-to-key-file-path: |
               homedir=c:/${homedir#*c/}
