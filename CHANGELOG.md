@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 0.25.1 (01/01/1970)
+## What's Changed
+* Resolved crash issue for linux-arm64 and macOS 11 platforms
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.25.0...v0.25.1
+---
+
 ## Version 0.25.0 (07/05/2023)
 ## What's Changed
 * Resolved crash issue in Visual Studio Code 1.78.0.
@@ -262,10 +269,3 @@ AS (
 
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.6.3...v0.7.0
----
-
-## Version 0.6.3 (26/07/2022)
-## What's Changed
-* Fix issue with `_dbt_max_partition` dbt specific keyword.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.6.2...v0.6.3
