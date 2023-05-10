@@ -180,6 +180,7 @@ jobs:
       - name: add custom python venv
         run: | # https://github.com/dbt-labs/dbt-core/issues/4745
           ${PYTHON_INSTALL_LOC} -m venv ~/dbt_1_2_2_env
+          ls ~/dbt_1_2_2_env
           ${{ matrix.activate-venv }}
           python -m pip install pytz dbt-core==1.2.2 dbt-bigquery==1.2.0
           python -m pip list | grep dbt
