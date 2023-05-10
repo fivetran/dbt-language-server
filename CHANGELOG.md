@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.25.1 (01/01/1970)
+## Version 0.25.1 (10/05/2023)
 ## What's Changed
 * Resolved crash issue for linux-arm64 and macOS 11 platforms
 
