@@ -35,12 +35,11 @@ export class ZetaSqlApi {
     const port = await findFreePortPmfy(randomNumber(ZetaSqlApi.MIN_PORT, ZetaSqlApi.MAX_PORT));
     console.log(`Starting zetasql on port ${port}`);
     if (process.platform === 'win32') {
-      const fsPath = slash(path.normalize(`${__dirname}/../remote_server_${this.destination.toString()}`));
+      const subfolder = this.destination === 'bigquery' ? 'zetasql' : 'snowflake';
+      const fsPath = slash(path.normalize(`${__dirname}/${subfolder}/remote_server.so`));
       const wslPath = `/mnt/${fsPath.replace(':', '')}`;
       console.log(`Path in WSL: ${wslPath}`);
-      const stdHandler = (data: string): void => {
-        console.log(data);
-      };
+      const stdHandler = (data: string): void => console.log(data);
       new ProcessExecutor()
         .execProcess(`wsl -d ${FeatureFinder.getWslUbuntuName()} "${wslPath}" ${port}`, stdHandler, stdHandler)
         .catch(e => console.log(e));

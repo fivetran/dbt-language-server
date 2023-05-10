@@ -19,16 +19,17 @@ jobs:
             target: darwin-arm64
             zetasql-lib: remote_server_arm
 
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             target: linux-x64
             zetasql-lib: remote_server.so
 
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             target: linux-arm64
             zetasql-lib: remote_server_arm.so
 
           - os: windows-latest
             target: win32-x64
+            zetasql-lib: remote_server.so
 
     runs-on: ${{ matrix.os }}
     defaults:
@@ -60,17 +61,6 @@ jobs:
           # TODO: uncomment when zetasql-snowflake is ready
           # find server/node_modules/@fivetrandevelopers/zetasql-snowflake/lib/snowflake -maxdepth 1 -type f ! -name '${{ matrix.zetasql-lib }}' -exec rm -f {} \;
           find server/node_modules/@fivetrandevelopers/zetasql-snowflake/lib/snowflake -maxdepth 1 -type f -exec rm -f {} \;
-          rm server/remote_server_snowflake
-
-      - name: delete executable for Ubuntu in WSL
-        if: matrix.os != 'windows-latest'
-        run: |
-          rm server/remote_server_bigquery
-          # TODO: uncomment when zetasql-snowflake is ready
-          # rm server/remote_server_snowflake
-
-      - name: set variable for prepare_node_modules.sh script
-        run: echo ${{ matrix.target }} > target_os
 
       - name: package to vsix file
         run: |
@@ -105,7 +95,7 @@ jobs:
             python-version: '3.10.7'
 
           - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-snowflake dbt-postgres'
-            os: ubuntu-latest
+            os: ubuntu-20.04
             target: linux-x64
             prepare-for-tests: |
               Xvfb -ac :99 -screen 0 1280x1024x16 &
@@ -115,7 +105,7 @@ jobs:
             SKIP_TESTS: 'vscode_commands.spec.js'
 
           - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-snowflake dbt-postgres'
-            os: ubuntu-20.04
+            os: ubuntu-latest
             target: linux-x64
             prepare-for-tests: |
               Xvfb -ac :99 -screen 0 1280x1024x16 &
@@ -190,6 +180,7 @@ jobs:
       - name: add custom python venv
         run: | # https://github.com/dbt-labs/dbt-core/issues/4745
           ${PYTHON_INSTALL_LOC} -m venv ~/dbt_1_2_2_env
+          ls ~/dbt_1_2_2_env
           ${{ matrix.activate-venv }}
           python -m pip install pytz dbt-core==1.2.2 dbt-bigquery==1.2.0
           python -m pip list | grep dbt

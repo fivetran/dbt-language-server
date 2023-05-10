@@ -40,11 +40,6 @@ jobs:
       - name: delete libraries for other platforms
         run: |
           find server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql -maxdepth 1 -type f ! -name 'remote_server' -exec rm -f {} \;
-          rm server/remote_server_bigquery
-          rm server/remote_server_snowflake
-
-      - name: set variable for prepare_node_modules.sh script
-        run: echo darwin-x64 > target_os
 
       - name: package to vsix file
         run: npx @vscode/vsce package -o ${FILE_NAME} --target darwin-x64 --githubBranch main
