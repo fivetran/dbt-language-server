@@ -47,7 +47,7 @@ export class DbtInitTerminal implements Pseudoterminal {
     }
     if (data.includes(DbtInitTerminal.CONTROL_CODES.enter)) {
       const lines = data.split(DbtInitTerminal.CONTROL_CODES.enter);
-      this.line = lines[lines.length - 1];
+      this.line = lines.at(-1) ?? '';
       this.writeEmitter.fire(data.replaceAll(DbtInitTerminal.CONTROL_CODES.enter, '\n\r'));
     } else {
       this.line += data;

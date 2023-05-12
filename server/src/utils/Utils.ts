@@ -59,7 +59,7 @@ export function getRelativePosition(absoluteRange: Range, absolutePosition: Posi
 
 export function getPositionByIndex(text: string, index: number): Position {
   const lines = text.slice(0, index).split('\n');
-  return Position.create(lines.length - 1, lines[lines.length - 1].length);
+  return Position.create(lines.length - 1, (lines.at(-1) ?? '').length);
 }
 
 export function getIdentifierRangeAtPosition(position: Position, text: string): Range {

@@ -5,7 +5,7 @@ export function evalJinjaEnvVar(text: string): string {
   if (matches) {
     matches.forEach(match => {
       const params = match
-        .replace(regex, '$1')
+        .replaceAll(regex, '$1')
         .split(',')
         .map(p => p.trim().replace(/^['"]/, '').replace(/['"]$/, ''));
 

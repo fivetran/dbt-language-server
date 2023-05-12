@@ -235,7 +235,10 @@ export class ZetaSqlAst {
             if (!parseLocationRange) {
               return;
             }
-            const parentNode = parentNodes[parentNodes.length - 1];
+            const parentNode = parentNodes.at(-1);
+            if (!parentNode) {
+              return;
+            }
 
             if (nodeName === NODE.resolvedTableScanNode) {
               if (rangeContainsRange(parentNode.parseLocationRange, parseLocationRange) && positionInRange(offset, parentNode.parseLocationRange)) {
