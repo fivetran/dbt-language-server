@@ -13,7 +13,7 @@ export class WorkspaceHelper {
     const sorted = this.getSortedWorkspaceFolders();
     for (const element of sorted) {
       let uri = folder.uri.toString();
-      if (uri.charAt(uri.length - 1) !== '/') {
+      if (uri.at(-1) !== '/') {
         uri = `${uri}/`;
       }
       if (uri.startsWith(element)) {
@@ -33,7 +33,7 @@ export class WorkspaceHelper {
         ? workspace.workspaceFolders
             .map(folder => {
               let result = folder.uri.toString();
-              if (result.charAt(result.length - 1) !== '/') {
+              if (result.at(-1) !== '/') {
                 result = `${result}/`;
               }
               return result;

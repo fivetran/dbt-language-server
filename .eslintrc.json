@@ -151,6 +151,7 @@
       }
     ],
 
+    "unicorn/prefer-event-target": ["off"], // Have false positives: https://github.com/sindresorhus/eslint-plugin-unicorn/issues/1853
     "unicorn/no-array-reduce": ["off"],
     "unicorn/consistent-destructuring": ["off"],
     "unicorn/no-null": ["off"],
