@@ -1,8 +1,15 @@
 # Changelog
 
+## Version 0.25.2 (01/01/1970)
+## What's Changed
+* Got rid of the warning asking about accepting incoming network connections.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.25.1...v0.25.2
+---
+
 ## Version 0.25.1 (10/05/2023)
 ## What's Changed
-* Resolved crash issue for linux-arm64 and macOS 11 platforms
+* Resolved crash issue for linux-arm64 and macOS 11 platforms.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.25.0...v0.25.1
 ---
@@ -257,15 +264,3 @@ AS (
 * Small bug fixes.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.7.0...v0.8.0
----
-
-## Version 0.7.0 (10/08/2022)
-## What's Changed
-* [Lock](https://code.visualstudio.com/updates/v1_60#_locked-editor-groups) query preview group automatically.
-* Fix diagnostics issue after deleting/creating file.
-* Add Windows support.
-* Show information about python and dbt and dbt adapters in status bar.
-* Add the ability to install dbt, dbt adapters and choose python environment from status bar.
-
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.6.3...v0.7.0
