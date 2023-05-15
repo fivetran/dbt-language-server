@@ -41,7 +41,7 @@ export class ZetaSqlApi {
       console.log(`Path in WSL: ${wslPath}`);
       const stdHandler = (data: string): void => console.log(data);
       new ProcessExecutor()
-        .execProcess(`wsl -d ${FeatureFinder.getWslUbuntuName()} "${wslPath}" ${port}`, stdHandler, stdHandler)
+        .execProcess(`wsl -d ${FeatureFinder.getWslUbuntuName()} "${wslPath}" 0.0.0.0 ${port}`, stdHandler, stdHandler)
         .catch(e => console.log(e));
     } else {
       this.zetaSql.runServer(port).catch(e => console.log(e));
