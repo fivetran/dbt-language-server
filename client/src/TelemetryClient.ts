@@ -10,10 +10,6 @@ export class TelemetryClient {
     TelemetryClient.client?.sendTelemetryEvent(eventName, properties);
   }
 
-  static sendException(error: Error, properties?: TelemetryEventProperties): void {
-    TelemetryClient.client?.sendTelemetryException(error, properties);
-  }
-
   static sendError(properties?: TelemetryEventProperties): void {
     TelemetryClient.client?.sendTelemetryErrorEvent('error', properties);
   }
