@@ -4,7 +4,7 @@ import { DbtProfile, DbtProfileType, ProfileYaml, TargetConfig } from './DbtProf
 import { BIG_QUERY_PROFILES, PROFILE_METHODS, SNOWFLAKE_PROFILES } from './DbtProfileType';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
-import { evalJinjaEnvVar } from './utils/JinjaUtils';
+import { evalProfilesYmlJinjaEnvVar } from './utils/JinjaUtils';
 import { YamlParserUtils } from './YamlParserUtils';
 
 export interface DbtProfileInfo {
@@ -50,7 +50,7 @@ export class DbtProfileCreator {
       return this.cantFindSectionError(profileName, `outputs.${target}.type`);
     }
 
-    const method = outputsTarget.method ? evalJinjaEnvVar(outputsTarget.method) : undefined;
+    const method = outputsTarget.method ? String(evalProfilesYmlJinjaEnvVar(outputsTarget.method)) : undefined;
     const authMethods = PROFILE_METHODS.get(type);
     if (authMethods && (!method || !authMethods.includes(method))) {
       return err({
@@ -102,7 +102,7 @@ export class DbtProfileCreator {
     }
     const profileWithValidatedFields = validationResult.value;
 
-    const target = evalJinjaEnvVar(profileWithValidatedFields.target);
+    const target = String(evalProfilesYmlJinjaEnvVar(profileWithValidatedFields.target));
     const targetConfig = DbtProfileCreator.evalTargetConfig(profileWithValidatedFields.outputs[target]) as Required<TargetConfig>;
     const { type } = targetConfig;
     let { method } = targetConfig;
@@ -146,7 +146,7 @@ export class DbtProfileCreator {
   static evalTargetConfig(targetConfig: { [index: string]: unknown }): { [index: string]: unknown } {
     Object.entries(targetConfig).forEach(([key, value]) => {
       if (typeof value === 'string') {
-        targetConfig[key] = evalJinjaEnvVar(value);
+        targetConfig[key] = evalProfilesYmlJinjaEnvVar(value);
       } else if (typeof value === 'object' && value !== null) {
         targetConfig[key] = DbtProfileCreator.evalTargetConfig(value as { [index: string]: unknown });
       }

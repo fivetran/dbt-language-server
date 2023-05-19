@@ -201,11 +201,11 @@ jobs:
           KEY_FILE_PATH=${homedir}/.dbt/bq-test-project.json
           echo "KEY_FILE_PATH=${KEY_FILE_PATH}" >> $GITHUB_ENV
 
-          private_key=$(echo ${BQ_SERVICE_ACCOUNT} | jq '.private_key')
-          read project_id private_key_id client_id client_email auth_uri token_uri auth_provider_x509_cert_url client_x509_cert_url < <(echo $(echo ${BQ_SERVICE_ACCOUNT} | jq -r '.project_id, .private_key_id, .client_id, .client_email, .auth_uri, .token_uri, .auth_provider_x509_cert_url, .client_x509_cert_url'))
+          read project_id < <(echo $(echo ${BQ_SERVICE_ACCOUNT} | jq -r '.project_id'))
           dataset="transforms_dbt_default"
 
           read pg_host pg_user pg_password pg_port pg_dbname pg_schema < <(echo $(echo ${PG_CONNECTION_PARAMS} | jq -r '.host, .user, .password, .port, .dbname, .schema'))
+          echo "POSTGRESQL_PORT=${pg_port}" >> $GITHUB_ENV
 
           read sf_account sf_database sf_password sf_role sf_schema sf_user sf_warehouse < <(echo $(echo ${SNOWFLAKE_CONNECTION_PARAMS} | jq -r '.account, .database, .password, .role, .schema, .username, .warehouse'))
 
@@ -232,17 +232,7 @@ jobs:
                 project: ${project_id}
                 dataset: ${dataset}
                 threads: 4
-                keyfile_json:
-                  type: service_account
-                  project_id: ${project_id}
-                  private_key_id: ${private_key_id}
-                  private_key: ${private_key}
-                  client_id: ${client_id}
-                  client_email: ${client_email}
-                  auth_uri: ${auth_uri}
-                  token_uri: ${token_uri}
-                  auth_provider_x509_cert_url: ${auth_provider_x509_cert_url}
-                  client_x509_cert_url: ${client_x509_cert_url}
+                keyfile_json: "{{ env_var('BQ_SERVICE_ACCOUNT') | as_native }}"
 
           e2e-test-workspace-project2:
             target: prod
@@ -263,7 +253,7 @@ jobs:
                 host: ${pg_host}
                 user: ${pg_user}
                 password: ${pg_password}
-                port: ${pg_port}
+                port: "{{ env_var('POSTGRESQL_PORT') | as_number }}" # For testing | as_number filter
                 dbname: ${pg_dbname}
                 schema: ${pg_schema}
                 threads: 4
@@ -334,6 +324,7 @@ jobs:
           ${{ matrix.prepare-for-tests }}
           node e2e/out/runners/runTest $(pwd)/e2e-tests/extension
         env:
+          BQ_SERVICE_ACCOUNT: ${{ secrets.BQ_SERVICE_ACCOUNT }}
           SKIP_TESTS: ${{ matrix.SKIP_TESTS }}
           PYTHON_INSTALL_LOC: '${{ steps.setup-python.outputs.python-path }}'
           WIZARD_FOR_DBT_WSL_UBUNTU_NAME: 'Ubuntu'
