@@ -7,7 +7,7 @@ import { BigQueryTypeKind, IStandardSqlDataType } from './BigQueryLibraryTypes';
 
 export class BigQueryClient implements DbtDestinationClient {
   private static readonly BQ_TEST_CLIENT_DATASETS_LIMIT = 1;
-  private static readonly REQUESTED_SCHEMA_FIELDS = ['schema', 'timePartitioning'] as const;
+  private static readonly REQUESTED_SCHEMA_FIELDS = ['schema', 'timePartitioning', 'type'] as const;
   private static readonly JOINED_FIELDS = BigQueryClient.REQUESTED_SCHEMA_FIELDS.join(',');
 
   bigQuery: BigQuery;
@@ -53,6 +53,7 @@ export class BigQueryClient implements DbtDestinationClient {
         return {
           schema: metadata.schema as SchemaDefinition,
           timePartitioning: metadata.timePartitioning !== undefined,
+          type: metadata.type,
         };
       });
     } catch (e) {

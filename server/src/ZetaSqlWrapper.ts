@@ -120,6 +120,9 @@ export class ZetaSqlWrapper {
       for (const newColumn of table.columns ?? []) {
         ZetaSqlWrapper.addColumn(existingTable, newColumn);
       }
+      if (table.external) {
+        ZetaSqlWrapper.addColumn(existingTable, { name: '_FILE_NAME', type: { typeKind: TypeKind.TYPE_STRING }, isPseudoColumn: true });
+      }
 
       if (table.timePartitioning) {
         ZetaSqlWrapper.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_TIME, 'timestamp');

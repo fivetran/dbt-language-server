@@ -7,6 +7,7 @@ import { createSimpleColumn, createType } from './utils/ZetaSqlUtils';
 export interface TableInformation {
   columns?: SimpleColumnProto[];
   timePartitioning: boolean;
+  external: boolean; // BQ: https://cloud.google.com/bigquery/docs/external-tables
 }
 export class TableFetcher {
   private tables: Map<string, Promise<TableInformation | undefined>> = new Map();
@@ -37,6 +38,7 @@ export class TableFetcher {
         return {
           columns: metadata.schema.fields.map<ResolvedOutputColumnProto>(f => createSimpleColumn(f.name, createType(f))),
           timePartitioning: metadata.timePartitioning,
+          external: metadata.type === 'EXTERNAL',
         };
       }
     }

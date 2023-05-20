@@ -200,6 +200,7 @@ export class ProjectAnalyzer {
             if (ts) {
               t.columns = ts.columns;
               t.timePartitioning = ts.timePartitioning;
+              t.external = ts.external;
             }
             return t;
           }),
