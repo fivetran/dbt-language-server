@@ -1,5 +1,8 @@
-export function evalJinjaEnvVar(text: string): string {
-  const regex = /{{\s*env_var\((['"].*?['"])\)\s*}}/g;
+export function evalProfilesYmlJinjaEnvVar(text: string): string | object | number {
+  if (!text.includes('{{')) {
+    return text;
+  }
+  const regex = /{{\s*env_var\((['"].*?['"])\).*?}}/g;
   let resultText = text;
   const matches = resultText.match(regex);
   if (matches) {
@@ -19,5 +22,13 @@ export function evalJinjaEnvVar(text: string): string {
       }
     });
   }
+
+  if (/\|\s*as_native/.test(text)) {
+    return JSON.parse(resultText) as object;
+  }
+  if (/\|\s*(?:int|as_number)/.test(text)) {
+    return Number(resultText);
+  }
+
   return resultText;
 }
