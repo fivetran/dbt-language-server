@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.25.3 (01/01/1970)
+## Version 0.25.3 (22/05/2023)
 ## What's Changed
 * Added support for jinja filters in `profiles.yml`.
 * Added support for `_file_name` pseudo column in external tables.
