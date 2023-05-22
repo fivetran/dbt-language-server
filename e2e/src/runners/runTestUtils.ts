@@ -101,6 +101,7 @@ export async function prepareBigQuery(): Promise<void> {
   await ensureTableExists(dataset, 'table_exists', [{ name: 'id', type: 'INTEGER' }]);
   await ensureTableWithStructExists(dataset);
   await ensureUdfExists(dataset);
+  await ensureExternalTableExists(dataset);
 }
 
 async function ensureTableExists(dataset: Dataset, tableName: string, columns: TableField[]): Promise<void> {
@@ -137,6 +138,20 @@ async function ensureTableWithStructExists(dataset: Dataset): Promise<void> {
       ],
       timePartitioning: {
         type: 'DAY',
+      },
+    });
+  }
+}
+
+async function ensureExternalTableExists(dataset: Dataset): Promise<void> {
+  const tableName = 'external_table';
+  if (!(await isTableExist(dataset, tableName))) {
+    await dataset.createTable(tableName, {
+      type: 'EXTERNAL',
+      externalDataConfiguration: {
+        sourceUris: ['https://storage.googleapis.com/dbt-language-server-e2e/1.csv'],
+        sourceFormat: 'CSV',
+        autodetect: true,
       },
     });
   }

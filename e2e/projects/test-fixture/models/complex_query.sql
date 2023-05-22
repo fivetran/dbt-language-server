@@ -27,10 +27,12 @@ with recursive referrers as (
 
 select 
     r.user_id,
-    row_number() over (partition by d) as row_n
+    row_number() over (partition by d) as row_n,
+    et._file_name as fn
 from referrers r
 inner join `singular-vector-135519`.dbt_ls_e2e_dataset.student_details d on d.id = r.user_id
 inner join `region-us`.INFORMATION_SCHEMA.JOBS_BY_PROJECT j on j.project_number = r.user_id
+cross join singular-vector-135519.dbt_ls_e2e_dataset.external_table et
 where 
     info[OFFSET(1)].subjects.subj2 = 'math' and
     d._PARTITIONTIME = '2022-01-01' and
