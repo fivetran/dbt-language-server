@@ -5,6 +5,7 @@ export class TableDefinition {
   namePath: string[];
   datasetIndex: number;
   timePartitioning = false;
+  external = false;
   informationSchemaIndex = -1;
   projectName?: string;
   dataSetName?: string;

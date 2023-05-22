@@ -31,6 +31,7 @@ export interface Table {
 export interface Metadata {
   schema: SchemaDefinition;
   timePartitioning: boolean;
+  type?: string; // BQ: Currently use only EXTERNAL value
 }
 
 export interface SchemaDefinition {
