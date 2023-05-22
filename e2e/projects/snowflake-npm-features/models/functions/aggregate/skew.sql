@@ -9,7 +9,7 @@ WITH sample_data AS (
     UNION ALL
     SELECT 5
     UNION ALL
-    SELECT 6
+    SELECT 6.2
     UNION ALL
     SELECT 7
     UNION ALL
