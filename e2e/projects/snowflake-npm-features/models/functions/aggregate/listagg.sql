@@ -9,6 +9,6 @@ WITH sales_data AS (
     UNION ALL
     SELECT 'C', '2022-01-05'
 )
-SELECT product, LISTAGG(sale_date, ',') AS sale_dates
+SELECT product, LISTAGG(sale_date, ',') AS sale_dates, LISTAGG('asd', ',')
 FROM sales_data
 GROUP BY product;

@@ -1,22 +1,12 @@
-WITH sample_data AS (
-    SELECT 1 AS value
+WITH data AS (
+    SELECT 'Alice' as user, 1 as event_id
     UNION ALL
-    SELECT 2
+    SELECT 'Bob', 2
     UNION ALL
-    SELECT 3
+    SELECT 'Charlie', 3
     UNION ALL
-    SELECT 4
+    SELECT 'Alice', 4
     UNION ALL
-    SELECT 5
-    UNION ALL
-    SELECT 6
-    UNION ALL
-    SELECT 7
-    UNION ALL
-    SELECT 8
-    UNION ALL
-    SELECT 9
-    UNION ALL
-    SELECT 10
+    SELECT 'Bob', 5
 )
-SELECT MINHASH(value) AS minhash_result FROM sample_data;
+SELECT MINHASH(5, user) FROM data;
