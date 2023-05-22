@@ -19,4 +19,4 @@ SELECT 9, 18
 UNION ALL
 SELECT 10, 20
 )
-SELECT REGR_INTERCEPT(x, y) AS regr_intercept_result FROM sample_data;
+SELECT REGR_INTERCEPT(x, y) AS regr_intercept_result, REGR_INTERCEPT(1.3, 4.33) FROM sample_data;
