@@ -1,13 +1,10 @@
 name: ReleaseToChangelog
 on:
-  pull_request:
-    types: [opened]
   workflow_dispatch:
 
 jobs:
   update-changelog:
     runs-on: ubuntu-latest
-    if: github.actor != 'dependabot[bot]'
     steps:
       - uses: actions/checkout@v3
         with:
