@@ -139,9 +139,13 @@ export class ZetaSqlWrapper {
   async registerPersistentUdfs(parseResult: ParseResult): Promise<void> {
     const namePaths = parseResult.functions.filter(f => !this.registeredFunctions.has(f.join(',')));
     for (const namePath of namePaths) {
-      const udf = await this.createUdfFromNamePath(namePath);
-      if (udf) {
-        this.registerUdf(udf);
+      try {
+        const udfs = await this.createUdfsFromNamePath(namePath);
+        for (const udf of udfs) {
+          this.registerUdf(udf);
+        }
+      } catch (e) {
+        console.log(e);
       }
     }
   }
@@ -276,14 +280,14 @@ export class ZetaSqlWrapper {
     return response;
   }
 
-  private async createUdfFromNamePath(namePath: string[]): Promise<Udf | undefined> {
+  private async createUdfsFromNamePath(namePath: string[]): Promise<Udf[]> {
     if (namePath.length === 2) {
       return this.destinationClient.getUdf(undefined, namePath[0], namePath[1]);
     }
     if (namePath.length === 3) {
       return this.destinationClient.getUdf(namePath[0], namePath[1], namePath[2]);
     }
-    return undefined;
+    return [];
   }
 
   static createSimpleColumn(name: string, type: TypeProto | null): SimpleColumnProto {

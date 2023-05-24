@@ -62,14 +62,14 @@ export class BigQueryClient implements DbtDestinationClient {
     }
   }
 
-  async getUdf(projectId: string | undefined, dataSetId: string, routineId: string): Promise<Udf | undefined> {
+  async getUdf(projectId: string | undefined, dataSetId: string, routineId: string): Promise<Udf[]> {
     try {
       return await this.executeOperation(async () => {
         const dataSet = this.bigQuery.dataset(dataSetId, { projectId });
 
         const existsResult = await dataSet.exists();
         if (!existsResult[0]) {
-          return undefined;
+          return [];
         }
 
         const [metadata] = (await dataSet.routine(routineId).getMetadata()) as [RoutineMetadata, unknown];
@@ -88,11 +88,11 @@ export class BigQueryClient implements DbtDestinationClient {
         if (metadata.returnType) {
           udf.returnType = BigQueryClient.toTypeProto(metadata.returnType);
         }
-        return udf;
+        return [udf];
       });
     } catch (e) {
       console.log(`Error while getting UDF metadata: ${e instanceof Error ? e.message : ''}`);
-      return undefined;
+      return [];
     }
   }
 

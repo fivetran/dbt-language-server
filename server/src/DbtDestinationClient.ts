@@ -14,7 +14,7 @@ export interface DbtDestinationClient {
 
   getTableMetadata(datasetName: string, tableName: string): Promise<Metadata | undefined>;
 
-  getUdf(projectId: string | undefined, dataSetId: string, routineId: string): Promise<Udf | undefined>;
+  getUdf(projectId: string | undefined, dataSetId: string, routineId: string): Promise<Udf[]>;
 
   /** default project (`project` value of BigQuery config, `database` value for Snowflake config) */
   defaultProject: string;

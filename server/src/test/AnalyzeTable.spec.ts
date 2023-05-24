@@ -73,9 +73,11 @@ describe('ProjectAnalyzer analyzeModelsTree', () => {
     );
 
     when(mockDestinationClient.getUdf(undefined, 'dataset', 'udf')).thenReturn(
-      Promise.resolve({
-        nameParts: UDF_NAME_PATH,
-      }),
+      Promise.resolve([
+        {
+          nameParts: UDF_NAME_PATH,
+        },
+      ]),
     );
 
     when(mockZetaSqlWrapper.getAstOrError(anything(), anything())).thenReturn(
