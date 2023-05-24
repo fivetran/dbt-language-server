@@ -1,8 +1,13 @@
+import { TypeKind } from '@fivetrandevelopers/zetasql-snowflake';
 import { err, ok, Result } from 'neverthrow';
 import { Connection, Statement } from 'snowflake-sdk';
-import { Dataset, DbtDestinationClient, Metadata, Table, Udf } from '../DbtDestinationClient';
+import { Dataset, DbtDestinationClient, Metadata, Table, Udf, UdfArgument } from '../DbtDestinationClient';
+import { runWithTimeout } from '../utils/Utils';
 
 export class SnowflakeClient implements DbtDestinationClient {
+  private static readonly TIMEOUT_ERROR = 'Snowflake query timeout';
+  private static readonly SQL_TIMEOUT = 10_000;
+
   constructor(public defaultProject: string, private connection: Connection) {}
 
   test(): Promise<Result<void, string>> {
@@ -46,15 +51,56 @@ export class SnowflakeClient implements DbtDestinationClient {
       result.schema.fields.push({ name: row.COLUMN_NAME, type: row.DATA_TYPE });
     });
 
-    return new Promise((resolve, reject) => {
-      stream.on('error', e => reject(e));
-      stream.on('end', () => resolve(result));
-    });
+    return runWithTimeout(
+      new Promise((resolve, reject) => {
+        stream.on('error', e => reject(e));
+        stream.on('end', () => resolve(result));
+      }),
+      SnowflakeClient.SQL_TIMEOUT,
+      SnowflakeClient.TIMEOUT_ERROR,
+    );
   }
 
-  async getUdf(_projectId: string | undefined, _dataSetId: string, _routineId: string): Promise<Udf | undefined> {
+  async getUdf(projectId: string | undefined, schemaName: string, routineId: string): Promise<Udf[]> {
     await this.connectIfNeeded();
-    throw new Error('Method not implemented.');
+    const functionCatalogCondition = projectId ? `function_catalog='${projectId.toUpperCase()}' and ` : '';
+    const sqlText = `
+      select 
+          function_catalog,
+          function_schema,
+          function_name,
+          argument_signature as arguments,
+          data_type as return_type
+      from information_schema.functions
+      where ${functionCatalogCondition}function_schema='${schemaName.toUpperCase()}' and function_name='${routineId.toUpperCase()}';
+    `;
+    console.log(sqlText);
+    const statement = this.connection.execute({ sqlText });
+
+    const stream = statement.streamRows();
+    const results: Udf[] = [];
+    stream.on('data', (row: { ARGUMENTS: string; RETURN_TYPE: string }) => {
+      const nameParts = [schemaName, routineId];
+      if (projectId) {
+        nameParts.splice(0, 0, projectId);
+      }
+      const typeKind = SnowflakeClient.toTypeKind(row.RETURN_TYPE.split('(')[0]);
+      const args = this.getArgumentTypes(row.ARGUMENTS).map<UdfArgument>(a => ({
+        type: {
+          typeKind: SnowflakeClient.toTypeKind(a),
+        },
+      }));
+      results.push({ nameParts, returnType: { typeKind }, arguments: args });
+    });
+
+    return runWithTimeout(
+      new Promise((resolve, reject) => {
+        stream.on('error', e => reject(e));
+        stream.on('end', () => resolve(results));
+      }),
+      SnowflakeClient.SQL_TIMEOUT,
+      SnowflakeClient.TIMEOUT_ERROR,
+    );
   }
 
   private connect(): Promise<string | undefined> {
@@ -80,9 +126,84 @@ export class SnowflakeClient implements DbtDestinationClient {
     stream.on('data', (row: { [key: string]: string }) => {
       result.push({ id: row[columnName] });
     });
-    return new Promise((resolve, reject) => {
-      stream.on('error', e => reject(e));
-      stream.on('end', () => resolve(result));
-    });
+
+    return runWithTimeout(
+      new Promise((resolve, reject) => {
+        stream.on('error', e => reject(e));
+        stream.on('end', () => resolve(result));
+      }),
+      SnowflakeClient.SQL_TIMEOUT,
+      SnowflakeClient.TIMEOUT_ERROR,
+    );
+  }
+
+  private static toTypeKind(stringType?: string): TypeKind {
+    switch (stringType?.toUpperCase()) {
+      case 'NUMBER':
+      case 'DECIMAL':
+      case 'NUMERIC': {
+        return TypeKind.TYPE_NUMERIC;
+      }
+      case 'INT':
+      case 'INTEGER':
+      case 'BIGINT':
+      case 'SMALLINT':
+      case 'TINYINT':
+      case 'BYTEINT': {
+        return TypeKind.TYPE_INT64;
+      }
+      case 'BOOLEAN': {
+        return TypeKind.TYPE_BOOL;
+      }
+      case 'FLOAT':
+      case 'FLOAT4':
+      case 'FLOAT8':
+      case 'DOUBLE':
+      case 'DOUBLE PRECISION':
+      case 'REAL': {
+        return TypeKind.TYPE_FLOAT;
+      }
+      case 'STRING':
+      case 'TEXT':
+      case 'VARCHAR':
+      case 'CHAR':
+      case 'CHARACTER': {
+        return TypeKind.TYPE_STRING;
+      }
+      case 'BINARY':
+      case 'VARBINARY': {
+        return TypeKind.TYPE_BYTES;
+      }
+      case 'DATE': {
+        return TypeKind.TYPE_DATE;
+      }
+      case 'TIME': {
+        return TypeKind.TYPE_TIME;
+      }
+      case 'TIMESTAMP':
+      case 'TIMESTAMP_LTZ':
+      case 'TIMESTAMP_NTZ':
+      case 'TIMESTAMP_TZ':
+      case 'DATETIME': {
+        return TypeKind.TYPE_TIMESTAMP;
+      }
+      case 'OBJECT': {
+        return TypeKind.TYPE_STRUCT;
+      }
+      case 'ARRAY': {
+        return TypeKind.TYPE_ARRAY;
+      }
+
+      default: {
+        return TypeKind.TYPE_UNKNOWN;
+      }
+    }
+  }
+
+  getArgumentTypes(signature: string): string[] {
+    return signature
+      .slice(1, -1)
+      .split(',')
+      .map(a => a.trim().split(' ')[1]);
   }
 }

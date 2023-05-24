@@ -139,13 +139,13 @@ export function truncateAtBothSides(text: string): string {
   return text.slice(1, -1);
 }
 
-export async function runWithTimeout(promise: Promise<unknown>, ms: number, error: string): Promise<void> {
-  const timeoutPromise = new Promise<void>((_resolve, reject) => {
+export async function runWithTimeout<T>(promise: Promise<T>, ms: number, error: string): Promise<T> {
+  const timeoutPromise = new Promise<T>((_resolve, reject) => {
     setTimeout(() => {
       reject(new Error(error));
     }, ms);
   });
-  await Promise.race([promise, timeoutPromise]);
+  return Promise.race([promise, timeoutPromise]);
 }
 
 export async function wait(ms: number): Promise<void> {
