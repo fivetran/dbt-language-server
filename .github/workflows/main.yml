@@ -411,6 +411,7 @@ jobs:
           path: .
           glob: '*.vsix'
           destination: dbt-language-server
+          process_gcloudignore: false
 
       - name: set up node
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
