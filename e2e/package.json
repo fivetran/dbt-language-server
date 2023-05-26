@@ -7,9 +7,9 @@
   "devDependencies": {
     "@google-cloud/bigquery": "^6.2.0",
     "@types/glob": "^8.1.0",
-    "@types/pg": "^8.6.6",
+    "@types/pg": "^8.10.1",
     "@types/snowflake-sdk": "^1.6.12",
-    "@types/vscode": "^1.78.0",
+    "@types/vscode": "^1.78.1",
     "@vscode/test-electron": "^2.3.2",
     "clipboardy": "^2.3.0",
     "dbt-language-server-common": "file:../common",
@@ -17,6 +17,6 @@
     "mocha": "^10.2.0",
     "path-equal": "^1.2.5",
     "pg": "^8.11.0",
-    "snowflake-sdk": "^1.6.21"
+    "snowflake-sdk": "^1.6.22"
   }
 }
