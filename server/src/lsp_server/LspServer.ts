@@ -471,7 +471,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
 
   dispose(): void {
     console.log('Dispose start...');
-    this.dbt.dispose();
     this.destinationContext.dispose();
     console.log('Dispose end.');
   }

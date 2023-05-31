@@ -4,21 +4,19 @@ import { _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { ModelProgressReporter } from '../ModelProgressReporter';
 import { NotificationSender } from '../NotificationSender';
+import { ProcessExecutor } from '../ProcessExecutor';
 import { FeatureFinder } from '../feature_finder/FeatureFinder';
 import { Dbt } from './Dbt';
 import { DbtCliCompileJob } from './DbtCliCompileJob';
 import { DbtCompileJob } from './DbtCompileJob';
-import { DbtCommand } from './commands/DbtCommand';
-import { DbtCommandExecutor } from './commands/DbtCommandExecutor';
 import slash = require('slash');
 import path = require('node:path');
 
 export class DbtCli extends Dbt {
-  static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
+  static readonly PROCESS_EXECUTOR = new ProcessExecutor();
   static readonly DBT_CORE_SCRIPT = path.resolve(dirname(require.main?.filename ?? __dirname), '..', 'dbt_core.py');
 
   pythonPathForCli?: string; // TODO: make it required
-  dbtLess1point5 = false;
 
   constructor(
     private featureFinder: FeatureFinder,
@@ -38,13 +36,16 @@ export class DbtCli extends Dbt {
       parameters.push('-m', `+${slash(modelName)}`);
     }
     const log = (data: string): void => console.log(data);
-    return DbtCommandExecutor.PROCESS_EXECUTOR.execProcess(`${this.pythonPathForCli!} ${DbtCli.DBT_CORE_SCRIPT} ${parameters.join(' ')}`, log, log);
+    console.log(require.main?.filename);
+    if (!this.pythonPathForCli) {
+      throw new Error('pythonPathForCli is not defined');
+    }
+    return DbtCli.PROCESS_EXECUTOR.execProcess(`${this.pythonPathForCli} ${DbtCli.DBT_CORE_SCRIPT} ${parameters.join(' ')}`, log, log);
   }
 
   async prepareImplementation(dbtProfileType?: string): Promise<void> {
     const cliInfo = await this.featureFinder.findInformationForCli();
     this.pythonPathForCli = cliInfo.pythonPath;
-    this.dbtLess1point5 = cliInfo.dbtLess1point5;
 
     if (!this.featureFinder.versionInfo?.installedVersion || !this.featureFinder.versionInfo.installedAdapters.some(a => a.name === dbtProfileType)) {
       try {
@@ -78,24 +79,13 @@ export class DbtCli extends Dbt {
   }
 
   async deps(onStdoutData: (data: string) => void, onStderrData: (data: string) => void): Promise<void> {
-    const depsCommand = new DbtCommand(
-      this.featureFinder.profilesYmlDir,
-      ['--no-anonymous-usage-stats', '--no-use-colors', 'deps'],
-      this.dbtLess1point5,
-      this.pythonPathForCli,
-    );
-    await DbtCli.DBT_COMMAND_EXECUTOR.execute(depsCommand, onStdoutData, onStderrData);
-  }
-
-  refresh(): void {
-    // Nothing to refresh
+    if (!this.pythonPathForCli) {
+      throw new Error('pythonPathForCli is not defined');
+    }
+    await DbtCli.PROCESS_EXECUTOR.execProcess(`${this.pythonPathForCli} ${DbtCli.DBT_CORE_SCRIPT} deps}`, onStdoutData, onStderrData);
   }
 
   getError(): string {
     return this.getInstallError('dbt', 'python3 -m pip install dbt-bigquery');
-  }
-
-  dispose(): void {
-    // Nothing to dispose
   }
 }

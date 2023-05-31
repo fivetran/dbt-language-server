@@ -35,8 +35,6 @@ export abstract class Dbt {
 
   abstract deps(onStdoutData: (data: string) => void, onStderrData: (data: string) => void): Promise<void>;
 
-  abstract dispose(): void;
-
   async suggestToInstallDbt(python: string, dbtProfileType: string): Promise<void> {
     const actions = { title: 'Install', id: 'install' };
     const errorMessageResult = await this.connection.window.showErrorMessage(
