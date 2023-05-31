@@ -11,12 +11,13 @@ import json
 
 print("CWD: " + os.getcwd())
 
+port = sys.argv[1]
 def new_get_columns_in_relation(self, relation: BigQueryRelation) -> List[BigQueryColumn]:
     db = relation.path.database if relation.path.database != None else "None"
     schema = relation.path.schema if relation.path.schema != None else "None"
     table = relation.path.identifier if relation.path.identifier != None else "None"
 
-    conn = http.client.HTTPConnection("localhost", 3000)
+    conn = http.client.HTTPConnection("localhost", port)
 
     conn.request("GET", "/macro?name=get_columns_in_relation&db=" + db + "&schema=" + schema + "&table=" + table)
     response = conn.getresponse()
@@ -65,9 +66,9 @@ FACTORY.register_adapter = new_register_adapter.__get__(FACTORY)
 
 
 # Expected arguments for this script: 
-# ['compile', '-m', 'path/to/model.sql'] to compile model
-# ['compile'] to compile all models
-# ['deps'] to install dependencies
+# ['3000', 'compile', '-m', 'path/to/model.sql'] to compile model
+# ['3000', 'compile'] to compile all models
+# ['3000', 'deps'] to install dependencies
 
 dbt1_5 = True
 try: 
@@ -76,7 +77,7 @@ except:
     dbt1_5 = False
 
 noStats = "--no-send-anonymous-usage-stats" if dbt1_5 else "--no-anonymous-usage-stats"
-cli_args = [noStats, '--no-use-colors'] + sys.argv[1:]
+cli_args = [noStats, '--no-use-colors'] + sys.argv[2:]
 
 print(cli_args)
 

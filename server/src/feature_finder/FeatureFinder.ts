@@ -6,9 +6,8 @@ import { DbtRepository } from '../DbtRepository';
 import { ProcessExecutor } from '../ProcessExecutor';
 import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor';
 import { Lazy } from '../utils/Lazy';
-import { getAxios, randomNumber } from '../utils/Utils';
+import { getAxios } from '../utils/Utils';
 import { FeatureFinderBase } from './FeatureFinderBase';
-import findFreePortPmfy = require('find-free-port');
 import path = require('node:path');
 
 interface HubJson {
@@ -183,10 +182,6 @@ export class FeatureFinder extends FeatureFinderBase {
         this.versionInfo?.installedVersion && this.versionInfo.installedVersion.major <= 1 && this.versionInfo.installedVersion.minor < 5,
       ),
     };
-  }
-
-  findFreePort(): Promise<number> {
-    return findFreePortPmfy(randomNumber(1024, 65_535));
   }
 
   private async findDbtGlobalInfo(): Promise<DbtVersionInfo | undefined> {

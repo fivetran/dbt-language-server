@@ -1,6 +1,7 @@
 import { Result, err, ok } from 'neverthrow';
 import { _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
+import { MacroCompilationServer } from '../MacroCompilationServer';
 import { ModelProgressReporter } from '../ModelProgressReporter';
 import { NotificationSender } from '../NotificationSender';
 import { ProcessExecutor } from '../ProcessExecutor';
@@ -23,23 +24,24 @@ export class DbtCli extends Dbt {
     connection: _Connection,
     modelProgressReporter: ModelProgressReporter,
     notificationSender: NotificationSender,
+    private macroCompilationServer: MacroCompilationServer,
   ) {
     super(connection, modelProgressReporter, notificationSender);
+    this.macroCompilationServer
+      .start()
+      .catch(e => console.log(`Failed to start macroCompilationServer: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   async compile(modelName?: string): Promise<{
     stdout: string;
     stderr: string;
   }> {
-    const parameters = ['compile'];
+    const params = ['compile'];
     if (modelName) {
-      parameters.push('-m', `+${slash(modelName)}`);
+      params.push('-m', `+${slash(modelName)}`);
     }
     const log = (data: string): void => console.log(data);
-    if (!this.pythonPathForCli) {
-      throw new Error('pythonPathForCli is not defined');
-    }
-    return DbtCli.PROCESS_EXECUTOR.execProcess(`${this.pythonPathForCli} ${this.dbtCoreScriptPath} ${parameters.join(' ')}`, log, log);
+    return this.executeCommand(params, log, log);
   }
 
   async prepareImplementation(dbtProfileType?: string): Promise<void> {
@@ -78,13 +80,28 @@ export class DbtCli extends Dbt {
   }
 
   async deps(onStdoutData: (data: string) => void, onStderrData: (data: string) => void): Promise<void> {
-    if (!this.pythonPathForCli) {
-      throw new Error('pythonPathForCli is not defined');
-    }
-    await DbtCli.PROCESS_EXECUTOR.execProcess(`${this.pythonPathForCli} ${this.dbtCoreScriptPath} deps`, onStdoutData, onStderrData);
+    await this.executeCommand(['deps'], onStdoutData, onStderrData);
   }
 
   getError(): string {
     return this.getInstallError('dbt', 'python3 -m pip install dbt-bigquery');
+  }
+
+  private executeCommand(
+    params: string[],
+    onStdoutData?: (data: string) => void,
+    onStderrData?: (data: string) => void,
+  ): Promise<{
+    stdout: string;
+    stderr: string;
+  }> {
+    if (!this.pythonPathForCli || !this.macroCompilationServer.port) {
+      throw new Error('Incorrect state');
+    }
+    return DbtCli.PROCESS_EXECUTOR.execProcess(
+      `${this.pythonPathForCli} ${this.dbtCoreScriptPath} ${this.macroCompilationServer.port} ${params.join(' ')}`,
+      onStdoutData,
+      onStderrData,
+    );
   }
 }

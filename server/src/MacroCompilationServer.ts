@@ -3,6 +3,7 @@ import { TypeFactory } from '@fivetrandevelopers/zetasql';
 import * as core from 'express-serve-static-core';
 import { DbtRepository } from './DbtRepository';
 import { DestinationContext } from './DestinationContext';
+import { getFreePort } from './utils/Utils';
 
 interface QueryParams {
   name: string;
@@ -12,14 +13,16 @@ interface QueryParams {
 }
 
 export class MacroCompilationServer {
+  port?: number;
+
   constructor(private destinationContext: DestinationContext, private dbtRepository: DbtRepository) {
     console.log(this.destinationContext);
   }
 
-  start(): void {
-    // TODO: start only for BigQuery
+  // TODO: start only for BigQuery
+  async start(): Promise<void> {
     const app = e();
-    const port = 3000; // TODO: find free port
+    this.port = await getFreePort();
 
     app.get('/macro', async (req: e.Request<core.ParamsDictionary, unknown, unknown, QueryParams>, res: e.Response) => {
       const queryParams = req.query;
@@ -57,6 +60,6 @@ export class MacroCompilationServer {
       res.send('NOT FOUND!');
     });
 
-    app.listen(port, 'localhost');
+    app.listen(this.port, 'localhost');
   }
 }

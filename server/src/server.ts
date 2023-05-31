@@ -90,14 +90,15 @@ function createLspServerForProject(
   const fileChangeListener = new FileChangeListener(dbtProject, manifestParser, dbtRepository);
   const dbtProfileCreator = new DbtProfileCreator(dbtProject, featureFinder.getProfilesYmlPath());
   const statusSender = new DbtProjectStatusSender(notificationSender, dbtRepository, featureFinder, fileChangeListener, dbtProject.findProfileName());
-  const dbt = new DbtCli(featureFinder, connection, modelProgressReporter, notificationSender);
+  const destinationContext = new DestinationContext();
+  const macroCompilationServer = new MacroCompilationServer(destinationContext, dbtRepository);
+  const dbt = new DbtCli(featureFinder, connection, modelProgressReporter, notificationSender, macroCompilationServer);
   const dbtDocumentKindResolver = new DbtDocumentKindResolver(dbtRepository);
   const diagnosticGenerator = new DiagnosticGenerator(dbtRepository);
   const dbtDefinitionProvider = new DbtDefinitionProvider(dbtRepository);
   const sqlDefinitionProvider = new SqlDefinitionProvider(dbtRepository);
   const signatureHelpProvider = new SignatureHelpProvider();
   const hoverProvider = new HoverProvider();
-  const destinationContext = new DestinationContext();
   const openedDocuments = new Map<string, DbtTextDocument>();
 
   const projectChangeListener = new ProjectChangeListener(
@@ -111,7 +112,6 @@ function createLspServerForProject(
     fileChangeListener,
     projectProgressReporter,
   );
-  new MacroCompilationServer(destinationContext, dbtRepository).start();
 
   return new LspServer(
     connection,

@@ -4,6 +4,7 @@ import { URI } from 'vscode-uri';
 import { DbtRepository } from '../DbtRepository';
 import { getWordRangeAtPosition } from './TextUtils';
 import path = require('node:path');
+import findFreePortPmfy = require('find-free-port');
 
 export function rangesOverlap(range1: Range, range2: Range): boolean {
   return (
@@ -98,11 +99,6 @@ export function positionInRange(position: Position, range: Range): boolean {
   return comparePositions(range.start, position) <= 0 && comparePositions(range.end, position) >= 0;
 }
 
-// min and max included
-export function randomNumber(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
 /**
  *  @returns extracted dataset from full name
  */
@@ -159,4 +155,14 @@ export async function wait(ms: number): Promise<void> {
 export async function getAxios() {
   const axios = await import('axios');
   return (axios as unknown as { default: typeof axios.default }).default; // Workaround for webpack, probably related to https://github.com/axios/axios/issues/5292
+}
+
+export async function getFreePort(): Promise<number> {
+  const ports = await findFreePortPmfy(randomNumber(1024, 65_534));
+  return ports[0];
+}
+
+// min and max included
+function randomNumber(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1) + min);
 }

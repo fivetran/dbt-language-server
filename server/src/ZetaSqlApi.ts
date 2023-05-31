@@ -9,17 +9,13 @@ import { ParseResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zet
 import { promisify } from 'node:util';
 import { ProcessExecutor } from './ProcessExecutor';
 import { FeatureFinder } from './feature_finder/FeatureFinder';
-import { randomNumber } from './utils/Utils';
-import findFreePortPmfy = require('find-free-port');
+import { getFreePort } from './utils/Utils';
 import path = require('node:path');
 import slash = require('slash');
 
 export type SupportedDestinations = 'bigquery' | 'snowflake';
 
 export class ZetaSqlApi {
-  private static readonly MIN_PORT = 1024;
-  private static readonly MAX_PORT = 65_535;
-
   private zetaSql?: typeof import('@fivetrandevelopers/zetasql/lib/index') | typeof import('@fivetrandevelopers/zetasql-snowflake/lib/index');
   private languageOptions?: LanguageOptionsProto;
 
@@ -32,7 +28,7 @@ export class ZetaSqlApi {
 
     console.log(`ZetaSQL library loaded ${JSON.stringify([...this.zetaSql.TypeFactory.EXTERNAL_MODE_SIMPLE_TYPE_KIND_NAMES])}`);
 
-    const port = await findFreePortPmfy(randomNumber(ZetaSqlApi.MIN_PORT, ZetaSqlApi.MAX_PORT));
+    const port = await getFreePort();
     console.log(`Starting zetasql on port ${port}`);
     if (process.platform === 'win32') {
       const subfolder = this.destination === 'bigquery' ? 'zetasql' : 'snowflake';
