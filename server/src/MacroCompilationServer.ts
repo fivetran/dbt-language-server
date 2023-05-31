@@ -57,8 +57,6 @@ export class MacroCompilationServer {
       res.send('NOT FOUND!');
     });
 
-    app.listen(port, () => {
-      console.log(`Server running at http://localhost:${port}`);
-    });
+    app.listen(port, 'localhost');
   }
 }
