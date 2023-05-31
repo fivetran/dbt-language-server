@@ -33,6 +33,7 @@ import { ManifestParser } from './manifest/ManifestParser';
 import { DbtProjectStatusSender } from './status_bar/DbtProjectStatusSender';
 
 sourceMapSupport.install({ handleUncaughtExceptions: false });
+export const MAIN_FILE_PATH = __dirname;
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.

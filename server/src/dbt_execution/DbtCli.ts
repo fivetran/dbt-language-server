@@ -1,11 +1,11 @@
 import { Result, err, ok } from 'neverthrow';
-import { dirname } from 'node:path';
 import { _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { ModelProgressReporter } from '../ModelProgressReporter';
 import { NotificationSender } from '../NotificationSender';
 import { ProcessExecutor } from '../ProcessExecutor';
 import { FeatureFinder } from '../feature_finder/FeatureFinder';
+import { MAIN_FILE_PATH } from '../server';
 import { Dbt } from './Dbt';
 import { DbtCliCompileJob } from './DbtCliCompileJob';
 import { DbtCompileJob } from './DbtCompileJob';
@@ -14,9 +14,9 @@ import path = require('node:path');
 
 export class DbtCli extends Dbt {
   static readonly PROCESS_EXECUTOR = new ProcessExecutor();
-  static readonly DBT_CORE_SCRIPT = path.resolve(dirname(require.main?.filename ?? __dirname), '..', 'dbt_core.py');
 
   pythonPathForCli?: string; // TODO: make it required
+  dbtCoreScriptPath = path.resolve(MAIN_FILE_PATH, '..', 'dbt_core.py');
 
   constructor(
     private featureFinder: FeatureFinder,
@@ -36,11 +36,10 @@ export class DbtCli extends Dbt {
       parameters.push('-m', `+${slash(modelName)}`);
     }
     const log = (data: string): void => console.log(data);
-    console.log(require.main?.filename);
     if (!this.pythonPathForCli) {
       throw new Error('pythonPathForCli is not defined');
     }
-    return DbtCli.PROCESS_EXECUTOR.execProcess(`${this.pythonPathForCli} ${DbtCli.DBT_CORE_SCRIPT} ${parameters.join(' ')}`, log, log);
+    return DbtCli.PROCESS_EXECUTOR.execProcess(`${this.pythonPathForCli} ${this.dbtCoreScriptPath} ${parameters.join(' ')}`, log, log);
   }
 
   async prepareImplementation(dbtProfileType?: string): Promise<void> {
@@ -82,7 +81,7 @@ export class DbtCli extends Dbt {
     if (!this.pythonPathForCli) {
       throw new Error('pythonPathForCli is not defined');
     }
-    await DbtCli.PROCESS_EXECUTOR.execProcess(`${this.pythonPathForCli} ${DbtCli.DBT_CORE_SCRIPT} deps}`, onStdoutData, onStderrData);
+    await DbtCli.PROCESS_EXECUTOR.execProcess(`${this.pythonPathForCli} ${this.dbtCoreScriptPath} deps`, onStdoutData, onStderrData);
   }
 
   getError(): string {
