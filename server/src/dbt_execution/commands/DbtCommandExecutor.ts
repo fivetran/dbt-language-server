@@ -2,6 +2,7 @@ import { PromiseWithChild } from 'node:child_process';
 import { ProcessExecutor } from '../../ProcessExecutor';
 import { Command } from './Command';
 
+// TODO: delete this class
 export class DbtCommandExecutor {
   static readonly PROCESS_EXECUTOR = new ProcessExecutor();
 

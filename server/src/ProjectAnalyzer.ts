@@ -93,7 +93,8 @@ export class ProjectAnalyzer {
   }
 
   /** Analyzes a single model and all models that depend on it */
-  async analyzeModelTree(node: DagNode, sql: string): Promise<ModelsAnalyzeResult[]> {
+  async analyzeModelTree(node: DagNode, sql?: string): Promise<ModelsAnalyzeResult[]> {
+    // TODO check if we need sql?: string argument here
     const tableFetcher = new TableFetcher(this.destinationClient);
     return this.analyzeModelTreeInternal(node, tableFetcher, sql, new Map());
   }

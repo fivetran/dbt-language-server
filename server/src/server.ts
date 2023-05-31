@@ -11,6 +11,7 @@ import { DiagnosticGenerator } from './DiagnosticGenerator';
 import { FileChangeListener } from './FileChangeListener';
 import { HoverProvider } from './HoverProvider';
 import { Logger } from './Logger';
+import { MacroCompilationServer } from './MacroCompilationServer';
 import { ModelProgressReporter } from './ModelProgressReporter';
 import { NotificationSender } from './NotificationSender';
 import { ProjectChangeListener } from './ProjectChangeListener';
@@ -109,6 +110,7 @@ function createLspServerForProject(
     fileChangeListener,
     projectProgressReporter,
   );
+  new MacroCompilationServer(destinationContext, dbtRepository).start();
 
   return new LspServer(
     connection,

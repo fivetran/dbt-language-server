@@ -57,21 +57,21 @@ export class ManifestParser {
     const { nodes, macros, sources } = manifest;
 
     const models = this.parseModelDefinitions(nodes);
-    if (models.some(m => m.compiledCode)) {
-      const generatedAt = new Date(manifest.metadata.generated_at);
-      if (this.lastGeneratedAt && generatedAt <= this.lastGeneratedAt) {
-        return undefined;
-      }
-      this.lastGeneratedAt = generatedAt;
-
-      return {
-        macros: this.parseMacroDefinitions(macros),
-        sources: this.parseSourceDefinitions(sources),
-        dag: ManifestParser.DAG_GENERATOR.generateDbtGraph(models),
-      };
+    // if (models.some(m => m.compiledCode)) {
+    const generatedAt = new Date(manifest.metadata.generated_at);
+    if (this.lastGeneratedAt && generatedAt <= this.lastGeneratedAt) {
+      return undefined;
     }
+    this.lastGeneratedAt = generatedAt;
 
-    return undefined;
+    return {
+      macros: this.parseMacroDefinitions(macros),
+      sources: this.parseSourceDefinitions(sources),
+      dag: ManifestParser.DAG_GENERATOR.generateDbtGraph(models),
+    };
+    // }
+
+    // return undefined;
   }
 
   static getManifestPath(targetPath: string): string {

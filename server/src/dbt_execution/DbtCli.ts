@@ -1,4 +1,5 @@
 import { Result, err, ok } from 'neverthrow';
+import { dirname } from 'node:path';
 import { _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { ModelProgressReporter } from '../ModelProgressReporter';
@@ -10,10 +11,13 @@ import { DbtCompileJob } from './DbtCompileJob';
 import { DbtCommand } from './commands/DbtCommand';
 import { DbtCommandExecutor } from './commands/DbtCommandExecutor';
 import slash = require('slash');
+import path = require('node:path');
 
 export class DbtCli extends Dbt {
   static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
-  pythonPathForCli?: string;
+  static readonly DBT_CORE_SCRIPT = path.resolve(dirname(require.main?.filename ?? __dirname), '..', 'dbt_core.py');
+
+  pythonPathForCli?: string; // TODO: make it required
   dbtLess1point5 = false;
 
   constructor(
@@ -29,13 +33,12 @@ export class DbtCli extends Dbt {
     stdout: string;
     stderr: string;
   }> {
-    const noStats = this.dbtLess1point5 ? '--no-anonymous-usage-stats' : '--no-send-anonymous-usage-stats';
-    const parameters = [noStats, '--no-use-colors', 'compile'];
+    const parameters = ['compile'];
     if (modelName) {
       parameters.push('-m', `+${slash(modelName)}`);
     }
-    const compileCliCommand = new DbtCommand(this.featureFinder.profilesYmlDir, parameters, this.dbtLess1point5, this.pythonPathForCli);
-    return DbtCli.DBT_COMMAND_EXECUTOR.execute(compileCliCommand);
+    const log = (data: string): void => console.log(data);
+    return DbtCommandExecutor.PROCESS_EXECUTOR.execProcess(`${this.pythonPathForCli!} ${DbtCli.DBT_CORE_SCRIPT} ${parameters.join(' ')}`, log, log);
   }
 
   async prepareImplementation(dbtProfileType?: string): Promise<void> {
