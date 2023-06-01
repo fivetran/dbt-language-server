@@ -11,6 +11,10 @@ on:
         options:
           - 'dev'
           - 'prod'
+      DATASET:
+        description: 'BigQuery dataset name for "dev" profile'
+        required: true
+        default: 'z_dbt_wizard'
 
   schedule:
     # Runs “At minute 0 past every 6nd hour.” (see https://crontab.guru/#0_*/6_*_*_*)
@@ -115,6 +119,12 @@ jobs:
             target_value="${TARGET}"
           fi
 
+          if [[ -z "${DATASET}" ]]; then
+            dataset_value=z_dbt_wizard
+          else
+            dataset_value="${DATASET}"
+          fi
+
           cat <<EOT > ~/.dbt/profiles.yml
           fivetran:
             outputs:
@@ -123,7 +133,7 @@ jobs:
                 method: service-account
                 project: ${project_id}
                 keyfile: ${keyFilePath}
-                dataset: z_dbt_wizard
+                dataset: ${dataset_value}
                 threads: 4
               prod:
                 type: bigquery
@@ -149,6 +159,7 @@ jobs:
         env:
           BQ_ANALYTICS_ACCOUNT: ${{ secrets.BQ_ANALYTICS_ACCOUNT }}
           TARGET: ${{ inputs.TARGET }}
+          DATASET: ${{ inputs.DATASET }}
           PYTHON_INSTALL_LOC: '${{ steps.setup-python.outputs.python-path }}'
 
       - name: show prepared files
