@@ -243,7 +243,7 @@ export class ZetaSqlWrapper {
             numOccurrences: 1,
           })),
           returnType: {
-            type: udf.returnType,
+            type: udf.returnType ?? { typeKind: TypeKind.TYPE_STRING }, // It is required to have a return type but sometimes it is not specified in BigQuery
           },
         },
       ],
