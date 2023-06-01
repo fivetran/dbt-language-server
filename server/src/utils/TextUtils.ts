@@ -1,7 +1,7 @@
 import { Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
-export interface IWordAtPosition {
+interface IWordAtPosition {
   /**
    * The word.
    */
@@ -16,7 +16,7 @@ export interface IWordAtPosition {
   readonly endColumn: number;
 }
 
-export const USUAL_WORD_SEPARATORS = '`~!@#$%^&*()-=+[{]}\\|;:\'",.<>/?';
+const USUAL_WORD_SEPARATORS = '`~!@#$%^&*()-=+[{]}\\|;:\'",.<>/?';
 
 const DEFAULT_CONFIG = {
   maxLen: 1000,
@@ -39,7 +39,7 @@ export function getWordRangeAtPosition(position: Position, regexp: RegExp, lines
   return undefined;
 }
 
-export function validatePosition(position: Position, lines: string[]): Position {
+function validatePosition(position: Position, lines: string[]): Position {
   if (lines.length === 0) {
     return Position.create(0, 0);
   }
@@ -72,7 +72,7 @@ export function validatePosition(position: Position, lines: string[]): Position 
   return Position.create(line, character);
 }
 
-export function regExpLeadsToEndlessLoop(regexp: RegExp): boolean {
+function regExpLeadsToEndlessLoop(regexp: RegExp): boolean {
   // Exit early if it's one of these special cases which are meant to match
   // against an empty string
   if (regexp.source === '^' || regexp.source === '^$' || regexp.source === '$' || regexp.source === '^\\s*$') {
@@ -85,7 +85,7 @@ export function regExpLeadsToEndlessLoop(regexp: RegExp): boolean {
   return Boolean(match && regexp.lastIndex === 0);
 }
 
-export function getWordAtText(
+function getWordAtText(
   column: number,
   wordDefinition: RegExp,
   inputText: string,
@@ -167,7 +167,7 @@ function findRegexMatchEnclosingPosition(wordDefinition: RegExp, text: string, p
   return null;
 }
 
-export function ensureValidWordDefinition(wordDefinition?: RegExp | null): RegExp {
+function ensureValidWordDefinition(wordDefinition?: RegExp | null): RegExp {
   let result: RegExp = createWordRegExp();
 
   if (wordDefinition && wordDefinition instanceof RegExp) {
@@ -210,7 +210,7 @@ export function getLineByPosition(document: TextDocument, position: Position): s
   return document.getText(Range.create(startPosition, endPosition));
 }
 
-export interface SignatureInfo {
+interface SignatureInfo {
   range: Range;
   parameterIndex: number;
 }
@@ -262,8 +262,4 @@ export function getSignatureInfo(lineText: string, cursorPosition: Position): Si
   range.start.line = cursorPosition.line;
   range.end.line = cursorPosition.line;
   return { range, parameterIndex };
-}
-
-export function isQuote(text: string): boolean {
-  return text === "'" || text === '"';
 }

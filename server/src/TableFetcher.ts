@@ -4,7 +4,7 @@ import { DbtDestinationClient } from './DbtDestinationClient';
 import { TableDefinition } from './TableDefinition';
 import { createSimpleColumn, createType } from './utils/ZetaSqlUtils';
 
-export interface TableInformation {
+interface TableInformation {
   columns?: SimpleColumnProto[];
   timePartitioning: boolean;
   external: boolean; // BQ: https://cloud.google.com/bigquery/docs/external-tables

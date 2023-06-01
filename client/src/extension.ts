@@ -8,6 +8,7 @@ import { OutputChannelProvider } from './OutputChannelProvider';
 export const outputChannelProvider = new OutputChannelProvider();
 let extensionClient: ExtensionClient;
 
+// ts-unused-exports:disable-next-line
 export function activate(context: ExtensionContext): ExtensionApi {
   const manifestParsedEventEmitter = new EventEmitter();
 
@@ -17,7 +18,7 @@ export function activate(context: ExtensionContext): ExtensionApi {
   return { manifestParsedEventEmitter, statusHandler: extensionClient.statusHandler };
 }
 
-// This method is called when extension is deactivated
+// ts-unused-exports:disable-next-line
 export function deactivate(): Thenable<void> | undefined {
   log('Deactivating extension');
   return extensionClient.onDeactivate();

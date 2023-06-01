@@ -361,18 +361,4 @@ export class SqlCompletionProvider {
       command: Command.create('triggerParameterHints', 'editor.action.triggerParameterHints'),
     }));
   }
-
-  getAllColumnsFromAst(completionInfo: CompletionInfo): CompletionItem[] {
-    const result: CompletionItem[] = [];
-    for (const [tableName, columnNames] of completionInfo.resolvedTables) {
-      columnNames.forEach(c =>
-        result.push({
-          label: c,
-          kind: CompletionItemKind.Value,
-          detail: `Column in ${tableName}`,
-        }),
-      );
-    }
-    return result;
-  }
 }

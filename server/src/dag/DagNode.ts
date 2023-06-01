@@ -15,9 +15,9 @@ export class DagNode {
     return this.value;
   }
 
-  getChildren(): Set<DagNode> {
-    return this.children;
-  }
+  // getChildren(): Set<DagNode> {
+  //   return this.children;
+  // }
 
   findParent(condition: (parent: DagNode) => boolean): DagNode | undefined {
     return [...this.parents].find(p => condition(p));

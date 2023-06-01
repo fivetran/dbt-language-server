@@ -63,12 +63,6 @@ export class ZetaSqlApi {
     await this.zetaSql.ZetaSQLClient.getInstance().testConnection();
   }
 
-  async runServer(port: number): Promise<void> {
-    this.assertZetaSqlIsDefined(this.zetaSql);
-
-    await this.zetaSql.runServer(port);
-  }
-
   terminateServer(): void {
     this.assertZetaSqlIsDefined(this.zetaSql);
 

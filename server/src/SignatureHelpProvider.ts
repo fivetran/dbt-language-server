@@ -6,7 +6,7 @@ export interface FunctionInfo {
   signatures: SignatureInfo[];
 }
 
-export interface SignatureInfo {
+interface SignatureInfo {
   signature: string;
   description: string;
   parameters: string[];

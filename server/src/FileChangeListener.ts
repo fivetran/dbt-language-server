@@ -4,14 +4,9 @@ import { URI } from 'vscode-uri';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
 import { ManifestParser } from './manifest/ManifestParser';
-import { debounce } from './utils/Utils';
 
 export class FileChangeListener {
-  private static PACKAGES_UPDATE_DEBOUNCE_TIMEOUT = 1000;
-
-  private onDbtProjectYmlChangedEmitter = new Emitter<void>();
   private onDbtPackagesYmlChangedEmitter = new Emitter<FileChangeType>();
-  private onDbtPackagesChangedEmitter = new Emitter<void>();
   private onSqlModelChangedEmitter = new Emitter<FileEvent[]>();
 
   private dbtProjectYmlPath: string;
@@ -22,16 +17,8 @@ export class FileChangeListener {
     this.packagesYmlPath = path.resolve(this.dbtRepository.projectPath, DbtRepository.DBT_PACKAGES_FILE_NAME);
   }
 
-  get onDbtProjectYmlChanged(): Event<void> {
-    return this.onDbtProjectYmlChangedEmitter.event;
-  }
-
   get onDbtPackagesYmlChanged(): Event<FileChangeType> {
     return this.onDbtPackagesYmlChangedEmitter.event;
-  }
-
-  get onDbtPackagesChanged(): Event<void> {
-    return this.onDbtPackagesChangedEmitter.event;
   }
 
   get onSqlModelChanged(): Event<FileEvent[]> {
@@ -51,21 +38,16 @@ export class FileChangeListener {
 
     params.changes = params.changes.filter(change => !change.uri.endsWith('.sql'));
     const manifestJsonPath = path.resolve(this.dbtRepository.projectPath, this.dbtRepository.dbtTargetPath, DbtRepository.DBT_MANIFEST_FILE_NAME);
-    const packagesPath = path.resolve(this.dbtRepository.projectPath, this.dbtRepository.packagesInstallPath);
 
     // For some paths we want to do action only once even we got several changes here
     if (this.containsChangeWithPath(params.changes, manifestJsonPath)) {
       this.updateManifestNodes();
-    }
-    if (this.changeStartsWithPath(params.changes, packagesPath)) {
-      this.debouncedDbtPackagesChangedEmitter();
     }
 
     for (const change of params.changes) {
       const changePath = URI.parse(change.uri).fsPath;
       if (changePath === this.dbtProjectYmlPath) {
         this.dbtProject.setParsedProjectOutdated();
-        this.onDbtProjectYmlChangedEmitter.fire();
         this.updateDbtProjectConfig();
         this.updateManifestNodes();
       } else if (changePath === this.packagesYmlPath) {
@@ -107,8 +89,4 @@ export class FileChangeListener {
       console.log(`Failed to read ${ManifestParser.MANIFEST_FILE_NAME}`, e);
     }
   }
-
-  debouncedDbtPackagesChangedEmitter = debounce(() => {
-    this.onDbtPackagesChangedEmitter.fire();
-  }, FileChangeListener.PACKAGES_UPDATE_DEBOUNCE_TIMEOUT);
 }

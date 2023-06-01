@@ -30,7 +30,7 @@ export interface ProposedExtensionAPI {
  * Derived form of {@link Environment} where certain properties can no longer be `undefined`. Meant to represent an
  * {@link Environment} with complete information.
  */
-export type ResolvedEnvironment = Environment & {
+type ResolvedEnvironment = Environment & {
   /**
    * Carries complete details about python executable.
    */
@@ -62,7 +62,7 @@ export type ResolvedEnvironment = Environment & {
     | undefined;
 };
 
-export type Environment = EnvironmentPath & {
+type Environment = EnvironmentPath & {
   /**
    * Carries details about python executable.
    */
@@ -123,7 +123,7 @@ export type Environment = EnvironmentPath & {
   readonly tools: readonly EnvironmentTools[];
 };
 
-export type EnvironmentPath = {
+type EnvironmentPath = {
   /**
    * The ID of the environment.
    */
@@ -139,51 +139,51 @@ export type EnvironmentPath = {
 /**
  * Type of the environment. It can be {@link KnownEnvironmentTypes} or custom string which was contributed.
  */
-export type EnvironmentType = KnownEnvironmentTypes | string;
+type EnvironmentType = KnownEnvironmentTypes | string;
 
 /**
  * Environment types the Python extension is aware of. Note this list is expected to shrink once tools have their
  * own separate extensions, in which case they're expected to provide the type themselves.
  */
-export type KnownEnvironmentTypes = 'VirtualEnvironment' | 'Conda' | 'Unknown';
+type KnownEnvironmentTypes = 'VirtualEnvironment' | 'Conda' | 'Unknown';
 
 /**
  * Tool/plugin where the environment came from. It can be {@link KnownEnvironmentTools} or custom string which
  * was contributed.
  */
-export type EnvironmentTools = KnownEnvironmentTools | string;
+type EnvironmentTools = KnownEnvironmentTools | string;
 /**
  * Tools or plugins the Python extension currently has built-in support for. Note this list is expected to shrink
  * once tools have their own separate extensions.
  */
-export type KnownEnvironmentTools = 'Conda' | 'Pipenv' | 'Poetry' | 'VirtualEnv' | 'Venv' | 'VirtualEnvWrapper' | 'Pyenv' | 'Unknown';
+type KnownEnvironmentTools = 'Conda' | 'Pipenv' | 'Poetry' | 'VirtualEnv' | 'Venv' | 'VirtualEnvWrapper' | 'Pyenv' | 'Unknown';
 
 /**
  * Carries bitness for an environment.
  */
-export type Bitness = '64-bit' | '32-bit' | 'Unknown';
+type Bitness = '64-bit' | '32-bit' | 'Unknown';
 
 /**
  * The possible Python release levels.
  */
-export type PythonReleaseLevel = 'alpha' | 'beta' | 'candidate' | 'final';
+type PythonReleaseLevel = 'alpha' | 'beta' | 'candidate' | 'final';
 
 /**
  * Release information for a Python version.
  */
-export type PythonVersionRelease = {
+type PythonVersionRelease = {
   readonly level: PythonReleaseLevel;
   readonly serial: number;
 };
 
-export type VersionInfo = {
+type VersionInfo = {
   readonly major: number | undefined;
   readonly minor: number | undefined;
   readonly micro: number | undefined;
   readonly release: PythonVersionRelease | undefined;
 };
 
-export type ResolvedVersionInfo = {
+type ResolvedVersionInfo = {
   readonly major: number;
   readonly minor: number;
   readonly micro: number;

@@ -45,7 +45,7 @@ type LanguageStatusItemsType = {
 let pathEqual: (actual: string, expected: string) => boolean;
 
 export let doc: TextDocument;
-export let editor: TextEditor;
+let editor: TextEditor;
 
 type VoidFunc = () => void;
 
@@ -126,7 +126,7 @@ export async function waitDocumentModification(func: () => Promise<void>): Promi
   await waitWithTimeout(promise, 1000);
 }
 
-export async function waitPreviewModification(func?: () => Promise<void>): Promise<void> {
+async function waitPreviewModification(func?: () => Promise<void>): Promise<void> {
   const promise = createChangePromise('preview');
   if (func) {
     await func();
@@ -138,16 +138,12 @@ export function getMainEditorText(): string {
   return doc.getText();
 }
 
-export async function showPreview(): Promise<void> {
+async function showPreview(): Promise<void> {
   await commands.executeCommand('WizardForDbtCore(TM).showQueryPreview');
 }
 
 export async function closeAllEditors(): Promise<void> {
   await commands.executeCommand('workbench.action.closeAllEditors');
-}
-
-export async function compileDocument(): Promise<void> {
-  await commands.executeCommand('WizardForDbtCore(TM).compile');
 }
 
 export async function triggerAndAcceptFirstSuggestion(): Promise<void> {
@@ -175,7 +171,7 @@ export function sleep(ms: number): Promise<unknown> {
   return setTimeout(ms);
 }
 
-export function getDocPath(p: string): string {
+function getDocPath(p: string): string {
   return path.resolve(TEST_FIXTURE_PATH, 'models', p);
 }
 
@@ -284,21 +280,21 @@ export function installExtension(extensionId: string): void {
   console.log(`Installation extension ${extensionId} finished successfully.`);
 }
 
-export function getLatestDbtVersion(): string {
-  const commandResult = spawnSync('dbt', ['--version'], {
-    encoding: 'utf8',
-  });
+// export function getLatestDbtVersion(): string {
+//   const commandResult = spawnSync('dbt', ['--version'], {
+//     encoding: 'utf8',
+//   });
 
-  const match = /latest.*:\s+(\d+\.\d+\.\d+)/.exec(commandResult.stderr);
-  if (!match) {
-    throw new Error('Failed to find latest dbt version');
-  }
+//   const match = /latest.*:\s+(\d+\.\d+\.\d+)/.exec(commandResult.stderr);
+//   if (!match) {
+//     throw new Error('Failed to find latest dbt version');
+//   }
 
-  const [, latestDbtVersion] = match;
-  console.log(`Latest dbt version ${latestDbtVersion}`);
+//   const [, latestDbtVersion] = match;
+//   console.log(`Latest dbt version ${latestDbtVersion}`);
 
-  return match[1];
-}
+//   return match[1];
+// }
 
 export function disableExtension(extensionId: string): SpawnSyncReturns<string> {
   console.log(`Disabling extension ${extensionId}`);
@@ -358,9 +354,9 @@ export async function executeSignatureHelpProvider(docUri: Uri, position: Positi
   return commands.executeCommand<SignatureHelp>('vscode.executeSignatureHelpProvider', docUri, position, triggerChar);
 }
 
-export async function executeInstallDbtCore(): Promise<void> {
-  return commands.executeCommand('WizardForDbtCore(TM).installDbtCore', undefined, true);
-}
+// export async function executeInstallDbtCore(): Promise<void> {
+//   return commands.executeCommand('WizardForDbtCore(TM).installDbtCore', undefined, true);
+// }
 
 export async function executeCreateDbtProject(fsPath: string): Promise<void> {
   return commands.executeCommand('WizardForDbtCore(TM).createDbtProject', fsPath, true);
@@ -432,13 +428,13 @@ export function getTextInQuotesIfNeeded(text: string, withQuotes: boolean): stri
   return withQuotes ? `'${text}'` : text;
 }
 
-export function ensureDirectoryExists(dir: string): void {
+function ensureDirectoryExists(dir: string): void {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir);
   }
 }
 
-export function waitForManifestParsed(projectFolderName: string): Promise<void> {
+function waitForManifestParsed(projectFolderName: string): Promise<void> {
   console.log(`waitForManifestParsed '${normalizePath(projectFolderName)}'`);
   return getLanguageServerReadyDeferred(projectFolderName).promise;
 }

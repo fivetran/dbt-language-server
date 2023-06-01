@@ -165,6 +165,7 @@
     "lint": "eslint --cache . --ext .ts",
     "lint-config": "eslint --print-config .eslintrc.json",
     "lint-fix": "eslint . --ext .ts --fix",
+    "ts-unused-exports": "ts-unused-exports tsconfig.json && ts-unused-exports server/tsconfig.json && ts-unused-exports client/tsconfig.json && ts-unused-exports e2e/tsconfig.json && ts-unused-exports markdown_parser/tsconfig.json",
     "test": "mocha",
     "clean": "rm -rf common/out client/out server/out e2e/out",
     "clean-node-modules": "rm -rf node_modules && rm -rf client/node_modules && rm -rf server/node_modules",
@@ -197,6 +198,7 @@
     "ts-loader": "^9.4.3",
     "ts-mockito": "^2.6.1",
     "ts-node": "^10.9.1",
+    "ts-unused-exports": "^9.0.4",
     "typescript": "^5.0.4",
     "webpack": "^5.83.1",
     "webpack-cli": "^5.1.1"

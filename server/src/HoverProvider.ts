@@ -3,13 +3,10 @@ import { Type } from '@fivetrandevelopers/zetasql/lib/Type';
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { Hover, MarkupKind } from 'vscode-languageserver';
 import { HelpProviderWords } from './HelpProviderWords';
-import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { ZetaSqlAst } from './ZetaSqlAst';
 
 export class HoverProvider {
   static ZETA_SQL_AST = new ZetaSqlAst();
-
-  signatureHelpProvider = new SignatureHelpProvider();
 
   hoverOnText(text: string, ast: AnalyzeResponse__Output | undefined): Hover | null {
     const index = HelpProviderWords.findIndex(w => w.name === text.toLocaleLowerCase());

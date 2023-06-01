@@ -32,9 +32,9 @@ export type IStandardSqlDataType = {
   typeKind?: BigQueryTypeKind;
 };
 
-export type IStandardSqlStructType = { fields?: Array<IStandardSqlField> };
+type IStandardSqlStructType = { fields?: Array<IStandardSqlField> };
 
-export type IStandardSqlField = {
+type IStandardSqlField = {
   /**
    * Optional. The name of this field. Can be absent for struct fields.
    */
