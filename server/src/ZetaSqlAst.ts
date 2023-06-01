@@ -445,7 +445,7 @@ const NODE = {
   resolvedProjectScanNode: 'resolvedProjectScanNode',
 };
 
-export interface HoverInfo {
+interface HoverInfo {
   outputColumn?: ResolvedOutputColumnProto__Output;
   withQueryName?: string;
   tableName?: string;
@@ -460,7 +460,7 @@ export interface CompletionInfo {
   withSubqueries: Map<string, WithSubqueryInfo>;
 }
 
-export interface WithSubqueryInfo {
+interface WithSubqueryInfo {
   columns: ResolvedColumn[];
   parseLocationRange?: Location;
 }
@@ -472,7 +472,7 @@ export interface ActiveTableInfo {
   tableNameRange?: Location;
 }
 
-export interface ResolvedColumn {
+interface ResolvedColumn {
   name: string;
   type?: string;
   fromTable: string;

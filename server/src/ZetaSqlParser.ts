@@ -9,12 +9,12 @@ import { ZetaSqlApi } from './ZetaSqlApi';
 import { arraysAreEqual } from './utils/Utils';
 import { traverse } from './utils/ZetaSqlUtils';
 
-export interface KnownSelect {
+interface KnownSelect {
   parseLocationRange: ParseLocationRangeProto__Output;
   columns: KnownColumn[];
   tableAliases: Map<string, string>;
 }
-export interface KnownColumn {
+interface KnownColumn {
   namePath: string[];
   parseLocationRange: ParseLocationRangeProto__Output;
 }

@@ -12,7 +12,7 @@ export interface DbtProfileInfo {
   method?: string;
 }
 
-export interface DbtProfileError extends DbtProfileInfo {
+interface DbtProfileError extends DbtProfileInfo {
   message: string;
 }
 

@@ -3,7 +3,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { ResolvedTable } from './ZetaSqlAst';
 import { Dag } from './dag/Dag';
 
-export interface Change {
+interface Change {
   range: Range;
   newText: string;
 }

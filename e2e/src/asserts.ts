@@ -18,7 +18,7 @@ export async function assertDiagnostics(uri: Uri, diagnostics: Diagnostic[]): Pr
   }
 }
 
-export function assertRange(actualRange: Range, expectedRange: Range): void {
+function assertRange(actualRange: Range, expectedRange: Range): void {
   assertThat(actualRange.start.line, expectedRange.start.line);
   assertThat(actualRange.start.character, expectedRange.start.character);
   assertThat(actualRange.end.line, expectedRange.end.line);

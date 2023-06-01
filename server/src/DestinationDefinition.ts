@@ -38,22 +38,4 @@ export class DestinationDefinition {
     }
     return foundTables;
   }
-
-  async getColumns(datasetName: string, tableName: string, projectName?: string): Promise<ColumnDefinition[]> {
-    const tables = await this.getTables(datasetName, projectName);
-    const table = tables.find(t => t.id === tableName);
-    if (!table) {
-      return [];
-    }
-
-    let foundColumns = this.columns.get(datasetName);
-    if (!foundColumns) {
-      const metadata = await this.client.getTableMetadata(datasetName, tableName);
-      foundColumns = metadata?.schema.fields;
-      if (foundColumns) {
-        this.columns.set(datasetName, foundColumns);
-      }
-    }
-    return foundColumns ?? [];
-  }
 }
