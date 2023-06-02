@@ -17,7 +17,6 @@ import path = require('node:path');
 export class DbtCli extends Dbt {
   static readonly PROCESS_EXECUTOR = new ProcessExecutor();
 
-  pythonPathForCli?: string; // TODO: make it required
   dbtCoreScriptPath = path.resolve(MAIN_FILE_PATH, '..', 'dbt_core.py');
 
   constructor(
@@ -46,13 +45,11 @@ export class DbtCli extends Dbt {
   }
 
   async prepareImplementation(dbtProfileType?: string): Promise<void> {
-    const cliInfo = await this.featureFinder.findInformationForCli();
-    this.pythonPathForCli = cliInfo.pythonPath;
-
+    await this.featureFinder.availableCommandsPromise;
     if (!this.featureFinder.versionInfo?.installedVersion || !this.featureFinder.versionInfo.installedAdapters.some(a => a.name === dbtProfileType)) {
       try {
-        if (dbtProfileType && this.featureFinder.pythonInfo) {
-          await this.suggestToInstallDbt(this.featureFinder.pythonInfo.path, dbtProfileType);
+        if (dbtProfileType) {
+          await this.suggestToInstallDbt(this.featureFinder.getPythonPath(), dbtProfileType);
         } else {
           this.onDbtFindFailed();
         }
@@ -96,11 +93,11 @@ export class DbtCli extends Dbt {
     stdout: string;
     stderr: string;
   }> {
-    if (!this.pythonPathForCli || !this.macroCompilationServer.port) {
+    if (!this.macroCompilationServer.port) {
       throw new Error('Incorrect state');
     }
     return DbtCli.PROCESS_EXECUTOR.execProcess(
-      `${this.pythonPathForCli} ${this.dbtCoreScriptPath} ${this.macroCompilationServer.port} ${params.join(' ')}`,
+      `${this.featureFinder.getPythonPath()} ${this.dbtCoreScriptPath} ${this.macroCompilationServer.port} ${params.join(' ')}`,
       onStdoutData,
       onStderrData,
     );

@@ -14,11 +14,6 @@ interface HubJson {
   [key: string]: string[];
 }
 
-interface InformationForCli {
-  pythonPath: string;
-  dbtLess1point5: boolean;
-}
-
 export class FeatureFinder extends FeatureFinderBase {
   private static readonly WSL_UBUNTU_DEFAULT_NAME = 'Ubuntu-20.04';
   private static readonly WSL_UBUNTU_ENV_NAME = 'WIZARD_FOR_DBT_WSL_UBUNTU_NAME';
@@ -143,33 +138,13 @@ export class FeatureFinder extends FeatureFinderBase {
     const [dbtPythonVersionOld, dbtPythonVersion] = settledResults.map(v => (v.status === 'fulfilled' ? v.value : undefined));
 
     console.log(this.getLogString('dbtPythonVersionOld', dbtPythonVersionOld) + this.getLogString('dbtPythonVersion', dbtPythonVersion));
-
-    return [dbtPythonVersionOld, dbtPythonVersion];
-  }
-
-  async findInformationForCli(): Promise<InformationForCli> {
-    const [dbtPythonVersionOld, dbtPythonVersion] = await this.availableCommandsPromise;
-
     if (dbtPythonVersion?.installedVersion) {
       this.versionInfo = dbtPythonVersion;
-      return {
-        pythonPath: this.getPythonPath(),
-        dbtLess1point5: false,
-      };
-    }
-
-    if (dbtPythonVersionOld?.installedVersion) {
+    } else if (dbtPythonVersionOld?.installedVersion) {
       this.versionInfo = dbtPythonVersionOld;
-      return {
-        pythonPath: this.getPythonPath(),
-        dbtLess1point5: true,
-      };
     }
 
-    return {
-      pythonPath: this.getPythonPath(),
-      dbtLess1point5: false,
-    };
+    return [dbtPythonVersionOld, dbtPythonVersion];
   }
 
   private async findDbtGlobalInfo(): Promise<DbtVersionInfo | undefined> {
