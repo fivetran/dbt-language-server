@@ -11,7 +11,7 @@ export interface PythonInfo {
 export type LspModeType = 'dbtProject' | 'noProject';
 
 export interface CustomInitParams {
-  pythonInfo?: PythonInfo;
+  pythonInfo: PythonInfo;
   lspMode: LspModeType;
   enableEntireProjectAnalysis: boolean;
   disableLogger?: boolean;

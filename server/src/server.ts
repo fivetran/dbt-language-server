@@ -39,12 +39,10 @@ export const MAIN_FILE_PATH = __dirname;
 // Also include all preview / proposed LSP features.
 const connection = createConnection(ProposedFeatures.all);
 const customInitParamsSchema = z.object({
-  pythonInfo: z.optional(
-    z.object({
-      path: z.string(),
-      version: z.optional(z.array(z.string())),
-    }),
-  ),
+  pythonInfo: z.object({
+    path: z.string(),
+    version: z.optional(z.array(z.string())),
+  }),
   lspMode: z.union([z.literal('dbtProject'), z.literal('noProject')]),
   enableEntireProjectAnalysis: z.boolean(),
   disableLogger: z.optional(z.boolean()),

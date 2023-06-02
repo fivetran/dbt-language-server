@@ -5,7 +5,7 @@ import { FeatureFinderBase } from './FeatureFinderBase';
 export class NoProjectFeatureFinder extends FeatureFinderBase {
   private availableCommandsPromise: Promise<[DbtVersionInfo | undefined, DbtVersionInfo | undefined]>;
 
-  constructor(pythonInfo: PythonInfo | undefined, dbtCommandExecutor: DbtCommandExecutor) {
+  constructor(pythonInfo: PythonInfo, dbtCommandExecutor: DbtCommandExecutor) {
     super(pythonInfo, dbtCommandExecutor, undefined);
     this.availableCommandsPromise = this.getAvailableDbt();
   }

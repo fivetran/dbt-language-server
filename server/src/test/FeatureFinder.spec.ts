@@ -71,7 +71,6 @@ describe('FeatureFinder', () => {
       { name: 'spark', version: { major: 1, minor: 1, patch: 0 } },
     ]);
     assertThat(result[1], not(defined()));
-    assertThat(result[2], not(defined()));
   });
 
   it('getAvailableDbt should return all information about installed dbt and adapters for legacy dbt version', async () => {
@@ -89,7 +88,6 @@ describe('FeatureFinder', () => {
       { name: 'postgres', version: { major: 0, minor: 20, patch: 1 } },
     ]);
     assertThat(result[1], not(defined()));
-    assertThat(result[2], not(defined()));
   });
 
   it('getAvailableDbt should return all information about all available commands', async () => {
@@ -102,7 +100,7 @@ describe('FeatureFinder', () => {
     const result = await createFeatureFinder(mockCommandExecutor).getAvailableDbt();
 
     // assert
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 2; i++) {
       assertVersion(result[i], { major: 1, minor: 1, patch: 1 }, { major: 1, minor: 1, patch: 1 }, [
         { name: 'databricks', version: { major: 1, minor: 1, patch: 1 } },
         { name: 'bigquery', version: { major: 1, minor: 1, patch: 1 } },

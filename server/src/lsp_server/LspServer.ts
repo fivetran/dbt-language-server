@@ -316,8 +316,8 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   logStartupInfo(contextInfo: DbtProfileInfo, initTime: number, ubuntuInWslWorks: boolean): void {
     this.notificationSender.sendTelemetry('log', {
       dbtVersion: getStringVersion(this.featureFinder.versionInfo?.installedVersion),
-      pythonPath: this.featureFinder.pythonInfo?.path ?? 'undefined',
-      pythonVersion: this.featureFinder.pythonInfo?.version?.join('.') ?? 'undefined',
+      pythonPath: this.featureFinder.pythonInfo.path,
+      pythonVersion: this.featureFinder.pythonInfo.version?.join('.') ?? 'undefined',
       initTime: initTime.toString(),
       type: contextInfo.type ?? 'unknown type',
       method: contextInfo.method ?? 'unknown method',

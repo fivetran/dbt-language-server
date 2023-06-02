@@ -57,6 +57,9 @@ describe('lsp tests', () => {
     connection.listen();
 
     const initializationOptions: CustomInitParams = {
+      pythonInfo: {
+        path: 'python',
+      },
       lspMode: 'dbtProject',
       enableEntireProjectAnalysis: true,
       disableLogger: true,

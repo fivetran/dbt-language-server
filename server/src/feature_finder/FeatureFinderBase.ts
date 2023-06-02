@@ -20,17 +20,17 @@ export class FeatureFinderBase {
   versionInfo?: DbtVersionInfo;
   profilesYmlDir: string;
 
-  constructor(public pythonInfo: PythonInfo | undefined, private dbtCommandExecutor: DbtCommandExecutor, profilesDir: string | undefined) {
+  constructor(public pythonInfo: PythonInfo, private dbtCommandExecutor: DbtCommandExecutor, profilesDir: string | undefined) {
     this.profilesYmlDir = slash(path.resolve(FeatureFinderBase.getProfilesYmlDir(profilesDir)));
-    this.dbtCommandFactory = new DbtCommandFactory(pythonInfo?.path, this.profilesYmlDir);
+    this.dbtCommandFactory = new DbtCommandFactory(pythonInfo.path, this.profilesYmlDir);
   }
 
   getProfilesYmlPath(): string {
     return path.join(this.profilesYmlDir, FeatureFinderBase.PROFILES_YML);
   }
 
-  getPythonPath(): string | undefined {
-    return this.pythonInfo?.path;
+  getPythonPath(): string {
+    return this.pythonInfo.path;
   }
 
   async getDbtCoreInstallVersions(): Promise<string[]> {

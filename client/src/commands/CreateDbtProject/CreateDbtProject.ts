@@ -98,9 +98,6 @@ export class CreateDbtProject implements Command {
 
   async getDbtInitCommand(): Promise<string | undefined> {
     const pythonInfo = await new PythonExtension().getPythonInfo();
-    if (!pythonInfo) {
-      return undefined;
-    }
 
     const promisifiedExec = promisify(exec);
     const pythonOldCommand = `${pythonInfo.path} -c "import ${CreateDbtProject.PYTHON_CODE_OLD}(['--version'])"`;

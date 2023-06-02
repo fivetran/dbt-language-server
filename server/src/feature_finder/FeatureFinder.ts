@@ -15,7 +15,7 @@ interface HubJson {
 }
 
 interface InformationForCli {
-  pythonPath: string | undefined;
+  pythonPath: string;
   dbtLess1point5: boolean;
 }
 
@@ -33,12 +33,12 @@ export class FeatureFinder extends FeatureFinderBase {
     return FeatureFinder.WSL_UBUNTU_DEFAULT_NAME;
   }
 
-  availableCommandsPromise: Promise<[DbtVersionInfo | undefined, DbtVersionInfo | undefined, DbtVersionInfo | undefined]>;
+  availableCommandsPromise: Promise<[DbtVersionInfo | undefined, DbtVersionInfo | undefined]>;
   packagesYmlExistsPromise: Promise<boolean>;
   packageInfosPromise = new Lazy(() => this.getListOfDbtPackages());
   ubuntuInWslWorks: Promise<boolean>;
 
-  constructor(pythonInfo: PythonInfo | undefined, dbtCommandExecutor: DbtCommandExecutor, profilesDir: string | undefined) {
+  constructor(pythonInfo: PythonInfo, dbtCommandExecutor: DbtCommandExecutor, profilesDir: string | undefined) {
     super(pythonInfo, dbtCommandExecutor, profilesDir);
 
     this.availableCommandsPromise = this.getAvailableDbt();
@@ -128,33 +128,27 @@ export class FeatureFinder extends FeatureFinderBase {
   }
 
   async getGlobalProjectPath(): Promise<string | undefined> {
-    const python = this.pythonInfo?.path;
-    if (python) {
-      const result = await FeatureFinder.PROCESS_EXECUTOR.execProcess(
-        `${python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"`,
-      );
-      if (result.stdout) {
-        return path.join(result.stdout.trim(), 'dbt', 'include', 'global_project');
-      }
+    const python = this.pythonInfo.path;
+    const result = await FeatureFinder.PROCESS_EXECUTOR.execProcess(
+      `${python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"`,
+    );
+    if (result.stdout) {
+      return path.join(result.stdout.trim(), 'dbt', 'include', 'global_project');
     }
     return undefined;
   }
 
-  async getAvailableDbt(): Promise<[DbtVersionInfo | undefined, DbtVersionInfo | undefined, DbtVersionInfo | undefined]> {
+  async getAvailableDbt(): Promise<[DbtVersionInfo | undefined, DbtVersionInfo | undefined]> {
     const settledResults = await Promise.allSettled([this.findDbtPythonInfoOld(), this.findDbtPythonInfo(), this.findDbtGlobalInfo()]);
-    const [dbtPythonVersionOld, dbtPythonVersion, dbtGlobalVersion] = settledResults.map(v => (v.status === 'fulfilled' ? v.value : undefined));
+    const [dbtPythonVersionOld, dbtPythonVersion] = settledResults.map(v => (v.status === 'fulfilled' ? v.value : undefined));
 
-    console.log(
-      this.getLogString('dbtPythonVersionOld', dbtPythonVersionOld) +
-        this.getLogString('dbtPythonVersion', dbtPythonVersion) +
-        this.getLogString('dbtGlobalVersion', dbtGlobalVersion),
-    );
+    console.log(this.getLogString('dbtPythonVersionOld', dbtPythonVersionOld) + this.getLogString('dbtPythonVersion', dbtPythonVersion));
 
-    return [dbtPythonVersionOld, dbtPythonVersion, dbtGlobalVersion];
+    return [dbtPythonVersionOld, dbtPythonVersion];
   }
 
   async findInformationForCli(): Promise<InformationForCli> {
-    const [dbtPythonVersionOld, dbtPythonVersion, dbtGlobalVersion] = await this.availableCommandsPromise;
+    const [dbtPythonVersionOld, dbtPythonVersion] = await this.availableCommandsPromise;
 
     if (dbtPythonVersion?.installedVersion) {
       this.versionInfo = dbtPythonVersion;
@@ -172,15 +166,9 @@ export class FeatureFinder extends FeatureFinderBase {
       };
     }
 
-    if (dbtGlobalVersion?.installedVersion) {
-      this.versionInfo = dbtGlobalVersion;
-    }
-
     return {
-      pythonPath: undefined,
-      dbtLess1point5: Boolean(
-        this.versionInfo?.installedVersion && this.versionInfo.installedVersion.major <= 1 && this.versionInfo.installedVersion.minor < 5,
-      ),
+      pythonPath: this.getPythonPath(),
+      dbtLess1point5: false,
     };
   }
 
