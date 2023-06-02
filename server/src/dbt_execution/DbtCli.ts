@@ -1,4 +1,5 @@
 import { Result, err, ok } from 'neverthrow';
+import { PromiseWithChild } from 'node:child_process';
 import { _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { MacroCompilationServer } from '../MacroCompilationServer';
@@ -32,7 +33,7 @@ export class DbtCli extends Dbt {
       .catch(e => console.log(`Failed to start macroCompilationServer: ${e instanceof Error ? e.message : String(e)}`));
   }
 
-  async compile(modelName?: string): Promise<{
+  compile(modelName?: string): PromiseWithChild<{
     stdout: string;
     stderr: string;
   }> {
@@ -91,7 +92,7 @@ export class DbtCli extends Dbt {
     params: string[],
     onStdoutData?: (data: string) => void,
     onStderrData?: (data: string) => void,
-  ): Promise<{
+  ): PromiseWithChild<{
     stdout: string;
     stderr: string;
   }> {

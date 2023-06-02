@@ -61,5 +61,6 @@ export class MacroCompilationServer {
     });
 
     app.listen(this.port, 'localhost');
+    console.log(`Macro compilation server started on port ${this.port}`);
   }
 }

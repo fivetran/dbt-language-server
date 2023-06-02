@@ -57,9 +57,9 @@ old_register_adapter = FACTORY.register_adapter.__get__(FACTORY)
 
 def new_register_adapter(self, config: AdapterRequiredConfig) -> None:
     old_register_adapter(config)
-    type = config.credentials.type
-    if type == "bigquery":
-        adapter = self.adapters[type]
+    credentials_type = config.credentials.type
+    if credentials_type == "bigquery":
+        adapter = self.adapters[credentials_type]
         adapter.get_columns_in_relation = new_get_columns_in_relation.__get__(adapter)
 
 FACTORY.register_adapter = new_register_adapter.__get__(FACTORY)
@@ -76,14 +76,14 @@ try:
 except:
     dbt1_5 = False
 
-noStats = "--no-send-anonymous-usage-stats" if dbt1_5 else "--no-anonymous-usage-stats"
-cli_args = [noStats, '--no-use-colors'] + sys.argv[2:]
-
+no_stats = "--no-send-anonymous-usage-stats" if dbt1_5 else "--no-anonymous-usage-stats"
+cli_args = [no_stats, "--no-use-colors"] + sys.argv[2:]
 print(cli_args)
 
 if dbt1_5: 
-    dbt = dbtRunner()
-    dbt.invoke(cli_args)
+    dbt_runner = dbtRunner()
+    result = dbt_runner.invoke(cli_args)
+    sys.exit(0 if result.success else 1)
 else:
     import dbt.main
     dbt.main.main(cli_args)
