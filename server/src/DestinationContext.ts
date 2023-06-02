@@ -82,6 +82,13 @@ export class DestinationContext {
     );
   }
 
+  async analyzeModel(node: DagNode): Promise<ModelsAnalyzeResult[]> {
+    if (!this.projectAnalyzer) {
+      throw new Error(DestinationContext.NOT_INITIALIZED_ERROR);
+    }
+    return this.projectAnalyzer.analyzeModel(node);
+  }
+
   async analyzeModelTree(node: DagNode, sql?: string): Promise<ModelsAnalyzeResult[]> {
     if (!this.projectAnalyzer) {
       throw new Error(DestinationContext.NOT_INITIALIZED_ERROR);
@@ -101,6 +108,13 @@ export class DestinationContext {
       throw new Error(DestinationContext.NOT_INITIALIZED_ERROR);
     }
     return this.projectAnalyzer.analyzeProject(analyzeTracker);
+  }
+
+  resetTables(): void {
+    if (!this.projectAnalyzer) {
+      throw new Error(DestinationContext.NOT_INITIALIZED_ERROR);
+    }
+    this.projectAnalyzer.resetTables();
   }
 
   dispose(): void {

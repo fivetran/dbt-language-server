@@ -60,6 +60,8 @@ export class ProjectChangeListener {
         this.notificationSender.clearAllDiagnostics();
       }
 
+      // We should reset catalog before compiling the project, because the catalog will start to re-fill during compilation
+      this.destinationContext.resetTables();
       const compileResult = await this.dbt.compileProject(this.dbtRepository);
       if (compileResult.isOk()) {
         this.updateManifest();

@@ -31,7 +31,7 @@ export class MacroCompilationServer {
           n => n.getValue().database === queryParams.db && n.getValue().schema === queryParams.schema && n.getValue().name === queryParams.table,
         );
         if (node) {
-          const results = await this.destinationContext.analyzeModelTree(node);
+          const results = await this.destinationContext.analyzeModel(node);
           const result = results.find(r => r.modelUniqueId === node.getValue().uniqueId);
           console.log(`get_columns_in_relation REF: ${queryParams.db}.${queryParams.schema}.${queryParams.table}`);
           if (result?.analyzeResult.ast.isOk()) {
