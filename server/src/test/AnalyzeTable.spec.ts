@@ -27,7 +27,7 @@ describe('ProjectAnalyzer analyzeModelsTree', () => {
     database: 'db',
     schema: 'schema',
     rawCode: 'raw_sql',
-    compiledCode: 'compiled_sql',
+    compiledCode: COMPILED_SQL,
     dependsOn: {
       nodes: [],
     },
@@ -51,6 +51,7 @@ describe('ProjectAnalyzer analyzeModelsTree', () => {
 
     when(mockDbtRepository.dag).thenReturn(new Dag([DAG_NODE]));
     when(mockDbtRepository.getNodeFullPath(objectContaining({ originalFilePath: ORIGINAL_FILE_PATH }))).thenReturn(FILE_PATH);
+    when(mockDbtRepository.getModelCompiledCode(DAG_NODE.getValue())).thenReturn(COMPILED_SQL);
 
     when(mockSqlHeaderAnalyzer.getAllFunctionDeclarations(anything(), anything(), anything())).thenResolve([]);
 
@@ -93,7 +94,7 @@ describe('ProjectAnalyzer analyzeModelsTree', () => {
 
   it('analyzeModelsTree should register tables and udfs before calling analyze', async () => {
     // act
-    await projectAnalyzer.analyzeModelTree(DAG_NODE, COMPILED_SQL);
+    await projectAnalyzer.analyzeModelTree(DAG_NODE);
 
     // assert
     verify(mockZetaSqlWrapper.registerTable(objectContaining({ namePath: INTERNAL_TABLE_NAME_PATH }))).calledBefore(

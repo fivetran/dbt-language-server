@@ -82,11 +82,11 @@ export class DestinationContext {
     );
   }
 
-  async analyzeModelTree(node: DagNode, sql?: string): Promise<ModelsAnalyzeResult[]> {
+  async analyzeModelTree(node: DagNode): Promise<ModelsAnalyzeResult[]> {
     if (!this.projectAnalyzer) {
       throw new Error(DestinationContext.NOT_INITIALIZED_ERROR);
     }
-    return this.projectAnalyzer.analyzeModelTree(node, sql);
+    return this.projectAnalyzer.analyzeModelTree(node);
   }
 
   async analyzeSql(sql: string): Promise<AnalyzeResult> {
