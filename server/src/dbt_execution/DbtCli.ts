@@ -97,7 +97,9 @@ export class DbtCli extends Dbt {
       throw new Error('Incorrect state');
     }
     return DbtCli.PROCESS_EXECUTOR.execProcess(
-      `${this.featureFinder.getPythonPath()} ${this.dbtCoreScriptPath} ${this.macroCompilationServer.port} ${params.join(' ')}`,
+      `${this.featureFinder.getPythonPath()} ${this.dbtCoreScriptPath} ${this.macroCompilationServer.port} ${
+        this.featureFinder.profilesYmlDir
+      } ${params.join(' ')}`,
       onStdoutData,
       onStderrData,
     );

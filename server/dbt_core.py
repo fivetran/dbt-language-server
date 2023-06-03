@@ -66,9 +66,9 @@ FACTORY.register_adapter = new_register_adapter.__get__(FACTORY)
 
 
 # Expected arguments for this script: 
-# ['3000', 'compile', '-m', 'path/to/model.sql'] to compile model
-# ['3000', 'compile'] to compile all models
-# ['3000', 'deps'] to install dependencies
+# ['3000', '/home/user/.dbt', 'compile', '-m', 'path/to/model.sql'] to compile model
+# ['3000', '/home/user/.dbt', 'compile'] to compile all models
+# ['3000', '/home/user/.dbt', 'deps'] to install dependencies
 
 dbt1_5 = True
 try: 
@@ -76,8 +76,9 @@ try:
 except:
     dbt1_5 = False
 
+profiles_dir = sys.argv[2]
 no_stats = "--no-send-anonymous-usage-stats" if dbt1_5 else "--no-anonymous-usage-stats"
-cli_args = [no_stats, "--no-use-colors"] + sys.argv[2:]
+cli_args = [no_stats, "--no-use-colors"] + sys.argv[3:] + ["--profiles-dir", profiles_dir]
 print(cli_args)
 
 if dbt1_5: 
