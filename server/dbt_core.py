@@ -76,15 +76,18 @@ try:
 except:
     dbt1_5 = False
 
+def dbt_command(cli_args) -> None:
+    if dbt1_5: 
+        dbt_runner = dbtRunner()
+        result = dbt_runner.invoke(cli_args)
+        sys.exit(0 if result.success else 1)
+    else:
+        import dbt.main
+        dbt.main.main(cli_args)
+
 profiles_dir = sys.argv[2]
 no_stats = "--no-send-anonymous-usage-stats" if dbt1_5 else "--no-anonymous-usage-stats"
 cli_args = [no_stats, "--no-use-colors"] + sys.argv[3:] + ["--profiles-dir", profiles_dir]
 print(cli_args)
 
-if dbt1_5: 
-    dbt_runner = dbtRunner()
-    result = dbt_runner.invoke(cli_args)
-    sys.exit(0 if result.success else 1)
-else:
-    import dbt.main
-    dbt.main.main(cli_args)
+dbt_command(cli_args)
