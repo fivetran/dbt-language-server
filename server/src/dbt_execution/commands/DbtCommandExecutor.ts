@@ -1,13 +1,13 @@
 import { PromiseWithChild } from 'node:child_process';
 import { ProcessExecutor } from '../../ProcessExecutor';
-import { Command } from './Command';
+import { DbtCommand } from './DbtCommand';
 
 // TODO: delete this class
 export class DbtCommandExecutor {
   static readonly PROCESS_EXECUTOR = new ProcessExecutor();
 
   execute(
-    command: Command,
+    command: DbtCommand,
     onStdoutData?: (data: string) => void,
     onStderrData?: (data: string) => void,
   ): PromiseWithChild<{

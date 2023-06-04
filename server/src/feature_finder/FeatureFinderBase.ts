@@ -1,7 +1,7 @@
 import { AdapterInfo, DbtVersionInfo, getStringVersion, PythonInfo, Version } from 'dbt-language-server-common';
 import * as fs from 'node:fs';
 import { homedir } from 'node:os';
-import { Command } from '../dbt_execution/commands/Command';
+import { DbtCommand } from '../dbt_execution/commands/DbtCommand';
 import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor';
 import { DbtCommandFactory } from '../dbt_execution/DbtCommandFactory';
 import { getAxios } from '../utils/Utils';
@@ -51,7 +51,7 @@ export class FeatureFinderBase {
     return this.findCommandPythonInfo(this.dbtCommandFactory.getDbtWithPythonVersion());
   }
 
-  protected async findCommandInfo(command: Command): Promise<DbtVersionInfo> {
+  protected async findCommandInfo(command: DbtCommand): Promise<DbtVersionInfo> {
     const { stdout, stderr } = await this.dbtCommandExecutor.execute(command);
 
     let installedVersion = FeatureFinderBase.readVersionByPattern(stderr, FeatureFinderBase.DBT_INSTALLED_VERSION_PATTERN);
@@ -83,7 +83,7 @@ export class FeatureFinderBase {
     }
   }
 
-  private async findCommandPythonInfo(command: Command): Promise<DbtVersionInfo | undefined> {
+  private async findCommandPythonInfo(command: DbtCommand): Promise<DbtVersionInfo | undefined> {
     return command.python ? this.findCommandInfo(command) : undefined;
   }
 

@@ -134,7 +134,7 @@ export class FeatureFinder extends FeatureFinderBase {
   }
 
   async getAvailableDbt(): Promise<[DbtVersionInfo | undefined, DbtVersionInfo | undefined]> {
-    const settledResults = await Promise.allSettled([this.findDbtPythonInfoOld(), this.findDbtPythonInfo(), this.findDbtGlobalInfo()]);
+    const settledResults = await Promise.allSettled([this.findDbtPythonInfoOld(), this.findDbtPythonInfo()]);
     const [dbtPythonVersionOld, dbtPythonVersion] = settledResults.map(v => (v.status === 'fulfilled' ? v.value : undefined));
 
     console.log(this.getLogString('dbtPythonVersionOld', dbtPythonVersionOld) + this.getLogString('dbtPythonVersion', dbtPythonVersion));
@@ -143,11 +143,6 @@ export class FeatureFinder extends FeatureFinderBase {
     } else if (dbtPythonVersionOld?.installedVersion) {
       this.versionInfo = dbtPythonVersionOld;
     }
-
     return [dbtPythonVersionOld, dbtPythonVersion];
-  }
-
-  private async findDbtGlobalInfo(): Promise<DbtVersionInfo | undefined> {
-    return this.findCommandInfo(this.dbtCommandFactory.getDbtGlobalVersion());
   }
 }

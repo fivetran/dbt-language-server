@@ -50,7 +50,6 @@ describe('FeatureFinder', () => {
   const PROFILES_DIR = slash(path.join(homedir(), '.dbt'));
   const DBT_WITH_PYTHON_OLD = new DbtCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM], true, PYTHON_PATH);
   const DBT_WITH_PYTHON_NEW = new DbtCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM], false, PYTHON_PATH);
-  const DBT_GLOBAL = new DbtCommand(PROFILES_DIR, [DbtCommandFactory.VERSION_PARAM], false);
 
   let mockCommandExecutor: DbtCommandExecutor;
   before(() => {
@@ -94,7 +93,6 @@ describe('FeatureFinder', () => {
     // arrange
     when(mockCommandExecutor.execute(deepEqual(DBT_WITH_PYTHON_OLD))).thenReturn(VERSION_COMMAND_RESULT_OLD);
     when(mockCommandExecutor.execute(deepEqual(DBT_WITH_PYTHON_NEW))).thenReturn(VERSION_COMMAND_RESULT_NEW);
-    when(mockCommandExecutor.execute(deepEqual(DBT_GLOBAL))).thenReturn(VERSION_COMMAND_RESULT_NEW);
 
     // act
     const result = await createFeatureFinder(mockCommandExecutor).getAvailableDbt();
