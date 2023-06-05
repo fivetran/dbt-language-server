@@ -46,8 +46,7 @@ import { DbtCli } from '../dbt_execution/DbtCli';
 import { DbtProfileCreator, DbtProfileInfo } from '../DbtProfileCreator';
 import { DbtProject } from '../DbtProject';
 import { DbtRepository } from '../DbtRepository';
-import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
-import { SqlDefinitionProvider } from '../definition/SqlDefinitionProvider';
+import { DefinitionProvider } from '../definition/DefinitionProvider';
 import { DestinationContext } from '../DestinationContext';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
 import { DbtDocumentKind } from '../document/DbtDocumentKind';
@@ -90,8 +89,8 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     private statusSender: DbtProjectStatusSender,
     private dbtDocumentKindResolver: DbtDocumentKindResolver,
     private diagnosticGenerator: DiagnosticGenerator,
-    private dbtDefinitionProvider: DbtDefinitionProvider,
-    private sqlDefinitionProvider: SqlDefinitionProvider,
+    private jinjaParser: JinjaParser,
+    private definitionProvider: DefinitionProvider,
     private signatureHelpProvider: SignatureHelpProvider,
     private hoverProvider: HoverProvider,
     private destinationContext: DestinationContext,
@@ -364,15 +363,14 @@ export class LspServer extends LspServerBase<FeatureFinder> {
         this.notificationSender,
         this.modelProgressReporter,
         new ModelCompiler(this.dbtCli, this.dbtRepository),
-        new JinjaParser(),
+        this.jinjaParser,
         this.dbtRepository,
         this.dbtCli,
         this.destinationContext,
         this.diagnosticGenerator,
         this.signatureHelpProvider,
         this.hoverProvider,
-        this.dbtDefinitionProvider,
-        this.sqlDefinitionProvider,
+        this.definitionProvider,
         this.projectChangeListener,
       );
       this.openedDocuments.set(uri, document);

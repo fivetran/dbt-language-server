@@ -10,6 +10,7 @@ import { DestinationContext } from './DestinationContext';
 import { DiagnosticGenerator } from './DiagnosticGenerator';
 import { FileChangeListener } from './FileChangeListener';
 import { HoverProvider } from './HoverProvider';
+import { JinjaParser } from './JinjaParser';
 import { Logger } from './Logger';
 import { MacroCompilationServer } from './MacroCompilationServer';
 import { ModelProgressReporter } from './ModelProgressReporter';
@@ -19,8 +20,7 @@ import { ProjectProgressReporter } from './ProjectProgressReporter';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { DbtCli } from './dbt_execution/DbtCli';
 import { DbtCommandExecutor } from './dbt_execution/DbtCommandExecutor';
-import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
-import { SqlDefinitionProvider } from './definition/SqlDefinitionProvider';
+import { DefinitionProvider } from './definition/DefinitionProvider';
 import { DbtDocumentKindResolver } from './document/DbtDocumentKindResolver';
 import { DbtTextDocument } from './document/DbtTextDocument';
 import { FeatureFinder } from './feature_finder/FeatureFinder';
@@ -95,8 +95,8 @@ function createLspServerForProject(
   const dbt = new DbtCli(featureFinder, connection, modelProgressReporter, notificationSender, macroCompilationServer, dbtCommandExecutor);
   const dbtDocumentKindResolver = new DbtDocumentKindResolver(dbtRepository);
   const diagnosticGenerator = new DiagnosticGenerator(dbtRepository);
-  const dbtDefinitionProvider = new DbtDefinitionProvider(dbtRepository);
-  const sqlDefinitionProvider = new SqlDefinitionProvider(dbtRepository);
+  const jinjaParser = new JinjaParser();
+  const definitionProvider = new DefinitionProvider(dbtRepository, jinjaParser);
   const signatureHelpProvider = new SignatureHelpProvider();
   const hoverProvider = new HoverProvider();
   const openedDocuments = new Map<string, DbtTextDocument>();
@@ -126,8 +126,8 @@ function createLspServerForProject(
     statusSender,
     dbtDocumentKindResolver,
     diagnosticGenerator,
-    dbtDefinitionProvider,
-    sqlDefinitionProvider,
+    jinjaParser,
+    definitionProvider,
     signatureHelpProvider,
     hoverProvider,
     destinationContext,

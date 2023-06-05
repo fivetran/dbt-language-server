@@ -35,10 +35,9 @@ import { Location, ZetaSqlAst } from '../ZetaSqlAst';
 import { CompletionProvider } from '../completion/CompletionProvider';
 import { DbtCli } from '../dbt_execution/DbtCli';
 import { DbtCompileJob } from '../dbt_execution/DbtCompileJob';
-import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
-import { SqlDefinitionProvider } from '../definition/SqlDefinitionProvider';
+import { DefinitionProvider } from '../definition/DefinitionProvider';
 import { getLineByPosition, getSignatureInfo } from '../utils/TextUtils';
-import { areRangesEqual, debounce, getIdentifierRangeAtPosition, getModelPathOrFullyQualifiedName, positionInRange } from '../utils/Utils';
+import { areRangesEqual, debounce, getIdentifierRangeAtPosition, getModelPathOrFullyQualifiedName } from '../utils/Utils';
 import { DbtDocumentKind } from './DbtDocumentKind';
 
 export interface QueryParseInformation {
@@ -84,8 +83,7 @@ export class DbtTextDocument {
     private diagnosticGenerator: DiagnosticGenerator,
     private signatureHelpProvider: SignatureHelpProvider,
     private hoverProvider: HoverProvider,
-    private dbtDefinitionProvider: DbtDefinitionProvider,
-    private sqlDefinitionProvider: SqlDefinitionProvider,
+    private definitionProvider: DefinitionProvider,
     private projectChangeListener: ProjectChangeListener,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -387,21 +385,7 @@ export class DbtTextDocument {
   }
 
   async onDefinition(definitionParams: DefinitionParams): Promise<DefinitionLink[] | undefined> {
-    const jinjas = this.jinjaParser.findAllEffectiveJinjas(this.rawDocument);
-    for (const jinja of jinjas) {
-      if (positionInRange(definitionParams.position, jinja.range)) {
-        const jinjaType = this.jinjaParser.getJinjaType(jinja.value);
-        return this.dbtDefinitionProvider.provideDefinitions(this.rawDocument, jinja, definitionParams.position, jinjaType);
-      }
-    }
-
-    return this.sqlDefinitionProvider.provideDefinitions(
-      definitionParams,
-      this.queryInformation,
-      this.analyzeResult,
-      this.rawDocument,
-      this.compiledDocument,
-    );
+    return this.definitionProvider.onDefinition(definitionParams, this.rawDocument, this.compiledDocument, this.queryInformation, this.analyzeResult);
   }
 
   dispose(): void {

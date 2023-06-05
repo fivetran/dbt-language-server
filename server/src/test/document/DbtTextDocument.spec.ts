@@ -14,8 +14,7 @@ import { NotificationSender } from '../../NotificationSender';
 import { ProjectChangeListener } from '../../ProjectChangeListener';
 import { SignatureHelpProvider } from '../../SignatureHelpProvider';
 import { DbtCli } from '../../dbt_execution/DbtCli';
-import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
-import { SqlDefinitionProvider } from '../../definition/SqlDefinitionProvider';
+import { DefinitionProvider } from '../../definition/DefinitionProvider';
 import { DbtDocumentKind } from '../../document/DbtDocumentKind';
 import { DbtTextDocument } from '../../document/DbtTextDocument';
 import { sleep } from '../helper';
@@ -67,8 +66,7 @@ describe('DbtTextDocument', () => {
       new DiagnosticGenerator(dbtRepository),
       new SignatureHelpProvider(),
       new HoverProvider(),
-      new DbtDefinitionProvider(dbtRepository),
-      new SqlDefinitionProvider(dbtRepository),
+      new DefinitionProvider(dbtRepository, instance(mockJinjaParser)),
       instance(mockProjectChangeListener),
     );
   });
