@@ -13,7 +13,7 @@ import { ModelProgressReporter } from '../../ModelProgressReporter';
 import { NotificationSender } from '../../NotificationSender';
 import { ProjectChangeListener } from '../../ProjectChangeListener';
 import { SignatureHelpProvider } from '../../SignatureHelpProvider';
-import { Dbt } from '../../dbt_execution/Dbt';
+import { DbtCli } from '../../dbt_execution/DbtCli';
 import { DbtDefinitionProvider } from '../../definition/DbtDefinitionProvider';
 import { SqlDefinitionProvider } from '../../definition/SqlDefinitionProvider';
 import { DbtDocumentKind } from '../../document/DbtDocumentKind';
@@ -29,7 +29,7 @@ describe('DbtTextDocument', () => {
   let document: DbtTextDocument;
   let mockModelCompiler: ModelCompiler;
   let mockJinjaParser: JinjaParser;
-  let mockDbt: Dbt;
+  let mockDbtCli: DbtCli;
   let mockProjectChangeListener: ProjectChangeListener;
   let destinationContext: DestinationContext;
 
@@ -48,9 +48,9 @@ describe('DbtTextDocument', () => {
 
     mockJinjaParser = mock(JinjaParser);
 
-    mockDbt = mock<Dbt>();
-    when(mockDbt.dbtReady).thenReturn(true);
-    when(mockDbt.onDbtReady).thenReturn(onDbtReadyEmitter.event);
+    mockDbtCli = mock<DbtCli>();
+    when(mockDbtCli.dbtReady).thenReturn(true);
+    when(mockDbtCli.onDbtReady).thenReturn(onDbtReadyEmitter.event);
 
     const dbtRepository = new DbtRepository(PROJECT_PATH, Promise.resolve(undefined));
     destinationContext = new DestinationContext();
@@ -62,7 +62,7 @@ describe('DbtTextDocument', () => {
       instance(mockModelCompiler),
       instance(mockJinjaParser),
       dbtRepository,
-      instance(mockDbt),
+      instance(mockDbtCli),
       destinationContext,
       new DiagnosticGenerator(dbtRepository),
       new SignatureHelpProvider(),
@@ -189,7 +189,7 @@ describe('DbtTextDocument', () => {
 
   it('Should compile dbt document when dbt ready', async () => {
     // arrange
-    when(mockDbt.dbtReady).thenReturn(false).thenReturn(true);
+    when(mockDbtCli.dbtReady).thenReturn(false).thenReturn(true);
     let compileCalls = 0;
     document.debouncedCompile = (): void => {
       compileCalls++;

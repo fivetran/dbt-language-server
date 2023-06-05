@@ -42,7 +42,7 @@ import {
 } from 'vscode-languageserver';
 import { FileOperationFilter } from 'vscode-languageserver-protocol/lib/common/protocol.fileOperations';
 import { URI } from 'vscode-uri';
-import { Dbt } from '../dbt_execution/Dbt';
+import { DbtCli } from '../dbt_execution/DbtCli';
 import { DbtProfileCreator, DbtProfileInfo } from '../DbtProfileCreator';
 import { DbtProject } from '../DbtProject';
 import { DbtRepository } from '../DbtRepository';
@@ -81,7 +81,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     connection: _Connection,
     notificationSender: NotificationSender,
     featureFinder: FeatureFinder,
-    private dbt: Dbt,
+    private dbtCli: DbtCli,
     private modelProgressReporter: ModelProgressReporter,
     private dbtProject: DbtProject,
     private dbtRepository: DbtRepository,
@@ -217,7 +217,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
           .then((initResult: Result<void, string>) => (initResult.isErr() ? this.showCreateContextWarning(initResult.error) : undefined))
       : Promise.resolve();
 
-    const prepareDbt = this.dbt.prepare(dbtProfileType).then(_ => this.statusSender.sendStatus());
+    const prepareDbt = this.dbtCli.prepare(dbtProfileType).then(_ => this.statusSender.sendStatus());
 
     await Promise.allSettled([prepareDbt, destinationInitResult]);
 
@@ -363,10 +363,10 @@ export class LspServer extends LspServerBase<FeatureFinder> {
         dbtDocumentKind,
         this.notificationSender,
         this.modelProgressReporter,
-        new ModelCompiler(this.dbt, this.dbtRepository),
+        new ModelCompiler(this.dbtCli, this.dbtRepository),
         new JinjaParser(),
         this.dbtRepository,
-        this.dbt,
+        this.dbtCli,
         this.destinationContext,
         this.diagnosticGenerator,
         this.signatureHelpProvider,
@@ -439,7 +439,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   onAddNewDbtPackage(dbtPackage: SelectedDbtPackage): void {
     this.dbtProject.addNewDbtPackage(dbtPackage.packageName, dbtPackage.version);
     const sendLog = (data: string): void => this.notificationSender.sendDbtDepsLog(data);
-    this.dbt.deps(sendLog, sendLog).catch(e => console.log(`Error while running dbt deps: ${e instanceof Error ? e.message : String(e)}`));
+    this.dbtCli.deps(sendLog, sendLog).catch(e => console.log(`Error while running dbt deps: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   onDidRenameFiles(params: RenameFilesParams): void {

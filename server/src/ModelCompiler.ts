@@ -1,7 +1,7 @@
 import { Emitter, Event } from 'vscode-languageserver';
 import { DbtRepository } from './DbtRepository';
 import { LogLevel } from './Logger';
-import { Dbt } from './dbt_execution/Dbt';
+import { DbtCli } from './dbt_execution/DbtCli';
 import { DbtCompileJob } from './dbt_execution/DbtCompileJob';
 import { wait } from './utils/Utils';
 
@@ -27,7 +27,7 @@ export class ModelCompiler {
     return this.onFinishAllCompilationJobsEmitter.event;
   }
 
-  constructor(private dbt: Dbt, private dbtRepository: DbtRepository) {}
+  constructor(private dbtCli: DbtCli, private dbtRepository: DbtRepository) {}
 
   async compile(modelPath: string, allowFallback: boolean): Promise<void> {
     console.log(`Start compiling ${modelPath}`, LogLevel.Debug);
@@ -43,7 +43,7 @@ export class ModelCompiler {
   }
 
   startNewJob(modelPath: string, allowFallback: boolean): void {
-    const job = this.dbt.createCompileJob(modelPath, this.dbtRepository, allowFallback);
+    const job = this.dbtCli.createCompileJob(modelPath, this.dbtRepository, allowFallback);
     this.dbtCompileJobQueue.push(job);
     job.start().catch(e => console.log(`Failed to start job: ${e instanceof Error ? e.message : String(e)}`));
   }

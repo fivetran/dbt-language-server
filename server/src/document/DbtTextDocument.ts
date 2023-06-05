@@ -33,7 +33,7 @@ import { ProjectChangeListener } from '../ProjectChangeListener';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { Location, ZetaSqlAst } from '../ZetaSqlAst';
 import { CompletionProvider } from '../completion/CompletionProvider';
-import { Dbt } from '../dbt_execution/Dbt';
+import { DbtCli } from '../dbt_execution/DbtCli';
 import { DbtCompileJob } from '../dbt_execution/DbtCompileJob';
 import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
 import { SqlDefinitionProvider } from '../definition/SqlDefinitionProvider';
@@ -79,7 +79,7 @@ export class DbtTextDocument {
     private modelCompiler: ModelCompiler,
     private jinjaParser: JinjaParser,
     private dbtRepository: DbtRepository,
-    private dbt: Dbt,
+    private dbtCli: DbtCli,
     private destinationContext: DestinationContext,
     private diagnosticGenerator: DiagnosticGenerator,
     private signatureHelpProvider: SignatureHelpProvider,
@@ -107,7 +107,7 @@ export class DbtTextDocument {
     this.modelCompiler.onFinishAllCompilationJobs(this.onFinishAllCompilationTasks.bind(this));
 
     this.destinationContext.onContextInitialized(this.onContextInitialized.bind(this));
-    this.dbt.onDbtReady(this.onDbtReady.bind(this));
+    this.dbtCli.onDbtReady(this.onDbtReady.bind(this));
   }
 
   willSaveTextDocument(reason: TextDocumentSaveReason): void {
@@ -126,7 +126,7 @@ export class DbtTextDocument {
 
   async didSaveTextDocument(): Promise<void> {
     if (this.requireCompileOnSave) {
-      if (this.dbt.dbtReady) {
+      if (this.dbtCli.dbtReady) {
         this.requireCompileOnSave = false;
         this.debouncedCompile();
       }
@@ -216,7 +216,7 @@ export class DbtTextDocument {
   forceRecompile(): void {
     if (this.dbtDocumentKind === DbtDocumentKind.MODEL) {
       this.modelProgressReporter.sendStart(this.rawDocument.uri);
-      if (this.dbt.dbtReady) {
+      if (this.dbtCli.dbtReady) {
         this.debouncedCompile();
       }
     }
@@ -231,7 +231,7 @@ export class DbtTextDocument {
   canResendDiagnostics(): boolean {
     return (
       this.destinationContext.contextInitialized &&
-      this.dbt.dbtReady &&
+      this.dbtCli.dbtReady &&
       !this.projectChangeListener.currentDbtError &&
       !this.modelCompiler.compilationInProgress &&
       this.compiledDocument.getText() !== this.rawDocument.getText()
