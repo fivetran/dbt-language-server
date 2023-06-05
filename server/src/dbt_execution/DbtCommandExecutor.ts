@@ -43,6 +43,6 @@ export class DbtCommandExecutor {
     stdout: string;
     stderr: string;
   }> {
-    return DbtCommandExecutor.PROCESS_EXECUTOR.execProcess(`${this.python} ${this.scriptPath} '--version'`);
+    return DbtCommandExecutor.PROCESS_EXECUTOR.execProcess(`${this.python} ${this.scriptPath} --version`);
   }
 }

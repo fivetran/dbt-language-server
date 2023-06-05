@@ -47,7 +47,7 @@ export class FeatureFinderBase {
     } catch {
       this.versionInfo = undefined;
     }
-    console.log(`Version ${this.versionInfo ? getStringVersion(this.versionInfo.installedVersion) : 'no found'}`);
+    console.log(`Version ${this.versionInfo ? getStringVersion(this.versionInfo.installedVersion) : 'not found'}`);
     return this.versionInfo;
   }
 

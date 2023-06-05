@@ -61,7 +61,7 @@ connection.onInitialize((params: InitializeParams): InitializeResult<unknown> | 
 
 function createLspServer(customInitParams: CustomInitParams, workspaceFolder: string): LspServerBase<FeatureFinderBase> {
   const notificationSender = new NotificationSender(connection);
-  const dbtCommandExecutor = new DbtCommandExecutor(customInitParams.pythonInfo.path, path.resolve(__dirname, '..', 'dbt_core.py'));
+  const dbtCommandExecutor = new DbtCommandExecutor(customInitParams.pythonInfo.path, `"${path.resolve(__dirname, '..', 'dbt_core.py')}"`);
   if (customInitParams.lspMode === 'noProject') {
     const noProjectFeatureFinder = new NoProjectFeatureFinder(customInitParams.pythonInfo, dbtCommandExecutor);
     return new NoProjectLspServer(connection, notificationSender, noProjectFeatureFinder);
