@@ -18,7 +18,7 @@ import { ProjectChangeListener } from './ProjectChangeListener';
 import { ProjectProgressReporter } from './ProjectProgressReporter';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { DbtCli } from './dbt_execution/DbtCli';
-import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
+import { DbtCommandExecutor } from './dbt_execution/DbtCommandExecutor';
 import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
 import { SqlDefinitionProvider } from './definition/SqlDefinitionProvider';
 import { DbtDocumentKindResolver } from './document/DbtDocumentKindResolver';
@@ -31,9 +31,9 @@ import { LspServerBase } from './lsp_server/LspServerBase';
 import { NoProjectLspServer } from './lsp_server/NoProjectLspServer';
 import { ManifestParser } from './manifest/ManifestParser';
 import { DbtProjectStatusSender } from './status_bar/DbtProjectStatusSender';
+import path = require('node:path');
 
 sourceMapSupport.install({ handleUncaughtExceptions: false });
-export const MAIN_FILE_PATH = __dirname;
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -61,19 +61,23 @@ connection.onInitialize((params: InitializeParams): InitializeResult<unknown> | 
 
 function createLspServer(customInitParams: CustomInitParams, workspaceFolder: string): LspServerBase<FeatureFinderBase> {
   const notificationSender = new NotificationSender(connection);
+  const dbtCoreScriptPath = path.resolve(__dirname, '..', 'dbt_core.py');
+  const dbtCommandExecutor = new DbtCommandExecutor();
   if (customInitParams.lspMode === 'noProject') {
-    const noProjectFeatureFinder = new NoProjectFeatureFinder(customInitParams.pythonInfo, new DbtCommandExecutor());
+    const noProjectFeatureFinder = new NoProjectFeatureFinder(customInitParams.pythonInfo, dbtCoreScriptPath, dbtCommandExecutor);
     return new NoProjectLspServer(connection, notificationSender, noProjectFeatureFinder);
   }
-  return createLspServerForProject(customInitParams, workspaceFolder, notificationSender);
+  return createLspServerForProject(customInitParams, dbtCoreScriptPath, workspaceFolder, notificationSender, dbtCommandExecutor);
 }
 
 function createLspServerForProject(
   customInitParams: CustomInitParams,
+  dbtCoreScriptPath: string,
   workspaceFolder: string,
   notificationSender: NotificationSender,
+  dbtCommandExecutor: DbtCommandExecutor,
 ): LspServerBase<FeatureFinderBase> {
-  const featureFinder = new FeatureFinder(customInitParams.pythonInfo, new DbtCommandExecutor(), customInitParams.profilesDir);
+  const featureFinder = new FeatureFinder(customInitParams.pythonInfo, dbtCoreScriptPath, dbtCommandExecutor, customInitParams.profilesDir);
 
   const modelProgressReporter = new ModelProgressReporter(connection);
   const projectProgressReporter = new ProjectProgressReporter(connection);
@@ -90,7 +94,7 @@ function createLspServerForProject(
   const statusSender = new DbtProjectStatusSender(notificationSender, dbtRepository, featureFinder, fileChangeListener, dbtProject.findProfileName());
   const destinationContext = new DestinationContext();
   const macroCompilationServer = new MacroCompilationServer(destinationContext, dbtRepository);
-  const dbt = new DbtCli(featureFinder, connection, modelProgressReporter, notificationSender, macroCompilationServer);
+  const dbt = new DbtCli(featureFinder, connection, modelProgressReporter, notificationSender, macroCompilationServer, dbtCommandExecutor);
   const dbtDocumentKindResolver = new DbtDocumentKindResolver(dbtRepository);
   const diagnosticGenerator = new DiagnosticGenerator(dbtRepository);
   const dbtDefinitionProvider = new DbtDefinitionProvider(dbtRepository);

@@ -1,10 +1,10 @@
-import { DbtPackageInfo, DbtPackageVersions, DbtVersionInfo, PythonInfo } from 'dbt-language-server-common';
+import { DbtPackageInfo, DbtPackageVersions, PythonInfo } from 'dbt-language-server-common';
 import { promises as fsPromises } from 'node:fs';
 import * as semver from 'semver';
 import * as yaml from 'yaml';
 import { DbtRepository } from '../DbtRepository';
 import { ProcessExecutor } from '../ProcessExecutor';
-import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor';
+import { DbtCommandExecutor } from '../dbt_execution/DbtCommandExecutor';
 import { Lazy } from '../utils/Lazy';
 import { getAxios } from '../utils/Utils';
 import { FeatureFinderBase } from './FeatureFinderBase';
@@ -28,15 +28,13 @@ export class FeatureFinder extends FeatureFinderBase {
     return FeatureFinder.WSL_UBUNTU_DEFAULT_NAME;
   }
 
-  availableCommandsPromise: Promise<[DbtVersionInfo | undefined, DbtVersionInfo | undefined]>;
   packagesYmlExistsPromise: Promise<boolean>;
   packageInfosPromise = new Lazy(() => this.getListOfDbtPackages());
   ubuntuInWslWorks: Promise<boolean>;
 
-  constructor(pythonInfo: PythonInfo, dbtCommandExecutor: DbtCommandExecutor, profilesDir: string | undefined) {
-    super(pythonInfo, dbtCommandExecutor, profilesDir);
+  constructor(pythonInfo: PythonInfo, dbtCoreScriptPath: string, dbtCommandExecutor: DbtCommandExecutor, profilesDir: string | undefined) {
+    super(pythonInfo, dbtCoreScriptPath, dbtCommandExecutor, profilesDir);
 
-    this.availableCommandsPromise = this.getAvailableDbt();
     this.packagesYmlExistsPromise = this.packagesYmlExists();
     this.ubuntuInWslWorks = this.checkUbuntuInWslWorks();
   }
@@ -131,18 +129,5 @@ export class FeatureFinder extends FeatureFinderBase {
       return path.join(result.stdout.trim(), 'dbt', 'include', 'global_project');
     }
     return undefined;
-  }
-
-  async getAvailableDbt(): Promise<[DbtVersionInfo | undefined, DbtVersionInfo | undefined]> {
-    const settledResults = await Promise.allSettled([this.findDbtPythonInfoOld(), this.findDbtPythonInfo()]);
-    const [dbtPythonVersionOld, dbtPythonVersion] = settledResults.map(v => (v.status === 'fulfilled' ? v.value : undefined));
-
-    console.log(this.getLogString('dbtPythonVersionOld', dbtPythonVersionOld) + this.getLogString('dbtPythonVersion', dbtPythonVersion));
-    if (dbtPythonVersion?.installedVersion) {
-      this.versionInfo = dbtPythonVersion;
-    } else if (dbtPythonVersionOld?.installedVersion) {
-      this.versionInfo = dbtPythonVersionOld;
-    }
-    return [dbtPythonVersionOld, dbtPythonVersion];
   }
 }

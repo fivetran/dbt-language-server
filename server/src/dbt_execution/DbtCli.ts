@@ -7,17 +7,14 @@ import { ModelProgressReporter } from '../ModelProgressReporter';
 import { NotificationSender } from '../NotificationSender';
 import { ProcessExecutor } from '../ProcessExecutor';
 import { FeatureFinder } from '../feature_finder/FeatureFinder';
-import { MAIN_FILE_PATH } from '../server';
 import { Dbt } from './Dbt';
 import { DbtCliCompileJob } from './DbtCliCompileJob';
+import { DbtCommandExecutor } from './DbtCommandExecutor';
 import { DbtCompileJob } from './DbtCompileJob';
 import slash = require('slash');
-import path = require('node:path');
 
 export class DbtCli extends Dbt {
   static readonly PROCESS_EXECUTOR = new ProcessExecutor();
-
-  dbtCoreScriptPath = path.resolve(MAIN_FILE_PATH, '..', 'dbt_core.py');
 
   constructor(
     private featureFinder: FeatureFinder,
@@ -25,6 +22,7 @@ export class DbtCli extends Dbt {
     modelProgressReporter: ModelProgressReporter,
     notificationSender: NotificationSender,
     private macroCompilationServer: MacroCompilationServer,
+    private dbtCommandExecutor: DbtCommandExecutor,
   ) {
     super(connection, modelProgressReporter, notificationSender);
     this.macroCompilationServer
@@ -36,16 +34,28 @@ export class DbtCli extends Dbt {
     stdout: string;
     stderr: string;
   }> {
-    const params = ['compile'];
+    const params = [];
     if (modelName) {
       params.push('-m', `+${slash(modelName)}`);
     }
     const log = (data: string): void => console.log(data);
-    return this.executeCommand(params, log, log);
+
+    if (!this.macroCompilationServer.port) {
+      throw new Error('Incorrect state: macroCompilationServer port is required');
+    }
+    return this.dbtCommandExecutor.compile(
+      this.featureFinder.getPythonPath(),
+      this.featureFinder.dbtCoreScriptPath,
+      this.macroCompilationServer.port,
+      this.featureFinder.profilesYmlDir,
+      log,
+      log,
+      ...params,
+    );
   }
 
   async prepareImplementation(dbtProfileType?: string): Promise<void> {
-    await this.featureFinder.availableCommandsPromise;
+    await this.featureFinder.availableDbtPromise;
     if (!this.featureFinder.versionInfo?.installedVersion || !this.featureFinder.versionInfo.installedAdapters.some(a => a.name === dbtProfileType)) {
       try {
         if (dbtProfileType) {
@@ -78,30 +88,20 @@ export class DbtCli extends Dbt {
   }
 
   async deps(onStdoutData: (data: string) => void, onStderrData: (data: string) => void): Promise<void> {
-    await this.executeCommand(['deps'], onStdoutData, onStderrData);
+    if (!this.macroCompilationServer.port) {
+      throw new Error('Incorrect state: macroCompilationServer port is required');
+    }
+    await this.dbtCommandExecutor.deps(
+      this.featureFinder.getPythonPath(),
+      this.featureFinder.dbtCoreScriptPath,
+      this.macroCompilationServer.port,
+      this.featureFinder.profilesYmlDir,
+      onStdoutData,
+      onStderrData,
+    );
   }
 
   getError(): string {
     return this.getInstallError('dbt', 'python3 -m pip install dbt-bigquery');
-  }
-
-  private executeCommand(
-    params: string[],
-    onStdoutData?: (data: string) => void,
-    onStderrData?: (data: string) => void,
-  ): PromiseWithChild<{
-    stdout: string;
-    stderr: string;
-  }> {
-    if (!this.macroCompilationServer.port) {
-      throw new Error('Incorrect state');
-    }
-    return DbtCli.PROCESS_EXECUTOR.execProcess(
-      `${this.featureFinder.getPythonPath()} ${this.dbtCoreScriptPath} ${this.macroCompilationServer.port} ${
-        this.featureFinder.profilesYmlDir
-      } ${params.join(' ')}`,
-      onStdoutData,
-      onStderrData,
-    );
   }
 }
