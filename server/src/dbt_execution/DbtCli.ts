@@ -62,6 +62,8 @@ export class DbtCli {
         this.onDbtFindFailed();
       }
     }
+    this.dbtReady = true;
+    this.onDbtReadyEmitter.fire();
   }
 
   createCompileJob(modelPath: string | undefined, dbtRepository: DbtRepository, allowFallback: boolean): DbtCompileJob {
