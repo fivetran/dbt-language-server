@@ -1,4 +1,4 @@
-import { TypeKind } from '@fivetrandevelopers/zetasql';
+import { TypeFactory, TypeKind } from '@fivetrandevelopers/zetasql';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { FunctionProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/FunctionProto';
 import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRecordType';
@@ -16,6 +16,11 @@ import { TableDefinition } from './TableDefinition';
 import { ZetaSqlApi } from './ZetaSqlApi';
 import { ParseResult, ZetaSqlParser } from './ZetaSqlParser';
 import { createType } from './utils/ZetaSqlUtils';
+
+export interface KnownColumn {
+  name: string;
+  type: string;
+}
 
 export class ZetaSqlWrapper {
   static readonly PARTITION_TIME = '_PARTITIONTIME';
@@ -79,6 +84,39 @@ export class ZetaSqlWrapper {
       console.log(e);
     }
     return [];
+  }
+
+  getColumnsInTable(db: string | undefined, schema: string | undefined, tableName: string): KnownColumn[] | undefined {
+    let parent: SimpleCatalogProto | undefined = this.catalog;
+    if (db) {
+      parent = parent.catalog?.find(c => c.name === db);
+    }
+    if (!parent) {
+      return undefined;
+    }
+
+    if (schema) {
+      parent = parent.catalog?.find(c => c.name === schema);
+    }
+    if (!parent) {
+      return undefined;
+    }
+
+    const existingTable = parent.table?.find(t => t.name === tableName);
+    if (!existingTable) {
+      return undefined;
+    }
+
+    return existingTable.column?.map(c => {
+      const name = c.name ?? '_default'; // TODO: fix this
+      let type = 'string';
+      for (const [key, value] of TypeFactory.SIMPLE_TYPE_KIND_NAMES.entries()) {
+        if (value === c.type?.typeKind) {
+          type = key;
+        }
+      }
+      return { name, type };
+    });
   }
 
   registerTable(table: TableDefinition): void {

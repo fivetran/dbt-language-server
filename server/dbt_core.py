@@ -48,26 +48,10 @@ else:
         conn.request("GET", "/macro?name=get_columns_in_relation&db=" + db + "&schema=" + schema + "&table=" + table)
         response = conn.getresponse()
         result = response.read().decode();
-        if result != "SOURCE" and result != "NOT FOUND!":
+        if result not in ["SOURCE", "NOT_FOUND"]:
             data = json.loads(result)
             bigquery_columns = [BigQueryColumn(column[0], BigQueryColumn.translate_type(column[1])) for column in data]
 
-            #   try:
-            #       table1 = self.connections.get_bq_table(
-            #           database=relation.database, schema=relation.schema, identifier=relation.identifier
-            #       )
-
-            #       print("get_columns_in_relation for relation: " + db + "." + schema + "." + table + ": ")
-            #       print(self._get_dbt_columns_from_bq_table(table1))
-            #       print("---" + db + "." + schema + "." + table + "---")
-
-            #       print("get_columns_in_relation for relation: " + db + "." + schema + "." + table + ": ")
-            #       print(bigquery_columns)
-            #       print("---"+ db + "." + schema + "." + table + "---")
-
-
-            #   except (ValueError, google.cloud.exceptions.NotFound) as e:
-            #       print()
             return bigquery_columns
             
         try:
@@ -84,7 +68,7 @@ else:
     def new_register_adapter(self, config: AdapterRequiredConfig) -> None:
         old_register_adapter(config)
         credentials_type = config.credentials.type
-        if credentials_type == "bigquery":
+        if credentials_type == "bigquery": # TODO: add Snowflake
             adapter = self.adapters[credentials_type]
             adapter.get_columns_in_relation = new_get_columns_in_relation.__get__(adapter)
 

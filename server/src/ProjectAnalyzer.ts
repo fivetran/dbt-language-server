@@ -8,7 +8,7 @@ import { TableDefinition } from './TableDefinition';
 import { TableFetcher } from './TableFetcher';
 import { getTableRefUniqueId } from './utils/ManifestUtils';
 import { ParseResult } from './ZetaSqlParser';
-import { ZetaSqlWrapper } from './ZetaSqlWrapper';
+import { KnownColumn, ZetaSqlWrapper } from './ZetaSqlWrapper';
 
 export type ModelsAnalyzeResult = {
   modelUniqueId: string;
@@ -82,6 +82,10 @@ export class ProjectAnalyzer {
 
     console.log('Project analysis completed');
     return this.filterErrorResults(results);
+  }
+
+  getColumnsInRelation(db: string | undefined, schema: string | undefined, tableName: string): KnownColumn[] | undefined {
+    return this.zetaSqlWrapper.getColumnsInTable(db, schema, tableName);
   }
 
   /** Filters all errors. Returns only root errors */

@@ -8,7 +8,7 @@ import { AnalyzeResult, AnalyzeTrackerFunc, ModelsAnalyzeResult, ProjectAnalyzer
 import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
 import { SupportedDestinations, ZetaSqlApi } from './ZetaSqlApi';
 import { ZetaSqlParser } from './ZetaSqlParser';
-import { ZetaSqlWrapper } from './ZetaSqlWrapper';
+import { KnownColumn, ZetaSqlWrapper } from './ZetaSqlWrapper';
 
 export class DestinationContext {
   private static readonly ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux', 'win32'];
@@ -115,6 +115,13 @@ export class DestinationContext {
       throw new Error(DestinationContext.NOT_INITIALIZED_ERROR);
     }
     this.projectAnalyzer.resetTables();
+  }
+
+  getColumnsInRelation(db: string | undefined, schema: string | undefined, tableName: string): KnownColumn[] | undefined {
+    if (!this.projectAnalyzer) {
+      throw new Error(DestinationContext.NOT_INITIALIZED_ERROR);
+    }
+    return this.projectAnalyzer.getColumnsInRelation(db, schema, tableName);
   }
 
   dispose(): void {
