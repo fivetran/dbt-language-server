@@ -43,15 +43,7 @@ export class DbtCli extends Dbt {
     if (!this.macroCompilationServer.port) {
       throw new Error('Incorrect state: macroCompilationServer port is required');
     }
-    return this.dbtCommandExecutor.compile(
-      this.featureFinder.getPythonPath(),
-      this.featureFinder.dbtCoreScriptPath,
-      this.macroCompilationServer.port,
-      this.featureFinder.profilesYmlDir,
-      log,
-      log,
-      ...params,
-    );
+    return this.dbtCommandExecutor.compile(this.macroCompilationServer.port, this.featureFinder.profilesYmlDir, log, log, params);
   }
 
   async prepareImplementation(dbtProfileType?: string): Promise<void> {
@@ -91,14 +83,7 @@ export class DbtCli extends Dbt {
     if (!this.macroCompilationServer.port) {
       throw new Error('Incorrect state: macroCompilationServer port is required');
     }
-    await this.dbtCommandExecutor.deps(
-      this.featureFinder.getPythonPath(),
-      this.featureFinder.dbtCoreScriptPath,
-      this.macroCompilationServer.port,
-      this.featureFinder.profilesYmlDir,
-      onStdoutData,
-      onStderrData,
-    );
+    await this.dbtCommandExecutor.deps(this.macroCompilationServer.port, this.featureFinder.profilesYmlDir, onStdoutData, onStderrData);
   }
 
   getError(): string {

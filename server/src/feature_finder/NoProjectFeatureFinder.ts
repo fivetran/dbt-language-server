@@ -3,7 +3,7 @@ import { DbtCommandExecutor } from '../dbt_execution/DbtCommandExecutor';
 import { FeatureFinderBase } from './FeatureFinderBase';
 
 export class NoProjectFeatureFinder extends FeatureFinderBase {
-  constructor(pythonInfo: PythonInfo, dbtCoreScriptPath: string, dbtCommandExecutor: DbtCommandExecutor) {
-    super(pythonInfo, dbtCoreScriptPath, dbtCommandExecutor, undefined);
+  constructor(pythonInfo: PythonInfo, dbtCommandExecutor: DbtCommandExecutor) {
+    super(pythonInfo, dbtCommandExecutor, undefined);
   }
 }

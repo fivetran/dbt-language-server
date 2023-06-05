@@ -7,7 +7,6 @@ import { FeatureFinder } from '../feature_finder/FeatureFinder';
 
 describe('FeatureFinder', () => {
   const PYTHON_PATH = 'path/to/python';
-  const SCRIPT_PATH = 'script/path';
   const VERSION_OUTPUT = `Core:
                             - installed: 1.1.1
                             - latest:    1.1.1 - Up to date!
@@ -45,7 +44,7 @@ describe('FeatureFinder', () => {
 
   it('getAvailableDbt should return all information about installed dbt and adapters', async () => {
     // arrange
-    when(mockCommandExecutor.version(PYTHON_PATH, SCRIPT_PATH)).thenReturn(VERSION_COMMAND_RESULT);
+    when(mockCommandExecutor.version()).thenReturn(VERSION_COMMAND_RESULT);
 
     // act
     const result = await createFeatureFinder(mockCommandExecutor).getAvailableDbt();
@@ -60,7 +59,7 @@ describe('FeatureFinder', () => {
 
   it('getAvailableDbt should return all information about installed dbt and adapters for legacy dbt version', async () => {
     // arrange
-    when(mockCommandExecutor.version(PYTHON_PATH, SCRIPT_PATH)).thenReturn(LEGACY_VERSION_COMMAND_RESULT);
+    when(mockCommandExecutor.version()).thenReturn(LEGACY_VERSION_COMMAND_RESULT);
 
     // act
     const result = await createFeatureFinder(mockCommandExecutor).getAvailableDbt();
@@ -75,7 +74,7 @@ describe('FeatureFinder', () => {
   });
 
   function createFeatureFinder(mockExecutor: DbtCommandExecutor): FeatureFinder {
-    return new FeatureFinder({ path: PYTHON_PATH }, SCRIPT_PATH, instance(mockExecutor), undefined);
+    return new FeatureFinder({ path: PYTHON_PATH }, instance(mockExecutor), undefined);
   }
 });
 

@@ -61,23 +61,21 @@ connection.onInitialize((params: InitializeParams): InitializeResult<unknown> | 
 
 function createLspServer(customInitParams: CustomInitParams, workspaceFolder: string): LspServerBase<FeatureFinderBase> {
   const notificationSender = new NotificationSender(connection);
-  const dbtCoreScriptPath = path.resolve(__dirname, '..', 'dbt_core.py');
-  const dbtCommandExecutor = new DbtCommandExecutor();
+  const dbtCommandExecutor = new DbtCommandExecutor(customInitParams.pythonInfo.path, path.resolve(__dirname, '..', 'dbt_core.py'));
   if (customInitParams.lspMode === 'noProject') {
-    const noProjectFeatureFinder = new NoProjectFeatureFinder(customInitParams.pythonInfo, dbtCoreScriptPath, dbtCommandExecutor);
+    const noProjectFeatureFinder = new NoProjectFeatureFinder(customInitParams.pythonInfo, dbtCommandExecutor);
     return new NoProjectLspServer(connection, notificationSender, noProjectFeatureFinder);
   }
-  return createLspServerForProject(customInitParams, dbtCoreScriptPath, workspaceFolder, notificationSender, dbtCommandExecutor);
+  return createLspServerForProject(customInitParams, workspaceFolder, notificationSender, dbtCommandExecutor);
 }
 
 function createLspServerForProject(
   customInitParams: CustomInitParams,
-  dbtCoreScriptPath: string,
   workspaceFolder: string,
   notificationSender: NotificationSender,
   dbtCommandExecutor: DbtCommandExecutor,
 ): LspServerBase<FeatureFinderBase> {
-  const featureFinder = new FeatureFinder(customInitParams.pythonInfo, dbtCoreScriptPath, dbtCommandExecutor, customInitParams.profilesDir);
+  const featureFinder = new FeatureFinder(customInitParams.pythonInfo, dbtCommandExecutor, customInitParams.profilesDir);
 
   const modelProgressReporter = new ModelProgressReporter(connection);
   const projectProgressReporter = new ProjectProgressReporter(connection);

@@ -18,12 +18,7 @@ export class FeatureFinderBase {
   versionInfo?: DbtVersionInfo;
   profilesYmlDir: string;
 
-  constructor(
-    public pythonInfo: PythonInfo,
-    public dbtCoreScriptPath: string,
-    private dbtCommandExecutor: DbtCommandExecutor,
-    profilesDir: string | undefined,
-  ) {
+  constructor(public pythonInfo: PythonInfo, private dbtCommandExecutor: DbtCommandExecutor, profilesDir: string | undefined) {
     this.profilesYmlDir = slash(path.resolve(FeatureFinderBase.getProfilesYmlDir(profilesDir)));
     this.availableDbtPromise = this.getAvailableDbt();
   }
@@ -57,7 +52,7 @@ export class FeatureFinderBase {
   }
 
   private async findCommandInfo(): Promise<DbtVersionInfo> {
-    const { stdout, stderr } = await this.dbtCommandExecutor.version(this.getPythonPath(), this.dbtCoreScriptPath);
+    const { stdout, stderr } = await this.dbtCommandExecutor.version();
 
     let installedVersion = FeatureFinderBase.readVersionByPattern(stderr, FeatureFinderBase.DBT_INSTALLED_VERSION_PATTERN);
     let latestVersion = FeatureFinderBase.readVersionByPattern(stderr, FeatureFinderBase.DBT_LATEST_VERSION_PATTERN);

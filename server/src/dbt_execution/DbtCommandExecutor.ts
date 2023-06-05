@@ -4,28 +4,26 @@ import { ProcessExecutor } from '../ProcessExecutor';
 export class DbtCommandExecutor {
   static readonly PROCESS_EXECUTOR = new ProcessExecutor();
 
+  constructor(private python: string, private scriptPath: string) {}
+
   compile(
-    python: string,
-    scriptPath: string,
     macroCompilatorPort: number,
     profilesDir: string,
     onStdoutData: (data: string) => void,
     onStderrData: (data: string) => void,
-    ...params: string[]
+    params: string[],
   ): PromiseWithChild<{
     stdout: string;
     stderr: string;
   }> {
     return DbtCommandExecutor.PROCESS_EXECUTOR.execProcess(
-      `${python} ${scriptPath} ${macroCompilatorPort} ${profilesDir} compile ${params.join(' ')}`,
+      `${this.python} ${this.scriptPath} ${macroCompilatorPort} ${profilesDir} compile ${params.join(' ')}`,
       onStdoutData,
       onStderrData,
     );
   }
 
   deps(
-    python: string,
-    scriptPath: string,
     macroCompilatorPort: number,
     profilesDir: string,
     onStdoutData: (data: string) => void,
@@ -35,19 +33,16 @@ export class DbtCommandExecutor {
     stderr: string;
   }> {
     return DbtCommandExecutor.PROCESS_EXECUTOR.execProcess(
-      `${python} ${scriptPath} ${macroCompilatorPort} ${profilesDir} deps'`,
+      `${this.python} ${this.scriptPath} ${macroCompilatorPort} ${profilesDir} deps'`,
       onStdoutData,
       onStderrData,
     );
   }
 
-  version(
-    python: string,
-    scriptPath: string,
-  ): PromiseWithChild<{
+  version(): PromiseWithChild<{
     stdout: string;
     stderr: string;
   }> {
-    return DbtCommandExecutor.PROCESS_EXECUTOR.execProcess(`${python} ${scriptPath} '--version'`);
+    return DbtCommandExecutor.PROCESS_EXECUTOR.execProcess(`${this.python} ${this.scriptPath} '--version'`);
   }
 }

@@ -32,8 +32,8 @@ export class FeatureFinder extends FeatureFinderBase {
   packageInfosPromise = new Lazy(() => this.getListOfDbtPackages());
   ubuntuInWslWorks: Promise<boolean>;
 
-  constructor(pythonInfo: PythonInfo, dbtCoreScriptPath: string, dbtCommandExecutor: DbtCommandExecutor, profilesDir: string | undefined) {
-    super(pythonInfo, dbtCoreScriptPath, dbtCommandExecutor, profilesDir);
+  constructor(pythonInfo: PythonInfo, dbtCommandExecutor: DbtCommandExecutor, profilesDir: string | undefined) {
+    super(pythonInfo, dbtCommandExecutor, profilesDir);
 
     this.packagesYmlExistsPromise = this.packagesYmlExists();
     this.ubuntuInWslWorks = this.checkUbuntuInWslWorks();
