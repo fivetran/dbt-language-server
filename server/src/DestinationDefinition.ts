@@ -1,10 +1,9 @@
-import { ColumnDefinition, Dataset, DbtDestinationClient, Table } from './DbtDestinationClient';
+import { Dataset, DbtDestinationClient, Table } from './DbtDestinationClient';
 
 export class DestinationDefinition {
   activeProject: string;
   projects = new Map<string, Dataset[]>();
   tables = new Map<string, Table[]>();
-  columns = new Map<string, ColumnDefinition[]>();
 
   constructor(private client: DbtDestinationClient) {
     this.activeProject = client.defaultProject;

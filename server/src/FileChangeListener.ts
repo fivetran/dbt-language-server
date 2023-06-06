@@ -60,10 +60,6 @@ export class FileChangeListener {
     return changes.some(c => URI.parse(c.uri).fsPath === fsPath);
   }
 
-  changeStartsWithPath(changes: FileEvent[], fsPath: string): boolean {
-    return changes.some(c => URI.parse(c.uri).fsPath.startsWith(fsPath));
-  }
-
   updateDbtProjectConfig(): void {
     this.dbtRepository.dbtTargetPath = path.normalize(this.dbtProject.findTargetPath());
     this.dbtRepository.projectName = this.dbtProject.findProjectName();
@@ -79,11 +75,10 @@ export class FileChangeListener {
   updateManifestNodes(): void {
     try {
       const parseResult = this.manifestParser.parse(this.dbtProject.findTargetPath());
-      console.log(`${ManifestParser.MANIFEST_FILE_NAME} was successfully parsed`);
       if (parseResult) {
         const { macros, sources, dag } = parseResult;
         this.dbtRepository.updateDbtNodes(macros, sources, dag);
-        console.log('models, macros, sources were successfully updated');
+        console.log('manifest.json was parsed. Models, macros, sources were updated');
       }
     } catch (e) {
       console.log(`Failed to read ${ManifestParser.MANIFEST_FILE_NAME}`, e);

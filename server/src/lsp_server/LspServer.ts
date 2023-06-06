@@ -42,12 +42,11 @@ import {
 } from 'vscode-languageserver';
 import { FileOperationFilter } from 'vscode-languageserver-protocol/lib/common/protocol.fileOperations';
 import { URI } from 'vscode-uri';
-import { Dbt } from '../dbt_execution/Dbt';
+import { DbtCli } from '../dbt_execution/DbtCli';
 import { DbtProfileCreator, DbtProfileInfo } from '../DbtProfileCreator';
 import { DbtProject } from '../DbtProject';
 import { DbtRepository } from '../DbtRepository';
-import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
-import { SqlDefinitionProvider } from '../definition/SqlDefinitionProvider';
+import { DefinitionProvider } from '../definition/DefinitionProvider';
 import { DestinationContext } from '../DestinationContext';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
 import { DbtDocumentKind } from '../document/DbtDocumentKind';
@@ -81,7 +80,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     connection: _Connection,
     notificationSender: NotificationSender,
     featureFinder: FeatureFinder,
-    private dbt: Dbt,
+    private dbtCli: DbtCli,
     private modelProgressReporter: ModelProgressReporter,
     private dbtProject: DbtProject,
     private dbtRepository: DbtRepository,
@@ -90,8 +89,8 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     private statusSender: DbtProjectStatusSender,
     private dbtDocumentKindResolver: DbtDocumentKindResolver,
     private diagnosticGenerator: DiagnosticGenerator,
-    private dbtDefinitionProvider: DbtDefinitionProvider,
-    private sqlDefinitionProvider: SqlDefinitionProvider,
+    private jinjaParser: JinjaParser,
+    private definitionProvider: DefinitionProvider,
     private signatureHelpProvider: SignatureHelpProvider,
     private hoverProvider: HoverProvider,
     private destinationContext: DestinationContext,
@@ -217,7 +216,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
           .then((initResult: Result<void, string>) => (initResult.isErr() ? this.showCreateContextWarning(initResult.error) : undefined))
       : Promise.resolve();
 
-    const prepareDbt = this.dbt.prepare(dbtProfileType).then(_ => this.statusSender.sendStatus());
+    const prepareDbt = this.dbtCli.prepare(dbtProfileType).then(_ => this.statusSender.sendStatus());
 
     await Promise.allSettled([prepareDbt, destinationInitResult]);
 
@@ -316,8 +315,8 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   logStartupInfo(contextInfo: DbtProfileInfo, initTime: number, ubuntuInWslWorks: boolean): void {
     this.notificationSender.sendTelemetry('log', {
       dbtVersion: getStringVersion(this.featureFinder.versionInfo?.installedVersion),
-      pythonPath: this.featureFinder.pythonInfo?.path ?? 'undefined',
-      pythonVersion: this.featureFinder.pythonInfo?.version?.join('.') ?? 'undefined',
+      pythonPath: this.featureFinder.pythonInfo.path,
+      pythonVersion: this.featureFinder.pythonInfo.version?.join('.') ?? 'undefined',
       initTime: initTime.toString(),
       type: contextInfo.type ?? 'unknown type',
       method: contextInfo.method ?? 'unknown method',
@@ -363,16 +362,15 @@ export class LspServer extends LspServerBase<FeatureFinder> {
         dbtDocumentKind,
         this.notificationSender,
         this.modelProgressReporter,
-        new ModelCompiler(this.dbt, this.dbtRepository),
-        new JinjaParser(),
+        new ModelCompiler(this.dbtCli, this.dbtRepository),
+        this.jinjaParser,
         this.dbtRepository,
-        this.dbt,
+        this.dbtCli,
         this.destinationContext,
         this.diagnosticGenerator,
         this.signatureHelpProvider,
         this.hoverProvider,
-        this.dbtDefinitionProvider,
-        this.sqlDefinitionProvider,
+        this.definitionProvider,
         this.projectChangeListener,
       );
       this.openedDocuments.set(uri, document);
@@ -439,7 +437,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   onAddNewDbtPackage(dbtPackage: SelectedDbtPackage): void {
     this.dbtProject.addNewDbtPackage(dbtPackage.packageName, dbtPackage.version);
     const sendLog = (data: string): void => this.notificationSender.sendDbtDepsLog(data);
-    this.dbt.deps(sendLog, sendLog).catch(e => console.log(`Error while running dbt deps: ${e instanceof Error ? e.message : String(e)}`));
+    this.dbtCli.deps(sendLog, sendLog).catch(e => console.log(`Error while running dbt deps: ${e instanceof Error ? e.message : String(e)}`));
   }
 
   onDidRenameFiles(params: RenameFilesParams): void {
@@ -471,7 +469,6 @@ export class LspServer extends LspServerBase<FeatureFinder> {
 
   dispose(): void {
     console.log('Dispose start...');
-    this.dbt.dispose();
     this.destinationContext.dispose();
     console.log('Dispose end.');
   }

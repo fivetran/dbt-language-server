@@ -16,7 +16,7 @@ export class BigQueryOAuthProfile implements DbtProfile {
   static readonly GCLOUD_AUTHENTICATION_TIMEOUT = 30_000;
   static readonly GCLOUD_AUTHENTICATION_TIMEOUT_ERROR = 'Failed to authenticate within the given period.';
 
-  static processExecutor = new ProcessExecutor();
+  private static PROCESS_EXECUTOR = new ProcessExecutor();
 
   getDocsUrl(): string {
     return BigQueryOAuthProfile.BQ_OAUTH_DOCS;
@@ -90,8 +90,7 @@ export class BigQueryOAuthProfile implements DbtProfile {
 
   private static authenticate(): Promise<Result<void, string>> {
     const authenticateCommand = 'gcloud auth application-default login';
-    const authenticatePromise = BigQueryOAuthProfile.processExecutor
-      .execProcess(authenticateCommand)
+    const authenticatePromise = BigQueryOAuthProfile.PROCESS_EXECUTOR.execProcess(authenticateCommand)
       .then(() => ok(undefined))
       .catch(() => err(BigQueryOAuthProfile.GCLOUD_AUTHENTICATION_ERROR));
 
@@ -104,8 +103,7 @@ export class BigQueryOAuthProfile implements DbtProfile {
 
   private static gcloudInstalled(): Promise<Result<void, string>> {
     const versionCommand = 'gcloud --version';
-    return BigQueryOAuthProfile.processExecutor
-      .execProcess(versionCommand)
+    return BigQueryOAuthProfile.PROCESS_EXECUTOR.execProcess(versionCommand)
       .then(() => ok(undefined))
       .catch(() => err(BigQueryOAuthProfile.GCLOUD_NOT_INSTALLED_ERROR));
   }

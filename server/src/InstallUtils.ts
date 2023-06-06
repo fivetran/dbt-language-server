@@ -3,15 +3,10 @@ import { EOL } from 'node:os';
 import { ProcessExecutor } from './ProcessExecutor';
 
 export class InstallUtils {
-  static readonly DBT_CORE = 'dbt-core';
-  static readonly DBT_PREFIX = 'dbt';
-
-  static readonly UPGRADE_PARAM = '--upgrade';
-
-  static readonly PROCESS_EXECUTOR = new ProcessExecutor();
+  private static readonly PROCESS_EXECUTOR = new ProcessExecutor();
 
   static getFullDbtInstallationPackages(dbtVersion?: string, dbtProfileType?: string): string[] {
-    const packages = [InstallUtils.withVersion(InstallUtils.DBT_CORE, dbtVersion)];
+    const packages = [InstallUtils.withVersion('dbt-core', dbtVersion)];
     if (dbtProfileType) {
       packages.push(InstallUtils.buildAdapterPackageName(dbtProfileType));
     }
@@ -46,7 +41,7 @@ export class InstallUtils {
     onStdoutData?: (data: string) => void,
     onStderrData?: (data: string) => void,
   ): Promise<Result<string, string>> {
-    const installCommand = `${python} -m pip install ${upgrade ? InstallUtils.UPGRADE_PARAM : ''} ${packages.join(' ')}`;
+    const installCommand = `${python} -m pip install ${upgrade ? '--upgrade' : ''} ${packages.join(' ')}`;
     if (onStdoutData) {
       onStdoutData(`${EOL}${EOL}${installCommand}${EOL}`);
     }
@@ -63,7 +58,7 @@ export class InstallUtils {
   }
 
   private static buildAdapterPackageName(dbtProfileType: string): string {
-    return `${InstallUtils.DBT_PREFIX}-${dbtProfileType}`;
+    return `dbt-${dbtProfileType}`;
   }
 
   private static withVersion(packageName: string, version: string | undefined): string {

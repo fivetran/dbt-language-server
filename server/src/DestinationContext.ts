@@ -8,7 +8,7 @@ import { AnalyzeResult, AnalyzeTrackerFunc, ModelsAnalyzeResult, ProjectAnalyzer
 import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
 import { SupportedDestinations, ZetaSqlApi } from './ZetaSqlApi';
 import { ZetaSqlParser } from './ZetaSqlParser';
-import { ZetaSqlWrapper } from './ZetaSqlWrapper';
+import { KnownColumn, ZetaSqlWrapper } from './ZetaSqlWrapper';
 
 export class DestinationContext {
   private static readonly ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux', 'win32'];
@@ -82,25 +82,40 @@ export class DestinationContext {
     );
   }
 
-  async analyzeModelTree(node: DagNode, sql: string): Promise<ModelsAnalyzeResult[]> {
-    if (!this.projectAnalyzer) {
-      throw new Error(DestinationContext.NOT_INITIALIZED_ERROR);
-    }
+  async analyzeModel(node: DagNode): Promise<ModelsAnalyzeResult[]> {
+    this.ensureProjectAnalyzer(this.projectAnalyzer);
+    return this.projectAnalyzer.analyzeModel(node);
+  }
+
+  async analyzeModelTree(node: DagNode, sql?: string): Promise<ModelsAnalyzeResult[]> {
+    this.ensureProjectAnalyzer(this.projectAnalyzer);
     return this.projectAnalyzer.analyzeModelTree(node, sql);
   }
 
   async analyzeSql(sql: string): Promise<AnalyzeResult> {
-    if (!this.projectAnalyzer) {
-      throw new Error(DestinationContext.NOT_INITIALIZED_ERROR);
-    }
+    this.ensureProjectAnalyzer(this.projectAnalyzer);
     return this.projectAnalyzer.analyzeSql(sql);
   }
 
   async analyzeProject(analyzeTracker: AnalyzeTrackerFunc): Promise<ModelsAnalyzeResult[]> {
-    if (!this.projectAnalyzer) {
+    this.ensureProjectAnalyzer(this.projectAnalyzer);
+    return this.projectAnalyzer.analyzeProject(analyzeTracker);
+  }
+
+  resetTables(): void {
+    this.ensureProjectAnalyzer(this.projectAnalyzer);
+    this.projectAnalyzer.resetTables();
+  }
+
+  getColumnsInRelation(db: string | undefined, schema: string | undefined, tableName: string): KnownColumn[] | undefined {
+    this.ensureProjectAnalyzer(this.projectAnalyzer);
+    return this.projectAnalyzer.getColumnsInRelation(db, schema, tableName);
+  }
+
+  private ensureProjectAnalyzer(projectAnalyzer?: ProjectAnalyzer): asserts projectAnalyzer is ProjectAnalyzer {
+    if (!projectAnalyzer) {
       throw new Error(DestinationContext.NOT_INITIALIZED_ERROR);
     }
-    return this.projectAnalyzer.analyzeProject(analyzeTracker);
   }
 
   dispose(): void {

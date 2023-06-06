@@ -33,12 +33,11 @@ import { ProjectChangeListener } from '../ProjectChangeListener';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { Location, ZetaSqlAst } from '../ZetaSqlAst';
 import { CompletionProvider } from '../completion/CompletionProvider';
-import { Dbt } from '../dbt_execution/Dbt';
+import { DbtCli } from '../dbt_execution/DbtCli';
 import { DbtCompileJob } from '../dbt_execution/DbtCompileJob';
-import { DbtDefinitionProvider } from '../definition/DbtDefinitionProvider';
-import { SqlDefinitionProvider } from '../definition/SqlDefinitionProvider';
+import { DefinitionProvider } from '../definition/DefinitionProvider';
 import { getLineByPosition, getSignatureInfo } from '../utils/TextUtils';
-import { areRangesEqual, debounce, getIdentifierRangeAtPosition, getModelPathOrFullyQualifiedName, positionInRange } from '../utils/Utils';
+import { areRangesEqual, debounce, getIdentifierRangeAtPosition, getModelPathOrFullyQualifiedName } from '../utils/Utils';
 import { DbtDocumentKind } from './DbtDocumentKind';
 
 export interface QueryParseInformation {
@@ -79,13 +78,12 @@ export class DbtTextDocument {
     private modelCompiler: ModelCompiler,
     private jinjaParser: JinjaParser,
     private dbtRepository: DbtRepository,
-    private dbt: Dbt,
+    private dbtCli: DbtCli,
     private destinationContext: DestinationContext,
     private diagnosticGenerator: DiagnosticGenerator,
     private signatureHelpProvider: SignatureHelpProvider,
     private hoverProvider: HoverProvider,
-    private dbtDefinitionProvider: DbtDefinitionProvider,
-    private sqlDefinitionProvider: SqlDefinitionProvider,
+    private definitionProvider: DefinitionProvider,
     private projectChangeListener: ProjectChangeListener,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
@@ -107,7 +105,7 @@ export class DbtTextDocument {
     this.modelCompiler.onFinishAllCompilationJobs(this.onFinishAllCompilationTasks.bind(this));
 
     this.destinationContext.onContextInitialized(this.onContextInitialized.bind(this));
-    this.dbt.onDbtReady(this.onDbtReady.bind(this));
+    this.dbtCli.onDbtReady(this.onDbtReady.bind(this));
   }
 
   willSaveTextDocument(reason: TextDocumentSaveReason): void {
@@ -126,7 +124,7 @@ export class DbtTextDocument {
 
   async didSaveTextDocument(): Promise<void> {
     if (this.requireCompileOnSave) {
-      if (this.dbt.dbtReady) {
+      if (this.dbtCli.dbtReady) {
         this.requireCompileOnSave = false;
         this.debouncedCompile();
       }
@@ -216,7 +214,7 @@ export class DbtTextDocument {
   forceRecompile(): void {
     if (this.dbtDocumentKind === DbtDocumentKind.MODEL) {
       this.modelProgressReporter.sendStart(this.rawDocument.uri);
-      if (this.dbt.dbtReady) {
+      if (this.dbtCli.dbtReady) {
         this.debouncedCompile();
       }
     }
@@ -231,7 +229,7 @@ export class DbtTextDocument {
   canResendDiagnostics(): boolean {
     return (
       this.destinationContext.contextInitialized &&
-      this.dbt.dbtReady &&
+      this.dbtCli.dbtReady &&
       !this.projectChangeListener.currentDbtError &&
       !this.modelCompiler.compilationInProgress &&
       this.compiledDocument.getText() !== this.rawDocument.getText()
@@ -387,21 +385,7 @@ export class DbtTextDocument {
   }
 
   async onDefinition(definitionParams: DefinitionParams): Promise<DefinitionLink[] | undefined> {
-    const jinjas = this.jinjaParser.findAllEffectiveJinjas(this.rawDocument);
-    for (const jinja of jinjas) {
-      if (positionInRange(definitionParams.position, jinja.range)) {
-        const jinjaType = this.jinjaParser.getJinjaType(jinja.value);
-        return this.dbtDefinitionProvider.provideDefinitions(this.rawDocument, jinja, definitionParams.position, jinjaType);
-      }
-    }
-
-    return this.sqlDefinitionProvider.provideDefinitions(
-      definitionParams,
-      this.queryInformation,
-      this.analyzeResult,
-      this.rawDocument,
-      this.compiledDocument,
-    );
+    return this.definitionProvider.onDefinition(definitionParams, this.rawDocument, this.compiledDocument, this.queryInformation, this.analyzeResult);
   }
 
   dispose(): void {

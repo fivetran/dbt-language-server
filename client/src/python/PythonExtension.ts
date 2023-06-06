@@ -22,21 +22,17 @@ export class PythonExtension {
     return (this.extension.exports as IExtensionApi).settings.onDidChangeExecutionDetails;
   }
 
-  async getPythonInfo(workspaceFolder?: WorkspaceFolder): Promise<PythonInfo | undefined> {
+  async getPythonInfo(workspaceFolder?: WorkspaceFolder): Promise<PythonInfo> {
     await this.activate();
 
     const api = this.extension.exports as IExtensionApi & ProposedExtensionAPI;
 
     const details = api.settings.getExecutionDetails(workspaceFolder?.uri);
     if (!details.execCommand) {
-      return this.pythonNotFound();
+      throw new Error('Python extension not configured. Please select a Python interpreter.');
     }
 
     const [path] = details.execCommand;
-
-    if (path === '') {
-      return this.pythonNotFound();
-    }
 
     const environment = await api.environments.resolveEnvironment(path);
     const major = String(environment?.version.major ?? 3);
@@ -50,10 +46,5 @@ export class PythonExtension {
     if (!this.extension.isActive) {
       await this.extension.activate();
     }
-  }
-
-  pythonNotFound(): undefined {
-    log('ms-python.python not found');
-    return undefined;
   }
 }

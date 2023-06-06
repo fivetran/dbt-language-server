@@ -48,7 +48,6 @@ export class ManifestParser {
 
   lastGeneratedAt?: Date;
 
-  /** We don't continue parse manifest if there is no compiled code */
   parse(targetPath: string): ManifestJson | undefined {
     const manifestPath = ManifestParser.getManifestPath(targetPath);
     const content = readFileSync(manifestPath, 'utf8');
@@ -57,21 +56,17 @@ export class ManifestParser {
     const { nodes, macros, sources } = manifest;
 
     const models = this.parseModelDefinitions(nodes);
-    if (models.some(m => m.compiledCode)) {
-      const generatedAt = new Date(manifest.metadata.generated_at);
-      if (this.lastGeneratedAt && generatedAt <= this.lastGeneratedAt) {
-        return undefined;
-      }
-      this.lastGeneratedAt = generatedAt;
-
-      return {
-        macros: this.parseMacroDefinitions(macros),
-        sources: this.parseSourceDefinitions(sources),
-        dag: ManifestParser.DAG_GENERATOR.generateDbtGraph(models),
-      };
+    const generatedAt = new Date(manifest.metadata.generated_at);
+    if (this.lastGeneratedAt && generatedAt <= this.lastGeneratedAt) {
+      return undefined;
     }
+    this.lastGeneratedAt = generatedAt;
 
-    return undefined;
+    return {
+      macros: this.parseMacroDefinitions(macros),
+      sources: this.parseSourceDefinitions(sources),
+      dag: ManifestParser.DAG_GENERATOR.generateDbtGraph(models),
+    };
   }
 
   static getManifestPath(targetPath: string): string {

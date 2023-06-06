@@ -24,7 +24,7 @@ export class NoProjectLspServer extends LspServerBase<NoProjectFeatureFinder> {
   }
 
   async onInitialized(): Promise<void> {
-    await this.featureFinder.findDbtForNoProjectStatus();
+    await this.featureFinder.availableDbtPromise;
     this.statusSender.sendStatus();
   }
 }

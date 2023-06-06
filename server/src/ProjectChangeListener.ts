@@ -8,7 +8,7 @@ import { DagNodeFetcher } from './ModelFetcher';
 import { NotificationSender } from './NotificationSender';
 import { AnalyzeResult, ModelsAnalyzeResult } from './ProjectAnalyzer';
 import { ProjectProgressReporter } from './ProjectProgressReporter';
-import { Dbt } from './dbt_execution/Dbt';
+import { DbtCli } from './dbt_execution/DbtCli';
 import { DbtTextDocument } from './document/DbtTextDocument';
 import { debounce } from './utils/Utils';
 import path = require('node:path');
@@ -30,7 +30,7 @@ export class ProjectChangeListener {
     private dbtRepository: DbtRepository,
     private diagnosticGenerator: DiagnosticGenerator,
     private notificationSender: NotificationSender,
-    private dbt: Dbt,
+    private dbtCli: DbtCli,
     private enableEntireProjectAnalysis: boolean,
     private fileChangeListener: FileChangeListener,
     private projectProgressReporter: ProjectProgressReporter,
@@ -60,7 +60,9 @@ export class ProjectChangeListener {
         this.notificationSender.clearAllDiagnostics();
       }
 
-      const compileResult = await this.dbt.compileProject(this.dbtRepository);
+      // We should reset catalog before compiling the project, because the catalog will start to re-fill during compilation
+      this.destinationContext.resetTables();
+      const compileResult = await this.dbtCli.compileProject(this.dbtRepository);
       if (compileResult.isOk()) {
         this.updateManifest();
         await this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));

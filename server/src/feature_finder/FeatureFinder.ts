@@ -1,23 +1,17 @@
-import { DbtPackageInfo, DbtPackageVersions, DbtVersionInfo, PythonInfo } from 'dbt-language-server-common';
+import { DbtPackageInfo, DbtPackageVersions, PythonInfo } from 'dbt-language-server-common';
 import { promises as fsPromises } from 'node:fs';
 import * as semver from 'semver';
 import * as yaml from 'yaml';
 import { DbtRepository } from '../DbtRepository';
 import { ProcessExecutor } from '../ProcessExecutor';
-import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor';
+import { DbtCommandExecutor } from '../dbt_execution/DbtCommandExecutor';
 import { Lazy } from '../utils/Lazy';
-import { getAxios, randomNumber } from '../utils/Utils';
+import { getAxios } from '../utils/Utils';
 import { FeatureFinderBase } from './FeatureFinderBase';
-import findFreePortPmfy = require('find-free-port');
 import path = require('node:path');
 
 interface HubJson {
   [key: string]: string[];
-}
-
-interface InformationForCli {
-  pythonPath: string | undefined;
-  dbtLess1point5: boolean;
 }
 
 export class FeatureFinder extends FeatureFinderBase {
@@ -34,15 +28,13 @@ export class FeatureFinder extends FeatureFinderBase {
     return FeatureFinder.WSL_UBUNTU_DEFAULT_NAME;
   }
 
-  availableCommandsPromise: Promise<[DbtVersionInfo | undefined, DbtVersionInfo | undefined, DbtVersionInfo | undefined]>;
   packagesYmlExistsPromise: Promise<boolean>;
   packageInfosPromise = new Lazy(() => this.getListOfDbtPackages());
   ubuntuInWslWorks: Promise<boolean>;
 
-  constructor(pythonInfo: PythonInfo | undefined, dbtCommandExecutor: DbtCommandExecutor, profilesDir: string | undefined) {
+  constructor(pythonInfo: PythonInfo, dbtCommandExecutor: DbtCommandExecutor, profilesDir: string | undefined) {
     super(pythonInfo, dbtCommandExecutor, profilesDir);
 
-    this.availableCommandsPromise = this.getAvailableDbt();
     this.packagesYmlExistsPromise = this.packagesYmlExists();
     this.ubuntuInWslWorks = this.checkUbuntuInWslWorks();
   }
@@ -129,67 +121,13 @@ export class FeatureFinder extends FeatureFinderBase {
   }
 
   async getGlobalProjectPath(): Promise<string | undefined> {
-    const python = this.pythonInfo?.path;
-    if (python) {
-      const result = await FeatureFinder.PROCESS_EXECUTOR.execProcess(
-        `${python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"`,
-      );
-      if (result.stdout) {
-        return path.join(result.stdout.trim(), 'dbt', 'include', 'global_project');
-      }
+    const python = this.pythonInfo.path;
+    const result = await FeatureFinder.PROCESS_EXECUTOR.execProcess(
+      `${python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"`,
+    );
+    if (result.stdout) {
+      return path.join(result.stdout.trim(), 'dbt', 'include', 'global_project');
     }
     return undefined;
-  }
-
-  async getAvailableDbt(): Promise<[DbtVersionInfo | undefined, DbtVersionInfo | undefined, DbtVersionInfo | undefined]> {
-    const settledResults = await Promise.allSettled([this.findDbtPythonInfoOld(), this.findDbtPythonInfo(), this.findDbtGlobalInfo()]);
-    const [dbtPythonVersionOld, dbtPythonVersion, dbtGlobalVersion] = settledResults.map(v => (v.status === 'fulfilled' ? v.value : undefined));
-
-    console.log(
-      this.getLogString('dbtPythonVersionOld', dbtPythonVersionOld) +
-        this.getLogString('dbtPythonVersion', dbtPythonVersion) +
-        this.getLogString('dbtGlobalVersion', dbtGlobalVersion),
-    );
-
-    return [dbtPythonVersionOld, dbtPythonVersion, dbtGlobalVersion];
-  }
-
-  async findInformationForCli(): Promise<InformationForCli> {
-    const [dbtPythonVersionOld, dbtPythonVersion, dbtGlobalVersion] = await this.availableCommandsPromise;
-
-    if (dbtPythonVersion?.installedVersion) {
-      this.versionInfo = dbtPythonVersion;
-      return {
-        pythonPath: this.getPythonPath(),
-        dbtLess1point5: false,
-      };
-    }
-
-    if (dbtPythonVersionOld?.installedVersion) {
-      this.versionInfo = dbtPythonVersionOld;
-      return {
-        pythonPath: this.getPythonPath(),
-        dbtLess1point5: true,
-      };
-    }
-
-    if (dbtGlobalVersion?.installedVersion) {
-      this.versionInfo = dbtGlobalVersion;
-    }
-
-    return {
-      pythonPath: undefined,
-      dbtLess1point5: Boolean(
-        this.versionInfo?.installedVersion && this.versionInfo.installedVersion.major <= 1 && this.versionInfo.installedVersion.minor < 5,
-      ),
-    };
-  }
-
-  findFreePort(): Promise<number> {
-    return findFreePortPmfy(randomNumber(1024, 65_535));
-  }
-
-  private async findDbtGlobalInfo(): Promise<DbtVersionInfo | undefined> {
-    return this.findCommandInfo(this.dbtCommandFactory.getDbtGlobalVersion());
   }
 }

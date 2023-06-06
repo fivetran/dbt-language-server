@@ -1,52 +1,58 @@
 import { Result, err, ok } from 'neverthrow';
-import { _Connection } from 'vscode-languageserver';
+import { PromiseWithChild } from 'node:child_process';
+import { Emitter, Event, _Connection } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
+import { InstallUtils } from '../InstallUtils';
+import { MacroCompilationServer } from '../MacroCompilationServer';
 import { ModelProgressReporter } from '../ModelProgressReporter';
 import { NotificationSender } from '../NotificationSender';
 import { FeatureFinder } from '../feature_finder/FeatureFinder';
-import { Dbt } from './Dbt';
 import { DbtCliCompileJob } from './DbtCliCompileJob';
+import { DbtCommandExecutor } from './DbtCommandExecutor';
 import { DbtCompileJob } from './DbtCompileJob';
-import { DbtCommand } from './commands/DbtCommand';
-import { DbtCommandExecutor } from './commands/DbtCommandExecutor';
 import slash = require('slash');
 
-export class DbtCli extends Dbt {
-  static readonly DBT_COMMAND_EXECUTOR = new DbtCommandExecutor();
-  pythonPathForCli?: string;
-  dbtLess1point5 = false;
+export class DbtCli {
+  dbtReady = false;
+  onDbtReadyEmitter = new Emitter<void>();
 
   constructor(
     private featureFinder: FeatureFinder,
-    connection: _Connection,
-    modelProgressReporter: ModelProgressReporter,
-    notificationSender: NotificationSender,
+    private connection: _Connection,
+    private modelProgressReporter: ModelProgressReporter,
+    private notificationSender: NotificationSender,
+    private macroCompilationServer: MacroCompilationServer,
+    private dbtCommandExecutor: DbtCommandExecutor,
   ) {
-    super(connection, modelProgressReporter, notificationSender);
+    this.dbtReady = false;
+    this.onDbtReadyEmitter = new Emitter<void>();
+    this.macroCompilationServer
+      .start()
+      .catch(e => console.log(`Failed to start macroCompilationServer: ${e instanceof Error ? e.message : String(e)}`));
   }
 
-  async compile(modelName?: string): Promise<{
+  compile(modelName?: string): PromiseWithChild<{
     stdout: string;
     stderr: string;
   }> {
-    const noStats = this.dbtLess1point5 ? '--no-anonymous-usage-stats' : '--no-send-anonymous-usage-stats';
-    const parameters = [noStats, '--no-use-colors', 'compile'];
+    const params = [];
     if (modelName) {
-      parameters.push('-m', `+${slash(modelName)}`);
+      params.push('-m', `+${slash(modelName)}`);
     }
-    const compileCliCommand = new DbtCommand(this.featureFinder.profilesYmlDir, parameters, this.dbtLess1point5, this.pythonPathForCli);
-    return DbtCli.DBT_COMMAND_EXECUTOR.execute(compileCliCommand);
+    const log = (data: string): void => console.log(data);
+
+    if (!this.macroCompilationServer.port) {
+      throw new Error('Incorrect state: macroCompilationServer port is required');
+    }
+    return this.dbtCommandExecutor.compile(this.macroCompilationServer.port, this.featureFinder.profilesYmlDir, log, params);
   }
 
-  async prepareImplementation(dbtProfileType?: string): Promise<void> {
-    const cliInfo = await this.featureFinder.findInformationForCli();
-    this.pythonPathForCli = cliInfo.pythonPath;
-    this.dbtLess1point5 = cliInfo.dbtLess1point5;
-
+  async prepare(dbtProfileType?: string): Promise<void> {
+    await this.featureFinder.availableDbtPromise;
     if (!this.featureFinder.versionInfo?.installedVersion || !this.featureFinder.versionInfo.installedAdapters.some(a => a.name === dbtProfileType)) {
       try {
-        if (dbtProfileType && this.featureFinder.pythonInfo) {
-          await this.suggestToInstallDbt(this.featureFinder.pythonInfo.path, dbtProfileType);
+        if (dbtProfileType) {
+          await this.suggestToInstallDbt(this.featureFinder.getPythonPath(), dbtProfileType);
         } else {
           this.onDbtFindFailed();
         }
@@ -54,6 +60,8 @@ export class DbtCli extends Dbt {
         this.onDbtFindFailed();
       }
     }
+    this.dbtReady = true;
+    this.onDbtReadyEmitter.fire();
   }
 
   createCompileJob(modelPath: string | undefined, dbtRepository: DbtRepository, allowFallback: boolean): DbtCompileJob {
@@ -75,24 +83,51 @@ export class DbtCli extends Dbt {
   }
 
   async deps(onStdoutData: (data: string) => void, onStderrData: (data: string) => void): Promise<void> {
-    const depsCommand = new DbtCommand(
-      this.featureFinder.profilesYmlDir,
-      ['--no-anonymous-usage-stats', '--no-use-colors', 'deps'],
-      this.dbtLess1point5,
-      this.pythonPathForCli,
-    );
-    await DbtCli.DBT_COMMAND_EXECUTOR.execute(depsCommand, onStdoutData, onStderrData);
-  }
-
-  refresh(): void {
-    // Nothing to refresh
+    if (!this.macroCompilationServer.port) {
+      throw new Error('Incorrect state: macroCompilationServer port is required');
+    }
+    await this.dbtCommandExecutor.deps(this.macroCompilationServer.port, this.featureFinder.profilesYmlDir, onStdoutData, onStderrData);
   }
 
   getError(): string {
     return this.getInstallError('dbt', 'python3 -m pip install dbt-bigquery');
   }
 
-  dispose(): void {
-    // Nothing to dispose
+  async suggestToInstallDbt(python: string, dbtProfileType: string): Promise<void> {
+    const actions = { title: 'Install', id: 'install' };
+    const errorMessageResult = await this.connection.window.showErrorMessage(
+      `dbt/adapters are not installed. You can specify [python environment](command:python.setInterpreter) that contains dbt with needed adapter. Otherwise you can install dbt and ${dbtProfileType} adapter by pressing Install button.`,
+      actions,
+    );
+
+    if (errorMessageResult?.id === 'install') {
+      console.log(`Trying to install dbt, and ${dbtProfileType} adapter`);
+      const sendLog = (data: string): void => this.notificationSender.sendInstallDbtCoreLog(data);
+      const installResult = await InstallUtils.installDbt(python, undefined, dbtProfileType, sendLog, sendLog);
+      if (installResult.isOk()) {
+        this.notificationSender.sendRestart();
+      } else {
+        this.finishWithError(installResult.error);
+      }
+    } else {
+      this.onDbtFindFailed();
+    }
+  }
+
+  finishWithError(message: string): void {
+    this.modelProgressReporter.sendFinish();
+    this.connection.window.showErrorMessage(message);
+  }
+
+  getInstallError(command: string, pythonInstallCommand: string): string {
+    return `Failed to find ${command}. You can use '${pythonInstallCommand}' command to install it. Check in Terminal that ${command} works running '${command} --version' command or [specify the Python environment](https://code.visualstudio.com/docs/python/environments#_manually-specify-an-interpreter) for VS Code that was used to install dbt (e.g. ~/dbt-env/bin/python3).`;
+  }
+
+  get onDbtReady(): Event<void> {
+    return this.onDbtReadyEmitter.event;
+  }
+
+  private onDbtFindFailed(): void {
+    this.finishWithError(this.getError());
   }
 }

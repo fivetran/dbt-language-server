@@ -1,9 +1,7 @@
 import { AdapterInfo, DbtVersionInfo, getStringVersion, PythonInfo, Version } from 'dbt-language-server-common';
 import * as fs from 'node:fs';
 import { homedir } from 'node:os';
-import { Command } from '../dbt_execution/commands/Command';
-import { DbtCommandExecutor } from '../dbt_execution/commands/DbtCommandExecutor';
-import { DbtCommandFactory } from '../dbt_execution/DbtCommandFactory';
+import { DbtCommandExecutor } from '../dbt_execution/DbtCommandExecutor';
 import { getAxios } from '../utils/Utils';
 import path = require('node:path');
 import slash = require('slash');
@@ -16,21 +14,21 @@ export class FeatureFinderBase {
 
   private static readonly PROFILES_YML = 'profiles.yml';
 
-  dbtCommandFactory: DbtCommandFactory;
+  availableDbtPromise: Promise<DbtVersionInfo | undefined>;
   versionInfo?: DbtVersionInfo;
   profilesYmlDir: string;
 
-  constructor(public pythonInfo: PythonInfo | undefined, private dbtCommandExecutor: DbtCommandExecutor, profilesDir: string | undefined) {
+  constructor(public pythonInfo: PythonInfo, private dbtCommandExecutor: DbtCommandExecutor, profilesDir: string | undefined) {
     this.profilesYmlDir = slash(path.resolve(FeatureFinderBase.getProfilesYmlDir(profilesDir)));
-    this.dbtCommandFactory = new DbtCommandFactory(pythonInfo?.path, this.profilesYmlDir);
+    this.availableDbtPromise = this.getAvailableDbt();
   }
 
   getProfilesYmlPath(): string {
     return path.join(this.profilesYmlDir, FeatureFinderBase.PROFILES_YML);
   }
 
-  getPythonPath(): string | undefined {
-    return this.pythonInfo?.path;
+  getPythonPath(): string {
+    return this.pythonInfo.path;
   }
 
   async getDbtCoreInstallVersions(): Promise<string[]> {
@@ -43,16 +41,18 @@ export class FeatureFinderBase {
     return versions.filter(v => !/[a-zA-Z]/.test(v));
   }
 
-  protected async findDbtPythonInfoOld(): Promise<DbtVersionInfo | undefined> {
-    return this.findCommandPythonInfo(this.dbtCommandFactory.getDbtWithPythonVersionOld());
+  async getAvailableDbt(): Promise<DbtVersionInfo | undefined> {
+    try {
+      this.versionInfo = await this.findCommandInfo();
+    } catch {
+      this.versionInfo = undefined;
+    }
+    console.log(`Version ${this.versionInfo ? getStringVersion(this.versionInfo.installedVersion) : 'not found'}`);
+    return this.versionInfo;
   }
 
-  protected async findDbtPythonInfo(): Promise<DbtVersionInfo | undefined> {
-    return this.findCommandPythonInfo(this.dbtCommandFactory.getDbtWithPythonVersion());
-  }
-
-  protected async findCommandInfo(command: Command): Promise<DbtVersionInfo> {
-    const { stdout, stderr } = await this.dbtCommandExecutor.execute(command);
+  private async findCommandInfo(): Promise<DbtVersionInfo> {
+    const { stdout, stderr } = await this.dbtCommandExecutor.version();
 
     let installedVersion = FeatureFinderBase.readVersionByPattern(stderr, FeatureFinderBase.DBT_INSTALLED_VERSION_PATTERN);
     let latestVersion = FeatureFinderBase.readVersionByPattern(stderr, FeatureFinderBase.DBT_LATEST_VERSION_PATTERN);
@@ -81,14 +81,6 @@ export class FeatureFinderBase {
       console.log(`Failed to get package versions: ${e instanceof Error ? e.message : String(e)}`);
       return [];
     }
-  }
-
-  private async findCommandPythonInfo(command: Command): Promise<DbtVersionInfo | undefined> {
-    return command.python ? this.findCommandInfo(command) : undefined;
-  }
-
-  protected getLogString(name: string, dbtVersionInfo?: DbtVersionInfo): string {
-    return dbtVersionInfo ? `${name} = ${getStringVersion(dbtVersionInfo.installedVersion)} ` : '';
   }
 
   private static getInstalledAdapters(data: string): AdapterInfo[] {

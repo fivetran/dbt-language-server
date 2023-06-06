@@ -10,16 +10,17 @@ import { DestinationContext } from './DestinationContext';
 import { DiagnosticGenerator } from './DiagnosticGenerator';
 import { FileChangeListener } from './FileChangeListener';
 import { HoverProvider } from './HoverProvider';
+import { JinjaParser } from './JinjaParser';
 import { Logger } from './Logger';
+import { MacroCompilationServer } from './MacroCompilationServer';
 import { ModelProgressReporter } from './ModelProgressReporter';
 import { NotificationSender } from './NotificationSender';
 import { ProjectChangeListener } from './ProjectChangeListener';
 import { ProjectProgressReporter } from './ProjectProgressReporter';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { DbtCli } from './dbt_execution/DbtCli';
-import { DbtCommandExecutor } from './dbt_execution/commands/DbtCommandExecutor';
-import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
-import { SqlDefinitionProvider } from './definition/SqlDefinitionProvider';
+import { DbtCommandExecutor } from './dbt_execution/DbtCommandExecutor';
+import { DefinitionProvider } from './definition/DefinitionProvider';
 import { DbtDocumentKindResolver } from './document/DbtDocumentKindResolver';
 import { DbtTextDocument } from './document/DbtTextDocument';
 import { FeatureFinder } from './feature_finder/FeatureFinder';
@@ -30,6 +31,7 @@ import { LspServerBase } from './lsp_server/LspServerBase';
 import { NoProjectLspServer } from './lsp_server/NoProjectLspServer';
 import { ManifestParser } from './manifest/ManifestParser';
 import { DbtProjectStatusSender } from './status_bar/DbtProjectStatusSender';
+import path = require('node:path');
 
 sourceMapSupport.install({ handleUncaughtExceptions: false });
 
@@ -37,12 +39,10 @@ sourceMapSupport.install({ handleUncaughtExceptions: false });
 // Also include all preview / proposed LSP features.
 const connection = createConnection(ProposedFeatures.all);
 const customInitParamsSchema = z.object({
-  pythonInfo: z.optional(
-    z.object({
-      path: z.string(),
-      version: z.optional(z.array(z.string())),
-    }),
-  ),
+  pythonInfo: z.object({
+    path: z.string(),
+    version: z.optional(z.array(z.string())),
+  }),
   lspMode: z.union([z.literal('dbtProject'), z.literal('noProject')]),
   enableEntireProjectAnalysis: z.boolean(),
   disableLogger: z.optional(z.boolean()),
@@ -61,19 +61,21 @@ connection.onInitialize((params: InitializeParams): InitializeResult<unknown> | 
 
 function createLspServer(customInitParams: CustomInitParams, workspaceFolder: string): LspServerBase<FeatureFinderBase> {
   const notificationSender = new NotificationSender(connection);
+  const dbtCommandExecutor = new DbtCommandExecutor(customInitParams.pythonInfo.path, `"${path.resolve(__dirname, '..', 'dbt_core.py')}"`);
   if (customInitParams.lspMode === 'noProject') {
-    const noProjectFeatureFinder = new NoProjectFeatureFinder(customInitParams.pythonInfo, new DbtCommandExecutor());
+    const noProjectFeatureFinder = new NoProjectFeatureFinder(customInitParams.pythonInfo, dbtCommandExecutor);
     return new NoProjectLspServer(connection, notificationSender, noProjectFeatureFinder);
   }
-  return createLspServerForProject(customInitParams, workspaceFolder, notificationSender);
+  return createLspServerForProject(customInitParams, workspaceFolder, notificationSender, dbtCommandExecutor);
 }
 
 function createLspServerForProject(
   customInitParams: CustomInitParams,
   workspaceFolder: string,
   notificationSender: NotificationSender,
+  dbtCommandExecutor: DbtCommandExecutor,
 ): LspServerBase<FeatureFinderBase> {
-  const featureFinder = new FeatureFinder(customInitParams.pythonInfo, new DbtCommandExecutor(), customInitParams.profilesDir);
+  const featureFinder = new FeatureFinder(customInitParams.pythonInfo, dbtCommandExecutor, customInitParams.profilesDir);
 
   const modelProgressReporter = new ModelProgressReporter(connection);
   const projectProgressReporter = new ProjectProgressReporter(connection);
@@ -88,14 +90,15 @@ function createLspServerForProject(
   const fileChangeListener = new FileChangeListener(dbtProject, manifestParser, dbtRepository);
   const dbtProfileCreator = new DbtProfileCreator(dbtProject, featureFinder.getProfilesYmlPath());
   const statusSender = new DbtProjectStatusSender(notificationSender, dbtRepository, featureFinder, fileChangeListener, dbtProject.findProfileName());
-  const dbt = new DbtCli(featureFinder, connection, modelProgressReporter, notificationSender);
+  const destinationContext = new DestinationContext();
+  const macroCompilationServer = new MacroCompilationServer(destinationContext, dbtRepository);
+  const dbt = new DbtCli(featureFinder, connection, modelProgressReporter, notificationSender, macroCompilationServer, dbtCommandExecutor);
   const dbtDocumentKindResolver = new DbtDocumentKindResolver(dbtRepository);
   const diagnosticGenerator = new DiagnosticGenerator(dbtRepository);
-  const dbtDefinitionProvider = new DbtDefinitionProvider(dbtRepository);
-  const sqlDefinitionProvider = new SqlDefinitionProvider(dbtRepository);
+  const jinjaParser = new JinjaParser();
+  const definitionProvider = new DefinitionProvider(dbtRepository, jinjaParser);
   const signatureHelpProvider = new SignatureHelpProvider();
   const hoverProvider = new HoverProvider();
-  const destinationContext = new DestinationContext();
   const openedDocuments = new Map<string, DbtTextDocument>();
 
   const projectChangeListener = new ProjectChangeListener(
@@ -123,8 +126,8 @@ function createLspServerForProject(
     statusSender,
     dbtDocumentKindResolver,
     diagnosticGenerator,
-    dbtDefinitionProvider,
-    sqlDefinitionProvider,
+    jinjaParser,
+    definitionProvider,
     signatureHelpProvider,
     hoverProvider,
     destinationContext,
