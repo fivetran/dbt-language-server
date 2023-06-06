@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 0.26.0 (06/06/2023)
+## What's Changed
+* In this release we override `get_columns_in_relation` to work with code and not with BigQuery dataset directly. It should help to decrease false errors you could see when using dbt macros that access information schema.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.25.3...v0.26.0
+---
+
 ## Version 0.25.3 (22/05/2023)
 ## What's Changed
 * Added support for jinja filters in `profiles.yml`.
@@ -249,12 +256,3 @@ AS (
 * Fix compilation issue on Windows.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.9.0...v0.9.1
----
-
-## Version 0.9.0 (02/09/2022)
-## What's Changed
-* Update ZetaSQL version.
-* Update function signatures descriptions.
-* Fix wrong diagnostics issues.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.8.0...v0.9.0
