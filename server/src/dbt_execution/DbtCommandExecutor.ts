@@ -31,7 +31,7 @@ export class DbtCommandExecutor {
     stderr: string;
   }> {
     return DbtCommandExecutor.PROCESS_EXECUTOR.execProcess(
-      `${this.python} ${this.scriptPath} ${macroCompilerPort} ${profilesDir} deps'`,
+      `${this.python} ${this.scriptPath} ${macroCompilerPort} ${profilesDir} deps`,
       onStdoutData,
       onStderrData,
     );
