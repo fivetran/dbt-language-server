@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.26.0 (01/01/1970)
+## Version 0.26.0 (06/06/2023)
 ## What's Changed
 * In this release we override `get_columns_in_relation` to work with code and not with BigQuery dataset directly. It should help to decrease false errors you could see when using dbt macros that access information schema.
 
