@@ -7,7 +7,7 @@ export class DbtCommandExecutor {
   constructor(private python: string, private scriptPath: string) {}
 
   compile(
-    macroCompilatorPort: number,
+    macroCompilerPort: number,
     profilesDir: string,
     onStdoutData: (data: string) => void,
     onStderrData: (data: string) => void,
@@ -17,14 +17,14 @@ export class DbtCommandExecutor {
     stderr: string;
   }> {
     return DbtCommandExecutor.PROCESS_EXECUTOR.execProcess(
-      `${this.python} ${this.scriptPath} ${macroCompilatorPort} ${profilesDir} compile ${params.join(' ')}`,
+      `${this.python} ${this.scriptPath} ${macroCompilerPort} ${profilesDir} compile ${params.join(' ')}`,
       onStdoutData,
       onStderrData,
     );
   }
 
   deps(
-    macroCompilatorPort: number,
+    macroCompilerPort: number,
     profilesDir: string,
     onStdoutData: (data: string) => void,
     onStderrData: (data: string) => void,
@@ -33,7 +33,7 @@ export class DbtCommandExecutor {
     stderr: string;
   }> {
     return DbtCommandExecutor.PROCESS_EXECUTOR.execProcess(
-      `${this.python} ${this.scriptPath} ${macroCompilatorPort} ${profilesDir} deps'`,
+      `${this.python} ${this.scriptPath} ${macroCompilerPort} ${profilesDir} deps'`,
       onStdoutData,
       onStderrData,
     );
