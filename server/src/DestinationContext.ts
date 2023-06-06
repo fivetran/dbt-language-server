@@ -83,45 +83,39 @@ export class DestinationContext {
   }
 
   async analyzeModel(node: DagNode): Promise<ModelsAnalyzeResult[]> {
-    if (!this.projectAnalyzer) {
-      throw new Error(DestinationContext.NOT_INITIALIZED_ERROR);
-    }
+    this.ensureProjectAnalyzer(this.projectAnalyzer);
     return this.projectAnalyzer.analyzeModel(node);
   }
 
   async analyzeModelTree(node: DagNode, sql?: string): Promise<ModelsAnalyzeResult[]> {
-    if (!this.projectAnalyzer) {
-      throw new Error(DestinationContext.NOT_INITIALIZED_ERROR);
-    }
+    this.ensureProjectAnalyzer(this.projectAnalyzer);
     return this.projectAnalyzer.analyzeModelTree(node, sql);
   }
 
   async analyzeSql(sql: string): Promise<AnalyzeResult> {
-    if (!this.projectAnalyzer) {
-      throw new Error(DestinationContext.NOT_INITIALIZED_ERROR);
-    }
+    this.ensureProjectAnalyzer(this.projectAnalyzer);
     return this.projectAnalyzer.analyzeSql(sql);
   }
 
   async analyzeProject(analyzeTracker: AnalyzeTrackerFunc): Promise<ModelsAnalyzeResult[]> {
-    if (!this.projectAnalyzer) {
-      throw new Error(DestinationContext.NOT_INITIALIZED_ERROR);
-    }
+    this.ensureProjectAnalyzer(this.projectAnalyzer);
     return this.projectAnalyzer.analyzeProject(analyzeTracker);
   }
 
   resetTables(): void {
-    if (!this.projectAnalyzer) {
-      throw new Error(DestinationContext.NOT_INITIALIZED_ERROR);
-    }
+    this.ensureProjectAnalyzer(this.projectAnalyzer);
     this.projectAnalyzer.resetTables();
   }
 
   getColumnsInRelation(db: string | undefined, schema: string | undefined, tableName: string): KnownColumn[] | undefined {
-    if (!this.projectAnalyzer) {
+    this.ensureProjectAnalyzer(this.projectAnalyzer);
+    return this.projectAnalyzer.getColumnsInRelation(db, schema, tableName);
+  }
+
+  private ensureProjectAnalyzer(projectAnalyzer?: ProjectAnalyzer): asserts projectAnalyzer is ProjectAnalyzer {
+    if (!projectAnalyzer) {
       throw new Error(DestinationContext.NOT_INITIALIZED_ERROR);
     }
-    return this.projectAnalyzer.getColumnsInRelation(db, schema, tableName);
   }
 
   dispose(): void {

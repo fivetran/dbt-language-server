@@ -9,7 +9,6 @@ export class DbtCommandExecutor {
   compile(
     macroCompilerPort: number,
     profilesDir: string,
-    onStdoutData: (data: string) => void,
     onStderrData: (data: string) => void,
     params: string[],
   ): PromiseWithChild<{
@@ -18,7 +17,6 @@ export class DbtCommandExecutor {
   }> {
     return DbtCommandExecutor.PROCESS_EXECUTOR.execProcess(
       `${this.python} ${this.scriptPath} ${macroCompilerPort} ${profilesDir} compile ${params.join(' ')}`,
-      onStdoutData,
       onStderrData,
     );
   }

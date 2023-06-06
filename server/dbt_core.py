@@ -9,10 +9,8 @@ from dbt.adapters.bigquery.relation import BigQueryRelation
 import google.cloud.exceptions
 import json
 
-print("CWD: " + os.getcwd())
-
 # Expected arguments for this script: 
-# ['version'] to get version
+# ['--version'] to get version
 # ['3000', '/home/user/.dbt', 'compile', '-m', 'path/to/model.sql'] to compile model
 # ['3000', '/home/user/.dbt', 'compile'] to compile all models
 # ['3000', '/home/user/.dbt', 'deps'] to install dependencies
@@ -24,7 +22,6 @@ except:
     dbt1_5 = False
 
 def dbt_command(cli_args) -> None:
-    print(cli_args)
     if dbt1_5: 
         dbt_runner = dbtRunner()
         result = dbt_runner.invoke(cli_args)
@@ -33,7 +30,6 @@ def dbt_command(cli_args) -> None:
         import dbt.main
         dbt.main.main(cli_args)
 
-print(sys.argv)
 if sys.argv[1] == "--version":
     dbt_command(["--version"])
 else:
@@ -55,10 +51,10 @@ else:
             return bigquery_columns
             
         try:
-            table3 = self.connections.get_bq_table(
+            table_from_bq = self.connections.get_bq_table(
                 database=relation.database, schema=relation.schema, identifier=relation.identifier
             )
-            return self._get_dbt_columns_from_bq_table(table3)
+            return self._get_dbt_columns_from_bq_table(table_from_bq)
 
         except (ValueError, google.cloud.exceptions.NotFound) as e:
             return []

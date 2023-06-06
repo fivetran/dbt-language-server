@@ -6,7 +6,6 @@ import { InstallUtils } from '../InstallUtils';
 import { MacroCompilationServer } from '../MacroCompilationServer';
 import { ModelProgressReporter } from '../ModelProgressReporter';
 import { NotificationSender } from '../NotificationSender';
-import { ProcessExecutor } from '../ProcessExecutor';
 import { FeatureFinder } from '../feature_finder/FeatureFinder';
 import { DbtCliCompileJob } from './DbtCliCompileJob';
 import { DbtCommandExecutor } from './DbtCommandExecutor';
@@ -14,7 +13,6 @@ import { DbtCompileJob } from './DbtCompileJob';
 import slash = require('slash');
 
 export class DbtCli {
-  static readonly PROCESS_EXECUTOR = new ProcessExecutor();
   dbtReady = false;
   onDbtReadyEmitter = new Emitter<void>();
 
@@ -46,7 +44,7 @@ export class DbtCli {
     if (!this.macroCompilationServer.port) {
       throw new Error('Incorrect state: macroCompilationServer port is required');
     }
-    return this.dbtCommandExecutor.compile(this.macroCompilationServer.port, this.featureFinder.profilesYmlDir, log, log, params);
+    return this.dbtCommandExecutor.compile(this.macroCompilationServer.port, this.featureFinder.profilesYmlDir, log, params);
   }
 
   async prepare(dbtProfileType?: string): Promise<void> {

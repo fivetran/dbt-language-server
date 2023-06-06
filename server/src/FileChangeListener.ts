@@ -60,10 +60,6 @@ export class FileChangeListener {
     return changes.some(c => URI.parse(c.uri).fsPath === fsPath);
   }
 
-  changeStartsWithPath(changes: FileEvent[], fsPath: string): boolean {
-    return changes.some(c => URI.parse(c.uri).fsPath.startsWith(fsPath));
-  }
-
   updateDbtProjectConfig(): void {
     this.dbtRepository.dbtTargetPath = path.normalize(this.dbtProject.findTargetPath());
     this.dbtRepository.projectName = this.dbtProject.findProjectName();
