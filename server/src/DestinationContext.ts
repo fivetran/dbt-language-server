@@ -103,8 +103,7 @@ export class DestinationContext {
   }
 
   resetTables(): void {
-    this.ensureProjectAnalyzer(this.projectAnalyzer);
-    this.projectAnalyzer.resetTables();
+    this.projectAnalyzer?.resetTables();
   }
 
   getColumnsInRelation(db: string | undefined, schema: string | undefined, tableName: string): KnownColumn[] | undefined {
