@@ -142,6 +142,10 @@ async function showPreview(): Promise<void> {
   await commands.executeCommand('WizardForDbtCore(TM).showQueryPreview');
 }
 
+export async function analyzeEntireProject(): Promise<void> {
+  await commands.executeCommand('WizardForDbtCore(TM).analyzeEntireProject');
+}
+
 export async function closeAllEditors(): Promise<void> {
   await commands.executeCommand('workbench.action.closeAllEditors');
 }

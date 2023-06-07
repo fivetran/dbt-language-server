@@ -1,4 +1,5 @@
-import { assertThat, instanceOf } from 'hamjest';
+import { assertThat, falsy, instanceOf, truthy } from 'hamjest';
+import * as fs from 'node:fs';
 import { MarkdownString, Position, Range } from 'vscode';
 import { assertDefinitions } from './asserts';
 import {
@@ -6,15 +7,38 @@ import {
   POSTGRES_PATH,
   activateAndWait,
   activateAndWaitManifestParsed,
+  analyzeEntireProject,
   executeSignatureHelpProvider,
+  getAbsolutePath,
   getCustomDocUri,
   getPreviewText,
+  sleep,
 } from './helper';
+import path = require('node:path');
 
 const ACTIVE_USERS_URI = getCustomDocUri('postgres/models/active_users.sql');
 const ORDERS_COUNT_DOC_URI = getCustomDocUri('postgres/models/active_users_orders_count.sql');
 
 suite('Postgres destination', () => {
+  test('Should compile postgres project successfully', async () => {
+    const targetFolder = getAbsolutePath('postgres/target');
+    const manifest = path.resolve(targetFolder, 'manifest.json');
+    try {
+      fs.rmdirSync(targetFolder, { recursive: true });
+    } catch {
+      // Ignore
+    }
+    assertThat(fs.existsSync(targetFolder), falsy());
+
+    await activateAndWaitManifestParsed(getCustomDocUri('postgres/dbt_project.yml'), POSTGRES_PATH);
+    await analyzeEntireProject();
+    while (!fs.existsSync(manifest)) {
+      await sleep(300);
+    }
+
+    assertThat(fs.existsSync(manifest), truthy());
+  });
+
   test('Should compile postgres documents', async () => {
     await activateAndWait(ACTIVE_USERS_URI);
 
