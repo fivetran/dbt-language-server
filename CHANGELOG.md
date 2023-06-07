@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 0.26.1 (01/01/1970)
+## What's Changed
+* Fixed an error that occurred while compiling the project for adapters other than BigQuery.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.26.0...v0.26.1
+---
+
 ## Version 0.26.0 (06/06/2023)
 ## What's Changed
 * In this release we override `get_columns_in_relation` to work with code and not with BigQuery dataset directly. It should help to decrease false errors you could see when using dbt macros that access information schema.
@@ -248,11 +255,3 @@ AS (
 * Support linux-arm64 platform.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.9.1...v0.10.0
----
-
-## Version 0.9.1 (05/09/2022)
-## What's Changed
-* Fix issue with handling new tabs created using VS Code API.
-* Fix compilation issue on Windows.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.9.0...v0.9.1
