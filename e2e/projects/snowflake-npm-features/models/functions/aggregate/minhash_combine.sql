@@ -1,27 +1,10 @@
-WITH sample_data AS (
-SELECT 1 AS value
-UNION ALL
-SELECT 2
-UNION ALL
-SELECT 3
-UNION ALL
-SELECT 4
-UNION ALL
-SELECT 5
-UNION ALL
-SELECT 6
-UNION ALL
-SELECT 7
-UNION ALL
-SELECT 8
-UNION ALL
-SELECT 9
-UNION ALL
-SELECT 10
-),
-minhash_values AS (
-SELECT MINHASH(value) AS minhash_result
-FROM sample_data
-GROUP BY value
+WITH source_data AS (
+    SELECT 'John' AS name, 'Doe' AS surname, 'USA' AS country UNION ALL
+    SELECT 'Jane' AS name, 'Doe' AS surname, 'USA' AS country UNION ALL
+    SELECT 'Bob' AS name, 'Smith' AS surname, 'UK' AS country UNION ALL
+    SELECT 'Alice' AS name, 'Johnson' AS surname, 'Canada' AS country
 )
-SELECT MINHASH_COMBINE(minhash_result) AS combined_minhash FROM minhash_values;
+
+SELECT country, OBJECT_AGG(name, TO_VARIANT(surname)) AS names
+FROM source_data
+GROUP BY country;

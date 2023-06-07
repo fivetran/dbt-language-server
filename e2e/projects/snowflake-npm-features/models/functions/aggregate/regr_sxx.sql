@@ -19,4 +19,4 @@ WITH sample_data AS (
     UNION ALL
     SELECT 10, 20
 )
-SELECT REGR_SXX(x, y) AS regr_sxx_result FROM sample_data;
+SELECT REGR_SXX(x, y), REGR_SXX(1, 2), REGR_SXX(1.1, 2.2) FROM sample_data;

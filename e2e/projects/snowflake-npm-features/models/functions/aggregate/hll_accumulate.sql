@@ -1,25 +1,14 @@
-WITH sales_data AS (
-    SELECT 1 AS customer_id
-    UNION ALL
-    SELECT 1
-    UNION ALL
-    SELECT 2
-    UNION ALL
-    SELECT 3
-    UNION ALL
-    SELECT 3
-    UNION ALL
-    SELECT 4
-    UNION ALL
-    SELECT 4
-    UNION ALL
-    SELECT 5
-    UNION ALL
-    SELECT 6
-),
-hll_accumulated AS (
-    SELECT HLL_ACCUMULATE(HLL(customer_id)) AS hll_result
-    FROM sales_data
-    GROUP BY customer_id
+WITH source_data AS (
+  SELECT 'A' as letter UNION ALL
+  SELECT 'B' UNION ALL
+  SELECT 'A' UNION ALL
+  SELECT 'C' UNION ALL
+  SELECT 'B' UNION ALL
+  SELECT 'D' UNION ALL
+  SELECT 'E' UNION ALL
+  SELECT 'F' UNION ALL
+  SELECT 'G' UNION ALL
+  SELECT 'H'
 )
-SELECT HLL_COMBINE(hll_result) AS unique_customers FROM hll_accumulated;
+SELECT HLL_ACCUMULATE(letter) as hll_accumulated
+FROM source_data;

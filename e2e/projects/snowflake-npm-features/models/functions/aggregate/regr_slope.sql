@@ -19,4 +19,4 @@ WITH sample_data AS (
     UNION ALL
     SELECT 10, 20
 )
-SELECT REGR_SLOPE(x, y) AS regr_slope_result FROM sample_data;
+SELECT REGR_SLOPE(x, y), REGR_SLOPE(1, 2), REGR_SLOPE(1.1, 2.2) FROM sample_data;
