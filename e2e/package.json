@@ -9,7 +9,7 @@
     "@types/glob": "^8.1.0",
     "@types/pg": "^8.10.1",
     "@types/snowflake-sdk": "^1.6.12",
-    "@types/vscode": "^1.78.1",
+    "@types/vscode": "^1.79.0",
     "@vscode/test-electron": "^2.3.2",
     "clipboardy": "^2.3.0",
     "dbt-language-server-common": "file:../common",
