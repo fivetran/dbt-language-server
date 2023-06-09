@@ -7,7 +7,7 @@
   "devDependencies": {
     "@google-cloud/bigquery": "^6.2.0",
     "@types/glob": "^8.1.0",
-    "@types/pg": "^8.10.1",
+    "@types/pg": "^8.10.2",
     "@types/snowflake-sdk": "^1.6.12",
     "@types/vscode": "^1.78.1",
     "@vscode/test-electron": "^2.3.2",
