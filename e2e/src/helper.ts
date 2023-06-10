@@ -421,10 +421,10 @@ export async function renameCurrentFile(newName: string): Promise<Uri> {
   return newUri;
 }
 
-export async function deleteCurrentFile(): Promise<void> {
-  await commands.executeCommand('workbench.files.action.showActiveFileInExplorer');
-  await commands.executeCommand('deleteFile');
-}
+// export async function deleteCurrentFile(): Promise<void> {
+//   await commands.executeCommand('workbench.files.action.showActiveFileInExplorer');
+//   await commands.executeCommand('deleteFile');
+// }
 
 export function getTextInQuotesIfNeeded(text: string, withQuotes: boolean): string {
   return withQuotes ? `'${text}'` : text;
