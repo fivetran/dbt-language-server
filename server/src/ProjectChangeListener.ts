@@ -108,7 +108,7 @@ export class ProjectChangeListener {
 
     if (node) {
       const results = await this.destinationContext.analyzeModelTree(node, sql);
-      this.sendDiagnosticsForDocuments(results);
+      this.sendDiagnosticsForDocuments(results.filter(r => r.modelUniqueId !== node.getValue().uniqueId));
       mainModelResult = results.find(r => r.modelUniqueId === node.getValue().uniqueId)?.analyzeResult;
     } else {
       const result = await this.destinationContext.analyzeSql(sql);
