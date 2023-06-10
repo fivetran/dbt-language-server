@@ -83,8 +83,7 @@ suite('Errors', () => {
     assertThat(languages.getDiagnostics(newUri), hasSize(0));
   });
 
-  // TODO: Uncomment later (ref with 2 parameters doesn't work in 1.5.0)
-  test.skip('Should clear diagnostics when catalog changed due to fix from other file', async () => {
+  test('Should clear diagnostics when catalog changed due to fix from other file', async () => {
     await activateAndWait(COMPARE_DATES_URI);
     await assertAllDiagnostics(COMPARE_DATES_URI, [
       {
