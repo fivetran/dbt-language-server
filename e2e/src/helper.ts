@@ -400,7 +400,9 @@ export async function createAndOpenTempModel(workspaceName: string, waitFor: 'pr
 
 export async function renameCurrentFile(newName: string): Promise<Uri> {
   const { uri } = doc;
-  const newUri = uri.with({ path: uri.path.slice(0, uri.path.lastIndexOf('/') + 1) + newName });
+
+  const currentFileName = uri.path.slice(uri.path.lastIndexOf('/') + 1);
+  const newUri = uri.with({ path: uri.path.replace(currentFileName, `${newName}.sql`) });
 
   const renameFinished = createChangePromise('preview');
 
@@ -408,7 +410,6 @@ export async function renameCurrentFile(newName: string): Promise<Uri> {
 
   await commands.executeCommand('workbench.files.action.showActiveFileInExplorer');
   await commands.executeCommand('renameFile');
-  await commands.executeCommand('editor.action.selectAll');
   await commands.executeCommand('editor.action.clipboardPasteAction');
   await commands.executeCommand('workbench.action.showCommands');
 
@@ -420,12 +421,8 @@ export async function renameCurrentFile(newName: string): Promise<Uri> {
 }
 
 export async function deleteCurrentFile(): Promise<void> {
-  const deleteFinished = createChangePromise('preview');
-
   await commands.executeCommand('workbench.files.action.showActiveFileInExplorer');
   await commands.executeCommand('deleteFile');
-
-  await deleteFinished;
 }
 
 export function getTextInQuotesIfNeeded(text: string, withQuotes: boolean): string {

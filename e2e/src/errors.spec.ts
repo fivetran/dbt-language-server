@@ -70,7 +70,7 @@ suite('Errors', () => {
     assertThat(diagnostics[0].message, containsString('Table not found: dbt_ls_e2e_dataset.test_table10'));
     assertThat(getPreviewText(), query);
 
-    const newUri = await renameCurrentFile('temp_model_renamed.sql');
+    const newUri = await renameCurrentFile('temp_model_renamed');
 
     // Diagnostic should exist for new file and shouldn't exist for old file
     assertThat(getPreviewText(), query);
