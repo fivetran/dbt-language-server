@@ -405,16 +405,13 @@ export async function renameCurrentFile(newName: string): Promise<Uri> {
   const currentFileName = uri.path.slice(uri.path.lastIndexOf('/') + 1);
   const newUri = uri.with({ path: uri.path.replace(currentFileName, `${newName}.sql`) });
 
-  const renameFinished = createChangePromise('preview');
-
   clipboard.writeSync(newName);
 
   await commands.executeCommand('workbench.files.action.showActiveFileInExplorer');
   await commands.executeCommand('renameFile');
   await commands.executeCommand('editor.action.clipboardPasteAction');
   await commands.executeCommand('workbench.action.showCommands');
-
-  await renameFinished;
+  await sleep(400);
 
   await openDocument(newUri);
 
