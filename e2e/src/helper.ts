@@ -80,8 +80,8 @@ export async function openDocument(docUri: Uri): Promise<void> {
 
 export async function activateAndWait(docUri: Uri): Promise<void> {
   const existingEditor = findExistingEditor(docUri);
-  const waitOnlySwitchingBetweenTabs =
-    existingEditor && existingEditor.document.getText() === window.activeTextEditor?.document.getText() && getPreviewEditor();
+  const waitOnlySwitchingBetweenTabs = Boolean(existingEditor && existingEditor === window.activeTextEditor && getPreviewEditor());
+  console.log(`waitOnlySwitchingBetweenTabs: ${waitOnlySwitchingBetweenTabs.toString()}`);
   const activateFinished = waitOnlySwitchingBetweenTabs ? Promise.resolve() : createChangePromise('preview');
 
   await openDocument(docUri);
@@ -110,6 +110,7 @@ function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
     ) {
       return;
     }
+    console.log(`Preview changed: ${e.contentChanges[0].text}`);
     previewPromiseResolve();
   } else if (e.document === doc && documentPromiseResolve) {
     documentPromiseResolve();
