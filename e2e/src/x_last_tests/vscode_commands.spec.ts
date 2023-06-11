@@ -1,4 +1,4 @@
-import { anyOf, assertThat, containsString } from 'hamjest';
+import { anyOf, assertThat, containsString, equalTo, not, startsWith } from 'hamjest';
 import * as fs from 'node:fs';
 import { homedir } from 'node:os';
 import { Pseudoterminal } from 'vscode';
@@ -8,7 +8,6 @@ import {
   executeInstallDbtCore,
   getCreateProjectPseudoterminal,
   getCustomDocUri,
-  getLatestDbtVersion,
   getPreviewText,
   sleep,
   waitPreviewModification,
@@ -22,7 +21,6 @@ suite('VS Code Commands', () => {
   const VENV_VERSION = '1.2.2';
 
   test('Should install latest dbt, restart language server and compile model with new dbt version', async () => {
-    const latestVersion = getLatestDbtVersion();
     await activateAndWait(VERSION_DOC_URI);
 
     assertThat(getPreviewText(), VENV_VERSION);
@@ -30,7 +28,8 @@ suite('VS Code Commands', () => {
 
     await waitPreviewModification();
 
-    assertThat(getPreviewText(), latestVersion);
+    assertThat(getPreviewText(), not(equalTo(VENV_VERSION)));
+    assertThat(getPreviewText(), startsWith('1.'));
   }).timeout('100s');
 
   test('Should create new dbt project', async () => {

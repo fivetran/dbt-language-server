@@ -284,22 +284,6 @@ export function installExtension(extensionId: string): void {
   console.log(`Installation extension ${extensionId} finished successfully.`);
 }
 
-export function getLatestDbtVersion(): string {
-  const commandResult = spawnSync('dbt', ['--version'], {
-    encoding: 'utf8',
-  });
-
-  const match = /latest.*:\s+(\d+\.\d+\.\d+)/.exec(commandResult.stdout);
-  if (!match) {
-    throw new Error('Failed to find latest dbt version');
-  }
-
-  const [, latestDbtVersion] = match;
-  console.log(`Latest dbt version ${latestDbtVersion}`);
-
-  return match[1];
-}
-
 export function disableExtension(extensionId: string): SpawnSyncReturns<string> {
   console.log(`Disabling extension ${extensionId}`);
   const extensionsInstallPathParam = `--extensions-dir=${process.env['EXTENSIONS_INSTALL_PATH'] ?? ''}`;
