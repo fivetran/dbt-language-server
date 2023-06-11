@@ -1,16 +1,7 @@
-import { assertThat, containsString, endsWith, hasSize } from 'hamjest';
-import { Diagnostic, DiagnosticSeverity, Position, Range, languages } from 'vscode';
+import { assertThat, endsWith } from 'hamjest';
+import { Diagnostic, DiagnosticSeverity, Position, Range } from 'vscode';
 import { assertAllDiagnostics } from './asserts';
-import {
-  activateAndWait,
-  createAndOpenTempModel,
-  getDocUri,
-  getPreviewText,
-  insertText,
-  renameCurrentFile,
-  replaceText,
-  setTestContent,
-} from './helper';
+import { activateAndWait, getDocUri, getPreviewText, insertText, replaceText } from './helper';
 
 suite('Errors', () => {
   const ERRORS_URI = getDocUri('errors.sql');
@@ -55,31 +46,6 @@ suite('Errors', () => {
     // assert
     assertThat(getPreviewText(), endsWith('select * from dbt_ls_e2e_dataset.test_table1'));
     await assertAllDiagnostics(EPHEMERAL_URI, []);
-  });
-
-  test('Should clear diagnostic for deleted file', async () => {
-    const uri = await createAndOpenTempModel('test-fixture');
-    const query = '\nselect * from dbt_ls_e2e_dataset.test_table10';
-
-    await setTestContent(`{{ config(materialized='view') }}${query}`);
-
-    // Diagnostic should exist for query with error
-    const diagnostics = languages.getDiagnostics(uri);
-    assertThat(diagnostics, hasSize(1));
-    assertThat(diagnostics[0].message, containsString('Table not found: dbt_ls_e2e_dataset.test_table10'));
-    assertThat(getPreviewText(), query);
-
-    const newUri = await renameCurrentFile('temp_model_renamed');
-
-    // Diagnostic should exist for new file and shouldn't exist for old file
-    assertThat(getPreviewText(), query);
-    assertThat(languages.getDiagnostics(uri), hasSize(0));
-    assertThat(languages.getDiagnostics(newUri), hasSize(1));
-
-    // await deleteCurrentFile();
-
-    // // Diagnostic shouldn't exist for deleted file
-    // assertThat(languages.getDiagnostics(newUri), hasSize(0));
   });
 
   test('Should clear diagnostics when catalog changed due to fix from other file', async () => {

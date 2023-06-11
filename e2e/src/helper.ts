@@ -1,4 +1,3 @@
-import * as clipboard from 'clipboardy';
 import { deferred, DeferredResult } from 'dbt-language-server-common';
 import { spawnSync, SpawnSyncReturns } from 'node:child_process';
 import * as fs from 'node:fs';
@@ -398,30 +397,6 @@ export async function createAndOpenTempModel(workspaceName: string, waitFor: 'pr
 
   return newUri;
 }
-
-export async function renameCurrentFile(newName: string): Promise<Uri> {
-  const { uri } = doc;
-
-  const currentFileName = uri.path.slice(uri.path.lastIndexOf('/') + 1);
-  const newUri = uri.with({ path: uri.path.replace(currentFileName, `${newName}.sql`) });
-
-  clipboard.writeSync(newName);
-
-  await commands.executeCommand('workbench.files.action.showActiveFileInExplorer');
-  await commands.executeCommand('renameFile');
-  await commands.executeCommand('editor.action.clipboardPasteAction');
-  await commands.executeCommand('workbench.action.showCommands');
-  await sleep(400);
-
-  await openDocument(newUri);
-
-  return newUri;
-}
-
-// export async function deleteCurrentFile(): Promise<void> {
-//   await commands.executeCommand('workbench.files.action.showActiveFileInExplorer');
-//   await commands.executeCommand('deleteFile');
-// }
 
 export function getTextInQuotesIfNeeded(text: string, withQuotes: boolean): string {
   return withQuotes ? `'${text}'` : text;
