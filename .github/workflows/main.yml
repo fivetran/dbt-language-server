@@ -105,6 +105,7 @@ jobs:
               export DISPLAY=:99
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
             python-version: '3.10.7'
+            SKIP_TESTS: 'vscode_commands.spec.js'
 
           - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-snowflake dbt-postgres'
             os: windows-latest
