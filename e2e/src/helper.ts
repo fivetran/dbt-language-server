@@ -126,7 +126,7 @@ export async function waitDocumentModification(func: () => Promise<void>): Promi
   await waitWithTimeout(promise, 1000);
 }
 
-async function waitPreviewModification(func?: () => Promise<void>): Promise<void> {
+export async function waitPreviewModification(func?: () => Promise<void>): Promise<void> {
   const promise = createChangePromise('preview');
   if (func) {
     await func();
@@ -284,21 +284,21 @@ export function installExtension(extensionId: string): void {
   console.log(`Installation extension ${extensionId} finished successfully.`);
 }
 
-// export function getLatestDbtVersion(): string {
-//   const commandResult = spawnSync('dbt', ['--version'], {
-//     encoding: 'utf8',
-//   });
+export function getLatestDbtVersion(): string {
+  const commandResult = spawnSync('dbt', ['--version'], {
+    encoding: 'utf8',
+  });
 
-//   const match = /latest.*:\s+(\d+\.\d+\.\d+)/.exec(commandResult.stderr);
-//   if (!match) {
-//     throw new Error('Failed to find latest dbt version');
-//   }
+  const match = /latest.*:\s+(\d+\.\d+\.\d+)/.exec(commandResult.stderr);
+  if (!match) {
+    throw new Error('Failed to find latest dbt version');
+  }
 
-//   const [, latestDbtVersion] = match;
-//   console.log(`Latest dbt version ${latestDbtVersion}`);
+  const [, latestDbtVersion] = match;
+  console.log(`Latest dbt version ${latestDbtVersion}`);
 
-//   return match[1];
-// }
+  return match[1];
+}
 
 export function disableExtension(extensionId: string): SpawnSyncReturns<string> {
   console.log(`Disabling extension ${extensionId}`);
@@ -358,9 +358,9 @@ export async function executeSignatureHelpProvider(docUri: Uri, position: Positi
   return commands.executeCommand<SignatureHelp>('vscode.executeSignatureHelpProvider', docUri, position, triggerChar);
 }
 
-// export async function executeInstallDbtCore(): Promise<void> {
-//   return commands.executeCommand('WizardForDbtCore(TM).installDbtCore', undefined, true);
-// }
+export async function executeInstallDbtCore(): Promise<void> {
+  return commands.executeCommand('WizardForDbtCore(TM).installDbtCore', undefined, true);
+}
 
 export async function executeCreateDbtProject(fsPath: string): Promise<void> {
   return commands.executeCommand('WizardForDbtCore(TM).createDbtProject', fsPath, true);
