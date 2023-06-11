@@ -289,7 +289,7 @@ export function getLatestDbtVersion(): string {
     encoding: 'utf8',
   });
 
-  const match = /latest.*:\s+(\d+\.\d+\.\d+)/.exec(commandResult.stderr);
+  const match = /latest.*:\s+(\d+\.\d+\.\d+)/.exec(commandResult.stdout);
   if (!match) {
     throw new Error('Failed to find latest dbt version');
   }
