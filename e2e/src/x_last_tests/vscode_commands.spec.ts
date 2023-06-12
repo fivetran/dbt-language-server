@@ -20,7 +20,7 @@ suite('VS Code Commands', () => {
 
   const VENV_VERSION = '1.2.2';
 
-  test('Should install latest dbt, restart language server and compile model with new dbt version', async () => {
+  test('Should return list of versions', async () => {
     // arrange
     await activateAndWait(VERSION_DOC_URI);
     assertThat(getPreviewText(), VENV_VERSION);
