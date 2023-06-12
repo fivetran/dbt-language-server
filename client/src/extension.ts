@@ -6,8 +6,9 @@ import { log } from './Logger';
 import { OutputChannelProvider } from './OutputChannelProvider';
 
 export const outputChannelProvider = new OutputChannelProvider();
-let extensionClient: ExtensionClient;
+export let api: ExtensionApi;
 
+let extensionClient: ExtensionClient;
 // ts-unused-exports:disable-next-line
 export function activate(context: ExtensionContext): ExtensionApi {
   const manifestParsedEventEmitter = new EventEmitter();
@@ -15,7 +16,8 @@ export function activate(context: ExtensionContext): ExtensionApi {
   extensionClient = new ExtensionClient(context, outputChannelProvider, manifestParsedEventEmitter);
   extensionClient.onActivate().catch(e => log(`Error during onActivate: ${e instanceof Error ? e.message : String(e)}`));
 
-  return { manifestParsedEventEmitter, statusHandler: extensionClient.statusHandler };
+  api = { manifestParsedEventEmitter, statusHandler: extensionClient.statusHandler };
+  return api;
 }
 
 // ts-unused-exports:disable-next-line

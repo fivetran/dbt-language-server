@@ -13,6 +13,8 @@ import {
   LanguageStatusItem,
   Position,
   Pseudoterminal,
+  QuickPick,
+  QuickPickItem,
   Range,
   Selection,
   SignatureHelp,
@@ -29,6 +31,7 @@ import EventEmitter = require('node:events');
 interface ExtensionApi {
   manifestParsedEventEmitter: EventEmitter;
   statusHandler: unknown;
+  quickPick?: QuickPick<QuickPickItem>;
 }
 const LS_MANIFEST_PARSED_EVENT = 'manifestParsedEvent';
 
@@ -126,7 +129,7 @@ export async function waitDocumentModification(func: () => Promise<void>): Promi
   await waitWithTimeout(promise, 1000);
 }
 
-export async function waitPreviewModification(func?: () => Promise<void>): Promise<void> {
+async function waitPreviewModification(func?: () => Promise<void>): Promise<void> {
   const promise = createChangePromise('preview');
   if (func) {
     await func();
@@ -436,4 +439,8 @@ function trimPath(rawPath: string): string {
 
 export function getCreateProjectPseudoterminal(): Pseudoterminal {
   return (window.terminals.find(t => t.name === 'Create dbt project')?.creationOptions as ExtensionTerminalOptions).pty;
+}
+
+export function getQuickPickItems(): readonly QuickPickItem[] | undefined {
+  return extensionApi?.quickPick?.items;
 }

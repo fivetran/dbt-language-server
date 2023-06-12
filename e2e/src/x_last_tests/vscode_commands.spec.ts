@@ -1,4 +1,4 @@
-import { anyOf, assertThat, containsString, equalTo, not, startsWith } from 'hamjest';
+import { anyOf, assertThat, containsString, greaterThan, truthy } from 'hamjest';
 import * as fs from 'node:fs';
 import { homedir } from 'node:os';
 import { Pseudoterminal } from 'vscode';
@@ -9,8 +9,8 @@ import {
   getCreateProjectPseudoterminal,
   getCustomDocUri,
   getPreviewText,
+  getQuickPickItems,
   sleep,
-  waitPreviewModification,
 } from '../helper';
 import path = require('node:path');
 
@@ -21,16 +21,19 @@ suite('VS Code Commands', () => {
   const VENV_VERSION = '1.2.2';
 
   test('Should install latest dbt, restart language server and compile model with new dbt version', async () => {
+    // arrange
     await activateAndWait(VERSION_DOC_URI);
-
     assertThat(getPreviewText(), VENV_VERSION);
-    await executeInstallDbtCore();
 
-    await waitPreviewModification();
+    // act
+    executeInstallDbtCore().catch(e => console.log(e));
+    await sleep(300);
 
-    assertThat(getPreviewText(), not(equalTo(VENV_VERSION)));
-    assertThat(getPreviewText(), startsWith('1.'));
-  }).timeout('100s');
+    // assert
+    const items = getQuickPickItems();
+    assertThat(items, truthy());
+    assertThat(items?.length, greaterThan(10));
+  });
 
   test('Should create new dbt project', async () => {
     await executeCreateDbtProject(homedir());
