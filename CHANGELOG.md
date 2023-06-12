@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.26.2 (01/01/1970)
+## Version 0.26.2 (12/06/2023)
 ## What's Changed
 * Enabled [JSON functions](https://cloud.google.com/bigquery/docs/reference/standard-sql/json_functions).
 * Resolved an issue where the extension would unexpectedly restart during code editing.
