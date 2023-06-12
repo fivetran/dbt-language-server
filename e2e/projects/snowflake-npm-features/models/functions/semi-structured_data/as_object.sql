@@ -9,6 +9,7 @@ SELECT
     AS_OBJECT(variant) as obj1,
 
     AS_OBJECT(1), 
+    AS_OBJECT(TO_VARIANT(1)), 
     
     -- TODO:
     -- Convert an ARRAY to an OBJECT
