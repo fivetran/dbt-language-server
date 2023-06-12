@@ -1,6 +1,15 @@
 # Changelog
 
-## Version 0.26.1 (01/01/1970)
+## Version 0.26.2 (01/01/1970)
+## What's Changed
+* Enabled [JSON functions](https://cloud.google.com/bigquery/docs/reference/standard-sql/json_functions).
+* Resolved an issue where the extension would unexpectedly restart during code editing.
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.26.1...v0.26.2
+---
+
+## Version 0.26.1 (07/06/2023)
 ## What's Changed
 * Fixed an error that occurred while compiling the project for adapters other than BigQuery.
 
@@ -247,11 +256,3 @@ AS (
 * Fix extension restart issue for big dbt models.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.10.0...v0.11.0
----
-
-## Version 0.10.0 (14/09/2022)
-## What's Changed
-* Fix the issue with showing not all available dbt packages.
-* Support linux-arm64 platform.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.9.1...v0.10.0
