@@ -1,10 +1,10 @@
-import { Axios } from 'axios';
 import { AdapterInfo, DbtVersionInfo, getStringVersion, PythonInfo, Version } from 'dbt-language-server-common';
 import * as fs from 'node:fs';
 import { homedir } from 'node:os';
 import { DbtCommandExecutor } from '../dbt_execution/DbtCommandExecutor';
 import path = require('node:path');
 import slash = require('slash');
+import axios = require('axios');
 
 export class FeatureFinderBase {
   private static readonly DBT_INSTALLED_VERSION_PATTERN = /installed.*:\s+(\d+)\.(\d+)\.(\d+)/;
@@ -74,10 +74,10 @@ export class FeatureFinderBase {
   private async getPipPackageVersions(packageName: string): Promise<string[]> {
     const url = `https://pypi.org/pypi/${packageName}/json`;
     try {
-      const response = await new Axios().get(url);
+      const response = await axios.get(url);
       return Object.keys((response.data as { releases: { [key: string]: unknown } }).releases);
     } catch (e) {
-      console.log(`Failed to get package versions: ${e instanceof Error ? e.message : String(e)}`);
+      console.log(`Failed to get package ${packageName} versions: ${e instanceof Error ? e.message : String(e)}`);
       return [];
     }
   }

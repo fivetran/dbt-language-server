@@ -87,7 +87,7 @@ export class DbtTextDocument {
     private projectChangeListener: ProjectChangeListener,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
-    this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
+    this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, 0, doc.text);
     this.completionProvider = new CompletionProvider(
       this.rawDocument,
       this.compiledDocument,
@@ -180,7 +180,7 @@ export class DbtTextDocument {
       });
 
       TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
-      TextDocument.update(this.compiledDocument, compiledContentChanges, params.textDocument.version);
+      TextDocument.update(this.compiledDocument, compiledContentChanges, 1);
     }
   }
 
@@ -232,7 +232,7 @@ export class DbtTextDocument {
       this.dbtCli.dbtReady &&
       !this.projectChangeListener.currentDbtError &&
       !this.modelCompiler.compilationInProgress &&
-      this.compiledDocument.getText() !== this.rawDocument.getText()
+      this.compiledDocument.version !== 0
     );
   }
 
@@ -251,12 +251,12 @@ export class DbtTextDocument {
 
   async onCompilationError(dbtCompilationError: string): Promise<void> {
     console.log(`dbt compilation error: ${dbtCompilationError}`);
-    TextDocument.update(this.compiledDocument, [{ text: this.rawDocument.getText() }], this.compiledDocument.version);
+    TextDocument.update(this.compiledDocument, [{ text: this.rawDocument.getText() }], 1);
     await this.updateAndSendDiagnosticsAndPreview(dbtCompilationError);
   }
 
   async onCompilationFinished(compiledSql: string): Promise<void> {
-    TextDocument.update(this.compiledDocument, [{ text: compiledSql }], this.compiledDocument.version);
+    TextDocument.update(this.compiledDocument, [{ text: compiledSql }], 1);
     if (this.destinationContext.contextInitialized) {
       await this.updateAndSendDiagnosticsAndPreview();
     }

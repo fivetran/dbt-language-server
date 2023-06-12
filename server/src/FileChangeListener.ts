@@ -80,8 +80,8 @@ export class FileChangeListener {
         this.dbtRepository.updateDbtNodes(macros, sources, dag);
         console.log('manifest.json was parsed. Models, macros, sources were updated');
       }
-    } catch (e) {
-      console.log(`Failed to read ${ManifestParser.MANIFEST_FILE_NAME}`, e);
+    } catch {
+      console.log(`Failed to read ${ManifestParser.MANIFEST_FILE_NAME}`);
     }
   }
 }

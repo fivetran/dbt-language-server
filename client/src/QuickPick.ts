@@ -1,5 +1,6 @@
 import { Disposable, env, QuickInputButtons, QuickPick, QuickPickItem, QuickPickItemButtonEvent, window } from 'vscode';
 import { InstallDbtPackages } from './commands/InstallDbtPackages';
+import { api } from './extension';
 import { log } from './Logger';
 
 export const DbtWizardQuickPick = {
@@ -11,6 +12,7 @@ export const DbtWizardQuickPick = {
   ): Promise<string | undefined> {
     const disposables: Disposable[] = [];
     const pick = window.createQuickPick();
+    api.quickPick = pick; // Used in tests
     pick.busy = true;
     pick.buttons = options.buttons;
     pick.title = options.title;

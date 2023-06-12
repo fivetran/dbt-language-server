@@ -81,7 +81,7 @@ export class ZetaSqlWrapper {
       const extractResult = await this.extractTableNamesFromStatement(sql);
       return extractResult.tableName.map(t => new TableDefinition(t.tableNameSegment));
     } catch (e) {
-      console.log(e);
+      console.log(e instanceof Error ? e.message : e);
     }
     return [];
   }
