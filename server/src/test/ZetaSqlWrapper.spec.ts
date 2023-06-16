@@ -177,7 +177,7 @@ describe('ZetaSqlWrapper table/udf registration', () => {
   it('registerTable should register information schema in quotes', () => {
     const tableName = 'region-us.INFORMATION_SCHEMA.JOBS_BY_USER';
     const tableDefinition = new TableDefinition([tableName]);
-    shouldRegisterInformationSchema(tableDefinition, undefined, tableName);
+    shouldRegisterInformationSchema(tableDefinition, undefined, tableName.toLowerCase());
   });
 
   it('register should register added column', () => {

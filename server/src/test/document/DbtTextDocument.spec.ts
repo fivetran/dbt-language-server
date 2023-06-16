@@ -52,7 +52,7 @@ describe('DbtTextDocument', () => {
     when(mockDbtCli.onDbtReady).thenReturn(onDbtReadyEmitter.event);
 
     const dbtRepository = new DbtRepository(PROJECT_PATH, Promise.resolve(undefined));
-    destinationContext = new DestinationContext();
+    destinationContext = new DestinationContext(true);
     document = new DbtTextDocument(
       { uri: FILE_URI, languageId: 'sql', version: 1, text: TEXT },
       DbtDocumentKind.MODEL,

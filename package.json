@@ -3,7 +3,7 @@
   "displayName": "Wizard for dbt Core (TM)",
   "description": "This extension will help you work with dbt",
   "icon": "images/Icon.png",
-  "version": "0.26.2",
+  "version": "0.27.0",
   "publisher": "Fivetran",
   "license": "MIT",
   "preview": true,
@@ -41,6 +41,12 @@
           "type": "boolean",
           "default": true,
           "description": "Enables analysis for the entire project. As the result errors for all models will be shown. For for large projects, the analysis process may be slower.",
+          "scope": "resource"
+        },
+        "WizardForDbtCore(TM).enableSnowflakeSyntaxCheck": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enabling this setting activates Snowflake syntax checks. As a result, any errors within Snowflake project models will be detected and displayed. Please note that this is an experimental feature and may not be entirely reliable. It could potentially yield false positive errors, indicating issues where there are none.",
           "scope": "resource"
         },
         "WizardForDbtCore(TM).profilesDir": {

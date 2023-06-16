@@ -263,10 +263,10 @@ export class ZetaSqlWrapper {
   private ensureUdfOwnerCatalogExists(udf: Udf): SimpleCatalogProto {
     let udfOwner = this.catalog;
     if (udf.nameParts.length > 2) {
-      const projectCatalog = ZetaSqlWrapper.addChildCatalog(this.catalog, udf.nameParts[0]);
-      udfOwner = ZetaSqlWrapper.addChildCatalog(projectCatalog, udf.nameParts[1]);
+      const projectCatalog = ZetaSqlWrapper.addChildCatalog(this.catalog, udf.nameParts[0].toLowerCase());
+      udfOwner = ZetaSqlWrapper.addChildCatalog(projectCatalog, udf.nameParts[1].toLowerCase());
     } else if (udf.nameParts.length === 2) {
-      udfOwner = ZetaSqlWrapper.addChildCatalog(this.catalog, udf.nameParts[0]);
+      udfOwner = ZetaSqlWrapper.addChildCatalog(this.catalog, udf.nameParts[0].toLowerCase());
     }
     return udfOwner;
   }
