@@ -2,16 +2,17 @@ import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql
 import { arraysAreEqual } from './utils/Utils';
 
 export class TableDefinition {
-  namePath: string[];
-  datasetIndex: number;
-  timePartitioning = false;
-  external = false;
-  informationSchemaIndex = -1;
-  projectName?: string;
-  dataSetName?: string;
-  tableName?: string;
-  columns?: SimpleColumnProto[];
-  catalogCount?: number;
+  private namePath: string[];
+  private datasetIndex: number;
+  private informationSchemaIndex = -1;
+  private projectName?: string;
+  private dataSetName?: string;
+  private tableName?: string;
+
+  public timePartitioning = false;
+  public external = false;
+  public columns?: SimpleColumnProto[];
+  public catalogCount?: number;
 
   constructor(namePath: string[]) {
     if (namePath.length === 1 && namePath[0].indexOf('.') > 0) {

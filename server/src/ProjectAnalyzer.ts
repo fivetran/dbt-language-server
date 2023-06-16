@@ -236,7 +236,7 @@ export class ProjectAnalyzer {
 
     const ast = await this.zetaSqlWrapper.getAstOrError(compiledSql, catalogWithTempUdfs);
     if (ast.isOk() && model) {
-      const table = ProjectAnalyzer.createTableDefinition(model);
+      const table = this.createTableDefinition(model);
       this.fillTableWithAnalyzeResponse(table, ast.value);
       this.zetaSqlWrapper.registerTable(table);
     }
@@ -247,8 +247,8 @@ export class ProjectAnalyzer {
     };
   }
 
-  private static createTableDefinition(model: ManifestModel): TableDefinition {
-    return new TableDefinition([model.database, model.schema, model.alias ?? model.name]);
+  private createTableDefinition(model: ManifestModel): TableDefinition {
+    return this.zetaSqlWrapper.createTableDefinition([model.database, model.schema, model.alias ?? model.name]);
   }
 
   private fillTableWithAnalyzeResponse(table: TableDefinition, analyzeOutput: AnalyzeResponse__Output): void {
@@ -267,7 +267,7 @@ export class ProjectAnalyzer {
         .find(n => n.getValue().uniqueId === node && n.getValue().config?.materialized === 'ephemeral')
         ?.getValue();
       if (dependsOnEphemeralModel) {
-        const table = ProjectAnalyzer.createTableDefinition(dependsOnEphemeralModel);
+        const table = this.createTableDefinition(dependsOnEphemeralModel);
         if (!this.zetaSqlWrapper.isTableRegistered(table)) {
           await this.analyzeModelCached(dependsOnEphemeralModel, tableFetcher, undefined, visitedModels);
         }

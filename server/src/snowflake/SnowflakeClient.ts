@@ -90,7 +90,8 @@ export class SnowflakeClient implements DbtDestinationClient {
           typeKind: SnowflakeClient.toTypeKind(a),
         },
       }));
-      results.push({ nameParts, returnType: { typeKind }, arguments: args });
+      // In Snowflake names are case-insensitive so we use lowercase
+      results.push({ nameParts: nameParts.map(n => n.toLowerCase()), returnType: { typeKind }, arguments: args });
     });
 
     return runWithTimeout(
