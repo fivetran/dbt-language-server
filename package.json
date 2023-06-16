@@ -43,6 +43,12 @@
           "description": "Enables analysis for the entire project. As the result errors for all models will be shown. For for large projects, the analysis process may be slower.",
           "scope": "resource"
         },
+        "WizardForDbtCore(TM).enableSnowflakeSyntaxCheck": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enabling this setting activates Snowflake syntax checks. As a result, any errors within Snowflake models will be detected and displayed. Please note that this is an experimental feature and may not be entirely reliable. It could potentially yield false positive errors, indicating issues where there are none.",
+          "scope": "resource"
+        },
         "WizardForDbtCore(TM).profilesDir": {
           "type": "string",
           "description": "Which directory to look in for the profiles.yml file. Absolute path or relative to the directory containing dbt_project.yml. This parameter will be used in each dbt command.",

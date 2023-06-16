@@ -20,6 +20,8 @@ export class DestinationContext {
   contextInitialized = false;
   onContextInitializedEmitter = new Emitter<void>();
 
+  constructor(private enableSnowflakeSyntaxCheck: boolean) {}
+
   isEmpty(): boolean {
     return this.projectAnalyzer === undefined;
   }
@@ -77,7 +79,7 @@ export class DestinationContext {
     return (
       DestinationContext.ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) &&
       (profileResult.type?.toLowerCase().trim() === 'bigquery' ||
-        (profileResult.type?.toLowerCase().trim() === 'snowflake' && process.env['DBT_LS_ENABLE_DEBUG_LOGS'] === 'true')) && // TODO: change this condition when snowflake is supported
+        (profileResult.type?.toLowerCase().trim() === 'snowflake' && this.enableSnowflakeSyntaxCheck)) &&
       ubuntuInWslWorks
     );
   }

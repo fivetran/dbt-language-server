@@ -14,6 +14,7 @@ export interface CustomInitParams {
   pythonInfo: PythonInfo;
   lspMode: LspModeType;
   enableEntireProjectAnalysis: boolean;
+  enableSnowflakeSyntaxCheck: boolean;
   disableLogger?: boolean;
   profilesDir?: string;
 }

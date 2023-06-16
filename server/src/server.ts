@@ -45,6 +45,7 @@ const customInitParamsSchema = z.object({
   }),
   lspMode: z.union([z.literal('dbtProject'), z.literal('noProject')]),
   enableEntireProjectAnalysis: z.boolean(),
+  enableSnowflakeSyntaxCheck: z.boolean(),
   disableLogger: z.optional(z.boolean()),
   profilesDir: z.optional(z.string()),
 });
@@ -90,7 +91,7 @@ function createLspServerForProject(
   const fileChangeListener = new FileChangeListener(dbtProject, manifestParser, dbtRepository);
   const dbtProfileCreator = new DbtProfileCreator(dbtProject, featureFinder.getProfilesYmlPath());
   const statusSender = new DbtProjectStatusSender(notificationSender, dbtRepository, featureFinder, fileChangeListener, dbtProject.findProfileName());
-  const destinationContext = new DestinationContext();
+  const destinationContext = new DestinationContext(customInitParams.enableSnowflakeSyntaxCheck);
   const macroCompilationServer = new MacroCompilationServer(destinationContext, dbtRepository);
   const dbt = new DbtCli(featureFinder, connection, modelProgressReporter, notificationSender, macroCompilationServer, dbtCommandExecutor);
   const dbtDocumentKindResolver = new DbtDocumentKindResolver(dbtRepository);

@@ -59,7 +59,10 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
   }
 
   onDidChangeConfiguration(e: ConfigurationChangeEvent): void {
-    if (e.affectsConfiguration('WizardForDbtCore(TM).profilesDir', this.client.clientOptions.workspaceFolder)) {
+    if (
+      e.affectsConfiguration('WizardForDbtCore(TM).profilesDir', this.client.clientOptions.workspaceFolder) ||
+      e.affectsConfiguration('WizardForDbtCore(TM).enableSnowflakeSyntaxCheck', this.client.clientOptions.workspaceFolder)
+    ) {
       this.restart().catch(e_ => log(`Error while restarting client ${e_ instanceof Error ? e_.message : String(e_)}`));
     }
   }
