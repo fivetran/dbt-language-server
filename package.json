@@ -46,7 +46,7 @@
         "WizardForDbtCore(TM).enableSnowflakeSyntaxCheck": {
           "type": "boolean",
           "default": false,
-          "description": "Enabling this setting activates Snowflake syntax checks. As a result, any errors within Snowflake models will be detected and displayed. Please note that this is an experimental feature and may not be entirely reliable. It could potentially yield false positive errors, indicating issues where there are none.",
+          "description": "Enabling this setting activates Snowflake syntax checks. As a result, any errors within Snowflake project models will be detected and displayed. Please note that this is an experimental feature and may not be entirely reliable. It could potentially yield false positive errors, indicating issues where there are none.",
           "scope": "resource"
         },
         "WizardForDbtCore(TM).profilesDir": {
