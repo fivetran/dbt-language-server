@@ -2,16 +2,17 @@ import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql
 import { arraysAreEqual } from './utils/Utils';
 
 export class TableDefinition {
-  namePath: string[];
-  datasetIndex: number;
-  timePartitioning = false;
-  external = false;
-  informationSchemaIndex = -1;
-  projectName?: string;
-  dataSetName?: string;
-  tableName?: string;
-  columns?: SimpleColumnProto[];
-  catalogCount?: number;
+  private namePath: string[];
+  private datasetIndex: number;
+  private informationSchemaIndex = -1;
+  private projectName?: string;
+  private dataSetName?: string;
+  private tableName?: string;
+
+  public timePartitioning = false;
+  public external = false;
+  public columns?: SimpleColumnProto[];
+  public catalogCount?: number;
 
   constructor(namePath: string[]) {
     if (namePath.length === 1 && namePath[0].indexOf('.') > 0) {
@@ -46,7 +47,7 @@ export class TableDefinition {
         this.projectName = this.namePath.length >= 3 ? this.namePath[0] : undefined;
       }
     }
-    return this.projectName;
+    return this.projectName?.toLowerCase();
   }
 
   getProjectCatalogName(): string | undefined {
@@ -54,47 +55,57 @@ export class TableDefinition {
   }
 
   getDatasetCatalogName(): string | undefined {
+    let name = undefined;
     switch (this.catalogCount) {
       case 1: {
-        return undefined;
+        name = undefined;
+        break;
       }
       case 2: {
-        return `${this.namePath[0]}.${this.namePath[1]}`;
+        name = `${this.namePath[0]}.${this.namePath[1]}`;
+        break;
       }
       default: {
-        return this.getDataSetName();
+        name = this.getDataSetName();
+        break;
       }
     }
+    return name?.toLowerCase();
   }
 
   getTableNameInZetaSql(): string {
+    let name = undefined;
     switch (this.catalogCount) {
       case 1: {
-        return this.namePath.join('.');
+        name = this.namePath.join('.');
+        break;
       }
       case 2: {
-        return this.namePath[2];
+        name = this.namePath[2];
+        break;
       }
       default: {
-        return this.getTableName();
+        name = this.getTableName();
+        break;
       }
     }
+    return name.toLowerCase();
   }
 
   getDataSetName(): string | undefined {
     if (!this.dataSetName) {
-      this.dataSetName = this.containsInformationSchema()
-        ? this.namePath[this.informationSchemaIndex - 1]?.toLocaleLowerCase()
-        : this.namePath[this.datasetIndex];
+      this.dataSetName = (
+        this.containsInformationSchema() ? this.namePath[this.informationSchemaIndex - 1] : this.namePath.at(this.datasetIndex)
+      )?.toLocaleLowerCase();
     }
     return this.dataSetName;
   }
 
   getTableName(): string {
     if (!this.tableName) {
-      this.tableName = this.containsInformationSchema()
-        ? this.namePath[this.informationSchemaIndex + 1].toLocaleLowerCase()
-        : this.namePath[this.datasetIndex + 1];
+      this.tableName = (
+        this.containsInformationSchema() ? this.namePath[this.informationSchemaIndex + 1] : this.namePath[this.datasetIndex + 1]
+      ).toLocaleLowerCase();
     }
     return this.tableName;
   }
