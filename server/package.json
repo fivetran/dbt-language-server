@@ -18,7 +18,7 @@
     "neverthrow": "^6.0.0",
     "path-equal": "^1.2.5",
     "request": "^2.88.2",
-    "semver": "^7.5.1",
+    "semver": "^7.5.2",
     "slash": "^3.0.0",
     "snowflake-sdk": "^1.6.22",
     "source-map-support": "^0.5.21",
