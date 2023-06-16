@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.27.0 (01/01/1970)
+## Version 0.27.0 (16/06/2023)
 ## What's Changed
 * In this release, we've introduced a new setting, WizardForDbtCore(TM).enableSnowflakeSyntaxCheck, which is turned off by default. When activated, this setting enables syntax checks for Snowflake dbt projects. As a result, any errors within models will be detected and displayed. Please note that this is an experimental feature and may not be entirely reliable. It could potentially yield false positive errors, indicating issues where there are none.
 
