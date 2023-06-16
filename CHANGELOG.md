@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 0.27.0 (01/01/1970)
+## What's Changed
+* In this release, we've introduced a new setting, WizardForDbtCore(TM).enableSnowflakeSyntaxCheck, which is turned off by default. When activated, this setting enables syntax checks for Snowflake dbt projects. As a result, any errors within models will be detected and displayed. Please note that this is an experimental feature and may not be entirely reliable. It could potentially yield false positive errors, indicating issues where there are none.
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.26.2...v0.27.0
+---
+
 ## Version 0.26.2 (12/06/2023)
 ## What's Changed
 * Enabled [JSON functions](https://cloud.google.com/bigquery/docs/reference/standard-sql/json_functions).
@@ -247,12 +255,3 @@ AS (
 * Support absolute target path.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.11.0...v0.11.1
----
-
-## Version 0.11.0 (16/09/2022)
-## What's Changed
-* Add support for temporary UDFs.
-* Decrease VSIX package size.
-* Fix extension restart issue for big dbt models.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.10.0...v0.11.0
