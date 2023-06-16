@@ -20,7 +20,7 @@
     "request": "^2.88.2",
     "semver": "^7.5.2",
     "slash": "^3.0.0",
-    "snowflake-sdk": "^1.6.22",
+    "snowflake-sdk": "^1.6.23",
     "source-map-support": "^0.5.21",
     "vscode-languageserver": "^8.1.0",
     "vscode-languageserver-textdocument": "^1.0.8",
