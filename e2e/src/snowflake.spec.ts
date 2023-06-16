@@ -11,8 +11,8 @@ suite('Snowflake', () => {
 
     assertThat(
       getPreviewText(),
-      `select * from e2e_db.dbt_ls_e2e_dataset_dbt_ls_e2e_dataset.test_table1 as tt
-inner join lateral (select * from e2e_db.dbt_ls_e2e_dataset_dbt_ls_e2e_dataset.users as u);`,
+      `select * from e2e_db.dbt_ls_e2e_dataset.test_table1 as tt
+inner join lateral (select * from e2e_db.dbt_ls_e2e_dataset.users as u);`,
     );
     await assertAllDiagnostics(docUri, []);
 
