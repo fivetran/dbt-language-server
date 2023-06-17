@@ -22,7 +22,7 @@ export interface KnownColumn {
   type: string;
 }
 
-export class ZetaSqlWrapper {
+export abstract class ZetaSqlWrapper {
   static readonly PARTITION_TIME = '_PARTITIONTIME';
   static readonly PARTITION_DATE = '_PARTITIONDATE';
 
@@ -39,6 +39,8 @@ export class ZetaSqlWrapper {
   ) {
     this.catalog = this.getDefaultCatalog();
   }
+
+  abstract createTableDefinition(namePath: string[]): TableDefinition;
 
   async initializeZetaSql(): Promise<void> {
     await this.zetaSqlApi.initialize();
@@ -79,7 +81,7 @@ export class ZetaSqlWrapper {
   async findTableNames(sql: string): Promise<TableDefinition[]> {
     try {
       const extractResult = await this.extractTableNamesFromStatement(sql);
-      return extractResult.tableName.map(t => new TableDefinition(t.tableNameSegment));
+      return extractResult.tableName.map(t => this.createTableDefinition(t.tableNameSegment));
     } catch (e) {
       console.log(e instanceof Error ? e.message : e);
     }
@@ -263,10 +265,10 @@ export class ZetaSqlWrapper {
   private ensureUdfOwnerCatalogExists(udf: Udf): SimpleCatalogProto {
     let udfOwner = this.catalog;
     if (udf.nameParts.length > 2) {
-      const projectCatalog = ZetaSqlWrapper.addChildCatalog(this.catalog, udf.nameParts[0].toLowerCase());
-      udfOwner = ZetaSqlWrapper.addChildCatalog(projectCatalog, udf.nameParts[1].toLowerCase());
+      const projectCatalog = ZetaSqlWrapper.addChildCatalog(this.catalog, udf.nameParts[0]);
+      udfOwner = ZetaSqlWrapper.addChildCatalog(projectCatalog, udf.nameParts[1]);
     } else if (udf.nameParts.length === 2) {
-      udfOwner = ZetaSqlWrapper.addChildCatalog(this.catalog, udf.nameParts[0].toLowerCase());
+      udfOwner = ZetaSqlWrapper.addChildCatalog(this.catalog, udf.nameParts[0]);
     }
     return udfOwner;
   }
