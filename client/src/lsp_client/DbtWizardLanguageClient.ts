@@ -1,4 +1,4 @@
-import { CustomInitParams, LspModeType, StatusNotification } from 'dbt-language-server-common';
+import { CustomInitParams, LspModeType, PythonInfo, StatusNotification } from 'dbt-language-server-common';
 import { Uri, commands, workspace } from 'vscode';
 import { Disposable, State } from 'vscode-languageclient';
 import { LanguageClient, ServerOptions, TransportKind } from 'vscode-languageclient/node';
@@ -11,6 +11,8 @@ export abstract class DbtWizardLanguageClient implements Disposable {
   static readonly CLIENT_ID = 'WizardForDbtCore(TM)';
   static readonly CLIENT_NAME = 'Wizard for dbt Core (TM)';
   static readonly FOCUS_EDITOR_COMMAND = 'workbench.action.focusActiveEditorGroup';
+
+  pythonInfo?: PythonInfo;
 
   static createServerOptions(port: number, module: string): ServerOptions {
     const debugOptions = { execArgv: ['--nolazy', `--inspect=${port}`] };
@@ -65,8 +67,9 @@ export abstract class DbtWizardLanguageClient implements Disposable {
 
   async initCustomParams(): Promise<void> {
     const configuration = workspace.getConfiguration('WizardForDbtCore(TM)', this.client.clientOptions.workspaceFolder);
+    this.pythonInfo = await this.pythonExtension.getPythonInfo(this.client.clientOptions.workspaceFolder);
     const customInitParams: CustomInitParams = {
-      pythonInfo: await this.pythonExtension.getPythonInfo(this.client.clientOptions.workspaceFolder),
+      pythonInfo: this.pythonInfo,
       enableEntireProjectAnalysis: configuration.get<boolean>('enableEntireProjectAnalysis', true),
       enableSnowflakeSyntaxCheck: configuration.get<boolean>('enableSnowflakeSyntaxCheck', false),
       lspMode: this.getLspMode(),
@@ -81,8 +84,11 @@ export abstract class DbtWizardLanguageClient implements Disposable {
     (await this.pythonExtension.onDidChangeExecutionDetails())(async (resource: Uri | undefined) => {
       log(`onDidChangeExecutionDetails ${resource?.fsPath ?? 'undefined'}`);
       if (this.client.state === State.Running && this.dbtProjectUri.fsPath === resource?.fsPath) {
-        log('Python execution details changed, restarting...');
-        await this.restart();
+        const newPythonInfo = await this.pythonExtension.getPythonInfo(this.client.clientOptions.workspaceFolder);
+        if (newPythonInfo.path !== this.pythonInfo?.path || newPythonInfo.version?.join('.') !== this.pythonInfo.version?.join('.')) {
+          log(`Python info changed: ${JSON.stringify(newPythonInfo)}`);
+          await this.restart();
+        }
       }
     });
   }
