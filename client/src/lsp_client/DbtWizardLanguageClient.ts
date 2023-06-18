@@ -68,7 +68,6 @@ export abstract class DbtWizardLanguageClient implements Disposable {
   async initCustomParams(): Promise<void> {
     const configuration = workspace.getConfiguration('WizardForDbtCore(TM)', this.client.clientOptions.workspaceFolder);
     this.pythonInfo = await this.pythonExtension.getPythonInfo(this.client.clientOptions.workspaceFolder);
-    log(`Python info: ${JSON.stringify(this.pythonInfo)}`);
     const customInitParams: CustomInitParams = {
       pythonInfo: this.pythonInfo,
       enableEntireProjectAnalysis: configuration.get<boolean>('enableEntireProjectAnalysis', true),
@@ -87,7 +86,7 @@ export abstract class DbtWizardLanguageClient implements Disposable {
       if (this.client.state === State.Running && this.dbtProjectUri.fsPath === resource?.fsPath) {
         const newPythonInfo = await this.pythonExtension.getPythonInfo(this.client.clientOptions.workspaceFolder);
         if (newPythonInfo.path !== this.pythonInfo?.path || newPythonInfo.version?.join('.') !== this.pythonInfo.version?.join('.')) {
-          log('Python execution details changed, restarting...');
+          log(`Python info changed: ${JSON.stringify(newPythonInfo)}`);
           await this.restart();
         }
       }
