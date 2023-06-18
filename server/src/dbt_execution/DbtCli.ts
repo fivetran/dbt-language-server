@@ -54,10 +54,10 @@ export class DbtCli {
         if (dbtProfileType) {
           await this.suggestToInstallDbt(this.featureFinder.getPythonPath(), dbtProfileType);
         } else {
-          this.onDbtFindFailed();
+          this.onDbtFindFailed(dbtProfileType);
         }
       } catch {
-        this.onDbtFindFailed();
+        this.onDbtFindFailed(dbtProfileType);
       }
     }
     this.dbtReady = true;
@@ -107,15 +107,20 @@ export class DbtCli {
       if (installResult.isOk()) {
         this.notificationSender.sendRestart();
       } else {
-        this.finishWithError(installResult.error);
+        this.finishWithError(installResult.error, dbtProfileType);
       }
     } else {
-      this.onDbtFindFailed();
+      this.onDbtFindFailed(dbtProfileType);
     }
   }
 
-  finishWithError(message: string): void {
+  finishWithError(message: string, dbtProfileType: string | undefined): void {
     this.modelProgressReporter.sendFinish();
+    this.notificationSender.sendTelemetry('error', {
+      name: 'vscodeErrorMessage',
+      message: `${message}. Profile: ${dbtProfileType ?? 'undefined'}`,
+      stack: new Error('vscodeErrorMessage').stack ?? '',
+    });
     this.connection.window.showErrorMessage(message);
   }
 
@@ -127,7 +132,7 @@ export class DbtCli {
     return this.onDbtReadyEmitter.event;
   }
 
-  private onDbtFindFailed(): void {
-    this.finishWithError(this.getError());
+  private onDbtFindFailed(dbtProfileType: string | undefined): void {
+    this.finishWithError(this.getError(), dbtProfileType);
   }
 }
