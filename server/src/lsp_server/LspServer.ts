@@ -96,6 +96,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     private destinationContext: DestinationContext,
     private openedDocuments: Map<string, DbtTextDocument>,
     private projectChangeListener: ProjectChangeListener,
+    private enableSnowflakeSyntaxCheck: boolean,
   ) {
     super(connection, notificationSender, featureFinder);
     this.filesFilter = [{ scheme: 'file', pattern: { glob: `${dbtRepository.projectPath}/**/*`, matches: 'file' } }];
@@ -320,6 +321,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       type: contextInfo.type ?? 'unknown type',
       method: contextInfo.method ?? 'unknown method',
       winWsl: String(process.platform === 'win32' && ubuntuInWslWorks),
+      enableSnowflakeSyntaxCheck: this.enableSnowflakeSyntaxCheck.toString(),
     });
   }
 
