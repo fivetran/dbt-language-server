@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.27.1 (01/01/1970)
+## Version 0.27.1 (19/06/2023)
 ## What's Changed
 * Added support for Snowflake cast operator (`::`).
 
