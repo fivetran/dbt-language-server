@@ -134,6 +134,7 @@ function createLspServerForProject(
     destinationContext,
     openedDocuments,
     projectChangeListener,
+    customInitParams.enableSnowflakeSyntaxCheck,
   );
 }
 
