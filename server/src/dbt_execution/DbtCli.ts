@@ -118,7 +118,11 @@ export class DbtCli {
     this.modelProgressReporter.sendFinish();
     this.notificationSender.sendTelemetry('error', {
       name: 'vscodeErrorMessage',
-      message: `${message}. Profile: ${dbtProfileType ?? 'undefined'}`,
+      message: `${message}.
+        Profile: ${dbtProfileType ?? '_'}.
+        Python: ${this.featureFinder.pythonInfo.version?.join('.') ?? '_'}.
+        dbt: ${JSON.stringify(this.featureFinder.versionInfo?.installedVersion)}.
+        Adapters: ${JSON.stringify(this.featureFinder.versionInfo?.installedAdapters)}`,
       stack: new Error('vscodeErrorMessage').stack ?? '',
     });
     this.connection.window.showErrorMessage(message);
