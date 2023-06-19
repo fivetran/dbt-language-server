@@ -6,7 +6,7 @@
   },
   "dependencies": {
     "@fivetrandevelopers/zetasql": "^1.12.0",
-    "@fivetrandevelopers/zetasql-snowflake": "^0.6.0",
+    "@fivetrandevelopers/zetasql-snowflake": "^0.6.1",
     "@google-cloud/bigquery": "^6.2.0",
     "async-retry": "^1.3.3",
     "axios": "^1.4.0",
