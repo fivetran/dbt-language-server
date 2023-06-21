@@ -3,7 +3,7 @@ import { DiagnosticSeverity, Range } from 'vscode';
 import { assertAllDiagnostics } from './asserts';
 import { SNOWFLAKE_PATH, activateAndWait, getCustomDocUri, getPreviewText, replaceText } from './helper';
 
-suite.skip('Snowflake', () => {
+suite('Snowflake', () => {
   test('Should compile simple SQL', async () => {
     const docUri = getCustomDocUri(`${SNOWFLAKE_PATH}/models/join_tables.sql`);
 
@@ -11,8 +11,8 @@ suite.skip('Snowflake', () => {
 
     assertThat(
       getPreviewText(),
-      `select * from e2e_db.dbt_ls_e2e_dataset_dbt_ls_e2e_dataset.test_table1 as tt
-inner join lateral (select * from e2e_db.dbt_ls_e2e_dataset_dbt_ls_e2e_dataset.users as u);`,
+      `select * from e2e_db.dbt_ls_e2e_dataset.test_table1 as tt
+inner join lateral (select * from e2e_db.dbt_ls_e2e_dataset.users as u);`,
     );
     await assertAllDiagnostics(docUri, []);
 

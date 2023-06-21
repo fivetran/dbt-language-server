@@ -28,7 +28,8 @@ with recursive referrers as (
 select 
     r.user_id,
     row_number() over (partition by d) as row_n,
-    et._file_name as fn
+    et._file_name as fn,
+    parse_json('{"id":23}') as json_data,
 from referrers r
 inner join `singular-vector-135519`.dbt_ls_e2e_dataset.student_details d on d.id = r.user_id
 inner join `region-us`.INFORMATION_SCHEMA.JOBS_BY_PROJECT j on j.project_number = r.user_id

@@ -4,7 +4,6 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtRepository } from '../DbtRepository';
 import { DestinationContext } from '../DestinationContext';
 import { JinjaParser, JinjaPartType } from '../JinjaParser';
-import { LogLevel } from '../Logger';
 import { DbtTextDocument } from '../document/DbtTextDocument';
 import { DiffUtils } from '../utils/DiffUtils';
 import { comparePositions, getIdentifierRangeAtPosition } from '../utils/Utils';
@@ -30,7 +29,6 @@ export class CompletionProvider {
   async provideCompletionItems(completionParams: CompletionParams, ast?: AnalyzeResponse__Output): Promise<CompletionItem[]> {
     const dbtCompletionItems = this.provideDbtCompletions(completionParams);
     if (dbtCompletionItems) {
-      console.log(`dbtCompletionItems: ${dbtCompletionItems.map(i => i.insertText).join('|')}`, LogLevel.Debug);
       return dbtCompletionItems;
     }
     const text = this.getCompletionText(completionParams);

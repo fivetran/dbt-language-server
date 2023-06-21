@@ -88,6 +88,7 @@ describe('ProjectAnalyzer analyzeModelsTree', () => {
         }),
       ),
     );
+    when(mockZetaSqlWrapper.createTableDefinition(anything())).thenReturn(new TableDefinition(MAIN_TABLE_NAME_PATH));
     spiedProjectAnalyzer = spy(projectAnalyzer);
   });
 

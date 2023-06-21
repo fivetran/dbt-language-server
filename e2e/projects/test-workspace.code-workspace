@@ -32,11 +32,12 @@
     "files.associations": {
       "**/models/jinja_sql.sql": "jinja-sql"
     },
-
     "files.autoSave": "afterDelay",
-    "WizardForDbtCore(TM).trace.server": "verbose",
     "files.eol": "\n",
 
-    "python.defaultInterpreterPath": "${env:PYTHON_INSTALL_LOC}"
+    "python.defaultInterpreterPath": "${env:PYTHON_INSTALL_LOC}",
+
+    "WizardForDbtCore(TM).trace.server": "verbose",
+    "WizardForDbtCore(TM).enableSnowflakeSyntaxCheck": true
   }
 }

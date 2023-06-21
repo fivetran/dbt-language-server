@@ -99,7 +99,7 @@ export class SqlHeaderAnalyzer {
         count++;
       } while (result !== undefined && count < SqlHeaderAnalyzer.FUNCTIONS_COUNT_LIMIT && bytePosition < sql.length);
     } catch (e) {
-      console.log(e);
+      console.log(`SQL header analyze error: ${e instanceof Error ? e.message : String(e)}`);
     }
     return asts;
   }

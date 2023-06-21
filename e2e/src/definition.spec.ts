@@ -30,7 +30,7 @@ suite('ref definitions', () => {
   });
 
   test('Should suggest definitions for ref with package', async () => {
-    await activateAndWaitManifestParsed(PACKAGE_REF_DOC_URI, TEST_FIXTURE_PATH);
+    await activateAndWait(PACKAGE_REF_DOC_URI);
 
     await assertDefinitions(
       PACKAGE_REF_DOC_URI,

@@ -1,4 +1,3 @@
-import * as clipboard from 'clipboardy';
 import { deferred, DeferredResult } from 'dbt-language-server-common';
 import { spawnSync, SpawnSyncReturns } from 'node:child_process';
 import * as fs from 'node:fs';
@@ -14,6 +13,8 @@ import {
   LanguageStatusItem,
   Position,
   Pseudoterminal,
+  QuickPick,
+  QuickPickItem,
   Range,
   Selection,
   SignatureHelp,
@@ -30,6 +31,7 @@ import EventEmitter = require('node:events');
 interface ExtensionApi {
   manifestParsedEventEmitter: EventEmitter;
   statusHandler: unknown;
+  quickPick?: QuickPick<QuickPickItem>;
 }
 const LS_MANIFEST_PARSED_EVENT = 'manifestParsedEvent';
 
@@ -80,8 +82,8 @@ export async function openDocument(docUri: Uri): Promise<void> {
 
 export async function activateAndWait(docUri: Uri): Promise<void> {
   const existingEditor = findExistingEditor(docUri);
-  const waitOnlySwitchingBetweenTabs =
-    existingEditor && existingEditor.document.getText() === window.activeTextEditor?.document.getText() && getPreviewEditor();
+  const waitOnlySwitchingBetweenTabs = Boolean(existingEditor && existingEditor === window.activeTextEditor && getPreviewEditor());
+  console.log(`waitOnlySwitchingBetweenTabs: ${waitOnlySwitchingBetweenTabs.toString()}`);
   const activateFinished = waitOnlySwitchingBetweenTabs ? Promise.resolve() : createChangePromise('preview');
 
   await openDocument(docUri);
@@ -110,6 +112,7 @@ function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
     ) {
       return;
     }
+    console.log(`Preview changed: ${e.contentChanges[0].text}`);
     previewPromiseResolve();
   } else if (e.document === doc && documentPromiseResolve) {
     documentPromiseResolve();
@@ -140,6 +143,10 @@ export function getMainEditorText(): string {
 
 async function showPreview(): Promise<void> {
   await commands.executeCommand('WizardForDbtCore(TM).showQueryPreview');
+}
+
+export async function analyzeEntireProject(): Promise<void> {
+  await commands.executeCommand('WizardForDbtCore(TM).analyzeEntireProject');
 }
 
 export async function closeAllEditors(): Promise<void> {
@@ -280,22 +287,6 @@ export function installExtension(extensionId: string): void {
   console.log(`Installation extension ${extensionId} finished successfully.`);
 }
 
-// export function getLatestDbtVersion(): string {
-//   const commandResult = spawnSync('dbt', ['--version'], {
-//     encoding: 'utf8',
-//   });
-
-//   const match = /latest.*:\s+(\d+\.\d+\.\d+)/.exec(commandResult.stderr);
-//   if (!match) {
-//     throw new Error('Failed to find latest dbt version');
-//   }
-
-//   const [, latestDbtVersion] = match;
-//   console.log(`Latest dbt version ${latestDbtVersion}`);
-
-//   return match[1];
-// }
-
 export function disableExtension(extensionId: string): SpawnSyncReturns<string> {
   console.log(`Disabling extension ${extensionId}`);
   const extensionsInstallPathParam = `--extensions-dir=${process.env['EXTENSIONS_INSTALL_PATH'] ?? ''}`;
@@ -354,9 +345,9 @@ export async function executeSignatureHelpProvider(docUri: Uri, position: Positi
   return commands.executeCommand<SignatureHelp>('vscode.executeSignatureHelpProvider', docUri, position, triggerChar);
 }
 
-// export async function executeInstallDbtCore(): Promise<void> {
-//   return commands.executeCommand('WizardForDbtCore(TM).installDbtCore', undefined, true);
-// }
+export async function executeInstallDbtCore(): Promise<void> {
+  return commands.executeCommand('WizardForDbtCore(TM).installDbtCore', undefined, true);
+}
 
 export async function executeCreateDbtProject(fsPath: string): Promise<void> {
   return commands.executeCommand('WizardForDbtCore(TM).createDbtProject', fsPath, true);
@@ -392,36 +383,6 @@ export async function createAndOpenTempModel(workspaceName: string, waitFor: 'pr
   }
 
   return newUri;
-}
-
-export async function renameCurrentFile(newName: string): Promise<Uri> {
-  const { uri } = doc;
-  const newUri = uri.with({ path: uri.path.slice(0, uri.path.lastIndexOf('/') + 1) + newName });
-
-  const renameFinished = createChangePromise('preview');
-
-  clipboard.writeSync(newName);
-
-  await commands.executeCommand('workbench.files.action.showActiveFileInExplorer');
-  await commands.executeCommand('renameFile');
-  await commands.executeCommand('editor.action.selectAll');
-  await commands.executeCommand('editor.action.clipboardPasteAction');
-  await commands.executeCommand('workbench.action.showCommands');
-
-  await renameFinished;
-
-  await openDocument(newUri);
-
-  return newUri;
-}
-
-export async function deleteCurrentFile(): Promise<void> {
-  const deleteFinished = createChangePromise('preview');
-
-  await commands.executeCommand('workbench.files.action.showActiveFileInExplorer');
-  await commands.executeCommand('deleteFile');
-
-  await deleteFinished;
 }
 
 export function getTextInQuotesIfNeeded(text: string, withQuotes: boolean): string {
@@ -478,4 +439,8 @@ function trimPath(rawPath: string): string {
 
 export function getCreateProjectPseudoterminal(): Pseudoterminal {
   return (window.terminals.find(t => t.name === 'Create dbt project')?.creationOptions as ExtensionTerminalOptions).pty;
+}
+
+export function getQuickPickItems(): readonly QuickPickItem[] | undefined {
+  return extensionApi?.quickPick?.items;
 }

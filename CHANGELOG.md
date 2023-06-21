@@ -1,5 +1,37 @@
 # Changelog
 
+## Version 0.27.1 (19/06/2023)
+## What's Changed
+* Added support for Snowflake cast operator (`::`).
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.27.0...v0.27.1
+---
+
+## Version 0.27.0 (18/06/2023)
+## What's Changed
+* In this release, we've introduced a new setting, WizardForDbtCore(TM).enableSnowflakeSyntaxCheck, which is turned off by default. When activated, this setting enables syntax checks for Snowflake dbt projects. As a result, any errors within models will be detected and displayed. Please note that this is an experimental feature and may not be entirely reliable. It could potentially yield false positive errors, indicating issues where there are none.
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.26.2...v0.27.0
+---
+
+## Version 0.26.2 (12/06/2023)
+## What's Changed
+* Enabled [JSON functions](https://cloud.google.com/bigquery/docs/reference/standard-sql/json_functions).
+* Resolved an issue where the extension would unexpectedly restart during code editing.
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.26.1...v0.26.2
+---
+
+## Version 0.26.1 (07/06/2023)
+## What's Changed
+* Fixed an error that occurred while compiling the project for adapters other than BigQuery.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.26.0...v0.26.1
+---
+
 ## Version 0.26.0 (06/06/2023)
 ## What's Changed
 * In this release we override `get_columns_in_relation` to work with code and not with BigQuery dataset directly. It should help to decrease false errors you could see when using dbt macros that access information schema.
@@ -224,35 +256,3 @@ AS (
 * Add command to create dbt project from VS Code.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.11.1...v0.12.0
----
-
-## Version 0.11.1 (21/09/2022)
-## What's Changed
-* Support absolute target path.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.11.0...v0.11.1
----
-
-## Version 0.11.0 (16/09/2022)
-## What's Changed
-* Add support for temporary UDFs.
-* Decrease VSIX package size.
-* Fix extension restart issue for big dbt models.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.10.0...v0.11.0
----
-
-## Version 0.10.0 (14/09/2022)
-## What's Changed
-* Fix the issue with showing not all available dbt packages.
-* Support linux-arm64 platform.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.9.1...v0.10.0
----
-
-## Version 0.9.1 (05/09/2022)
-## What's Changed
-* Fix issue with handling new tabs created using VS Code API.
-* Fix compilation issue on Windows.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.9.0...v0.9.1

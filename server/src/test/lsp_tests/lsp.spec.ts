@@ -62,6 +62,7 @@ describe('lsp tests', () => {
       },
       lspMode: 'dbtProject',
       enableEntireProjectAnalysis: true,
+      enableSnowflakeSyntaxCheck: true,
       disableLogger: true,
     };
 

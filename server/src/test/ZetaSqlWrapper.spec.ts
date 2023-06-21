@@ -4,6 +4,7 @@ import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql
 import { assertThat, greaterThan, hasExactlyOneItem, hasProperty, hasSize } from 'hamjest';
 import * as assert from 'node:assert';
 import { mock } from 'ts-mockito';
+import { BigQueryZetaSqlWrapper } from '../BigQueryZetaSqlWrapper';
 import { DbtDestinationClient, Udf } from '../DbtDestinationClient';
 import { InformationSchemaConfigurator } from '../InformationSchemaConfigurator';
 import { SqlHeaderAnalyzer } from '../SqlHeaderAnalyzer';
@@ -43,7 +44,7 @@ describe('ZetaSqlWrapper table/udf registration', () => {
   let zetaSqlWrapper: ZetaSqlWrapper;
 
   before(() => {
-    zetaSqlWrapper = new ZetaSqlWrapper(mock<DbtDestinationClient>(), mock(ZetaSqlApi), mock(ZetaSqlParser), mock(SqlHeaderAnalyzer));
+    zetaSqlWrapper = new BigQueryZetaSqlWrapper(mock<DbtDestinationClient>(), mock(ZetaSqlApi), mock(ZetaSqlParser), mock(SqlHeaderAnalyzer));
   });
 
   function shouldRegisterTable(
@@ -90,7 +91,7 @@ describe('ZetaSqlWrapper table/udf registration', () => {
     expectedProjectId?: string,
   ): void {
     // arrange, act
-    zetaSqlWrapper = new ZetaSqlWrapper(mock<DbtDestinationClient>(), mock(ZetaSqlApi), mock(ZetaSqlParser), mock(SqlHeaderAnalyzer));
+    zetaSqlWrapper = new BigQueryZetaSqlWrapper(mock<DbtDestinationClient>(), mock(ZetaSqlApi), mock(ZetaSqlParser), mock(SqlHeaderAnalyzer));
     const rootCatalog = registerTable(zetaSqlWrapper, tableDefinition);
 
     // assert
@@ -260,7 +261,7 @@ describe('ZetaSqlWrapper table/udf registration', () => {
     // arrange
     const tempUdfs = [{ namePath: ['temp_udf'] }];
     const innerCatalogs = [{ name: 'inner_catalog' }];
-    zetaSqlWrapper = new ZetaSqlWrapper(mock<DbtDestinationClient>(), mock(ZetaSqlApi), mock(ZetaSqlParser), mock(SqlHeaderAnalyzer));
+    zetaSqlWrapper = new BigQueryZetaSqlWrapper(mock<DbtDestinationClient>(), mock(ZetaSqlApi), mock(ZetaSqlParser), mock(SqlHeaderAnalyzer));
     zetaSqlWrapper['catalog'].catalog = innerCatalogs;
 
     // act

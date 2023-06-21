@@ -1,14 +1,16 @@
 import { Err, err, ok, Result } from 'neverthrow';
 import { Emitter, Event } from 'vscode-languageserver';
+import { BigQueryZetaSqlWrapper } from './BigQueryZetaSqlWrapper';
 import { DagNode } from './dag/DagNode';
 import { DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtRepository } from './DbtRepository';
 import { DestinationDefinition } from './DestinationDefinition';
 import { AnalyzeResult, AnalyzeTrackerFunc, ModelsAnalyzeResult, ProjectAnalyzer } from './ProjectAnalyzer';
+import { SnowflakeZetaSqlWrapper } from './SnowflakeZetaSqlWrapper';
 import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
 import { SupportedDestinations, ZetaSqlApi } from './ZetaSqlApi';
 import { ZetaSqlParser } from './ZetaSqlParser';
-import { KnownColumn, ZetaSqlWrapper } from './ZetaSqlWrapper';
+import { KnownColumn } from './ZetaSqlWrapper';
 
 export class DestinationContext {
   private static readonly ZETASQL_SUPPORTED_PLATFORMS = ['darwin', 'linux', 'win32'];
@@ -19,6 +21,8 @@ export class DestinationContext {
 
   contextInitialized = false;
   onContextInitializedEmitter = new Emitter<void>();
+
+  constructor(private enableSnowflakeSyntaxCheck: boolean) {}
 
   isEmpty(): boolean {
     return this.projectAnalyzer === undefined;
@@ -51,12 +55,14 @@ export class DestinationContext {
 
         const destination: SupportedDestinations = profileResult.type?.toLowerCase().trim() === 'snowflake' ? 'snowflake' : 'bigquery';
         const zetaSqlApi = new ZetaSqlApi(destination);
-        this.projectAnalyzer = new ProjectAnalyzer(
-          dbtRepository,
-          projectName,
-          destinationClient,
-          new ZetaSqlWrapper(destinationClient, zetaSqlApi, new ZetaSqlParser(zetaSqlApi), new SqlHeaderAnalyzer(zetaSqlApi)),
-        );
+        const zetaSqlParser = new ZetaSqlParser(zetaSqlApi);
+        const sqlHeaderAnalyzer = new SqlHeaderAnalyzer(zetaSqlApi);
+        const zetaSqlWrapper =
+          destination === 'bigquery'
+            ? new BigQueryZetaSqlWrapper(destinationClient, zetaSqlApi, zetaSqlParser, sqlHeaderAnalyzer)
+            : new SnowflakeZetaSqlWrapper(destinationClient, zetaSqlApi, zetaSqlParser, sqlHeaderAnalyzer);
+
+        this.projectAnalyzer = new ProjectAnalyzer(dbtRepository, projectName, destinationClient, zetaSqlWrapper);
         await this.projectAnalyzer.initialize();
       } catch (e) {
         const message = e instanceof Error ? e.message : JSON.stringify(e);
@@ -77,7 +83,7 @@ export class DestinationContext {
     return (
       DestinationContext.ZETASQL_SUPPORTED_PLATFORMS.includes(process.platform) &&
       (profileResult.type?.toLowerCase().trim() === 'bigquery' ||
-        (profileResult.type?.toLowerCase().trim() === 'snowflake' && process.env['DBT_LS_ENABLE_DEBUG_LOGS'] === 'true')) && // TODO: change this condition when snowflake is supported
+        (profileResult.type?.toLowerCase().trim() === 'snowflake' && this.enableSnowflakeSyntaxCheck)) &&
       ubuntuInWslWorks
     );
   }
@@ -103,8 +109,7 @@ export class DestinationContext {
   }
 
   resetTables(): void {
-    this.ensureProjectAnalyzer(this.projectAnalyzer);
-    this.projectAnalyzer.resetTables();
+    this.projectAnalyzer?.resetTables();
   }
 
   getColumnsInRelation(db: string | undefined, schema: string | undefined, tableName: string): KnownColumn[] | undefined {

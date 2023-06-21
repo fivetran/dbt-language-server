@@ -6,9 +6,9 @@ import { DbtRepository } from '../DbtRepository';
 import { ProcessExecutor } from '../ProcessExecutor';
 import { DbtCommandExecutor } from '../dbt_execution/DbtCommandExecutor';
 import { Lazy } from '../utils/Lazy';
-import { getAxios } from '../utils/Utils';
 import { FeatureFinderBase } from './FeatureFinderBase';
 import path = require('node:path');
+import axios = require('axios');
 
 interface HubJson {
   [key: string]: string[];
@@ -53,7 +53,6 @@ export class FeatureFinder extends FeatureFinderBase {
   }
 
   async getListOfDbtPackages(): Promise<DbtPackageInfo[]> {
-    const axios = await getAxios();
     const hubResponse = await axios.get<HubJson>('https://cdn.jsdelivr.net/gh/dbt-labs/hubcap@HEAD/hub.json');
     const uriPromises = Object.entries<string[]>(hubResponse.data).flatMap(([gitHubUser, repositoryNames]) =>
       repositoryNames.map(r => this.getPackageInfo(gitHubUser, r)),
@@ -64,7 +63,6 @@ export class FeatureFinder extends FeatureFinderBase {
 
   async getPackageInfo(gitHubUser: string, repositoryName: string): Promise<DbtPackageInfo | undefined> {
     try {
-      const axios = await getAxios();
       const response = await axios.get<string>(
         `https://cdn.jsdelivr.net/gh/${gitHubUser}/${repositoryName}@HEAD/${DbtRepository.DBT_PROJECT_FILE_NAME}`,
       );
@@ -89,7 +87,6 @@ export class FeatureFinder extends FeatureFinderBase {
     const result: DbtPackageVersions = {};
 
     if (packageInfo) {
-      const axios = await getAxios();
       const tagsResult = await axios.get<{ ref: string }[]>(
         `https://api.github.com/repos/${packageInfo.gitHubUser}/${packageInfo.repositoryName}/git/refs/tags?per_page=100`,
       );

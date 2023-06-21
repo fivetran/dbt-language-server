@@ -61,9 +61,7 @@ jobs:
       - name: delete libraries for other platforms
         run: |
           find server/node_modules/@fivetrandevelopers/zetasql/lib/zetasql -maxdepth 1 -type f ! -name '${{ matrix.zetasql-lib }}' -exec rm -f {} \;
-          # TODO: uncomment when zetasql-snowflake is ready
-          # find server/node_modules/@fivetrandevelopers/zetasql-snowflake/lib/snowflake -maxdepth 1 -type f ! -name '${{ matrix.zetasql-lib }}' -exec rm -f {} \;
-          find server/node_modules/@fivetrandevelopers/zetasql-snowflake/lib/snowflake -maxdepth 1 -type f -exec rm -f {} \;
+          find server/node_modules/@fivetrandevelopers/zetasql-snowflake/lib/snowflake -maxdepth 1 -type f ! -name '${{ matrix.zetasql-lib }}' -exec rm -f {} \;
 
       - name: package to vsix file
         run: |

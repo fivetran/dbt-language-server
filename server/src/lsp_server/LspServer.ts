@@ -96,6 +96,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     private destinationContext: DestinationContext,
     private openedDocuments: Map<string, DbtTextDocument>,
     private projectChangeListener: ProjectChangeListener,
+    private enableSnowflakeSyntaxCheck: boolean,
   ) {
     super(connection, notificationSender, featureFinder);
     this.filesFilter = [{ scheme: 'file', pattern: { glob: `${dbtRepository.projectPath}/**/*`, matches: 'file' } }];
@@ -315,12 +316,12 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   logStartupInfo(contextInfo: DbtProfileInfo, initTime: number, ubuntuInWslWorks: boolean): void {
     this.notificationSender.sendTelemetry('log', {
       dbtVersion: getStringVersion(this.featureFinder.versionInfo?.installedVersion),
-      pythonPath: this.featureFinder.pythonInfo.path,
       pythonVersion: this.featureFinder.pythonInfo.version?.join('.') ?? 'undefined',
       initTime: initTime.toString(),
       type: contextInfo.type ?? 'unknown type',
       method: contextInfo.method ?? 'unknown method',
       winWsl: String(process.platform === 'win32' && ubuntuInWslWorks),
+      enableSnowflakeSyntaxCheck: this.enableSnowflakeSyntaxCheck.toString(),
     });
   }
 

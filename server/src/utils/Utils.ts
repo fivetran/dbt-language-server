@@ -150,13 +150,6 @@ export async function wait(ms: number): Promise<void> {
   });
 }
 
-// Workaround for webpack, probably related to https://github.com/axios/axios/issues/5292
-/* eslint-disable-next-line @typescript-eslint/explicit-function-return-type */
-export async function getAxios() {
-  const axios = await import('axios');
-  return (axios as unknown as { default: typeof axios.default }).default; // Workaround for webpack, probably related to https://github.com/axios/axios/issues/5292
-}
-
 export async function getFreePort(): Promise<number> {
   const ports = await findFreePortPmfy(randomNumber(1024, 65_534));
   return ports[0];

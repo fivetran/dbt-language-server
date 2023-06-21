@@ -128,7 +128,9 @@ export class ZetaSqlParser {
     try {
       return await this.zetaSqlApi.parse(sqlStatement, options);
     } catch (e) {
-      console.log(e);
+      if (!(e instanceof Error)) {
+        console.log(e);
+      }
     }
     return undefined;
   }

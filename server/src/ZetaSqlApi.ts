@@ -98,6 +98,8 @@ export class ZetaSqlApi {
         const options = await new this.zetaSql.LanguageOptions().enableMaximumLanguageFeatures();
         const featuresForVersion = await this.zetaSql.LanguageOptions.getLanguageFeaturesForVersion(LanguageVersion.VERSION_CURRENT);
         featuresForVersion.forEach(f => options.enableLanguageFeature(f));
+        options.enableLanguageFeature(LanguageFeature.FEATURE_NAMED_ARGUMENTS);
+        options.enableLanguageFeature(LanguageFeature.FEATURE_JSON_TYPE);
         options.enableLanguageFeature(LanguageFeature.FEATURE_INTERVAL_TYPE);
         // https://github.com/google/zetasql/issues/115#issuecomment-1210881670
         options.options.reservedKeywords = ['QUALIFY'];

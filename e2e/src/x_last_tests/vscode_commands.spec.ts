@@ -1,27 +1,39 @@
-import { anyOf, assertThat, containsString } from 'hamjest';
+import { anyOf, assertThat, containsString, greaterThan, truthy } from 'hamjest';
 import * as fs from 'node:fs';
 import { homedir } from 'node:os';
 import { Pseudoterminal } from 'vscode';
-import { executeCreateDbtProject, getCreateProjectPseudoterminal, sleep } from '../helper';
+import {
+  activateAndWait,
+  executeCreateDbtProject,
+  executeInstallDbtCore,
+  getCreateProjectPseudoterminal,
+  getCustomDocUri,
+  getPreviewText,
+  getQuickPickItems,
+  sleep,
+} from '../helper';
 import path = require('node:path');
 
 suite('VS Code Commands', () => {
   const KEY_FILE_PATH = path.normalize(`${homedir()}/.dbt/bq-test-project.json`);
-  // const VERSION_DOC_URI = getCustomDocUri('special-python-settings/models/version.sql');
+  const VERSION_DOC_URI = getCustomDocUri('special-python-settings/models/version.sql');
 
-  // const VENV_VERSION = '1.2.2';
+  const VENV_VERSION = '1.2.2';
 
-  // test('Should install latest dbt, restart language server and compile model with new dbt version', async () => {
-  //   const latestVersion = getLatestDbtVersion();
-  //   await activateAndWait(VERSION_DOC_URI);
+  test('Should return list of versions', async () => {
+    // arrange
+    await activateAndWait(VERSION_DOC_URI);
+    assertThat(getPreviewText(), VENV_VERSION);
 
-  //   assertThat(getPreviewText(), VENV_VERSION);
-  //   await executeInstallDbtCore();
+    // act
+    executeInstallDbtCore().catch(e => console.log(e));
+    await sleep(300);
 
-  //   await waitPreviewModification();
-
-  //   assertThat(getPreviewText(), latestVersion);
-  // }).timeout('100s');
+    // assert
+    const items = getQuickPickItems();
+    assertThat(items, truthy());
+    assertThat(items?.length, greaterThan(10));
+  });
 
   test('Should create new dbt project', async () => {
     await executeCreateDbtProject(homedir());
