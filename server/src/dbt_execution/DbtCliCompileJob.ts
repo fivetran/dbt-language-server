@@ -62,9 +62,8 @@ export class DbtCliCompileJob extends DbtCompileJob {
     }
   }
 
-  forceStop(): Promise<void> {
+  forceStop(): void {
     this.process?.kill('SIGKILL');
-    return Promise.resolve();
   }
 
   getResult(): Result<string, string> | undefined {

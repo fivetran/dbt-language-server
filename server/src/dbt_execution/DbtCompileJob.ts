@@ -9,7 +9,7 @@ export abstract class DbtCompileJob {
 
   abstract start(): Promise<Result<undefined, string>>;
 
-  abstract forceStop(): Promise<void>;
+  abstract forceStop(): void;
 
   /** @returns Ok with compiled sql or Err with dbt error or undefined if compilation is not finished yet */
   abstract getResult(): Result<string, string> | undefined;
