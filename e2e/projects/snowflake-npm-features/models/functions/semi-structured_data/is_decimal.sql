@@ -1,0 +1,7 @@
+SELECT
+    IS_DECIMAL(TRUE),
+    IS_DECIMAL(TO_VARIANT('Sample text')),
+    IS_DECIMAL(1),
+    IS_DECIMAL(TO_VARIANT(TO_DATE('2023-04-20', 'YYYY-MM-DD'))),
+    IS_DECIMAL(TO_NUMBER(1)),
+    IS_DECIMAL(array_construct())

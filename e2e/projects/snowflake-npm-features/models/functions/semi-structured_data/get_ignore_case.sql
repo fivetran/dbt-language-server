@@ -1,0 +1,5 @@
+SELECT
+    GET_IGNORE_CASE(PARSE_JSON('{"name": "John", "age": 30}'), 'name'),
+    GET_IGNORE_CASE(ARRAY_CONSTRUCT(11, 22), 1),
+    GET_IGNORE_CASE(TO_VARIANT(PARSE_JSON('{"name": "John", "age": 30}')), 'name'),
+    GET_IGNORE_CASE(TO_VARIANT(ARRAY_CONSTRUCT(11, 22)), 1)
