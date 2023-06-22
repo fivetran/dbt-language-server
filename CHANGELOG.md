@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.27.2 (01/01/1970)
+## Version 0.27.2 (22/06/2023)
 ## What's Changed
 * Added support for semi-structured data functions in Snowflake.
 
