@@ -1,0 +1,7 @@
+SELECT
+    IS_DOUBLE(TRUE),
+    IS_DOUBLE(TO_VARIANT('Sample text')),
+    IS_DOUBLE(1),
+    IS_DOUBLE(TO_VARIANT(TO_DATE('2023-04-20', 'YYYY-MM-DD'))),
+    IS_DOUBLE(TO_NUMBER(1)),
+    IS_DOUBLE(array_construct())
