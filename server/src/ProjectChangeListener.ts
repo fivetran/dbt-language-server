@@ -4,6 +4,7 @@ import { DbtRepository } from './DbtRepository';
 import { DestinationContext } from './DestinationContext';
 import { DiagnosticGenerator } from './DiagnosticGenerator';
 import { FileChangeListener } from './FileChangeListener';
+import { MacroCompilationServer } from './MacroCompilationServer';
 import { DagNodeFetcher } from './ModelFetcher';
 import { NotificationSender } from './NotificationSender';
 import { AnalyzeResult, ModelsAnalyzeResult } from './ProjectAnalyzer';
@@ -21,7 +22,6 @@ interface CurrentDbtError {
 export class ProjectChangeListener {
   private static PROJECT_COMPILE_DEBOUNCE_TIMEOUT = 1000;
 
-  private analysisInProgress = false;
   currentDbtError?: CurrentDbtError;
 
   constructor(
@@ -34,6 +34,7 @@ export class ProjectChangeListener {
     private enableEntireProjectAnalysis: boolean,
     private fileChangeListener: FileChangeListener,
     private projectProgressReporter: ProjectProgressReporter,
+    private macroCompilationServer: MacroCompilationServer,
   ) {
     fileChangeListener.onSqlModelChanged(c => this.onSqlModelChanged(c));
   }
@@ -47,32 +48,38 @@ export class ProjectChangeListener {
   }
 
   async compileAndAnalyzeProject(): Promise<void> {
-    if (this.analysisInProgress) {
-      console.log('Analysis is already in progress. Skip recompiling/reanalyzing the project');
-      return;
-    }
+    this.dbtCli.cancelCompileProject();
+    this.destinationContext.cancelAnalyze();
+    this.macroCompilationServer.cancelActiveTasks();
+
     console.log('Starting to recompile/reanalyze the project');
     this.projectProgressReporter.sendAnalyzeBegin();
     this.projectProgressReporter.sendAnalyzeProgressMessage('dbt compile', 0);
-    this.analysisInProgress = true;
-    try {
-      if (this.enableEntireProjectAnalysis && !this.destinationContext.isEmpty()) {
-        this.notificationSender.clearAllDiagnostics();
-      }
-
-      // We should reset catalog before compiling the project, because the catalog will start to re-fill during compilation
-      this.destinationContext.resetCache();
-      const compileResult = await this.dbtCli.compileProject(this.dbtRepository);
-      if (compileResult.isOk()) {
-        this.updateManifest();
-        await this.analyzeProject().catch(e => console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`));
-      } else {
-        this.setDbtError(this.getAnyDbtProjectYmlUri(), compileResult.error);
-      }
-    } finally {
-      this.projectProgressReporter.sendAnalyzeEnd();
-      this.analysisInProgress = false;
+    if (this.enableEntireProjectAnalysis && !this.destinationContext.isEmpty()) {
+      this.notificationSender.clearAllDiagnostics();
     }
+
+    // We should reset catalog before compiling the project, because the catalog will start to re-fill during compilation
+    this.destinationContext.resetCache();
+    const compileResult = await this.dbtCli.compileProject(this.dbtRepository);
+    if (compileResult.isOk()) {
+      this.updateManifest();
+      try {
+        await this.analyzeProject();
+      } catch (e) {
+        if (e === 'Canceled') {
+          console.log('Project analysis canceled');
+          return;
+        }
+        console.log(`Error while analyzing project: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    } else {
+      if (compileResult.error === 'Canceled') {
+        return;
+      }
+      this.setDbtError(this.getAnyDbtProjectYmlUri(), compileResult.error);
+    }
+    this.projectProgressReporter.sendAnalyzeEnd();
   }
 
   setDbtError(activeDocumentUri: string, error: string | undefined): void {
@@ -107,11 +114,11 @@ export class ProjectChangeListener {
     let mainModelResult: AnalyzeResult | undefined;
 
     if (node) {
-      const results = await this.destinationContext.analyzeModelTree(node, sql);
+      const results = await this.destinationContext.analyzeModelTree(node, sql, new AbortController().signal);
       this.sendDiagnosticsForDocuments(results.filter(r => r.modelUniqueId !== node.getValue().uniqueId));
       mainModelResult = results.find(r => r.modelUniqueId === node.getValue().uniqueId)?.analyzeResult;
     } else {
-      const result = await this.destinationContext.analyzeSql(sql);
+      const result = await this.destinationContext.analyzeSql(sql, new AbortController().signal);
       mainModelResult = result;
     }
     return mainModelResult;

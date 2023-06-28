@@ -54,7 +54,7 @@ describe('ProjectAnalyzer analyzeModelsTree', () => {
 
     when(mockSqlHeaderAnalyzer.getAllFunctionDeclarations(anything(), anything(), anything())).thenResolve([]);
 
-    projectAnalyzer = new ProjectAnalyzer(instance(mockDbtRepository), 'projectName', instance(mockDestinationClient), instance(mockZetaSqlWrapper));
+    projectAnalyzer = new ProjectAnalyzer(instance(mockDbtRepository), instance(mockDestinationClient), instance(mockZetaSqlWrapper));
 
     when(mockZetaSqlWrapper.findTableNames(COMPILED_SQL)).thenReturn(Promise.resolve([new TableDefinition(INTERNAL_TABLE_NAME_PATH)]));
 
@@ -94,7 +94,7 @@ describe('ProjectAnalyzer analyzeModelsTree', () => {
 
   it('analyzeModelsTree should register tables and udfs before calling analyze', async () => {
     // act
-    await projectAnalyzer.analyzeModelTree(DAG_NODE, COMPILED_SQL);
+    await projectAnalyzer.analyzeModelTree(DAG_NODE, COMPILED_SQL, new AbortController().signal);
 
     // assert
     verify(mockZetaSqlWrapper.registerTable(objectContaining({ namePath: INTERNAL_TABLE_NAME_PATH }))).calledBefore(

@@ -123,6 +123,7 @@ export abstract class ZetaSqlWrapper {
 
   registerTable(table: TableDefinition): void {
     if (!this.isTableRegistered(table)) {
+      console.log('Registering table', table.getTableNameInZetaSql());
       this.registeredTables.push(table);
     }
 
