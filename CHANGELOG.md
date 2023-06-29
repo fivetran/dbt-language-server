@@ -1,6 +1,13 @@
 # Changelog
 
-## Version 0.27.1 (19/06/2023)
+## Version 0.27.2 (22/06/2023)
+## What's Changed
+* Added support for semi-structured data functions in Snowflake.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.27.1...v0.27.2
+---
+
+## Version 0.27.1 (22/06/2023)
 ## What's Changed
 * Added support for Snowflake cast operator (`::`).
 
@@ -10,7 +17,7 @@
 
 ## Version 0.27.0 (18/06/2023)
 ## What's Changed
-* In this release, we've introduced a new setting, WizardForDbtCore(TM).enableSnowflakeSyntaxCheck, which is turned off by default. When activated, this setting enables syntax checks for Snowflake dbt projects. As a result, any errors within models will be detected and displayed. Please note that this is an experimental feature and may not be entirely reliable. It could potentially yield false positive errors, indicating issues where there are none.
+* In this release, we've introduced a new setting, `WizardForDbtCore(TM).enableSnowflakeSyntaxCheck`, which is turned off by default. When activated, this setting enables syntax checks for Snowflake dbt projects. As a result, any errors within models will be detected and displayed. Please note that this is an experimental feature and may not be entirely reliable. It could potentially yield false positive errors, indicating issues where there are none.
 
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.26.2...v0.27.0
@@ -247,12 +254,3 @@ AS (
 * Change extension logo.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.12.0...v0.12.1
----
-
-## Version 0.12.0 (10/10/2022)
-## What's Changed
-* We now don't show errors for empty models.
-* Add support dbt aliases.
-* Add command to create dbt project from VS Code.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.11.1...v0.12.0

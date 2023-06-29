@@ -100,6 +100,7 @@ export class ZetaSqlApi {
         featuresForVersion.forEach(f => options.enableLanguageFeature(f));
         options.enableLanguageFeature(LanguageFeature.FEATURE_NAMED_ARGUMENTS);
         options.enableLanguageFeature(LanguageFeature.FEATURE_JSON_TYPE);
+        options.enableLanguageFeature(LanguageFeature.FEATURE_JSON_VALUE_EXTRACTION_FUNCTIONS);
         options.enableLanguageFeature(LanguageFeature.FEATURE_INTERVAL_TYPE);
         // https://github.com/google/zetasql/issues/115#issuecomment-1210881670
         options.options.reservedKeywords = ['QUALIFY'];

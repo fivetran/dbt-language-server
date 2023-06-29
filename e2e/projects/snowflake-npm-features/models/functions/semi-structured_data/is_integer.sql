@@ -1,0 +1,7 @@
+SELECT
+    IS_INTEGER(TRUE),
+    IS_INTEGER(TO_VARIANT('Sample text')),
+    IS_INTEGER(1),
+    IS_INTEGER(TO_VARIANT(TO_DATE('2023-04-20', 'YYYY-MM-DD'))),
+    IS_INTEGER(TO_NUMBER(1)),
+    IS_INTEGER(array_construct())
