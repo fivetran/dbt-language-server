@@ -1,0 +1,7 @@
+SELECT
+    TRY_TO_DECIMAL('123.45'),
+    TRY_TO_DECIMAL('NotDecimal'),
+    TRY_TO_DECIMAL('123.45', 10, 2),
+    TRY_TO_DECIMAL('123.456', 10, 2),
+    TRY_TO_DECIMAL('12.3', '99.9'),
+    TRY_TO_DECIMAL('12.3', '99.9', 9, 5)
