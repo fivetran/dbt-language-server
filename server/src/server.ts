@@ -112,6 +112,7 @@ function createLspServerForProject(
     customInitParams.enableEntireProjectAnalysis,
     fileChangeListener,
     projectProgressReporter,
+    macroCompilationServer,
   );
 
   return new LspServer(

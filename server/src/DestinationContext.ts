@@ -5,7 +5,8 @@ import { DagNode } from './dag/DagNode';
 import { DbtProfileSuccess } from './DbtProfileCreator';
 import { DbtRepository } from './DbtRepository';
 import { DestinationDefinition } from './DestinationDefinition';
-import { AnalyzeResult, AnalyzeTrackerFunc, ModelsAnalyzeResult, ProjectAnalyzer } from './ProjectAnalyzer';
+import { AnalyzeResult, ModelsAnalyzeResult, ProjectAnalyzer } from './ProjectAnalyzer';
+import { AnalyzeTrackerFunc, ProjectAnalyzeTask } from './ProjectAnalyzeTask';
 import { SnowflakeZetaSqlWrapper } from './SnowflakeZetaSqlWrapper';
 import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
 import { SupportedDestinations, ZetaSqlApi } from './ZetaSqlApi';
@@ -17,7 +18,9 @@ export class DestinationContext {
   private static readonly NOT_INITIALIZED_ERROR = 'projectAnalyzer is not initialized';
 
   destinationDefinition?: DestinationDefinition;
-  projectAnalyzer?: ProjectAnalyzer;
+  private projectAnalyzer?: ProjectAnalyzer;
+  private projectAnalyzeTask?: ProjectAnalyzeTask;
+  private projectName?: string;
 
   contextInitialized = false;
   onContextInitializedEmitter = new Emitter<void>();
@@ -43,6 +46,7 @@ export class DestinationContext {
     ubuntuInWslWorks: boolean,
     projectName: string,
   ): Promise<Result<void, string>> {
+    this.projectName = projectName;
     if (profileResult.dbtProfile && this.canUseDestination(profileResult, ubuntuInWslWorks)) {
       try {
         const clientResult = await profileResult.dbtProfile.createClient(profileResult.targetConfig);
@@ -62,7 +66,7 @@ export class DestinationContext {
             ? new BigQueryZetaSqlWrapper(destinationClient, zetaSqlApi, zetaSqlParser, sqlHeaderAnalyzer)
             : new SnowflakeZetaSqlWrapper(destinationClient, zetaSqlApi, zetaSqlParser, sqlHeaderAnalyzer);
 
-        this.projectAnalyzer = new ProjectAnalyzer(dbtRepository, projectName, destinationClient, zetaSqlWrapper);
+        this.projectAnalyzer = new ProjectAnalyzer(dbtRepository, destinationClient, zetaSqlWrapper);
         await this.projectAnalyzer.initialize();
       } catch (e) {
         const message = e instanceof Error ? e.message : JSON.stringify(e);
@@ -88,28 +92,38 @@ export class DestinationContext {
     );
   }
 
-  async analyzeModel(node: DagNode): Promise<ModelsAnalyzeResult[]> {
+  async analyzeModel(node: DagNode, signal: AbortSignal): Promise<ModelsAnalyzeResult[]> {
     this.ensureProjectAnalyzer(this.projectAnalyzer);
-    return this.projectAnalyzer.analyzeModel(node);
+    return this.projectAnalyzer.analyzeModel(node, signal);
   }
 
-  async analyzeModelTree(node: DagNode, sql?: string): Promise<ModelsAnalyzeResult[]> {
+  async analyzeModelTree(node: DagNode, sql: string | undefined, signal: AbortSignal): Promise<ModelsAnalyzeResult[]> {
     this.ensureProjectAnalyzer(this.projectAnalyzer);
-    return this.projectAnalyzer.analyzeModelTree(node, sql);
+    return this.projectAnalyzer.analyzeModelTree(node, sql, signal);
   }
 
-  async analyzeSql(sql: string): Promise<AnalyzeResult> {
+  async analyzeSql(sql: string, signal: AbortSignal): Promise<AnalyzeResult> {
     this.ensureProjectAnalyzer(this.projectAnalyzer);
-    return this.projectAnalyzer.analyzeSql(sql);
+    return this.projectAnalyzer.analyzeSql(sql, signal);
+  }
+
+  // TODO: delete
+  cancelAnalyze(): void {
+    this.projectAnalyzeTask?.stop();
   }
 
   async analyzeProject(analyzeTracker: AnalyzeTrackerFunc): Promise<ModelsAnalyzeResult[]> {
     this.ensureProjectAnalyzer(this.projectAnalyzer);
-    return this.projectAnalyzer.analyzeProject(analyzeTracker);
+    if (!this.projectName) {
+      throw new Error('projectName is not initialized');
+    }
+    this.projectAnalyzeTask?.stop();
+    this.projectAnalyzeTask = new ProjectAnalyzeTask(this.projectAnalyzer, this.projectName, analyzeTracker);
+    return this.projectAnalyzeTask.start();
   }
 
-  resetTables(): void {
-    this.projectAnalyzer?.resetTables();
+  resetCache(): void {
+    this.projectAnalyzer?.resetCache();
   }
 
   getColumnsInRelation(db: string | undefined, schema: string | undefined, tableName: string): KnownColumn[] | undefined {

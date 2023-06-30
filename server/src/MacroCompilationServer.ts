@@ -13,6 +13,7 @@ interface QueryParams {
 
 export class MacroCompilationServer {
   port?: number;
+  private abortController = new AbortController();
 
   constructor(private destinationContext: DestinationContext, private dbtRepository: DbtRepository) {}
 
@@ -30,7 +31,10 @@ export class MacroCompilationServer {
           n => n.getValue().database === db && n.getValue().schema === schema && n.getValue().name === queryParams.table,
         );
         if (node) {
-          await this.destinationContext.analyzeModel(node);
+          await this.destinationContext.analyzeModel(node, this.abortController.signal);
+          if (this.abortController.signal.aborted) {
+            return;
+          }
           const columns = this.destinationContext.getColumnsInRelation(db, schema, queryParams.table);
           if (columns) {
             res.send(columns.map(c => [c.name, c.type]));
@@ -48,5 +52,10 @@ export class MacroCompilationServer {
 
     app.listen(this.port, 'localhost');
     console.log(`Macro compilation server started on port ${this.port}`);
+  }
+
+  cancelActiveTasks(): void {
+    this.abortController.abort();
+    this.abortController = new AbortController();
   }
 }

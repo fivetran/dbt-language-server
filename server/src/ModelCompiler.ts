@@ -35,7 +35,7 @@ export class ModelCompiler {
 
     if (this.dbtCompileJobQueue.length > 3) {
       const jobToStop = this.dbtCompileJobQueue.shift();
-      jobToStop?.forceStop().catch(e => console.log(`Failed to stop job: ${e instanceof Error ? e.message : String(e)}`));
+      jobToStop?.forceStop();
     }
     this.startNewJob(modelPath, allowFallback);
 
@@ -63,7 +63,7 @@ export class ModelCompiler {
         if (result) {
           const jobsToStop = this.dbtCompileJobQueue.splice(0, i + 1);
           for (let j = 0; j < i; j++) {
-            jobsToStop[j].forceStop().catch(e => console.log(`Failed to stop job: ${e instanceof Error ? e.message : String(e)}`));
+            jobsToStop[j].forceStop();
           }
 
           if (result.isErr()) {

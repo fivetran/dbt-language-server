@@ -12,6 +12,7 @@ export class DbtCliCompileJob extends DbtCompileJob {
   static TIMEOUT_EXCEEDED_ERROR = 'dbt compile timeout exceeded';
 
   private process?: ChildProcess;
+  private canceleld = false;
 
   result?: Result<string, string>;
 
@@ -36,7 +37,9 @@ export class DbtCliCompileJob extends DbtCompileJob {
         DbtCliCompileJob.TIMEOUT_EXCEEDED_ERROR,
       );
     } catch (e: unknown) {
-      if (e instanceof Object && 'stdout' in e) {
+      if (this.canceleld) {
+        this.result = err('Canceled');
+      } else if (e instanceof Object && 'stdout' in e) {
         const error = e as ExecException & { stdout?: string; stderr?: string };
         this.result = err(error.stdout ? DbtCompileJob.extractDbtError(error.stdout) : error.message);
       } else {
@@ -62,9 +65,9 @@ export class DbtCliCompileJob extends DbtCompileJob {
     }
   }
 
-  forceStop(): Promise<void> {
+  forceStop(): void {
+    this.canceleld = true;
     this.process?.kill('SIGKILL');
-    return Promise.resolve();
   }
 
   getResult(): Result<string, string> | undefined {

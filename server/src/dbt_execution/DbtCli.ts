@@ -15,6 +15,7 @@ import slash = require('slash');
 export class DbtCli {
   dbtReady = false;
   onDbtReadyEmitter = new Emitter<void>();
+  projectCompileJob?: DbtCompileJob;
 
   constructor(
     private featureFinder: FeatureFinder,
@@ -68,10 +69,14 @@ export class DbtCli {
     return new DbtCliCompileJob(modelPath, dbtRepository, allowFallback, this);
   }
 
+  cancelCompileProject(): void {
+    this.projectCompileJob?.forceStop();
+  }
+
   async compileProject(dbtRepository: DbtRepository): Promise<Result<void, string>> {
-    const job = this.createCompileJob(undefined, dbtRepository, true);
+    this.projectCompileJob = this.createCompileJob(undefined, dbtRepository, true);
     console.log('Starting project compilation');
-    const result = await job.start();
+    const result = await this.projectCompileJob.start();
 
     if (result.isOk()) {
       console.log('Project compiled successfully');
