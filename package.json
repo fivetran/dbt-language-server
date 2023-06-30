@@ -201,7 +201,7 @@
     "prettier": "^2.8.8",
     "prettier-plugin-organize-imports": "^3.2.2",
     "size-limit": "^8.0.0",
-    "ts-loader": "^9.4.3",
+    "ts-loader": "^9.4.4",
     "ts-mockito": "^2.6.1",
     "ts-node": "^10.9.1",
     "ts-unused-exports": "^9.0.4",
