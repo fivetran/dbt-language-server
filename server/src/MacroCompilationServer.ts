@@ -31,9 +31,7 @@ export class MacroCompilationServer {
           n => n.getValue().database === db && n.getValue().schema === schema && n.getValue().name === queryParams.table,
         );
         if (node) {
-          console.log('before analyzeModel', node.getValue().name);
           await this.destinationContext.analyzeModel(node, this.abortController.signal);
-          console.log('after analyzeModel', node.getValue().name);
           if (this.abortController.signal.aborted) {
             return;
           }
