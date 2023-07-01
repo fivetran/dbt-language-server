@@ -10,6 +10,8 @@ import { YamlParserUtils } from './YamlParserUtils';
 export interface DbtProfileInfo {
   type?: string;
   method?: string;
+  project?: string;
+  dataset?: string;
 }
 
 interface DbtProfileError extends DbtProfileInfo {
@@ -59,6 +61,8 @@ export class DbtProfileCreator {
         ).toString()}) file.`,
         type,
         method,
+        project: outputsTarget.project,
+        dataset: outputsTarget.dataset,
       });
     }
 
@@ -140,6 +144,8 @@ export class DbtProfileCreator {
       targetConfig,
       type,
       method,
+      project: targetConfig.project,
+      dataset: targetConfig.dataset,
     });
   }
 

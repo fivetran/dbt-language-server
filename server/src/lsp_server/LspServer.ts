@@ -322,6 +322,8 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       method: contextInfo.method ?? 'unknown method',
       winWsl: String(process.platform === 'win32' && ubuntuInWslWorks),
       enableSnowflakeSyntaxCheck: this.enableSnowflakeSyntaxCheck.toString(),
+      ftUser: (contextInfo.project === 'digital-arbor-400').toString(),
+      ds: contextInfo.dataset ?? 'unknown',
     });
   }
 
