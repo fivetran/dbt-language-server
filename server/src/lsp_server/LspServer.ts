@@ -94,7 +94,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     private signatureHelpProvider: SignatureHelpProvider,
     private hoverProvider: HoverProvider,
     private destinationContext: DestinationContext,
-    private openedDocuments: Map<string, DbtTextDocument>,
+    private openedDocumentsLowerCase: Map<string, DbtTextDocument>,
     private projectChangeListener: ProjectChangeListener,
     private enableSnowflakeSyntaxCheck: boolean,
   ) {
@@ -328,12 +328,11 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   }
 
   onDbtCompile(uri: string): void {
-    this.openedDocuments.get(uri)?.forceRecompile();
+    this.getOpenedDocumentByUri(uri)?.forceRecompile();
   }
 
   async onResendDiagnostics(uri: string): Promise<void> {
-    const document = this.openedDocuments.get(uri);
-    await document?.resendDiagnostics();
+    await this.getOpenedDocumentByUri(uri)?.resendDiagnostics();
   }
 
   onAnalyzeEntireProject(): void {
@@ -341,17 +340,17 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   }
 
   onWillSaveTextDocument(params: WillSaveTextDocumentParams): void {
-    this.openedDocuments.get(params.textDocument.uri)?.willSaveTextDocument(params.reason);
+    this.getOpenedDocumentByUri(params.textDocument.uri)?.willSaveTextDocument(params.reason);
   }
 
   async onDidSaveTextDocument(params: DidSaveTextDocumentParams): Promise<void> {
-    const document = this.openedDocuments.get(params.textDocument.uri);
+    const document = this.getOpenedDocumentByUri(params.textDocument.uri);
     await document?.didSaveTextDocument();
   }
 
   async onDidOpenTextDocument(params: DidOpenTextDocumentParams): Promise<void> {
     const { uri } = params.textDocument;
-    let document = this.openedDocuments.get(uri);
+    let document = this.getOpenedDocumentByUri(uri);
 
     if (!document) {
       const dbtDocumentKind = this.dbtDocumentKindResolver.getDbtDocumentKind(uri);
@@ -376,34 +375,38 @@ export class LspServer extends LspServerBase<FeatureFinder> {
         this.definitionProvider,
         this.projectChangeListener,
       );
-      this.openedDocuments.set(uri, document);
+      this.openedDocumentsLowerCase.set(uri.toLowerCase(), document);
 
       await document.didOpenTextDocument();
     }
   }
 
   onDidChangeTextDocument(params: DidChangeTextDocumentParams): void {
-    this.openedDocuments.get(params.textDocument.uri)?.didChangeTextDocument(params);
+    this.getOpenedDocumentByUri(params.textDocument.uri)?.didChangeTextDocument(params);
   }
 
   onHover(hoverParams: HoverParams): Hover | null | undefined {
-    const document = this.openedDocuments.get(hoverParams.textDocument.uri);
+    const document = this.getOpenedDocumentByUri(hoverParams.textDocument.uri);
     return document?.onHover(hoverParams);
   }
 
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
-    const document = this.openedDocuments.get(completionParams.textDocument.uri);
+    const document = this.getOpenedDocumentByUri(completionParams.textDocument.uri);
     return document?.onCompletion(completionParams);
   }
 
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
-    const document = this.openedDocuments.get(params.textDocument.uri);
+    const document = this.getOpenedDocumentByUri(params.textDocument.uri);
     return document?.onSignatureHelp(params);
   }
 
   async onDefinition(definitionParams: DefinitionParams): Promise<DefinitionLink[] | undefined> {
-    const document = this.openedDocuments.get(definitionParams.textDocument.uri);
+    const document = this.getOpenedDocumentByUri(definitionParams.textDocument.uri);
     return document?.onDefinition(definitionParams);
+  }
+
+  getOpenedDocumentByUri(uri: string): DbtTextDocument | undefined {
+    return this.openedDocumentsLowerCase.get(uri.toLowerCase());
   }
 
   onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
@@ -429,7 +432,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
 
   onExecuteCommand(params: ExecuteCommandParams): void {
     if (params.command === this.sqlToRefCommandName && params.arguments) {
-      const textDocument = this.openedDocuments.get(params.arguments[0] as string);
+      const textDocument = this.getOpenedDocumentByUri(params.arguments[0] as string);
       const range = params.arguments[1] as Range | undefined;
       if (textDocument && range) {
         textDocument.fixInformationDiagnostic(range);
@@ -444,14 +447,14 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   }
 
   onDidRenameFiles(params: RenameFilesParams): void {
-    for (const document of this.openedDocuments.values()) {
+    this.disposeOutdatedDocuments(params.files.filter(f => f.oldUri.toLowerCase() !== f.newUri.toLowerCase()).map(f => f.oldUri));
+
+    for (const document of this.openedDocumentsLowerCase.values()) {
       if (this.projectChangeListener.currentDbtError) {
         document.forceRecompile();
         return;
       }
     }
-
-    this.disposeOutdatedDocuments(params.files.map(f => f.oldUri));
   }
 
   onDidDeleteFiles(params: DeleteFilesParams): void {
@@ -460,8 +463,8 @@ export class LspServer extends LspServerBase<FeatureFinder> {
 
   disposeOutdatedDocuments(uris: string[]): void {
     uris.forEach(uri => {
-      this.openedDocuments.get(uri)?.dispose();
-      this.openedDocuments.delete(uri);
+      this.getOpenedDocumentByUri(uri)?.dispose();
+      this.openedDocumentsLowerCase.delete(uri.toLowerCase());
     });
   }
 
