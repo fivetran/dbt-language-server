@@ -25,7 +25,7 @@ export class ProjectChangeListener {
   currentDbtError?: CurrentDbtError;
 
   constructor(
-    private openedDocuments: Map<string, DbtTextDocument>,
+    private openedDocumentsLowerCase: Map<string, DbtTextDocument>,
     private destinationContext: DestinationContext,
     private dbtRepository: DbtRepository,
     private diagnosticGenerator: DiagnosticGenerator,
@@ -125,14 +125,14 @@ export class ProjectChangeListener {
   }
 
   private onSqlModelChanged(changes: FileEvent[]): void {
-    const externalChangeHappened = changes.some(c => !this.openedDocuments.has(c.uri) && c.type !== FileChangeType.Deleted);
+    const externalChangeHappened = changes.some(c => c.type !== FileChangeType.Deleted && !this.openedDocumentsLowerCase.has(c.uri.toLowerCase()));
     if (externalChangeHappened) {
       this.debouncedCompileAndAnalyze();
     }
   }
 
-  private debouncedCompileAndAnalyze = debounce(async () => {
-    await this.compileAndAnalyzeProject();
+  private debouncedCompileAndAnalyze = debounce(() => {
+    this.compileAndAnalyzeProject().catch(e => console.log(`Error while compiling/analyzing project: ${e instanceof Error ? e.message : String(e)}`));
   }, ProjectChangeListener.PROJECT_COMPILE_DEBOUNCE_TIMEOUT);
 
   private async analyzeProject(): Promise<void> {
