@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 0.27.3 (03/07/2023)
+## What's Changed
+* Enabled support for BigQuery [JSON functions](https://cloud.google.com/bigquery/docs/reference/standard-sql/json_functions).
+* Updated the functionality of the "Analyze current project" button (🔄). Clicking it now cancels any ongoing compilation/analysis and initiates a new one.
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.27.2...v0.27.3
+---
+
 ## Version 0.27.2 (22/06/2023)
 ## What's Changed
 * Added support for semi-structured data functions in Snowflake.
@@ -246,11 +255,3 @@ AS (
 * Update dependencies.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.12.1...v0.12.2
----
-
-## Version 0.12.1 (13/10/2022)
-## What's Changed
-* Rename extension to `Wizard for dbt Core (TM)`.
-* Change extension logo.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.12.0...v0.12.1
