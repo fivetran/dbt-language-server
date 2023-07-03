@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.27.3 (01/01/1970)
+## Version 0.27.3 (03/07/2023)
 ## What's Changed
 * Enabled support for BigQuery [JSON functions](https://cloud.google.com/bigquery/docs/reference/standard-sql/json_functions).
 * Updated the functionality of the "Analyze current project" button (🔄). Clicking it now cancels any ongoing compilation/analysis and initiates a new one.
