@@ -38,7 +38,9 @@ export class SnowflakeClient implements DbtDestinationClient {
     await this.connectIfNeeded();
     const columnNames = ['column_name', 'data_type'];
     const statement = this.connection.execute({
-      sqlText: `select ${columnNames.join(',')} from information_schema.columns where table_schema = :1 and table_name = :2`,
+      sqlText: `select ${columnNames.join(
+        ',',
+      )} from information_schema.columns where table_schema = :1 and table_name = :2 order by ordinal_position`,
       binds: [datasetName.toUpperCase(), tableName.toUpperCase()],
     });
 

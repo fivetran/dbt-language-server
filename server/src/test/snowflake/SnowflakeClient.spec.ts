@@ -67,7 +67,8 @@ describe('SnowflakeClient', () => {
     when(
       mockConnection.execute(
         deepEqual({
-          sqlText: 'select column_name,data_type from information_schema.columns where table_schema = :1 and table_name = :2',
+          sqlText:
+            'select column_name,data_type from information_schema.columns where table_schema = :1 and table_name = :2 order by ordinal_position',
           binds: [datasetName.toUpperCase(), tableName.toUpperCase()],
         }),
       ),
