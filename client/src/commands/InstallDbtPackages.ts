@@ -20,7 +20,10 @@ export class InstallDbtPackages implements Command {
 
   selectedPackage?: string;
 
-  constructor(private dbtLanguageClientManager: DbtLanguageClientManager, private outputChannelProvider: OutputChannelProvider) {}
+  constructor(
+    private dbtLanguageClientManager: DbtLanguageClientManager,
+    private outputChannelProvider: OutputChannelProvider,
+  ) {}
 
   async execute(projectPath?: string): Promise<void> {
     if (projectPath) {

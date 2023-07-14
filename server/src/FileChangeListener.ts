@@ -12,7 +12,11 @@ export class FileChangeListener {
   private dbtProjectYmlPath: string;
   private packagesYmlPath: string;
 
-  constructor(private dbtProject: DbtProject, private manifestParser: ManifestParser, private dbtRepository: DbtRepository) {
+  constructor(
+    private dbtProject: DbtProject,
+    private manifestParser: ManifestParser,
+    private dbtRepository: DbtRepository,
+  ) {
     this.dbtProjectYmlPath = path.resolve(this.dbtRepository.projectPath, DbtRepository.DBT_PROJECT_FILE_NAME);
     this.packagesYmlPath = path.resolve(this.dbtRepository.projectPath, DbtRepository.DBT_PACKAGES_FILE_NAME);
   }

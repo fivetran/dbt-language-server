@@ -6,7 +6,10 @@ export class DbtWizardLanguageStatusItem {
 
   item: LanguageStatusItem;
 
-  constructor(id: string, private defaultText: string) {
+  constructor(
+    id: string,
+    private defaultText: string,
+  ) {
     this.item = languages.createLanguageStatusItem(id, []);
     this.setBusy();
   }

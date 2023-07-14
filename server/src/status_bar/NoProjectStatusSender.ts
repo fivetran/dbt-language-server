@@ -3,7 +3,10 @@ import { NotificationSender } from '../NotificationSender';
 import { FeatureFinderBase } from '../feature_finder/FeatureFinderBase';
 
 export class NoProjectStatusSender {
-  constructor(protected notificationSender: NotificationSender, protected featureFinder: FeatureFinderBase) {}
+  constructor(
+    protected notificationSender: NotificationSender,
+    protected featureFinder: FeatureFinderBase,
+  ) {}
 
   getProjectPath(): string {
     return NO_PROJECT_PATH;

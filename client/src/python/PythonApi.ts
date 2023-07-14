@@ -137,26 +137,15 @@ type EnvironmentPath = {
 };
 
 /**
- * Type of the environment. It can be {@link KnownEnvironmentTypes} or custom string which was contributed.
+ * Type of the environment. It can be 'VirtualEnvironment' | 'Conda' | 'Unknown' or custom string which was contributed.
  */
-type EnvironmentType = KnownEnvironmentTypes | string;
+type EnvironmentType = string;
 
 /**
- * Environment types the Python extension is aware of. Note this list is expected to shrink once tools have their
- * own separate extensions, in which case they're expected to provide the type themselves.
- */
-type KnownEnvironmentTypes = 'VirtualEnvironment' | 'Conda' | 'Unknown';
-
-/**
- * Tool/plugin where the environment came from. It can be {@link KnownEnvironmentTools} or custom string which
+ * Tool/plugin where the environment came from. It can be 'Conda' | 'Pipenv' | 'Poetry' | 'VirtualEnv' | 'Venv' | 'VirtualEnvWrapper' | 'Pyenv' | 'Unknown' or custom string which
  * was contributed.
  */
-type EnvironmentTools = KnownEnvironmentTools | string;
-/**
- * Tools or plugins the Python extension currently has built-in support for. Note this list is expected to shrink
- * once tools have their own separate extensions.
- */
-type KnownEnvironmentTools = 'Conda' | 'Pipenv' | 'Poetry' | 'VirtualEnv' | 'Venv' | 'VirtualEnvWrapper' | 'Pyenv' | 'Unknown';
+type EnvironmentTools = string;
 
 /**
  * Carries bitness for an environment.

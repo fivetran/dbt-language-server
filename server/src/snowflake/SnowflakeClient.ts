@@ -8,7 +8,10 @@ export class SnowflakeClient implements DbtDestinationClient {
   private static readonly TIMEOUT_ERROR = 'Snowflake query timeout';
   private static readonly SQL_TIMEOUT = 10_000;
 
-  constructor(public defaultProject: string, private connection: Connection) {}
+  constructor(
+    public defaultProject: string,
+    private connection: Connection,
+  ) {}
 
   test(): Promise<Result<void, string>> {
     return this.connect().then(errorResult => (errorResult === undefined ? ok(undefined) : err(errorResult)));

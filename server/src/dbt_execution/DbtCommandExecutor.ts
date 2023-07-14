@@ -4,7 +4,10 @@ import { ProcessExecutor } from '../ProcessExecutor';
 export class DbtCommandExecutor {
   static readonly PROCESS_EXECUTOR = new ProcessExecutor();
 
-  constructor(private python: string, private scriptPath: string) {}
+  constructor(
+    private python: string,
+    private scriptPath: string,
+  ) {}
 
   compile(
     macroCompilerPort: number,

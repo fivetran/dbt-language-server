@@ -5,11 +5,11 @@
     "vscode": "^1.52.0"
   },
   "devDependencies": {
-    "@google-cloud/bigquery": "^6.2.0",
+    "@google-cloud/bigquery": "^6.2.1",
     "@types/glob": "^8.1.0",
     "@types/pg": "^8.10.2",
     "@types/snowflake-sdk": "^1.6.13",
-    "@types/vscode": "^1.79.1",
+    "@types/vscode": "^1.80.0",
     "@vscode/test-electron": "^2.3.3",
     "dbt-language-server-common": "file:../common",
     "hamjest": "^4.0.1",

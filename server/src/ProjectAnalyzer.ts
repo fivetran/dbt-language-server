@@ -23,7 +23,11 @@ export interface AnalyzeResult {
 export class ProjectAnalyzer {
   private tableFetcher: TableFetcher;
 
-  constructor(public dbtRepository: DbtRepository, private destinationClient: DbtDestinationClient, private zetaSqlWrapper: ZetaSqlWrapper) {
+  constructor(
+    public dbtRepository: DbtRepository,
+    private destinationClient: DbtDestinationClient,
+    private zetaSqlWrapper: ZetaSqlWrapper,
+  ) {
     this.tableFetcher = new TableFetcher(this.destinationClient);
   }
 

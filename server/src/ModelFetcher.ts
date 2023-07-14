@@ -6,7 +6,10 @@ export class DagNodeFetcher {
   node: DagNode | undefined;
   fetchCompleted = false;
 
-  constructor(private dbtRepository: DbtRepository, public fullModelPath: string) {}
+  constructor(
+    private dbtRepository: DbtRepository,
+    public fullModelPath: string,
+  ) {}
 
   /** We retry here because in some situations manifest.json can appear a bit later after compilation is finished */
   async getDagNode(): Promise<DagNode | undefined> {

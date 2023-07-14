@@ -50,8 +50,7 @@ export async function assertDefinitions(docUri: Uri, position: Position, expecte
 
   assertThat(definitions.length, expectedDefinitions.length);
 
-  for (let i = 0; i < definitions.length; i++) {
-    const definition = definitions[i];
+  for (const [i, definition] of definitions.entries()) {
     const expectedDefinition = expectedDefinitions[i];
 
     assertThat(definition.originSelectionRange, expectedDefinition.originSelectionRange);

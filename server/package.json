@@ -7,7 +7,7 @@
   "dependencies": {
     "@fivetrandevelopers/zetasql": "^1.12.0",
     "@fivetrandevelopers/zetasql-snowflake": "^0.6.2",
-    "@google-cloud/bigquery": "^6.2.0",
+    "@google-cloud/bigquery": "^6.2.1",
     "async-retry": "^1.3.3",
     "axios": "^1.4.0",
     "dbt-language-server-common": "file:../common",
@@ -18,7 +18,7 @@
     "neverthrow": "^6.0.0",
     "path-equal": "^1.2.5",
     "request": "^2.88.2",
-    "semver": "^7.5.3",
+    "semver": "^7.5.4",
     "slash": "^3.0.0",
     "snowflake-sdk": "^1.6.23",
     "source-map-support": "^0.5.21",

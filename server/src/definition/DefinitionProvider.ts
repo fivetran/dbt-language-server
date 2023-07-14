@@ -12,7 +12,10 @@ export class DefinitionProvider {
   dbtDefinitionProvider: DbtDefinitionProvider;
   sqlDefinitionProvider: SqlDefinitionProvider;
 
-  constructor(dbtRepository: DbtRepository, private jinjaParser: JinjaParser) {
+  constructor(
+    dbtRepository: DbtRepository,
+    private jinjaParser: JinjaParser,
+  ) {
     this.dbtDefinitionProvider = new DbtDefinitionProvider(dbtRepository);
     this.sqlDefinitionProvider = new SqlDefinitionProvider(dbtRepository);
   }

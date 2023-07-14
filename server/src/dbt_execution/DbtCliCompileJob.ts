@@ -17,7 +17,12 @@ export class DbtCliCompileJob extends DbtCompileJob {
   result?: Result<string, string>;
 
   /** If modelPath === undefined then we compile project */
-  constructor(private modelPath: string | undefined, private dbtRepository: DbtRepository, private allowFallback: boolean, private dbtCli: DbtCli) {
+  constructor(
+    private modelPath: string | undefined,
+    private dbtRepository: DbtRepository,
+    private allowFallback: boolean,
+    private dbtCli: DbtCli,
+  ) {
     super();
   }
 

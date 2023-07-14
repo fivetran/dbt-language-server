@@ -2,7 +2,7 @@ import { BigQueryOAuthProfile } from './bigquery/BigQueryOAuthProfile';
 import { BigQueryOAuthTokenBasedProfile } from './bigquery/BigQueryOAuthTokenBasedProfile';
 import { BigQueryServiceAccountJsonProfile } from './bigquery/BigQueryServiceAccountJsonProfile';
 import { BigQueryServiceAccountProfile } from './bigquery/BigQueryServiceAccountProfile';
-import { DbtProfile, DbtProfileType } from './DbtProfile';
+import { DbtProfile, SupportedProfileName } from './DbtProfile';
 import { SnowflakeKeyPairProfile } from './snowflake/SnowflakeKeyPairProfile';
 import { SnowflakeUserPassProfile } from './snowflake/SnowflakeUserPassProfile';
 
@@ -18,4 +18,4 @@ export const SNOWFLAKE_PROFILES = new Map<string, () => DbtProfile>([
   ['key-pair', (): DbtProfile => new SnowflakeKeyPairProfile()],
 ]);
 
-export const PROFILE_METHODS = new Map<DbtProfileType, string[]>([[DbtProfileType.BigQuery, [...BIG_QUERY_PROFILES.keys()]]]);
+export const PROFILE_METHODS = new Map<string, string[]>([[SupportedProfileName.BigQuery, [...BIG_QUERY_PROFILES.keys()]]]);

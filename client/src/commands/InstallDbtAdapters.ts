@@ -9,7 +9,10 @@ import { NoProjectCommand } from './NoProjectCommand';
 export class InstallDbtAdapters extends NoProjectCommand implements Command {
   readonly id = 'WizardForDbtCore(TM).installDbtAdapters';
 
-  constructor(dbtLanguageClientManager: DbtLanguageClientManager, private outputChannelProvider: OutputChannelProvider) {
+  constructor(
+    dbtLanguageClientManager: DbtLanguageClientManager,
+    private outputChannelProvider: OutputChannelProvider,
+  ) {
     super(dbtLanguageClientManager);
   }
 

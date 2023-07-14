@@ -28,7 +28,7 @@ export interface ProfileYaml {
 }
 
 export interface TargetConfig {
-  type?: DbtProfileType;
+  type?: string;
   method?: string;
   project?: string;
   token?: string;
@@ -47,7 +47,7 @@ export interface TargetConfig {
   private_key_passphrase?: string;
 }
 
-export enum DbtProfileType {
-  BigQuery = 'bigquery',
-  Snowflake = 'snowflake',
-}
+export const SupportedProfileName = {
+  BigQuery: 'bigquery',
+  Snowflake: 'snowflake',
+};
