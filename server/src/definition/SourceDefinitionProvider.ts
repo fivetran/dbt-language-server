@@ -91,8 +91,7 @@ export class SourceDefinitionProvider implements DbtNodeDefinitionProvider {
 
   getSourceRange(lines: string[], tableName: string): Range | undefined {
     const tablePattern = new RegExp(`-\\s*name:\\s*${tableName}\\s*$`);
-    for (let index = 0; index < lines.length; index++) {
-      const line = lines[index];
+    for (const [index, line] of lines.entries()) {
       if (line.includes(tableName) && tablePattern.test(line)) {
         const tableIndex = line.indexOf(tableName);
         return Range.create(index, tableIndex, index, tableIndex + tableName.length);

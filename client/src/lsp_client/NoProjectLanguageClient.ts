@@ -6,7 +6,12 @@ import { StatusHandler } from '../status/StatusHandler';
 import { DbtWizardLanguageClient } from './DbtWizardLanguageClient';
 
 export class NoProjectLanguageClient extends DbtWizardLanguageClient {
-  constructor(private port: number, outputChannelProvider: OutputChannelProvider, statusHandler: StatusHandler, private serverAbsolutePath: string) {
+  constructor(
+    private port: number,
+    outputChannelProvider: OutputChannelProvider,
+    statusHandler: StatusHandler,
+    private serverAbsolutePath: string,
+  ) {
     super(outputChannelProvider, statusHandler, Uri.file(NO_PROJECT_PATH));
   }
 

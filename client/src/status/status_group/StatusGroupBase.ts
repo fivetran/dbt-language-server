@@ -17,7 +17,11 @@ export abstract class StatusGroupBase {
   private dbtData?: StatusItemData;
   private dbtAdaptersData?: StatusItemData;
 
-  constructor(protected projectPath: string, protected items: LanguageStatusItems, filters: DocumentFilter[]) {
+  constructor(
+    protected projectPath: string,
+    protected items: LanguageStatusItems,
+    filters: DocumentFilter[],
+  ) {
     this.activeDbtProjectData =
       projectPath === NO_PROJECT_PATH
         ? {

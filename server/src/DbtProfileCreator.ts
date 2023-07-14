@@ -1,6 +1,6 @@
 import { Err, err, ok, Result } from 'neverthrow';
 import { URI } from 'vscode-uri';
-import { DbtProfile, DbtProfileType, ProfileYaml, TargetConfig } from './DbtProfile';
+import { DbtProfile, ProfileYaml, TargetConfig, SupportedProfileName } from './DbtProfile';
 import { BIG_QUERY_PROFILES, PROFILE_METHODS, SNOWFLAKE_PROFILES } from './DbtProfileType';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
@@ -29,7 +29,10 @@ type ProfileYamlValidated = {
 };
 
 export class DbtProfileCreator {
-  constructor(private dbtProject: DbtProject, private profilesYmlPath: string) {}
+  constructor(
+    private dbtProject: DbtProject,
+    private profilesYmlPath: string,
+  ) {}
 
   validateCommonProfileFields(profile: ProfileYaml, profileName: string): Result<ProfileYamlValidated, DbtProfileError> {
     const { target } = profile;
@@ -115,12 +118,12 @@ export class DbtProfileCreator {
 
     let profileBuilder = undefined;
 
-    if (type.valueOf() === DbtProfileType.BigQuery) {
+    if (type === SupportedProfileName.BigQuery) {
       profileBuilder = method ? BIG_QUERY_PROFILES.get(method) : undefined;
       if (!profileBuilder) {
         return this.parseProfileError(`Unknown authentication method of '${type}' profile`, type, method);
       }
-    } else if (type.valueOf() === DbtProfileType.Snowflake) {
+    } else if (type === SupportedProfileName.Snowflake) {
       if (targetConfig.account && targetConfig.password) {
         profileBuilder = SNOWFLAKE_PROFILES.get('user-password');
         method = 'user-password';

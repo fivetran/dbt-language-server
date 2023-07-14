@@ -44,7 +44,10 @@ export class DbtRepository {
 
   globalProjectPath?: string;
 
-  constructor(public projectPath: string, globalProjectPath: Promise<string | undefined>) {
+  constructor(
+    public projectPath: string,
+    globalProjectPath: Promise<string | undefined>,
+  ) {
     globalProjectPath
       .then(p => {
         this.globalProjectPath = p;

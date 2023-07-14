@@ -5,7 +5,11 @@ import { NotificationSender } from '../NotificationSender';
 import { FeatureFinderBase } from '../feature_finder/FeatureFinderBase';
 
 export abstract class LspServerBase<T extends FeatureFinderBase> {
-  constructor(protected connection: _Connection, protected notificationSender: NotificationSender, protected featureFinder: T) {}
+  constructor(
+    protected connection: _Connection,
+    protected notificationSender: NotificationSender,
+    protected featureFinder: T,
+  ) {}
 
   abstract onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError>;
 

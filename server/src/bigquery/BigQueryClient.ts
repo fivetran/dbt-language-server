@@ -12,7 +12,10 @@ export class BigQueryClient implements DbtDestinationClient {
 
   bigQuery: BigQuery;
 
-  constructor(public defaultProject: string, private updateCredentials: () => BigQuery) {
+  constructor(
+    public defaultProject: string,
+    private updateCredentials: () => BigQuery,
+  ) {
     this.bigQuery = this.updateCredentials();
   }
 

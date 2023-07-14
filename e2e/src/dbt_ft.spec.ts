@@ -15,16 +15,17 @@ suite('dbt_ft', () => {
     files.forEach(f => console.log(f));
 
     const errors = [];
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-
+    for (const file of files) {
       if (EXCLUDE.some(e => file.endsWith(e))) {
         console.log(`Skipping: ${file}`);
       } else {
         const fileProcessingTimeout = new Promise<string>((resolve, _reject) => {
-          setTimeout(() => {
-            resolve(`Something went wrong when opening model ${file}`);
-          }, 1000 * 60 * 3);
+          setTimeout(
+            () => {
+              resolve(`Something went wrong when opening model ${file}`);
+            },
+            1000 * 60 * 3,
+          );
         });
 
         const uri = Uri.file(file);

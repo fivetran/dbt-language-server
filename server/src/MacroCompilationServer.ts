@@ -15,7 +15,10 @@ export class MacroCompilationServer {
   port?: number;
   private abortController = new AbortController();
 
-  constructor(private destinationContext: DestinationContext, private dbtRepository: DbtRepository) {}
+  constructor(
+    private destinationContext: DestinationContext,
+    private dbtRepository: DbtRepository,
+  ) {}
 
   async start(): Promise<void> {
     const app = express();

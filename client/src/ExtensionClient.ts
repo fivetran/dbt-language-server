@@ -35,7 +35,11 @@ export class ExtensionClient {
   packageJson?: PackageJson;
   activeTextEditorHandler: ActiveTextEditorHandler;
 
-  constructor(private context: ExtensionContext, private outputChannelProvider: OutputChannelProvider, manifestParsedEventEmitter: EventEmitter) {
+  constructor(
+    private context: ExtensionContext,
+    private outputChannelProvider: OutputChannelProvider,
+    manifestParsedEventEmitter: EventEmitter,
+  ) {
     this.dbtLanguageClientManager = new DbtLanguageClientManager(
       this.previewContentProvider,
       this.outputChannelProvider,

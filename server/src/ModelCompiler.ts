@@ -27,7 +27,10 @@ export class ModelCompiler {
     return this.onFinishAllCompilationJobsEmitter.event;
   }
 
-  constructor(private dbtCli: DbtCli, private dbtRepository: DbtRepository) {}
+  constructor(
+    private dbtCli: DbtCli,
+    private dbtRepository: DbtRepository,
+  ) {}
 
   async compile(modelPath: string, allowFallback: boolean): Promise<void> {
     console.log(`Start compiling ${modelPath}`, LogLevel.Debug);

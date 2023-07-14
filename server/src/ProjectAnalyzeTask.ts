@@ -6,7 +6,11 @@ export class ProjectAnalyzeTask {
   private stopRequested = false;
   private abortController = new AbortController();
 
-  constructor(private projectAnalyzer: ProjectAnalyzer, private projectName: string, private analyzeTracker: AnalyzeTrackerFunc) {}
+  constructor(
+    private projectAnalyzer: ProjectAnalyzer,
+    private projectName: string,
+    private analyzeTracker: AnalyzeTrackerFunc,
+  ) {}
 
   /** Analyzes models from project starting from the roots and stopping if there is error in node */
   async start(): Promise<ModelsAnalyzeResult[]> {

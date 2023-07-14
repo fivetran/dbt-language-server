@@ -26,7 +26,11 @@ export abstract class DbtWizardLanguageClient implements Disposable {
   protected pythonExtension = new PythonExtension();
   protected client!: LanguageClient;
 
-  constructor(protected outputChannelProvider: OutputChannelProvider, protected statusHandler: StatusHandler, protected dbtProjectUri: Uri) {}
+  constructor(
+    protected outputChannelProvider: OutputChannelProvider,
+    protected statusHandler: StatusHandler,
+    protected dbtProjectUri: Uri,
+  ) {}
 
   abstract getLspMode(): LspModeType;
   abstract initializeClient(): LanguageClient;

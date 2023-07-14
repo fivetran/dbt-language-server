@@ -8,7 +8,10 @@ export class PositionConverter {
   firstLines?: string[];
   secondLines?: string[];
 
-  constructor(private first: string, private second: string) {}
+  constructor(
+    private first: string,
+    private second: string,
+  ) {}
 
   private getDiffs(): Change[] {
     if (this.diffs === undefined) {
