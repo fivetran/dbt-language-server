@@ -38,8 +38,7 @@ export class DiffUtils {
     let oldNumber = 0;
     let currentNumber = 0;
 
-    for (let i = 0; i < diffs.length; i++) {
-      const diff = diffs[i];
+    for (const diff of diffs) {
       const diffCount = countFromDiff(diff[1]);
 
       if (diff[0] === fastDiff.DELETE) {
@@ -118,8 +117,7 @@ export class DiffUtils {
     let newNumber = 0;
     let currentNumber = 0;
 
-    for (let i = 0; i < diffs.length; i++) {
-      const diff = diffs[i];
+    for (const diff of diffs) {
       const diffCount = countFromDiff(diff.value);
 
       if (diff.removed) {
