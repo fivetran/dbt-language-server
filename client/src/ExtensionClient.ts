@@ -14,7 +14,7 @@ import { OutputChannelProvider } from './OutputChannelProvider';
 import SqlPreviewContentProvider from './SqlPreviewContentProvider';
 import { StatusHandler } from './status/StatusHandler';
 import { TelemetryClient } from './TelemetryClient';
-import { DBT_PROJECT_YML, isDocumentSupported } from './Utils';
+import { DBT_PROJECT_YML, isDocumentSupported, SQL_LANG_ID } from './Utils';
 
 import { EventEmitter } from 'node:events';
 import * as path from 'node:path';
@@ -143,7 +143,7 @@ export class ExtensionClient {
       await window.showTextDocument(doc, ViewColumn.Beside, false);
       await commands.executeCommand('workbench.action.lockEditorGroup');
       await commands.executeCommand('workbench.action.focusPreviousGroup');
-      await languages.setTextDocumentLanguage(doc, 'sql');
+      await languages.setTextDocumentLanguage(doc, SQL_LANG_ID);
       this.dbtLanguageClientManager.applyPreviewDiagnostics();
     });
 

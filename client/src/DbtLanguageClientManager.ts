@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import { ConfigurationChangeEvent, FileType, Selection, TextDocument, Uri, window, workspace } from 'vscode';
+import { ConfigurationChangeEvent, FileType, Selection, TextDocument, Uri, extensions, window, workspace } from 'vscode';
 import { log } from './Logger';
 import { ModelProgressHandler } from './ModelProgressHandler';
 import { OutputChannelProvider } from './OutputChannelProvider';
@@ -10,12 +10,15 @@ import { DbtLanguageClient } from './lsp_client/DbtLanguageClient';
 import { DbtWizardLanguageClient } from './lsp_client/DbtWizardLanguageClient';
 import { NoProjectLanguageClient } from './lsp_client/NoProjectLanguageClient';
 import { StatusHandler } from './status/StatusHandler';
+import { Lazy } from './Lazy';
 
 export class DbtLanguageClientManager {
   workspaceHelper = new WorkspaceHelper();
   clients: Map<string, DbtLanguageClient> = new Map();
   modelProgressHandler = new ModelProgressHandler();
   noProjectClient?: NoProjectLanguageClient;
+
+  snowflakeExtensionExists = new Lazy(() => Boolean(extensions.getExtension('snowflake.snowflake-vsc')));
 
   constructor(
     private previewContentProvider: SqlPreviewContentProvider,
@@ -126,6 +129,7 @@ export class DbtLanguageClientManager {
         this.modelProgressHandler,
         this.manifestParsedEventEmitter,
         this.statusHandler,
+        this.snowflakeExtensionExists,
       );
       this.clients.set(projectUri.fsPath, client);
       await this.initAndStartClient(client);

@@ -10,8 +10,9 @@
   "keywords": [
     "dbt",
     "bigquery",
-    "sql",
-    "dbt-wizard"
+    "snowflake",
+    "snowflake-sql",
+    "sql"
   ],
   "homepage": "https://github.com/fivetran/dbt-language-server/blob/main/README.md",
   "repository": {

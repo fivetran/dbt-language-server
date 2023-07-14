@@ -20,13 +20,15 @@ import { OutputChannelProvider } from '../OutputChannelProvider';
 import { ProjectProgressHandler } from '../ProjectProgressHandler';
 import SqlPreviewContentProvider from '../SqlPreviewContentProvider';
 import { TelemetryClient } from '../TelemetryClient';
-import { DBT_PROJECT_YML, PACKAGES_YML, SUPPORTED_LANG_IDS } from '../Utils';
+import { DBT_PROJECT_YML, PACKAGES_YML, SNOWFLAKE_SQL_LANG_ID, SQL_LANG_ID, SUPPORTED_LANG_IDS } from '../Utils';
 import { StatusHandler } from '../status/StatusHandler';
 import { DbtWizardLanguageClient } from './DbtWizardLanguageClient';
+import { Lazy } from '../Lazy';
 
 export class DbtLanguageClient extends DbtWizardLanguageClient {
   pendingOpenRequests = new Map<string, (data: TextDocument) => Promise<void>>();
   projectProgressHandler = new ProjectProgressHandler();
+  snowflakeDestination = false;
 
   constructor(
     private port: number,
@@ -37,6 +39,7 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
     private modelProgressHandler: ModelProgressHandler,
     private manifestParsedEventEmitter: EventEmitter,
     statusHandler: StatusHandler,
+    private snowflakeExtensionExists: Lazy<boolean>,
   ) {
     super(outputChannelProvider, statusHandler, dbtProjectUri);
     window.onDidChangeVisibleTextEditors((e: readonly TextEditor[]) => this.onDidChangeVisibleTextEditors(e));
@@ -128,7 +131,11 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
 
     this.disposables.push(
       this.client.onNotification('custom/updateQueryPreview', ({ uri, previewText }) => {
-        this.previewContentProvider.updateText(uri as string, previewText as string);
+        this.previewContentProvider.updateText(
+          uri as string,
+          previewText as string,
+          this.canUseSnowflakeLangId() ? SNOWFLAKE_SQL_LANG_ID : SQL_LANG_ID,
+        );
       }),
 
       this.client.onNotification('custom/updateQueryPreviewDiagnostics', ({ uri, diagnostics }) => {
@@ -149,12 +156,19 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
     );
   }
 
+  canUseSnowflakeLangId(): boolean {
+    return this.snowflakeDestination && this.snowflakeExtensionExists.get();
+  }
+
   initializeEvents(): void {
     this.disposables.push(
       this.client.onTelemetry((e: TelemetryEvent) => {
         if (e.name === 'error') {
           TelemetryClient.sendError(e.properties);
         } else {
+          if (e.properties && e.properties['type'] === 'snowflake') {
+            this.snowflakeDestination = true;
+          }
           TelemetryClient.sendEvent(e.name, e.properties);
         }
       }),
