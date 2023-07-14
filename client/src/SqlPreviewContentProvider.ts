@@ -8,11 +8,15 @@ import {
   Range,
   TextDocumentContentProvider,
   Uri,
+  languages,
+  window,
 } from 'vscode';
+import { SQL_LANG_ID } from './Utils';
 
 interface PreviewInfo {
   previewText: string;
   diagnostics: Diagnostic[];
+  langId: string;
 }
 
 export default class SqlPreviewContentProvider implements TextDocumentContentProvider {
@@ -29,16 +33,24 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
     return uri.path === SqlPreviewContentProvider.URI.path;
   }
 
-  updateText(uri: string, previewText: string): void {
+  updateText(uri: string, previewText: string, langId: string): void {
     const currentValue = this.previewInfos.get(uri);
 
     this.previewInfos.set(uri, {
       previewText,
       diagnostics: currentValue?.diagnostics ?? [],
+      langId,
     });
 
     if (uri.toString() === this.activeDocUri.toString()) {
       this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
+    }
+  }
+
+  async updateLangId(langId: string): Promise<void> {
+    const document = window.visibleTextEditors.find(e => e.document.uri.toString() === SqlPreviewContentProvider.URI.toString())?.document;
+    if (document && document.languageId !== langId) {
+      await languages.setTextDocumentLanguage(document, langId);
     }
   }
 
@@ -69,6 +81,7 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
 
         return diag;
       }),
+      langId: currentValue?.langId ?? SQL_LANG_ID,
     });
     this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
   }
@@ -93,6 +106,8 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
   }
 
   provideTextDocumentContent(): string {
-    return this.previewInfos.get(this.activeDocUri.toString())?.previewText ?? '';
+    const previewInfo = this.previewInfos.get(this.activeDocUri.toString());
+    this.updateLangId(previewInfo?.langId ?? SQL_LANG_ID).catch(e => console.log(e));
+    return previewInfo?.previewText ?? '';
   }
 }

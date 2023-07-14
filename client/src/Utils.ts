@@ -2,7 +2,9 @@ import { homedir } from 'node:os';
 import { TextDocument, Uri } from 'vscode';
 import path = require('node:path');
 
-export const SUPPORTED_LANG_IDS = ['sql', 'jinja-sql', 'snowflake-sql', 'sql-bigquery'];
+export const SQL_LANG_ID = 'sql';
+export const SNOWFLAKE_SQL_LANG_ID = 'snowflake-sql';
+export const SUPPORTED_LANG_IDS = [SQL_LANG_ID, 'jinja-sql', SNOWFLAKE_SQL_LANG_ID, 'sql-bigquery'];
 export const PACKAGES_YML = 'packages.yml';
 export const PROFILES_YML = 'profiles.yml';
 export const PROFILES_YML_DEFAULT_URI = Uri.file(path.join(homedir(), '.dbt', PROFILES_YML));
