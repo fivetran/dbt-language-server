@@ -1,7 +1,7 @@
 with cte as (
-    select '100' as num_variable
+    select '100' as variable
     union
-    select 200 as num_variable
+    select 200
 )
-select *, typeof(num_variable) from cte
-where 101 = num_variable OR num_variable = 100
+select *, typeof(variable) from cte
+where 200 = variable or variable = 100
