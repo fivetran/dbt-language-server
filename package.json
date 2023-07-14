@@ -199,7 +199,7 @@
     "merge-options": "^3.0.4",
     "mocha": "^10.2.0",
     "prettier": "^2.8.8",
-    "prettier-plugin-organize-imports": "^3.2.2",
+    "prettier-plugin-organize-imports": "^3.2.3",
     "size-limit": "^8.0.0",
     "ts-loader": "^9.4.4",
     "ts-mockito": "^2.6.1",
