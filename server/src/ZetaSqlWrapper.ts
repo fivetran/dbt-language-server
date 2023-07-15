@@ -32,7 +32,7 @@ export abstract class ZetaSqlWrapper {
 
   constructor(
     private destinationClient: DbtDestinationClient,
-    public zetaSqlApi: ZetaSqlApi,
+    private zetaSqlApi: ZetaSqlApi,
     private zetaSqlParser: ZetaSqlParser,
     private sqlHeaderAnalyzer: SqlHeaderAnalyzer,
   ) {
@@ -165,8 +165,8 @@ export abstract class ZetaSqlWrapper {
       }
 
       if (table.timePartitioning) {
-        this.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_TIME, 'timestamp');
-        this.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_DATE, 'date');
+        this.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_TIME, { typeKind: TypeKind.TYPE_TIMESTAMP });
+        this.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_DATE, { typeKind: TypeKind.TYPE_DATE });
       }
     }
   }
@@ -290,8 +290,8 @@ export abstract class ZetaSqlWrapper {
     };
   }
 
-  private addPartitioningColumn(existingTable: SimpleTableProto, name: string, type: string): void {
-    ZetaSqlWrapper.addColumn(existingTable, ZetaSqlWrapper.createSimpleColumn(name, this.zetaSqlApi.createType({ name, type })));
+  private addPartitioningColumn(existingTable: SimpleTableProto, name: string, typeProto: TypeProto): void {
+    ZetaSqlWrapper.addColumn(existingTable, ZetaSqlWrapper.createSimpleColumn(name, typeProto));
   }
 
   private static deleteColumn(table: SimpleTableProto, column: SimpleColumnProto): void {

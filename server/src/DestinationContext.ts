@@ -66,7 +66,7 @@ export class DestinationContext {
             ? new BigQueryZetaSqlWrapper(destinationClient, zetaSqlApi, zetaSqlParser, sqlHeaderAnalyzer)
             : new SnowflakeZetaSqlWrapper(destinationClient, zetaSqlApi, zetaSqlParser, sqlHeaderAnalyzer);
 
-        this.projectAnalyzer = new ProjectAnalyzer(dbtRepository, destinationClient, zetaSqlWrapper);
+        this.projectAnalyzer = new ProjectAnalyzer(dbtRepository, destinationClient, zetaSqlWrapper, zetaSqlApi);
         await this.projectAnalyzer.initialize();
       } catch (e) {
         const message = e instanceof Error ? e.message : JSON.stringify(e);
