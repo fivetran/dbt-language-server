@@ -1,11 +1,13 @@
 import { SimpleCatalogProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleCatalogProto';
 import { ColumnDefinition } from './DbtDestinationClient';
-import { TableDefinition } from './TableDefinition';
 import { ZetaSqlWrapper } from './ZetaSqlWrapper';
-import { createType } from './utils/ZetaSqlUtils';
+import { TableDefinition } from './TableDefinition';
+import { ZetaSqlApi } from './ZetaSqlApi';
 
 export class InformationSchemaConfigurator {
   static readonly INFORMATION_SCHEMA = 'information_schema';
+
+  constructor(private zetaSqlApi: ZetaSqlApi) {}
 
   static createColumnDefinition(name: string, type: string, fields?: ColumnDefinition[], mode?: 'repeated'): ColumnDefinition {
     return { name, type, fields, mode };
@@ -233,7 +235,7 @@ export class InformationSchemaConfigurator {
       informationSchemaCatalog.table = informationSchemaCatalog.table ?? [];
       informationSchemaCatalog.table.push(table);
       informationSchemaTable.forEach(columnDefinition =>
-        ZetaSqlWrapper.addColumn(table, ZetaSqlWrapper.createSimpleColumn(columnDefinition.name, createType(columnDefinition))),
+        ZetaSqlWrapper.addColumn(table, ZetaSqlWrapper.createSimpleColumn(columnDefinition.name, this.zetaSqlApi.createType(columnDefinition))),
       );
     }
   }

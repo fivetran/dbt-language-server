@@ -28,16 +28,20 @@ export class ProjectAnalyzer {
     private destinationClient: DbtDestinationClient,
     private zetaSqlWrapper: ZetaSqlWrapper,
   ) {
-    this.tableFetcher = new TableFetcher(this.destinationClient);
+    this.tableFetcher = this.createTableFetcher();
   }
 
   async initialize(): Promise<void> {
     await this.zetaSqlWrapper.initializeZetaSql();
   }
 
+  createTableFetcher(): TableFetcher {
+    return new TableFetcher(this.destinationClient, this.zetaSqlWrapper.zetaSqlApi);
+  }
+
   resetCache(): void {
     this.zetaSqlWrapper.resetCatalog();
-    this.tableFetcher = new TableFetcher(this.destinationClient);
+    this.tableFetcher = this.createTableFetcher();
   }
 
   getColumnsInRelation(db: string | undefined, schema: string | undefined, tableName: string): KnownColumn[] | undefined {

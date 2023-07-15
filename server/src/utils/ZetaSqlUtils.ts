@@ -1,9 +1,6 @@
-import { TypeFactory, TypeKind } from '@fivetrandevelopers/zetasql';
 import { ParseLocationRangeProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
 import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
-import { StructFieldProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/StructFieldProto';
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
-import { ColumnDefinition } from '../DbtDestinationClient';
 
 interface Node {
   node: string;
@@ -20,42 +17,6 @@ export function rangeContainsRange(outerRange: ParseLocationRangeProto__Output, 
 
 export function rangesEqual(range1: { start: number; end: number }, range2: { start: number; end: number }): boolean {
   return range1.start === range2.start && range1.end === range2.end;
-}
-
-// TODO: add unit tests
-export function createType(newColumn: ColumnDefinition): TypeProto {
-  const bigQueryType = newColumn.type.toLowerCase();
-  const typeKind = TypeFactory.SIMPLE_TYPE_KIND_NAMES.get(bigQueryType);
-  let resultType: TypeProto;
-  if (typeKind) {
-    resultType = {
-      typeKind,
-    };
-  } else if (bigQueryType === 'record') {
-    resultType = {
-      typeKind: TypeKind.TYPE_STRUCT,
-      structType: {
-        field: newColumn.fields?.map<StructFieldProto>(f => ({
-          fieldName: f.name,
-          fieldType: createType(f),
-        })),
-      },
-    };
-  } else {
-    console.log(`Cannot find TypeKind for ${newColumn.type}`); // TODO: fix all these issues
-    resultType = {
-      typeKind: TypeKind.TYPE_STRING,
-    };
-  }
-  if (newColumn.mode?.toLocaleLowerCase() === 'repeated') {
-    resultType = {
-      typeKind: TypeKind.TYPE_ARRAY,
-      arrayType: {
-        elementType: resultType,
-      },
-    };
-  }
-  return resultType;
 }
 
 export function traverse(

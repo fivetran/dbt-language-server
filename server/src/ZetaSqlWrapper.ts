@@ -15,7 +15,6 @@ import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
 import { TableDefinition } from './TableDefinition';
 import { ZetaSqlApi } from './ZetaSqlApi';
 import { ParseResult, ZetaSqlParser } from './ZetaSqlParser';
-import { createType } from './utils/ZetaSqlUtils';
 
 export interface KnownColumn {
   name: string;
@@ -29,15 +28,16 @@ export abstract class ZetaSqlWrapper {
   private catalog: SimpleCatalogProto;
   private registeredTables: TableDefinition[] = [];
   private registeredFunctions = new Set<string>();
-  private informationSchemaConfigurator = new InformationSchemaConfigurator();
+  private informationSchemaConfigurator: InformationSchemaConfigurator;
 
   constructor(
     private destinationClient: DbtDestinationClient,
-    private zetaSqlApi: ZetaSqlApi,
+    public zetaSqlApi: ZetaSqlApi,
     private zetaSqlParser: ZetaSqlParser,
     private sqlHeaderAnalyzer: SqlHeaderAnalyzer,
   ) {
     this.catalog = this.getDefaultCatalog();
+    this.informationSchemaConfigurator = new InformationSchemaConfigurator(zetaSqlApi);
   }
 
   abstract createTableDefinition(namePath: string[]): TableDefinition;
@@ -165,8 +165,8 @@ export abstract class ZetaSqlWrapper {
       }
 
       if (table.timePartitioning) {
-        ZetaSqlWrapper.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_TIME, 'timestamp');
-        ZetaSqlWrapper.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_DATE, 'date');
+        this.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_TIME, 'timestamp');
+        this.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_DATE, 'date');
       }
     }
   }
@@ -290,8 +290,8 @@ export abstract class ZetaSqlWrapper {
     };
   }
 
-  private static addPartitioningColumn(existingTable: SimpleTableProto, name: string, type: string): void {
-    ZetaSqlWrapper.addColumn(existingTable, ZetaSqlWrapper.createSimpleColumn(name, createType({ name, type })));
+  private addPartitioningColumn(existingTable: SimpleTableProto, name: string, type: string): void {
+    ZetaSqlWrapper.addColumn(existingTable, ZetaSqlWrapper.createSimpleColumn(name, this.zetaSqlApi.createType({ name, type })));
   }
 
   private static deleteColumn(table: SimpleTableProto, column: SimpleColumnProto): void {
