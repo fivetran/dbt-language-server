@@ -256,7 +256,7 @@ export async function prepareSnowflake(): Promise<void> {
 
   await new Promise<void>((resolve, reject) => {
     const options = {
-      parameters: { MULTI_STATEMENT_COUNT: 4 }, // Missing in @types/snowflake-sdk
+      parameters: { MULTI_STATEMENT_COUNT: 5 }, // Missing in @types/snowflake-sdk
       sqlText: `create database if not exists e2e_db;
       create schema if not exists dbt_ls_e2e_dataset;
       create table if not exists dbt_ls_e2e_dataset.test_table1(
