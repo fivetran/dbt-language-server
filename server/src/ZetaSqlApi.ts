@@ -29,7 +29,7 @@ export class ZetaSqlApi {
     this.zetaSql =
       this.destination === 'bigquery' ? await import('@fivetrandevelopers/zetasql') : await import('@fivetrandevelopers/zetasql-snowflake');
 
-    console.log(`ZetaSQL library loaded ${JSON.stringify([...this.zetaSql.TypeFactory.EXTERNAL_MODE_SIMPLE_TYPE_KIND_NAMES])}`);
+    console.log(`ZetaSQL library loaded ${JSON.stringify([...this.zetaSql.TypeFactory.SIMPLE_TYPE_KIND_NAMES.keys()])}`);
 
     const port = await getFreePort();
     console.log(`Starting zetasql on port ${port}`);
@@ -115,6 +115,11 @@ export class ZetaSqlApi {
       }
     }
     return this.languageOptions;
+  }
+
+  getTypeKindNames(): Map<string, TypeKind> | Map<string, SnowflakeTypeKind> {
+    this.assertZetaSqlIsDefined(this.zetaSql);
+    return this.zetaSql.TypeFactory.SIMPLE_TYPE_KIND_NAMES;
   }
 
   createType(newColumn: ColumnDefinition): TypeProto {

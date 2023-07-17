@@ -1,4 +1,4 @@
-import { TypeFactory, TypeKind } from '@fivetrandevelopers/zetasql';
+import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { FunctionProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/FunctionProto';
 import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRecordType';
@@ -112,7 +112,7 @@ export abstract class ZetaSqlWrapper {
     return existingTable.column?.map(c => {
       const name = c.name ?? '_default'; // TODO: fix this
       let type = 'string';
-      for (const [key, value] of TypeFactory.SIMPLE_TYPE_KIND_NAMES.entries()) {
+      for (const [key, value] of this.zetaSqlApi.getTypeKindNames().entries()) {
         if (value === c.type?.typeKind) {
           type = key;
         }
