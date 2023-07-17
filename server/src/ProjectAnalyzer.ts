@@ -9,6 +9,7 @@ import { TableFetcher } from './TableFetcher';
 import { getTableRefUniqueId } from './utils/ManifestUtils';
 import { ParseResult } from './ZetaSqlParser';
 import { KnownColumn, ZetaSqlWrapper } from './ZetaSqlWrapper';
+import { ZetaSqlApi } from './ZetaSqlApi';
 
 export type ModelsAnalyzeResult = {
   modelUniqueId: string;
@@ -27,17 +28,22 @@ export class ProjectAnalyzer {
     public dbtRepository: DbtRepository,
     private destinationClient: DbtDestinationClient,
     private zetaSqlWrapper: ZetaSqlWrapper,
+    private zetaSqlApi: ZetaSqlApi,
   ) {
-    this.tableFetcher = new TableFetcher(this.destinationClient);
+    this.tableFetcher = this.createTableFetcher();
   }
 
   async initialize(): Promise<void> {
     await this.zetaSqlWrapper.initializeZetaSql();
   }
 
+  createTableFetcher(): TableFetcher {
+    return new TableFetcher(this.destinationClient, this.zetaSqlApi);
+  }
+
   resetCache(): void {
     this.zetaSqlWrapper.resetCatalog();
-    this.tableFetcher = new TableFetcher(this.destinationClient);
+    this.tableFetcher = this.createTableFetcher();
   }
 
   getColumnsInRelation(db: string | undefined, schema: string | undefined, tableName: string): KnownColumn[] | undefined {

@@ -8,6 +8,7 @@
   "typescript.tsc.autoDetect": "off",
 
   "files.eol": "\n",
+  "files.insertFinalNewline": true,
 
   "mochaExplorer.files": ["server/out/test/**/*.js", "client/out/test/**/*.js"],
   "mochaExplorer.require": "source-map-support/register",

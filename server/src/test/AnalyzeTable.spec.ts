@@ -11,6 +11,7 @@ import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 import { Dag } from '../dag/Dag';
 import { DagNode } from '../dag/DagNode';
 import path = require('node:path');
+import { ZetaSqlApi } from '../ZetaSqlApi';
 
 describe('ProjectAnalyzer analyzeModelsTree', () => {
   const ORIGINAL_FILE_PATH = 'models/model.sql';
@@ -42,19 +43,26 @@ describe('ProjectAnalyzer analyzeModelsTree', () => {
   let mockDestinationClient: DbtDestinationClient;
   let mockSqlHeaderAnalyzer: SqlHeaderAnalyzer;
   let mockZetaSqlWrapper: ZetaSqlWrapper;
+  let mockZetaSqlApi: ZetaSqlApi;
 
   before(() => {
     const mockDbtRepository = mock(DbtRepository);
     mockZetaSqlWrapper = mock(ZetaSqlWrapper);
     mockDestinationClient = mock<DbtDestinationClient>();
     mockSqlHeaderAnalyzer = mock(SqlHeaderAnalyzer);
+    mockZetaSqlApi = mock(ZetaSqlApi);
 
     when(mockDbtRepository.dag).thenReturn(new Dag([DAG_NODE]));
     when(mockDbtRepository.getNodeFullPath(objectContaining({ originalFilePath: ORIGINAL_FILE_PATH }))).thenReturn(FILE_PATH);
 
     when(mockSqlHeaderAnalyzer.getAllFunctionDeclarations(anything(), anything(), anything())).thenResolve([]);
 
-    projectAnalyzer = new ProjectAnalyzer(instance(mockDbtRepository), instance(mockDestinationClient), instance(mockZetaSqlWrapper));
+    projectAnalyzer = new ProjectAnalyzer(
+      instance(mockDbtRepository),
+      instance(mockDestinationClient),
+      instance(mockZetaSqlWrapper),
+      instance(mockZetaSqlApi),
+    );
 
     when(mockZetaSqlWrapper.findTableNames(COMPILED_SQL)).thenReturn(Promise.resolve([new TableDefinition(INTERNAL_TABLE_NAME_PATH)]));
 

@@ -1,9 +1,9 @@
 import { TypeKind__Output } from '@fivetrandevelopers/zetasql';
-import { Type } from '@fivetrandevelopers/zetasql/lib/Type';
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { Hover, MarkupKind } from 'vscode-languageserver';
 import { HelpProviderWords } from './HelpProviderWords';
 import { ZetaSqlAst } from './ZetaSqlAst';
+import { TYPE_KIND_NAMES } from './utils/ZetaSqlUtils';
 
 export class HoverProvider {
   static ZETA_SQL_AST = new ZetaSqlAst();
@@ -52,7 +52,7 @@ export class HoverProvider {
   }
 
   getColumnHint(tableName?: string, columnName?: string, columnTypeKind?: TypeKind__Output): string {
-    const type = columnTypeKind ? Type.TYPE_KIND_NAMES[columnTypeKind] : 'unknown';
+    const type = columnTypeKind ? TYPE_KIND_NAMES.get(columnTypeKind) : 'unknown';
     return `Table: ${String(tableName)}\nColumn: ${String(columnName)}\nType: ${type}`;
   }
 }

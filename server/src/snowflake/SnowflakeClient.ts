@@ -1,4 +1,4 @@
-import { TypeKind } from '@fivetrandevelopers/zetasql-snowflake';
+import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { err, ok, Result } from 'neverthrow';
 import { Connection, Statement } from 'snowflake-sdk';
 import { Dataset, DbtDestinationClient, Metadata, Table, Udf, UdfArgument } from '../DbtDestinationClient';

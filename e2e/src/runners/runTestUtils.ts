@@ -256,7 +256,7 @@ export async function prepareSnowflake(): Promise<void> {
 
   await new Promise<void>((resolve, reject) => {
     const options = {
-      parameters: { MULTI_STATEMENT_COUNT: 4 }, // Missing in @types/snowflake-sdk
+      parameters: { MULTI_STATEMENT_COUNT: 5 }, // Missing in @types/snowflake-sdk
       sqlText: `create database if not exists e2e_db;
       create schema if not exists dbt_ls_e2e_dataset;
       create table if not exists dbt_ls_e2e_dataset.test_table1(
@@ -266,7 +266,7 @@ export async function prepareSnowflake(): Promise<void> {
         date DATE
       );
       create table if not exists dbt_ls_e2e_dataset.users(
-      id INTEGER,
+        id INTEGER,
         name STRING,
         division STRING,
         role STRING,
@@ -274,6 +274,21 @@ export async function prepareSnowflake(): Promise<void> {
         phone STRING,
         profile_id STRING,
         referrer_id STRING
+      );
+      create table if not exists dbt_ls_e2e_dataset.all_types(
+        number_val NUMBER,
+        integer_val INTEGER,
+        boolean_val BOOLEAN,
+        float_val FLOAT,
+        text_val TEXT,
+        date_val DATE,
+        dateTime_val TIMESTAMP,
+        time_val TIME,
+        binary_val BINARY,
+        array_val ARRAY,
+        variant_val VARIANT,
+        object_val OBJECT,
+        geography_val GEOGRAPHY
       );`,
 
       complete: (err: SnowflakeError | undefined, stmt: Statement, _rows: unknown[] | undefined): void => {

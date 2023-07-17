@@ -1,9 +1,7 @@
-import { TypeFactory, TypeKind } from '@fivetrandevelopers/zetasql';
+import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { ParseLocationRangeProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
 import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
-import { StructFieldProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/StructFieldProto';
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
-import { ColumnDefinition } from '../DbtDestinationClient';
 
 interface Node {
   node: string;
@@ -20,42 +18,6 @@ export function rangeContainsRange(outerRange: ParseLocationRangeProto__Output, 
 
 export function rangesEqual(range1: { start: number; end: number }, range2: { start: number; end: number }): boolean {
   return range1.start === range2.start && range1.end === range2.end;
-}
-
-// TODO: add unit tests
-export function createType(newColumn: ColumnDefinition): TypeProto {
-  const bigQueryType = newColumn.type.toLowerCase();
-  const typeKind = TypeFactory.SIMPLE_TYPE_KIND_NAMES.get(bigQueryType);
-  let resultType: TypeProto;
-  if (typeKind) {
-    resultType = {
-      typeKind,
-    };
-  } else if (bigQueryType === 'record') {
-    resultType = {
-      typeKind: TypeKind.TYPE_STRUCT,
-      structType: {
-        field: newColumn.fields?.map<StructFieldProto>(f => ({
-          fieldName: f.name,
-          fieldType: createType(f),
-        })),
-      },
-    };
-  } else {
-    console.log(`Cannot find TypeKind for ${newColumn.type}`); // TODO: fix all these issues
-    resultType = {
-      typeKind: TypeKind.TYPE_STRING,
-    };
-  }
-  if (newColumn.mode?.toLocaleLowerCase() === 'repeated') {
-    resultType = {
-      typeKind: TypeKind.TYPE_ARRAY,
-      arrayType: {
-        elementType: resultType,
-      },
-    };
-  }
-  return resultType;
 }
 
 export function traverse(
@@ -90,3 +52,38 @@ export function traverse(
 export function createSimpleColumn(name: string, type: TypeProto | null): SimpleColumnProto {
   return { name, type };
 }
+
+// TODO: For Snowflake it should be [TypeKind.TYPE_BYTES.valueOf(), 'BINARY']
+export const TYPE_KIND_NAMES = new Map<number, string>([
+  [TypeKind.TYPE_UNKNOWN.valueOf(), 'UNKNOWN'],
+  [TypeKind.TYPE_INT32.valueOf(), 'INT32'],
+  [TypeKind.TYPE_INT64.valueOf(), 'INT64'],
+  [TypeKind.TYPE_UINT32.valueOf(), 'UINT32'],
+  [TypeKind.TYPE_UINT64.valueOf(), 'UINT64'],
+  [TypeKind.TYPE_BOOL.valueOf(), 'BOOL'],
+  [TypeKind.TYPE_FLOAT.valueOf(), 'FLOAT'],
+  [TypeKind.TYPE_DOUBLE.valueOf(), 'DOUBLE'],
+  [TypeKind.TYPE_STRING.valueOf(), 'STRING'],
+  [TypeKind.TYPE_BYTES.valueOf(), 'BYTES'],
+  [TypeKind.TYPE_DATE.valueOf(), 'DATE'],
+  [11, 'TIMESTAMP_SECONDS'],
+  [12, 'TIMESTAMP_MILLIS'],
+  [13, 'TIMESTAMP_MICROS'],
+  [14, ''],
+  [TypeKind.TYPE_ENUM.valueOf(), 'ENUM'],
+  [TypeKind.TYPE_ARRAY.valueOf(), 'ARRAY'],
+  [TypeKind.TYPE_STRUCT.valueOf(), 'STRUCT'],
+  [TypeKind.TYPE_PROTO.valueOf(), 'PROTO'],
+  [TypeKind.TYPE_TIMESTAMP.valueOf(), 'TIMESTAMP'],
+  [TypeKind.TYPE_TIME.valueOf(), 'TIME'],
+  [TypeKind.TYPE_DATETIME.valueOf(), 'DATETIME'],
+  [TypeKind.TYPE_GEOGRAPHY.valueOf(), 'GEOGRAPHY'],
+  [TypeKind.TYPE_NUMERIC.valueOf(), 'NUMERIC'],
+  [TypeKind.TYPE_BIGNUMERIC.valueOf(), 'BIGNUMERIC'],
+  [TypeKind.TYPE_EXTENDED.valueOf(), 'EXTENDED'],
+  [TypeKind.TYPE_JSON.valueOf(), 'JSON'],
+  [TypeKind.TYPE_INTERVAL.valueOf(), 'INTERVAL'],
+  // Snowflake:
+  [1000, 'VARIANT'],
+  [1001, 'OBJECT'],
+]);

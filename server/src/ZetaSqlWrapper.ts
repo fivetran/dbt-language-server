@@ -1,4 +1,4 @@
-import { TypeFactory, TypeKind } from '@fivetrandevelopers/zetasql';
+import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { FunctionProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/FunctionProto';
 import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRecordType';
@@ -15,7 +15,6 @@ import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
 import { TableDefinition } from './TableDefinition';
 import { ZetaSqlApi } from './ZetaSqlApi';
 import { ParseResult, ZetaSqlParser } from './ZetaSqlParser';
-import { createType } from './utils/ZetaSqlUtils';
 
 export interface KnownColumn {
   name: string;
@@ -29,7 +28,7 @@ export abstract class ZetaSqlWrapper {
   private catalog: SimpleCatalogProto;
   private registeredTables: TableDefinition[] = [];
   private registeredFunctions = new Set<string>();
-  private informationSchemaConfigurator = new InformationSchemaConfigurator();
+  private informationSchemaConfigurator: InformationSchemaConfigurator;
 
   constructor(
     private destinationClient: DbtDestinationClient,
@@ -38,6 +37,7 @@ export abstract class ZetaSqlWrapper {
     private sqlHeaderAnalyzer: SqlHeaderAnalyzer,
   ) {
     this.catalog = this.getDefaultCatalog();
+    this.informationSchemaConfigurator = new InformationSchemaConfigurator(zetaSqlApi);
   }
 
   abstract createTableDefinition(namePath: string[]): TableDefinition;
@@ -112,7 +112,7 @@ export abstract class ZetaSqlWrapper {
     return existingTable.column?.map(c => {
       const name = c.name ?? '_default'; // TODO: fix this
       let type = 'string';
-      for (const [key, value] of TypeFactory.SIMPLE_TYPE_KIND_NAMES.entries()) {
+      for (const [key, value] of this.zetaSqlApi.getTypeKindNames().entries()) {
         if (value === c.type?.typeKind) {
           type = key;
         }
@@ -165,8 +165,8 @@ export abstract class ZetaSqlWrapper {
       }
 
       if (table.timePartitioning) {
-        ZetaSqlWrapper.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_TIME, 'timestamp');
-        ZetaSqlWrapper.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_DATE, 'date');
+        this.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_TIME, { typeKind: TypeKind.TYPE_TIMESTAMP });
+        this.addPartitioningColumn(existingTable, ZetaSqlWrapper.PARTITION_DATE, { typeKind: TypeKind.TYPE_DATE });
       }
     }
   }
@@ -290,8 +290,8 @@ export abstract class ZetaSqlWrapper {
     };
   }
 
-  private static addPartitioningColumn(existingTable: SimpleTableProto, name: string, type: string): void {
-    ZetaSqlWrapper.addColumn(existingTable, ZetaSqlWrapper.createSimpleColumn(name, createType({ name, type })));
+  private addPartitioningColumn(existingTable: SimpleTableProto, name: string, typeProto: TypeProto): void {
+    ZetaSqlWrapper.addColumn(existingTable, ZetaSqlWrapper.createSimpleColumn(name, typeProto));
   }
 
   private static deleteColumn(table: SimpleTableProto, column: SimpleColumnProto): void {

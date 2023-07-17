@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 
-import { Type } from '@fivetrandevelopers/zetasql/lib/Type';
 import { AnyResolvedScanProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/AnyResolvedScanProto';
 import { ParseLocationRangeProto, ParseLocationRangeProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
 import { ResolvedFunctionCallProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedFunctionCallProto';
@@ -11,7 +10,7 @@ import { ResolvedTableScanProto, ResolvedTableScanProto__Output } from '@fivetra
 import { ResolvedWithScanProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ResolvedWithScanProto';
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { extractDatasetFromFullName } from './utils/Utils';
-import { positionInRange, rangeContainsRange, rangesEqual } from './utils/ZetaSqlUtils';
+import { TYPE_KIND_NAMES, positionInRange, rangeContainsRange, rangesEqual } from './utils/ZetaSqlUtils';
 
 export class ZetaSqlAst {
   propertyNames = [
@@ -219,7 +218,7 @@ export class ZetaSqlAst {
                   if (c.name) {
                     withSubquery.columns.push({
                       name: c.name,
-                      type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind] : undefined,
+                      type: c.type?.typeKind ? TYPE_KIND_NAMES.get(c.type.typeKind) : undefined,
                       fromTable: c.tableName,
                     });
                   }
@@ -257,7 +256,7 @@ export class ZetaSqlAst {
                       alias,
                       columns: tableScanNode.parent.columnList.map<ResolvedColumn>(c => ({
                         name: c.name,
-                        type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind] : undefined,
+                        type: c.type?.typeKind ? TYPE_KIND_NAMES.get(c.type.typeKind) : undefined,
                         fromTable: c.tableName,
                       })),
                       tableNameRange,
@@ -339,7 +338,7 @@ export class ZetaSqlAst {
         columns:
           scanProto?.columnList.map<ResolvedColumn>(c => ({
             name: c.name,
-            type: c.type?.typeKind ? Type.TYPE_KIND_NAMES[c.type.typeKind] : undefined,
+            type: c.type?.typeKind ? TYPE_KIND_NAMES.get(c.type.typeKind) : undefined,
             fromTable: c.tableName,
           })) ?? [],
         parseLocationRange: scanProto?.parent?.parseLocationRange ?? undefined,
