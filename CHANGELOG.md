@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.27.4 (01/01/1970)
+## Version 0.27.4 (18/07/2023)
 ## What's Changed
 * Improved Snowflake compatibility by returning columns in the correct order.
 * Set snowflake-sql type for Snowflake preview, ensuring accurate syntax highlighting.
