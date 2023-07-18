@@ -35,7 +35,6 @@
     "files.autoSave": "afterDelay",
     "files.eol": "\n",
     "files.readonlyInclude": { "target/**": true },
-    "files.insertFinalNewline": true,
 
     "python.defaultInterpreterPath": "${env:PYTHON_INSTALL_LOC}",
 
