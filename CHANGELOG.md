@@ -1,5 +1,15 @@
 # Changelog
 
+## Version 0.27.4 (18/07/2023)
+## What's Changed
+* Improved Snowflake compatibility by returning columns in the correct order.
+* Set snowflake-sql type for Snowflake preview, ensuring accurate syntax highlighting.
+* Expanded Snowflake support to include additional syntax.
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.27.3...v0.27.4
+---
+
 ## Version 0.27.3 (03/07/2023)
 ## What's Changed
 * Enabled support for BigQuery [JSON functions](https://cloud.google.com/bigquery/docs/reference/standard-sql/json_functions).
@@ -248,10 +258,3 @@ AS (
 * Fix minor issues on Windows.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.12.2...v0.13.0
----
-
-## Version 0.12.2 (13/10/2022)
-## What's Changed
-* Update dependencies.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.12.1...v0.12.2
