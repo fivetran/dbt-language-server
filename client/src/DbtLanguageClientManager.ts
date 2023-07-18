@@ -11,6 +11,7 @@ import { DbtWizardLanguageClient } from './lsp_client/DbtWizardLanguageClient';
 import { NoProjectLanguageClient } from './lsp_client/NoProjectLanguageClient';
 import { StatusHandler } from './status/StatusHandler';
 import { Lazy } from './Lazy';
+import path = require('node:path');
 
 export class DbtLanguageClientManager {
   workspaceHelper = new WorkspaceHelper();
@@ -90,7 +91,7 @@ export class DbtLanguageClientManager {
       return undefined;
     }
 
-    const projectFolder = [...this.clients.keys()].find(k => fileUri.fsPath.startsWith(k));
+    const projectFolder = [...this.clients.keys()].find(k => fileUri.fsPath.startsWith(k + path.sep));
     if (projectFolder) {
       return Uri.file(projectFolder);
     }
