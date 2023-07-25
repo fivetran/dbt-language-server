@@ -81,6 +81,7 @@ suite('dbt_ft', () => {
     await waitWithTimeout(analyzeFinishedPromise, timeout);
 
     const allDiagnostics = languages.getDiagnostics();
+    console.log(`Diagnostics size = ${allDiagnostics.length}`);
 
     let errorCount = 0;
     for (const diagnosticWithUri of allDiagnostics) {
