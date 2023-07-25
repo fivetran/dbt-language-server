@@ -15,6 +15,8 @@ import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
 import { TableDefinition } from './TableDefinition';
 import { ZetaSqlApi } from './ZetaSqlApi';
 import { ParseResult, ZetaSqlParser } from './ZetaSqlParser';
+import { FunctionArgumentTypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/FunctionArgumentTypeProto';
+import { SignatureArgumentKind } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SignatureArgumentKind';
 
 export interface KnownColumn {
   name: string;
@@ -278,10 +280,16 @@ export abstract class ZetaSqlWrapper {
       namePath: udf.nameParts,
       signature: [
         {
-          argument: udf.arguments?.map(a => ({
-            type: a.type,
-            numOccurrences: 1,
-          })),
+          argument: udf.arguments?.map(a => {
+            const result: FunctionArgumentTypeProto = {
+              type: a.type,
+              numOccurrences: 1,
+            };
+            if (a.argumentKind === 'ANY_TYPE') {
+              result.kind = SignatureArgumentKind.ARG_TYPE_ANY_1;
+            }
+            return result;
+          }),
           returnType: {
             type: udf.returnType ?? { typeKind: TypeKind.TYPE_STRING }, // It is required to have a return type but sometimes it is not specified in BigQuery
           },
