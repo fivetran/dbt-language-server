@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.27.5 (01/01/1970)
+## Version 0.27.5 (26/07/2023)
 ## What's Changed
 * Fixed the issue with specific UDFs in BigQuery.
 
