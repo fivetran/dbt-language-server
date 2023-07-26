@@ -16,6 +16,7 @@ import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
 import { TableDefinition } from './TableDefinition';
 import { ZetaSqlApi } from './ZetaSqlApi';
 import { ParseResult, ZetaSqlParser } from './ZetaSqlParser';
+import { _zetasql_FunctionEnums_Mode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/FunctionEnums';
 
 export interface KnownColumn {
   name: string;
@@ -275,7 +276,7 @@ export abstract class ZetaSqlWrapper {
   }
 
   private createFunction(udf: Udf): FunctionProto {
-    return {
+    const func: FunctionProto = {
       namePath: udf.nameParts,
       signature: [
         {
@@ -295,6 +296,16 @@ export abstract class ZetaSqlWrapper {
         },
       ],
     };
+    // To handle functions like (double, double) -> ANY
+    if (!udf.returnType) {
+      func.group = 'Templated_SQL_Function';
+      func.mode = _zetasql_FunctionEnums_Mode.SCALAR;
+      func.parseResumeLocation = {
+        input: udf.definitionBody,
+      };
+      func.templatedSqlFunctionArgumentName = udf.arguments?.map(a => a.name ?? 'undefined');
+    }
+    return func;
   }
 
   private addPartitioningColumn(existingTable: SimpleTableProto, name: string, typeProto: TypeProto): void {

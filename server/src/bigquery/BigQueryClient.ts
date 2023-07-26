@@ -80,7 +80,8 @@ export class BigQueryClient implements DbtDestinationClient {
         if (projectId) {
           nameParts.splice(0, 0, projectId);
         }
-        const udf: Udf = { nameParts };
+
+        const udf: Udf = { nameParts, definitionBody: metadata.definitionBody };
         if (metadata.arguments) {
           udf.arguments = metadata.arguments.map<UdfArgument>(a => ({
             name: a.name,
