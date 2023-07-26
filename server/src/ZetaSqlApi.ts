@@ -107,6 +107,7 @@ export class ZetaSqlApi {
         options.enableLanguageFeature(LanguageFeature.FEATURE_JSON_TYPE);
         options.enableLanguageFeature(LanguageFeature.FEATURE_JSON_VALUE_EXTRACTION_FUNCTIONS);
         options.enableLanguageFeature(LanguageFeature.FEATURE_INTERVAL_TYPE);
+        options.enableLanguageFeature(LanguageFeature.FEATURE_CBRT_FUNCTIONS);
         // https://github.com/google/zetasql/issues/115#issuecomment-1210881670
         options.options.reservedKeywords = ['QUALIFY'];
         this.languageOptions = options.serialize() as LanguageOptionsProto; // TODO: Snowflake settings are a bit different
