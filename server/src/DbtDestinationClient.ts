@@ -49,6 +49,7 @@ export interface Udf {
   nameParts: string[];
   arguments?: UdfArgument[];
   returnType?: TypeProto;
+  definitionBody?: string;
 }
 
 export interface UdfArgument {

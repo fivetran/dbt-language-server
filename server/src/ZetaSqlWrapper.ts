@@ -2,6 +2,7 @@ import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { FunctionProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/FunctionProto';
 import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRecordType';
+import { SignatureArgumentKind } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SignatureArgumentKind';
 import { SimpleCatalogProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleCatalogProto';
 import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
 import { SimpleTableProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleTableProto';
@@ -15,6 +16,7 @@ import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
 import { TableDefinition } from './TableDefinition';
 import { ZetaSqlApi } from './ZetaSqlApi';
 import { ParseResult, ZetaSqlParser } from './ZetaSqlParser';
+import { _zetasql_FunctionEnums_Mode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/FunctionEnums';
 
 export interface KnownColumn {
   name: string;
@@ -274,20 +276,36 @@ export abstract class ZetaSqlWrapper {
   }
 
   private createFunction(udf: Udf): FunctionProto {
-    return {
+    const func: FunctionProto = {
       namePath: udf.nameParts,
       signature: [
         {
           argument: udf.arguments?.map(a => ({
+            kind: a.argumentKind === 'ANY_TYPE' ? SignatureArgumentKind.ARG_TYPE_ANY_1 : SignatureArgumentKind.ARG_TYPE_FIXED,
             type: a.type,
             numOccurrences: 1,
           })),
-          returnType: {
-            type: udf.returnType ?? { typeKind: TypeKind.TYPE_STRING }, // It is required to have a return type but sometimes it is not specified in BigQuery
-          },
+          returnType: udf.returnType
+            ? {
+                kind: SignatureArgumentKind.ARG_TYPE_FIXED,
+                type: udf.returnType,
+              }
+            : {
+                kind: SignatureArgumentKind.ARG_TYPE_ARBITRARY,
+              },
         },
       ],
     };
+    // To handle functions like (double, double) -> ANY
+    if (!udf.returnType) {
+      func.group = 'Templated_SQL_Function';
+      func.mode = _zetasql_FunctionEnums_Mode.SCALAR;
+      func.parseResumeLocation = {
+        input: udf.definitionBody,
+      };
+      func.templatedSqlFunctionArgumentName = udf.arguments?.map(a => a.name ?? 'undefined');
+    }
+    return func;
   }
 
   private addPartitioningColumn(existingTable: SimpleTableProto, name: string, typeProto: TypeProto): void {
