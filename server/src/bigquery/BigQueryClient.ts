@@ -146,7 +146,7 @@ export class BigQueryClient implements DbtDestinationClient {
         return TypeKind.TYPE_BOOL;
       }
       case 'FLOAT64': {
-        return TypeKind.TYPE_FLOAT;
+        return TypeKind.TYPE_DOUBLE;
       }
       case 'STRING': {
         return TypeKind.TYPE_STRING;

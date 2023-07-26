@@ -2,6 +2,7 @@ import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { ErrorMessageMode } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ErrorMessageMode';
 import { FunctionProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/FunctionProto';
 import { ParseLocationRecordType } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRecordType';
+import { SignatureArgumentKind } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SignatureArgumentKind';
 import { SimpleCatalogProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleCatalogProto';
 import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
 import { SimpleTableProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleTableProto';
@@ -15,8 +16,6 @@ import { SqlHeaderAnalyzer } from './SqlHeaderAnalyzer';
 import { TableDefinition } from './TableDefinition';
 import { ZetaSqlApi } from './ZetaSqlApi';
 import { ParseResult, ZetaSqlParser } from './ZetaSqlParser';
-import { FunctionArgumentTypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/FunctionArgumentTypeProto';
-import { SignatureArgumentKind } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SignatureArgumentKind';
 
 export interface KnownColumn {
   name: string;
@@ -280,19 +279,19 @@ export abstract class ZetaSqlWrapper {
       namePath: udf.nameParts,
       signature: [
         {
-          argument: udf.arguments?.map(a => {
-            const result: FunctionArgumentTypeProto = {
-              type: a.type,
-              numOccurrences: 1,
-            };
-            if (a.argumentKind === 'ANY_TYPE') {
-              result.kind = SignatureArgumentKind.ARG_TYPE_ANY_1;
-            }
-            return result;
-          }),
-          returnType: {
-            type: udf.returnType ?? { typeKind: TypeKind.TYPE_STRING }, // It is required to have a return type but sometimes it is not specified in BigQuery
-          },
+          argument: udf.arguments?.map(a => ({
+            kind: a.argumentKind === 'ANY_TYPE' ? SignatureArgumentKind.ARG_TYPE_ANY_1 : SignatureArgumentKind.ARG_TYPE_FIXED,
+            type: a.type,
+            numOccurrences: 1,
+          })),
+          returnType: udf.returnType
+            ? {
+                kind: SignatureArgumentKind.ARG_TYPE_FIXED,
+                type: udf.returnType,
+              }
+            : {
+                kind: SignatureArgumentKind.ARG_TYPE_ARBITRARY,
+              },
         },
       ],
     };
