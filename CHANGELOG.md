@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 0.27.5 (01/01/1970)
+## What's Changed
+* Fixed the issue with specific UDFs in BigQuery.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.27.4...v0.27.5
+---
+
 ## Version 0.27.4 (18/07/2023)
 ## What's Changed
 * Improved Snowflake compatibility by returning columns in the correct order.
@@ -248,13 +255,3 @@ AS (
 
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.13.0...v0.13.1
----
-
-## Version 0.13.0 (25/10/2022)
-## What's Changed
-* Run ZetaSql in WSL on Windows ([see docs](https://github.com/fivetran/dbt-language-server/blob/main/docs/WindowsSupport.md#windows-support)).
-* Fix wrong text in packages Language Status Item.
-* Fix issue with space in python path (https://github.com/fivetran/dbt-language-server/issues/489).
-* Fix minor issues on Windows.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.12.2...v0.13.0
