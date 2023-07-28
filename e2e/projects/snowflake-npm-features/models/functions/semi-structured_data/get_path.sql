@@ -4,16 +4,20 @@ WITH test_data AS (
 SELECT
     GET_PATH(j, 'person'),
     GET_PATH(j, 'person.grades[0]'),
-    -- TODO:
-    -- GET_PATH(j, 'person.grades')[0],
+    -- -- TODO:
+    -- -- GET_PATH(j, 'person.grades')[0],
+    -- PARSE_JSON(''):for,
+    j:"person.name",
     
+
     j:person.name,
     j:person.name::string,
     j:person.grades[0],
     j:person.grades[0]::number,
-    j:fo,
-    
-    -- TODO:
+    -- j:forr,
     -- j:for,
+
+    -- TODO:
+    -- j:select,
     
 from test_data

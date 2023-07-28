@@ -1,9 +1,12 @@
-WITH sample_data AS (
-  SELECT 1 AS id, DATE '2023-01-01' AS date
-  UNION ALL
-  SELECT 2, DATE '2023-02-01'
-  UNION ALL
-  SELECT 3, DATE '2023-03-01'
+WITH test_data AS (
+    SELECT 
+        '2022-12-01'::DATE AS date1, 
+        '2023-01-31'::TIMESTAMP AS timestamp1
 )
-SELECT id, NEXT_DAY(date, 'WEDNESDAY') AS next_day
-FROM sample_data;
+
+SELECT 
+    date1 AS original_date1,
+    timestamp1 AS original_timestamp1,
+    NEXT_DAY(date1, 'SUNDAY') AS next_sunday_date1, -- get the next Sunday after date1
+    NEXT_DAY(timestamp1, 'WEDNESDAY') AS next_wednesday_timestamp1 -- get the next Wednesday after timestamp1
+FROM test_data;

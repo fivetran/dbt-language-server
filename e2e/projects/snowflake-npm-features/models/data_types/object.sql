@@ -7,7 +7,3 @@ SELECT
     CAST(CAST(to_variant('{"a":"1"}') AS OBJECT) as variant),
 
     -- TODO: cast to array
-
-    -- TODO: check if it is possible to cast the following types:
-    -- CAST('{"a":"1"}' AS OBJECT),
-    -- CAST(TO_BINARY('{"name":"John"}', 'utf8') AS OBJECT),

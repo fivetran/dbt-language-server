@@ -1,9 +1,14 @@
-WITH sample_data AS (
-  SELECT 1 AS id, '2023-01-01' AS date
-  UNION ALL
-  SELECT 2, '2023-02-01'
-  UNION ALL
-  SELECT 3, '2023-03-01'
+WITH test_data AS (
+    SELECT 
+        '2022-12-01'::DATE AS date1, 
+        '2023-01-31'::TIMESTAMP AS timestamp1
 )
-SELECT id, DAYNAME(date) AS day_name
-FROM sample_data;
+
+SELECT 
+    date1 AS original_date1,
+    timestamp1 AS original_timestamp1,
+    DAYNAME(date1) AS dayname_date1, -- get day name from date1
+    DAYNAME(timestamp1) AS dayname_timestamp1, -- get day name from timestamp1
+    DAYNAME(TO_DATE('2015-05-01')),
+    DAYNAME(TO_TIMESTAMP_NTZ('2015-05-02 10:00'))
+FROM test_data;
