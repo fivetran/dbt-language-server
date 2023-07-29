@@ -17,6 +17,5 @@ SELECT
     ADD_MONTHS('2016-05-31'::date, -1),
 
     ADD_MONTHS(timestamp1, 1.1),
-    -- TODO
-    -- ADD_MONTHS('2016-05-15'::timestamp_ntz, 2)
+    ADD_MONTHS('2016-05-15'::timestamp_ntz, 2)
 FROM test_data;

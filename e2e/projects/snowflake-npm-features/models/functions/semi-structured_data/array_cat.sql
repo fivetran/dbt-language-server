@@ -3,7 +3,7 @@ WITH test_data AS (
     ARRAY_CONSTRUCT(1, 2, 3) AS array1,
     ARRAY_CONSTRUCT(4, 5, 6) AS array2,
     -- TODO:
-    -- NULL AS array3,
+    NULL AS array3,
     ARRAY_CONSTRUCT(NULL) AS array4,
     ARRAY_CONSTRUCT(7, 8, 9) AS array5
 )
@@ -11,7 +11,7 @@ WITH test_data AS (
 SELECT
   array1,
   array2,
-  -- array3,
+  array3,
   array4,
   array5,
   ARRAY_CAT(array1, array2) AS cat_array_1_2, -- Combining two non-null arrays

@@ -14,10 +14,10 @@ SELECT
     j:person.name::string,
     j:person.grades[0],
     j:person.grades[0]::number,
-    -- j:forr,
-    -- j:for,
 
     -- TODO:
+    -- j:forr,
+    -- j:for,
     -- j:select,
     
 from test_data
