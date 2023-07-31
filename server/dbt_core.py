@@ -64,7 +64,7 @@ else:
     def new_register_adapter(self, config: AdapterRequiredConfig) -> None:
         old_register_adapter(config)
         credentials_type = config.credentials.type
-        if credentials_type == "bigquery": # TODO: add Snowflake
+        if credentials_type in ["bigquery", "snowflake"]:
             adapter = self.adapters[credentials_type]
             adapter.get_columns_in_relation = new_get_columns_in_relation.__get__(adapter)
 
