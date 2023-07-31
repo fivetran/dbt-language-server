@@ -89,10 +89,10 @@ export class SnowflakeClient implements DbtDestinationClient {
       if (projectId) {
         nameParts.splice(0, 0, projectId);
       }
-      const typeKind = SnowflakeClient.toTypeKind(row.RETURN_TYPE.split('(')[0]);
+      const typeKind = SnowflakeClient.fromApiTextToTypeKind(row.RETURN_TYPE.split('(')[0]);
       const args = this.getArgumentTypes(row.ARGUMENTS).map<UdfArgument>(a => ({
         type: {
-          typeKind: SnowflakeClient.toTypeKind(a),
+          typeKind: SnowflakeClient.fromApiTextToTypeKind(a),
         },
       }));
       // In Snowflake names are case-insensitive so we use lowercase
@@ -143,7 +143,7 @@ export class SnowflakeClient implements DbtDestinationClient {
     );
   }
 
-  private static toTypeKind(stringType?: string): TypeKind {
+  private static fromApiTextToTypeKind(stringType?: string): TypeKind {
     switch (stringType?.toUpperCase()) {
       case 'NUMBER':
       case 'DECIMAL':

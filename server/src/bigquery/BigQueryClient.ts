@@ -121,7 +121,7 @@ export class BigQueryClient implements DbtDestinationClient {
       return {};
     }
     const type: TypeProto = {};
-    type.typeKind = BigQueryClient.toTypeKind(dataType.typeKind);
+    type.typeKind = BigQueryClient.fromApiTextToTypeKind(dataType.typeKind);
     if (dataType.structType) {
       type.structType = {
         field: dataType.structType.fields?.map(f => ({ fieldName: f.name, fieldType: BigQueryClient.toTypeProto(f.type) })),
@@ -135,7 +135,7 @@ export class BigQueryClient implements DbtDestinationClient {
     return type;
   }
 
-  private static toTypeKind(bigQueryTypeKind?: BigQueryTypeKind): TypeKind {
+  private static fromApiTextToTypeKind(bigQueryTypeKind?: BigQueryTypeKind): TypeKind {
     switch (bigQueryTypeKind) {
       case 'TYPE_KIND_UNSPECIFIED': {
         return TypeKind.TYPE_UNKNOWN;
