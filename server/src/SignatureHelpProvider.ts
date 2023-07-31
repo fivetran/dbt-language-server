@@ -39,7 +39,7 @@ export class SignatureHelpProvider {
     const lastActiveSignature = activeSignatureHelp?.activeSignature
       ? activeSignatureHelp.signatures[activeSignatureHelp.activeSignature]
       : undefined;
-    if (lastActiveSignature && lastActiveSignature.parameters && lastActiveSignature.parameters.length - 1 >= activeParameter) {
+    if (lastActiveSignature?.parameters && lastActiveSignature.parameters.length - 1 >= activeParameter) {
       activeSignature = signatures.findIndex(s => s.label === lastActiveSignature.label);
     }
     if (activeSignature === -1) {

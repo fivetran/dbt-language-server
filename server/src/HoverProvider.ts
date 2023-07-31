@@ -4,20 +4,23 @@ import { Hover, MarkupKind } from 'vscode-languageserver';
 import { HelpProviderWords } from './HelpProviderWords';
 import { ZetaSqlAst } from './ZetaSqlAst';
 import { TYPE_KIND_NAMES } from './utils/ZetaSqlUtils';
+import { SupportedDestinations } from './ZetaSqlApi';
 
 export class HoverProvider {
   static ZETA_SQL_AST = new ZetaSqlAst();
 
-  hoverOnText(text: string, ast: AnalyzeResponse__Output | undefined): Hover | null {
-    const index = HelpProviderWords.findIndex(w => w.name === text.toLocaleLowerCase());
-    if (index !== -1) {
-      const [firstSignature] = HelpProviderWords[index].signatures;
-      return {
-        contents: {
-          kind: MarkupKind.Markdown,
-          value: [`\`\`\`sql\n${firstSignature.signature}\n\`\`\``, firstSignature.description].join('\n---\n'),
-        },
-      };
+  hoverOnText(text: string, ast: AnalyzeResponse__Output | undefined, destination?: SupportedDestinations): Hover | null {
+    if (destination !== 'snowflake') {
+      const index = HelpProviderWords.findIndex(w => w.name === text.toLocaleLowerCase());
+      if (index !== -1) {
+        const [firstSignature] = HelpProviderWords[index].signatures;
+        return {
+          contents: {
+            kind: MarkupKind.Markdown,
+            value: [`\`\`\`sql\n${firstSignature.signature}\n\`\`\``, firstSignature.description].join('\n---\n'),
+          },
+        };
+      }
     }
 
     if (!ast) {

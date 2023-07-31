@@ -360,7 +360,11 @@ export class DbtTextDocument {
   onHover(hoverParams: HoverParams): Hover | null {
     const range = getIdentifierRangeAtPosition(hoverParams.position, this.rawDocument.getText());
     const text = this.rawDocument.getText(range);
-    return this.hoverProvider.hoverOnText(text, this.analyzeResult?.ast.isOk() ? this.analyzeResult.ast.value : undefined);
+    return this.hoverProvider.hoverOnText(
+      text,
+      this.analyzeResult?.ast.isOk() ? this.analyzeResult.ast.value : undefined,
+      this.destinationContext.getDestination(),
+    );
   }
 
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[]> {
@@ -371,16 +375,15 @@ export class DbtTextDocument {
   }
 
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
+    if (this.destinationContext.getDestination() === 'snowflake') {
+      return undefined;
+    }
     const lineText = getLineByPosition(this.rawDocument, params.position);
     const signatureInfo = getSignatureInfo(lineText, params.position);
     if (!signatureInfo) {
       return undefined;
     }
     const textBeforeBracket = this.rawDocument.getText(signatureInfo.range);
-    console.log(
-      `onSignatureHelp(line='${params.position.line}', character='${params.position.character}', text='${textBeforeBracket}', parameterIndex='${signatureInfo.parameterIndex}')`,
-      LogLevel.Debug,
-    );
     return this.signatureHelpProvider.onSignatureHelp(textBeforeBracket, signatureInfo.parameterIndex, params.context?.activeSignatureHelp);
   }
 

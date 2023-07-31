@@ -125,7 +125,11 @@ export class ZetaSqlApi {
 
   createType(newColumn: ColumnDefinition): TypeProto {
     const lowerCaseType = newColumn.type.toLowerCase();
-    const typeKind = this.zetaSql?.TypeFactory.SIMPLE_TYPE_KIND_NAMES.get(lowerCaseType) as TypeKind; // TODO: Snowflake TypeKind has more values
+    let typeKind = this.zetaSql?.TypeFactory.SIMPLE_TYPE_KIND_NAMES.get(lowerCaseType) as TypeKind; // TODO: Snowflake TypeKind has more values
+    if (!typeKind && ['timestamp_tz', 'timestamp_ltz', 'timestamp_ntz'].includes(lowerCaseType)) {
+      // TODO: add to Snowflake npm
+      typeKind = TypeKind.TYPE_TIMESTAMP;
+    }
     let resultType: TypeProto;
     if (typeKind) {
       resultType = {

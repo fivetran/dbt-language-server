@@ -67,7 +67,13 @@ export class CompletionProvider {
       const offset = this.compiledDocument.offsetAt(Position.create(line, completionParams.position.character));
       completionInfo = DbtTextDocument.ZETA_SQL_AST.getCompletionInfo(ast, offset);
     }
-    return this.sqlCompletionProvider.onSqlCompletion(text, completionParams, this.destinationContext.destinationDefinition, completionInfo);
+    return this.sqlCompletionProvider.onSqlCompletion(
+      text,
+      completionParams,
+      this.destinationContext.destinationDefinition,
+      completionInfo,
+      this.destinationContext.getDestination(),
+    );
   }
 
   private getCompletionText(completionParams: CompletionParams): string {
