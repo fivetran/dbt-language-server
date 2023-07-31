@@ -21,6 +21,7 @@ export class DestinationContext {
   private projectAnalyzer?: ProjectAnalyzer;
   private projectAnalyzeTask?: ProjectAnalyzeTask;
   private projectName?: string;
+  private destination?: SupportedDestinations;
 
   contextInitialized = false;
   onContextInitializedEmitter = new Emitter<void>();
@@ -40,6 +41,10 @@ export class DestinationContext {
     return this.onContextInitializedEmitter.event;
   }
 
+  getDestination(): SupportedDestinations | undefined {
+    return this.destination;
+  }
+
   async initialize(
     profileResult: DbtProfileSuccess,
     dbtRepository: DbtRepository,
@@ -57,12 +62,12 @@ export class DestinationContext {
         const destinationClient = clientResult.value;
         this.destinationDefinition = new DestinationDefinition(destinationClient);
 
-        const destination: SupportedDestinations = profileResult.type?.toLowerCase().trim() === 'snowflake' ? 'snowflake' : 'bigquery';
-        const zetaSqlApi = new ZetaSqlApi(destination);
+        this.destination = profileResult.type?.toLowerCase().trim() === 'snowflake' ? 'snowflake' : 'bigquery';
+        const zetaSqlApi = new ZetaSqlApi(this.destination);
         const zetaSqlParser = new ZetaSqlParser(zetaSqlApi);
         const sqlHeaderAnalyzer = new SqlHeaderAnalyzer(zetaSqlApi);
         const zetaSqlWrapper =
-          destination === 'bigquery'
+          this.destination === 'bigquery'
             ? new BigQueryZetaSqlWrapper(destinationClient, zetaSqlApi, zetaSqlParser, sqlHeaderAnalyzer)
             : new SnowflakeZetaSqlWrapper(destinationClient, zetaSqlApi, zetaSqlParser, sqlHeaderAnalyzer);
 

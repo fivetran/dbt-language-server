@@ -2,6 +2,7 @@ import { Command, CompletionItem, CompletionItemKind, CompletionParams, Completi
 import { DestinationDefinition } from '../DestinationDefinition';
 import { HelpProviderWords } from '../HelpProviderWords';
 import { ActiveTableInfo, CompletionInfo } from '../ZetaSqlAst';
+import { SupportedDestinations } from '../ZetaSqlApi';
 
 export class SqlCompletionProvider {
   static readonly BQ_KEYWORDS = [
@@ -242,6 +243,7 @@ export class SqlCompletionProvider {
     completionParams: CompletionParams,
     destinationDefinition?: DestinationDefinition,
     completionInfo?: CompletionInfo,
+    destination?: SupportedDestinations,
   ): Promise<CompletionItem[]> {
     const result: CompletionItem[] = [];
 
@@ -260,7 +262,7 @@ export class SqlCompletionProvider {
 
     if (completionParams.context?.triggerKind === CompletionTriggerKind.TriggerCharacter) {
       result.push(...(await this.getTableSuggestions(text, destinationDefinition)));
-    } else {
+    } else if (destination !== 'snowflake') {
       result.push(...this.getKeywords(), ...this.getFunctions());
     }
 
