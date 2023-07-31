@@ -140,7 +140,7 @@ function getWordAtText(
     prevRegexIndex = regexIndex;
   }
 
-  if (match && match.index !== undefined) {
+  if (match?.index !== undefined) {
     const result = {
       word: match[0],
       startColumn: textOffset + 1 + match.index,
