@@ -3,7 +3,7 @@
   "displayName": "Wizard for dbt Core (TM)",
   "description": "This extension will help you work with dbt",
   "icon": "images/Icon.png",
-  "version": "0.28.0",
+  "version": "0.28.1",
   "publisher": "Fivetran",
   "license": "MIT",
   "preview": true,
