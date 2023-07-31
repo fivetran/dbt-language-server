@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 0.28.0 (01/01/1970)
+## What's Changed
+* With this release, we have integrated a syntax analyzer for Snowflake projects. This addition will help users to identify errors and use the SQL to ref conversion, go to definition and auto-completion features within Snowflake dbt project. You can disable this feature using the `WizardForDbtCore(TM).enableSnowflakeSyntaxCheck` setting if needed.
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.27.5...v0.28.0
+---
+
 ## Version 0.27.5 (26/07/2023)
 ## What's Changed
 * Fixed the issue with specific UDFs in BigQuery.
@@ -246,12 +254,3 @@ AS (
 * Show link for `profiles.yml` file in language status item.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.13.1...v0.14.0
----
-
-## Version 0.13.1 (26/10/2022)
-## What's Changed
-* Add button to upgrade `dbt-rpc` in case of error. 
-   If your `dbt-rpc` version is outdated and don't compatible with installed dbt you may see the error. You can upgrade `dbt-rpc` to latest version with using button "Upgrade dbt-rpc" to resolve this issue. Another way is to change default compiler to `dbt` in `Preferences -> Settings -> Extensions -> Wizard for dbt Core (TM) -> Wizard For Dbt Core(TM): Dbt Compiler`.
-
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.13.0...v0.13.1
