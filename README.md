@@ -68,7 +68,7 @@ You can jump to the definition with `Cmd+Click` or open the definition to the si
 
 ![Go to definition](images/go-to-definition.gif)
 
-If you use BigQuery you can go to column definition with `Cmd+Click`.
+If you use BigQuery or Snowflake you can go to column definition with `Cmd+Click`.
 
 ![Go to column definition](images/go-to-column-definition.gif)
 
