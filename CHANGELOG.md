@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.28.0 (01/01/1970)
+## Version 0.28.0 (31/07/2023)
 ## What's Changed
 * With this release, we have integrated a syntax analyzer for Snowflake projects. This addition will help users to identify errors and use the SQL to ref conversion, go to definition and auto-completion features within Snowflake dbt project. You can disable this feature using the `WizardForDbtCore(TM).enableSnowflakeSyntaxCheck` setting if needed.
 
