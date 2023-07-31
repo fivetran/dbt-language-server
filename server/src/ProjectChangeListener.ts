@@ -31,16 +31,11 @@ export class ProjectChangeListener {
     private diagnosticGenerator: DiagnosticGenerator,
     private notificationSender: NotificationSender,
     private dbtCli: DbtCli,
-    private enableEntireProjectAnalysis: boolean,
     private fileChangeListener: FileChangeListener,
     private projectProgressReporter: ProjectProgressReporter,
     private macroCompilationServer: MacroCompilationServer,
   ) {
     fileChangeListener.onSqlModelChanged(c => this.onSqlModelChanged(c));
-  }
-
-  setEnableEntireProjectAnalysis(value: boolean): void {
-    this.enableEntireProjectAnalysis = value;
   }
 
   updateManifest(): void {
@@ -55,7 +50,7 @@ export class ProjectChangeListener {
     console.log('Starting to recompile/reanalyze the project');
     this.projectProgressReporter.sendAnalyzeBegin();
     this.projectProgressReporter.sendAnalyzeProgressMessage('dbt compile', 0);
-    if (this.enableEntireProjectAnalysis && !this.destinationContext.isEmpty()) {
+    if (!this.destinationContext.isEmpty()) {
       this.notificationSender.clearAllDiagnostics();
     }
 
@@ -136,7 +131,7 @@ export class ProjectChangeListener {
   }, ProjectChangeListener.PROJECT_COMPILE_DEBOUNCE_TIMEOUT);
 
   private async analyzeProject(): Promise<void> {
-    if (!this.enableEntireProjectAnalysis || this.destinationContext.isEmpty()) {
+    if (this.destinationContext.isEmpty()) {
       return;
     }
     const results = await this.destinationContext.analyzeProject((completedCount: number, modelsCount: number) => {

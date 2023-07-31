@@ -65,10 +65,6 @@ import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { DbtProjectStatusSender } from '../status_bar/DbtProjectStatusSender';
 import { LspServerBase } from './LspServerBase';
 
-interface ExtensionSettings {
-  enableEntireProjectAnalysis: boolean;
-}
-
 export class LspServer extends LspServerBase<FeatureFinder> {
   sqlToRefCommandName = randomUUID();
   filesFilter: FileOperationFilter[];
@@ -165,17 +161,11 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     this.connection.onCodeAction(this.onCodeAction.bind(this));
     this.connection.onExecuteCommand(this.onExecuteCommand.bind(this));
     this.connection.onDidChangeWatchedFiles(this.onDidChangeWatchedFiles.bind(this));
-    this.connection.onDidChangeConfiguration(this.onDidChangeConfiguration.bind(this));
 
     this.connection.onShutdown(() => this.onShutdown('Client'));
 
     this.connection.workspace.onDidRenameFiles(this.onDidRenameFiles.bind(this));
     this.connection.workspace.onDidDeleteFiles(this.onDidDeleteFiles.bind(this));
-  }
-
-  async onDidChangeConfiguration(): Promise<void> {
-    const settings = (await this.connection.workspace.getConfiguration('WizardForDbtCore(TM)')) as ExtensionSettings;
-    this.projectChangeListener.setEnableEntireProjectAnalysis(settings.enableEntireProjectAnalysis);
   }
 
   override initializeNotifications(): void {
