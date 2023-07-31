@@ -74,7 +74,7 @@ export abstract class DbtWizardLanguageClient implements Disposable {
     this.pythonInfo = await this.pythonExtension.getPythonInfo(this.client.clientOptions.workspaceFolder);
     const customInitParams: CustomInitParams = {
       pythonInfo: this.pythonInfo,
-      enableSnowflakeSyntaxCheck: configuration.get<boolean>('enableSnowflakeSyntaxCheck', false),
+      enableSnowflakeSyntaxCheck: configuration.get<boolean>('enableSnowflakeSyntaxCheck', true),
       lspMode: this.getLspMode(),
       profilesDir: configuration.get<string | undefined>('profilesDir', undefined),
     };
