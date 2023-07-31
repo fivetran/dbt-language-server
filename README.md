@@ -1,6 +1,6 @@
 # Wizard for dbt Core (TM)\*
 
-Working with [dbt Core](https://www.getdbt.com/) in Visual Studio Code using the Fivetran Wizard for dbt Core (TM) extension accelerates your first-time environment setup with dbt Core, and optimizes your continual development of transformation pipelines. This extension is designed primarily for BigQuery destinations, but support for other warehouses is in development.
+Working with [dbt Core](https://www.getdbt.com/) in Visual Studio Code using the Fivetran Wizard for dbt Core (TM) extension accelerates your first-time environment setup with dbt Core, and optimizes your continual development of transformation pipelines. This extension is designed primarily for BigQuery and Snowflake destinations, but support for other warehouses is in development.
 
 Note: Turning on [Auto Save](https://code.visualstudio.com/docs/editor/codebasics#_save-auto-save) is strongly recommended. This feature enables near real-time query preview, auto-completion, and error highlighting with Wizard for dbt Core (TM).
 
@@ -11,9 +11,9 @@ Note: Turning on [Auto Save](https://code.visualstudio.com/docs/editor/codebasic
 - [Features](#features)
   - [Query preview](#query-preview)
   - [SQL to ref conversion](#sql-to-ref-conversion)
-  - [Error highlighting (BQ only)](#error-highlighting)
-  - [Auto-completion of columns, tables, and refs (BQ only)](#auto-completion-of-columns-tables-and-refs)
-  - [Function signature help (BQ only)](#function-signature-help)
+  - [Error highlighting](#error-highlighting)
+  - [Auto-completion of columns, tables, and refs](#auto-completion-of-columns-tables-and-refs)
+  - [Function signature help](#function-signature-help)
   - [Go to Definition](#go-to-definition)
   - [dbt status](#dbt-status)
 - [How to get set up](#how-to-get-set-up)
@@ -21,7 +21,7 @@ Note: Turning on [Auto Save](https://code.visualstudio.com/docs/editor/codebasic
 
 ## Features
 
-Note: error highlighting, auto-completion of columns, tables, and function signature help are only available for BigQuery.
+Note: SQL to ref conversion, error highlighting, auto-completion of columns, tables, and function signature help are only available for BigQuery and Snowflake.
 
 ### Query preview
 
@@ -99,13 +99,13 @@ The extension works on MacOS, Linux, and Windows (for Windows, see the additiona
 
 Prior to using the extension, you need to perform the following steps in the VS Code Terminal:
 
-1. [Install your dbt Core adapter](https://docs.getdbt.com/dbt-cli/install/overview).
-   - `python3 -m pip install dbt-bigquery`
+1. [Install your dbt Core adapter](https://docs.getdbt.com/docs/core/pip-install).
+   - `python3 -m pip install dbt-bigquery dbt-snowflake`
 1. For Windows, install WSL and Ubuntu 20.04 as **Administrator** (this requires a computer restart)
    - `wsl --install -d Ubuntu-20.04`
-1. Create your [dbt profile](https://docs.getdbt.com/dbt-cli/configure-your-profile) and add your credentials.
+1. Create your [dbt profile](https://docs.getdbt.com/docs/core/connect-data-platform/connection-profiles) and add your credentials.
    - `touch ~/.dbt/profiles.yml`
-   - See dbt Labs’ [BigQuery profile](https://docs.getdbt.com/reference/warehouse-profiles/bigquery-profile) documentation for more guidance on how to populate this file.
+   - See dbt Labs’ [BigQuery profile](https://docs.getdbt.com/docs/core/connect-data-platform/bigquery-setup), [Snowflake profile](https://docs.getdbt.com/docs/core/connect-data-platform/snowflake-setup) documentation for more guidance on how to populate this file.
 1. Open your dbt project in a new VS Code window.
 1. Check that the extension is operating by right-clicking in any .sql model file, and selecting `Wizard for dbt Core (TM) > Show query preview`.
 
