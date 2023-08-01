@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.28.2 (01/01/1970)
+## Version 0.28.2 (01/08/2023)
 ## What's Changed
 * Fixed compilation issue when using dbt 1.6.0.
 
