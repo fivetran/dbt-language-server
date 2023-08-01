@@ -1,5 +1,20 @@
 # Changelog
 
+## Version 0.28.2 (01/08/2023)
+## What's Changed
+* Fixed compilation issue when using dbt 1.6.0.
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.28.1...v0.28.2
+---
+
+## Version 0.28.1 (31/07/2023)
+## What's Changed
+* Updated setting description.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.28.0...v0.28.1
+---
+
 ## Version 0.28.0 (31/07/2023)
 ## What's Changed
 * With this release, we have integrated a syntax analyzer for Snowflake projects. This addition will help users to identify errors and use the SQL to ref conversion, go to definition and auto-completion features within Snowflake dbt project. You can disable this feature using the `WizardForDbtCore(TM).enableSnowflakeSyntaxCheck` setting if needed.
@@ -236,21 +251,3 @@ AS (
 * Fix extension crush when packages-install-path is overridden.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.15.0...v0.16.0
----
-
-## Version 0.15.0 (10/11/2022)
-## What's Changed
-* Add install WSL and Ubuntu button for Windows.
-* Add the ability to install dbt, dbt adapters from language status item of any file.
-* Increase grpc request/response max size to support big SQL queries.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.14.0...v0.15.0
----
-
-## Version 0.14.0 (01/11/2022)
-## What's Changed
-* For the global dbt error, now only one error is displayed for the problem model.
-* Show language status items for all files in active dbt project.
-* Show link for `profiles.yml` file in language status item.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.13.1...v0.14.0
