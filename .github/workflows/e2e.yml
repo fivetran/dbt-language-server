@@ -169,7 +169,8 @@ jobs:
           ls -la
 
       - name: install dbt
-        run: ${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery
+        # https://github.com/fivetran/analytics/blob/a83516d1f662ef4db5750e4bff6735b56b823123/.buildkite/scripts/step_2_run_models_dry.sh#L11
+        run: ${PYTHON_INSTALL_LOC} -m pip install "dbt-bigquery>=1.5.0,<1.6.0"
         env:
           PYTHON_INSTALL_LOC: '${{ steps.setup-python.outputs.python-path }}'
 

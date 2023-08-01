@@ -17,4 +17,4 @@
 !server/out/**/*.js.map
 !server/out/zetasql/**/*
 !server/out/snowflake/**/*
-!server/dbt_core.py
+!server/python/script.py
