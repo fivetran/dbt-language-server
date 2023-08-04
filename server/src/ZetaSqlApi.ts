@@ -104,6 +104,8 @@ export class ZetaSqlApi {
         const featuresForVersion = await this.zetaSql.LanguageOptions.getLanguageFeaturesForVersion(LanguageVersion.VERSION_CURRENT);
         featuresForVersion.forEach(f => options.enableLanguageFeature(f));
         options.enableLanguageFeature(LanguageFeature.FEATURE_NAMED_ARGUMENTS);
+        options.enableLanguageFeature(LanguageFeature.FEATURE_CREATE_TABLE_FUNCTION);
+        options.enableLanguageFeature(LanguageFeature.FEATURE_CREATE_EXTERNAL_TABLE_WITH_CONNECTION);
         options.enableLanguageFeature(LanguageFeature.FEATURE_JSON_TYPE);
         options.enableLanguageFeature(LanguageFeature.FEATURE_JSON_VALUE_EXTRACTION_FUNCTIONS);
         options.enableLanguageFeature(LanguageFeature.FEATURE_INTERVAL_TYPE);
