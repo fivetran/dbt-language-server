@@ -71,6 +71,7 @@ export abstract class ZetaSqlWrapper {
         { name: 'tinyint', type: { typeKind: TypeKind.TYPE_INT64 } },
         { name: 'byteint', type: { typeKind: TypeKind.TYPE_INT64 } },
       ],
+      customTvf: [{ namePath: ['external_query'], argumentName: ['connection_id', 'external_database_query', 'options'] }],
     };
   }
 
