@@ -192,7 +192,7 @@ async function parseAndSave(): Promise<void> {
     throw new Error("Can't find options from ./.prettierrc");
   }
   options.parser = 'typescript';
-  const formatted = prettier.format(code, options);
+  const formatted = await prettier.format(code, options);
   fs.writeFileSync(`${__dirname}/../../server/src/HelpProviderWords.ts`, formatted);
 }
 
