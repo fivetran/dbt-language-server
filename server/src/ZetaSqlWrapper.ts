@@ -71,6 +71,25 @@ export abstract class ZetaSqlWrapper {
         { name: 'tinyint', type: { typeKind: TypeKind.TYPE_INT64 } },
         { name: 'byteint', type: { typeKind: TypeKind.TYPE_INT64 } },
       ],
+      customFunction: [
+        {
+          namePath: ['contains_substr'],
+          signature: [
+            {
+              argument: [
+                { kind: SignatureArgumentKind.ARG_TYPE_ARBITRARY, numOccurrences: 1 },
+                { type: { typeKind: TypeKind.TYPE_STRING }, numOccurrences: 1 },
+                {
+                  type: { typeKind: TypeKind.TYPE_STRING },
+
+                  options: { cardinality: 'OPTIONAL', argumentName: 'json_scope', namedArgumentKind: 'NAMED_ONLY' },
+                },
+              ],
+              returnType: { type: { typeKind: TypeKind.TYPE_BOOL } },
+            },
+          ],
+        },
+      ],
     };
   }
 
