@@ -1,5 +1,5 @@
 import { TypeKind as SnowflakeTypeKind } from '@fivetrandevelopers/zetasql-snowflake/lib/index';
-import { TypeKind } from '@fivetrandevelopers/zetasql/lib/index';
+import { AnalyzeRequest, TypeKind } from '@fivetrandevelopers/zetasql/lib/index';
 import { LanguageFeature } from '@fivetrandevelopers/zetasql/lib/types/zetasql/LanguageFeature';
 import { LanguageOptionsProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/LanguageOptionsProto';
 import { LanguageVersion } from '@fivetrandevelopers/zetasql/lib/types/zetasql/LanguageVersion';
@@ -68,10 +68,11 @@ export class ZetaSqlApi {
     this.zetaSql.terminateServer();
   }
 
-  async analyze(request: import('@fivetrandevelopers/zetasql/lib/index').AnalyzeRequest): Promise<AnalyzeResponse__Output | undefined> {
+  async analyze(request: AnalyzeRequest): Promise<AnalyzeResponse__Output | undefined> {
     this.assertZetaSqlIsDefined(this.zetaSql);
 
-    const result = await this.zetaSql.ZetaSQLClient.getInstance().analyze(request);
+    /* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any */
+    const result = await this.zetaSql.ZetaSQLClient.getInstance().analyze(request as any);
     return result as AnalyzeResponse__Output | undefined; // TODO: Snowflake response is a bit different
   }
 
@@ -108,6 +109,7 @@ export class ZetaSqlApi {
         options.enableLanguageFeature(LanguageFeature.FEATURE_JSON_VALUE_EXTRACTION_FUNCTIONS);
         options.enableLanguageFeature(LanguageFeature.FEATURE_INTERVAL_TYPE);
         options.enableLanguageFeature(LanguageFeature.FEATURE_CBRT_FUNCTIONS);
+        options.enableLanguageFeature(LanguageFeature.FEATURE_V_1_4_GROUPING_SETS);
         // https://github.com/google/zetasql/issues/115#issuecomment-1210881670
         options.options.reservedKeywords = ['QUALIFY'];
         this.languageOptions = options.serialize() as LanguageOptionsProto; // TODO: Snowflake settings are a bit different
@@ -125,11 +127,7 @@ export class ZetaSqlApi {
 
   createType(newColumn: ColumnDefinition): TypeProto {
     const lowerCaseType = newColumn.type.toLowerCase();
-    let typeKind = this.zetaSql?.TypeFactory.SIMPLE_TYPE_KIND_NAMES.get(lowerCaseType) as TypeKind; // TODO: Snowflake TypeKind has more values
-    if (!typeKind && ['timestamp_tz', 'timestamp_ltz', 'timestamp_ntz'].includes(lowerCaseType)) {
-      // TODO: add to Snowflake npm
-      typeKind = TypeKind.TYPE_TIMESTAMP;
-    }
+    const typeKind = this.zetaSql?.TypeFactory.SIMPLE_TYPE_KIND_NAMES.get(lowerCaseType) as TypeKind;
     let resultType: TypeProto;
     if (typeKind) {
       resultType = {
