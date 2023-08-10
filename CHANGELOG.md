@@ -1,5 +1,15 @@
 # Changelog
 
+## Version 0.29.0 (01/01/1970)
+## What's Changed
+* Added `CONTAINS_SUBSTR` function.
+* Fixed `ModuleNotFoundError: No module named 'dbt.adapters.bigquery'` error.
+* Update ZetaSQL version.
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.28.2...v0.29.0
+---
+
 ## Version 0.28.2 (01/08/2023)
 ## What's Changed
 * Fixed compilation issue when using dbt 1.6.0.
@@ -242,12 +252,3 @@ AS (
 
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.16.0...v0.17.0
----
-
-## Version 0.16.0 (28/11/2022)
-## What's Changed
-* Add dbt snippets: `block`, `comment`, `config`, `for`, `if`, `ifelse`, `macro`, `ref`, `set`, `setblock`, `source`, `statement`.
-* Highlight function signature parameters.
-* Fix extension crush when packages-install-path is overridden.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.15.0...v0.16.0
