@@ -264,13 +264,16 @@ describe('ZetaSqlWrapper table/udf registration', () => {
     zetaSqlWrapper = new BigQueryZetaSqlWrapper(mock<DbtDestinationClient>(), mock(ZetaSqlApi), mock(ZetaSqlParser), mock(SqlHeaderAnalyzer));
     zetaSqlWrapper['catalog'].catalog = innerCatalogs;
 
+    const defaultFunctions = ZetaSqlWrapper.getDefaultCatalog().customFunction;
+    defaultFunctions?.push(...tempUdfs);
+
     // act
     const newCatalog = zetaSqlWrapper.createCatalogWithTempUdfs(tempUdfs);
 
     // assert
-    assertThat(newCatalog.customFunction, tempUdfs);
+    assertThat(newCatalog.customFunction, defaultFunctions);
     assertThat(newCatalog.catalog, innerCatalogs);
-    assertThat(zetaSqlWrapper['catalog'].customFunction, undefined);
+    assertThat(zetaSqlWrapper['catalog'].customFunction, ZetaSqlWrapper.getDefaultCatalog().customFunction);
     assertThat(zetaSqlWrapper['catalog'].catalog, innerCatalogs);
   });
 });
