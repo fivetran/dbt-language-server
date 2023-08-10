@@ -38,7 +38,7 @@ export abstract class ZetaSqlWrapper {
     private zetaSqlParser: ZetaSqlParser,
     private sqlHeaderAnalyzer: SqlHeaderAnalyzer,
   ) {
-    this.catalog = this.getDefaultCatalog();
+    this.catalog = ZetaSqlWrapper.getDefaultCatalog();
     this.informationSchemaConfigurator = new InformationSchemaConfigurator(zetaSqlApi);
   }
 
@@ -59,7 +59,7 @@ export abstract class ZetaSqlWrapper {
     }
   }
 
-  getDefaultCatalog(): SimpleCatalogProto {
+  static getDefaultCatalog(): SimpleCatalogProto {
     return {
       name: 'catalog',
       constant: [{ namePath: ['_dbt_max_partition'], type: { typeKind: TypeKind.TYPE_TIMESTAMP } }],
@@ -94,7 +94,7 @@ export abstract class ZetaSqlWrapper {
   }
 
   resetCatalog(): void {
-    this.catalog = this.getDefaultCatalog();
+    this.catalog = ZetaSqlWrapper.getDefaultCatalog();
     this.registeredTables = [];
     this.registeredFunctions = new Set<string>();
   }
@@ -230,7 +230,7 @@ export abstract class ZetaSqlWrapper {
 
   createCatalogWithTempUdfs(udfs: FunctionProto[]): SimpleCatalogProto {
     const clonedCatalog = { ...this.catalog };
-    clonedCatalog.customFunction = clonedCatalog.customFunction ?? [];
+    clonedCatalog.customFunction = clonedCatalog.customFunction ? [...clonedCatalog.customFunction] : [];
     for (const udf of udfs) {
       if (!clonedCatalog.customFunction.some(f => f.namePath?.join(',') === udf.namePath?.join(','))) {
         clonedCatalog.customFunction.push(udf);
