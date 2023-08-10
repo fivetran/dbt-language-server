@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.29.0 (01/01/1970)
+## Version 0.29.0 (10/08/2023)
 ## What's Changed
 * Added `CONTAINS_SUBSTR` function.
 * Fixed `ModuleNotFoundError: No module named 'dbt.adapters.bigquery'` error.
