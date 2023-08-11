@@ -5,7 +5,7 @@
     "compile": "tsc -b"
   },
   "devDependencies": {
-    "@types/markdown-it": "^12.2.3",
+    "@types/markdown-it": "^13.0.0",
     "@types/prettier": "^3.0.0",
     "axios": "^1.4.0",
     "find-matching-bracket": "^1.0.3",
