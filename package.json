@@ -199,7 +199,7 @@
     "ts-loader": "^9.4.4",
     "ts-mockito": "^2.6.1",
     "ts-node": "^10.9.1",
-    "ts-unused-exports": "^9.0.5",
+    "ts-unused-exports": "^10.0.0",
     "typescript": "^5.1.6",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4"
