@@ -193,7 +193,7 @@
     "lint-staged": "^13.2.3",
     "merge-options": "^3.0.4",
     "mocha": "^10.2.0",
-    "prettier": "^3.0.1",
+    "prettier": "^3.0.2",
     "prettier-plugin-organize-imports": "^3.2.3",
     "size-limit": "^8.2.6",
     "ts-loader": "^9.4.4",
