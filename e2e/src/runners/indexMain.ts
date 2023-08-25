@@ -1,6 +1,6 @@
-import * as glob from 'glob';
-import * as Mocha from 'mocha';
-import * as path from 'node:path';
+import glob from 'glob';
+import Mocha from 'mocha';
+import path from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { languages, Uri } from 'vscode';
 import { closeAllEditors, doc, getPreviewText, initializeExtension, PREVIEW_URI } from '../helper';

@@ -1,5 +1,5 @@
 import { Change, diffWords } from 'diff';
-import * as fastDiff from 'fast-diff';
+import fastDiff from 'fast-diff';
 
 export class DiffUtils {
   static getDiffWords(oldString: string, newString: string): Change[] {
