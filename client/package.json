@@ -5,7 +5,7 @@
     "vscode": "^1.52.0"
   },
   "dependencies": {
-    "@vscode/extension-telemetry": "^0.8.3",
+    "@vscode/extension-telemetry": "^0.8.4",
     "dbt-language-server-common": "file:../common",
     "vscode-languageclient": "^8.1.0"
   },
