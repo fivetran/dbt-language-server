@@ -1,5 +1,5 @@
 import matchBracket from 'find-matching-bracket';
-import * as MarkdownIt from 'markdown-it';
+import MarkdownIt from 'markdown-it';
 import * as fs from 'node:fs';
 import * as prettier from 'prettier';
 import Token = require('markdown-it/lib/token');

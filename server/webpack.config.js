@@ -14,5 +14,5 @@ module.exports = withDefaults({
     filename: '[name].js',
     path: path.join(__dirname, 'out'),
   },
-  externals: {},
+  externals: ['proxy-agent'],
 });

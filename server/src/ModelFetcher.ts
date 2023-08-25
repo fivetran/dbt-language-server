@@ -1,4 +1,4 @@
-import * as retry from 'async-retry';
+import retry from 'async-retry';
 import { DbtRepository } from './DbtRepository';
 import { DagNode } from './dag/DagNode';
 
