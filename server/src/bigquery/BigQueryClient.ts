@@ -9,6 +9,7 @@ export class BigQueryClient implements DbtDestinationClient {
   private static readonly BQ_TEST_CLIENT_DATASETS_LIMIT = 1;
   private static readonly REQUESTED_SCHEMA_FIELDS = ['schema', 'timePartitioning', 'type'] as const;
   private static readonly JOINED_FIELDS = BigQueryClient.REQUESTED_SCHEMA_FIELDS.join(',');
+  private static readonly INVALID_GRANT_MESSAGE = 'invalid_grant';
 
   bigQuery: BigQuery;
 
@@ -105,7 +106,11 @@ export class BigQueryClient implements DbtDestinationClient {
       return await operation();
     } catch (e) {
       if (e instanceof Object) {
-        if (('code' in e && (e.code === 401 || e.code === '401')) || ('message' in e && e.message === 'invalid_grant')) {
+        if (
+          ('data' in e && e.data instanceof Object && 'error' in e.data && e.data.error === BigQueryClient.INVALID_GRANT_MESSAGE) ||
+          ('code' in e && (e.code === 401 || e.code === '401')) ||
+          ('message' in e && e.message === BigQueryClient.INVALID_GRANT_MESSAGE)
+        ) {
           this.bigQuery = this.updateCredentials();
           return await operation();
         }

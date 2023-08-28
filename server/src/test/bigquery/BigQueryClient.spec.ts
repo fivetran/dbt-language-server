@@ -5,6 +5,9 @@ import { BigQueryClient } from '../../bigquery/BigQueryClient';
 
 interface CustomError extends Error {
   code: number;
+  data?: {
+    error: string;
+  };
 }
 
 describe('BigQueryClient', () => {
@@ -22,12 +25,34 @@ describe('BigQueryClient', () => {
   });
 
   it('should call updateCredentials in case of unauthorized error', async () => {
-    // arrange
-    const e: CustomError = {
+    await callUpdateCredentialsInCaseOfError({
       name: 'unauthorized',
       message: 'unauthorized',
       code: 401,
-    };
+    });
+  });
+
+  it('should call updateCredentials in case of invalid_grant error message', async () => {
+    await callUpdateCredentialsInCaseOfError({
+      name: 'name',
+      message: 'invalid_grant',
+      code: 111,
+    });
+  });
+
+  it('should call updateCredentials in case of e.data.error === invalid_grant', async () => {
+    await callUpdateCredentialsInCaseOfError({
+      name: 'name',
+      message: 'message',
+      code: 111,
+      data: {
+        error: 'invalid_grant',
+      },
+    });
+  });
+
+  async function callUpdateCredentialsInCaseOfError(e: CustomError): Promise<void> {
+    // arrange
     const dataset = 'ds';
     when(mockBigQuery.dataset(dataset)).thenThrow(e);
     callCount = 0;
@@ -37,5 +62,5 @@ describe('BigQueryClient', () => {
 
     // assert
     assertThat(callCount, 1);
-  });
+  }
 });
