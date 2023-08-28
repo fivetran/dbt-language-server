@@ -55,4 +55,7 @@ SELECT
     DATE_PART('minute', sample_timestamp) AS minute_timestamp,
     DATE_PART('second', sample_timestamp) AS second_timestamp
 
+    -- TODO:
+    -- DATE_PART("year", sample_date) AS year_date,
+
 FROM test_data;

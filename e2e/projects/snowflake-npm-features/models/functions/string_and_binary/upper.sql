@@ -1,1 +1,1 @@
-SELECT UPPER("string");
+SELECT UPPER('string');

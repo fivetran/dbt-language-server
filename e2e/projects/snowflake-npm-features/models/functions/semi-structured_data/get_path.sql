@@ -7,10 +7,14 @@ SELECT
     -- -- TODO:
     -- -- GET_PATH(j, 'person.grades')[0],
     -- PARSE_JSON(''):for,
+    PARSE_JSON(''):forr,
     j:"person.name",
     
 
     j:person.name,
+    j:"person".name,
+    j:"person"."name",
+    j:person."name",
     j:person.name::string,
     j:person.grades[0],
     j:person.grades[0]::number,
