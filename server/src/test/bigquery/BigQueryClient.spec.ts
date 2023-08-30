@@ -5,6 +5,11 @@ import { BigQueryClient } from '../../bigquery/BigQueryClient';
 
 interface CustomError extends Error {
   code: number;
+  response?: {
+    data?: {
+      error: string;
+    };
+  };
   data?: {
     error: string;
   };
@@ -47,6 +52,19 @@ describe('BigQueryClient', () => {
       code: 111,
       data: {
         error: 'invalid_grant',
+      },
+    });
+  });
+
+  it('should call updateCredentials in case of e.responsedata.error === invalid_grant', async () => {
+    await callUpdateCredentialsInCaseOfError({
+      name: 'name',
+      message: 'message',
+      code: 111,
+      response: {
+        data: {
+          error: 'invalid_grant',
+        },
       },
     });
   });
