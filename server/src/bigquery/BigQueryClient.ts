@@ -107,6 +107,12 @@ export class BigQueryClient implements DbtDestinationClient {
     } catch (e) {
       if (e instanceof Object) {
         if (
+          ('response' in e &&
+            e.response instanceof Object &&
+            'data' in e.response &&
+            e.response.data instanceof Object &&
+            'error' in e.response.data &&
+            e.response.data.error === BigQueryClient.INVALID_GRANT_MESSAGE) ||
           ('data' in e && e.data instanceof Object && 'error' in e.data && e.data.error === BigQueryClient.INVALID_GRANT_MESSAGE) ||
           ('code' in e && (e.code === 401 || e.code === '401')) ||
           ('message' in e && e.message === BigQueryClient.INVALID_GRANT_MESSAGE)
