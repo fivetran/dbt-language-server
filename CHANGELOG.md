@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.29.1 (01/01/1970)
+## Version 0.29.1 (31/08/2023)
 ## What's Changed
 * Supported double quoted names for Snowflake.
 
