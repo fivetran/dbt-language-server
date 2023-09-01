@@ -16,6 +16,6 @@
     "mocha": "^10.2.0",
     "path-equal": "^1.2.5",
     "pg": "^8.11.3",
-    "snowflake-sdk": "^1.7.0"
+    "snowflake-sdk": "^1.8.0"
   }
 }
