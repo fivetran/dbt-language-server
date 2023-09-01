@@ -71,6 +71,16 @@
         "icon": "$(book)"
       },
       {
+        "command": "WizardForDbtCore(TM).notUseConfigForRefsPreview",
+        "title": "✓ Use schema from config for refs",
+        "category": "WizardForDbtCore(TM)"
+      },
+      {
+        "command": "WizardForDbtCore(TM).useConfigForRefsPreview",
+        "title": "  Use schema from config for refs",
+        "category": "WizardForDbtCore(TM)"
+      },
+      {
         "command": "WizardForDbtCore(TM).compile",
         "title": "dbt compile",
         "category": "WizardForDbtCore(TM)"
@@ -138,6 +148,16 @@
           "submenu": "dbt",
           "group": "navigation",
           "when": "editorLangId =~ /^sql$|^jinja-sql$|^snowflake-sql$|^sql-bigquery$/ && !editorReadonly"
+        },
+        {
+          "command": "WizardForDbtCore(TM).useConfigForRefsPreview",
+          "group": "1_common",
+          "when": "resource == query-preview:Preview?dbt-language-server && !WizardForDbtCore:useConfigForRefs"
+        },
+        {
+          "command": "WizardForDbtCore(TM).notUseConfigForRefsPreview",
+          "group": "1_common",
+          "when": "resource == query-preview:Preview?dbt-language-server && WizardForDbtCore:useConfigForRefs"
         }
       ]
     },
