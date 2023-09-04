@@ -1,6 +1,14 @@
 # Changelog
 
-## Version 0.29.1 (31/08/2023)
+## Version 0.30.0 (01/01/1970)
+## What's Changed
+* Introduced a feature to display previews utilizing model configuration values for refs.  It can be useful for users who separates dev and prod environments. To use, right-click and select `Use schema from config for refs` from the context menu in the Preview editor.
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.29.1...v0.30.0
+---
+
+## Version 0.29.1 (01/09/2023)
 ## What's Changed
 * Supported double quoted names for Snowflake.
 
@@ -240,11 +248,3 @@ AS (
 
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.17.1...v0.18.0
----
-
-## Version 0.17.1 (20/12/2022)
-## What's Changed
-* Fix compilation issue when project, dataset and table are enclosed in backticks (\`project.dataset.table\`).
-* Refresh credentials when they are expired for BigQuery oAuth authentication method.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.17.0...v0.17.1
