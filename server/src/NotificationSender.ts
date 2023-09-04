@@ -1,4 +1,4 @@
-import { StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
+import { RefReplacement, StatusNotification, TelemetryEvent } from 'dbt-language-server-common';
 import { Diagnostic, PublishDiagnosticsParams, TelemetryEventNotification, _Connection } from 'vscode-languageserver';
 
 export class NotificationSender {
@@ -32,8 +32,8 @@ export class NotificationSender {
       .catch(e => console.log(`Failed to send notification: ${e instanceof Error ? e.message : String(e)}`));
   }
 
-  sendUpdateQueryPreview(uri: string, previewText: string): void {
-    this.sendNotification('custom/updateQueryPreview', { uri, previewText });
+  sendUpdateQueryPreview(uri: string, previewText: string, refReplacements: RefReplacement[]): void {
+    this.sendNotification('custom/updateQueryPreview', { uri, previewText, refReplacements });
   }
 
   sendStatus(statusNotification: StatusNotification): void {

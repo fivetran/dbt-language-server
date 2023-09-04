@@ -20,6 +20,7 @@ export interface ManifestModel extends ManifestNode {
   config?: {
     sqlHeader?: string;
     materialized?: string;
+    schema?: string;
   };
 }
 

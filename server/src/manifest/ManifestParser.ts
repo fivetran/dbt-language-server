@@ -25,6 +25,7 @@ interface RawNode {
   config?: {
     sql_header?: string;
     materialized?: string;
+    schema?: string;
   };
 }
 
@@ -92,6 +93,7 @@ export class ManifestParser {
           config: {
             sqlHeader: n.config?.sql_header,
             materialized: n.config?.materialized,
+            schema: n.config?.schema,
           },
         }));
     }

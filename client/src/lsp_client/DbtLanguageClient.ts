@@ -1,4 +1,4 @@
-import { LspModeType, TelemetryEvent } from 'dbt-language-server-common';
+import { LspModeType, RefReplacement, TelemetryEvent } from 'dbt-language-server-common';
 import { EventEmitter } from 'node:events';
 import {
   ConfigurationChangeEvent,
@@ -130,10 +130,11 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
     super.initializeNotifications();
 
     this.disposables.push(
-      this.client.onNotification('custom/updateQueryPreview', ({ uri, previewText }) => {
+      this.client.onNotification('custom/updateQueryPreview', ({ uri, previewText, refReplacements }) => {
         this.previewContentProvider.updateText(
           uri as string,
           previewText as string,
+          refReplacements as RefReplacement[],
           this.canUseSnowflakeLangId() ? SNOWFLAKE_SQL_LANG_ID : SQL_LANG_ID,
         );
       }),

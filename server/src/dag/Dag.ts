@@ -14,4 +14,12 @@ export class Dag {
   getNodesByPackage(packageName: string): DagNode[] {
     return this.nodes.filter(n => n.getValue().packageName === packageName);
   }
+
+  getNodeByUri(uri: string): DagNode | undefined {
+    return this.nodes.find(n => uri.endsWith(n.getValue().originalFilePath));
+  }
+
+  getNodeByName(name: string): DagNode | undefined {
+    return this.nodes.find(n => n.getValue().name === name);
+  }
 }
