@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.30.0 (01/01/1970)
+## Version 0.30.0 (04/09/2023)
 ## What's Changed
 * Introduced a feature to display previews utilizing model configuration values for refs.  It can be useful for users who separates dev and prod environments. To use, right-click and select `Use schema from config for refs` from the context menu in the Preview editor.
 
