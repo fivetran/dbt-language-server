@@ -8,13 +8,16 @@ import {
   Range,
   TextDocumentContentProvider,
   Uri,
+  commands,
   languages,
   window,
 } from 'vscode';
 import { SQL_LANG_ID } from './Utils';
+import { RefReplacement } from 'dbt-language-server-common';
 
 interface PreviewInfo {
   previewText: string;
+  refReplacements: RefReplacement[];
   diagnostics: Diagnostic[];
   langId: string;
 }
@@ -22,6 +25,22 @@ interface PreviewInfo {
 export default class SqlPreviewContentProvider implements TextDocumentContentProvider {
   static readonly SCHEME = 'query-preview';
   static readonly URI = Uri.parse(`${SqlPreviewContentProvider.SCHEME}:Preview?dbt-language-server`);
+
+  private useConfigForRefs = false;
+
+  changeMode(useConfigForRefs: boolean): void {
+    this.setUseConfigForRefs(useConfigForRefs);
+    this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
+  }
+
+  setUseConfigForRefs(useConfigForRefs: boolean): void {
+    if (this.useConfigForRefs !== useConfigForRefs) {
+      commands
+        .executeCommand('setContext', 'WizardForDbtCore:useConfigForRefs', useConfigForRefs)
+        .then(undefined, e => console.log(e instanceof Error ? e.message : String(e)));
+      this.useConfigForRefs = useConfigForRefs;
+    }
+  }
 
   previewInfos = new Map<string, PreviewInfo>();
 
@@ -33,11 +52,12 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
     return uri.path === SqlPreviewContentProvider.URI.path;
   }
 
-  updateText(uri: string, previewText: string, langId: string): void {
+  updateText(uri: string, previewText: string, refReplacements: RefReplacement[], langId: string): void {
     const currentValue = this.previewInfos.get(uri);
 
     this.previewInfos.set(uri, {
       previewText,
+      refReplacements,
       diagnostics: currentValue?.diagnostics ?? [],
       langId,
     });
@@ -62,6 +82,7 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
     const currentValue = this.previewInfos.get(uri);
     this.previewInfos.set(uri, {
       previewText: currentValue?.previewText ?? '',
+      refReplacements: currentValue?.refReplacements ?? [],
       diagnostics: diagnostics.map<Diagnostic>(d => {
         const diag = new Diagnostic(d.range, d.message, DiagnosticSeverity.Error);
         if (d.relatedInformation && d.relatedInformation.length > 0) {
@@ -93,6 +114,7 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
   changeActiveDocument(uri: Uri): void {
     if (uri.toString() !== this.activeDocUri.toString()) {
       this.activeDocUri = uri;
+      this.setUseConfigForRefs(false);
       this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
     }
   }
@@ -108,6 +130,13 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
   provideTextDocumentContent(): string {
     const previewInfo = this.previewInfos.get(this.activeDocUri.toString());
     this.updateLangId(previewInfo?.langId ?? SQL_LANG_ID).catch(e => console.log(e));
-    return previewInfo?.previewText ?? '';
+
+    let text = previewInfo?.previewText ?? '';
+    if (this.useConfigForRefs) {
+      for (const replacement of previewInfo?.refReplacements ?? []) {
+        text = text.replaceAll(replacement.from, replacement.to);
+      }
+    }
+    return text;
   }
 }

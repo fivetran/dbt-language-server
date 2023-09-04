@@ -20,6 +20,8 @@ import { EventEmitter } from 'node:events';
 import * as path from 'node:path';
 import { AnalyzeEntireProject } from './commands/AnalyzeEntireProject';
 import { CreateDbtProject } from './commands/CreateDbtProject/CreateDbtProject';
+import { UseConfigForRefsPreview } from './commands/UseConfigForRefsPreview';
+import { NotUseConfigForRefsPreview } from './commands/NotUseConfigForRefsPreview';
 
 export interface PackageJson {
   name: string;
@@ -123,6 +125,8 @@ export class ExtensionClient {
     this.commandManager.register(new OpenOrCreatePackagesYml());
     this.commandManager.register(new Restart(this.dbtLanguageClientManager));
     this.commandManager.register(new InstallDbtPackages(this.dbtLanguageClientManager, this.outputChannelProvider));
+    this.commandManager.register(new UseConfigForRefsPreview(this.previewContentProvider));
+    this.commandManager.register(new NotUseConfigForRefsPreview(this.previewContentProvider));
   }
 
   registerSqlPreviewContentProvider(context: ExtensionContext): void {

@@ -39,6 +39,7 @@ import { DefinitionProvider } from '../definition/DefinitionProvider';
 import { getLineByPosition, getSignatureInfo } from '../utils/TextUtils';
 import { areRangesEqual, debounce, getIdentifierRangeAtPosition, getModelPathOrFullyQualifiedName } from '../utils/Utils';
 import { DbtDocumentKind } from './DbtDocumentKind';
+import { RefReplacement } from 'dbt-language-server-common';
 
 export interface QueryParseInformation {
   selects: {
@@ -69,6 +70,7 @@ export class DbtTextDocument {
 
   rawDocDiagnostics: Diagnostic[] = [];
   compiledDocDiagnostics: Diagnostic[] = [];
+  refReplacements: RefReplacement[] = [];
 
   constructor(
     doc: TextDocumentItem,
@@ -100,12 +102,37 @@ export class DbtTextDocument {
     this.modelCompiler.onCompilationError(this.onCompilationError.bind(this));
     this.modelCompiler.onCompilationFinished(async (compiledSql: string) => {
       projectChangeListener.updateManifest();
+
+      this.updateRefReplacements();
       await this.onCompilationFinished(compiledSql);
     });
     this.modelCompiler.onFinishAllCompilationJobs(this.onFinishAllCompilationTasks.bind(this));
 
     this.destinationContext.onContextInitialized(this.onContextInitialized.bind(this));
     this.dbtCli.onDbtReady(this.onDbtReady.bind(this));
+  }
+
+  updateRefReplacements(): void {
+    const refReplacements = [];
+    const currentNode = this.dbtRepository.dag.getNodeByUri(this.rawDocument.uri);
+    if (currentNode) {
+      const { refs } = currentNode.getValue();
+      for (const ref of refs) {
+        if ('name' in ref) {
+          const refNode = this.dbtRepository.dag.getNodeByName(ref.name);
+          if (refNode) {
+            const { config } = refNode.getValue();
+            if (config?.schema) {
+              refReplacements.push({
+                from: `\`${refNode.getValue().schema}\`.\`${refNode.getValue().name}\``,
+                to: `\`${config.schema}\`.\`${refNode.getValue().name}\``,
+              });
+            }
+          }
+        }
+      }
+    }
+    this.refReplacements = refReplacements;
   }
 
   willSaveTextDocument(reason: TextDocumentSaveReason): void {
@@ -274,7 +301,7 @@ export class DbtTextDocument {
 
   async updateAndSendDiagnosticsAndPreview(dbtCompilationError?: string): Promise<void> {
     await this.updateDiagnostics(dbtCompilationError);
-    this.notificationSender.sendUpdateQueryPreview(this.rawDocument.uri, this.compiledDocument.getText());
+    this.notificationSender.sendUpdateQueryPreview(this.rawDocument.uri, this.compiledDocument.getText(), this.refReplacements);
   }
 
   async updateDiagnostics(dbtCompilationError?: string): Promise<void> {

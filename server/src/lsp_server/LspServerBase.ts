@@ -3,6 +3,7 @@ import { InitializeError, InitializeParams, InitializeResult, ResponseError, _Co
 import { InstallUtils } from '../InstallUtils';
 import { NotificationSender } from '../NotificationSender';
 import { FeatureFinderBase } from '../feature_finder/FeatureFinderBase';
+import path from 'node:path';
 
 export abstract class LspServerBase<T extends FeatureFinderBase> {
   constructor(
@@ -14,15 +15,30 @@ export abstract class LspServerBase<T extends FeatureFinderBase> {
   abstract onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError>;
 
   onUncaughtException(error: Error, _origin: 'uncaughtException' | 'unhandledRejection'): void {
-    console.log(error.stack);
+    const stack = LspServerBase.getCleanStackTrace(error.stack);
+    console.log(stack);
 
     this.notificationSender.sendTelemetry('error', {
       name: error.name,
       message: error.message,
-      stack: error.stack ?? '',
+      stack,
     });
 
     throw new Error('Uncaught exception. Server will be restarted.');
+  }
+
+  private static getCleanStackTrace(stack: string | undefined): string {
+    if (!stack) {
+      return '';
+    }
+
+    let lines = stack.split('\n');
+    lines = lines.map(line => {
+      const match = line.match(/\((.*?dbt-language-server)/);
+      return (match ? line.replace(match[1], '') : line).replaceAll(path.sep, '__');
+    });
+
+    return lines.join('\n');
   }
 
   initializeNotifications(): void {

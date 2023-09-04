@@ -17,3 +17,5 @@ export interface CustomInitParams {
   disableLogger?: boolean;
   profilesDir?: string;
 }
+
+export type RefReplacement = { from: string; to: string };
