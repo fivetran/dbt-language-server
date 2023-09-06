@@ -24,7 +24,11 @@ export function evalProfilesYmlJinjaEnvVar(text: string): string | object | numb
   }
 
   if (/\|\s*as_native/.test(text)) {
-    return JSON.parse(resultText) as object;
+    try {
+      return JSON.parse(resultText) as object;
+    } catch (e) {
+      throw new Error(`Failed to parse ${text} and ${resultText} ${e instanceof Error ? e.message : ''}}`);
+    }
   }
   if (/\|\s*(?:int|as_number)/.test(text)) {
     return Number(resultText);
