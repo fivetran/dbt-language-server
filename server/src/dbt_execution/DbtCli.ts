@@ -124,7 +124,7 @@ export class DbtCli {
     this.notificationSender.sendTelemetry('error', {
       name: 'vscodeErrorMessage',
       message: `${message}.
-        Profile: ${dbtProfileType ?? '_'}.
+        Profile: ${dbtProfileType ?? 'undefined'}.
         Python: ${this.featureFinder.pythonInfo.version?.join('.') ?? '_'}.
         dbt: ${JSON.stringify(this.featureFinder.versionInfo?.installedVersion)}.
         Adapters: ${JSON.stringify(this.featureFinder.versionInfo?.installedAdapters)}`,

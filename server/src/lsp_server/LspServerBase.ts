@@ -22,6 +22,7 @@ export abstract class LspServerBase<T extends FeatureFinderBase> {
       name: error.name,
       message: error.message,
       stack,
+      input: 'input' in error ? (error.input as string) : 'undefined',
     });
 
     throw new Error('Uncaught exception. Server will be restarted.');
