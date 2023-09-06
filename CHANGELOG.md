@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.30.1 (01/01/1970)
+## Version 0.30.1 (06/09/2023)
 ## What's Changed
 * Improved errors handling.
 
