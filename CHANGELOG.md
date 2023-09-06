@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 0.30.1 (06/09/2023)
+## What's Changed
+* Improved errors handling.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.30.0...v0.30.1
+---
+
 ## Version 0.30.0 (04/09/2023)
 ## What's Changed
 * Introduced a feature to display previews utilizing model configuration values for refs.  It can be useful for users who separates dev and prod environments. To use, right-click and select `Use schema from config for refs` from the context menu in the Preview editor.
@@ -240,11 +247,3 @@ AS (
 * Recompile and reanalyze entire project after extension start or external changes happened.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.18.0...v0.19.0
----
-
-## Version 0.18.0 (27/12/2022)
-## What's Changed
-* We now use dbt CLI for model and project compilation by default. You can switch between compiler used by extension in **Preferences** -> **Settings** -> **Extensions** -> **Wizard for dbt Core (TM)** -> **Wizard For Dbt Core(TM): Dbt Compiler**. 
-
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.17.1...v0.18.0
