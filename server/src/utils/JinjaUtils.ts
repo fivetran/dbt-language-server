@@ -19,7 +19,7 @@ export function evalProfilesYmlJinjaEnvVar(text: string): string | object | numb
         } else if (params.length > 1) {
           resultText = resultText.replace(match, params[1]);
         } else {
-          throw new Error(`Failed to find value of environment variable ${params[0]}`);
+          throw new Error(`Failed to find value of environment variable ${params[0]} (${text})`);
         }
       }
     });
