@@ -26,7 +26,7 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: set up node
         uses: actions/setup-node@v3
@@ -62,10 +62,10 @@ jobs:
         run: echo "FILE_NAME=${{ github.sha }}-darwin-x64.vsix" >> $GITHUB_ENV
 
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: checkout repository with models
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: fivetran/analytics
           path: analytics
