@@ -3,7 +3,8 @@ import { evalProfilesYmlJinjaEnvVar } from '../../utils/JinjaUtils';
 
 describe('JinjaUtils', () => {
   it('evalJinjaEnvVar should throw an error if environment variable is not found', () => {
-    assertThat(() => evalProfilesYmlJinjaEnvVar('{{ env_var("TEST1") }}'), throws(new Error('Failed to find value of environment variable TEST1')));
+    const text = '{{ env_var("TEST1") }}';
+    assertThat(() => evalProfilesYmlJinjaEnvVar(text), throws(new Error(`Failed to find value of environment variable TEST1 (${text})`)));
   });
 
   it('evalJinjaEnvVar should replace value if it is found in environment', () => {
