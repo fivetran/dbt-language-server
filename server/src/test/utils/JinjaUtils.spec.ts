@@ -1,9 +1,10 @@
-import { assertThat } from 'hamjest';
+import { assertThat, throws } from 'hamjest';
 import { evalProfilesYmlJinjaEnvVar } from '../../utils/JinjaUtils';
 
 describe('JinjaUtils', () => {
-  it('evalJinjaEnvVar should not replace value if it is not exist in environment', () => {
-    evalJinjaEnvVarShouldReturnEnvironmentValue('{{ env_var("TEST1") }}', '{{ env_var("TEST1") }}');
+  it('evalJinjaEnvVar should throw an error if environment variable is not found', () => {
+    const text = '{{ env_var("TEST1") }}';
+    assertThat(() => evalProfilesYmlJinjaEnvVar(text), throws(new Error(`Failed to find value of environment variable TEST1 (${text})`)));
   });
 
   it('evalJinjaEnvVar should replace value if it is found in environment', () => {
@@ -35,6 +36,8 @@ describe('JinjaUtils', () => {
     // act, assert
     evalJinjaEnvVarShouldReturnEnvironmentValue('{{ env_var("KEY_JSON") | as_native }}', json);
     evalJinjaEnvVarShouldReturnEnvironmentValue('{{  env_var("KEY_JSON")     |     as_native }}', json);
+    evalJinjaEnvVarShouldReturnEnvironmentValue("{{ env_var('KEY_JSON') | as_native }}", json);
+    evalJinjaEnvVarShouldReturnEnvironmentValue("{{  env_var('KEY_JSON')     |     as_native }}", json);
   });
 
   it('evalJinjaEnvVar should not return object there is no as_native filter', () => {
@@ -47,6 +50,7 @@ describe('JinjaUtils', () => {
 
     // act, assert
     evalJinjaEnvVarShouldReturnEnvironmentValue('{{ env_var("KEY_JSON") }}', JSON.stringify(json));
+    evalJinjaEnvVarShouldReturnEnvironmentValue("{{ env_var('KEY_JSON') }}", JSON.stringify(json));
   });
 
   it('evalJinjaEnvVar should return number if int or as_number filter used', () => {
@@ -60,7 +64,18 @@ describe('JinjaUtils', () => {
 
     evalJinjaEnvVarShouldReturnEnvironmentValue('{{ env_var("NUMBER_VALUE") | as_number }}', value);
     evalJinjaEnvVarShouldReturnEnvironmentValue('{{  env_var("NUMBER_VALUE")     |     as_number }}', value);
+
+    evalJinjaEnvVarShouldReturnEnvironmentValue("{{ env_var('NUMBER_VALUE') | int }}", value);
+    evalJinjaEnvVarShouldReturnEnvironmentValue("{{  env_var('NUMBER_VALUE')     |     int }}", value);
+
+    evalJinjaEnvVarShouldReturnEnvironmentValue("{{ env_var('NUMBER_VALUE') | as_number }}", value);
+    evalJinjaEnvVarShouldReturnEnvironmentValue("{{  env_var('NUMBER_VALUE')     |     as_number }}", value);
   });
+});
+
+it('evalJinjaEnvVar should 1', () => {
+  // act, assert
+  evalJinjaEnvVarShouldReturnEnvironmentValue('1', '1');
 });
 
 function evalJinjaEnvVarShouldReturnEnvironmentValue(text: string, expectedResult: string | object | number): void {
