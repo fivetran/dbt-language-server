@@ -12,7 +12,7 @@
     "@types/vscode": "^1.82.0",
     "@vscode/test-electron": "^2.3.4",
     "dbt-language-server-common": "file:../common",
-    "hamjest": "^4.0.1",
+    "hamjest": "^4.1.0",
     "mocha": "^10.2.0",
     "path-equal": "^1.2.5",
     "pg": "^8.11.3",
