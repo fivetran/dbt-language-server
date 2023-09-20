@@ -35,7 +35,7 @@
     "@types/snowflake-sdk": "^1.6.13",
     "@types/source-map-support": "^0.5.7",
     "@types/uuid": "^9.0.4",
-    "hamjest": "^4.0.1",
+    "hamjest": "^4.1.0",
     "vscode-uri": "^3.0.7"
   },
   "typeRoots": [
