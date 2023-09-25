@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.30.2 (01/01/1970)
+## Version 0.30.2 (25/09/2023)
 ## What's Changed
 * Added support for the following Snowflake functions: `grouping`, `decode`, `iff`, `nvl`, `nvl2`, `regr_valx`.
 * Resolved an issue where false positives occurred during arithmetic operations with the Snowflake VARIANT type.
