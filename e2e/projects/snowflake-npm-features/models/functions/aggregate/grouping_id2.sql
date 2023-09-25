@@ -12,12 +12,12 @@ SELECT
     Col2, 
     Col3,
     IsTrue,
-    GROUPING(Col1) AS GroupingID_Col1,
-    GROUPING(Col2) AS GroupingID_Col2,
-    GROUPING(Col3) AS GroupingID_Col3,
-    GROUPING(IsTrue) AS GroupingID_IsTrue,
-    GROUPING(Col1, Col2) AS GroupingID_Col1_Col2,
-    GROUPING(Col1, Col2, Col3, IsTrue) AS GroupingID_Col1_Col2_Col3_IsTrue
+    GROUPING_ID(Col1) AS GroupingID_Col1,
+    GROUPING_ID(Col2) AS GroupingID_Col2,
+    GROUPING_ID(Col3) AS GroupingID_Col3,
+    GROUPING_ID(IsTrue) AS GroupingID_IsTrue,
+    GROUPING_ID(Col1, Col2) AS GroupingID_Col1_Col2,
+    GROUPING_ID(Col1, Col2, Col3, IsTrue) AS GroupingID_Col1_Col2_Col3_IsTrue
 FROM 
     TestData
 GROUP BY 

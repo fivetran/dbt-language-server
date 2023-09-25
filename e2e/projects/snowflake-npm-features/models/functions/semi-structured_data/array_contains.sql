@@ -4,7 +4,8 @@ WITH test_data AS (
     ARRAY_CONSTRUCT(4, 5, 6) AS array2,
     NULL AS array3,
     ARRAY_CONSTRUCT(NULL) AS array4,
-    ARRAY_CONSTRUCT(7, 8, 9) AS array5
+    ARRAY_CONSTRUCT(7, 8, 9) AS array5,
+    ARRAY_CONSTRUCT('7', '8', '9') AS array6
 )
 
 SELECT
@@ -23,5 +24,7 @@ SELECT
   ARRAY_CONTAINS(NULL, array4) AS contains_null_in_array4,
   ARRAY_CONTAINS(1, array5) AS contains_1_in_array5,
   ARRAY_CONTAINS(4, array5) AS contains_4_in_array5,
-  ARRAY_CONTAINS(NULL, array5) AS contains_null_in_array5
+  ARRAY_CONTAINS(NULL, array5) AS contains_null_in_array5,
+  ARRAY_CONTAINS('4', array6) AS contains_4_in_array6,
+
 FROM test_data;

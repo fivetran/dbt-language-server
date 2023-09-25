@@ -12,5 +12,5 @@ WITH sample_data AS (
 
 SELECT id,
        score,
-       NVL2(score, 'Has Score', 'No Score') AS score_status
+       NVL2(score, 1, 'No Score') AS score_status
 FROM sample_data;

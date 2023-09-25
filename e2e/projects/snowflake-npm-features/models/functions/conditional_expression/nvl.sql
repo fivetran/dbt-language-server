@@ -1,16 +1,20 @@
-WITH sample_data AS (
-  SELECT 1 AS id, NULL AS score
-  UNION ALL
-  SELECT 2, 80
-  UNION ALL
-  SELECT 3, 90
-  UNION ALL
-  SELECT 4, NULL
-  UNION ALL
-  SELECT 5, 75
+WITH test_data AS (
+    SELECT NULL AS col1, 'Hello' AS col2, 100 AS col3
+    UNION ALL
+    SELECT 'World', NULL, 200
+    UNION ALL
+    SELECT NULL, NULL, NULL
 )
 
-SELECT id,
-       score,
-       NVL(score, 0) AS score_with_default
-FROM sample_data;
+SELECT 
+    col1,
+    col2,
+    col3,
+    NVL(col1, 'Default') AS nvl_col1_string,
+    NVL(col2, 'Default') AS nvl_col2_string,
+    NVL(col3, 0) AS nvl_col3_int,
+    NVL(null, 1),
+    NVL(1, 2),
+    NVL(col3, 2),
+    NVL(col3, col3)
+FROM test_data;
