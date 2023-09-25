@@ -101,7 +101,7 @@ export class SqlDefinitionProvider {
 
                 let targetColumnRawRange = targetRange;
                 if (targetSelect) {
-                  const targetColumn = targetSelect.columns.find(c => c.namePath.at(-1) === clickedColumn.name);
+                  const targetColumn = targetSelect.columns.find(c => c.alias === clickedColumn.name || c.namePath.at(-1) === clickedColumn.name);
                   if (targetColumn) {
                     targetColumnRawRange = Range.create(
                       positionConverter.convertPositionBackward(targetColumn.compiledRange.start),
