@@ -47,6 +47,7 @@ export interface QueryParseInformation {
       namePath: string[];
       rawRange: Range;
       compiledRange: Range;
+      alias?: string;
     }[];
     tableAliases: Map<string, string>;
     parseLocationRange: Location;
