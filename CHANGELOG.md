@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 0.30.2 (25/09/2023)
+## What's Changed
+* Added support for the following Snowflake functions: `grouping`, `decode`, `iff`, `nvl`, `nvl2`, `regr_valx`.
+* Resolved an issue where false positives occurred during arithmetic operations with the Snowflake VARIANT type.
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.30.1...v0.30.2
+---
+
 ## Version 0.30.1 (06/09/2023)
 ## What's Changed
 * Improved errors handling.
@@ -238,12 +247,3 @@ AS (
 * Added support for int64 aliases: `INT`, `SMALLINT`, `INTEGER`, `BIGINT`, `TINYINT`, `BYTEINT`.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.19.0...v0.19.1
----
-
-## Version 0.19.0 (27/01/2023)
-## What's Changed
-* Fixed compilation issue when using dbt-core 1.4.0.
-* Added the ability to analyze project using the **Analyze current project** button at upper right corner of VS Code editor or context menu. This feature can be disabled using menu **Preferences** -> **Settings** -> **Extensions** -> **Wizard for dbt Core (TM)** -> **Wizard For Dbt Core(TM): Enable Entire Project Analysis**.
-* Recompile and reanalyze entire project after extension start or external changes happened.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.18.0...v0.19.0
