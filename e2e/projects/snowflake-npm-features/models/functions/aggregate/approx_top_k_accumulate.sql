@@ -11,6 +11,8 @@ WITH sample_data AS (
     SELECT 'E' AS col1, 10 AS col2
 )
 SELECT 
-    APPROX_TOP_K_ACCUMULATE(col2, 5) as top_k_accum
+    APPROX_TOP_K_ACCUMULATE(col2, 5) as top_k_accum,
+    APPROX_TOP_K_ACCUMULATE(col2, 5):counters,
+    APPROX_TOP_K_ACCUMULATE(col2, 5):"counters"
 FROM 
     sample_data;
