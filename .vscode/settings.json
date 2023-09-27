@@ -2,6 +2,9 @@
 {
   "typescript.preferences.quoteStyle": "single",
   "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.autopep8"
+  },
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
 
