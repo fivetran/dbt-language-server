@@ -445,6 +445,7 @@ jobs:
       - name: publish dbt-language-server-common npm package
         run: |
           cd common
+          npm whoami
           npm publish --verbose
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
@@ -452,6 +453,7 @@ jobs:
       - name: publish dbt-language-server npm package
         run: |
           cd server
+          npm whoami
           npm publish --verbose
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
