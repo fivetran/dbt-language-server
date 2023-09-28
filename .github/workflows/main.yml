@@ -442,6 +442,11 @@ jobs:
           npm run ts-unused-exports
           npm run test
 
+      - name: set up node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+
       - name: publish dbt-language-server-common npm package
         run: |
           cd common
