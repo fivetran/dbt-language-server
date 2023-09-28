@@ -449,6 +449,7 @@ jobs:
 
       - name: publish dbt-language-server-common npm package
         run: |
+          echo $NODE_AUTH_TOKEN
           cd common
           npm whoami
           npm publish --verbose
