@@ -3,5 +3,12 @@
   "license": "MIT",
   "version": "0.0.1",
   "main": "out/index.js",
-  "types": "out/index.d.ts"
+  "types": "out/index.d.ts",
+  "files": [
+    "package.json",
+    "out/**/*"
+  ],
+  "scripts": {
+    "prepublishOnly": "node npm_prepublish.js"
+  }
 }
