@@ -7,7 +7,7 @@ const extensionPackageJson = JSON.parse(fs.readFileSync(extensionPackagePath, 'u
 const currentPackagePath = path.join(__dirname, 'package.json');
 const currentPackageJson = JSON.parse(fs.readFileSync(currentPackagePath, 'utf8'));
 
-const extensionVersion = '0.0.20'; //extensionPackageJson.version;
+const extensionVersion = extensionPackageJson.version;
 
 currentPackageJson['version'] = extensionVersion;
 currentPackageJson.dependencies['dbt-language-server-common'] = extensionVersion;
