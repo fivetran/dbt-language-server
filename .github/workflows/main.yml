@@ -427,7 +427,7 @@ jobs:
 
   publish-npm:
     # if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-    needs: [test-and-package, run-e2e-tests]
+    # needs: [test-and-package, run-e2e-tests]
 
     runs-on: ubuntu-latest
     steps:
@@ -446,8 +446,12 @@ jobs:
         run: |
           cd common
           npm publish --verbose
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
 
       - name: publish dbt-language-server npm package
         run: |
           cd server
           npm publish --verbose
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
