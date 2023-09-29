@@ -7,10 +7,10 @@
   "dependencies": {
     "@vscode/extension-telemetry": "^0.8.5",
     "dbt-language-server-common": "file:../common",
-    "vscode-languageclient": "^9.0.0"
+    "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
-    "@google-cloud/bigquery": "^7.2.0",
+    "@google-cloud/bigquery": "^7.3.0",
     "@types/vscode": "^1.82.0",
     "@vscode/test-electron": "^2.3.4"
   }

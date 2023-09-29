@@ -3,7 +3,7 @@ import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypePro
 import { BigQuery, Dataset as BqDataset, RoutineMetadata, TableMetadata } from '@google-cloud/bigquery';
 import { Result, err, ok } from 'neverthrow';
 import { Dataset, DbtDestinationClient, Metadata, SchemaDefinition, Table, Udf, UdfArgument } from '../DbtDestinationClient';
-import { BigQueryTypeKind, IStandardSqlDataType } from './BigQueryLibraryTypes';
+import bigquery from '@google-cloud/bigquery/build/src/types';
 
 export class BigQueryClient implements DbtDestinationClient {
   private static readonly BQ_TEST_CLIENT_DATASETS_LIMIT = 1;
@@ -127,7 +127,7 @@ export class BigQueryClient implements DbtDestinationClient {
     }
   }
 
-  private static toTypeProto(dataType?: IStandardSqlDataType): TypeProto {
+  private static toTypeProto(dataType?: bigquery.IStandardSqlDataType): TypeProto {
     if (!dataType) {
       return {};
     }
@@ -146,7 +146,27 @@ export class BigQueryClient implements DbtDestinationClient {
     return type;
   }
 
-  private static fromApiTextToTypeKind(bigQueryTypeKind?: BigQueryTypeKind): TypeKind {
+  private static fromApiTextToTypeKind(
+    bigQueryTypeKind?:
+      | 'TYPE_KIND_UNSPECIFIED'
+      | 'INT64'
+      | 'BOOL'
+      | 'FLOAT64'
+      | 'STRING'
+      | 'BYTES'
+      | 'TIMESTAMP'
+      | 'DATE'
+      | 'TIME'
+      | 'DATETIME'
+      | 'INTERVAL'
+      | 'GEOGRAPHY'
+      | 'NUMERIC'
+      | 'BIGNUMERIC'
+      | 'JSON'
+      | 'ARRAY'
+      | 'STRUCT'
+      | 'RANGE',
+  ): TypeKind {
     switch (bigQueryTypeKind) {
       case 'TYPE_KIND_UNSPECIFIED': {
         return TypeKind.TYPE_UNKNOWN;
