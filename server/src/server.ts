@@ -52,6 +52,11 @@ const customInitParamsSchema = z.object({
 connection.onInitialize((params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> => {
   const workspaceFolder = params.workspaceFolders?.length === 1 ? URI.parse(params.workspaceFolders[0].uri).fsPath : process.cwd();
 
+  // This can happen when LSP is used for other editors e.g. helix
+  if (workspaceFolder !== process.cwd()) {
+    process.chdir(workspaceFolder);
+  }
+
   const customInitParams: CustomInitParams = customInitParamsSchema.parse(params.initializationOptions);
   Logger.prepareLogger(customInitParams.lspMode === 'dbtProject' ? workspaceFolder : NO_PROJECT_PATH, customInitParams.disableLogger);
 
