@@ -39,7 +39,7 @@ describe('lsp tests', () => {
 
     const executablePath = path.resolve('server', 'bin', 'dbt-language-server');
     console.log(executablePath);
-    const child = spawn(executablePath, ['--stdio'], { cwd: path.resolve(PROJECT_PATH) });
+    const child = spawn(executablePath, ['--stdio']);
     child.on('exit', code => {
       assertThat(code, 0);
     });
