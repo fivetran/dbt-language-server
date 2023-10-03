@@ -360,6 +360,7 @@ export class DbtTextDocument {
               namePath: c.namePath,
               compiledRange: Range.create(compiledStart, compiledEnd),
               rawRange: Range.create(start, end),
+              alias: c.alias,
             };
           }),
           tableAliases: s.tableAliases,
