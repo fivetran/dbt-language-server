@@ -18,6 +18,9 @@ suite('Definitions for columns', () => {
     const distinctSelectRange = new Range(41, 2, 43, 11);
 
     const emailColumnRange = new Range(2, 4, 2, 9);
+    const u1DivisionColumnRange = new Range(8, 4, 8, 15);
+    const grEmailColumnRange = new Range(31, 4, 31, 9);
+    const starTest1ColumnRange = new Range(42, 4, 42, 14);
 
     const usersFromRange = new Range(4, 7, 4, 43);
     const testFromRange = new Range(9, 9, 9, 45);
@@ -35,9 +38,9 @@ suite('Definitions for columns', () => {
     line += 4;
     await assertCol('tt.one', docUri, new Position(line, 5), new Range(line, 4, line, 10), docUri, testSelectRange, testSelectRange);
     line++;
-    await assertCol('tt.dv', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, testSelectRange, testSelectRange);
+    await assertCol('tt.dv', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, testSelectRange, u1DivisionColumnRange);
     line++;
-    await assertCol('dv', docUri, new Position(line, 5), new Range(line, 4, line, 6), docUri, testSelectRange, testSelectRange);
+    await assertCol('dv', docUri, new Position(line, 5), new Range(line, 4, line, 6), docUri, testSelectRange, u1DivisionColumnRange);
     line++;
     await assertCol('tt.two', docUri, new Position(line, 5), new Range(line, 4, line, 10), docUri, testSelectRange, testSelectRange);
     line++;
@@ -80,9 +83,9 @@ suite('Definitions for columns', () => {
     line++;
     await assertCol('test_table.two', docUri, new Position(line, 5), new Range(line, 4, line, 18), docUri, testSelectRange, testSelectRange);
     line++;
-    await assertCol('test_table.dv', docUri, new Position(line, 5), new Range(line, 4, line, 17), docUri, testSelectRange, testSelectRange);
+    await assertCol('test_table.dv', docUri, new Position(line, 5), new Range(line, 4, line, 17), docUri, testSelectRange, u1DivisionColumnRange);
     line++;
-    await assertCol('dv', docUri, new Position(line, 5), new Range(line, 4, line, 6), docUri, testSelectRange, testSelectRange);
+    await assertCol('dv', docUri, new Position(line, 5), new Range(line, 4, line, 6), docUri, testSelectRange, u1DivisionColumnRange);
     line++;
     await assertCol('ct2.now', docUri, new Position(line, 5), new Range(line, 4, line, 11), currentTimeDoc, MAX_RANGE, MAX_RANGE);
     line++;
@@ -92,9 +95,9 @@ suite('Definitions for columns', () => {
     line++;
     await assertCol('another_alias.star_test1', docUri, new Position(line, 5), new Range(line, 4, line, 28), docUri, starSelect, starSelect);
     line++;
-    await assertCol('grouping_email', docUri, new Position(line, 5), new Range(line, 4, line, 18), docUri, grTableSelectRange, grTableSelectRange);
+    await assertCol('grouping_email', docUri, new Position(line, 5), new Range(line, 4, line, 18), docUri, grTableSelectRange, grEmailColumnRange);
     line++;
-    await assertCol('this_is_one', docUri, new Position(line, 5), new Range(line, 4, line, 15), docUri, distinctSelectRange, distinctSelectRange);
+    await assertCol('this_is_one', docUri, new Position(line, 5), new Range(line, 4, line, 15), docUri, distinctSelectRange, starTest1ColumnRange);
   });
 });
 
