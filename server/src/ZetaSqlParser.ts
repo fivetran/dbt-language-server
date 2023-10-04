@@ -8,6 +8,7 @@ import { ParseResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zet
 import { ZetaSqlApi } from './ZetaSqlApi';
 import { arraysAreEqual } from './utils/Utils';
 import { traverse } from './utils/ZetaSqlUtils';
+import { ASTAliasProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTAliasProto';
 
 interface KnownSelect {
   parseLocationRange: ParseLocationRangeProto__Output;
@@ -17,6 +18,7 @@ interface KnownSelect {
 interface KnownColumn {
   namePath: string[];
   parseLocationRange: ParseLocationRangeProto__Output;
+  alias?: string;
 }
 
 export interface ParseResult {
@@ -65,7 +67,7 @@ export class ZetaSqlParser {
                   parentSelect.push(select);
                   result.selects.push(select);
 
-                  typedNode.selectList?.columns.forEach(c => select.columns.push(...this.getColumns(c.expression)));
+                  typedNode.selectList?.columns.forEach(c => select.columns.push(...this.getColumns(c.expression, c.alias ?? undefined)));
                 }
               },
               actionAfter: () => parentSelect.pop(),
@@ -95,7 +97,7 @@ export class ZetaSqlParser {
     return result;
   }
 
-  getColumns(node: AnyASTExpressionProto__Output | null): KnownColumn[] {
+  getColumns(node: AnyASTExpressionProto__Output | null, alias?: ASTAliasProto__Output): KnownColumn[] {
     if (!node) {
       return [];
     }
@@ -109,6 +111,7 @@ export class ZetaSqlParser {
           columns.push({
             namePath: pathExpression.names.map(n => n.idString),
             parseLocationRange,
+            alias: alias ? alias.identifier?.idString : undefined,
           });
         }
         break;

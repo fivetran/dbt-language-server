@@ -47,6 +47,7 @@ export interface QueryParseInformation {
       namePath: string[];
       rawRange: Range;
       compiledRange: Range;
+      alias?: string;
     }[];
     tableAliases: Map<string, string>;
     parseLocationRange: Location;
@@ -359,6 +360,7 @@ export class DbtTextDocument {
               namePath: c.namePath,
               compiledRange: Range.create(compiledStart, compiledEnd),
               rawRange: Range.create(start, end),
+              alias: c.alias,
             };
           }),
           tableAliases: s.tableAliases,
