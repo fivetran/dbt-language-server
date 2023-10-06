@@ -108,11 +108,24 @@ export class ZetaSqlParser {
         const pathExpression = node.astGeneralizedPathExpressionNode?.astPathExpressionNode;
         const parseLocationRange = pathExpression?.parent?.parent?.parent?.parseLocationRange;
         if (parseLocationRange) {
-          columns.push({
-            namePath: pathExpression.names.map(n => n.idString),
-            parseLocationRange,
-            alias: alias ? alias.identifier?.idString : undefined,
-          });
+          columns.push(
+            this.createColumn(
+              pathExpression.names.map(n => n.idString),
+              parseLocationRange,
+              alias,
+            ),
+          );
+        }
+        break;
+      }
+      case 'astLeafNode': {
+        const leafNode = node.astLeafNode;
+        if (leafNode) {
+          const valueNode = leafNode[leafNode.node];
+          const parseLocationRange = valueNode?.parent?.parent?.parent?.parseLocationRange;
+          if (parseLocationRange) {
+            columns.push(this.createColumn([], parseLocationRange, alias));
+          }
         }
         break;
       }
@@ -125,6 +138,14 @@ export class ZetaSqlParser {
       }
     }
     return columns;
+  }
+
+  private createColumn(namePath: string[], parseLocationRange: ParseLocationRangeProto__Output, alias?: ASTAliasProto__Output): KnownColumn {
+    return {
+      namePath,
+      parseLocationRange,
+      alias: alias?.identifier?.idString,
+    };
   }
 
   async parse(sqlStatement: string, options?: LanguageOptionsProto): Promise<ParseResponse__Output | undefined> {
