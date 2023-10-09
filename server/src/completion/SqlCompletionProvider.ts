@@ -1,8 +1,9 @@
 import { Command, CompletionItem, CompletionItemKind, CompletionParams, CompletionTriggerKind, InsertTextFormat } from 'vscode-languageserver';
 import { DestinationDefinition } from '../DestinationDefinition';
 import { HelpProviderWords } from '../HelpProviderWords';
-import { ActiveTableInfo, CompletionInfo } from '../ZetaSqlAst';
 import { SupportedDestinations } from '../ZetaSqlApi';
+import { ActiveTableInfo, CompletionInfo, WithSubqueryInfo } from '../ZetaSqlAst';
+import { CompletionTextInput } from './CompletionProvider';
 
 export class SqlCompletionProvider {
   static readonly BQ_KEYWORDS = [
@@ -239,29 +240,32 @@ export class SqlCompletionProvider {
   ];
 
   async onSqlCompletion(
-    text: string,
+    text: CompletionTextInput,
     completionParams: CompletionParams,
     destinationDefinition?: DestinationDefinition,
     completionInfo?: CompletionInfo,
     destination?: SupportedDestinations,
+    aliases?: Map<string, string>,
   ): Promise<CompletionItem[]> {
     const result: CompletionItem[] = [];
+    const columnsOnly = completionParams.context?.triggerKind === CompletionTriggerKind.TriggerCharacter || text[1] !== undefined;
 
     if (completionInfo && completionInfo.activeTables.length > 0) {
-      if (completionParams.context?.triggerKind === CompletionTriggerKind.TriggerCharacter) {
-        result.push(...this.getColumnsForActiveTable(text, completionInfo.activeTables));
+      if (columnsOnly) {
+        result.push(...this.getColumnsForActiveTable(text[0], completionInfo.activeTables));
       } else {
         result.push(...this.getColumnsForActiveTables(completionInfo.activeTables));
       }
     } else if (completionParams.context?.triggerKind !== CompletionTriggerKind.TriggerCharacter) {
-      if (completionInfo) {
-        result.push(...this.getWithNames(completionInfo.withNames));
-      }
       result.push(...this.getDatasets(destinationDefinition));
     }
 
-    if (completionParams.context?.triggerKind === CompletionTriggerKind.TriggerCharacter) {
-      result.push(...(await this.getTableSuggestions(text, destinationDefinition)));
+    if (completionInfo && completionInfo.withNames.size > 0) {
+      result.push(...this.getColumnsForWithQueries(completionInfo.withSubqueries, columnsOnly, aliases, text[0]));
+    }
+
+    if (columnsOnly) {
+      result.push(...(await this.getTableSuggestions(text[1] || text[0], destinationDefinition)));
     } else if (destination !== 'snowflake') {
       result.push(...this.getKeywords(), ...this.getFunctions());
     }
@@ -269,13 +273,37 @@ export class SqlCompletionProvider {
     return result;
   }
 
-  getWithNames(withNames: Set<string>): CompletionItem[] {
-    return [...withNames].map<CompletionItem>(w => ({
-      label: w,
-      kind: CompletionItemKind.Value,
-      detail: 'Table',
-      sortText: `1${w}`,
-    }));
+  getColumnsForWithQueries(
+    withQueries: Map<string, WithSubqueryInfo>,
+    columnsOnly: boolean,
+    aliases?: Map<string, string>,
+    text?: string,
+  ): CompletionItem[] {
+    return [...withQueries.entries()].flatMap(([w, q]) => {
+      const name = aliases?.get(w) || w;
+
+      if (w === '___mainQuery') {
+        return [];
+      }
+
+      if (columnsOnly && name === text) {
+        return q.columns.map(c => ({
+          label: `${c.name}`,
+          kind: CompletionItemKind.Value,
+          detail: `${String(c.type)}`,
+          sortText: `1${c.name}`,
+        }));
+      }
+      if (!columnsOnly) {
+        return q.columns.map(c => ({
+          label: `${name}.${c.name}`,
+          kind: CompletionItemKind.Value,
+          detail: `${String(c.type)}`,
+          sortText: `1${name}.${c.name}`,
+        }));
+      }
+      return [];
+    });
   }
 
   getColumnsForActiveTables(tables: ActiveTableInfo[]): CompletionItem[] {
@@ -291,12 +319,12 @@ export class SqlCompletionProvider {
 
     if (tables.length > 1) {
       return tables.flatMap(table => {
-        const { name } = table;
+        const { name, alias } = table;
         return table.columns.map<CompletionItem>(column => ({
-          label: `${name}.${column.name}`,
+          label: `${alias || name}.${column.name}`,
           kind: CompletionItemKind.Value,
           detail: `${String(column.type)}`,
-          sortText: `1${name}.${column.name}`,
+          sortText: `1${alias || name}.${column.name}`,
         }));
       });
     }
