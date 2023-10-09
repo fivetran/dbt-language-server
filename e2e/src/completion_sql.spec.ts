@@ -76,6 +76,17 @@ suite('Should do completion', () => {
     );
   });
 
+  test('Should suggest columns from with clause', async () => {
+    const docUri = getDocUri('multiple_with.sql');
+    await activateAndWait(docUri);
+
+    await assertCompletionsContain(docUri, new vscode.Position(7, 7), [
+      { label: 'aaa_table.column1', insertText: 'aaa_table.column1', kind: vscode.CompletionItemKind.Value, detail: 'INT64' },
+      { label: 'aaa_table.column2', insertText: 'aaa_table.column2', kind: vscode.CompletionItemKind.Value, detail: 'INT64' },
+      { label: 'bbb_table.column3', insertText: 'bbb_table.column3', kind: vscode.CompletionItemKind.Value, detail: 'INT64' },
+    ]);
+  });
+
   test('Should suggest tables from with clause', async () => {
     const docUri = getDocUri('multiple_with.sql');
     await activateAndWait(docUri);
