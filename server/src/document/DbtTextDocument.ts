@@ -369,7 +369,7 @@ export class DbtTextDocument {
           }),
           tableAliases: s.tableAliases,
           parseLocationRange: s.parseLocationRange,
-          fromClause: s.fromClause.parseLocationRange ? this.convertParseLocation(converter, s.fromClause.parseLocationRange) : undefined,
+          fromClause: s.fromClause ? this.convertParseLocation(converter, s.fromClause.parseLocationRange) : undefined,
         })),
       };
     }
