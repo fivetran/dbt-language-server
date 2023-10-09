@@ -130,7 +130,7 @@ export class ZetaSqlParser {
         break;
       }
       case 'astFunctionCallNode': {
-        node.astFunctionCallNode?.arguments.forEach(c => columns.push(...this.getColumns(c)));
+        node.astFunctionCallNode?.arguments.forEach(c => columns.push(...this.getColumns(c, alias)));
         break;
       }
       default: {
