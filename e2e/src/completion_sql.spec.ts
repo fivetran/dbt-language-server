@@ -3,6 +3,8 @@ import { assertCompletions, assertCompletionsContain } from './asserts';
 import { activateAndWait, getDocUri, replaceText } from './helper';
 
 suite('Should do completion', () => {
+  const MULTIPLE_WITH_DOC = getDocUri('multiple_with.sql');
+
   test('Should suggest table columns', async () => {
     const docUri = getDocUri('simple_select.sql');
     await activateAndWait(docUri);
@@ -76,23 +78,38 @@ suite('Should do completion', () => {
     );
   });
 
-  test('Should suggest columns from with clause', async () => {
-    const docUri = getDocUri('multiple_with.sql');
-    await activateAndWait(docUri);
+  test('Should suggest all tables and their columns from with clause', async () => {
+    await activateAndWait(MULTIPLE_WITH_DOC);
 
-    await assertCompletionsContain(docUri, new vscode.Position(7, 7), [
+    await assertCompletionsContain(MULTIPLE_WITH_DOC, new vscode.Position(7, 7), [
       { label: 'aaa_table.column1', insertText: 'aaa_table.column1', kind: vscode.CompletionItemKind.Value, detail: 'INT64' },
       { label: 'aaa_table.column2', insertText: 'aaa_table.column2', kind: vscode.CompletionItemKind.Value, detail: 'INT64' },
       { label: 'bbb_table.column3', insertText: 'bbb_table.column3', kind: vscode.CompletionItemKind.Value, detail: 'INT64' },
     ]);
   });
 
+  test('Should suggest columns for specific table from with clause', async () => {
+    await activateAndWait(MULTIPLE_WITH_DOC);
+    await replaceText('* from', 'aaa_table from');
+
+    await assertCompletions(
+      MULTIPLE_WITH_DOC,
+      new vscode.Position(7, 16),
+      [
+        { label: 'column1', kind: vscode.CompletionItemKind.Value, detail: 'INT64' },
+        { label: 'column2', kind: vscode.CompletionItemKind.Value, detail: 'INT64' },
+      ],
+      '.',
+    );
+
+    await replaceText('aaa_table from', '* from');
+  });
+
   test('Should suggest tables from with clause', async () => {
-    const docUri = getDocUri('multiple_with.sql');
-    await activateAndWait(docUri);
+    await activateAndWait(MULTIPLE_WITH_DOC);
     await replaceText('from aaa_table', 'from ');
 
-    await assertCompletionsContain(docUri, new vscode.Position(7, 14), [
+    await assertCompletionsContain(MULTIPLE_WITH_DOC, new vscode.Position(7, 14), [
       { label: 'aaa_table', kind: vscode.CompletionItemKind.Value, detail: 'Table' },
       { label: 'bbb_table', kind: vscode.CompletionItemKind.Value, detail: 'Table' },
     ]);
