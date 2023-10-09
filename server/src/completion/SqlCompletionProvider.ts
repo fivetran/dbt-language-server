@@ -242,6 +242,7 @@ export class SqlCompletionProvider {
   async onSqlCompletion(
     text: CompletionTextInput,
     completionParams: CompletionParams,
+    insideFromClause: boolean,
     destinationDefinition?: DestinationDefinition,
     completionInfo?: CompletionInfo,
     destination?: SupportedDestinations,
@@ -261,7 +262,11 @@ export class SqlCompletionProvider {
     }
 
     if (completionInfo && completionInfo.withNames.size > 0) {
-      result.push(...this.getColumnsForWithQueries(completionInfo.withSubqueries, columnsOnly, aliases, text[0]));
+      if (insideFromClause) {
+        result.push(...this.getTablesForWithQueries(completionInfo.withSubqueries));
+      } else {
+        result.push(...this.getColumnsForWithQueries(completionInfo.withSubqueries, columnsOnly, aliases, text[0]));
+      }
     }
 
     if (columnsOnly) {
@@ -304,6 +309,17 @@ export class SqlCompletionProvider {
       }
       return [];
     });
+  }
+
+  getTablesForWithQueries(withQueries: Map<string, WithSubqueryInfo>): CompletionItem[] {
+    return [...withQueries.keys()]
+      .filter(w => w !== '___mainQuery')
+      .map<CompletionItem>(w => ({
+        label: `${w}`,
+        kind: CompletionItemKind.Value,
+        detail: 'Table',
+        sortText: `1${w}`,
+      }));
   }
 
   getColumnsForActiveTables(tables: ActiveTableInfo[]): CompletionItem[] {
