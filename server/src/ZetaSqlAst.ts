@@ -459,7 +459,7 @@ export interface CompletionInfo {
   withSubqueries: Map<string, WithSubqueryInfo>;
 }
 
-interface WithSubqueryInfo {
+export interface WithSubqueryInfo {
   columns: ResolvedColumn[];
   parseLocationRange?: Location;
 }
