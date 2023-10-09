@@ -14,6 +14,9 @@ interface KnownSelect {
   parseLocationRange: ParseLocationRangeProto__Output;
   columns: KnownColumn[];
   tableAliases: Map<string, string>;
+  fromClause?: {
+    parseLocationRange: ParseLocationRangeProto__Output;
+  };
 }
 interface KnownColumn {
   namePath: string[];
@@ -63,6 +66,11 @@ export class ZetaSqlParser {
                     columns: [],
                     parseLocationRange: selectParseLocationRange,
                     tableAliases: new Map(),
+                    fromClause: typedNode.fromClause?.parent?.parseLocationRange
+                      ? {
+                          parseLocationRange: typedNode.fromClause.parent.parseLocationRange,
+                        }
+                      : undefined,
                   };
                   parentSelect.push(select);
                   result.selects.push(select);

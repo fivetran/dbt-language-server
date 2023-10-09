@@ -5,7 +5,7 @@ import { DestinationContext } from '../DestinationContext';
 import { JinjaParser, JinjaPartType } from '../JinjaParser';
 import { DbtTextDocument, QueryParseInformation } from '../document/DbtTextDocument';
 import { DiffUtils } from '../utils/DiffUtils';
-import { comparePositions } from '../utils/Utils';
+import { comparePositions, positionInRange } from '../utils/Utils';
 import { DbtCompletionProvider } from './DbtCompletionProvider';
 import { SnippetsCompletionProvider } from './SnippetsCompletionProvider';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
@@ -87,9 +87,13 @@ export class CompletionProvider {
       aliases = queryInformation?.selects.find(s => offset >= s.parseLocationRange.start && offset <= s.parseLocationRange.end)?.tableAliases;
     }
 
+    const insideFromClause =
+      queryInformation?.selects.some(s => s.fromClause?.rawRange && positionInRange(completionParams.position, s.fromClause.rawRange)) ?? false;
+
     return this.sqlCompletionProvider.onSqlCompletion(
       text,
       completionParams,
+      insideFromClause,
       this.destinationContext.destinationDefinition,
       completionInfo,
       this.destinationContext.getDestination(),

@@ -40,18 +40,25 @@ import { getLineByPosition, getSignatureInfo } from '../utils/TextUtils';
 import { areRangesEqual, debounce, getIdentifierRangeAtPosition, getModelPathOrFullyQualifiedName } from '../utils/Utils';
 import { DbtDocumentKind } from './DbtDocumentKind';
 import { RefReplacement } from 'dbt-language-server-common';
+import { ParseLocationRangeProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
 
 export interface QueryParseInformation {
-  selects: {
-    columns: {
-      namePath: string[];
-      rawRange: Range;
-      compiledRange: Range;
-      alias?: string;
-    }[];
-    tableAliases: Map<string, string>;
-    parseLocationRange: Location;
+  selects: SelectInformation[];
+}
+
+interface SelectInformation {
+  columns: {
+    namePath: string[];
+    rawRange: Range;
+    compiledRange: Range;
+    alias?: string;
   }[];
+  tableAliases: Map<string, string>;
+  parseLocationRange: Location;
+  fromClause?: {
+    rawRange: Range;
+    compiledRange: Range;
+  };
 }
 
 export class DbtTextDocument {
@@ -350,26 +357,38 @@ export class DbtTextDocument {
     const converter = new PositionConverter(this.rawDocument.getText(), this.compiledDocument.getText());
     if (this.analyzeResult) {
       return {
-        selects: this.analyzeResult.parseResult.selects.map(s => ({
+        selects: this.analyzeResult.parseResult.selects.map<SelectInformation>(s => ({
           columns: s.columns.map(c => {
-            const compiledStart = this.compiledDocument.positionAt(c.parseLocationRange.start);
-            const compiledEnd = this.compiledDocument.positionAt(c.parseLocationRange.end);
-            const start = converter.convertPositionBackward(compiledStart);
-            const end = converter.convertPositionBackward(compiledEnd);
+            const ranges = this.convertParseLocation(converter, c.parseLocationRange);
             return {
               namePath: c.namePath,
-              compiledRange: Range.create(compiledStart, compiledEnd),
-              rawRange: Range.create(start, end),
+              compiledRange: ranges.compiledRange,
+              rawRange: ranges.rawRange,
               alias: c.alias,
             };
           }),
           tableAliases: s.tableAliases,
           parseLocationRange: s.parseLocationRange,
+          fromClause: s.fromClause ? this.convertParseLocation(converter, s.fromClause.parseLocationRange) : undefined,
         })),
       };
     }
     return {
       selects: [],
+    };
+  }
+
+  private convertParseLocation(
+    converter: PositionConverter,
+    parseLocationRange: ParseLocationRangeProto__Output,
+  ): { compiledRange: Range; rawRange: Range } {
+    const compiledStart = this.compiledDocument.positionAt(parseLocationRange.start);
+    const compiledEnd = this.compiledDocument.positionAt(parseLocationRange.end);
+    const start = converter.convertPositionBackward(compiledStart);
+    const end = converter.convertPositionBackward(compiledEnd);
+    return {
+      compiledRange: Range.create(compiledStart, compiledEnd),
+      rawRange: Range.create(start, end),
     };
   }
 
