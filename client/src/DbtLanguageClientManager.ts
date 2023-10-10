@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events';
 import { ConfigurationChangeEvent, FileType, Selection, TextDocument, Uri, extensions, window, workspace } from 'vscode';
+import { Lazy } from './Lazy';
 import { log } from './Logger';
 import { ModelProgressHandler } from './ModelProgressHandler';
 import { OutputChannelProvider } from './OutputChannelProvider';
@@ -10,7 +11,6 @@ import { DbtLanguageClient } from './lsp_client/DbtLanguageClient';
 import { DbtWizardLanguageClient } from './lsp_client/DbtWizardLanguageClient';
 import { NoProjectLanguageClient } from './lsp_client/NoProjectLanguageClient';
 import { StatusHandler } from './status/StatusHandler';
-import { Lazy } from './Lazy';
 import path = require('node:path');
 
 export class DbtLanguageClientManager {

@@ -1,3 +1,4 @@
+import { RefReplacement } from 'dbt-language-server-common';
 import {
   Diagnostic,
   DiagnosticRelatedInformation,
@@ -13,7 +14,6 @@ import {
   window,
 } from 'vscode';
 import { SQL_LANG_ID } from './Utils';
-import { RefReplacement } from 'dbt-language-server-common';
 
 interface PreviewInfo {
   previewText: string;

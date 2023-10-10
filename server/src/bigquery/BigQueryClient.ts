@@ -1,9 +1,9 @@
 import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
 import { BigQuery, Dataset as BqDataset, RoutineMetadata, TableMetadata } from '@google-cloud/bigquery';
+import bigquery from '@google-cloud/bigquery/build/src/types';
 import { Result, err, ok } from 'neverthrow';
 import { Dataset, DbtDestinationClient, Metadata, SchemaDefinition, Table, Udf, UdfArgument } from '../DbtDestinationClient';
-import bigquery from '@google-cloud/bigquery/build/src/types';
 
 export class BigQueryClient implements DbtDestinationClient {
   private static readonly BQ_TEST_CLIENT_DATASETS_LIMIT = 1;

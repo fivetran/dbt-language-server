@@ -7,11 +7,11 @@ import { DbtRepository } from '../DbtRepository';
 import { ProjectAnalyzer } from '../ProjectAnalyzer';
 import { SqlHeaderAnalyzer } from '../SqlHeaderAnalyzer';
 import { TableDefinition } from '../TableDefinition';
+import { ZetaSqlApi } from '../ZetaSqlApi';
 import { ZetaSqlWrapper } from '../ZetaSqlWrapper';
 import { Dag } from '../dag/Dag';
 import { DagNode } from '../dag/DagNode';
 import path = require('node:path');
-import { ZetaSqlApi } from '../ZetaSqlApi';
 
 describe('ProjectAnalyzer analyzeModelsTree', () => {
   const ORIGINAL_FILE_PATH = 'models/model.sql';

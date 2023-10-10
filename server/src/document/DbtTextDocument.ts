@@ -1,3 +1,5 @@
+import { ParseLocationRangeProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
+import { RefReplacement } from 'dbt-language-server-common';
 import {
   CompletionItem,
   CompletionParams,
@@ -39,8 +41,6 @@ import { DefinitionProvider } from '../definition/DefinitionProvider';
 import { getLineByPosition, getSignatureInfo } from '../utils/TextUtils';
 import { areRangesEqual, debounce, getIdentifierRangeAtPosition, getModelPathOrFullyQualifiedName } from '../utils/Utils';
 import { DbtDocumentKind } from './DbtDocumentKind';
-import { RefReplacement } from 'dbt-language-server-common';
-import { ParseLocationRangeProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
 
 export interface QueryParseInformation {
   selects: SelectInformation[];

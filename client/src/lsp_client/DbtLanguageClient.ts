@@ -14,6 +14,7 @@ import {
 } from 'vscode';
 import { LanguageClient, LanguageClientOptions, State, WorkDoneProgress } from 'vscode-languageclient/node';
 import { LS_MANIFEST_PARSED_EVENT } from '../ExtensionApi';
+import { Lazy } from '../Lazy';
 import { log } from '../Logger';
 import { ModelProgressHandler } from '../ModelProgressHandler';
 import { OutputChannelProvider } from '../OutputChannelProvider';
@@ -23,7 +24,6 @@ import { TelemetryClient } from '../TelemetryClient';
 import { DBT_PROJECT_YML, PACKAGES_YML, SNOWFLAKE_SQL_LANG_ID, SQL_LANG_ID, SUPPORTED_LANG_IDS } from '../Utils';
 import { StatusHandler } from '../status/StatusHandler';
 import { DbtWizardLanguageClient } from './DbtWizardLanguageClient';
-import { Lazy } from '../Lazy';
 
 export class DbtLanguageClient extends DbtWizardLanguageClient {
   pendingOpenRequests = new Map<string, (data: TextDocument) => Promise<void>>();
