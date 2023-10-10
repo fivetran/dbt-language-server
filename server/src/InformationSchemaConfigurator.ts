@@ -1,8 +1,8 @@
 import { SimpleCatalogProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleCatalogProto';
 import { ColumnDefinition } from './DbtDestinationClient';
-import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 import { TableDefinition } from './TableDefinition';
 import { ZetaSqlApi } from './ZetaSqlApi';
+import { ZetaSqlWrapper } from './ZetaSqlWrapper';
 
 export class InformationSchemaConfigurator {
   static readonly INFORMATION_SCHEMA = 'information_schema';

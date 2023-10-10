@@ -20,8 +20,8 @@ import { EventEmitter } from 'node:events';
 import * as path from 'node:path';
 import { AnalyzeEntireProject } from './commands/AnalyzeEntireProject';
 import { CreateDbtProject } from './commands/CreateDbtProject/CreateDbtProject';
-import { UseConfigForRefsPreview } from './commands/UseConfigForRefsPreview';
 import { NotUseConfigForRefsPreview } from './commands/NotUseConfigForRefsPreview';
+import { UseConfigForRefsPreview } from './commands/UseConfigForRefsPreview';
 
 export interface PackageJson {
   name: string;

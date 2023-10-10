@@ -1,6 +1,6 @@
 import { Err, err, ok, Result } from 'neverthrow';
 import { URI } from 'vscode-uri';
-import { DbtProfile, ProfileYaml, TargetConfig, SupportedProfileName } from './DbtProfile';
+import { DbtProfile, ProfileYaml, SupportedProfileName, TargetConfig } from './DbtProfile';
 import { BIG_QUERY_PROFILES, PROFILE_METHODS, SNOWFLAKE_PROFILES } from './DbtProfileType';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';

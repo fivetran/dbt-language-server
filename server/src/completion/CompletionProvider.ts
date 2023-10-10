@@ -1,3 +1,4 @@
+import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { CompletionItem, CompletionParams, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtRepository } from '../DbtRepository';
@@ -5,12 +6,11 @@ import { DestinationContext } from '../DestinationContext';
 import { JinjaParser, JinjaPartType } from '../JinjaParser';
 import { DbtTextDocument, QueryParseInformation } from '../document/DbtTextDocument';
 import { DiffUtils } from '../utils/DiffUtils';
+import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { comparePositions, positionInRange } from '../utils/Utils';
 import { DbtCompletionProvider } from './DbtCompletionProvider';
 import { SnippetsCompletionProvider } from './SnippetsCompletionProvider';
 import { SqlCompletionProvider } from './SqlCompletionProvider';
-import { getWordRangeAtPosition } from '../utils/TextUtils';
-import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 
 // string[] is a better signature but this way TS doesn't throw an error
 // when using `arr[1] ?? arr[0]`

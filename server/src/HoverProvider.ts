@@ -2,9 +2,9 @@ import { TypeKind__Output } from '@fivetrandevelopers/zetasql';
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { Hover, MarkupKind } from 'vscode-languageserver';
 import { HelpProviderWords } from './HelpProviderWords';
+import { SupportedDestinations } from './ZetaSqlApi';
 import { ZetaSqlAst } from './ZetaSqlAst';
 import { TYPE_KIND_NAMES } from './utils/ZetaSqlUtils';
-import { SupportedDestinations } from './ZetaSqlApi';
 
 export class HoverProvider {
   static ZETA_SQL_AST = new ZetaSqlAst();

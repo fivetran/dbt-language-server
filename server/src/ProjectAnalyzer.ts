@@ -7,9 +7,9 @@ import { ManifestModel } from './manifest/ManifestJson';
 import { TableDefinition } from './TableDefinition';
 import { TableFetcher } from './TableFetcher';
 import { getTableRefUniqueId } from './utils/ManifestUtils';
+import { ZetaSqlApi } from './ZetaSqlApi';
 import { ParseResult } from './ZetaSqlParser';
 import { KnownColumn, ZetaSqlWrapper } from './ZetaSqlWrapper';
-import { ZetaSqlApi } from './ZetaSqlApi';
 
 export type ModelsAnalyzeResult = {
   modelUniqueId: string;

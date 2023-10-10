@@ -1,3 +1,4 @@
+import { ASTAliasProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTAliasProto';
 import { ASTFunctionCallProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTFunctionCallProto';
 import { ASTSelectProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTSelectProto';
 import { ASTTablePathExpressionProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTTablePathExpressionProto';
@@ -8,7 +9,6 @@ import { ParseResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zet
 import { ZetaSqlApi } from './ZetaSqlApi';
 import { arraysAreEqual } from './utils/Utils';
 import { traverse } from './utils/ZetaSqlUtils';
-import { ASTAliasProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTAliasProto';
 
 interface KnownSelect {
   parseLocationRange: ParseLocationRangeProto__Output;

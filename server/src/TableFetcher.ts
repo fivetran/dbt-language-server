@@ -2,8 +2,8 @@ import { ResolvedOutputColumnProto } from '@fivetrandevelopers/zetasql/lib/types
 import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
 import { DbtDestinationClient } from './DbtDestinationClient';
 import { TableDefinition } from './TableDefinition';
-import { createSimpleColumn } from './utils/ZetaSqlUtils';
 import { ZetaSqlApi } from './ZetaSqlApi';
+import { createSimpleColumn } from './utils/ZetaSqlUtils';
 
 interface TableInformation {
   columns?: SimpleColumnProto[];
