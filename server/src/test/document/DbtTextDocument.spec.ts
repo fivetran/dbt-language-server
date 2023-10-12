@@ -11,6 +11,7 @@ import { JinjaParser } from '../../JinjaParser';
 import { ModelCompiler } from '../../ModelCompiler';
 import { ModelProgressReporter } from '../../ModelProgressReporter';
 import { NotificationSender } from '../../NotificationSender';
+import { ProjectAnalyzeResults } from '../../ProjectAnalyzeResults';
 import { ProjectChangeListener } from '../../ProjectChangeListener';
 import { SignatureHelpProvider } from '../../SignatureHelpProvider';
 import { DbtCli } from '../../dbt_execution/DbtCli';
@@ -66,8 +67,9 @@ describe('DbtTextDocument', () => {
       new DiagnosticGenerator(dbtRepository),
       new SignatureHelpProvider(),
       new HoverProvider(),
-      new DefinitionProvider(dbtRepository, instance(mockJinjaParser)),
+      mock(DefinitionProvider),
       instance(mockProjectChangeListener),
+      mock(ProjectAnalyzeResults),
     );
   });
 

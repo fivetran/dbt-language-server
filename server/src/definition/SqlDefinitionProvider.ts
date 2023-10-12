@@ -4,24 +4,29 @@ import { URI } from 'vscode-uri';
 import { DbtRepository } from '../DbtRepository';
 import { DagNodeFetcher } from '../ModelFetcher';
 import { PositionConverter } from '../PositionConverter';
+import { ProjectAnalyzeResults, QueryParseInformationSelectColumn } from '../ProjectAnalyzeResults';
 import { AnalyzeResult } from '../ProjectAnalyzer';
 import { Location } from '../ZetaSqlAst';
-import { DbtTextDocument, QueryParseInformation } from '../document/DbtTextDocument';
+import { DbtTextDocument } from '../document/DbtTextDocument';
+import { ManifestModel } from '../manifest/ManifestJson';
 import { getTableRefUniqueId } from '../utils/ManifestUtils';
 import { positionInRange, rangesOverlap } from '../utils/Utils';
 import { rangesEqual } from '../utils/ZetaSqlUtils';
 import { DbtDefinitionProvider } from './DbtDefinitionProvider';
 
 export class SqlDefinitionProvider {
-  constructor(private dbtRepository: DbtRepository) {}
+  constructor(
+    private dbtRepository: DbtRepository,
+    private projectAnalyzeResults: ProjectAnalyzeResults,
+  ) {}
 
   async provideDefinitions(
     definitionParams: DefinitionParams,
-    queryInformation: QueryParseInformation | undefined,
     analyzeResult: AnalyzeResult | undefined,
     rawDocument: TextDocument,
     compiledDocument: TextDocument,
   ): Promise<DefinitionLink[] | undefined> {
+    const queryInformation = this.projectAnalyzeResults.getQueryParseInformationByUri(rawDocument.uri);
     if (!queryInformation || !analyzeResult?.ast.isOk()) {
       return undefined;
     }
@@ -51,6 +56,11 @@ export class SqlDefinitionProvider {
                 if (refId) {
                   const refModel = this.dbtRepository.dag.nodes.find(n => n.getValue().uniqueId === refId)?.getValue();
                   if (refModel) {
+                    const columnPosition = this.getRefModelColumnPosition(refModel, column);
+                    if (columnPosition) {
+                      return [columnPosition];
+                    }
+
                     return [
                       LocationLink.create(
                         URI.file(this.dbtRepository.getNodeFullPath(refModel)).toString(),
@@ -86,39 +96,53 @@ export class SqlDefinitionProvider {
                 c.name === column.namePath.at(-1) && (!tableName || tableName === c.fromTable || tableName === select.tableAliases.get(c.fromTable))
               );
             });
+
             if (clickedColumn) {
               const targetWith = completionInfo.withSubqueries.get(clickedColumn.fromTable);
               const targetSelectLocation = targetWith?.parseLocationRange;
               if (targetWith && targetSelectLocation) {
-                const positionConverter = new PositionConverter(rawDocument.getText(), compiledDocument.getText());
+                const targetRange = this.projectAnalyzeResults.getRangesByUri(rawDocument.uri, targetSelectLocation)?.rawRange;
+                if (targetRange) {
+                  const targetSelect = queryInformation.selects.find(s => rangesEqual(targetSelectLocation, s.parseLocationRange));
 
-                const targetRange = Range.create(
-                  positionConverter.convertPositionBackward(compiledDocument.positionAt(targetSelectLocation.start)),
-                  positionConverter.convertPositionBackward(compiledDocument.positionAt(targetSelectLocation.end)),
-                );
-
-                const targetSelect = queryInformation.selects.find(s => rangesEqual(targetSelectLocation, s.parseLocationRange));
-
-                let targetColumnRawRange = targetRange;
-                if (targetSelect) {
-                  const targetColumn = targetSelect.columns.find(c => c.alias === clickedColumn.name || c.namePath.at(-1) === clickedColumn.name);
-                  if (targetColumn) {
-                    targetColumnRawRange = Range.create(
-                      positionConverter.convertPositionBackward(targetColumn.compiledRange.start),
-                      positionConverter.convertPositionBackward(targetColumn.compiledRange.end),
-                    );
+                  let targetColumnRawRange = targetRange;
+                  if (targetSelect) {
+                    const targetColumn = targetSelect.columns.find(c => c.alias === clickedColumn.name || c.namePath.at(-1) === clickedColumn.name);
+                    if (targetColumn) {
+                      targetColumnRawRange = Range.create(targetColumn.rawRange.start, targetColumn.rawRange.end);
+                    }
                   }
-                }
 
-                return [LocationLink.create(rawDocument.uri, targetRange, targetColumnRawRange, column.rawRange)];
+                  return [LocationLink.create(rawDocument.uri, targetRange, targetColumnRawRange, column.rawRange)];
+                }
               }
+              return undefined;
             }
+
             break;
           }
         }
       }
     }
 
+    return undefined;
+  }
+
+  getRefModelColumnPosition(refModel: ManifestModel, column: QueryParseInformationSelectColumn): LocationLink | undefined {
+    const queryInformation = this.projectAnalyzeResults.getQueryParseInformation(refModel.uniqueId);
+    const mainSelect = queryInformation?.selects.at(-1);
+    if (mainSelect) {
+      const targetColumn = mainSelect.columns.find(c => c.namePath.at(-1) === column.namePath.at(-1));
+      const targetRange = this.projectAnalyzeResults.getRanges(refModel.uniqueId, mainSelect.parseLocationRange)?.rawRange;
+      if (targetRange) {
+        let targetColumnRawRange = targetRange;
+        if (targetColumn) {
+          targetColumnRawRange = Range.create(targetColumn.rawRange.start, targetColumn.rawRange.end);
+        }
+        const uri = URI.file(this.dbtRepository.getNodeFullPath(refModel)).toString();
+        return LocationLink.create(uri, targetRange, targetColumnRawRange, column.rawRange);
+      }
+    }
     return undefined;
   }
 

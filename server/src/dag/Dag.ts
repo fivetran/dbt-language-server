@@ -22,4 +22,8 @@ export class Dag {
   getNodeByName(name: string): DagNode | undefined {
     return this.nodes.find(n => n.getValue().name === name);
   }
+
+  getNodeByUniqueId(uniqueId: string): DagNode | undefined {
+    return this.nodes.find(n => n.getValue().uniqueId === uniqueId);
+  }
 }

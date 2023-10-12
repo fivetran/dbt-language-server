@@ -1,18 +1,18 @@
 import { TypeKind } from '@fivetrandevelopers/zetasql';
-import { ParseLocationRangeProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
 import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
 import { TypeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/TypeProto';
+import { Location } from '../ZetaSqlAst';
 
 interface Node {
   node: string;
   [key: string]: unknown;
 }
 
-export function positionInRange(position: number, range: ParseLocationRangeProto__Output): boolean {
+export function positionInRange(position: number, range: Location): boolean {
   return range.start <= position && position <= range.end;
 }
 
-export function rangeContainsRange(outerRange: ParseLocationRangeProto__Output, innerRange: ParseLocationRangeProto__Output): boolean {
+export function rangeContainsRange(outerRange: Location, innerRange: Location): boolean {
   return outerRange.start <= innerRange.start && innerRange.end <= outerRange.end;
 }
 

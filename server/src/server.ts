@@ -15,12 +15,15 @@ import { Logger } from './Logger';
 import { MacroCompilationServer } from './MacroCompilationServer';
 import { ModelProgressReporter } from './ModelProgressReporter';
 import { NotificationSender } from './NotificationSender';
+import { ProjectAnalyzeResults } from './ProjectAnalyzeResults';
 import { ProjectChangeListener } from './ProjectChangeListener';
 import { ProjectProgressReporter } from './ProjectProgressReporter';
 import { SignatureHelpProvider } from './SignatureHelpProvider';
 import { DbtCli } from './dbt_execution/DbtCli';
 import { DbtCommandExecutor } from './dbt_execution/DbtCommandExecutor';
+import { DbtDefinitionProvider } from './definition/DbtDefinitionProvider';
 import { DefinitionProvider } from './definition/DefinitionProvider';
+import { SqlDefinitionProvider } from './definition/SqlDefinitionProvider';
 import { DbtDocumentKindResolver } from './document/DbtDocumentKindResolver';
 import { DbtTextDocument } from './document/DbtTextDocument';
 import { FeatureFinder } from './feature_finder/FeatureFinder';
@@ -101,7 +104,10 @@ function createLspServerForProject(
   const dbtDocumentKindResolver = new DbtDocumentKindResolver(dbtRepository);
   const diagnosticGenerator = new DiagnosticGenerator(dbtRepository);
   const jinjaParser = new JinjaParser();
-  const definitionProvider = new DefinitionProvider(dbtRepository, jinjaParser);
+  const projectAnalyzeResults = new ProjectAnalyzeResults(dbtRepository);
+  const sqlDefinitionProvider = new SqlDefinitionProvider(dbtRepository, projectAnalyzeResults);
+  const dbtDefinitionProvider = new DbtDefinitionProvider(dbtRepository);
+  const definitionProvider = new DefinitionProvider(jinjaParser, sqlDefinitionProvider, dbtDefinitionProvider);
   const signatureHelpProvider = new SignatureHelpProvider();
   const hoverProvider = new HoverProvider();
   const openedDocuments = new Map<string, DbtTextDocument>();
@@ -116,6 +122,7 @@ function createLspServerForProject(
     fileChangeListener,
     projectProgressReporter,
     macroCompilationServer,
+    projectAnalyzeResults,
   );
 
   return new LspServer(
@@ -139,6 +146,7 @@ function createLspServerForProject(
     openedDocuments,
     projectChangeListener,
     customInitParams.enableSnowflakeSyntaxCheck,
+    projectAnalyzeResults,
   );
 }
 

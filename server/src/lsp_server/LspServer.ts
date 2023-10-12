@@ -60,6 +60,7 @@ import { ModelCompiler } from '../ModelCompiler';
 import { ModelProgressReporter } from '../ModelProgressReporter';
 import { NotificationSender } from '../NotificationSender';
 import { ProcessExecutor } from '../ProcessExecutor';
+import { ProjectAnalyzeResults } from '../ProjectAnalyzeResults';
 import { ProjectChangeListener } from '../ProjectChangeListener';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { DbtProjectStatusSender } from '../status_bar/DbtProjectStatusSender';
@@ -93,6 +94,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     private openedDocumentsLowerCase: Map<string, DbtTextDocument>,
     private projectChangeListener: ProjectChangeListener,
     private enableSnowflakeSyntaxCheck: boolean,
+    private projectAnalyzeResults: ProjectAnalyzeResults,
   ) {
     super(connection, notificationSender, featureFinder);
     this.filesFilter = [{ scheme: 'file', pattern: { glob: `${dbtRepository.projectPath}/**/*`, matches: 'file' } }];
@@ -364,6 +366,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
         this.hoverProvider,
         this.definitionProvider,
         this.projectChangeListener,
+        this.projectAnalyzeResults,
       );
       this.openedDocumentsLowerCase.set(uri.toLowerCase(), document);
 

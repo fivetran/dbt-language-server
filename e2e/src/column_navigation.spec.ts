@@ -1,11 +1,12 @@
 import { Position, Range, Uri } from 'vscode';
 import { assertDefinitions } from './asserts';
-import { MAX_RANGE, activateAndWait, getDocUri } from './helper';
+import { activateAndWait, getDocUri, sleep } from './helper';
 
 suite('Definitions for columns', () => {
   test('Should suggest definitions for different columns', async () => {
     const docUri = getDocUri('column_navigation.sql');
     await activateAndWait(docUri);
+    await sleep(5000);
 
     const tableExistsDoc = getDocUri('table_exists.sql');
     const currentTimeDoc = getDocUri('current_time_of_day.sql');
@@ -16,6 +17,8 @@ suite('Definitions for columns', () => {
     const grTableSelectRange = new Range(30, 2, 33, 12);
     const idSourceSelectRange = new Range(23, 2, 23, 16);
     const distinctSelectRange = new Range(41, 2, 43, 11);
+    const timeOfDaySelect = new Range(17, 0, 19, 65);
+    const tableExistsSelect = new Range(6, 0, 6, 14);
 
     const emailColumnRange = new Range(2, 4, 2, 9);
     const u1DivisionColumnRange = new Range(8, 4, 8, 15);
@@ -69,9 +72,9 @@ suite('Definitions for columns', () => {
 
     // For group_external
     line += 5;
-    await assertCol('id', docUri, new Position(line, 5), new Range(line, 4, line, 6), tableExistsDoc, MAX_RANGE, MAX_RANGE);
+    await assertCol('id', docUri, new Position(line, 5), new Range(line, 4, line, 6), tableExistsDoc, tableExistsSelect, tableExistsSelect);
     line++;
-    await assertCol('min(id)', docUri, new Position(line, 9), new Range(line, 8, line, 10), tableExistsDoc, MAX_RANGE, MAX_RANGE);
+    await assertCol('min(id)', docUri, new Position(line, 9), new Range(line, 8, line, 10), tableExistsDoc, tableExistsSelect, tableExistsSelect);
 
     // For select_distinct
     line += 5;
@@ -82,9 +85,9 @@ suite('Definitions for columns', () => {
     await assertCol('email', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, usersSelectRange, emailColumnRange);
     await assertCol('one', docUri, new Position(line, 12), new Range(line, 11, line, 14), docUri, testSelectRange, testTableColumn1);
     line++;
-    await assertCol('id', docUri, new Position(line, 5), new Range(line, 4, line, 6), tableExistsDoc, MAX_RANGE, MAX_RANGE);
+    await assertCol('id', docUri, new Position(line, 5), new Range(line, 4, line, 6), tableExistsDoc, tableExistsSelect, tableExistsSelect);
     line++;
-    await assertCol('t.id', docUri, new Position(line, 5), new Range(line, 4, line, 8), tableExistsDoc, MAX_RANGE, MAX_RANGE);
+    await assertCol('t.id', docUri, new Position(line, 5), new Range(line, 4, line, 8), tableExistsDoc, tableExistsSelect, tableExistsSelect);
     line++;
     await assertCol('test_table.two', docUri, new Position(line, 5), new Range(line, 4, line, 18), docUri, testSelectRange, testTableColumn2);
     line++;
@@ -92,9 +95,9 @@ suite('Definitions for columns', () => {
     line++;
     await assertCol('dv', docUri, new Position(line, 5), new Range(line, 4, line, 6), docUri, testSelectRange, u1DivisionColumnRange);
     line++;
-    await assertCol('ct2.now', docUri, new Position(line, 5), new Range(line, 4, line, 11), currentTimeDoc, MAX_RANGE, MAX_RANGE);
+    await assertCol('ct2.now', docUri, new Position(line, 5), new Range(line, 4, line, 11), currentTimeDoc, timeOfDaySelect, timeOfDaySelect);
     line++;
-    await assertCol('ct1.hour', docUri, new Position(line, 5), new Range(line, 4, line, 12), currentTimeDoc, MAX_RANGE, MAX_RANGE);
+    await assertCol('ct1.hour', docUri, new Position(line, 5), new Range(line, 4, line, 12), currentTimeDoc, timeOfDaySelect, timeOfDaySelect);
     line++;
     await assertCol('star.star_test1', docUri, new Position(line, 5), new Range(line, 4, line, 19), docUri, starSelect, starColumn1);
     line++;

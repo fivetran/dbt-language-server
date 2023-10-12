@@ -4,7 +4,8 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtRepository } from '../DbtRepository';
 import { DestinationContext } from '../DestinationContext';
 import { JinjaParser, JinjaPartType } from '../JinjaParser';
-import { DbtTextDocument, QueryParseInformation } from '../document/DbtTextDocument';
+import { ProjectAnalyzeResults } from '../ProjectAnalyzeResults';
+import { DbtTextDocument } from '../document/DbtTextDocument';
 import { DiffUtils } from '../utils/DiffUtils';
 import { getWordRangeAtPosition } from '../utils/TextUtils';
 import { comparePositions, positionInRange } from '../utils/Utils';
@@ -27,15 +28,12 @@ export class CompletionProvider {
     dbtRepository: DbtRepository,
     private jinjaParser: JinjaParser,
     private destinationContext: DestinationContext,
+    private projectAnalyzeResults: ProjectAnalyzeResults,
   ) {
     this.dbtCompletionProvider = new DbtCompletionProvider(dbtRepository);
   }
 
-  async provideCompletionItems(
-    completionParams: CompletionParams,
-    ast?: AnalyzeResponse__Output,
-    queryInformation?: QueryParseInformation,
-  ): Promise<CompletionItem[]> {
+  async provideCompletionItems(completionParams: CompletionParams, ast?: AnalyzeResponse__Output): Promise<CompletionItem[]> {
     const dbtCompletionItems = this.provideDbtCompletions(completionParams);
     if (dbtCompletionItems) {
       return dbtCompletionItems;
@@ -43,7 +41,7 @@ export class CompletionProvider {
     const completionText = this.getCompletionText(completionParams);
     const [tableOrColumn, column] = completionText;
     const snippetItems = this.snippetsCompletionProvider.provideSnippets(column ?? tableOrColumn);
-    const sqlItems = await this.provideSqlCompletions(completionParams, completionText, ast, queryInformation);
+    const sqlItems = await this.provideSqlCompletions(completionParams, completionText, ast);
     return [...snippetItems, ...sqlItems];
   }
 
@@ -70,12 +68,12 @@ export class CompletionProvider {
     completionParams: CompletionParams,
     text: CompletionTextInput,
     ast?: AnalyzeResponse__Output,
-    queryInformation?: QueryParseInformation,
   ): Promise<CompletionItem[]> {
     if (this.destinationContext.isEmpty()) {
       return [];
     }
 
+    const queryInformation = this.projectAnalyzeResults.getQueryParseInformationByUri(this.rawDocument.uri);
     let aliases: Map<string, string> | undefined;
 
     let completionInfo = undefined;
