@@ -261,7 +261,7 @@ export class SqlCompletionProvider {
       result.push(...this.getDatasets(destinationDefinition));
     }
 
-    if (completionInfo && completionInfo.withNames.size > 0) {
+    if (completionInfo && completionInfo.withSubqueries.size > 0) {
       if (insideFromClause) {
         result.push(...this.getTablesForWithQueries(completionInfo.withSubqueries));
       } else {
