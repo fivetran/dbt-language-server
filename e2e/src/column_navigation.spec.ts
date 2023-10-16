@@ -29,6 +29,7 @@ suite('Definitions for columns', () => {
     const testTableColumn2 = new Range(7, 4, 7, 5);
     const idSourceColumn1 = new Range(23, 9, 23, 10);
     const starColumn1 = new Range(26, 4, 26, 5);
+    const tableExistsId = new Range(6, 7, 6, 8);
 
     const usersFromRange = new Range(4, 7, 4, 43);
     const testFromRange = new Range(9, 9, 9, 45);
@@ -72,9 +73,9 @@ suite('Definitions for columns', () => {
 
     // For group_external
     line += 5;
-    await assertCol('id', docUri, new Position(line, 5), new Range(line, 4, line, 6), tableExistsDoc, tableExistsSelect, tableExistsSelect);
+    await assertCol('id', docUri, new Position(line, 5), new Range(line, 4, line, 6), tableExistsDoc, tableExistsSelect, tableExistsId);
     line++;
-    await assertCol('min(id)', docUri, new Position(line, 9), new Range(line, 8, line, 10), tableExistsDoc, tableExistsSelect, tableExistsSelect);
+    await assertCol('min(id)', docUri, new Position(line, 9), new Range(line, 8, line, 10), tableExistsDoc, tableExistsSelect, tableExistsId);
 
     // For select_distinct
     line += 5;
@@ -85,9 +86,9 @@ suite('Definitions for columns', () => {
     await assertCol('email', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, usersSelectRange, emailColumnRange);
     await assertCol('one', docUri, new Position(line, 12), new Range(line, 11, line, 14), docUri, testSelectRange, testTableColumn1);
     line++;
-    await assertCol('id', docUri, new Position(line, 5), new Range(line, 4, line, 6), tableExistsDoc, tableExistsSelect, tableExistsSelect);
+    await assertCol('id', docUri, new Position(line, 5), new Range(line, 4, line, 6), tableExistsDoc, tableExistsSelect, tableExistsId);
     line++;
-    await assertCol('t.id', docUri, new Position(line, 5), new Range(line, 4, line, 8), tableExistsDoc, tableExistsSelect, tableExistsSelect);
+    await assertCol('t.id', docUri, new Position(line, 5), new Range(line, 4, line, 8), tableExistsDoc, tableExistsSelect, tableExistsId);
     line++;
     await assertCol('test_table.two', docUri, new Position(line, 5), new Range(line, 4, line, 18), docUri, testSelectRange, testTableColumn2);
     line++;
