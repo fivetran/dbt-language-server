@@ -1,4 +1,5 @@
 import { ASTAliasProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTAliasProto';
+import { ASTAnalyticFunctionCallProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTAnalyticFunctionCallProto';
 import { ASTFunctionCallProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTFunctionCallProto';
 import { ASTSelectProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTSelectProto';
 import { ASTTablePathExpressionProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTTablePathExpressionProto';
@@ -53,6 +54,16 @@ export class ZetaSqlParser {
                 if (nameParts && nameParts.length > 1 && !result.functions.some(f => arraysAreEqual(f, nameParts))) {
                   result.functions.push(nameParts);
                 }
+              },
+            },
+          ],
+          [
+            'astAnalyticFunctionCallNode',
+            {
+              actionBefore: (node: unknown): void => {
+                const typedNode = node as ASTAnalyticFunctionCallProto__Output;
+                const activeSelect = parentSelect.at(-1);
+                activeSelect?.columns.push(...this.getColumns(typedNode.expression));
               },
             },
           ],
@@ -141,6 +152,15 @@ export class ZetaSqlParser {
       }
       case 'astFunctionCallNode': {
         node.astFunctionCallNode?.arguments.forEach(c => columns.push(...this.getColumns(c, alias)));
+        break;
+      }
+      case 'astBinaryExpressionNode': {
+        if (node.astBinaryExpressionNode?.lhs) {
+          columns.push(...this.getColumns(node.astBinaryExpressionNode.lhs, alias));
+        }
+        if (node.astBinaryExpressionNode?.rhs) {
+          columns.push(...this.getColumns(node.astBinaryExpressionNode.rhs, alias));
+        }
         break;
       }
       default: {
