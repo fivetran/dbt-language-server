@@ -1,5 +1,4 @@
 import { ASTAliasProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTAliasProto';
-import { ASTAnalyticFunctionCallProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTAnalyticFunctionCallProto';
 import { ASTFunctionCallProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTFunctionCallProto';
 import { ASTSelectProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTSelectProto';
 import { ASTTablePathExpressionProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ASTTablePathExpressionProto';
@@ -54,16 +53,6 @@ export class ZetaSqlParser {
                 if (nameParts && nameParts.length > 1 && !result.functions.some(f => arraysAreEqual(f, nameParts))) {
                   result.functions.push(nameParts);
                 }
-              },
-            },
-          ],
-          [
-            'astAnalyticFunctionCallNode',
-            {
-              actionBefore: (node: unknown): void => {
-                const typedNode = node as ASTAnalyticFunctionCallProto__Output;
-                const activeSelect = parentSelect.at(-1);
-                activeSelect?.columns.push(...this.getColumns(typedNode.expression));
               },
             },
           ],
@@ -125,17 +114,36 @@ export class ZetaSqlParser {
     const nodeName = node.node;
     const columns: KnownColumn[] = [];
     switch (nodeName) {
+      case 'astAnalyticFunctionCallNode': {
+        const analyticFunction = node.astAnalyticFunctionCallNode;
+        if (analyticFunction) {
+          columns.push(...this.getColumns(analyticFunction.expression));
+          const partitionBy = analyticFunction.windowSpec?.partitionBy;
+          if (partitionBy) {
+            partitionBy.partitioningExpressions.forEach(p => columns.push(...this.getColumns(p, alias)));
+          }
+        }
+
+        break;
+      }
       case 'astGeneralizedPathExpressionNode': {
         const pathExpression = node.astGeneralizedPathExpressionNode?.astPathExpressionNode;
-        const parseLocationRange = pathExpression?.parent?.parent?.parent?.parseLocationRange;
-        if (parseLocationRange) {
-          columns.push(
-            this.createColumn(
-              pathExpression.names.map(n => n.idString),
-              parseLocationRange,
-              alias,
-            ),
-          );
+        if (pathExpression) {
+          const parseLocationRange = pathExpression.parent?.parent?.parent?.parseLocationRange;
+          if (parseLocationRange) {
+            columns.push(
+              this.createColumn(
+                pathExpression.names.map(n => n.idString),
+                parseLocationRange,
+                alias,
+              ),
+            );
+          }
+        }
+
+        const arrayElement = node.astGeneralizedPathExpressionNode?.astArrayElementNode;
+        if (arrayElement) {
+          columns.push(...this.getColumns(arrayElement.array, alias));
         }
         break;
       }
@@ -151,7 +159,9 @@ export class ZetaSqlParser {
         break;
       }
       case 'astFunctionCallNode': {
-        node.astFunctionCallNode?.arguments.forEach(c => columns.push(...this.getColumns(c, alias)));
+        const functionCallNode = node.astFunctionCallNode;
+        functionCallNode?.arguments.forEach(c => columns.push(...this.getColumns(c, alias)));
+        functionCallNode?.orderBy?.orderingExpressions.forEach(c => columns.push(...this.getColumns(c.expression, alias)));
         break;
       }
       case 'astBinaryExpressionNode': {
@@ -160,6 +170,15 @@ export class ZetaSqlParser {
         }
         if (node.astBinaryExpressionNode?.rhs) {
           columns.push(...this.getColumns(node.astBinaryExpressionNode.rhs, alias));
+        }
+        break;
+      }
+      case 'astInExpressionNode': {
+        if (node.astInExpressionNode?.lhs) {
+          columns.push(...this.getColumns(node.astInExpressionNode.lhs, alias));
+        }
+        if (node.astInExpressionNode?.inList) {
+          node.astInExpressionNode.inList.list.forEach(c => columns.push(...this.getColumns(c, alias)));
         }
         break;
       }
