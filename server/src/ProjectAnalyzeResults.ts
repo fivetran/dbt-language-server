@@ -7,7 +7,7 @@ import { Location } from './ZetaSqlAst';
 import { ParseResult } from './ZetaSqlParser';
 import { ManifestModel } from './manifest/ManifestJson';
 
-interface QueryParseInformation {
+export interface QueryParseInformation {
   selects: QueryParseInformationSelect[];
 }
 
@@ -18,7 +18,7 @@ export interface QueryParseInformationSelectColumn {
   alias?: string;
 }
 
-interface QueryParseInformationSelect {
+export interface QueryParseInformationSelect {
   columns: QueryParseInformationSelectColumn[];
   tableAliases: Map<string, string>;
   parseLocationRange: Location;
@@ -26,6 +26,7 @@ interface QueryParseInformationSelect {
     rawRange: Range;
     compiledRange: Range;
   };
+  isNested: boolean;
 }
 
 interface Ranges {
@@ -96,6 +97,7 @@ export class ProjectAnalyzeResults {
         tableAliases: s.tableAliases,
         parseLocationRange: s.parseLocationRange,
         fromClause: s.fromClause ? this.convertParseLocation(compiledDocument, converter, s.fromClause.parseLocationRange) : undefined,
+        isNested: s.isNested,
       })),
     };
   }

@@ -4,7 +4,12 @@ import { URI } from 'vscode-uri';
 import { DbtRepository } from '../DbtRepository';
 import { DagNodeFetcher } from '../ModelFetcher';
 import { PositionConverter } from '../PositionConverter';
-import { ProjectAnalyzeResults, QueryParseInformationSelectColumn } from '../ProjectAnalyzeResults';
+import {
+  ProjectAnalyzeResults,
+  QueryParseInformation,
+  QueryParseInformationSelect,
+  QueryParseInformationSelectColumn,
+} from '../ProjectAnalyzeResults';
 import { AnalyzeResult } from '../ProjectAnalyzer';
 import { Location } from '../ZetaSqlAst';
 import { DbtTextDocument } from '../document/DbtTextDocument';
@@ -130,9 +135,10 @@ export class SqlDefinitionProvider {
 
   getRefModelColumnPosition(refModel: ManifestModel, column: QueryParseInformationSelectColumn): LocationLink | undefined {
     const queryInformation = this.projectAnalyzeResults.getQueryParseInformation(refModel.uniqueId);
-    const mainSelect = queryInformation?.selects.at(-1);
+    const mainSelect = this.findMainSelect(queryInformation);
     if (mainSelect) {
-      const targetColumn = mainSelect.columns.find(c => c.namePath.at(-1) === column.namePath.at(-1));
+      const name = column.namePath.at(-1);
+      const targetColumn = mainSelect.columns.find(c => c.alias === name || c.namePath.at(-1) === name);
       const targetRange = this.projectAnalyzeResults.getRanges(refModel.uniqueId, mainSelect.parseLocationRange)?.rawRange;
       if (targetRange) {
         let targetColumnRawRange = targetRange;
@@ -141,6 +147,19 @@ export class SqlDefinitionProvider {
         }
         const uri = URI.file(this.dbtRepository.getNodeFullPath(refModel)).toString();
         return LocationLink.create(uri, targetRange, targetColumnRawRange, column.rawRange);
+      }
+    }
+    return undefined;
+  }
+
+  // Assume that the last non-nested select will be the main select
+  findMainSelect(queryInformation: QueryParseInformation | undefined): QueryParseInformationSelect | undefined {
+    const selects = queryInformation?.selects ?? [];
+
+    for (let i = selects.length - 1; i >= 0; i--) {
+      const select = selects.at(i);
+      if (select && !select.isNested) {
+        return select;
       }
     }
     return undefined;

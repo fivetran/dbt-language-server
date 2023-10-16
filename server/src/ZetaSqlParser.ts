@@ -17,6 +17,7 @@ interface KnownSelect {
   fromClause?: {
     parseLocationRange: ParseLocationRangeProto__Output;
   };
+  isNested: boolean;
 }
 interface KnownColumn {
   namePath: string[];
@@ -71,6 +72,7 @@ export class ZetaSqlParser {
                           parseLocationRange: typedNode.fromClause.parent.parseLocationRange,
                         }
                       : undefined,
+                    isNested: parentSelect.length > 0,
                   };
                   parentSelect.push(select);
                   result.selects.push(select);
