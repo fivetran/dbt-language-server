@@ -42,7 +42,7 @@ suite('Definitions for columns', () => {
 
     // For test_table
     line += 5;
-    await assertCol('id', line, 4, DOC_URI, testFromRange, testFromRange);
+    await assertCol('u1.division', line, 4, DOC_URI, testFromRange, testFromRange);
 
     // For query_from_other_with
     line += 4;
@@ -58,11 +58,11 @@ suite('Definitions for columns', () => {
     line++;
     await assertCol('ut.email', line, 4, DOC_URI, usersSelectRange, emailColumnRange);
     line++;
-    await assertCol('email', line, 5, DOC_URI, usersSelectRange, emailColumnRange);
+    await assertCol('email', line, 4, DOC_URI, usersSelectRange, emailColumnRange);
     line++;
-    await assertCol('coalesce tt.one', line, 13, DOC_URI, testSelectRange, testTableColumn1);
-    await assertCol('coalesce ut.two', line, 21, DOC_URI, usersSelectRange, usersTableColumn2);
-    await assertCol('coalesce tt.two', line, 29, DOC_URI, testSelectRange, testTableColumn2);
+    await assertCol('tt.one', line, 13, DOC_URI, testSelectRange, testTableColumn1);
+    await assertCol('ut.two', line, 21, DOC_URI, usersSelectRange, usersTableColumn2);
+    await assertCol('tt.two', line, 29, DOC_URI, testSelectRange, testTableColumn2);
 
     // For star
     line += 8;
@@ -76,7 +76,7 @@ suite('Definitions for columns', () => {
     line += 5;
     await assertCol('id', line, 4, tableExistsDoc, tableExistsSelect, tableExistsId);
     line++;
-    await assertCol('min(id)', line, 8, tableExistsDoc, tableExistsSelect, tableExistsId);
+    await assertCol('id', line, 8, tableExistsDoc, tableExistsSelect, tableExistsId); // min(id)
 
     // For select_distinct
     line += 5;
