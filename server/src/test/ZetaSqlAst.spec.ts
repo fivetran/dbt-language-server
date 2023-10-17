@@ -63,7 +63,7 @@ describe('ZetaSqlAst', () => {
     const result = new ZetaSqlAst().getCompletionInfo(ast, 0);
 
     // assert
-    assertThat(result.withNames, new Set(['live_analytics_query', 'static_engineering_table', 'joined']));
+    assertThat([...result.withSubqueries.keys()], ['live_analytics_query', 'static_engineering_table', 'joined', '___mainQuery']);
   });
 
   describe('resolvedSetOperationScanNode.json', () => {

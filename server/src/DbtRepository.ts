@@ -97,6 +97,20 @@ export class DbtRepository {
     return DbtRepository.readFileIfExists(compiledPath);
   }
 
+  setRawCode(uri: string, code: string): void {
+    const model = this.dag.getNodeByUri(uri)?.getValue();
+    if (model) {
+      model.rawCode = code;
+    }
+  }
+
+  setCompiledCode(uri: string, code: string): void {
+    const model = this.dag.getNodeByUri(uri)?.getValue();
+    if (model) {
+      model.compiledCode = code;
+    }
+  }
+
   private static readFileIfExists(filePath: string): string | undefined {
     try {
       return fs.readFileSync(filePath, 'utf8');

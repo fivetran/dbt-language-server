@@ -1,4 +1,3 @@
-import { ParseLocationRangeProto__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
 import { RefReplacement } from 'dbt-language-server-common';
 import {
   CompletionItem,
@@ -30,10 +29,11 @@ import { ModelCompiler } from '../ModelCompiler';
 import { ModelProgressReporter } from '../ModelProgressReporter';
 import { NotificationSender } from '../NotificationSender';
 import { PositionConverter } from '../PositionConverter';
+import { ProjectAnalyzeResults } from '../ProjectAnalyzeResults';
 import { AnalyzeResult } from '../ProjectAnalyzer';
 import { ProjectChangeListener } from '../ProjectChangeListener';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
-import { Location, ZetaSqlAst } from '../ZetaSqlAst';
+import { ZetaSqlAst } from '../ZetaSqlAst';
 import { CompletionProvider } from '../completion/CompletionProvider';
 import { DbtCli } from '../dbt_execution/DbtCli';
 import { DbtCompileJob } from '../dbt_execution/DbtCompileJob';
@@ -41,25 +41,6 @@ import { DefinitionProvider } from '../definition/DefinitionProvider';
 import { getLineByPosition, getSignatureInfo } from '../utils/TextUtils';
 import { areRangesEqual, debounce, getIdentifierRangeAtPosition, getModelPathOrFullyQualifiedName } from '../utils/Utils';
 import { DbtDocumentKind } from './DbtDocumentKind';
-
-export interface QueryParseInformation {
-  selects: SelectInformation[];
-}
-
-interface SelectInformation {
-  columns: {
-    namePath: string[];
-    rawRange: Range;
-    compiledRange: Range;
-    alias?: string;
-  }[];
-  tableAliases: Map<string, string>;
-  parseLocationRange: Location;
-  fromClause?: {
-    rawRange: Range;
-    compiledRange: Range;
-  };
-}
 
 export class DbtTextDocument {
   static DEBOUNCE_TIMEOUT = 300;
@@ -72,7 +53,6 @@ export class DbtTextDocument {
 
   analyzeResult?: AnalyzeResult;
   completionProvider: CompletionProvider;
-  queryInformation?: QueryParseInformation;
 
   firstSave = true;
 
@@ -95,6 +75,7 @@ export class DbtTextDocument {
     private hoverProvider: HoverProvider,
     private definitionProvider: DefinitionProvider,
     private projectChangeListener: ProjectChangeListener,
+    private projectAnalyzeResults: ProjectAnalyzeResults,
   ) {
     this.rawDocument = TextDocument.create(doc.uri, doc.languageId, doc.version, doc.text);
     this.compiledDocument = TextDocument.create(doc.uri, doc.languageId, 0, doc.text);
@@ -104,6 +85,7 @@ export class DbtTextDocument {
       this.dbtRepository,
       this.jinjaParser,
       destinationContext,
+      projectAnalyzeResults,
     );
     this.requireCompileOnSave = false;
 
@@ -185,7 +167,7 @@ export class DbtTextDocument {
 
   didChangeTextDocument(params: DidChangeTextDocumentParams): void {
     if (this.requireCompileOnSave || this.isDbtCompileNeeded(params.contentChanges)) {
-      TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
+      this.updateRawCode(params.contentChanges, params.textDocument.version);
       this.requireCompileOnSave = true;
     } else {
       const compiledContentChanges = params.contentChanges.map<TextDocumentContentChangeEvent>(change => {
@@ -214,9 +196,19 @@ export class DbtTextDocument {
         };
       });
 
-      TextDocument.update(this.rawDocument, params.contentChanges, params.textDocument.version);
-      TextDocument.update(this.compiledDocument, compiledContentChanges, 1);
+      this.updateRawCode(params.contentChanges, params.textDocument.version);
+      this.updateCompiledCode(compiledContentChanges, 1);
     }
+  }
+
+  updateRawCode(contentChanges: TextDocumentContentChangeEvent[], version: number): void {
+    TextDocument.update(this.rawDocument, contentChanges, version);
+    this.dbtRepository.setRawCode(this.rawDocument.uri, this.rawDocument.getText());
+  }
+
+  updateCompiledCode(contentChanges: TextDocumentContentChangeEvent[], version: number): void {
+    TextDocument.update(this.compiledDocument, contentChanges, version);
+    this.dbtRepository.setCompiledCode(this.rawDocument.uri, this.compiledDocument.getText());
   }
 
   async onDbtReady(): Promise<void> {
@@ -286,12 +278,12 @@ export class DbtTextDocument {
 
   async onCompilationError(dbtCompilationError: string): Promise<void> {
     console.log(`dbt compilation error: ${dbtCompilationError}`);
-    TextDocument.update(this.compiledDocument, [{ text: this.rawDocument.getText() }], 1);
+    this.updateCompiledCode([{ text: this.rawDocument.getText() }], 1);
     await this.updateAndSendDiagnosticsAndPreview(dbtCompilationError);
   }
 
   async onCompilationFinished(compiledSql: string): Promise<void> {
-    TextDocument.update(this.compiledDocument, [{ text: compiledSql }], 1);
+    this.updateCompiledCode([{ text: compiledSql }], 1);
     if (this.destinationContext.contextInitialized) {
       await this.updateAndSendDiagnosticsAndPreview();
     }
@@ -333,63 +325,24 @@ export class DbtTextDocument {
       compiledSql !== '' &&
       compiledSql !== DbtCompileJob.NO_RESULT_FROM_COMPILER
     ) {
-      const analyzeResult = await this.projectChangeListener.analyzeModelTree(this.rawDocument.uri, compiledSql);
-      if (analyzeResult) {
+      const result = await this.projectChangeListener.analyzeModelTree(this.rawDocument.uri, compiledSql);
+      if (result) {
         const { fsPath } = URI.parse(this.rawDocument.uri);
-        if (analyzeResult.ast.isOk()) {
+        if (result.analyzeResult.ast.isOk()) {
           console.log(`AST was successfully received for ${fsPath}`, LogLevel.Debug);
-          this.analyzeResult = analyzeResult;
-          this.queryInformation = this.getQueryInformation();
+          this.analyzeResult = result.analyzeResult;
+          this.projectAnalyzeResults.updateModel(result);
         } else {
           console.log(`There was an error while analyzing ${fsPath}`, LogLevel.Debug);
-          console.log(analyzeResult.ast, LogLevel.Debug);
+          console.log(result.analyzeResult.ast, LogLevel.Debug);
         }
-        const diagnostics = this.diagnosticGenerator.getDiagnosticsFromAst(analyzeResult, this.rawDocument, this.compiledDocument);
+        const diagnostics = this.diagnosticGenerator.getDiagnosticsFromAst(result.analyzeResult, this.rawDocument, this.compiledDocument);
         rawDocDiagnostics = diagnostics.raw;
         compiledDocDiagnostics = diagnostics.compiled;
       }
     }
 
     return [rawDocDiagnostics, compiledDocDiagnostics];
-  }
-
-  getQueryInformation(): QueryParseInformation {
-    const converter = new PositionConverter(this.rawDocument.getText(), this.compiledDocument.getText());
-    if (this.analyzeResult) {
-      return {
-        selects: this.analyzeResult.parseResult.selects.map<SelectInformation>(s => ({
-          columns: s.columns.map(c => {
-            const ranges = this.convertParseLocation(converter, c.parseLocationRange);
-            return {
-              namePath: c.namePath,
-              compiledRange: ranges.compiledRange,
-              rawRange: ranges.rawRange,
-              alias: c.alias,
-            };
-          }),
-          tableAliases: s.tableAliases,
-          parseLocationRange: s.parseLocationRange,
-          fromClause: s.fromClause ? this.convertParseLocation(converter, s.fromClause.parseLocationRange) : undefined,
-        })),
-      };
-    }
-    return {
-      selects: [],
-    };
-  }
-
-  private convertParseLocation(
-    converter: PositionConverter,
-    parseLocationRange: ParseLocationRangeProto__Output,
-  ): { compiledRange: Range; rawRange: Range } {
-    const compiledStart = this.compiledDocument.positionAt(parseLocationRange.start);
-    const compiledEnd = this.compiledDocument.positionAt(parseLocationRange.end);
-    const start = converter.convertPositionBackward(compiledStart);
-    const end = converter.convertPositionBackward(compiledEnd);
-    return {
-      compiledRange: Range.create(compiledStart, compiledEnd),
-      rawRange: Range.create(start, end),
-    };
   }
 
   fixInformationDiagnostic(range: Range): void {
@@ -419,7 +372,6 @@ export class DbtTextDocument {
     return this.completionProvider.provideCompletionItems(
       completionParams,
       this.analyzeResult?.ast.isOk() ? this.analyzeResult.ast.value : undefined,
-      this.queryInformation,
     );
   }
 
@@ -437,7 +389,7 @@ export class DbtTextDocument {
   }
 
   async onDefinition(definitionParams: DefinitionParams): Promise<DefinitionLink[] | undefined> {
-    return this.definitionProvider.onDefinition(definitionParams, this.rawDocument, this.compiledDocument, this.queryInformation, this.analyzeResult);
+    return this.definitionProvider.onDefinition(definitionParams, this.rawDocument, this.compiledDocument, this.analyzeResult);
   }
 
   dispose(): void {

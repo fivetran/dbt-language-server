@@ -42,6 +42,20 @@ with users_table as (
   select distinct
     star_test1 as this_is_one
   from star
+), window_with as (
+  select 
+    user_id,
+    email,
+    row_number() over (partition by email order by user_id) as rownum
+  from users_table
+), above_average_users as (
+  select email, user_id
+  from users_table
+  where user_id > (select avg(user_id) from users_table)
+), union_all as (
+  select email, user_id from users_table
+  union all
+  select email, user_id from users_table
 )
 select
     star.*,

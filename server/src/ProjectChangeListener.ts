@@ -7,7 +7,8 @@ import { FileChangeListener } from './FileChangeListener';
 import { MacroCompilationServer } from './MacroCompilationServer';
 import { DagNodeFetcher } from './ModelFetcher';
 import { NotificationSender } from './NotificationSender';
-import { AnalyzeResult, ModelsAnalyzeResult } from './ProjectAnalyzer';
+import { ProjectAnalyzeResults } from './ProjectAnalyzeResults';
+import { ModelsAnalyzeResult } from './ProjectAnalyzer';
 import { ProjectProgressReporter } from './ProjectProgressReporter';
 import { DbtCli } from './dbt_execution/DbtCli';
 import { DbtTextDocument } from './document/DbtTextDocument';
@@ -34,6 +35,7 @@ export class ProjectChangeListener {
     private fileChangeListener: FileChangeListener,
     private projectProgressReporter: ProjectProgressReporter,
     private macroCompilationServer: MacroCompilationServer,
+    private projectAnalyzeResults: ProjectAnalyzeResults,
   ) {
     fileChangeListener.onSqlModelChanged(c => this.onSqlModelChanged(c));
   }
@@ -102,19 +104,19 @@ export class ProjectChangeListener {
   }
 
   /** Analyses model tree, sends diagnostics for the entire tree and returns diagnostics for root model */
-  async analyzeModelTree(rawDocUri: string, sql: string): Promise<AnalyzeResult | undefined> {
+  async analyzeModelTree(rawDocUri: string, sql: string): Promise<ModelsAnalyzeResult | undefined> {
     const { fsPath } = URI.parse(rawDocUri);
     const modelFetcher = new DagNodeFetcher(this.dbtRepository, fsPath);
     const node = await modelFetcher.getDagNode();
-    let mainModelResult: AnalyzeResult | undefined;
+    let mainModelResult: ModelsAnalyzeResult | undefined;
 
     if (node) {
       const results = await this.destinationContext.analyzeModelTree(node, sql, new AbortController().signal);
       this.sendDiagnosticsForDocuments(results.filter(r => r.modelUniqueId !== node.getValue().uniqueId));
-      mainModelResult = results.find(r => r.modelUniqueId === node.getValue().uniqueId)?.analyzeResult;
+      mainModelResult = results.find(r => r.modelUniqueId === node.getValue().uniqueId);
     } else {
-      const result = await this.destinationContext.analyzeSql(sql, new AbortController().signal);
-      mainModelResult = result;
+      const analyzeResult = await this.destinationContext.analyzeSql(sql, new AbortController().signal);
+      mainModelResult = { modelUniqueId: '', analyzeResult };
     }
     return mainModelResult;
   }
@@ -137,6 +139,7 @@ export class ProjectChangeListener {
     const results = await this.destinationContext.analyzeProject((completedCount: number, modelsCount: number) => {
       this.projectProgressReporter.sendAnalyzeProgress(completedCount, modelsCount);
     });
+    this.projectAnalyzeResults.update(results);
     this.sendDiagnosticsForDocuments(results);
     console.log(`Processed ${results.length} models. ${results.filter(r => r.analyzeResult.ast.isErr()).length} errors found during analysis`);
   }

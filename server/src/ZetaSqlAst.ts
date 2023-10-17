@@ -152,7 +152,6 @@ export class ZetaSqlAst {
   getCompletionInfo(ast: AnalyzeResponse__Output, offset: number): CompletionInfo {
     const completionInfo: CompletionInfo = {
       resolvedTables: new Map<string, string[]>(),
-      withNames: new Set<string>(),
       withSubqueries: new Map<string, WithSubqueryInfo>(),
       activeTables: [],
     };
@@ -199,7 +198,6 @@ export class ZetaSqlAst {
           if (nodeName === NODE.resolvedWithScanNode) {
             const resolvedWithScan = node as ResolvedWithScanProto__Output;
             const { withEntryList } = resolvedWithScan;
-            withEntryList.map(w => w.withQueryName).forEach(n => completionInfo.withNames.add(n)); // TODO: delete completionInfo.withNames
 
             for (const withEntry of withEntryList) {
               this.getWithSubqueryInfo(withEntry.withSubquery, completionInfo, withEntry.withQueryName);
@@ -306,6 +304,17 @@ export class ZetaSqlAst {
             this.getWithSubqueryInfo(inputScan, completionInfo, withQueryName);
           }
         }
+      }
+      if ('inputItemList' in subqueryNode) {
+        subqueryNode.inputItemList.forEach(i => {
+          const existingWith = completionInfo.withSubqueries.get(withQueryName);
+          i.outputColumnList.forEach(c => {
+            const column = existingWith?.columns.find(col => col.name === c.name);
+            if (column?.fromTable.startsWith('$')) {
+              column.fromTable = c.tableName;
+            }
+          });
+        });
       }
     } else if (node.node === 'resolvedAggregateScanBaseNode') {
       const aggregateScanBase = node[node.node];
@@ -455,7 +464,6 @@ export interface CompletionInfo {
   resolvedTables: Map<string, string[]>;
   activeTableLocationRanges?: Location[];
   activeTables: ActiveTableInfo[];
-  withNames: Set<string>;
   withSubqueries: Map<string, WithSubqueryInfo>;
 }
 

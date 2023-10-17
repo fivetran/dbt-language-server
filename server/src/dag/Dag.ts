@@ -1,3 +1,4 @@
+import slash from 'slash';
 import { DagNode } from './DagNode';
 
 export class Dag {
@@ -16,10 +17,14 @@ export class Dag {
   }
 
   getNodeByUri(uri: string): DagNode | undefined {
-    return this.nodes.find(n => uri.endsWith(n.getValue().originalFilePath));
+    return this.nodes.find(n => uri.endsWith(slash(n.getValue().originalFilePath)));
   }
 
   getNodeByName(name: string): DagNode | undefined {
     return this.nodes.find(n => n.getValue().name === name);
+  }
+
+  getNodeByUniqueId(uniqueId: string): DagNode | undefined {
+    return this.nodes.find(n => n.getValue().uniqueId === uniqueId);
   }
 }
