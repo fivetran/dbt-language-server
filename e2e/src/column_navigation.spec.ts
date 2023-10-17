@@ -11,6 +11,7 @@ suite('Definitions for columns', () => {
     const tableExistsDoc = getDocUri('table_exists.sql');
     const currentTimeDoc = getDocUri('current_time_of_day.sql');
 
+    const usersIdRange = new Range(3, 4, 3, 6);
     const usersSelectRange = new Range(1, 2, 4, 43);
     const testSelectRange = new Range(6, 4, 9, 51);
     const starSelect = new Range(25, 2, 28, 16);
@@ -81,8 +82,17 @@ suite('Definitions for columns', () => {
     line += 5;
     await assertCol('star_test1', docUri, new Position(line, 5), new Range(line, 4, line, 14), docUri, starSelect, starColumn1);
 
-    // For main select
+    // For window_with
+    line += 6;
+    await assertCol('email', docUri, new Position(line, 37), new Range(line, 36, line, 41), docUri, usersSelectRange, emailColumnRange);
+    await assertCol('user_id', docUri, new Position(line, 52), new Range(line, 51, line, 58), docUri, usersSelectRange, usersIdRange);
+
+    // For above_average_users
     line += 5;
+    await assertCol('user_id', docUri, new Position(line, 33), new Range(line, 32, line, 39), docUri, usersSelectRange, usersIdRange);
+
+    // For main select
+    line += 4;
     await assertCol('email', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, usersSelectRange, emailColumnRange);
     await assertCol('one', docUri, new Position(line, 12), new Range(line, 11, line, 14), docUri, testSelectRange, testTableColumn1);
     line++;

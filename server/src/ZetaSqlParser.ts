@@ -118,12 +118,9 @@ export class ZetaSqlParser {
         const analyticFunction = node.astAnalyticFunctionCallNode;
         if (analyticFunction) {
           columns.push(...this.getColumns(analyticFunction.expression));
-          const partitionBy = analyticFunction.windowSpec?.partitionBy;
-          if (partitionBy) {
-            partitionBy.partitioningExpressions.forEach(p => columns.push(...this.getColumns(p, alias)));
-          }
+          analyticFunction.windowSpec?.partitionBy?.partitioningExpressions.forEach(p => columns.push(...this.getColumns(p, alias)));
+          analyticFunction.windowSpec?.orderBy?.orderingExpressions.forEach(p => columns.push(...this.getColumns(p.expression, alias)));
         }
-
         break;
       }
       case 'astGeneralizedPathExpressionNode': {
@@ -165,20 +162,80 @@ export class ZetaSqlParser {
         break;
       }
       case 'astBinaryExpressionNode': {
-        if (node.astBinaryExpressionNode?.lhs) {
-          columns.push(...this.getColumns(node.astBinaryExpressionNode.lhs, alias));
-        }
-        if (node.astBinaryExpressionNode?.rhs) {
-          columns.push(...this.getColumns(node.astBinaryExpressionNode.rhs, alias));
+        if (node.astBinaryExpressionNode) {
+          columns.push(...this.getColumns(node.astBinaryExpressionNode.lhs, alias), ...this.getColumns(node.astBinaryExpressionNode.rhs, alias));
         }
         break;
       }
       case 'astInExpressionNode': {
-        if (node.astInExpressionNode?.lhs) {
+        if (node.astInExpressionNode) {
           columns.push(...this.getColumns(node.astInExpressionNode.lhs, alias));
         }
         if (node.astInExpressionNode?.inList) {
           node.astInExpressionNode.inList.list.forEach(c => columns.push(...this.getColumns(c, alias)));
+        }
+        break;
+      }
+      case 'astAndExprNode': {
+        node.astAndExprNode?.conjuncts.forEach(c => columns.push(...this.getColumns(c, alias)));
+        break;
+      }
+      case 'astOrExprNode': {
+        node.astOrExprNode?.disjuncts.forEach(c => columns.push(...this.getColumns(c, alias)));
+        break;
+      }
+      case 'astUnaryExpressionNode': {
+        if (node.astUnaryExpressionNode) {
+          columns.push(...this.getColumns(node.astUnaryExpressionNode.operand, alias));
+        }
+        break;
+      }
+      case 'astArrayConstructorNode': {
+        node.astArrayConstructorNode?.elements.forEach(c => columns.push(...this.getColumns(c, alias)));
+        break;
+      }
+      case 'astBetweenExpressionNode': {
+        if (node.astBetweenExpressionNode) {
+          columns.push(
+            ...this.getColumns(node.astBetweenExpressionNode.lhs, alias),
+            ...this.getColumns(node.astBetweenExpressionNode.low, alias),
+            ...this.getColumns(node.astBetweenExpressionNode.high, alias),
+          );
+        }
+        break;
+      }
+      case 'astCaseNoValueExpressionNode': {
+        node.astCaseNoValueExpressionNode?.arguments.forEach(c => columns.push(...this.getColumns(c, alias)));
+        break;
+      }
+      case 'astCaseValueExpressionNode': {
+        node.astCaseValueExpressionNode?.arguments.forEach(c => columns.push(...this.getColumns(c, alias)));
+        break;
+      }
+      case 'astCastExpressionNode': {
+        if (node.astCastExpressionNode) {
+          columns.push(...this.getColumns(node.astCastExpressionNode.expr, alias));
+        }
+        break;
+      }
+      case 'astBitwiseShiftExpressionNode': {
+        if (node.astBitwiseShiftExpressionNode) {
+          columns.push(
+            ...this.getColumns(node.astBitwiseShiftExpressionNode.lhs, alias),
+            ...this.getColumns(node.astBitwiseShiftExpressionNode.rhs, alias),
+          );
+        }
+        break;
+      }
+      case 'astBracedConstructorFieldValueNode': {
+        if (node.astBracedConstructorFieldValueNode) {
+          columns.push(...this.getColumns(node.astBracedConstructorFieldValueNode.expression, alias));
+        }
+        break;
+      }
+      case 'astLikeExpressionNode': {
+        if (node.astLikeExpressionNode) {
+          columns.push(...this.getColumns(node.astLikeExpressionNode.lhs, alias));
         }
         break;
       }
