@@ -305,6 +305,17 @@ export class ZetaSqlAst {
           }
         }
       }
+      if ('inputItemList' in subqueryNode) {
+        subqueryNode.inputItemList.forEach(i => {
+          const existingWith = completionInfo.withSubqueries.get(withQueryName);
+          i.outputColumnList.forEach(c => {
+            const column = existingWith?.columns.find(col => col.name === c.name);
+            if (column?.fromTable.startsWith('$')) {
+              column.fromTable = c.tableName;
+            }
+          });
+        });
+      }
     } else if (node.node === 'resolvedAggregateScanBaseNode') {
       const aggregateScanBase = node[node.node];
       // TODO: check 'resolvedAnonymizedAggregateScanNode'

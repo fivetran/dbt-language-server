@@ -89,7 +89,13 @@ suite('Definitions for columns', () => {
 
     // For above_average_users
     line += 5;
-    await assertCol('user_id', docUri, new Position(line, 33), new Range(line, 32, line, 39), docUri, usersSelectRange, usersIdRange);
+    await assertCol('user_id', docUri, new Position(line, 31), new Range(line, 30, line, 37), docUri, usersSelectRange, usersIdRange);
+
+    // For union_all
+    line += 2;
+    await assertCol('user_id', docUri, new Position(line, 17), new Range(line, 16, line, 23), docUri, usersSelectRange, usersIdRange);
+    line += 2;
+    await assertCol('email', docUri, new Position(line, 10), new Range(line, 9, line, 14), docUri, usersSelectRange, emailColumnRange);
 
     // For main select
     line += 4;
