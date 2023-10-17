@@ -3,9 +3,9 @@ import { assertDefinitions } from './asserts';
 import { activateAndWait, getDocUri, sleep } from './helper';
 
 suite('Definitions for columns', () => {
+  const DOC_URI = getDocUri('column_navigation.sql');
   test('Should suggest definitions for different columns', async () => {
-    const docUri = getDocUri('column_navigation.sql');
-    await activateAndWait(docUri);
+    await activateAndWait(DOC_URI);
     await sleep(5000);
 
     const tableExistsDoc = getDocUri('table_exists.sql');
@@ -36,112 +36,107 @@ suite('Definitions for columns', () => {
     const testFromRange = new Range(9, 9, 9, 45);
     // For users_table
     let line = 2;
-    await assertCol('email', docUri, new Position(line, 5), emailColumnRange, docUri, usersFromRange, usersFromRange);
+    await assertCol('email', line, 4, DOC_URI, usersFromRange, usersFromRange);
     line++;
-    await assertCol('id', docUri, new Position(line, 5), new Range(line, 4, line, 6), docUri, usersFromRange, usersFromRange);
+    await assertCol('id', line, 4, DOC_URI, usersFromRange, usersFromRange);
 
     // For test_table
     line += 5;
-    await assertCol('id', docUri, new Position(line, 5), new Range(line, 4, line, 15), docUri, testFromRange, testFromRange);
+    await assertCol('id', line, 4, DOC_URI, testFromRange, testFromRange);
 
     // For query_from_other_with
     line += 4;
-    await assertCol('tt.one', docUri, new Position(line, 5), new Range(line, 4, line, 10), docUri, testSelectRange, testTableColumn1);
+    await assertCol('tt.one', line, 4, DOC_URI, testSelectRange, testTableColumn1);
     line++;
-    await assertCol('tt.dv', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, testSelectRange, u1DivisionColumnRange);
+    await assertCol('tt.dv', line, 4, DOC_URI, testSelectRange, u1DivisionColumnRange);
     line++;
-    await assertCol('dv', docUri, new Position(line, 5), new Range(line, 4, line, 6), docUri, testSelectRange, u1DivisionColumnRange);
+    await assertCol('dv', line, 4, DOC_URI, testSelectRange, u1DivisionColumnRange);
     line++;
-    await assertCol('tt.two', docUri, new Position(line, 5), new Range(line, 4, line, 10), docUri, testSelectRange, testTableColumn2);
+    await assertCol('tt.two', line, 4, DOC_URI, testSelectRange, testTableColumn2);
     line++;
-    await assertCol('ut.two', docUri, new Position(line, 5), new Range(line, 4, line, 10), docUri, usersSelectRange, usersTableColumn2);
+    await assertCol('ut.two', line, 4, DOC_URI, usersSelectRange, usersTableColumn2);
     line++;
-    await assertCol('ut.email', docUri, new Position(line, 5), new Range(line, 4, line, 12), docUri, usersSelectRange, emailColumnRange);
+    await assertCol('ut.email', line, 4, DOC_URI, usersSelectRange, emailColumnRange);
     line++;
-    await assertCol('email', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, usersSelectRange, emailColumnRange);
+    await assertCol('email', line, 5, DOC_URI, usersSelectRange, emailColumnRange);
     line++;
-    await assertCol('coalesce tt.one', docUri, new Position(line, 14), new Range(line, 13, line, 19), docUri, testSelectRange, testTableColumn1);
-    await assertCol('coalesce ut.two', docUri, new Position(line, 22), new Range(line, 21, line, 27), docUri, usersSelectRange, usersTableColumn2);
-    await assertCol('coalesce tt.two', docUri, new Position(line, 30), new Range(line, 29, line, 35), docUri, testSelectRange, testTableColumn2);
+    await assertCol('coalesce tt.one', line, 13, DOC_URI, testSelectRange, testTableColumn1);
+    await assertCol('coalesce ut.two', line, 21, DOC_URI, usersSelectRange, usersTableColumn2);
+    await assertCol('coalesce tt.two', line, 29, DOC_URI, testSelectRange, testTableColumn2);
 
     // For star
     line += 8;
-    await assertCol('id', docUri, new Position(line, 5), new Range(line, 4, line, 6), docUri, idSourceSelectRange, idSourceColumn1);
+    await assertCol('id', line, 4, DOC_URI, idSourceSelectRange, idSourceColumn1);
 
     // For gr_table
     line += 4;
-    await assertCol('email', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, usersSelectRange, emailColumnRange);
+    await assertCol('email', line, 4, DOC_URI, usersSelectRange, emailColumnRange);
 
     // For group_external
     line += 5;
-    await assertCol('id', docUri, new Position(line, 5), new Range(line, 4, line, 6), tableExistsDoc, tableExistsSelect, tableExistsId);
+    await assertCol('id', line, 4, tableExistsDoc, tableExistsSelect, tableExistsId);
     line++;
-    await assertCol('min(id)', docUri, new Position(line, 9), new Range(line, 8, line, 10), tableExistsDoc, tableExistsSelect, tableExistsId);
+    await assertCol('min(id)', line, 8, tableExistsDoc, tableExistsSelect, tableExistsId);
 
     // For select_distinct
     line += 5;
-    await assertCol('star_test1', docUri, new Position(line, 5), new Range(line, 4, line, 14), docUri, starSelect, starColumn1);
+    await assertCol('star_test1', line, 4, DOC_URI, starSelect, starColumn1);
 
     // For window_with
     line += 6;
-    await assertCol('email', docUri, new Position(line, 37), new Range(line, 36, line, 41), docUri, usersSelectRange, emailColumnRange);
-    await assertCol('user_id', docUri, new Position(line, 52), new Range(line, 51, line, 58), docUri, usersSelectRange, usersIdRange);
+    await assertCol('email', line, 36, DOC_URI, usersSelectRange, emailColumnRange);
+    await assertCol('user_id', line, 51, DOC_URI, usersSelectRange, usersIdRange);
 
     // For above_average_users
     line += 5;
-    await assertCol('user_id', docUri, new Position(line, 31), new Range(line, 30, line, 37), docUri, usersSelectRange, usersIdRange);
+    await assertCol('user_id', line, 30, DOC_URI, usersSelectRange, usersIdRange);
 
     // For union_all
     line += 2;
-    await assertCol('user_id', docUri, new Position(line, 17), new Range(line, 16, line, 23), docUri, usersSelectRange, usersIdRange);
+    await assertCol('user_id', line, 16, DOC_URI, usersSelectRange, usersIdRange);
     line += 2;
-    await assertCol('email', docUri, new Position(line, 10), new Range(line, 9, line, 14), docUri, usersSelectRange, emailColumnRange);
+    await assertCol('email', line, 9, DOC_URI, usersSelectRange, emailColumnRange);
 
     // For main select
     line += 4;
-    await assertCol('email', docUri, new Position(line, 5), new Range(line, 4, line, 9), docUri, usersSelectRange, emailColumnRange);
-    await assertCol('one', docUri, new Position(line, 12), new Range(line, 11, line, 14), docUri, testSelectRange, testTableColumn1);
+    await assertCol('email', line, 4, DOC_URI, usersSelectRange, emailColumnRange);
+    await assertCol('one', line, 11, DOC_URI, testSelectRange, testTableColumn1);
     line++;
-    await assertCol('id', docUri, new Position(line, 5), new Range(line, 4, line, 6), tableExistsDoc, tableExistsSelect, tableExistsId);
+    await assertCol('id', line, 4, tableExistsDoc, tableExistsSelect, tableExistsId);
     line++;
-    await assertCol('t.id', docUri, new Position(line, 5), new Range(line, 4, line, 8), tableExistsDoc, tableExistsSelect, tableExistsId);
+    await assertCol('t.id', line, 4, tableExistsDoc, tableExistsSelect, tableExistsId);
     line++;
-    await assertCol('test_table.two', docUri, new Position(line, 5), new Range(line, 4, line, 18), docUri, testSelectRange, testTableColumn2);
+    await assertCol('test_table.two', line, 4, DOC_URI, testSelectRange, testTableColumn2);
     line++;
-    await assertCol('test_table.dv', docUri, new Position(line, 5), new Range(line, 4, line, 17), docUri, testSelectRange, u1DivisionColumnRange);
+    await assertCol('test_table.dv', line, 4, DOC_URI, testSelectRange, u1DivisionColumnRange);
     line++;
-    await assertCol('dv', docUri, new Position(line, 5), new Range(line, 4, line, 6), docUri, testSelectRange, u1DivisionColumnRange);
+    await assertCol('dv', line, 4, DOC_URI, testSelectRange, u1DivisionColumnRange);
     line++;
-    await assertCol('ct2.now', docUri, new Position(line, 5), new Range(line, 4, line, 11), currentTimeDoc, timeOfDaySelect, timeOfDaySelect);
+    await assertCol('ct2.now', line, 4, currentTimeDoc, timeOfDaySelect, timeOfDaySelect);
     line++;
-    await assertCol('ct1.hour', docUri, new Position(line, 5), new Range(line, 4, line, 12), currentTimeDoc, timeOfDaySelect, timeOfDaySelect);
+    await assertCol('ct1.hour', line, 4, currentTimeDoc, timeOfDaySelect, timeOfDaySelect);
     line++;
-    await assertCol('star.star_test1', docUri, new Position(line, 5), new Range(line, 4, line, 19), docUri, starSelect, starColumn1);
+    await assertCol('star.star_test1', line, 4, DOC_URI, starSelect, starColumn1);
     line++;
-    await assertCol('another_alias.star_test1', docUri, new Position(line, 5), new Range(line, 4, line, 28), docUri, starSelect, starColumn1);
+    await assertCol('another_alias.star_test1', line, 4, DOC_URI, starSelect, starColumn1);
     line++;
-    await assertCol('grouping_email', docUri, new Position(line, 5), new Range(line, 4, line, 18), docUri, grTableSelectRange, grEmailColumnRange);
+    await assertCol('grouping_email', line, 4, DOC_URI, grTableSelectRange, grEmailColumnRange);
     line++;
-    await assertCol('this_is_one', docUri, new Position(line, 5), new Range(line, 4, line, 15), docUri, distinctSelectRange, starTest1ColumnRange);
+    await assertCol('this_is_one', line, 4, DOC_URI, distinctSelectRange, starTest1ColumnRange);
   });
-});
 
-function assertCol(
-  columnName: string,
-  docUri: Uri,
-  clickPosition: Position,
-  originSelectionRange: Range,
-  targetUri: Uri,
-  targetRange: Range,
-  targetSelectionRange: Range,
-): Promise<void> {
-  console.log(`Check definitions for column ${columnName}. Click line: ${clickPosition.line}`);
-  return assertDefinitions(docUri, clickPosition, [
-    {
-      originSelectionRange,
-      targetUri,
-      targetRange,
-      targetSelectionRange,
-    },
-  ]);
-}
+  function assertCol(columnName: string, line: number, char: number, targetUri: Uri, targetRange: Range, targetSelectionRange: Range): Promise<void> {
+    const originSelectionRange = new Range(new Position(line, char), new Position(line, char + columnName.length));
+    const clickPosition = new Position(line, char + 1);
+    console.log(`Check definitions for column ${columnName}. Click line: ${line}`);
+
+    return assertDefinitions(DOC_URI, clickPosition, [
+      {
+        originSelectionRange,
+        targetUri,
+        targetRange,
+        targetSelectionRange,
+      },
+    ]);
+  }
+});
