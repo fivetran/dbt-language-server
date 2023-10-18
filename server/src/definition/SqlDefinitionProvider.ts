@@ -110,14 +110,7 @@ export class SqlDefinitionProvider {
                 if (targetRange) {
                   const targetSelect = queryInformation.selects.find(s => rangesEqual(targetSelectLocation, s.parseLocationRange));
 
-                  let targetColumnRawRange = targetRange;
-                  if (targetSelect) {
-                    const targetColumn = targetSelect.columns.find(c => c.alias === clickedColumn.name || c.namePath.at(-1) === clickedColumn.name);
-                    if (targetColumn) {
-                      targetColumnRawRange = Range.create(targetColumn.rawRange.start, targetColumn.rawRange.end);
-                    }
-                  }
-
+                  const targetColumnRawRange = this.getTargetColumnOrAlias(targetSelect, clickedColumn.name) ?? targetRange;
                   return [LocationLink.create(rawDocument.uri, targetRange, targetColumnRawRange, column.rawRange)];
                 }
               }
@@ -133,18 +126,32 @@ export class SqlDefinitionProvider {
     return undefined;
   }
 
+  getTargetColumnOrAlias(select: QueryParseInformationSelect | undefined, clickedColumnName: string): Range | undefined {
+    if (!select) {
+      return undefined;
+    }
+
+    const targetAlias = select.columns.find(c => c.alias?.id === clickedColumnName)?.alias;
+    if (targetAlias) {
+      return Range.create(targetAlias.rawRange.start, targetAlias.rawRange.end);
+    }
+
+    const targetColumn = select.columns.find(c => c.canBeTarget && c.namePath.at(-1) === clickedColumnName);
+    if (targetColumn) {
+      return Range.create(targetColumn.rawRange.start, targetColumn.rawRange.end);
+    }
+
+    return undefined;
+  }
+
   getRefModelColumnPosition(refModel: ManifestModel, column: QueryParseInformationSelectColumn): LocationLink | undefined {
     const queryInformation = this.projectAnalyzeResults.getQueryParseInformation(refModel.uniqueId);
     const mainSelect = this.findMainSelect(queryInformation);
     if (mainSelect) {
       const name = column.namePath.at(-1);
-      const targetColumn = mainSelect.columns.find(c => c.alias === name || c.namePath.at(-1) === name);
       const targetRange = this.projectAnalyzeResults.getRanges(refModel.uniqueId, mainSelect.parseLocationRange)?.rawRange;
-      if (targetRange) {
-        let targetColumnRawRange = targetRange;
-        if (targetColumn) {
-          targetColumnRawRange = Range.create(targetColumn.rawRange.start, targetColumn.rawRange.end);
-        }
+      if (name && targetRange) {
+        const targetColumnRawRange = this.getTargetColumnOrAlias(mainSelect, name) ?? targetRange;
         const uri = URI.file(this.dbtRepository.getNodeFullPath(refModel)).toString();
         return LocationLink.create(uri, targetRange, targetColumnRawRange, column.rawRange);
       }

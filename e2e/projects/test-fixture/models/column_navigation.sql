@@ -1,5 +1,6 @@
 with users_table as (
   select
+    coalesce(email),
     email,
     id as user_id, 2 as two
   from {{ source('new_project', 'users') }}
@@ -56,7 +57,17 @@ with users_table as (
   select email, user_id from users_table
   union all
   select email, user_id from users_table
-)
+), complex_column as (
+  select 
+    sum(
+      case 
+        when user_id > 0
+        then user_id
+        else 0
+      end
+    ) as sum_result
+  from users_table
+) 
 select
     star.*,
     email, one,
@@ -70,7 +81,8 @@ select
     star.star_test1,
     another_alias.star_test1,
     grouping_email,
-    this_is_one
+    this_is_one,
+    sum_result,
 from test_table
 inner join users_table on users_table.user_id = test_table.one
 inner join {{ ref('table_exists') }} as t on t.id = test_table.one
@@ -80,3 +92,4 @@ inner join star on star.star_test1 = test_table.one
 inner join star as another_alias on another_alias.star_test1 = test_table.one
 inner join gr_table on grouping_email = email
 cross join select_distinct
+cross join complex_column

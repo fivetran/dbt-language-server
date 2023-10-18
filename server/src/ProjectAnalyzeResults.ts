@@ -15,7 +15,12 @@ export interface QueryParseInformationSelectColumn {
   namePath: string[];
   rawRange: Range;
   compiledRange: Range;
-  alias?: string;
+  alias?: {
+    id: string;
+    rawRange: Range;
+    compiledRange: Range;
+  };
+  canBeTarget: boolean;
 }
 
 export interface QueryParseInformationSelect {
@@ -86,12 +91,21 @@ export class ProjectAnalyzeResults {
     return {
       selects: parseResult.selects.map<QueryParseInformationSelect>(s => ({
         columns: s.columns.map(c => {
-          const ranges = this.convertParseLocation(compiledDocument, converter, c.parseLocationRange);
+          const columnRanges = this.convertParseLocation(compiledDocument, converter, c.parseLocationRange);
+          const aliasRanges = c.alias ? this.convertParseLocation(compiledDocument, converter, c.alias.parseLocationRange) : undefined;
           return {
             namePath: c.namePath,
-            compiledRange: ranges.compiledRange,
-            rawRange: ranges.rawRange,
-            alias: c.alias,
+            compiledRange: columnRanges.compiledRange,
+            rawRange: columnRanges.rawRange,
+            alias:
+              c.alias && aliasRanges
+                ? {
+                    id: c.alias.id,
+                    compiledRange: aliasRanges.compiledRange,
+                    rawRange: aliasRanges.rawRange,
+                  }
+                : undefined,
+            canBeTarget: c.canBeTarget,
           };
         }),
         tableAliases: s.tableAliases,
