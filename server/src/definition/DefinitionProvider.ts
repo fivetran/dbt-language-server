@@ -1,7 +1,6 @@
 import { DefinitionLink, DefinitionParams } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { JinjaParser } from '../JinjaParser';
-import { AnalyzeResult } from '../ProjectAnalyzer';
 import { positionInRange } from '../utils/Utils';
 import { DbtDefinitionProvider } from './DbtDefinitionProvider';
 import { SqlDefinitionProvider } from './SqlDefinitionProvider';
@@ -17,7 +16,6 @@ export class DefinitionProvider {
     definitionParams: DefinitionParams,
     rawDocument: TextDocument,
     compiledDocument: TextDocument,
-    analyzeResult?: AnalyzeResult,
   ): Promise<DefinitionLink[] | undefined> {
     const jinjas = this.jinjaParser.findAllEffectiveJinjas(rawDocument);
     for (const jinja of jinjas) {
@@ -27,6 +25,6 @@ export class DefinitionProvider {
       }
     }
 
-    return this.sqlDefinitionProvider.provideDefinitions(definitionParams, analyzeResult, rawDocument, compiledDocument);
+    return this.sqlDefinitionProvider.provideDefinitions(definitionParams, rawDocument, compiledDocument);
   }
 }

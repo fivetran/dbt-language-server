@@ -109,7 +109,7 @@ function createLspServerForProject(
   const dbtDefinitionProvider = new DbtDefinitionProvider(dbtRepository);
   const definitionProvider = new DefinitionProvider(jinjaParser, sqlDefinitionProvider, dbtDefinitionProvider);
   const signatureHelpProvider = new SignatureHelpProvider();
-  const hoverProvider = new HoverProvider();
+  const hoverProvider = new HoverProvider(projectAnalyzeResults);
   const openedDocuments = new Map<string, DbtTextDocument>();
 
   const projectChangeListener = new ProjectChangeListener(

@@ -2,7 +2,7 @@ import { Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtRepository } from './DbtRepository';
 import { PositionConverter } from './PositionConverter';
-import { ModelsAnalyzeResult } from './ProjectAnalyzer';
+import { AnalyzeResult, ModelsAnalyzeResult } from './ProjectAnalyzer';
 import { Location } from './ZetaSqlAst';
 import { ParseResult } from './ZetaSqlParser';
 import { ManifestModel } from './manifest/ManifestJson';
@@ -82,6 +82,11 @@ export class ProjectAnalyzeResults {
   getQueryParseInformationByUri(uri: string): QueryParseInformation | undefined {
     const modelUniqueId = this.dbtRepository.dag.getNodeByUri(uri)?.getValue().uniqueId;
     return modelUniqueId ? this.getQueryParseInformation(modelUniqueId) : undefined;
+  }
+
+  getAnalyzeResultByUri(uri: string): AnalyzeResult | undefined {
+    const modelUniqueId = this.dbtRepository.dag.getNodeByUri(uri)?.getValue().uniqueId;
+    return this.results?.find(r => r.modelUniqueId === modelUniqueId)?.analyzeResult;
   }
 
   static calculateQueryInformation(parseResult: ParseResult, rawDocumentText: string, compiledDocumentText: string): QueryParseInformation {

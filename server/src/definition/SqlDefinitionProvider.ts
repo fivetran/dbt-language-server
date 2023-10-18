@@ -10,7 +10,6 @@ import {
   QueryParseInformationSelect,
   QueryParseInformationSelectColumn,
 } from '../ProjectAnalyzeResults';
-import { AnalyzeResult } from '../ProjectAnalyzer';
 import { Location } from '../ZetaSqlAst';
 import { DbtTextDocument } from '../document/DbtTextDocument';
 import { ManifestModel } from '../manifest/ManifestJson';
@@ -27,11 +26,11 @@ export class SqlDefinitionProvider {
 
   async provideDefinitions(
     definitionParams: DefinitionParams,
-    analyzeResult: AnalyzeResult | undefined,
     rawDocument: TextDocument,
     compiledDocument: TextDocument,
   ): Promise<DefinitionLink[] | undefined> {
     const queryInformation = this.projectAnalyzeResults.getQueryParseInformationByUri(rawDocument.uri);
+    const analyzeResult = this.projectAnalyzeResults.getAnalyzeResultByUri(rawDocument.uri);
     if (!queryInformation || !analyzeResult?.ast.isOk()) {
       return undefined;
     }
