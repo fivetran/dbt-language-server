@@ -22,7 +22,11 @@ interface KnownSelect {
 interface KnownColumn {
   namePath: string[];
   parseLocationRange: ParseLocationRangeProto__Output;
-  alias?: string;
+  alias?: {
+    id: string;
+    parseLocationRange: ParseLocationRangeProto__Output;
+  };
+  canBeTarget: boolean;
 }
 
 export interface ParseResult {
@@ -77,7 +81,7 @@ export class ZetaSqlParser {
                   parentSelect.push(select);
                   result.selects.push(select);
 
-                  typedNode.selectList?.columns.forEach(c => select.columns.push(...this.getColumns(c.expression, c.alias ?? undefined)));
+                  typedNode.selectList?.columns.forEach(c => select.columns.push(...this.getColumns(c.expression, true, c.alias ?? undefined)));
                 }
               },
               actionAfter: () => parentSelect.pop(),
@@ -107,7 +111,7 @@ export class ZetaSqlParser {
     return result;
   }
 
-  getColumns(node: AnyASTExpressionProto__Output | null, alias?: ASTAliasProto__Output): KnownColumn[] {
+  getColumns(node: AnyASTExpressionProto__Output | null, canBeTarget: boolean, alias?: ASTAliasProto__Output): KnownColumn[] {
     if (!node) {
       return [];
     }
@@ -117,9 +121,9 @@ export class ZetaSqlParser {
       case 'astAnalyticFunctionCallNode': {
         const analyticFunction = node.astAnalyticFunctionCallNode;
         if (analyticFunction) {
-          columns.push(...this.getColumns(analyticFunction.expression));
-          analyticFunction.windowSpec?.partitionBy?.partitioningExpressions.forEach(p => columns.push(...this.getColumns(p, alias)));
-          analyticFunction.windowSpec?.orderBy?.orderingExpressions.forEach(p => columns.push(...this.getColumns(p.expression, alias)));
+          columns.push(...this.getColumns(analyticFunction.expression, false));
+          analyticFunction.windowSpec?.partitionBy?.partitioningExpressions.forEach(p => columns.push(...this.getColumns(p, false, alias)));
+          analyticFunction.windowSpec?.orderBy?.orderingExpressions.forEach(p => columns.push(...this.getColumns(p.expression, false, alias)));
         }
         break;
       }
@@ -132,6 +136,7 @@ export class ZetaSqlParser {
               this.createColumn(
                 pathExpression.names.map(n => n.idString),
                 parseLocationRange,
+                canBeTarget,
                 alias,
               ),
             );
@@ -140,7 +145,7 @@ export class ZetaSqlParser {
 
         const arrayElement = node.astGeneralizedPathExpressionNode?.astArrayElementNode;
         if (arrayElement) {
-          columns.push(...this.getColumns(arrayElement.array, alias));
+          columns.push(...this.getColumns(arrayElement.array, canBeTarget, alias));
         }
         break;
       }
@@ -150,92 +155,95 @@ export class ZetaSqlParser {
           const valueNode = leafNode[leafNode.node];
           const parseLocationRange = valueNode?.parent?.parent?.parent?.parseLocationRange;
           if (parseLocationRange) {
-            columns.push(this.createColumn([], parseLocationRange, alias));
+            columns.push(this.createColumn([], parseLocationRange, canBeTarget, alias));
           }
         }
         break;
       }
       case 'astFunctionCallNode': {
         const functionCallNode = node.astFunctionCallNode;
-        functionCallNode?.arguments.forEach(c => columns.push(...this.getColumns(c, alias)));
-        functionCallNode?.orderBy?.orderingExpressions.forEach(c => columns.push(...this.getColumns(c.expression, alias)));
+        functionCallNode?.arguments.forEach(c => columns.push(...this.getColumns(c, false, alias)));
+        functionCallNode?.orderBy?.orderingExpressions.forEach(c => columns.push(...this.getColumns(c.expression, false, alias)));
         break;
       }
       case 'astBinaryExpressionNode': {
         if (node.astBinaryExpressionNode) {
-          columns.push(...this.getColumns(node.astBinaryExpressionNode.lhs, alias), ...this.getColumns(node.astBinaryExpressionNode.rhs, alias));
+          columns.push(
+            ...this.getColumns(node.astBinaryExpressionNode.lhs, canBeTarget, alias),
+            ...this.getColumns(node.astBinaryExpressionNode.rhs, canBeTarget, alias),
+          );
         }
         break;
       }
       case 'astInExpressionNode': {
         if (node.astInExpressionNode) {
-          columns.push(...this.getColumns(node.astInExpressionNode.lhs, alias));
+          columns.push(...this.getColumns(node.astInExpressionNode.lhs, false, alias));
         }
         if (node.astInExpressionNode?.inList) {
-          node.astInExpressionNode.inList.list.forEach(c => columns.push(...this.getColumns(c, alias)));
+          node.astInExpressionNode.inList.list.forEach(c => columns.push(...this.getColumns(c, false, alias)));
         }
         break;
       }
       case 'astAndExprNode': {
-        node.astAndExprNode?.conjuncts.forEach(c => columns.push(...this.getColumns(c, alias)));
+        node.astAndExprNode?.conjuncts.forEach(c => columns.push(...this.getColumns(c, false, alias)));
         break;
       }
       case 'astOrExprNode': {
-        node.astOrExprNode?.disjuncts.forEach(c => columns.push(...this.getColumns(c, alias)));
+        node.astOrExprNode?.disjuncts.forEach(c => columns.push(...this.getColumns(c, false, alias)));
         break;
       }
       case 'astUnaryExpressionNode': {
         if (node.astUnaryExpressionNode) {
-          columns.push(...this.getColumns(node.astUnaryExpressionNode.operand, alias));
+          columns.push(...this.getColumns(node.astUnaryExpressionNode.operand, false, alias));
         }
         break;
       }
       case 'astArrayConstructorNode': {
-        node.astArrayConstructorNode?.elements.forEach(c => columns.push(...this.getColumns(c, alias)));
+        node.astArrayConstructorNode?.elements.forEach(c => columns.push(...this.getColumns(c, false, alias)));
         break;
       }
       case 'astBetweenExpressionNode': {
         if (node.astBetweenExpressionNode) {
           columns.push(
-            ...this.getColumns(node.astBetweenExpressionNode.lhs, alias),
-            ...this.getColumns(node.astBetweenExpressionNode.low, alias),
-            ...this.getColumns(node.astBetweenExpressionNode.high, alias),
+            ...this.getColumns(node.astBetweenExpressionNode.lhs, false, alias),
+            ...this.getColumns(node.astBetweenExpressionNode.low, false, alias),
+            ...this.getColumns(node.astBetweenExpressionNode.high, false, alias),
           );
         }
         break;
       }
       case 'astCaseNoValueExpressionNode': {
-        node.astCaseNoValueExpressionNode?.arguments.forEach(c => columns.push(...this.getColumns(c, alias)));
+        node.astCaseNoValueExpressionNode?.arguments.forEach(c => columns.push(...this.getColumns(c, false, alias)));
         break;
       }
       case 'astCaseValueExpressionNode': {
-        node.astCaseValueExpressionNode?.arguments.forEach(c => columns.push(...this.getColumns(c, alias)));
+        node.astCaseValueExpressionNode?.arguments.forEach(c => columns.push(...this.getColumns(c, false, alias)));
         break;
       }
       case 'astCastExpressionNode': {
         if (node.astCastExpressionNode) {
-          columns.push(...this.getColumns(node.astCastExpressionNode.expr, alias));
+          columns.push(...this.getColumns(node.astCastExpressionNode.expr, false, alias));
         }
         break;
       }
       case 'astBitwiseShiftExpressionNode': {
         if (node.astBitwiseShiftExpressionNode) {
           columns.push(
-            ...this.getColumns(node.astBitwiseShiftExpressionNode.lhs, alias),
-            ...this.getColumns(node.astBitwiseShiftExpressionNode.rhs, alias),
+            ...this.getColumns(node.astBitwiseShiftExpressionNode.lhs, false, alias),
+            ...this.getColumns(node.astBitwiseShiftExpressionNode.rhs, false, alias),
           );
         }
         break;
       }
       case 'astBracedConstructorFieldValueNode': {
         if (node.astBracedConstructorFieldValueNode) {
-          columns.push(...this.getColumns(node.astBracedConstructorFieldValueNode.expression, alias));
+          columns.push(...this.getColumns(node.astBracedConstructorFieldValueNode.expression, false, alias));
         }
         break;
       }
       case 'astLikeExpressionNode': {
         if (node.astLikeExpressionNode) {
-          columns.push(...this.getColumns(node.astLikeExpressionNode.lhs, alias));
+          columns.push(...this.getColumns(node.astLikeExpressionNode.lhs, false, alias));
         }
         break;
       }
@@ -246,11 +254,23 @@ export class ZetaSqlParser {
     return columns;
   }
 
-  private createColumn(namePath: string[], parseLocationRange: ParseLocationRangeProto__Output, alias?: ASTAliasProto__Output): KnownColumn {
+  private createColumn(
+    namePath: string[],
+    parseLocationRange: ParseLocationRangeProto__Output,
+    canBeTarget: boolean,
+    alias?: ASTAliasProto__Output,
+  ): KnownColumn {
     return {
       namePath,
       parseLocationRange,
-      alias: alias?.identifier?.idString,
+      alias:
+        alias?.identifier && alias.parent?.parseLocationRange
+          ? {
+              id: alias.identifier.idString,
+              parseLocationRange: alias.parent.parseLocationRange,
+            }
+          : undefined,
+      canBeTarget,
     };
   }
 
