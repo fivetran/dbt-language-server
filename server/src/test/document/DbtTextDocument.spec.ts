@@ -108,7 +108,7 @@ describe('DbtTextDocument', () => {
     await sleepMoreThanDebounceTime();
 
     document.willSaveTextDocument(TextDocumentSaveReason.Manual);
-    await document.didSaveTextDocument();
+    await document.didSaveTextDocument(false);
     await sleepMoreThanDebounceTime();
 
     // assert
@@ -124,7 +124,7 @@ describe('DbtTextDocument', () => {
     await sleepMoreThanDebounceTime();
 
     document.willSaveTextDocument(TextDocumentSaveReason.AfterDelay);
-    await document.didSaveTextDocument();
+    await document.didSaveTextDocument(false);
     await sleepMoreThanDebounceTime();
 
     // assert
@@ -164,7 +164,7 @@ describe('DbtTextDocument', () => {
 
     // act
     document.didChangeTextDocument({ textDocument: VersionedTextDocumentIdentifier.create(FILE_URI, 1), contentChanges: [] });
-    await document.didSaveTextDocument();
+    await document.didSaveTextDocument(false);
     await sleepMoreThanDebounceTime();
 
     // assert

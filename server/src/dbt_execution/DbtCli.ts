@@ -14,6 +14,7 @@ import slash = require('slash');
 
 export class DbtCli {
   dbtReady = false;
+  projectWasCompiled = false;
   onDbtReadyEmitter = new Emitter<void>();
   projectCompileJob?: DbtCompileJob;
 
@@ -80,6 +81,7 @@ export class DbtCli {
 
     if (result.isOk()) {
       console.log('Project compiled successfully');
+      this.projectWasCompiled = true;
       return ok(undefined);
     }
 

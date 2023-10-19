@@ -337,7 +337,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
 
   async onDidSaveTextDocument(params: DidSaveTextDocumentParams): Promise<void> {
     const document = this.getOpenedDocumentByUri(params.textDocument.uri);
-    await document?.didSaveTextDocument();
+    await document?.didSaveTextDocument(false);
   }
 
   async onDidOpenTextDocument(params: DidOpenTextDocumentParams): Promise<void> {
