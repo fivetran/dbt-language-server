@@ -1,4 +1,3 @@
-import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { CompletionItem, CompletionParams, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DbtRepository } from '../DbtRepository';
@@ -33,7 +32,7 @@ export class CompletionProvider {
     this.dbtCompletionProvider = new DbtCompletionProvider(dbtRepository);
   }
 
-  async provideCompletionItems(completionParams: CompletionParams, ast?: AnalyzeResponse__Output): Promise<CompletionItem[]> {
+  async provideCompletionItems(completionParams: CompletionParams): Promise<CompletionItem[]> {
     const dbtCompletionItems = this.provideDbtCompletions(completionParams);
     if (dbtCompletionItems) {
       return dbtCompletionItems;
@@ -41,7 +40,7 @@ export class CompletionProvider {
     const completionText = this.getCompletionText(completionParams);
     const [tableOrColumn, column] = completionText;
     const snippetItems = this.snippetsCompletionProvider.provideSnippets(column ?? tableOrColumn);
-    const sqlItems = await this.provideSqlCompletions(completionParams, completionText, ast);
+    const sqlItems = await this.provideSqlCompletions(completionParams, completionText);
     return [...snippetItems, ...sqlItems];
   }
 
@@ -64,23 +63,20 @@ export class CompletionProvider {
     return undefined;
   }
 
-  private async provideSqlCompletions(
-    completionParams: CompletionParams,
-    text: CompletionTextInput,
-    ast?: AnalyzeResponse__Output,
-  ): Promise<CompletionItem[]> {
+  private async provideSqlCompletions(completionParams: CompletionParams, text: CompletionTextInput): Promise<CompletionItem[]> {
     if (this.destinationContext.isEmpty()) {
       return [];
     }
 
-    const queryInformation = this.projectAnalyzeResults.getQueryParseInformationByUri(this.rawDocument.uri);
+    const queryInformation = this.projectAnalyzeResults.getQueryParseInformation(this.rawDocument.uri);
     let aliases: Map<string, string> | undefined;
 
     let completionInfo = undefined;
-    if (ast) {
+    const astResult = this.projectAnalyzeResults.getAnalyzeResult(this.rawDocument.uri)?.ast;
+    if (astResult?.isOk()) {
       const line = DiffUtils.getOldLineNumber(this.compiledDocument.getText(), this.rawDocument.getText(), completionParams.position.line);
       const offset = this.compiledDocument.offsetAt(Position.create(line, completionParams.position.character));
-      completionInfo = DbtTextDocument.ZETA_SQL_AST.getCompletionInfo(ast, offset);
+      completionInfo = DbtTextDocument.ZETA_SQL_AST.getCompletionInfo(astResult.value, offset);
 
       aliases = queryInformation?.selects.find(s => offset >= s.parseLocationRange.start && offset <= s.parseLocationRange.end)?.tableAliases;
     }

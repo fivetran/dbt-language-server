@@ -30,7 +30,6 @@ import { ModelProgressReporter } from '../ModelProgressReporter';
 import { NotificationSender } from '../NotificationSender';
 import { PositionConverter } from '../PositionConverter';
 import { ProjectAnalyzeResults } from '../ProjectAnalyzeResults';
-import { AnalyzeResult } from '../ProjectAnalyzer';
 import { ProjectChangeListener } from '../ProjectChangeListener';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { ZetaSqlAst } from '../ZetaSqlAst';
@@ -51,7 +50,6 @@ export class DbtTextDocument {
   compiledDocument: TextDocument;
   requireCompileOnSave: boolean;
 
-  analyzeResult?: AnalyzeResult;
   completionProvider: CompletionProvider;
 
   firstSave = true;
@@ -328,10 +326,10 @@ export class DbtTextDocument {
       const result = await this.projectChangeListener.analyzeModelTree(this.rawDocument.uri, compiledSql);
       if (result) {
         const { fsPath } = URI.parse(this.rawDocument.uri);
+
         if (result.analyzeResult.ast.isOk()) {
+          this.projectAnalyzeResults.updateModel(this.rawDocument.uri, result);
           console.log(`AST was successfully received for ${fsPath}`, LogLevel.Debug);
-          this.analyzeResult = result.analyzeResult;
-          this.projectAnalyzeResults.updateModel(result);
         } else {
           console.log(`There was an error while analyzing ${fsPath}`, LogLevel.Debug);
           console.log(result.analyzeResult.ast, LogLevel.Debug);
@@ -361,18 +359,11 @@ export class DbtTextDocument {
   onHover(hoverParams: HoverParams): Hover | null {
     const range = getIdentifierRangeAtPosition(hoverParams.position, this.rawDocument.getText());
     const text = this.rawDocument.getText(range);
-    return this.hoverProvider.hoverOnText(
-      text,
-      this.analyzeResult?.ast.isOk() ? this.analyzeResult.ast.value : undefined,
-      this.destinationContext.getDestination(),
-    );
+    return this.hoverProvider.hoverOnText(text, this.rawDocument.uri, this.destinationContext.getDestination());
   }
 
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[]> {
-    return this.completionProvider.provideCompletionItems(
-      completionParams,
-      this.analyzeResult?.ast.isOk() ? this.analyzeResult.ast.value : undefined,
-    );
+    return this.completionProvider.provideCompletionItems(completionParams);
   }
 
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
@@ -389,7 +380,7 @@ export class DbtTextDocument {
   }
 
   async onDefinition(definitionParams: DefinitionParams): Promise<DefinitionLink[] | undefined> {
-    return this.definitionProvider.onDefinition(definitionParams, this.rawDocument, this.compiledDocument, this.analyzeResult);
+    return this.definitionProvider.onDefinition(definitionParams, this.rawDocument, this.compiledDocument);
   }
 
   dispose(): void {

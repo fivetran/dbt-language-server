@@ -1,15 +1,17 @@
 import { TypeKind__Output } from '@fivetrandevelopers/zetasql';
-import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { Hover, MarkupKind } from 'vscode-languageserver';
 import { HelpProviderWords } from './HelpProviderWords';
+import { ProjectAnalyzeResults } from './ProjectAnalyzeResults';
 import { SupportedDestinations } from './ZetaSqlApi';
 import { ZetaSqlAst } from './ZetaSqlAst';
 import { TYPE_KIND_NAMES } from './utils/ZetaSqlUtils';
 
 export class HoverProvider {
+  constructor(private projectAnalyzeResults: ProjectAnalyzeResults) {}
+
   static ZETA_SQL_AST = new ZetaSqlAst();
 
-  hoverOnText(text: string, ast: AnalyzeResponse__Output | undefined, destination?: SupportedDestinations): Hover | null {
+  hoverOnText(text: string, documentUri: string, destination?: SupportedDestinations): Hover | null {
     if (destination !== 'snowflake') {
       const index = HelpProviderWords.findIndex(w => w.name === text.toLocaleLowerCase());
       if (index !== -1) {
@@ -23,10 +25,11 @@ export class HoverProvider {
       }
     }
 
-    if (!ast) {
+    const astResult = this.projectAnalyzeResults.getAnalyzeResult(documentUri)?.ast;
+    if (!astResult?.isOk()) {
       return null;
     }
-    const hoverInfo = HoverProvider.ZETA_SQL_AST.getHoverInfo(ast, text);
+    const hoverInfo = HoverProvider.ZETA_SQL_AST.getHoverInfo(astResult.value, text);
 
     let hint;
     if (hoverInfo.outputColumn) {

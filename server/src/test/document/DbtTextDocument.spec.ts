@@ -54,6 +54,7 @@ describe('DbtTextDocument', () => {
 
     const dbtRepository = new DbtRepository(PROJECT_PATH, Promise.resolve(undefined));
     destinationContext = new DestinationContext(true);
+    const mockProjectAnalyzeResults = mock(ProjectAnalyzeResults);
     document = new DbtTextDocument(
       { uri: FILE_URI, languageId: 'sql', version: 1, text: TEXT },
       DbtDocumentKind.MODEL,
@@ -66,10 +67,10 @@ describe('DbtTextDocument', () => {
       destinationContext,
       new DiagnosticGenerator(dbtRepository),
       new SignatureHelpProvider(),
-      new HoverProvider(),
+      new HoverProvider(mockProjectAnalyzeResults),
       mock(DefinitionProvider),
       instance(mockProjectChangeListener),
-      mock(ProjectAnalyzeResults),
+      mockProjectAnalyzeResults,
     );
   });
 

@@ -1,8 +1,9 @@
 import { Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { URI } from 'vscode-uri';
 import { DbtRepository } from './DbtRepository';
 import { PositionConverter } from './PositionConverter';
-import { ModelsAnalyzeResult } from './ProjectAnalyzer';
+import { AnalyzeResult, ModelsAnalyzeResult } from './ProjectAnalyzer';
 import { Location } from './ZetaSqlAst';
 import { ParseResult } from './ZetaSqlParser';
 import { ManifestModel } from './manifest/ManifestJson';
@@ -40,38 +41,38 @@ interface Ranges {
 }
 
 export class ProjectAnalyzeResults {
-  results?: ModelsAnalyzeResult[];
+  results: Map<string, ModelsAnalyzeResult> = new Map();
   queryParseInformations: Map<string, QueryParseInformation> = new Map();
 
   constructor(private dbtRepository: DbtRepository) {}
 
-  update(results?: ModelsAnalyzeResult[]): void {
-    this.results = results;
-  }
-
-  updateModel(result: ModelsAnalyzeResult): void {
-    this.queryParseInformations.delete(result.modelUniqueId);
-    const existing = this.results?.find(r => r.modelUniqueId === result.modelUniqueId);
-    if (existing) {
-      existing.analyzeResult = result.analyzeResult;
-    } else if (this.results) {
-      this.results.push(result);
-    } else {
-      this.results = [result];
+  update(results: ModelsAnalyzeResult[]): void {
+    for (const result of results) {
+      const refModel = this.dbtRepository.dag.getNodeByUniqueId(result.modelUniqueId)?.getValue();
+      if (refModel) {
+        const uri = URI.file(this.dbtRepository.getNodeFullPath(refModel)).toString();
+        this.updateModel(uri, result);
+      }
     }
   }
 
-  getQueryParseInformation(modelUniqueId: string): QueryParseInformation | undefined {
-    let parseInformation = this.queryParseInformations.get(modelUniqueId);
+  updateModel(uri: string, result: ModelsAnalyzeResult): void {
+    this.queryParseInformations.delete(uri);
+    this.results.set(uri, result);
+  }
+
+  getQueryParseInformation(uri: string): QueryParseInformation | undefined {
+    let parseInformation = this.queryParseInformations.get(uri);
     if (!parseInformation) {
-      const parseResult = this.results?.find(r => r.modelUniqueId === modelUniqueId)?.analyzeResult.parseResult;
+      const result = this.results.get(uri);
+      const parseResult = result?.analyzeResult.parseResult;
       if (parseResult) {
-        const model = this.dbtRepository.dag.getNodeByUniqueId(modelUniqueId)?.getValue();
+        const model = this.dbtRepository.dag.getNodeByUniqueId(result.modelUniqueId)?.getValue();
         if (model?.rawCode) {
           const compiledCode = this.dbtRepository.getModelCompiledCode(model);
           if (compiledCode) {
             parseInformation = ProjectAnalyzeResults.calculateQueryInformation(parseResult, model.rawCode, compiledCode);
-            this.queryParseInformations.set(modelUniqueId, parseInformation);
+            this.queryParseInformations.set(result.modelUniqueId, parseInformation);
           }
         }
       }
@@ -79,12 +80,16 @@ export class ProjectAnalyzeResults {
     return parseInformation;
   }
 
-  getQueryParseInformationByUri(uri: string): QueryParseInformation | undefined {
-    const modelUniqueId = this.dbtRepository.dag.getNodeByUri(uri)?.getValue().uniqueId;
-    return modelUniqueId ? this.getQueryParseInformation(modelUniqueId) : undefined;
+  getAnalyzeResult(uri: string): AnalyzeResult | undefined {
+    return this.results.get(uri)?.analyzeResult;
   }
 
-  static calculateQueryInformation(parseResult: ParseResult, rawDocumentText: string, compiledDocumentText: string): QueryParseInformation {
+  getRanges(uri: string, parseLocationRange: Location): Ranges | undefined {
+    const model = this.dbtRepository.dag.getNodeByUri(uri)?.getValue();
+    return this.getRangesByModel(model, parseLocationRange);
+  }
+
+  private static calculateQueryInformation(parseResult: ParseResult, rawDocumentText: string, compiledDocumentText: string): QueryParseInformation {
     const converter = new PositionConverter(rawDocumentText, compiledDocumentText);
     const compiledDocument = TextDocument.create('', '', 0, compiledDocumentText);
 
@@ -114,16 +119,6 @@ export class ProjectAnalyzeResults {
         isNested: s.isNested,
       })),
     };
-  }
-
-  getRangesByUri(uri: string, parseLocationRange: Location): Ranges | undefined {
-    const model = this.dbtRepository.dag.getNodeByUri(uri)?.getValue();
-    return this.getRangesByModel(model, parseLocationRange);
-  }
-
-  getRanges(modelUniqueId: string, parseLocationRange: Location): Ranges | undefined {
-    const model = this.dbtRepository.dag.getNodeByUniqueId(modelUniqueId)?.getValue();
-    return this.getRangesByModel(model, parseLocationRange);
   }
 
   private getRangesByModel(model: ManifestModel | undefined, parseLocationRange: Location): Ranges | undefined {
