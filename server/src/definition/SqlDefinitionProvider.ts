@@ -29,8 +29,8 @@ export class SqlDefinitionProvider {
     rawDocument: TextDocument,
     compiledDocument: TextDocument,
   ): Promise<DefinitionLink[] | undefined> {
-    const queryInformation = this.projectAnalyzeResults.getQueryParseInformationByUri(rawDocument.uri);
-    const analyzeResult = this.projectAnalyzeResults.getAnalyzeResultByUri(rawDocument.uri);
+    const queryInformation = this.projectAnalyzeResults.getQueryParseInformation(rawDocument.uri);
+    const analyzeResult = this.projectAnalyzeResults.getAnalyzeResult(rawDocument.uri);
     if (!queryInformation || !analyzeResult?.ast.isOk()) {
       return undefined;
     }
@@ -105,7 +105,7 @@ export class SqlDefinitionProvider {
               const targetWith = completionInfo.withSubqueries.get(clickedColumn.fromTable);
               const targetSelectLocation = targetWith?.parseLocationRange;
               if (targetWith && targetSelectLocation) {
-                const targetRange = this.projectAnalyzeResults.getRangesByUri(rawDocument.uri, targetSelectLocation)?.rawRange;
+                const targetRange = this.projectAnalyzeResults.getRanges(rawDocument.uri, targetSelectLocation)?.rawRange;
                 if (targetRange) {
                   const targetSelect = queryInformation.selects.find(s => rangesEqual(targetSelectLocation, s.parseLocationRange));
 
@@ -144,14 +144,14 @@ export class SqlDefinitionProvider {
   }
 
   getRefModelColumnPosition(refModel: ManifestModel, column: QueryParseInformationSelectColumn): LocationLink | undefined {
-    const queryInformation = this.projectAnalyzeResults.getQueryParseInformation(refModel.uniqueId);
+    const uri = URI.file(this.dbtRepository.getNodeFullPath(refModel)).toString();
+    const queryInformation = this.projectAnalyzeResults.getQueryParseInformation(uri);
     const mainSelect = this.findMainSelect(queryInformation);
     if (mainSelect) {
       const name = column.namePath.at(-1);
-      const targetRange = this.projectAnalyzeResults.getRanges(refModel.uniqueId, mainSelect.parseLocationRange)?.rawRange;
+      const targetRange = this.projectAnalyzeResults.getRanges(uri, mainSelect.parseLocationRange)?.rawRange;
       if (name && targetRange) {
         const targetColumnRawRange = this.getTargetColumnOrAlias(mainSelect, name) ?? targetRange;
-        const uri = URI.file(this.dbtRepository.getNodeFullPath(refModel)).toString();
         return LocationLink.create(uri, targetRange, targetColumnRawRange, column.rawRange);
       }
     }

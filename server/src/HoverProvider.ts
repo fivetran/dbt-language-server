@@ -25,7 +25,7 @@ export class HoverProvider {
       }
     }
 
-    const astResult = this.projectAnalyzeResults.getAnalyzeResultByUri(documentUri)?.ast;
+    const astResult = this.projectAnalyzeResults.getAnalyzeResult(documentUri)?.ast;
     if (!astResult?.isOk()) {
       return null;
     }

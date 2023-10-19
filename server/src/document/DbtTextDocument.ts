@@ -328,7 +328,7 @@ export class DbtTextDocument {
         const { fsPath } = URI.parse(this.rawDocument.uri);
 
         if (result.analyzeResult.ast.isOk()) {
-          this.projectAnalyzeResults.updateModel(result);
+          this.projectAnalyzeResults.updateModel(this.rawDocument.uri, result);
           console.log(`AST was successfully received for ${fsPath}`, LogLevel.Debug);
         } else {
           console.log(`There was an error while analyzing ${fsPath}`, LogLevel.Debug);

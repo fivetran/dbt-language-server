@@ -68,11 +68,11 @@ export class CompletionProvider {
       return [];
     }
 
-    const queryInformation = this.projectAnalyzeResults.getQueryParseInformationByUri(this.rawDocument.uri);
+    const queryInformation = this.projectAnalyzeResults.getQueryParseInformation(this.rawDocument.uri);
     let aliases: Map<string, string> | undefined;
 
     let completionInfo = undefined;
-    const astResult = this.projectAnalyzeResults.getAnalyzeResultByUri(this.rawDocument.uri)?.ast;
+    const astResult = this.projectAnalyzeResults.getAnalyzeResult(this.rawDocument.uri)?.ast;
     if (astResult?.isOk()) {
       const line = DiffUtils.getOldLineNumber(this.compiledDocument.getText(), this.rawDocument.getText(), completionParams.position.line);
       const offset = this.compiledDocument.offsetAt(Position.create(line, completionParams.position.character));
