@@ -53,7 +53,6 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
   }
 
   updateText(uri: string, previewText: string, refReplacements: RefReplacement[], langId: string): void {
-    console.log(`Updating preview for ${uri}: |${previewText}|`);
     const currentValue = this.previewInfos.get(uri);
 
     this.previewInfos.set(uri, {
@@ -138,7 +137,6 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
         text = text.replaceAll(replacement.from, replacement.to);
       }
     }
-    console.log(`provideTextDocumentContent: ${text}`);
     return text;
   }
 }
