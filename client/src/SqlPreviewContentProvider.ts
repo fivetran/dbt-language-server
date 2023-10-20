@@ -138,6 +138,7 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
         text = text.replaceAll(replacement.from, replacement.to);
       }
     }
+    console.log(`provideTextDocumentContent: ${text}`);
     return text;
   }
 }
