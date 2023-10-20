@@ -30,6 +30,7 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
 
   changeMode(useConfigForRefs: boolean): void {
     this.setUseConfigForRefs(useConfigForRefs);
+    console.log('onDidChangeEmitter.fire from changeMode');
     this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
   }
 
@@ -53,7 +54,6 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
   }
 
   updateText(uri: string, previewText: string, refReplacements: RefReplacement[], langId: string): void {
-    console.log(`Updating preview for ${uri}: |${previewText}|`);
     const currentValue = this.previewInfos.get(uri);
 
     this.previewInfos.set(uri, {
@@ -64,6 +64,7 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
     });
 
     if (uri.toString() === this.activeDocUri.toString()) {
+      console.log('onDidChangeEmitter.fire from updateText');
       this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
     }
   }
@@ -105,6 +106,7 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
       }),
       langId: currentValue?.langId ?? SQL_LANG_ID,
     });
+    console.log('onDidChangeEmitter.fire from updateDiagnostics');
     this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
   }
 
@@ -116,6 +118,7 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
     if (uri.toString() !== this.activeDocUri.toString()) {
       this.activeDocUri = uri;
       this.setUseConfigForRefs(false);
+      console.log('onDidChangeEmitter.fire from changeActiveDocument');
       this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
     }
   }
