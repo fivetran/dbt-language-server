@@ -128,9 +128,9 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
     return this.onDidChangeEmitter.event;
   }
 
-  provideTextDocumentContent(): string {
+  async provideTextDocumentContent(): Promise<string> {
     const previewInfo = this.previewInfos.get(this.activeDocUri.toString());
-    this.updateLangId(previewInfo?.langId ?? SQL_LANG_ID).catch(e => console.log(e));
+    await this.updateLangId(previewInfo?.langId ?? SQL_LANG_ID);
 
     let text = previewInfo?.previewText ?? '';
     if (this.useConfigForRefs) {

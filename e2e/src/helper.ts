@@ -112,7 +112,7 @@ function onDidChangeTextDocument(e: TextDocumentChangeEvent): void {
     ) {
       return;
     }
-    console.log(`Preview changed: ${e.contentChanges[0].text}`);
+    console.log(`Preview changed (dirty=${e.document.isDirty}): ${e.contentChanges[0].text}`);
     previewPromiseResolve();
   } else if (e.document === doc && documentPromiseResolve) {
     documentPromiseResolve();
