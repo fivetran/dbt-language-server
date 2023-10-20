@@ -64,7 +64,7 @@ suite('Errors', () => {
 
     await replaceText('2 as new_date', 'current_date() as new_date');
     await activateAndWait(COMPARE_DATES_URI);
-    await assertAllDiagnostics(COMPARE_DATES_URI, []);
     await assertAllDiagnostics(TABLE_DOES_NOT_EXIST_URI, []);
+    await assertAllDiagnostics(COMPARE_DATES_URI, []);
   });
 });
