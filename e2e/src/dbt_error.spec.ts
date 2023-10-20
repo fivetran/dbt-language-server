@@ -18,7 +18,7 @@ suite('dbt errors', () => {
   const ERROR_LINE = 4;
 
   test('Should show dbt error and clear error after fix', async () => {
-    // 1. Should show error after changing text
+    console.log('1. Should show error after changing text');
     await activateAndWait(DOC_WITH_ERROR);
     await replaceText(ORIGINAL_LINE, LINE_WITH_ERROR);
 
@@ -35,7 +35,7 @@ suite('dbt errors', () => {
       [],
     );
 
-    // 2. Should show error for another document
+    console.log('2. Should show error for another document');
     await activateAndWait(DOC_WITHOUT_ERROR);
 
     await assertAllDiagnostics(DOC_WITHOUT_ERROR, []);
@@ -52,7 +52,7 @@ suite('dbt errors', () => {
       [],
     );
 
-    // 3. Should clear diagnostics for both documents
+    console.log('3. Should clear diagnostics for both documents');
     await activateAndWait(DOC_WITH_ERROR);
     await replaceText(LINE_WITH_ERROR, ORIGINAL_LINE);
 

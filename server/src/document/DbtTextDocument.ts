@@ -147,7 +147,7 @@ export class DbtTextDocument {
             const compiledCode = this.dbtRepository.getModelCompiledCode(model);
             if (compiledCode) {
               this.updateRefReplacements();
-              await this.onCompilationFinished(compiledCode);
+              await this.onCompilationFinished(compiledCode, this.projectChangeListener.currentDbtError?.error);
             }
           }
         } else {
@@ -291,10 +291,10 @@ export class DbtTextDocument {
     await this.updateAndSendDiagnosticsAndPreview(dbtCompilationError);
   }
 
-  async onCompilationFinished(compiledSql: string): Promise<void> {
+  async onCompilationFinished(compiledSql: string, dbtCompilationError?: string): Promise<void> {
     this.updateCompiledCode([{ text: compiledSql }], 1);
     if (this.destinationContext.contextInitialized) {
-      await this.updateAndSendDiagnosticsAndPreview();
+      await this.updateAndSendDiagnosticsAndPreview(dbtCompilationError);
     }
 
     if (!this.modelCompiler.compilationInProgress) {
