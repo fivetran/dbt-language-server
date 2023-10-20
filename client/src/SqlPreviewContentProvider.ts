@@ -106,8 +106,6 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
       }),
       langId: currentValue?.langId ?? SQL_LANG_ID,
     });
-    console.log('onDidChangeEmitter.fire from updateDiagnostics');
-    this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
   }
 
   getPreviewDiagnostics(): Diagnostic[] {
