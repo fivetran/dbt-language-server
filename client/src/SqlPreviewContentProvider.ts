@@ -30,7 +30,6 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
 
   changeMode(useConfigForRefs: boolean): void {
     this.setUseConfigForRefs(useConfigForRefs);
-    console.log('onDidChangeEmitter.fire from changeMode');
     this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
   }
 
@@ -64,7 +63,6 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
     });
 
     if (uri.toString() === this.activeDocUri.toString()) {
-      console.log('onDidChangeEmitter.fire from updateText');
       this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
     }
   }
@@ -116,7 +114,6 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
     if (uri.toString() !== this.activeDocUri.toString()) {
       this.activeDocUri = uri;
       this.setUseConfigForRefs(false);
-      console.log('onDidChangeEmitter.fire from changeActiveDocument');
       this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
     }
   }
@@ -139,7 +136,6 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
         text = text.replaceAll(replacement.from, replacement.to);
       }
     }
-    console.log(`provideTextDocumentContent: ${text}`);
     return text;
   }
 }
