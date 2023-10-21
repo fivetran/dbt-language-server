@@ -137,11 +137,22 @@ export class DbtTextDocument {
     this.firstSave = false;
   }
 
-  async didSaveTextDocument(): Promise<void> {
+  async didSaveTextDocument(openDocument: boolean): Promise<void> {
     if (this.requireCompileOnSave) {
       if (this.dbtCli.dbtReady) {
         this.requireCompileOnSave = false;
-        this.debouncedCompile();
+        if (openDocument && this.dbtCli.projectWasCompiled) {
+          const model = this.dbtRepository.dag.getNodeByUri(this.rawDocument.uri)?.getValue();
+          if (model) {
+            const compiledCode = this.dbtRepository.getModelCompiledCode(model);
+            if (compiledCode) {
+              this.updateRefReplacements();
+              await this.onCompilationFinished(compiledCode, this.projectChangeListener.currentDbtError?.error);
+            }
+          }
+        } else {
+          this.debouncedCompile();
+        }
       }
     } else if (this.projectChangeListener.currentDbtError) {
       await this.onCompilationError(this.projectChangeListener.currentDbtError.error);
@@ -160,7 +171,7 @@ export class DbtTextDocument {
         },
       ],
     });
-    await this.didSaveTextDocument();
+    await this.didSaveTextDocument(true);
   }
 
   didChangeTextDocument(params: DidChangeTextDocumentParams): void {
@@ -210,7 +221,7 @@ export class DbtTextDocument {
   }
 
   async onDbtReady(): Promise<void> {
-    await this.didSaveTextDocument();
+    await this.didSaveTextDocument(false);
   }
 
   isDbtCompileNeeded(changes: TextDocumentContentChangeEvent[]): boolean {
@@ -280,10 +291,10 @@ export class DbtTextDocument {
     await this.updateAndSendDiagnosticsAndPreview(dbtCompilationError);
   }
 
-  async onCompilationFinished(compiledSql: string): Promise<void> {
+  async onCompilationFinished(compiledSql: string, dbtCompilationError?: string): Promise<void> {
     this.updateCompiledCode([{ text: compiledSql }], 1);
     if (this.destinationContext.contextInitialized) {
-      await this.updateAndSendDiagnosticsAndPreview();
+      await this.updateAndSendDiagnosticsAndPreview(dbtCompilationError);
     }
 
     if (!this.modelCompiler.compilationInProgress) {
