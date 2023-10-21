@@ -66,7 +66,7 @@ suite('Errors', () => {
     await assertAllDiagnostics(TABLE_DOES_NOT_EXIST_URI, []);
 
     await activateAndWait(COMPARE_DATES_URI);
-    await sleep(400);
+    await sleep(1400);
     await assertAllDiagnostics(TABLE_DOES_NOT_EXIST_URI, []);
     await assertAllDiagnostics(COMPARE_DATES_URI, []);
   });
