@@ -106,8 +106,9 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
     if (
       uri.toString() === this.activeDocUri.toString() &&
       currentValue &&
-      SqlPreviewContentProvider.diagnosticsAreEqual(currentValue.diagnostics, newValue)
+      !SqlPreviewContentProvider.diagnosticsAreEqual(currentValue.diagnostics, newValue)
     ) {
+      console.log('fire onDidChangeDiagnosticsEmitter');
       this.onDidChangeDiagnosticsEmitter.fire(SqlPreviewContentProvider.URI);
     }
   }
@@ -119,6 +120,7 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
   }
 
   changeActiveDocument(uri: Uri): void {
+    console.log(`changeActiveDocument: ${uri.toString()}`);
     if (uri.toString() !== this.activeDocUri.toString()) {
       this.activeDocUri = uri;
       this.setUseConfigForRefs(false);
