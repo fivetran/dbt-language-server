@@ -107,7 +107,9 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
   }
 
   getPreviewDiagnostics(): Diagnostic[] {
-    return this.previewInfos.get(this.activeDocUri.toString())?.diagnostics ?? [];
+    const result = this.previewInfos.get(this.activeDocUri.toString())?.diagnostics ?? [];
+    console.log(`getPreviewDiagnostics for uri: ${this.activeDocUri.toString()}, result: ${result.length}`);
+    return result;
   }
 
   changeActiveDocument(uri: Uri): void {

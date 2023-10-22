@@ -43,6 +43,8 @@ export class DbtLanguageClientManager {
 
     for (const client of this.clients.values()) {
       const clientDiagnostics = client.getDiagnostics();
+      console.log(`activeDocUri.fsPath: ${this.previewContentProvider.activeDocUri.fsPath}`);
+      console.log(`client.getProjectUri().fsPath: ${client.getProjectUri().fsPath}`);
       clientDiagnostics?.set(
         SqlPreviewContentProvider.URI,
         editor && this.previewContentProvider.activeDocUri.fsPath.startsWith(client.getProjectUri().fsPath) ? previewDiagnostics : [],
