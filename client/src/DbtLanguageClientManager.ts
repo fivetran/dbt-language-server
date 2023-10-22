@@ -29,6 +29,7 @@ export class DbtLanguageClientManager {
     private statusHandler: StatusHandler,
   ) {
     previewContentProvider.onDidChange(() => this.applyPreviewDiagnostics());
+    previewContentProvider.onDidChangeDiagnostics(() => this.applyPreviewDiagnostics());
   }
 
   onDidChangeConfiguration(e: ConfigurationChangeEvent): void {

@@ -47,6 +47,7 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
   activeDocUri: Uri = Uri.parse('');
 
   private onDidChangeEmitter = new EventEmitter<Uri>();
+  private onDidChangeDiagnosticsEmitter = new EventEmitter<Uri>();
 
   static isPreviewDocument(uri: Uri): boolean {
     return uri.path === SqlPreviewContentProvider.URI.path;
@@ -80,30 +81,35 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
       d.severity = DiagnosticSeverity.Error;
     });
     const currentValue = this.previewInfos.get(uri);
+    const newValue = diagnostics.map<Diagnostic>(d => {
+      const diag = new Diagnostic(d.range, d.message, DiagnosticSeverity.Error);
+      if (d.relatedInformation && d.relatedInformation.length > 0) {
+        const newUri = Uri.parse(d.relatedInformation[0].location.uri.toString());
+        const rangeFromServer = d.relatedInformation[0].location.range;
+        const range = new Range(rangeFromServer.start.line, rangeFromServer.start.character, rangeFromServer.end.line, rangeFromServer.end.character);
+        const location = new Location(newUri, range);
+        diag.relatedInformation = [new DiagnosticRelatedInformation(location, d.relatedInformation[0].message)];
+      } else {
+        diag.relatedInformation = [];
+      }
+
+      return diag;
+    });
+
     this.previewInfos.set(uri, {
       previewText: currentValue?.previewText ?? '',
       refReplacements: currentValue?.refReplacements ?? [],
-      diagnostics: diagnostics.map<Diagnostic>(d => {
-        const diag = new Diagnostic(d.range, d.message, DiagnosticSeverity.Error);
-        if (d.relatedInformation && d.relatedInformation.length > 0) {
-          const newUri = Uri.parse(d.relatedInformation[0].location.uri.toString());
-          const rangeFromServer = d.relatedInformation[0].location.range;
-          const range = new Range(
-            rangeFromServer.start.line,
-            rangeFromServer.start.character,
-            rangeFromServer.end.line,
-            rangeFromServer.end.character,
-          );
-          const location = new Location(newUri, range);
-          diag.relatedInformation = [new DiagnosticRelatedInformation(location, d.relatedInformation[0].message)];
-        } else {
-          diag.relatedInformation = [];
-        }
-
-        return diag;
-      }),
+      diagnostics: newValue,
       langId: currentValue?.langId ?? SQL_LANG_ID,
     });
+
+    if (
+      uri.toString() === this.activeDocUri.toString() &&
+      currentValue &&
+      !SqlPreviewContentProvider.diagnosticsAreEqual(currentValue.diagnostics, newValue)
+    ) {
+      this.onDidChangeDiagnosticsEmitter.fire(SqlPreviewContentProvider.URI);
+    }
   }
 
   getPreviewDiagnostics(): Diagnostic[] {
@@ -126,6 +132,10 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
     return this.onDidChangeEmitter.event;
   }
 
+  get onDidChangeDiagnostics(): Event<Uri> {
+    return this.onDidChangeDiagnosticsEmitter.event;
+  }
+
   async provideTextDocumentContent(): Promise<string> {
     const previewInfo = this.previewInfos.get(this.activeDocUri.toString());
     await this.updateLangId(previewInfo?.langId ?? SQL_LANG_ID);
@@ -137,5 +147,28 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
       }
     }
     return text;
+  }
+
+  private static diagnosticsAreEqual(d1: Diagnostic[], d2: Diagnostic[]): boolean {
+    if (d1.length !== d2.length) {
+      return false;
+    }
+
+    for (const [i, diag1] of d1.entries()) {
+      const diag2 = d2[i];
+      if (
+        diag1.message !== diag2.message ||
+        diag1.range.start.line !== diag2.range.start.line ||
+        diag1.range.start.character !== diag2.range.start.character ||
+        diag1.range.end.line !== diag2.range.end.line ||
+        diag1.range.end.character !== diag2.range.end.character ||
+        diag1.severity !== diag2.severity ||
+        diag1.relatedInformation?.length !== diag2.relatedInformation?.length
+      ) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }
