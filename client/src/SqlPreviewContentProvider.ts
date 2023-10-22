@@ -108,19 +108,15 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
       currentValue &&
       !SqlPreviewContentProvider.diagnosticsAreEqual(currentValue.diagnostics, newValue)
     ) {
-      console.log('fire onDidChangeDiagnosticsEmitter');
       this.onDidChangeDiagnosticsEmitter.fire(SqlPreviewContentProvider.URI);
     }
   }
 
   getPreviewDiagnostics(): Diagnostic[] {
-    const result = this.previewInfos.get(this.activeDocUri.toString())?.diagnostics ?? [];
-    console.log(`getPreviewDiagnostics for uri: ${this.activeDocUri.toString()}, result: ${result.length}`);
-    return result;
+    return this.previewInfos.get(this.activeDocUri.toString())?.diagnostics ?? [];
   }
 
   changeActiveDocument(uri: Uri): void {
-    console.log(`changeActiveDocument: ${uri.toString()}`);
     if (uri.toString() !== this.activeDocUri.toString()) {
       this.activeDocUri = uri;
       this.setUseConfigForRefs(false);

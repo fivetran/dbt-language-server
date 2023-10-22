@@ -1,7 +1,7 @@
 import { assertThat, endsWith } from 'hamjest';
-import { Diagnostic, DiagnosticSeverity, Position, Range, Uri, languages } from 'vscode';
+import { Diagnostic, DiagnosticSeverity, Position, Range } from 'vscode';
 import { assertAllDiagnostics } from './asserts';
-import { PREVIEW_URI, activateAndWait, getDocUri, getPreviewText, insertText, replaceText, sleep } from './helper';
+import { activateAndWait, getDocUri, getPreviewText, insertText, replaceText, sleep } from './helper';
 
 suite('Errors', () => {
   const ERRORS_URI = getDocUri('errors.sql');
@@ -67,12 +67,7 @@ suite('Errors', () => {
 
     await activateAndWait(COMPARE_DATES_URI);
     await sleep(1400);
-    const previewDiagnostics = languages.getDiagnostics(Uri.parse(PREVIEW_URI));
-    if (previewDiagnostics.length > 0) {
-      console.log(previewDiagnostics[0].message);
-    } else {
-      console.log('No preview diagnostics');
-    }
+
     await assertAllDiagnostics(TABLE_DOES_NOT_EXIST_URI, []);
     await assertAllDiagnostics(COMPARE_DATES_URI, []);
   });

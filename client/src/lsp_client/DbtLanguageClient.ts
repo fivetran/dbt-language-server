@@ -144,7 +144,6 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
           this.resendDiagnostics(this.previewContentProvider.activeDocUri.toString());
         }
 
-        console.log(`updateQueryPreviewDiagnostics: ${uri}, ${(diagnostics as Diagnostic[]).length}`);
         this.previewContentProvider.updateDiagnostics(uri as string, diagnostics as Diagnostic[]);
       }),
 
