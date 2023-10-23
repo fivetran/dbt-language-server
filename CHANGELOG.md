@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.31.0 (01/01/1970)
+## Version 0.31.0 (23/10/2023)
 ## What's Changed
 * Extended go-to-column functionality to recognize column aliases and locate columns in additional areas within the SELECT statement, as well as in external models.
 * Enabled column autocompletion within CTEs.
