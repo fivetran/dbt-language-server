@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 0.31.0 (01/01/1970)
+## What's Changed
+* Extended go-to-column functionality to recognize column aliases and locate columns in additional areas within the SELECT statement, as well as in external models.
+* Enabled column autocompletion within CTEs.
+* Optimized preview load time by skipping model compilation on first open event if project is already compiled.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.30.2...v0.31.0
+---
+
 ## Version 0.30.2 (25/09/2023)
 ## What's Changed
 * Added support for the following Snowflake functions: `grouping`, `decode`, `iff`, `nvl`, `nvl2`, `regr_valx`.
@@ -240,10 +249,3 @@ AS (
 
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.19.1...v0.20.0
----
-
-## Version 0.19.1 (30/01/2023)
-## What's Changed
-* Added support for int64 aliases: `INT`, `SMALLINT`, `INTEGER`, `BIGINT`, `TINYINT`, `BYTEINT`.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.19.0...v0.19.1
