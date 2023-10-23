@@ -144,11 +144,16 @@ export class InformationSchemaConfigurator {
           this.createColumnDefinition('dataset_id', 'string'),
           this.createColumnDefinition('table_id', 'string'),
         ]),
-        this.createColumnDefinition('referenced_tables', 'record', [
-          this.createColumnDefinition('project_id', 'string'),
-          this.createColumnDefinition('dataset_id', 'string'),
-          this.createColumnDefinition('table_id', 'string'),
-        ]),
+        this.createColumnDefinition(
+          'referenced_tables',
+          'record',
+          [
+            this.createColumnDefinition('project_id', 'string'),
+            this.createColumnDefinition('dataset_id', 'string'),
+            this.createColumnDefinition('table_id', 'string'),
+          ],
+          'repeated',
+        ),
         this.createColumnDefinition(
           'labels',
           'record',
