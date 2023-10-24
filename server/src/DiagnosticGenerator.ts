@@ -8,7 +8,7 @@ import { PositionConverter } from './PositionConverter';
 import { AnalyzeResult } from './ProjectAnalyzer';
 import { SqlRefConverter } from './SqlRefConverter';
 import { DbtTextDocument } from './document/DbtTextDocument';
-import { DIAGNOSTIC_SOURCE } from './utils/Constants';
+import { AUTH_ERROR_ERROR_PART, DIAGNOSTIC_SOURCE } from './utils/Constants';
 import { getIdentifierRangeAtPosition } from './utils/Utils';
 
 interface RawAndCompiledDiagnostics {
@@ -25,7 +25,7 @@ export class DiagnosticGenerator {
   private static readonly DBT_COMPILATION_ERROR_PATTERN = /(Error in model \w+ \((.*)\)(?:\r\n?|\n).*)(?:\r\n?|\n)/;
   private static readonly SQL_COMPILATION_ERROR_PATTERN = /(.*?) \[at (\d+):(\d+)\]/;
 
-  private static readonly AUTH_ERROR_PATTERN = /Reauthentication is needed. Please run .* to reauthenticate\./;
+  private static readonly AUTH_ERROR_PATTERN = new RegExp(`${AUTH_ERROR_ERROR_PART}. Please run .* to reauthenticate.`);
 
   static readonly DBT_ERROR_HIGHLIGHT_LAST_CHAR = 100;
 

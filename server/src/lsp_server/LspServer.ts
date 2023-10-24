@@ -64,7 +64,15 @@ import { ProjectAnalyzeResults } from '../ProjectAnalyzeResults';
 import { ProjectChangeListener } from '../ProjectChangeListener';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { DbtProjectStatusSender } from '../status_bar/DbtProjectStatusSender';
-import { CHANGE_TO_REF_ACTION, DBT_DEPS_ACTION, DBT_DEPS_REQUIRED_ERROR_PART, DIAGNOSTIC_SOURCE } from '../utils/Constants';
+import {
+  AUTH_ACTION,
+  AUTH_ERROR_ERROR_PART,
+  CHANGE_TO_REF_ACTION,
+  CREDS_NOT_FOUND_ERROR_PART,
+  DBT_DEPS_ACTION,
+  DBT_DEPS_REQUIRED_ERROR_PART,
+  DIAGNOSTIC_SOURCE,
+} from '../utils/Constants';
 import { LspServerBase } from './LspServerBase';
 
 export class LspServer extends LspServerBase<FeatureFinder> {
@@ -176,6 +184,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
 
     this.connection.onNotification('custom/dbtCompile', (uri: string) => this.onDbtCompile(uri));
     this.connection.onNotification('custom/dbtDeps', () => this.onDbtDeps());
+    this.connection.onNotification('custom/googleAuth', () => this.onGoogleAuth());
     this.connection.onNotification('WizardForDbtCore(TM)/resendDiagnostics', (uri: string) => this.onResendDiagnostics(uri));
     this.connection.onNotification('custom/analyzeEntireProject', () => this.onAnalyzeEntireProject());
 
@@ -329,6 +338,8 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     this.runDbtDeps();
   }
 
+  onGoogleAuth(): void {}
+
   async onResendDiagnostics(uri: string): Promise<void> {
     await this.getOpenedDocumentByUri(uri)?.resendDiagnostics();
   }
@@ -408,31 +419,48 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   }
 
   onCodeAction(params: CodeActionParams): CodeAction[] {
-    return params.context.diagnostics
-      .filter(
-        d =>
-          d.source === DIAGNOSTIC_SOURCE && ((d.data as SqlToRefData | undefined)?.replaceText || d.message.includes(DBT_DEPS_REQUIRED_ERROR_PART)),
-      )
-      .map<CodeAction>(d =>
-        (d.data as SqlToRefData | undefined)?.replaceText === undefined
-          ? {
-              title: DBT_DEPS_ACTION,
-              diagnostics: [d],
-              command: Command.create(DBT_DEPS_ACTION, 'WizardForDbtCore(TM).dbtDeps'),
-              kind: CodeActionKind.QuickFix,
-            }
-          : {
+    return params.context.diagnostics.flatMap(d => {
+      if (d.source === DIAGNOSTIC_SOURCE) {
+        const data = d.data as SqlToRefData | undefined;
+        if (data?.replaceText === undefined) {
+          if (d.message.includes(DBT_DEPS_REQUIRED_ERROR_PART)) {
+            return [
+              {
+                title: DBT_DEPS_ACTION,
+                diagnostics: [d],
+                command: Command.create(DBT_DEPS_ACTION, 'WizardForDbtCore(TM).dbtDeps'),
+                kind: CodeActionKind.QuickFix,
+              },
+            ];
+          }
+          if ([AUTH_ERROR_ERROR_PART, CREDS_NOT_FOUND_ERROR_PART].some(e => d.message.includes(e))) {
+            return [
+              {
+                title: AUTH_ACTION,
+                diagnostics: [d],
+                command: Command.create(AUTH_ACTION, 'WizardForDbtCore(TM).googleAuth'),
+                kind: CodeActionKind.QuickFix,
+              },
+            ];
+          }
+        } else {
+          return [
+            {
               title: CHANGE_TO_REF_ACTION,
               diagnostics: [d],
               edit: {
                 changes: {
-                  [params.textDocument.uri]: [TextEdit.replace(d.range, (d.data as SqlToRefData).replaceText)],
+                  [params.textDocument.uri]: [TextEdit.replace(d.range, data.replaceText)],
                 },
               },
               command: Command.create(CHANGE_TO_REF_ACTION, this.sqlToRefCommandName, params.textDocument.uri, d.range),
               kind: CodeActionKind.QuickFix,
             },
-      );
+          ];
+        }
+      }
+      return [];
+    });
   }
 
   onExecuteCommand(params: ExecuteCommandParams): void {
