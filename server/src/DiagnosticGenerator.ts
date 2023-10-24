@@ -8,11 +8,16 @@ import { PositionConverter } from './PositionConverter';
 import { AnalyzeResult } from './ProjectAnalyzer';
 import { SqlRefConverter } from './SqlRefConverter';
 import { DbtTextDocument } from './document/DbtTextDocument';
+import { DIAGNOSTIC_SOURCE } from './utils/Constants';
 import { getIdentifierRangeAtPosition } from './utils/Utils';
 
 interface RawAndCompiledDiagnostics {
   raw: Diagnostic[];
   compiled: Diagnostic[];
+}
+
+export interface SqlToRefData {
+  replaceText: string;
 }
 
 export class DiagnosticGenerator {
@@ -22,7 +27,6 @@ export class DiagnosticGenerator {
 
   private static readonly AUTH_ERROR_PATTERN = /Reauthentication is needed. Please run .* to reauthenticate\./;
 
-  static readonly DIAGNOSTIC_SOURCE = 'Wizard for dbt Core (TM)';
   static readonly DBT_ERROR_HIGHLIGHT_LAST_CHAR = 100;
 
   private sqlRefConverter = new SqlRefConverter();
@@ -47,7 +51,7 @@ export class DiagnosticGenerator {
           severity: DiagnosticSeverity.Error,
           range: this.getDbtErrorRange(errorLine),
           message,
-          source: DiagnosticGenerator.DIAGNOSTIC_SOURCE,
+          source: DIAGNOSTIC_SOURCE,
         },
       ],
       fileUri,
@@ -111,12 +115,13 @@ export class DiagnosticGenerator {
   }
 
   private createInformationDiagnostic(range: Range, newText: string): Diagnostic {
+    const data: SqlToRefData = { replaceText: newText };
     return {
       severity: DiagnosticSeverity.Information,
       range,
       message: 'Reference to dbt model is not a ref',
-      data: { replaceText: newText },
-      source: DiagnosticGenerator.DIAGNOSTIC_SOURCE,
+      data,
+      source: DIAGNOSTIC_SOURCE,
     };
   }
 
@@ -135,7 +140,7 @@ export class DiagnosticGenerator {
       severity: DiagnosticSeverity.Error,
       range,
       message,
-      source: DiagnosticGenerator.DIAGNOSTIC_SOURCE,
+      source: DIAGNOSTIC_SOURCE,
     };
   }
 

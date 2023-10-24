@@ -12,6 +12,7 @@ import { ModelsAnalyzeResult } from './ProjectAnalyzer';
 import { ProjectProgressReporter } from './ProjectProgressReporter';
 import { DbtCli } from './dbt_execution/DbtCli';
 import { DbtTextDocument } from './document/DbtTextDocument';
+import { DBT_DEPS_REQUIRED_ERROR_PART } from './utils/Constants';
 import { debounce } from './utils/Utils';
 import path = require('node:path');
 
@@ -38,6 +39,7 @@ export class ProjectChangeListener {
     private projectAnalyzeResults: ProjectAnalyzeResults,
   ) {
     fileChangeListener.onSqlModelChanged(c => this.onSqlModelChanged(c));
+    fileChangeListener.onPackagesFolderChanged(() => this.onPackagesFolderChanged());
   }
 
   updateManifest(): void {
@@ -60,6 +62,7 @@ export class ProjectChangeListener {
     this.destinationContext.resetCache();
     const compileResult = await this.dbtCli.compileProject(this.dbtRepository);
     if (compileResult.isOk()) {
+      this.clearDbtError();
       this.updateManifest();
       try {
         await this.analyzeProject();
@@ -89,7 +92,13 @@ export class ProjectChangeListener {
       }
       this.currentDbtError = { uri: newUri, error };
       this.notificationSender.sendDiagnostics(this.currentDbtError.uri, diagnosticsInfo[0], []);
-    } else if (this.currentDbtError) {
+    } else {
+      this.clearDbtError();
+    }
+  }
+
+  clearDbtError(): void {
+    if (this.currentDbtError) {
       this.notificationSender.clearDiagnostics(this.currentDbtError.uri);
       this.currentDbtError = undefined;
     }
@@ -126,6 +135,16 @@ export class ProjectChangeListener {
     if (externalChangeHappened) {
       this.debouncedCompileAndAnalyze();
     }
+  }
+
+  private onPackagesFolderChanged(): void {
+    if (this.isDbtDepsRequiredErrorExist()) {
+      this.debouncedCompileAndAnalyze();
+    }
+  }
+
+  private isDbtDepsRequiredErrorExist(): boolean {
+    return Boolean(this.currentDbtError?.error.includes(DBT_DEPS_REQUIRED_ERROR_PART));
   }
 
   private debouncedCompileAndAnalyze = debounce(() => {

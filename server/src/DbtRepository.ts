@@ -30,7 +30,7 @@ export class DbtRepository {
   projectName?: string;
   macroPaths: string[] = DbtRepository.DEFAULT_MACRO_PATHS;
   modelPaths: string[] = DbtRepository.DEFAULT_MODEL_PATHS;
-  packagesInstallPath = DbtRepository.DEFAULT_PACKAGES_PATH;
+  packagesInstallFolder = DbtRepository.DEFAULT_PACKAGES_PATH;
 
   manifestParsedDeferred = deferred<void>();
 
@@ -82,7 +82,7 @@ export class DbtRepository {
 
     return path.join(
       this.projectPath,
-      inPackage ? this.packagesInstallPath : '',
+      inPackage ? this.packagesInstallFolder : '',
       model.packageName === this.projectName ? '' : model.packageName,
       model.originalFilePath,
     );

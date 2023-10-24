@@ -48,7 +48,7 @@ import { DbtProject } from '../DbtProject';
 import { DbtRepository } from '../DbtRepository';
 import { DefinitionProvider } from '../definition/DefinitionProvider';
 import { DestinationContext } from '../DestinationContext';
-import { DiagnosticGenerator } from '../DiagnosticGenerator';
+import { DiagnosticGenerator, SqlToRefData } from '../DiagnosticGenerator';
 import { DbtDocumentKind } from '../document/DbtDocumentKind';
 import { DbtDocumentKindResolver } from '../document/DbtDocumentKindResolver';
 import { DbtTextDocument } from '../document/DbtTextDocument';
@@ -64,6 +64,7 @@ import { ProjectAnalyzeResults } from '../ProjectAnalyzeResults';
 import { ProjectChangeListener } from '../ProjectChangeListener';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { DbtProjectStatusSender } from '../status_bar/DbtProjectStatusSender';
+import { CHANGE_TO_REF_ACTION, DBT_DEPS_ACTION, DBT_DEPS_REQUIRED_ERROR_PART, DIAGNOSTIC_SOURCE } from '../utils/Constants';
 import { LspServerBase } from './LspServerBase';
 
 export class LspServer extends LspServerBase<FeatureFinder> {
@@ -174,6 +175,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     super.initializeNotifications();
 
     this.connection.onNotification('custom/dbtCompile', (uri: string) => this.onDbtCompile(uri));
+    this.connection.onNotification('custom/dbtDeps', () => this.onDbtDeps());
     this.connection.onNotification('WizardForDbtCore(TM)/resendDiagnostics', (uri: string) => this.onResendDiagnostics(uri));
     this.connection.onNotification('custom/analyzeEntireProject', () => this.onAnalyzeEntireProject());
 
@@ -323,6 +325,10 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     this.getOpenedDocumentByUri(uri)?.forceRecompile();
   }
 
+  onDbtDeps(): void {
+    this.runDbtDeps();
+  }
+
   async onResendDiagnostics(uri: string): Promise<void> {
     await this.getOpenedDocumentByUri(uri)?.resendDiagnostics();
   }
@@ -336,8 +342,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   }
 
   async onDidSaveTextDocument(params: DidSaveTextDocumentParams): Promise<void> {
-    const document = this.getOpenedDocumentByUri(params.textDocument.uri);
-    await document?.didSaveTextDocument(false);
+    await this.getOpenedDocumentByUri(params.textDocument.uri)?.didSaveTextDocument(false);
   }
 
   async onDidOpenTextDocument(params: DidOpenTextDocumentParams): Promise<void> {
@@ -379,23 +384,19 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   }
 
   onHover(hoverParams: HoverParams): Hover | null | undefined {
-    const document = this.getOpenedDocumentByUri(hoverParams.textDocument.uri);
-    return document?.onHover(hoverParams);
+    return this.getOpenedDocumentByUri(hoverParams.textDocument.uri)?.onHover(hoverParams);
   }
 
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
-    const document = this.getOpenedDocumentByUri(completionParams.textDocument.uri);
-    return document?.onCompletion(completionParams);
+    return this.getOpenedDocumentByUri(completionParams.textDocument.uri)?.onCompletion(completionParams);
   }
 
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
-    const document = this.getOpenedDocumentByUri(params.textDocument.uri);
-    return document?.onSignatureHelp(params);
+    return this.getOpenedDocumentByUri(params.textDocument.uri)?.onSignatureHelp(params);
   }
 
   async onDefinition(definitionParams: DefinitionParams): Promise<DefinitionLink[] | undefined> {
-    const document = this.getOpenedDocumentByUri(definitionParams.textDocument.uri);
-    return document?.onDefinition(definitionParams);
+    return this.getOpenedDocumentByUri(definitionParams.textDocument.uri)?.onDefinition(definitionParams);
   }
 
   getOpenedDocumentByUri(uri: string): DbtTextDocument | undefined {
@@ -407,20 +408,31 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   }
 
   onCodeAction(params: CodeActionParams): CodeAction[] {
-    const title = 'Change to ref';
     return params.context.diagnostics
-      .filter(d => d.source === 'Wizard for dbt Core (TM)' && (d.data as { replaceText: string } | undefined)?.replaceText)
-      .map<CodeAction>(d => ({
-        title,
-        diagnostics: [d],
-        edit: {
-          changes: {
-            [params.textDocument.uri]: [TextEdit.replace(d.range, (d.data as { replaceText: string }).replaceText)],
-          },
-        },
-        command: Command.create(title, this.sqlToRefCommandName, params.textDocument.uri, d.range),
-        kind: CodeActionKind.QuickFix,
-      }));
+      .filter(
+        d =>
+          d.source === DIAGNOSTIC_SOURCE && ((d.data as SqlToRefData | undefined)?.replaceText || d.message.includes(DBT_DEPS_REQUIRED_ERROR_PART)),
+      )
+      .map<CodeAction>(d =>
+        (d.data as SqlToRefData | undefined)?.replaceText === undefined
+          ? {
+              title: DBT_DEPS_ACTION,
+              diagnostics: [d],
+              command: Command.create(DBT_DEPS_ACTION, 'WizardForDbtCore(TM).dbtDeps'),
+              kind: CodeActionKind.QuickFix,
+            }
+          : {
+              title: CHANGE_TO_REF_ACTION,
+              diagnostics: [d],
+              edit: {
+                changes: {
+                  [params.textDocument.uri]: [TextEdit.replace(d.range, (d.data as SqlToRefData).replaceText)],
+                },
+              },
+              command: Command.create(CHANGE_TO_REF_ACTION, this.sqlToRefCommandName, params.textDocument.uri, d.range),
+              kind: CodeActionKind.QuickFix,
+            },
+      );
   }
 
   onExecuteCommand(params: ExecuteCommandParams): void {
@@ -435,6 +447,10 @@ export class LspServer extends LspServerBase<FeatureFinder> {
 
   onAddNewDbtPackage(dbtPackage: SelectedDbtPackage): void {
     this.dbtProject.addNewDbtPackage(dbtPackage.packageName, dbtPackage.version);
+    this.runDbtDeps();
+  }
+
+  runDbtDeps(): void {
     const sendLog = (data: string): void => this.notificationSender.sendDbtDepsLog(data);
     this.dbtCli.deps(sendLog, sendLog).catch(e => console.log(`Error while running dbt deps: ${e instanceof Error ? e.message : String(e)}`));
   }

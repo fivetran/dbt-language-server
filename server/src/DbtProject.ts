@@ -66,7 +66,7 @@ export class DbtProject {
     return DbtRepository.DEFAULT_MODEL_PATHS;
   }
 
-  findPackagesInstallPath(): string {
+  findPackagesInstallFolder(): string {
     try {
       const dbtProject = this.getProject();
       const packagesInstallPath = dbtProject[DbtRepository.PACKAGES_INSTALL_PATH_FIELD];
