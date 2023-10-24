@@ -42,6 +42,7 @@ import {
 } from 'vscode-languageserver';
 import { FileOperationFilter } from 'vscode-languageserver-protocol/lib/common/protocol.fileOperations';
 import { URI } from 'vscode-uri';
+import { BigQueryOAuthProfile } from '../bigquery/BigQueryOAuthProfile';
 import { DbtCli } from '../dbt_execution/DbtCli';
 import { DbtProfileCreator, DbtProfileInfo } from '../DbtProfileCreator';
 import { DbtProject } from '../DbtProject';
@@ -338,7 +339,12 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     this.runDbtDeps();
   }
 
-  onGoogleAuth(): void {}
+  async onGoogleAuth(): Promise<void> {
+    const result = await BigQueryOAuthProfile.authenticate();
+    if (result.isOk() && LspServer.isAuthError(this.projectChangeListener.currentDbtError?.error)) {
+      this.projectChangeListener.forceCompileAndAnalyzeProject();
+    }
+  }
 
   async onResendDiagnostics(uri: string): Promise<void> {
     await this.getOpenedDocumentByUri(uri)?.resendDiagnostics();
@@ -433,7 +439,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
               },
             ];
           }
-          if ([AUTH_ERROR_ERROR_PART, CREDS_NOT_FOUND_ERROR_PART].some(e => d.message.includes(e))) {
+          if (LspServer.isAuthError(d.message)) {
             return [
               {
                 title: AUTH_ACTION,
@@ -461,6 +467,10 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       }
       return [];
     });
+  }
+
+  private static isAuthError(message: string | undefined): boolean {
+    return message ? [AUTH_ERROR_ERROR_PART, CREDS_NOT_FOUND_ERROR_PART].some(e => message.includes(e)) : false;
   }
 
   onExecuteCommand(params: ExecuteCommandParams): void {
