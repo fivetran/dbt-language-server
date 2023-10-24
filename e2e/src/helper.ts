@@ -10,6 +10,7 @@ import {
   DefinitionLink,
   extensions,
   ExtensionTerminalOptions,
+  languages,
   LanguageStatusItem,
   Position,
   Pseudoterminal,
@@ -137,6 +138,12 @@ async function waitPreviewModification(func?: () => Promise<void>): Promise<void
   await promise;
 }
 
+export async function waitDiagnostics(uri: Uri, waitForLength: number): Promise<void> {
+  while (languages.getDiagnostics(uri).length !== waitForLength) {
+    await sleep(300);
+  }
+}
+
 export function getMainEditorText(): string {
   return doc.getText();
 }
@@ -159,6 +166,10 @@ export async function triggerAndAcceptFirstSuggestion(): Promise<void> {
   await waitDocumentModification(async () => {
     await commands.executeCommand('acceptSelectedSuggestion');
   });
+}
+
+export async function runDbtDeps(): Promise<void> {
+  await commands.executeCommand('WizardForDbtCore(TM).dbtDeps');
 }
 
 export function getPreviewText(): string {
@@ -255,10 +266,6 @@ async function createChangePromise(type: 'preview' | 'document'): Promise<void> 
 
 export function getCursorPosition(): Position {
   return editor.selection.end;
-}
-
-export function installDbtPackages(projectFolder: string): void {
-  spawnSync('dbt', ['deps'], { cwd: getAbsolutePath(projectFolder) });
 }
 
 export function installExtension(extensionId: string): void {
