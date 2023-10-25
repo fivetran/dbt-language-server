@@ -63,10 +63,7 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
       langId,
     });
 
-    console.log(`updateText ${uri.toString()}`);
-
     if (uri.toString() === this.activeDocUri.toString()) {
-      console.log(`updateText onDidChangeEmitter ${uri.toString()}`);
       this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
     }
   }
@@ -120,9 +117,7 @@ export default class SqlPreviewContentProvider implements TextDocumentContentPro
   }
 
   changeActiveDocument(uri: Uri): void {
-    console.log(`Changing active document to ${uri.toString()}`);
     if (uri.toString() !== this.activeDocUri.toString()) {
-      console.log(`Changed active document to ${uri.toString()}`);
       this.activeDocUri = uri;
       this.setUseConfigForRefs(false);
       this.onDidChangeEmitter.fire(SqlPreviewContentProvider.URI);
