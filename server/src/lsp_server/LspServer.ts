@@ -263,9 +263,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   registerManifestWatcher(): void {
     if (this.hasDidChangeWatchedFilesCapability) {
       const targetPath = this.dbtProject.findTargetPath();
-      if (!fs.existsSync(targetPath)) {
-        fs.mkdirSync(targetPath, { recursive: true });
-      }
+      this.ensurePathExists(targetPath);
       this.registerDidChangeWatchedFilesNotification(URI.file(targetPath).toString(), 'manifest.json');
     }
   }
@@ -275,9 +273,17 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       const modelPaths = this.dbtProject.findModelPaths();
 
       for (const modelPath of modelPaths) {
+        this.ensurePathExists(modelPath);
+
         const baseUri = URI.file(path.resolve(modelPath)).toString();
         this.registerDidChangeWatchedFilesNotification(baseUri, '**/*.sql');
       }
+    }
+  }
+
+  ensurePathExists(fsPath: string): void {
+    if (!fs.existsSync(fsPath)) {
+      fs.mkdirSync(fsPath, { recursive: true });
     }
   }
 
