@@ -23,6 +23,7 @@
 * Added support for the following Snowflake functions: `grouping`, `decode`, `iff`, `nvl`, `nvl2`, `regr_valx`.
 * Resolved an issue where false positives occurred during arithmetic operations with the Snowflake VARIANT type.
 
+
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.30.1...v0.30.2
 ---
 
