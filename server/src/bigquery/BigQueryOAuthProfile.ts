@@ -88,7 +88,7 @@ export class BigQueryOAuthProfile implements DbtProfile {
     return ok(undefined);
   }
 
-  private static authenticate(): Promise<Result<void, string>> {
+  public static authenticate(): Promise<Result<void, string>> {
     const authenticateCommand = 'gcloud auth application-default login';
     const authenticatePromise = BigQueryOAuthProfile.PROCESS_EXECUTOR.execProcess(authenticateCommand)
       .then(() => ok(undefined))

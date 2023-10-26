@@ -59,6 +59,7 @@ export abstract class DbtWizardLanguageClient implements Disposable {
       }),
 
       this.client.onNotification('WizardForDbtCore(TM)/dbtDepsLog', async (data: string) => {
+        // this.outputChannelProvider.getDbtDepsChannel().show();
         this.outputChannelProvider.getDbtDepsChannel().append(data);
         await commands.executeCommand(DbtWizardLanguageClient.FOCUS_EDITOR_COMMAND);
       }),

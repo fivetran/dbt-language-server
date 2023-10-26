@@ -20,6 +20,8 @@ import { EventEmitter } from 'node:events';
 import * as path from 'node:path';
 import { AnalyzeEntireProject } from './commands/AnalyzeEntireProject';
 import { CreateDbtProject } from './commands/CreateDbtProject/CreateDbtProject';
+import { DbtDeps } from './commands/DbtDeps';
+import { GoogleAuth } from './commands/GoogleAuth';
 import { NotUseConfigForRefsPreview } from './commands/NotUseConfigForRefsPreview';
 import { UseConfigForRefsPreview } from './commands/UseConfigForRefsPreview';
 
@@ -118,6 +120,8 @@ export class ExtensionClient {
 
   registerCommands(): void {
     this.commandManager.register(new Compile(this.dbtLanguageClientManager));
+    this.commandManager.register(new DbtDeps(this.dbtLanguageClientManager));
+    this.commandManager.register(new GoogleAuth(this.dbtLanguageClientManager));
     this.commandManager.register(new AnalyzeEntireProject(this.dbtLanguageClientManager));
     this.commandManager.register(new CreateDbtProject(this.context.globalState));
     this.commandManager.register(new InstallDbtCore(this.dbtLanguageClientManager, this.outputChannelProvider));

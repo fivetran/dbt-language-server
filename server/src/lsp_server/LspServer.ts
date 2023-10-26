@@ -42,13 +42,14 @@ import {
 } from 'vscode-languageserver';
 import { FileOperationFilter } from 'vscode-languageserver-protocol/lib/common/protocol.fileOperations';
 import { URI } from 'vscode-uri';
+import { BigQueryOAuthProfile } from '../bigquery/BigQueryOAuthProfile';
 import { DbtCli } from '../dbt_execution/DbtCli';
 import { DbtProfileCreator, DbtProfileInfo } from '../DbtProfileCreator';
 import { DbtProject } from '../DbtProject';
 import { DbtRepository } from '../DbtRepository';
 import { DefinitionProvider } from '../definition/DefinitionProvider';
 import { DestinationContext } from '../DestinationContext';
-import { DiagnosticGenerator } from '../DiagnosticGenerator';
+import { DiagnosticGenerator, SqlToRefData } from '../DiagnosticGenerator';
 import { DbtDocumentKind } from '../document/DbtDocumentKind';
 import { DbtDocumentKindResolver } from '../document/DbtDocumentKindResolver';
 import { DbtTextDocument } from '../document/DbtTextDocument';
@@ -64,6 +65,15 @@ import { ProjectAnalyzeResults } from '../ProjectAnalyzeResults';
 import { ProjectChangeListener } from '../ProjectChangeListener';
 import { SignatureHelpProvider } from '../SignatureHelpProvider';
 import { DbtProjectStatusSender } from '../status_bar/DbtProjectStatusSender';
+import {
+  AUTH_ACTION,
+  AUTH_ERROR_ERROR_PART,
+  CHANGE_TO_REF_ACTION,
+  CREDS_NOT_FOUND_ERROR_PART,
+  DBT_DEPS_ACTION,
+  DBT_DEPS_REQUIRED_ERROR_PART,
+  DIAGNOSTIC_SOURCE,
+} from '../utils/Constants';
 import { LspServerBase } from './LspServerBase';
 
 export class LspServer extends LspServerBase<FeatureFinder> {
@@ -174,6 +184,8 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     super.initializeNotifications();
 
     this.connection.onNotification('custom/dbtCompile', (uri: string) => this.onDbtCompile(uri));
+    this.connection.onNotification('custom/dbtDeps', () => this.onDbtDeps());
+    this.connection.onNotification('custom/googleAuth', () => this.onGoogleAuth());
     this.connection.onNotification('WizardForDbtCore(TM)/resendDiagnostics', (uri: string) => this.onResendDiagnostics(uri));
     this.connection.onNotification('custom/analyzeEntireProject', () => this.onAnalyzeEntireProject());
 
@@ -251,9 +263,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   registerManifestWatcher(): void {
     if (this.hasDidChangeWatchedFilesCapability) {
       const targetPath = this.dbtProject.findTargetPath();
-      if (!fs.existsSync(targetPath)) {
-        fs.mkdirSync(targetPath, { recursive: true });
-      }
+      this.ensurePathExists(targetPath);
       this.registerDidChangeWatchedFilesNotification(URI.file(targetPath).toString(), 'manifest.json');
     }
   }
@@ -263,9 +273,17 @@ export class LspServer extends LspServerBase<FeatureFinder> {
       const modelPaths = this.dbtProject.findModelPaths();
 
       for (const modelPath of modelPaths) {
+        this.ensurePathExists(modelPath);
+
         const baseUri = URI.file(path.resolve(modelPath)).toString();
         this.registerDidChangeWatchedFilesNotification(baseUri, '**/*.sql');
       }
+    }
+  }
+
+  ensurePathExists(fsPath: string): void {
+    if (!fs.existsSync(fsPath)) {
+      fs.mkdirSync(fsPath, { recursive: true });
     }
   }
 
@@ -323,6 +341,17 @@ export class LspServer extends LspServerBase<FeatureFinder> {
     this.getOpenedDocumentByUri(uri)?.forceRecompile();
   }
 
+  onDbtDeps(): void {
+    this.runDbtDeps();
+  }
+
+  async onGoogleAuth(): Promise<void> {
+    const result = await BigQueryOAuthProfile.authenticate();
+    if (result.isOk() && LspServer.isAuthError(this.projectChangeListener.currentDbtError?.error)) {
+      this.projectChangeListener.forceCompileAndAnalyzeProject();
+    }
+  }
+
   async onResendDiagnostics(uri: string): Promise<void> {
     await this.getOpenedDocumentByUri(uri)?.resendDiagnostics();
   }
@@ -336,8 +365,7 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   }
 
   async onDidSaveTextDocument(params: DidSaveTextDocumentParams): Promise<void> {
-    const document = this.getOpenedDocumentByUri(params.textDocument.uri);
-    await document?.didSaveTextDocument(false);
+    await this.getOpenedDocumentByUri(params.textDocument.uri)?.didSaveTextDocument(false);
   }
 
   async onDidOpenTextDocument(params: DidOpenTextDocumentParams): Promise<void> {
@@ -379,23 +407,19 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   }
 
   onHover(hoverParams: HoverParams): Hover | null | undefined {
-    const document = this.getOpenedDocumentByUri(hoverParams.textDocument.uri);
-    return document?.onHover(hoverParams);
+    return this.getOpenedDocumentByUri(hoverParams.textDocument.uri)?.onHover(hoverParams);
   }
 
   async onCompletion(completionParams: CompletionParams): Promise<CompletionItem[] | undefined> {
-    const document = this.getOpenedDocumentByUri(completionParams.textDocument.uri);
-    return document?.onCompletion(completionParams);
+    return this.getOpenedDocumentByUri(completionParams.textDocument.uri)?.onCompletion(completionParams);
   }
 
   onSignatureHelp(params: SignatureHelpParams): SignatureHelp | undefined {
-    const document = this.getOpenedDocumentByUri(params.textDocument.uri);
-    return document?.onSignatureHelp(params);
+    return this.getOpenedDocumentByUri(params.textDocument.uri)?.onSignatureHelp(params);
   }
 
   async onDefinition(definitionParams: DefinitionParams): Promise<DefinitionLink[] | undefined> {
-    const document = this.getOpenedDocumentByUri(definitionParams.textDocument.uri);
-    return document?.onDefinition(definitionParams);
+    return this.getOpenedDocumentByUri(definitionParams.textDocument.uri)?.onDefinition(definitionParams);
   }
 
   getOpenedDocumentByUri(uri: string): DbtTextDocument | undefined {
@@ -407,20 +431,52 @@ export class LspServer extends LspServerBase<FeatureFinder> {
   }
 
   onCodeAction(params: CodeActionParams): CodeAction[] {
-    const title = 'Change to ref';
-    return params.context.diagnostics
-      .filter(d => d.source === 'Wizard for dbt Core (TM)' && (d.data as { replaceText: string } | undefined)?.replaceText)
-      .map<CodeAction>(d => ({
-        title,
-        diagnostics: [d],
-        edit: {
-          changes: {
-            [params.textDocument.uri]: [TextEdit.replace(d.range, (d.data as { replaceText: string }).replaceText)],
-          },
-        },
-        command: Command.create(title, this.sqlToRefCommandName, params.textDocument.uri, d.range),
-        kind: CodeActionKind.QuickFix,
-      }));
+    return params.context.diagnostics.flatMap(d => {
+      if (d.source === DIAGNOSTIC_SOURCE) {
+        const data = d.data as SqlToRefData | undefined;
+        if (data?.replaceText === undefined) {
+          if (d.message.includes(DBT_DEPS_REQUIRED_ERROR_PART)) {
+            return [
+              {
+                title: DBT_DEPS_ACTION,
+                diagnostics: [d],
+                command: Command.create(DBT_DEPS_ACTION, 'WizardForDbtCore(TM).dbtDeps'),
+                kind: CodeActionKind.QuickFix,
+              },
+            ];
+          }
+          if (LspServer.isAuthError(d.message)) {
+            return [
+              {
+                title: AUTH_ACTION,
+                diagnostics: [d],
+                command: Command.create(AUTH_ACTION, 'WizardForDbtCore(TM).googleAuth'),
+                kind: CodeActionKind.QuickFix,
+              },
+            ];
+          }
+        } else {
+          return [
+            {
+              title: CHANGE_TO_REF_ACTION,
+              diagnostics: [d],
+              edit: {
+                changes: {
+                  [params.textDocument.uri]: [TextEdit.replace(d.range, data.replaceText)],
+                },
+              },
+              command: Command.create(CHANGE_TO_REF_ACTION, this.sqlToRefCommandName, params.textDocument.uri, d.range),
+              kind: CodeActionKind.QuickFix,
+            },
+          ];
+        }
+      }
+      return [];
+    });
+  }
+
+  private static isAuthError(message: string | undefined): boolean {
+    return message ? [AUTH_ERROR_ERROR_PART, CREDS_NOT_FOUND_ERROR_PART].some(e => message.includes(e)) : false;
   }
 
   onExecuteCommand(params: ExecuteCommandParams): void {
@@ -435,6 +491,10 @@ export class LspServer extends LspServerBase<FeatureFinder> {
 
   onAddNewDbtPackage(dbtPackage: SelectedDbtPackage): void {
     this.dbtProject.addNewDbtPackage(dbtPackage.packageName, dbtPackage.version);
+    this.runDbtDeps();
+  }
+
+  runDbtDeps(): void {
     const sendLog = (data: string): void => this.notificationSender.sendDbtDepsLog(data);
     this.dbtCli.deps(sendLog, sendLog).catch(e => console.log(`Error while running dbt deps: ${e instanceof Error ? e.message : String(e)}`));
   }

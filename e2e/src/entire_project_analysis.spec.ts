@@ -1,7 +1,7 @@
-import { assertThat, hasSize } from 'hamjest';
+import { assertThat, hasSize, isEmpty } from 'hamjest';
 import { writeFileSync } from 'node:fs';
 import { languages } from 'vscode';
-import { PROJECT1_PATH, activateAndWait, activateAndWaitManifestParsed, getCustomDocUri, replaceText, sleep } from './helper';
+import { PROJECT1_PATH, activateAndWait, activateAndWaitManifestParsed, getCustomDocUri, replaceText, waitDiagnostics } from './helper';
 
 suite('Entire project analysis', () => {
   const MODELS_PATH = 'two-projects/project1/models';
@@ -10,46 +10,42 @@ suite('Entire project analysis', () => {
 
   test('Should reanalyze project after external change', async () => {
     await activateAndWaitManifestParsed(getCustomDocUri('two-projects/project1/dbt_project.yml'), PROJECT1_PATH);
-    assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), hasSize(0));
-    assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), hasSize(0));
+    assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), isEmpty());
+    assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), isEmpty());
 
     console.log('changing "*" to "name"');
     writeFileSync(PROJECT1_MODEL_URI.fsPath, getNewContent('name'));
 
-    while (languages.getDiagnostics(DEPENDENT_MODEL_URI).length === 0) {
-      await sleep(300);
-    }
+    await waitDiagnostics(DEPENDENT_MODEL_URI, 1);
 
-    assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), hasSize(0));
+    assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), isEmpty());
     assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), hasSize(1));
 
     console.log('changing "name" to "*"');
     writeFileSync(PROJECT1_MODEL_URI.fsPath, getNewContent('*'));
 
-    while (languages.getDiagnostics(DEPENDENT_MODEL_URI).length === 1) {
-      await sleep(300);
-    }
+    await waitDiagnostics(DEPENDENT_MODEL_URI, 0);
 
-    assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), hasSize(0));
-    assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), hasSize(0));
+    assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), isEmpty());
+    assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), isEmpty());
   }).timeout('100s');
 
   // TODO: Don't skip once tree will be analyzed on change
   test.skip('Should analyze dependant models and report about errors', async () => {
     await activateAndWait(PROJECT1_MODEL_URI);
 
-    assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), hasSize(0));
-    assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), hasSize(0));
+    assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), isEmpty());
+    assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), isEmpty());
 
     await replaceText('*', 'name');
 
-    assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), hasSize(0));
+    assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), isEmpty());
     assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), hasSize(1));
 
     await replaceText('name', '*');
 
-    assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), hasSize(0));
-    assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), hasSize(0));
+    assertThat(languages.getDiagnostics(PROJECT1_MODEL_URI), isEmpty());
+    assertThat(languages.getDiagnostics(DEPENDENT_MODEL_URI), isEmpty());
   });
 });
 

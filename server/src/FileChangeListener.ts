@@ -4,13 +4,16 @@ import { URI } from 'vscode-uri';
 import { DbtProject } from './DbtProject';
 import { DbtRepository } from './DbtRepository';
 import { ManifestParser } from './manifest/ManifestParser';
+import { debounce } from './utils/Utils';
 
 export class FileChangeListener {
   private onDbtPackagesYmlChangedEmitter = new Emitter<FileChangeType>();
   private onSqlModelChangedEmitter = new Emitter<FileEvent[]>();
+  private onPackagesFolderChangedEmitter = new Emitter<void>();
 
   private dbtProjectYmlPath: string;
   private packagesYmlPath: string;
+  private packagesInstallationPath: string;
 
   constructor(
     private dbtProject: DbtProject,
@@ -19,6 +22,7 @@ export class FileChangeListener {
   ) {
     this.dbtProjectYmlPath = path.resolve(this.dbtRepository.projectPath, DbtRepository.DBT_PROJECT_FILE_NAME);
     this.packagesYmlPath = path.resolve(this.dbtRepository.projectPath, DbtRepository.DBT_PACKAGES_FILE_NAME);
+    this.packagesInstallationPath = path.resolve(this.dbtRepository.projectPath, this.dbtRepository.packagesInstallFolder);
   }
 
   get onDbtPackagesYmlChanged(): Event<FileChangeType> {
@@ -27,6 +31,10 @@ export class FileChangeListener {
 
   get onSqlModelChanged(): Event<FileEvent[]> {
     return this.onSqlModelChangedEmitter.event;
+  }
+
+  get onPackagesFolderChanged(): Event<void> {
+    return this.onPackagesFolderChangedEmitter.event;
   }
 
   onInit(): void {
@@ -56,6 +64,8 @@ export class FileChangeListener {
         this.updateManifestNodes();
       } else if (changePath === this.packagesYmlPath) {
         this.onDbtPackagesYmlChangedEmitter.fire(change.type);
+      } else if (changePath.startsWith(this.packagesInstallationPath)) {
+        this.debouncedFirePackagesFolderChanged();
       }
     }
   }
@@ -69,8 +79,14 @@ export class FileChangeListener {
     this.dbtRepository.projectName = this.dbtProject.findProjectName();
     this.dbtRepository.macroPaths = this.normalizePaths(this.dbtProject.findMacroPaths());
     this.dbtRepository.modelPaths = this.normalizePaths(this.dbtProject.findModelPaths());
-    this.dbtRepository.packagesInstallPath = path.normalize(this.dbtProject.findPackagesInstallPath());
+    this.dbtRepository.packagesInstallFolder = path.normalize(this.dbtProject.findPackagesInstallFolder());
+    this.packagesInstallationPath = path.resolve(this.dbtRepository.projectPath, this.dbtRepository.packagesInstallFolder);
   }
+
+  private debouncedFirePackagesFolderChanged = debounce(() => {
+    console.log('dbt packages installed');
+    this.onPackagesFolderChangedEmitter.fire();
+  }, 1000);
 
   normalizePaths(paths: string[]): string[] {
     return paths.map(p => path.normalize(p));

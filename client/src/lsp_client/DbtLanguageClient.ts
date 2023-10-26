@@ -83,7 +83,14 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
       workspace.createFileSystemWatcher(new RelativePattern(dbtProjectUri, `**/${PACKAGES_YML}`)),
     ];
     const clientOptions: LanguageClientOptions = {
-      documentSelector: SUPPORTED_LANG_IDS.map(langId => ({ scheme: 'file', language: langId, pattern: `${dbtProjectUri.fsPath}/**/*` })),
+      documentSelector: [
+        ...SUPPORTED_LANG_IDS.map(langId => ({ scheme: 'file', language: langId, pattern: `${dbtProjectUri.fsPath}/**/*` })),
+        {
+          scheme: 'file',
+          language: 'yaml',
+          pattern: `${dbtProjectUri.fsPath}/**/*`,
+        },
+      ],
       diagnosticCollectionName: 'dbtWizard',
       synchronize: { fileEvents },
       outputChannel: outputChannelProvider.getMainLogChannel(),

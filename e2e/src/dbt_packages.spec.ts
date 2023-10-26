@@ -1,5 +1,5 @@
-import { assertThat, containsString } from 'hamjest';
-import { Position, Range, Uri } from 'vscode';
+import { assertThat, containsString, isEmpty } from 'hamjest';
+import { Position, Range, Uri, languages } from 'vscode';
 import { assertDefinitions } from './asserts';
 import {
   MAX_RANGE,
@@ -8,7 +8,9 @@ import {
   getAbsolutePath,
   getCustomDocUri,
   getPreviewText,
-  installDbtPackages,
+  openDocument,
+  runDbtDeps,
+  waitDiagnostics,
 } from './helper';
 
 suite('Extension should work inside dbt package', () => {
@@ -21,7 +23,19 @@ suite('Extension should work inside dbt package', () => {
     return getCustomDocUri(FILE_PATH_NEW + path);
   }
 
-  installDbtPackages(PROJECT);
+  test('Should run dbt deps', async () => {
+    // arrange
+    const projectUri = getCustomDocUri(`${PROJECT}/dbt_project.yml`);
+    await openDocument(projectUri);
+    await waitDiagnostics(projectUri, 1);
+
+    // act
+    await runDbtDeps();
+    await waitDiagnostics(projectUri, 0);
+
+    // assert
+    assertThat(languages.getDiagnostics(projectUri), isEmpty());
+  });
 
   test('Should compile model inside package', async () => {
     // arrange

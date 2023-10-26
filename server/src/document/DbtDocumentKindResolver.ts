@@ -11,7 +11,7 @@ export class DbtDocumentKindResolver {
   getDbtDocumentKind(uri: string): DbtDocumentKind {
     const filePath = getFilePathRelatedToWorkspace(uri, this.dbtRepository.projectPath);
 
-    if (filePath.startsWith(this.dbtRepository.packagesInstallPath)) {
+    if (filePath.startsWith(this.dbtRepository.packagesInstallFolder)) {
       const dbtPackagePath = this.resolveDbtPackagePath(this.dbtRepository.projectPath, filePath);
       if (!dbtPackagePath) {
         console.log('Dbt package root folder not found');

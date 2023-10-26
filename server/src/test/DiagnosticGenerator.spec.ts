@@ -3,6 +3,7 @@ import { instance, mock, when } from 'ts-mockito';
 import { DiagnosticSeverity, Range } from 'vscode-languageserver';
 import { DbtRepository } from '../DbtRepository';
 import { DiagnosticGenerator } from '../DiagnosticGenerator';
+import { DIAGNOSTIC_SOURCE } from '../utils/Constants';
 
 describe('DiagnosticGenerator', () => {
   const MODEL_NAME = 'simple_select_dbt';
@@ -31,7 +32,7 @@ describe('DiagnosticGenerator', () => {
           severity: DiagnosticSeverity.Error,
           range: Range.create(expectedErrorLine, 0, expectedErrorLine, DiagnosticGenerator.DBT_ERROR_HIGHLIGHT_LAST_CHAR),
           message: expectedMessage,
-          source: DiagnosticGenerator.DIAGNOSTIC_SOURCE,
+          source: DIAGNOSTIC_SOURCE,
         },
       ],
       expectedUri,
