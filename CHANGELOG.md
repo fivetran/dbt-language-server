@@ -1,21 +1,12 @@
 # Changelog
 
-## Version 0.32.0 (01/01/1970)
+## Version 0.32.0 (26/10/2023)
 ## What's Changed
 * Corrected column definition in `referenced_tables` for `INFORMATION_SCHEMA` tables: `jobs_by_user`, `jobs_by_project`, `jobs_by_folder`, `jobs_by_organization`.
 * Introduced quick actions for resolving dbt dependencies and authentication issues.
 
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.31.0...v0.32.0
----
-
-## Version 0.30.2 (25/09/2023)
-## What's Changed
-* Added support for the following Snowflake functions: `grouping`, `decode`, `iff`, `nvl`, `nvl2`, `regr_valx`.
-* Resolved an issue where false positives occurred during arithmetic operations with the Snowflake VARIANT type.
-
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.30.1...v0.30.2
 ---
 
 ## Version 0.31.0 (23/10/2023)
@@ -25,6 +16,14 @@
 * Optimized preview load time by skipping model compilation on first open event if project is already compiled.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.30.2...v0.31.0
+---
+
+## Version 0.30.2 (25/09/2023)
+## What's Changed
+* Added support for the following Snowflake functions: `grouping`, `decode`, `iff`, `nvl`, `nvl2`, `regr_valx`.
+* Resolved an issue where false positives occurred during arithmetic operations with the Snowflake VARIANT type.
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.30.1...v0.30.2
 ---
 
 ## Version 0.30.1 (06/09/2023)
