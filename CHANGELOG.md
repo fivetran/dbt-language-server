@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 0.32.0 (26/10/2023)
+## What's Changed
+* Corrected column definition in `referenced_tables` for `INFORMATION_SCHEMA` tables: `jobs_by_user`, `jobs_by_project`, `jobs_by_folder`, `jobs_by_organization`.
+* Introduced quick actions for resolving dbt dependencies and authentication issues.
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.31.0...v0.32.0
+---
+
 ## Version 0.31.0 (23/10/2023)
 ## What's Changed
 * Extended go-to-column functionality to recognize column aliases and locate columns in additional areas within the SELECT statement, as well as in external models.
@@ -234,18 +243,3 @@
 * Fix go to definition for macros of dbt global_project.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.20.0...v0.20.1
----
-
-## Version 0.20.0 (28/02/2023)
-## What's Changed
-* Add support for `ANY` type in temporary UDFs, for example:
-```sql
-CREATE TEMP FUNCTION ScalarUdf(a ANY TYPE)
-AS (
-  a + 1
-);
-```
-* Add support for [go to column definition](https://github.com/fivetran/dbt-language-server/blob/main/images/go-to-column-definition.gif?raw=true) for BigQuery users.
-
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.19.1...v0.20.0
