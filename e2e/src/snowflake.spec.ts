@@ -1,9 +1,23 @@
-import { assertThat } from 'hamjest';
-import { DiagnosticSeverity, Range } from 'vscode';
+import { assertThat, isEmpty } from 'hamjest';
+import { DiagnosticSeverity, Range, languages } from 'vscode';
 import { assertAllDiagnostics } from './asserts';
-import { SNOWFLAKE_PATH, activateAndWait, getCustomDocUri, getPreviewText, replaceText } from './helper';
+import { SNOWFLAKE_PATH, activateAndWait, getCustomDocUri, getPreviewText, openDocument, replaceText, runDbtDeps, waitDiagnostics } from './helper';
 
 suite('Snowflake', () => {
+  test('Should run dbt deps', async () => {
+    // arrange
+    const projectUri = getCustomDocUri(`${SNOWFLAKE_PATH}/dbt_project.yml`);
+    await openDocument(projectUri);
+    await waitDiagnostics(projectUri, 1);
+
+    // act
+    await runDbtDeps();
+    await waitDiagnostics(projectUri, 0);
+
+    // assert
+    assertThat(languages.getDiagnostics(projectUri), isEmpty());
+  });
+
   test('Should compile simple SQL', async () => {
     const docUri = getCustomDocUri(`${SNOWFLAKE_PATH}/models/join_tables.sql`);
 
