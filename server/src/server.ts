@@ -34,13 +34,12 @@ import { LspServerBase } from './lsp_server/LspServerBase';
 import { NoProjectLspServer } from './lsp_server/NoProjectLspServer';
 import { ManifestParser } from './manifest/ManifestParser';
 import { DbtProjectStatusSender } from './status_bar/DbtProjectStatusSender';
+import { replaceVsCodeEnvVariables } from './utils/Utils';
 import path = require('node:path');
 import dotenv = require('dotenv');
 
 sourceMapSupport.install({ handleUncaughtExceptions: false });
 
-// Create a connection for the server, using Node's IPC as a transport.
-// Also include all preview / proposed LSP features.
 const connection = createConnection(ProposedFeatures.all);
 const customInitParamsSchema = z.object({
   pythonInfo: z.object({
@@ -62,9 +61,9 @@ connection.onInitialize((params: InitializeParams): InitializeResult<unknown> | 
     process.chdir(workspaceFolder);
   }
 
-  const customInitParams: CustomInitParams = customInitParamsSchema.parse(params.initializationOptions);
+  const customInitParams: CustomInitParams = resolveInitializationOptions(params.initializationOptions, workspaceFolder);
 
-  readAndSaveDotEnv(workspaceFolder, customInitParams.pythonInfo.dotEnvFile);
+  readAndSaveDotEnv(customInitParams.pythonInfo.dotEnvFile);
   Logger.prepareLogger(customInitParams.lspMode === 'dbtProject' ? workspaceFolder : NO_PROJECT_PATH, customInitParams.disableLogger);
 
   const server = createLspServer(customInitParams, workspaceFolder);
@@ -155,15 +154,22 @@ function createLspServerForProject(
 }
 
 /** Reads .env file from cwd and from @param dotEnvFilePath and then saves variables from it to process.env */
-function readAndSaveDotEnv(workspaceFolder: string, dotEnvFilePath: string | undefined): void {
+function readAndSaveDotEnv(dotEnvFilePath: string | undefined): void {
   dotenv.config();
   if (dotEnvFilePath) {
-    dotenv.config({ path: resolveEnvName(dotEnvFilePath, workspaceFolder) });
+    dotenv.config({ path: dotEnvFilePath });
   }
 }
 
-function resolveEnvName(name: string, workspaceFolder: string): string {
-  return name.replaceAll('${workspaceFolder}', workspaceFolder).replaceAll('${fileWorkspaceFolder}', workspaceFolder);
+function resolveSettingsVariables(name: string, workspaceFolder: string): string {
+  return replaceVsCodeEnvVariables(name).replaceAll('${workspaceFolder}', workspaceFolder).replaceAll('${fileWorkspaceFolder}', workspaceFolder);
+}
+
+function resolveInitializationOptions(initOptions: unknown, workspaceFolder: string): CustomInitParams {
+  const result = customInitParamsSchema.parse(initOptions);
+  result.pythonInfo.path = resolveSettingsVariables(result.pythonInfo.path, workspaceFolder);
+  result.pythonInfo.dotEnvFile = result.pythonInfo.dotEnvFile ? resolveSettingsVariables(result.pythonInfo.dotEnvFile, workspaceFolder) : undefined;
+  return result;
 }
 
 connection.listen();

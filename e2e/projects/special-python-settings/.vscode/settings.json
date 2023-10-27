@@ -1,3 +1,4 @@
 {
-  "python.defaultInterpreterPath": "~/dbt_1_2_2_env/bin/python"
+  "python.defaultInterpreterPath": "~/dbt_1_2_2_env/bin/python",
+  "python.envFile": "${workspaceFolder}/.vscode/.env"
 }

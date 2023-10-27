@@ -155,6 +155,10 @@ export async function getFreePort(): Promise<number> {
   return ports[0];
 }
 
+export function replaceVsCodeEnvVariables(input: string): string {
+  return input.replaceAll(/\$\{env:([a-zA-Z0-9_]+)\}/g, (_, variable: string) => process.env[variable] || '');
+}
+
 // min and max included
 function randomNumber(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1) + min);
