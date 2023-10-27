@@ -35,6 +35,7 @@ import { NoProjectLspServer } from './lsp_server/NoProjectLspServer';
 import { ManifestParser } from './manifest/ManifestParser';
 import { DbtProjectStatusSender } from './status_bar/DbtProjectStatusSender';
 import path = require('node:path');
+import dotenv = require('dotenv');
 
 sourceMapSupport.install({ handleUncaughtExceptions: false });
 
@@ -45,6 +46,7 @@ const customInitParamsSchema = z.object({
   pythonInfo: z.object({
     path: z.string(),
     version: z.optional(z.array(z.string())),
+    dotEnvFile: z.optional(z.string()),
   }),
   lspMode: z.union([z.literal('dbtProject'), z.literal('noProject')]),
   enableSnowflakeSyntaxCheck: z.boolean(),
@@ -61,6 +63,8 @@ connection.onInitialize((params: InitializeParams): InitializeResult<unknown> | 
   }
 
   const customInitParams: CustomInitParams = customInitParamsSchema.parse(params.initializationOptions);
+
+  readAndSaveDotEnv(workspaceFolder, customInitParams.pythonInfo.dotEnvFile);
   Logger.prepareLogger(customInitParams.lspMode === 'dbtProject' ? workspaceFolder : NO_PROJECT_PATH, customInitParams.disableLogger);
 
   const server = createLspServer(customInitParams, workspaceFolder);
@@ -148,6 +152,18 @@ function createLspServerForProject(
     customInitParams.enableSnowflakeSyntaxCheck,
     projectAnalyzeResults,
   );
+}
+
+/** Reads .env file from cwd and from @param dotEnvFilePath and then saves variables from it to process.env */
+function readAndSaveDotEnv(workspaceFolder: string, dotEnvFilePath: string | undefined): void {
+  dotenv.config();
+  if (dotEnvFilePath) {
+    dotenv.config({ path: resolveEnvName(dotEnvFilePath, workspaceFolder) });
+  }
+}
+
+function resolveEnvName(name: string, workspaceFolder: string): string {
+  return name.replaceAll('${workspaceFolder}', workspaceFolder).replaceAll('${fileWorkspaceFolder}', workspaceFolder);
 }
 
 connection.listen();

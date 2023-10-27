@@ -6,6 +6,7 @@ export interface TelemetryEvent {
 export interface PythonInfo {
   path: string;
   version?: string[];
+  dotEnvFile?: string;
 }
 
 export type LspModeType = 'dbtProject' | 'noProject';

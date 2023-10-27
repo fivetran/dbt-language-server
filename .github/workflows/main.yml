@@ -222,7 +222,7 @@ jobs:
             outputs:
               prod:
                 type: bigquery
-                method: service-account-json
+                method: "{{ env_var('PROJECT1_METHOD') }}" # See .env file in the project root
                 project: ${project_id}
                 dataset: ${dataset}
                 threads: 4

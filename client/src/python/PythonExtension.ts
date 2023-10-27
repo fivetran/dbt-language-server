@@ -1,5 +1,5 @@
 import { PythonInfo } from 'dbt-language-server-common';
-import { Event, Extension, extensions, Uri, WorkspaceFolder } from 'vscode';
+import { Event, Extension, extensions, Uri, workspace, WorkspaceFolder } from 'vscode';
 import { log } from '../Logger';
 import { IExtensionApi, ProposedExtensionAPI } from './PythonApi';
 
@@ -39,7 +39,10 @@ export class PythonExtension {
     const minor = String(environment?.version.minor ?? 10);
     const micro = String(environment?.version.micro ?? 0);
 
-    return { path: `"${path}"`, version: [major, minor, micro] };
+    const pythonSettings = workspace.getConfiguration('python', workspaceFolder);
+    const dotEnvFile = pythonSettings.get<string>('envFile');
+
+    return { path: `"${path}"`, version: [major, minor, micro], dotEnvFile };
   }
 
   async activate(): Promise<void> {
