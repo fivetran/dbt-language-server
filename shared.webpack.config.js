@@ -15,6 +15,9 @@ module.exports = function withDefaults(/**@type WebpackConfig*/ extConfig) {
       mainFields: ['module', 'main'],
       extensions: ['.ts', '.js'], // support ts-files and js-files
     },
+    stats: {
+      errorDetails: true,
+    },
     module: {
       rules: [
         {
