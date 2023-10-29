@@ -1,3 +1,4 @@
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import path = require('node:path');
 
 export enum LogLevel {
@@ -25,7 +26,21 @@ export const Logger = {
           return;
         }
       }
+
+      if (process.env['DBT_LS_ENABLE_DEBUG_LOGS'] === 'true') {
+        Logger.writeToFile(args);
+      }
       old.apply(console, args);
     };
+  },
+
+  writeToFile(args: [message?: unknown, ...optionalParams: unknown[]]): void {
+    const folderPath = 'logs';
+    if (!existsSync(folderPath)) {
+      mkdirSync(folderPath, { recursive: true });
+    }
+    writeFileSync(path.join(folderPath, 'wizard.log'), `${args.join('')}\n`, {
+      flag: 'a+',
+    });
   },
 };

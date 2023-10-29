@@ -61,10 +61,17 @@ connection.onInitialize((params: InitializeParams): InitializeResult<unknown> | 
     process.chdir(workspaceFolder);
   }
 
+  Logger.prepareLogger(
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    params.initializationOptions.lspMode === 'dbtProject' ? workspaceFolder : NO_PROJECT_PATH,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    Boolean(params.initializationOptions.disableLogger),
+  );
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  console.log(`onInitialize: ${params.initializationOptions.pythonInfo.dotEnvFile}`);
   const customInitParams: CustomInitParams = resolveInitializationOptions(params.initializationOptions, workspaceFolder);
 
   readAndSaveDotEnv(customInitParams.pythonInfo.dotEnvFile);
-  Logger.prepareLogger(customInitParams.lspMode === 'dbtProject' ? workspaceFolder : NO_PROJECT_PATH, customInitParams.disableLogger);
 
   const server = createLspServer(customInitParams, workspaceFolder);
   return server.onInitialize(params);
@@ -167,8 +174,13 @@ function resolveSettingsVariables(name: string, workspaceFolder: string): string
 
 function resolveInitializationOptions(initOptions: unknown, workspaceFolder: string): CustomInitParams {
   const result = customInitParamsSchema.parse(initOptions);
-  result.pythonInfo.path = resolveSettingsVariables(result.pythonInfo.path, workspaceFolder);
-  result.pythonInfo.dotEnvFile = result.pythonInfo.dotEnvFile ? resolveSettingsVariables(result.pythonInfo.dotEnvFile, workspaceFolder) : undefined;
+  console.log(`resolveInitializationOptions: ${JSON.stringify(result)}`);
+  result.pythonInfo.path = path.normalize(resolveSettingsVariables(result.pythonInfo.path, workspaceFolder));
+  console.log(`resolveInitializationOptions: ${result.pythonInfo.path}`);
+  result.pythonInfo.dotEnvFile = result.pythonInfo.dotEnvFile
+    ? path.normalize(resolveSettingsVariables(result.pythonInfo.dotEnvFile, workspaceFolder))
+    : undefined;
+  console.log(`resolveInitializationOptions: ${result.pythonInfo.dotEnvFile}`);
   return result;
 }
 

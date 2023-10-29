@@ -39,8 +39,10 @@ export class PythonExtension {
     const minor = String(environment?.version.minor ?? 10);
     const micro = String(environment?.version.micro ?? 0);
 
+    log(`Python settings for ${workspaceFolder?.uri.fsPath ?? 'undefined'}`);
     const pythonSettings = workspace.getConfiguration('python', workspaceFolder);
     const dotEnvFile = pythonSettings.get<string>('envFile');
+    log(`dotEnvFile: ${dotEnvFile}`);
 
     return { path: `"${path}"`, version: [major, minor, micro], dotEnvFile };
   }
