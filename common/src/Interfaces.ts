@@ -17,6 +17,7 @@ export interface CustomInitParams {
   enableSnowflakeSyntaxCheck: boolean;
   disableLogger?: boolean;
   profilesDir?: string;
+  additionalEnvVars?: { [key: string]: string };
 }
 
 export type RefReplacement = { from: string; to: string };

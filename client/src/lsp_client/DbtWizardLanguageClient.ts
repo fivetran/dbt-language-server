@@ -1,5 +1,5 @@
 import { CustomInitParams, LspModeType, PythonInfo, StatusNotification } from 'dbt-language-server-common';
-import { Uri, commands, workspace } from 'vscode';
+import { Uri, WorkspaceFolder, commands, workspace } from 'vscode';
 import { Disposable, State } from 'vscode-languageclient';
 import { LanguageClient, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 import { log } from '../Logger';
@@ -73,11 +73,13 @@ export abstract class DbtWizardLanguageClient implements Disposable {
   async initCustomParams(): Promise<void> {
     const configuration = workspace.getConfiguration('WizardForDbtCore(TM)', this.client.clientOptions.workspaceFolder);
     this.pythonInfo = await this.pythonExtension.getPythonInfo(this.client.clientOptions.workspaceFolder);
+    const additionalEnvVars = this.getTerminalEnvVariables(this.client.clientOptions.workspaceFolder);
     const customInitParams: CustomInitParams = {
       pythonInfo: this.pythonInfo,
       enableSnowflakeSyntaxCheck: configuration.get<boolean>('enableSnowflakeSyntaxCheck', true),
       lspMode: this.getLspMode(),
       profilesDir: configuration.get<string | undefined>('profilesDir', undefined),
+      additionalEnvVars,
     };
 
     this.client.clientOptions.initializationOptions = customInitParams;
@@ -124,5 +126,31 @@ export abstract class DbtWizardLanguageClient implements Disposable {
     this.disposables.forEach(disposable => {
       disposable.dispose();
     });
+  }
+
+  getTerminalEnvVariables(workspaceFolder: WorkspaceFolder | undefined): { [key: string]: string } {
+    const config = workspace.getConfiguration('terminal.integrated.env', workspaceFolder);
+    const os = process.platform;
+
+    let envVariables;
+    switch (os) {
+      case 'darwin': {
+        envVariables = config.get('osx');
+        break;
+      }
+      case 'linux': {
+        envVariables = config.get('linux');
+        break;
+      }
+      case 'win32': {
+        envVariables = config.get('windows');
+        break;
+      }
+      default: {
+        envVariables = config.get('osx');
+      }
+    }
+
+    return Object.assign({}, envVariables);
   }
 }

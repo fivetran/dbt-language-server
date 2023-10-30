@@ -51,6 +51,7 @@ const customInitParamsSchema = z.object({
   enableSnowflakeSyntaxCheck: z.boolean(),
   disableLogger: z.optional(z.boolean()),
   profilesDir: z.optional(z.string()),
+  additionalEnvVars: z.optional(z.record(z.string())),
 });
 
 connection.onInitialize((params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> => {
@@ -171,6 +172,12 @@ function resolveInitializationOptions(initOptions: unknown, workspaceFolder: str
   result.pythonInfo.dotEnvFile = result.pythonInfo.dotEnvFile
     ? path.normalize(resolveSettingsVariables(result.pythonInfo.dotEnvFile, workspaceFolder))
     : undefined;
+
+  if (result.additionalEnvVars) {
+    Object.keys(result.additionalEnvVars).forEach(key => {
+      process.env[key] = resolveSettingsVariables(result.additionalEnvVars![key], workspaceFolder);
+    });
+  }
   return result;
 }
 
