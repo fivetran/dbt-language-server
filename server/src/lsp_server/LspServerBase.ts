@@ -1,4 +1,5 @@
 import { DbtAdapter } from 'dbt-language-server-common';
+import path from 'node:path';
 import { InitializeError, InitializeParams, InitializeResult, ResponseError, _Connection } from 'vscode-languageserver';
 import { InstallUtils } from '../InstallUtils';
 import { NotificationSender } from '../NotificationSender';
@@ -14,37 +15,32 @@ export abstract class LspServerBase<T extends FeatureFinderBase> {
   abstract onInitialize(params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError>;
 
   onUncaughtException(error: Error, _origin: 'uncaughtException' | 'unhandledRejection'): void {
-    // const stack = LspServerBase.getCleanStackTrace(error.stack);
-    const stack = error.stack!;
-    // console.log(stack);
-    console.log('onUncaughtException');
-    try {
-      this.notificationSender.sendTelemetry('error', {
-        name: error.name,
-        message: error.message,
-        stack,
-        input: 'input' in error ? (error.input as string) : 'undefined',
-      });
-    } catch {
-      // Do nothing
-    }
-    console.log('onUncaughtException error sent');
+    const stack = LspServerBase.getCleanStackTrace(error.stack);
+    console.log(stack);
+
+    this.notificationSender.sendTelemetry('error', {
+      name: error.name,
+      message: error.message,
+      stack,
+      input: 'input' in error ? (error.input as string) : 'undefined',
+    });
+
     throw new Error('Uncaught exception. Server will be restarted.');
   }
 
-  // private static getCleanStackTrace(stack: string | undefined): string {
-  //   if (!stack) {
-  //     return '';
-  //   }
+  private static getCleanStackTrace(stack: string | undefined): string {
+    if (!stack) {
+      return '';
+    }
 
-  //   let lines = stack.split('\n');
-  //   lines = lines.map(line => {
-  //     const match = line.match(/\((.*?dbt-language-server)/);
-  //     return (match ? line.replace(match[1], '') : line).replaceAll(path.sep, '__');
-  //   });
+    let lines = stack.split('\n');
+    lines = lines.map(line => {
+      const match = line.match(/\((.*?dbt-language-server)/);
+      return (match ? line.replace(match[1], '') : line).replaceAll(path.sep, '__');
+    });
 
-  //   return lines.join('\n');
-  // }
+    return lines.join('\n');
+  }
 
   initializeNotifications(): void {
     this.connection.onNotification('WizardForDbtCore(TM)/installDbtCore', (version: string) => this.installDbtCore(version));

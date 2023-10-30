@@ -79,7 +79,6 @@ export abstract class DbtWizardLanguageClient implements Disposable {
       lspMode: this.getLspMode(),
       profilesDir: configuration.get<string | undefined>('profilesDir', undefined),
     };
-    log(`Init custom params: ${JSON.stringify(customInitParams)}`);
 
     this.client.clientOptions.initializationOptions = customInitParams;
   }

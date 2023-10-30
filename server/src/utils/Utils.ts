@@ -156,11 +156,7 @@ export async function getFreePort(): Promise<number> {
 }
 
 export function replaceVsCodeEnvVariables(input: string): string {
-  console.log(`replaceVsCodeEnvVariables: ${input}`);
-  return input.replaceAll(/\$\{env:([a-zA-Z0-9_]+)\}/g, (_, variable: string) => {
-    console.log(`replaceVsCodeEnvVariables variable: ${variable}`);
-    return process.env[variable] || '';
-  });
+  return input.replaceAll(/\$\{env:([a-zA-Z0-9_]+)\}/g, (_, variable: string) => process.env[variable] || '');
 }
 
 // min and max included

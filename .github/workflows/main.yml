@@ -325,7 +325,7 @@ jobs:
 
       - name: show log files
         if: always()
-        run: find ./.vscode-test/user-data -type f -name *.log
+        run: find .vscode-test/user-data -type f -name *.log
 
       - name: upload logs
         if: always()
@@ -333,17 +333,17 @@ jobs:
         with:
           name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.python-version }}
           path: |
-            ./.vscode-test/user-data/logs/**/*Wizard for dbt Core (TM).*
-            ./.vscode-test/user-data/logs/**/*Wizard for dbt Core (TM) Trace.*
-            ./.vscode-test/user-data/logs/**/*Install Latest dbt.*
-            ./e2e/projects/completion-jinja/logs/*
-            ./e2e/projects/test-fixture/logs/*
-            ./e2e/projects/two-projects/logs/*
-            ./e2e/projects/without-projects/logs/*
-            ./e2e/projects/special-python-settings/logs/*
-            ./e2e/projects/postgres/logs/*
-            ./e2e/projects/project-with-packages/logs/*
-            ./e2e/projects/snowflake/logs/*
+            .vscode-test/user-data/logs/**/*Wizard for dbt Core (TM).*
+            .vscode-test/user-data/logs/**/*Wizard for dbt Core (TM) Trace.*
+            .vscode-test/user-data/logs/**/*Install Latest dbt.*
+            e2e/projects/completion-jinja/logs/*
+            e2e/projects/test-fixture/logs/*
+            e2e/projects/two-projects/logs/*
+            e2e/projects/without-projects/logs/*
+            e2e/projects/special-python-settings/logs/*
+            e2e/projects/postgres/logs/*
+            e2e/projects/project-with-packages/logs/*
+            e2e/projects/snowflake/logs/*
 
   publish-vsix:
     if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }} # main branch or have any tag started with 'v'
