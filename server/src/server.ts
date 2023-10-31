@@ -34,22 +34,24 @@ import { LspServerBase } from './lsp_server/LspServerBase';
 import { NoProjectLspServer } from './lsp_server/NoProjectLspServer';
 import { ManifestParser } from './manifest/ManifestParser';
 import { DbtProjectStatusSender } from './status_bar/DbtProjectStatusSender';
+import { replaceVsCodeEnvVariables } from './utils/Utils';
 import path = require('node:path');
+import dotenv = require('dotenv');
 
 sourceMapSupport.install({ handleUncaughtExceptions: false });
 
-// Create a connection for the server, using Node's IPC as a transport.
-// Also include all preview / proposed LSP features.
 const connection = createConnection(ProposedFeatures.all);
 const customInitParamsSchema = z.object({
   pythonInfo: z.object({
     path: z.string(),
     version: z.optional(z.array(z.string())),
+    dotEnvFile: z.optional(z.string()),
   }),
   lspMode: z.union([z.literal('dbtProject'), z.literal('noProject')]),
   enableSnowflakeSyntaxCheck: z.boolean(),
   disableLogger: z.optional(z.boolean()),
   profilesDir: z.optional(z.string()),
+  additionalEnvVars: z.optional(z.record(z.string())),
 });
 
 connection.onInitialize((params: InitializeParams): InitializeResult<unknown> | ResponseError<InitializeError> => {
@@ -60,7 +62,9 @@ connection.onInitialize((params: InitializeParams): InitializeResult<unknown> | 
     process.chdir(workspaceFolder);
   }
 
-  const customInitParams: CustomInitParams = customInitParamsSchema.parse(params.initializationOptions);
+  const customInitParams: CustomInitParams = resolveInitializationOptions(params.initializationOptions, workspaceFolder);
+
+  readAndSaveDotEnv(customInitParams.pythonInfo.dotEnvFile);
   Logger.prepareLogger(customInitParams.lspMode === 'dbtProject' ? workspaceFolder : NO_PROJECT_PATH, customInitParams.disableLogger);
 
   const server = createLspServer(customInitParams, workspaceFolder);
@@ -148,6 +152,33 @@ function createLspServerForProject(
     customInitParams.enableSnowflakeSyntaxCheck,
     projectAnalyzeResults,
   );
+}
+
+/** Reads .env file from cwd and from @param dotEnvFilePath and then saves variables from it to process.env */
+function readAndSaveDotEnv(dotEnvFilePath: string | undefined): void {
+  dotenv.config();
+  if (dotEnvFilePath) {
+    dotenv.config({ path: dotEnvFilePath });
+  }
+}
+
+function resolveSettingsVariables(name: string, workspaceFolder: string): string {
+  return replaceVsCodeEnvVariables(name).replaceAll('${workspaceFolder}', workspaceFolder).replaceAll('${fileWorkspaceFolder}', workspaceFolder);
+}
+
+function resolveInitializationOptions(initOptions: unknown, workspaceFolder: string): CustomInitParams {
+  const result = customInitParamsSchema.parse(initOptions);
+  result.pythonInfo.path = path.normalize(resolveSettingsVariables(result.pythonInfo.path, workspaceFolder));
+  result.pythonInfo.dotEnvFile = result.pythonInfo.dotEnvFile
+    ? path.normalize(resolveSettingsVariables(result.pythonInfo.dotEnvFile, workspaceFolder))
+    : undefined;
+
+  if (result.additionalEnvVars) {
+    Object.keys(result.additionalEnvVars).forEach(key => {
+      process.env[key] = resolveSettingsVariables(result.additionalEnvVars![key], workspaceFolder);
+    });
+  }
+  return result;
 }
 
 connection.listen();

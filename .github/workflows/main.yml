@@ -222,7 +222,7 @@ jobs:
             outputs:
               prod:
                 type: bigquery
-                method: service-account-json
+                method: "{{ env_var('PROJECT1_METHOD') }}" # See .env file in the project root
                 project: ${project_id}
                 dataset: ${dataset}
                 threads: 4
@@ -323,22 +323,27 @@ jobs:
           PYTHON_INSTALL_LOC: '${{ steps.setup-python.outputs.python-path }}'
           WIZARD_FOR_DBT_WSL_UBUNTU_NAME: 'Ubuntu'
 
+      - name: show log files
+        if: always()
+        run: find .vscode-test/user-data -type f -name *.log
+
       - name: upload logs
         if: always()
         uses: actions/upload-artifact@v3
         with:
           name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.python-version }}
           path: |
-            ./.vscode-test/user-data/logs/**/*Wizard for dbt Core (TM).log
-            ./.vscode-test/user-data/logs/**/*Wizard for dbt Core (TM) Trace.log
-            ./.vscode-test/user-data/logs/**/*Install Latest dbt.log
-            ./e2e/projects/completion-jinja/logs/*
-            ./e2e/projects/test-fixture/logs/*
-            ./e2e/projects/two-projects/logs/*
-            ./e2e/projects/without-projects/logs/*
-            ./e2e/projects/special-python-settings/logs/*
-            ./e2e/projects/postgres/logs/*
-            ./e2e/projects/project-with-packages/logs/*
+            .vscode-test/user-data/logs/**/*Wizard for dbt Core (TM).*
+            .vscode-test/user-data/logs/**/*Wizard for dbt Core (TM) Trace.*
+            .vscode-test/user-data/logs/**/*Install Latest dbt.*
+            e2e/projects/completion-jinja/logs/*
+            e2e/projects/test-fixture/logs/*
+            e2e/projects/two-projects/logs/*
+            e2e/projects/without-projects/logs/*
+            e2e/projects/special-python-settings/logs/*
+            e2e/projects/postgres/logs/*
+            e2e/projects/project-with-packages/logs/*
+            e2e/projects/snowflake/logs/*
 
   publish-vsix:
     if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }} # main branch or have any tag started with 'v'

@@ -1,3 +1,4 @@
 {
+  // This file is being modified for windows, see main.yml
   "python.defaultInterpreterPath": "~/dbt_1_2_2_env/bin/python"
 }

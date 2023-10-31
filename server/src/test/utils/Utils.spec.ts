@@ -14,6 +14,7 @@ import {
   getJinjaContentOffset,
   getModelPathOrFullyQualifiedName,
   rangesOverlap,
+  replaceVsCodeEnvVariables,
 } from '../../utils/Utils';
 import { sleep } from '../helper';
 
@@ -170,6 +171,35 @@ describe('Utils', () => {
 
     // assert
     assertThat(name, 'package.model');
+  });
+});
+
+describe('replaceVsCodeEnvVariables', () => {
+  afterEach(() => {
+    delete process.env['TEST_VARIABLE'];
+  });
+
+  it('Should replace ${env:TEST_VARIABLE} with the environment variable value', () => {
+    process.env['TEST_VARIABLE'] = 'test_value';
+    const result = replaceVsCodeEnvVariables('This is a ${env:TEST_VARIABLE}');
+    assertThat(result, 'This is a test_value');
+  });
+
+  it('Should replace with empty string if environment variable is not set', () => {
+    const result = replaceVsCodeEnvVariables('This is a ${env:NOT_SET_VARIABLE}');
+    assertThat(result, 'This is a ');
+  });
+
+  it('Should handle multiple environment variables', () => {
+    process.env['TEST_VARIABLE'] = 'test_value';
+    process.env['ANOTHER_VARIABLE'] = 'another_value';
+    const result = replaceVsCodeEnvVariables('This is a ${env:TEST_VARIABLE} and ${env:ANOTHER_VARIABLE}');
+    assertThat(result, 'This is a test_value and another_value');
+  });
+
+  it('Should leave text without ${env:} unchanged', () => {
+    const result = replaceVsCodeEnvVariables('This is a test');
+    assertThat(result, 'This is a test');
   });
 });
 

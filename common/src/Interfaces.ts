@@ -6,6 +6,7 @@ export interface TelemetryEvent {
 export interface PythonInfo {
   path: string;
   version?: string[];
+  dotEnvFile?: string;
 }
 
 export type LspModeType = 'dbtProject' | 'noProject';
@@ -16,6 +17,7 @@ export interface CustomInitParams {
   enableSnowflakeSyntaxCheck: boolean;
   disableLogger?: boolean;
   profilesDir?: string;
+  additionalEnvVars?: { [key: string]: string };
 }
 
 export type RefReplacement = { from: string; to: string };
