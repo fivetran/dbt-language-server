@@ -3,7 +3,7 @@ import { EOL } from 'node:os';
 import { promisify, TextEncoder } from 'node:util';
 import { commands, Memento, OpenDialogOptions, Uri, window, workspace } from 'vscode';
 import { log } from '../../Logger';
-import { PythonExtension } from '../../python/PythonExtension';
+import { PythonExtensionWrapper } from '../../python/PythonExtensionWrapper';
 import { DBT_PROJECT_YML } from '../../Utils';
 import { Command } from '../CommandManager';
 import { DbtInitTerminal } from './DbtInitTerminal';
@@ -28,7 +28,10 @@ export class CreateDbtProject implements Command {
 }
 `;
 
-  constructor(private extensionGlobalState: Memento) {}
+  constructor(
+    private extensionGlobalState: Memento,
+    private pythonExtension: PythonExtensionWrapper,
+  ) {}
 
   async execute(projectFolder?: string, skipOpen?: boolean): Promise<void> {
     const dbtInitCommandPromise = this.getDbtInitCommand();
@@ -97,7 +100,7 @@ export class CreateDbtProject implements Command {
   }
 
   async getDbtInitCommand(): Promise<string | undefined> {
-    const pythonInfo = await new PythonExtension().getPythonInfo();
+    const pythonInfo = await this.pythonExtension.getPythonInfo();
 
     const promisifiedExec = promisify(exec);
     const pythonOldCommand = `${pythonInfo.path} -c "import ${CreateDbtProject.PYTHON_CODE_OLD}(['--version'])"`;

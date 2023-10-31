@@ -2,17 +2,19 @@ import { LspModeType, NO_PROJECT_PATH } from 'dbt-language-server-common';
 import { Uri } from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/node';
 import { OutputChannelProvider } from '../OutputChannelProvider';
+import { PythonExtensionWrapper } from '../python/PythonExtensionWrapper';
 import { StatusHandler } from '../status/StatusHandler';
 import { DbtWizardLanguageClient } from './DbtWizardLanguageClient';
 
 export class NoProjectLanguageClient extends DbtWizardLanguageClient {
   constructor(
     private port: number,
+    pythonExtension: PythonExtensionWrapper,
     outputChannelProvider: OutputChannelProvider,
     statusHandler: StatusHandler,
     private serverAbsolutePath: string,
   ) {
-    super(outputChannelProvider, statusHandler, Uri.file(NO_PROJECT_PATH));
+    super(pythonExtension, outputChannelProvider, statusHandler, Uri.file(NO_PROJECT_PATH));
   }
 
   initializeClient(): LanguageClient {

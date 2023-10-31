@@ -10,6 +10,7 @@ import { WorkspaceHelper } from './WorkspaceHelper';
 import { DbtLanguageClient } from './lsp_client/DbtLanguageClient';
 import { DbtWizardLanguageClient } from './lsp_client/DbtWizardLanguageClient';
 import { NoProjectLanguageClient } from './lsp_client/NoProjectLanguageClient';
+import { PythonExtensionWrapper } from './python/PythonExtensionWrapper';
 import { StatusHandler } from './status/StatusHandler';
 import path = require('node:path');
 
@@ -23,6 +24,7 @@ export class DbtLanguageClientManager {
 
   constructor(
     private previewContentProvider: SqlPreviewContentProvider,
+    private pythonExtension: PythonExtensionWrapper,
     private outputChannelProvider: OutputChannelProvider,
     private serverAbsolutePath: string,
     private manifestParsedEventEmitter: EventEmitter,
@@ -124,6 +126,7 @@ export class DbtLanguageClientManager {
     if (!this.clients.has(projectUri.fsPath)) {
       const client = new DbtLanguageClient(
         6009 + this.clients.size,
+        this.pythonExtension,
         this.outputChannelProvider,
         this.serverAbsolutePath,
         projectUri,
@@ -145,7 +148,13 @@ export class DbtLanguageClientManager {
 
   async ensureNoProjectClient(): Promise<void> {
     if (!this.noProjectClient) {
-      this.noProjectClient = new NoProjectLanguageClient(6008, this.outputChannelProvider, this.statusHandler, this.serverAbsolutePath);
+      this.noProjectClient = new NoProjectLanguageClient(
+        6008,
+        this.pythonExtension,
+        this.outputChannelProvider,
+        this.statusHandler,
+        this.serverAbsolutePath,
+      );
       await this.initAndStartClient(this.noProjectClient);
     }
   }
