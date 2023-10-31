@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.33.0 (01/01/1970)
+## Version 0.33.0 (31/10/2023)
 ## What's Changed
 * Environment variables now sourced from `.env` files and VS Code's `terminal.integrated.env.<platform>` setting.
 * Resolved Python location detection issue.
