@@ -1,10 +1,11 @@
+import { ActiveEnvironmentPathChangeEvent } from '@vscode/python-extension';
 import { CustomInitParams, LspModeType, PythonInfo, StatusNotification } from 'dbt-language-server-common';
 import { Uri, WorkspaceFolder, commands, workspace } from 'vscode';
 import { Disposable, State } from 'vscode-languageclient';
 import { LanguageClient, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 import { log } from '../Logger';
 import { OutputChannelProvider } from '../OutputChannelProvider';
-import { PythonExtension } from '../python/PythonExtension';
+import { PythonExtensionWrapper } from '../python/PythonExtensionWrapper';
 import { StatusHandler } from '../status/StatusHandler';
 
 export abstract class DbtWizardLanguageClient implements Disposable {
@@ -23,10 +24,10 @@ export abstract class DbtWizardLanguageClient implements Disposable {
   }
 
   protected disposables: Disposable[] = [];
-  protected pythonExtension = new PythonExtension();
   protected client!: LanguageClient;
 
   constructor(
+    private pythonExtension: PythonExtensionWrapper,
     protected outputChannelProvider: OutputChannelProvider,
     protected statusHandler: StatusHandler,
     protected dbtProjectUri: Uri,
@@ -87,9 +88,10 @@ export abstract class DbtWizardLanguageClient implements Disposable {
 
   async start(): Promise<void> {
     await this.client.start().catch(e => log(`Error while starting server: ${e instanceof Error ? e.message : String(e)}`));
-    (await this.pythonExtension.onDidChangeExecutionDetails())(async (resource: Uri | undefined) => {
-      log(`onDidChangeExecutionDetails ${resource?.fsPath ?? 'undefined'}`);
-      if (this.client.state === State.Running && this.dbtProjectUri.fsPath === resource?.fsPath) {
+
+    (await this.pythonExtension.onDidChangeActiveEnvironmentPath())(async (e: ActiveEnvironmentPathChangeEvent) => {
+      log(`onDidChangeActiveEnvironmentPath ${e.resource?.uri.fsPath ?? 'undefined'}`);
+      if (this.client.state === State.Running && this.dbtProjectUri.fsPath === e.resource?.uri.fsPath) {
         const newPythonInfo = await this.pythonExtension.getPythonInfo(this.client.clientOptions.workspaceFolder);
         if (newPythonInfo.path !== this.pythonInfo?.path || newPythonInfo.version?.join('.') !== this.pythonInfo.version?.join('.')) {
           log(`Python info changed: ${JSON.stringify(newPythonInfo)}`);

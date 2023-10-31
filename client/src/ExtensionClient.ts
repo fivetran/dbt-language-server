@@ -24,6 +24,7 @@ import { DbtDeps } from './commands/DbtDeps';
 import { GoogleAuth } from './commands/GoogleAuth';
 import { NotUseConfigForRefsPreview } from './commands/NotUseConfigForRefsPreview';
 import { UseConfigForRefsPreview } from './commands/UseConfigForRefsPreview';
+import { PythonExtensionWrapper } from './python/PythonExtensionWrapper';
 
 export interface PackageJson {
   name: string;
@@ -38,6 +39,7 @@ export class ExtensionClient {
   commandManager = new CommandManager();
   packageJson?: PackageJson;
   activeTextEditorHandler: ActiveTextEditorHandler;
+  pythonExtension = new PythonExtensionWrapper();
 
   constructor(
     private context: ExtensionContext,
@@ -46,6 +48,7 @@ export class ExtensionClient {
   ) {
     this.dbtLanguageClientManager = new DbtLanguageClientManager(
       this.previewContentProvider,
+      this.pythonExtension,
       this.outputChannelProvider,
       this.context.asAbsolutePath(path.join('server', 'out', 'server.js')),
       manifestParsedEventEmitter,
@@ -123,7 +126,7 @@ export class ExtensionClient {
     this.commandManager.register(new DbtDeps(this.dbtLanguageClientManager));
     this.commandManager.register(new GoogleAuth(this.dbtLanguageClientManager));
     this.commandManager.register(new AnalyzeEntireProject(this.dbtLanguageClientManager));
-    this.commandManager.register(new CreateDbtProject(this.context.globalState));
+    this.commandManager.register(new CreateDbtProject(this.context.globalState, this.pythonExtension));
     this.commandManager.register(new InstallDbtCore(this.dbtLanguageClientManager, this.outputChannelProvider));
     this.commandManager.register(new InstallDbtAdapters(this.dbtLanguageClientManager, this.outputChannelProvider));
     this.commandManager.register(new OpenOrCreatePackagesYml());

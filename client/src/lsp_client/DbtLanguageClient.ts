@@ -22,6 +22,7 @@ import { ProjectProgressHandler } from '../ProjectProgressHandler';
 import SqlPreviewContentProvider from '../SqlPreviewContentProvider';
 import { TelemetryClient } from '../TelemetryClient';
 import { DBT_PROJECT_YML, PACKAGES_YML, SNOWFLAKE_SQL_LANG_ID, SQL_LANG_ID, SUPPORTED_LANG_IDS } from '../Utils';
+import { PythonExtensionWrapper } from '../python/PythonExtensionWrapper';
 import { StatusHandler } from '../status/StatusHandler';
 import { DbtWizardLanguageClient } from './DbtWizardLanguageClient';
 
@@ -32,6 +33,7 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
 
   constructor(
     private port: number,
+    pythonExtension: PythonExtensionWrapper,
     outputChannelProvider: OutputChannelProvider,
     private serverAbsolutePath: string,
     dbtProjectUri: Uri,
@@ -41,7 +43,7 @@ export class DbtLanguageClient extends DbtWizardLanguageClient {
     statusHandler: StatusHandler,
     private snowflakeExtensionExists: Lazy<boolean>,
   ) {
-    super(outputChannelProvider, statusHandler, dbtProjectUri);
+    super(pythonExtension, outputChannelProvider, statusHandler, dbtProjectUri);
     window.onDidChangeVisibleTextEditors((e: readonly TextEditor[]) => this.onDidChangeVisibleTextEditors(e));
   }
 
