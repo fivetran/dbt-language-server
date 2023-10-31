@@ -109,6 +109,15 @@ Prior to using the extension, you need to perform the following steps in the VS 
 1. Open your dbt project in a new VS Code window.
 1. Check that the extension is operating by right-clicking in any .sql model file, and selecting `Wizard for dbt Core (TM) > Show query preview`.
 
+## Environment variables
+
+The extension retrieves environment variables from multiple sources, in the following order:
+
+1. **Shell Configuration Files:** Reads default shell environment variables (.zshrc, .bashrc, etc).
+1. **VS Code Platform-Specific Setting:** Reads from the `terminal.integrated.env.<platform>` VS Code setting.
+1. **DBT Project .env File:** Pulls from a `.env` file located in the root directory of your dbt project.
+1. **Python Environment File Setting:** Reads the file specified in the [`python.envFile` VS Code setting](https://code.visualstudio.com/docs/python/environments#_environment-variable-definitions-file).
+
 ## Issues
 
 If you have found any bug, have an idea or suggestion on how to improve extension, please file an issue and provide the details here: [Issues](https://github.com/fivetran/dbt-language-server/issues)
