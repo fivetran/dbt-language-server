@@ -1,5 +1,23 @@
 # Changelog
 
+## Version 0.33.0 (01/01/1970)
+## What's Changed
+* Environment variables now sourced from `.env` files and VS Code's `terminal.integrated.env.<platform>` setting.
+* Resolved Python location detection issue.
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.32.0...v0.33.0
+---
+
+## Version 0.30.2 (25/09/2023)
+## What's Changed
+* Added support for the following Snowflake functions: `grouping`, `decode`, `iff`, `nvl`, `nvl2`, `regr_valx`.
+* Resolved an issue where false positives occurred during arithmetic operations with the Snowflake VARIANT type.
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.30.1...v0.30.2
+---
+
 ## Version 0.32.0 (26/10/2023)
 ## What's Changed
 * Corrected column definition in `referenced_tables` for `INFORMATION_SCHEMA` tables: `jobs_by_user`, `jobs_by_project`, `jobs_by_folder`, `jobs_by_organization`.
@@ -16,15 +34,6 @@
 * Optimized preview load time by skipping model compilation on first open event if project is already compiled.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.30.2...v0.31.0
----
-
-## Version 0.30.2 (25/09/2023)
-## What's Changed
-* Added support for the following Snowflake functions: `grouping`, `decode`, `iff`, `nvl`, `nvl2`, `regr_valx`.
-* Resolved an issue where false positives occurred during arithmetic operations with the Snowflake VARIANT type.
-
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.30.1...v0.30.2
 ---
 
 ## Version 0.30.1 (06/09/2023)
@@ -235,11 +244,3 @@
 * Show project analysis progress in the status bar.
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.20.1...v0.21.0
----
-
-## Version 0.20.1 (03/03/2023)
-## What's Changed
-* Fix wrong `_dbt_max_partition` type.
-* Fix go to definition for macros of dbt global_project.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.20.0...v0.20.1
