@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.33.1 (01/01/1970)
+## Version 0.33.1 (01/11/2023)
 ## What's Changed
 * Added support for [User / Password + DUO MFA](https://docs.getdbt.com/docs/core/connect-data-platform/snowflake-setup#user--password--duo-mfa-authentication) authentication method.
 
