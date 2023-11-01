@@ -17,6 +17,8 @@ export class SnowflakeUserPassProfile implements DbtProfile {
     database: z.string(),
     warehouse: z.string(),
     schema: z.string(),
+    authenticator: z.optional(z.string()),
+    client_session_keep_alive: z.optional(z.boolean()),
   });
 
   getDocsUrl(): string {
@@ -38,8 +40,17 @@ export class SnowflakeUserPassProfile implements DbtProfile {
   }
 
   private async createClientInternal(profile: z.infer<typeof SnowflakeUserPassProfile.SCHEMA>): Promise<Result<DbtDestinationClient, string>> {
-    const { account, user: username, password, warehouse, database, schema } = profile;
-    const connection = createConnection({ account, username, password, warehouse, database, schema });
+    const {
+      account,
+      user: username,
+      password,
+      warehouse,
+      database,
+      schema,
+      authenticator,
+      client_session_keep_alive: clientSessionKeepAlive,
+    } = profile;
+    const connection = createConnection({ account, username, password, warehouse, database, schema, authenticator, clientSessionKeepAlive });
 
     const client = new SnowflakeClient(database, connection);
 

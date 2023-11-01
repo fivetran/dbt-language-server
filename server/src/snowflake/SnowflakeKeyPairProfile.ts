@@ -17,6 +17,7 @@ export class SnowflakeKeyPairProfile implements DbtProfile {
     database: z.string(),
     warehouse: z.string(),
     schema: z.string(),
+    client_session_keep_alive: z.optional(z.boolean()),
   });
 
   getDocsUrl(): string {
@@ -46,8 +47,9 @@ export class SnowflakeKeyPairProfile implements DbtProfile {
       warehouse,
       database,
       schema,
+      client_session_keep_alive: clientSessionKeepAlive,
     } = profile;
-    const connection = createConnection({ account, username, privateKeyPath, privateKeyPass, warehouse, database, schema });
+    const connection = createConnection({ account, username, privateKeyPath, privateKeyPass, warehouse, database, schema, clientSessionKeepAlive });
 
     const client = new SnowflakeClient(database, connection);
 
