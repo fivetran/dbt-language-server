@@ -7,6 +7,10 @@ describe('SnowflakeUserPassProfile', () => {
     shouldPassValidProfile(SNOWFLAKE_CONFIG, 'correct_user_password');
   });
 
+  it('Should pass valid profile with MFA', () => {
+    shouldPassValidProfile(SNOWFLAKE_CONFIG, 'correct_user_password_mfa');
+  });
+
   it('Should require user', () => {
     shouldRequireField('user');
   });

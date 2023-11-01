@@ -11,6 +11,21 @@ correct_user_password:
       warehouse: warehouse_name
       schema: dbt_schema
 
+correct_user_password_mfa:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: acc
+      user: username
+      password: password
+      role: role
+      database: database_name
+      warehouse: warehouse_name
+      schema: dbt_schema
+      authenticator: externalbrowser
+      client_session_keep_alive: True
+
 user_password_missing_user:
   target: dev
   outputs:
