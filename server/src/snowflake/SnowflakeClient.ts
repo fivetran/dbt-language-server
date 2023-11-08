@@ -1,12 +1,14 @@
 import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { err, ok, Result } from 'neverthrow';
-import { Connection, Statement } from 'snowflake-sdk';
+import { Connection, SnowflakeError, Statement } from 'snowflake-sdk';
 import { Dataset, DbtDestinationClient, Metadata, Table, Udf, UdfArgument } from '../DbtDestinationClient';
 import { runWithTimeout } from '../utils/Utils';
 
 export class SnowflakeClient implements DbtDestinationClient {
   private static readonly TIMEOUT_ERROR = 'Snowflake query timeout';
-  private static readonly SQL_TIMEOUT = 10_000;
+  private static readonly SQL_TIMEOUT = 20_000;
+
+  connectionPromise: Promise<string | undefined> | undefined;
 
   constructor(
     public defaultProject: string,
@@ -110,16 +112,30 @@ export class SnowflakeClient implements DbtDestinationClient {
   }
 
   private connect(): Promise<string | undefined> {
-    return new Promise<string | undefined>(resolve => {
-      this.connection.connect(error => {
-        if (error) {
-          const errorMessage = `Connection failed. Reason: ${error.message}.`;
-          console.log(errorMessage);
-          resolve(errorMessage);
-        }
-        resolve(undefined);
+    if (!this.connectionPromise) {
+      this.connectionPromise = new Promise((resolve, reject) => {
+        this.connection
+          .connectAsync((e: SnowflakeError | undefined) => {
+            if (e) {
+              this.connectionPromise = undefined;
+              reject(this.getConnectionError(e));
+            } else {
+              resolve(undefined);
+            }
+          })
+          .catch(e => {
+            this.connectionPromise = undefined;
+            reject(this.getConnectionError(e));
+          });
       });
-    });
+    }
+    return this.connectionPromise;
+  }
+
+  getConnectionError(e: unknown): string {
+    const stringError = JSON.stringify(e);
+    console.log(stringError);
+    return stringError;
   }
 
   private connectIfNeeded(): Promise<string | undefined> {
