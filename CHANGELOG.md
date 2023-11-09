@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.33.2 (01/01/1970)
+## Version 0.33.2 (09/11/2023)
 ## What's Changed
 * Implemented a safeguard against concurrent connection attempts to Snowflake.
 
