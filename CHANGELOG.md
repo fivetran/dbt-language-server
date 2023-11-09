@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 0.33.2 (01/01/1970)
+## What's Changed
+* Implemented a safeguard against concurrent connection attempts to Snowflake.
+
+
+**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.33.1...v0.33.2
+---
+
 ## Version 0.33.1 (01/11/2023)
 ## What's Changed
 * Added support for [User / Password + DUO MFA](https://docs.getdbt.com/docs/core/connect-data-platform/snowflake-setup#user--password--duo-mfa-authentication) authentication method.
@@ -235,10 +243,3 @@
 
 
 **Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.21.0...v0.21.2
----
-
-## Version 0.21.1 (29/03/2023)
-## What's Changed
-* Fix "dbt compile timeout exceeded" issue.
-
-**Full Changelog**: https://github.com/fivetran/dbt-language-server/compare/v0.21.0...v0.21.1
