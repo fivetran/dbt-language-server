@@ -214,7 +214,7 @@
     "merge-options": "^3.0.4",
     "mocha": "^10.2.0",
     "prettier": "^3.0.3",
-    "prettier-plugin-organize-imports": "^3.2.3",
+    "prettier-plugin-organize-imports": "^3.2.4",
     "size-limit": "^9.0.0",
     "ts-loader": "^9.5.0",
     "ts-mockito": "^2.6.1",
