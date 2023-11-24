@@ -10,7 +10,7 @@
     "@types/pg": "^8.10.9",
     "@types/snowflake-sdk": "^1.6.17",
     "@types/vscode": "^1.84.2",
-    "@vscode/test-electron": "^2.3.6",
+    "@vscode/test-electron": "^2.3.7",
     "dbt-language-server-common": "file:../common",
     "hamjest": "^4.1.0",
     "mocha": "^10.2.0",
