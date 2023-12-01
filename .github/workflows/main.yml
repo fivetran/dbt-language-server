@@ -407,7 +407,7 @@ jobs:
           VSIX_NAME: ${{ github.sha }}-win32-x64.vsix
 
       - name: 'google auth using service account json'
-        uses: 'google-github-actions/auth@v1'
+        uses: 'google-github-actions/auth@v2'
         with:
           credentials_json: '${{ secrets.GCS_SERVICE_ACCOUNT }}'
 
