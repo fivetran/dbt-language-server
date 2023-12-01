@@ -13,6 +13,6 @@
     "@google-cloud/bigquery": "^7.3.0",
     "@types/vscode": "^1.84.2",
     "@vscode/python-extension": "^1.0.5",
-    "@vscode/test-electron": "^2.3.7"
+    "@vscode/test-electron": "^2.3.8"
   }
 }
