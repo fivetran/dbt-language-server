@@ -7,6 +7,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.WRITE_TOKEN }}
+
       - uses: maadhattah/combine-dependabot-prs@main
         with:
           branchPrefix: 'dependabot'
