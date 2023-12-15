@@ -329,7 +329,7 @@ jobs:
 
       - name: upload logs
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.python-version }}
           path: |
