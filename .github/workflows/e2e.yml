@@ -49,7 +49,7 @@ jobs:
         run: npx @vscode/vsce package -o ${FILE_NAME} --target darwin-x64 --githubBranch main
 
       - name: create cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ./${{ env.FILE_NAME }}
           key: ${{ env.FILE_NAME }}
@@ -72,7 +72,7 @@ jobs:
           token: ${{ secrets.ANALYTICS_REPO_ACCESS_TOKEN }}
 
       - name: load vsix from cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: cache
         with:
           path: ./${{ env.FILE_NAME }}
