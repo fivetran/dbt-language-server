@@ -149,7 +149,7 @@ jobs:
 
       - name: setup WSL
         if: matrix.os == 'windows-latest'
-        uses: Vampire/setup-wsl@v2
+        uses: Vampire/setup-wsl@v3
         with:
           distribution: Ubuntu-20.04
 
