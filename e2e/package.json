@@ -5,17 +5,17 @@
     "vscode": "^1.52.0"
   },
   "devDependencies": {
-    "@google-cloud/bigquery": "^7.3.0",
+    "@google-cloud/bigquery": "^7.5.0",
     "@types/glob": "^8.1.0",
-    "@types/pg": "^8.11.0",
+    "@types/pg": "^8.11.2",
     "@types/snowflake-sdk": "^1.6.20",
-    "@types/vscode": "^1.85.0",
+    "@types/vscode": "^1.87.0",
     "@vscode/test-electron": "^2.3.9",
     "dbt-language-server-common": "file:../common",
     "hamjest": "^4.1.0",
-    "mocha": "^10.2.0",
+    "mocha": "^10.3.0",
     "path-equal": "^1.2.5",
     "pg": "^8.11.3",
-    "snowflake-sdk": "^1.9.3"
+    "snowflake-sdk": "^1.10.0"
   }
 }
