@@ -113,10 +113,10 @@ export class CreateDbtProject implements Command {
       promisifiedExec(cliCommand),
     ]);
     const [pythonOldVersion, pythonNewVersion, cliVersion] = settledResults.map(v => (v.status === 'fulfilled' ? v.value : undefined));
-    if (pythonNewVersion && pythonNewVersion.stdout.includes(CreateDbtProject.INSTALLED_SUBSTRIG)) {
+    if (pythonNewVersion?.stdout.includes(CreateDbtProject.INSTALLED_SUBSTRIG)) {
       return `${pythonInfo.path} -c "import ${CreateDbtProject.PYTHON_CODE}(['init'])"`;
     }
-    if (pythonOldVersion && pythonOldVersion.stderr.includes(CreateDbtProject.INSTALLED_SUBSTRIG)) {
+    if (pythonOldVersion?.stderr.includes(CreateDbtProject.INSTALLED_SUBSTRIG)) {
       return `${pythonInfo.path} -c "import ${CreateDbtProject.PYTHON_CODE_OLD}(['init'])"`;
     }
     if (
