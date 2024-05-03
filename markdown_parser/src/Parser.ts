@@ -1,7 +1,7 @@
 import matchBracket from 'find-matching-bracket';
 import MarkdownIt, { Token } from 'markdown-it';
-import * as fs from 'node:fs';
-import * as prettier from 'prettier';
+import fs from 'node:fs';
+import prettier from 'prettier';
 import axios = require('axios');
 
 interface FunctionInfo {

@@ -1,5 +1,5 @@
 import { AdapterInfo, DbtVersionInfo, getStringVersion, PythonInfo, Version } from 'dbt-language-server-common';
-import * as fs from 'node:fs';
+import fs from 'node:fs';
 import { homedir } from 'node:os';
 import { DbtCommandExecutor } from '../dbt_execution/DbtCommandExecutor';
 import path = require('node:path');

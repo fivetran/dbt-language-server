@@ -1,5 +1,5 @@
 import { anyOf, assertThat, containsString, greaterThan, truthy } from 'hamjest';
-import * as fs from 'node:fs';
+import fs from 'node:fs';
 import { homedir } from 'node:os';
 import { Pseudoterminal } from 'vscode';
 import {

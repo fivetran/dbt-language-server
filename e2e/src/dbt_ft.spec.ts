@@ -1,8 +1,7 @@
-import * as glob from 'glob';
+import glob from 'glob';
 import { assertThat, containsString, isEmpty } from 'hamjest';
-import * as fs from 'node:fs';
-import { writeFileSync } from 'node:fs';
-import * as path from 'node:path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { DiagnosticSeverity, Uri, languages } from 'vscode';
 import { activateAndWait, sleep, waitWithTimeout } from './helper';
 
@@ -32,20 +31,20 @@ suite('dbt_ft', () => {
         const result = await Promise.race([activateAndWait(uri), fileProcessingTimeout]);
 
         if (typeof result === 'string') {
-          writeFileSync(getLogPath(), `${new Date().toISOString()}: ${result}\n`, {
+          fs.writeFileSync(getLogPath(), `${new Date().toISOString()}: ${result}\n`, {
             flag: 'a+',
           });
-          writeFileSync(getDiagnosticsPath(), `${new Date().toISOString()}: ${result}\n\n`, {
+          fs.writeFileSync(getDiagnosticsPath(), `${new Date().toISOString()}: ${result}\n\n`, {
             flag: 'a+',
           });
         } else {
           const diagnostics = languages.getDiagnostics(uri);
-          writeFileSync(getLogPath(), `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n`, {
+          fs.writeFileSync(getLogPath(), `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n`, {
             flag: 'a+',
           });
           if (diagnostics.some(d => d.severity === DiagnosticSeverity.Error)) {
             const log = `${new Date().toISOString()}: ${file}, ${diagnostics.length}\n${JSON.stringify(diagnostics)}\n\n`;
-            writeFileSync(getDiagnosticsPath(), log, { flag: 'a+' });
+            fs.writeFileSync(getDiagnosticsPath(), log, { flag: 'a+' });
             console.log(log);
             errors.push(log);
           }

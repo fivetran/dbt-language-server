@@ -1,5 +1,5 @@
 import { CustomInitParams, NO_PROJECT_PATH } from 'dbt-language-server-common';
-import * as sourceMapSupport from 'source-map-support';
+import sourceMapSupport from 'source-map-support';
 import { InitializeError, InitializeParams, InitializeResult, ProposedFeatures, ResponseError, createConnection } from 'vscode-languageserver/node';
 import { URI } from 'vscode-uri';
 import { z } from 'zod';
