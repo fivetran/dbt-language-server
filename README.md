@@ -1,4 +1,6 @@
-# Wizard for dbt Core (TM)\*
+# DEPRECATED - Wizard for dbt Core (TM)\*
+
+## We have discontinued this extension. After a lot of effort we decided our fundamental approach (zetasql) was unworkable. The concept has merit and the right foundation to build on is SQLGlot, if someone else wants to take it up.
 
 Working with [dbt Core](https://www.getdbt.com/) in Visual Studio Code using the Fivetran Wizard for dbt Core (TM) extension accelerates your first-time environment setup with dbt Core, and optimizes your continual development of transformation pipelines. This extension is designed primarily for BigQuery and Snowflake destinations, but support for other warehouses is in development.
 
