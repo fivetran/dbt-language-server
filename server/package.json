@@ -43,7 +43,7 @@
     "@types/semver": "^7.5.2",
     "@types/snowflake-sdk": "^1.6.13",
     "@types/source-map-support": "^0.5.7",
-    "@types/uuid": "^9.0.4",
+    "@types/uuid": "^10.0.0",
     "hamjest": "^4.1.0"
   },
   "typeRoots": [
