@@ -2,7 +2,7 @@ import { TypeKind } from '@fivetrandevelopers/zetasql';
 import { SimpleCatalogProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleCatalogProto';
 import { SimpleColumnProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/SimpleColumnProto';
 import { assertThat, greaterThan, hasExactlyOneItem, hasProperty, hasSize } from 'hamjest';
-import * as assert from 'node:assert';
+import assert from 'node:assert';
 import { mock } from 'ts-mockito';
 import { BigQueryZetaSqlWrapper } from '../BigQueryZetaSqlWrapper';
 import { DbtDestinationClient, Udf } from '../DbtDestinationClient';

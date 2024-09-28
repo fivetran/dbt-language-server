@@ -1,9 +1,9 @@
 import { BigQuery, Dataset, TableField } from '@google-cloud/bigquery';
 import { SilentReporter, downloadAndUnzipVSCode, resolveCliArgsFromVSCodeExecutablePath, runTests } from '@vscode/test-electron';
 import { SpawnSyncReturns, spawnSync } from 'node:child_process';
-import * as fs from 'node:fs';
+import fs from 'node:fs';
 import { homedir } from 'node:os';
-import * as path from 'node:path';
+import path from 'node:path';
 import { Client } from 'pg';
 import { SnowflakeError, Statement, createConnection } from 'snowflake-sdk';
 

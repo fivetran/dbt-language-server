@@ -1,6 +1,6 @@
 import { Result } from 'neverthrow';
 import { EOL } from 'node:os';
-import * as path from 'node:path';
+import path from 'node:path';
 import { DbtRepository } from '../DbtRepository';
 import { DagNodeFetcher } from '../ModelFetcher';
 

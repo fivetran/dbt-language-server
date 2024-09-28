@@ -1,6 +1,6 @@
-import * as fs from 'node:fs';
+import fs from 'node:fs';
 import { homedir } from 'node:os';
-import * as yaml from 'yaml';
+import yaml from 'yaml';
 import path = require('node:path');
 
 export const YamlParserUtils = {

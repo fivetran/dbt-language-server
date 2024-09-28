@@ -1,7 +1,7 @@
 import { assertThat, defined, not, truthy } from 'hamjest';
 import { err } from 'neverthrow';
 import { ok } from 'node:assert';
-import * as path from 'node:path';
+import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import { instance, mock, when } from 'ts-mockito';
 import { CompletionItem } from 'vscode-languageserver';

@@ -84,7 +84,7 @@ export class ZetaSqlParser {
                   typedNode.selectList?.columns.forEach(c => select.columns.push(...this.getColumns(c.expression, true, c.alias ?? undefined)));
                 }
               },
-              actionAfter: () => parentSelect.pop(),
+              actionAfter: (): KnownSelect | undefined => parentSelect.pop(),
             },
           ],
           [

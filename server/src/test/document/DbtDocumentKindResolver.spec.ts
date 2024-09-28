@@ -1,5 +1,5 @@
 import { assertThat } from 'hamjest';
-import * as path from 'node:path';
+import path from 'node:path';
 import { DbtRepository } from '../../DbtRepository';
 import { DbtDocumentKind } from '../../document/DbtDocumentKind';
 import { DbtDocumentKindResolver } from '../../document/DbtDocumentKindResolver';

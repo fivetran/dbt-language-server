@@ -1,5 +1,5 @@
 import { EOL } from 'node:os';
-import * as path from 'node:path';
+import path from 'node:path';
 import { DiagnosticSeverity, Range } from 'vscode';
 import { assertAllDiagnostics } from './asserts';
 import { activateAndWait, getDocUri, replaceText } from './helper';

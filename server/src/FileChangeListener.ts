@@ -1,4 +1,4 @@
-import * as path from 'node:path';
+import path from 'node:path';
 import { DidChangeWatchedFilesParams, Emitter, Event, FileChangeType, FileEvent } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { DbtProject } from './DbtProject';

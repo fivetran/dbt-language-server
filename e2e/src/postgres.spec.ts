@@ -1,5 +1,5 @@
 import { assertThat, falsy, instanceOf, truthy } from 'hamjest';
-import * as fs from 'node:fs';
+import fs from 'node:fs';
 import { MarkdownString, Position, Range } from 'vscode';
 import { assertDefinitions } from './asserts';
 import {

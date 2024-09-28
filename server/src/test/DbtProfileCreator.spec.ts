@@ -1,5 +1,5 @@
 import { assertThat, defined, matchesPattern, not } from 'hamjest';
-import * as assert from 'node:assert';
+import assert from 'node:assert';
 import { instance, mock, when } from 'ts-mockito';
 import { DbtProfileCreator } from '../DbtProfileCreator';
 import { DbtProject } from '../DbtProject';

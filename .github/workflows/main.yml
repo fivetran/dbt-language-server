@@ -90,13 +90,13 @@ jobs:
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
-            python-version: '3.9.12'
+            python-version: '3'
 
           - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-snowflake dbt-postgres'
             os: macos-latest
             target: darwin-x64
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
-            python-version: '3.9.12'
+            python-version: '3'
 
           - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-snowflake dbt-postgres'
             os: ubuntu-latest
@@ -105,7 +105,7 @@ jobs:
               Xvfb -ac :99 -screen 0 1280x1024x16 &
               export DISPLAY=:99
             activate-venv: source ~/dbt_1_2_2_env/bin/activate
-            python-version: '3.10.7'
+            python-version: '3'
             SKIP_TESTS: 'vscode_commands.spec.js'
 
           - install-dbt: '${PYTHON_INSTALL_LOC} -m pip install dbt-bigquery dbt-snowflake dbt-postgres'
@@ -122,7 +122,7 @@ jobs:
             activate-venv: |
               cd ~/dbt_1_2_2_env/Scripts
               . activate
-            python-version: '3.10.7'
+            python-version: '3'
 
     name: e2e-${{ matrix.target }} ${{ matrix.install-dbt }} ${{ matrix.os }} ${{ matrix.python-version }}
 
@@ -171,16 +171,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: add custom python venv
-        run: | # https://github.com/dbt-labs/dbt-core/issues/4745
-          ${PYTHON_INSTALL_LOC} -m venv ~/dbt_1_2_2_env
-          ls ~/dbt_1_2_2_env
-          ${{ matrix.activate-venv }}
-          python -m pip install pytz dbt-core==1.2.2 dbt-bigquery==1.2.0
-          python -m pip list | grep dbt
-          dbt --version
-        env:
-          PYTHON_INSTALL_LOC: '${{ steps.setup-python.outputs.python-path }}'
+      # - name: add custom python venv
+      #   run: | # https://github.com/dbt-labs/dbt-core/issues/4745
+      #     ${PYTHON_INSTALL_LOC} -m venv ~/dbt_1_2_2_env
+      #     ls ~/dbt_1_2_2_env
+      #     ${{ matrix.activate-venv }}
+      #     python -m pip install pytz dbt-core==1.2.2 dbt-bigquery==1.2.0
+      #     python -m pip list | grep dbt
+      #     dbt --version
+      #   env:
+      #     PYTHON_INSTALL_LOC: '${{ steps.setup-python.outputs.python-path }}'
 
       - name: prepare profile config
         run: |

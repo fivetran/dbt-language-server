@@ -1,6 +1,6 @@
 /* eslint-disable sonarjs/no-duplicate-string */
 import { assertThat } from 'hamjest';
-import * as path from 'node:path';
+import path from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Position, Range } from 'vscode-languageserver-types';
 import { DbtRepository } from '../../DbtRepository';

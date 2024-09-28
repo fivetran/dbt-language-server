@@ -1,5 +1,5 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { DbtProject } from '../DbtProject';
 import { DbtRepository } from '../DbtRepository';
 import { getFilePathRelatedToWorkspace } from '../utils/Utils';

@@ -1,7 +1,7 @@
 import { DbtPackageInfo, DbtPackageVersions, PythonInfo } from 'dbt-language-server-common';
 import { promises as fsPromises } from 'node:fs';
-import * as semver from 'semver';
-import * as yaml from 'yaml';
+import semver from 'semver';
+import yaml from 'yaml';
 import { DbtRepository } from '../DbtRepository';
 import { ProcessExecutor } from '../ProcessExecutor';
 import { DbtCommandExecutor } from '../dbt_execution/DbtCommandExecutor';

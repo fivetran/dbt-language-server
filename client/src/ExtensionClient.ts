@@ -1,4 +1,4 @@
-import * as fs from 'node:fs';
+import fs from 'node:fs';
 import { commands, ExtensionContext, languages, TextDocument, TextEditor, Uri, ViewColumn, window, workspace, WorkspaceFolder } from 'vscode';
 import { ActiveTextEditorHandler } from './ActiveTextEditorHandler';
 import { CommandManager } from './commands/CommandManager';
@@ -17,7 +17,7 @@ import { TelemetryClient } from './TelemetryClient';
 import { DBT_PROJECT_YML, isDocumentSupported, SQL_LANG_ID } from './Utils';
 
 import { EventEmitter } from 'node:events';
-import * as path from 'node:path';
+import path from 'node:path';
 import { AnalyzeEntireProject } from './commands/AnalyzeEntireProject';
 import { CreateDbtProject } from './commands/CreateDbtProject/CreateDbtProject';
 import { DbtDeps } from './commands/DbtDeps';

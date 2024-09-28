@@ -1,4 +1,4 @@
-import * as path from 'node:path';
+import path from 'node:path';
 import { installVsCodeAndRunTests, prepareBigQuery, preparePostgres, prepareSnowflake } from './runTestUtils';
 
 // Expected parameter: path to the folder with the extension package.json
