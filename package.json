@@ -210,7 +210,7 @@
     "eslint-plugin-unicorn": "^51.0.1",
     "hamjest": "^4.1.0",
     "husky": "^8.0.3",
-    "lint-staged": "^15.2.0",
+    "lint-staged": "^15.2.9",
     "merge-options": "^3.0.4",
     "mocha": "^10.3.0",
     "prettier": "^3.1.1",
