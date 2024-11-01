@@ -13,7 +13,7 @@
     "@vscode/test-electron": "^2.3.9",
     "dbt-language-server-common": "file:../common",
     "hamjest": "^4.1.0",
-    "mocha": "^10.3.0",
+    "mocha": "^10.8.2",
     "path-equal": "^1.2.5",
     "pg": "^8.11.3",
     "snowflake-sdk": "^1.10.0"
