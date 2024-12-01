@@ -4,57 +4,57 @@
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 version: 2
-updates:
-  - package-ecosystem: 'github-actions'
-    directory: '/'
-    schedule:
-      interval: 'monthly'
-      day: 'friday'
-      time: '06:00' #UTC
-    reviewers:
-      - 'pgrivachev'
+# updates:
+#   - package-ecosystem: 'github-actions'
+#     directory: '/'
+#     schedule:
+#       interval: 'monthly'
+#       day: 'friday'
+#       time: '06:00' #UTC
+#     reviewers:
+#       - 'pgrivachev'
 
-  - package-ecosystem: 'npm'
-    directory: '/'
-    schedule:
-      interval: 'monthly'
-      day: 'friday'
-      time: '06:00' #UTC
-    reviewers:
-      - 'pgrivachev'
+#   - package-ecosystem: 'npm'
+#     directory: '/'
+#     schedule:
+#       interval: 'monthly'
+#       day: 'friday'
+#       time: '06:00' #UTC
+#     reviewers:
+#       - 'pgrivachev'
 
-  - package-ecosystem: 'npm'
-    directory: '/server'
-    schedule:
-      interval: 'monthly'
-      day: 'friday'
-      time: '06:00' #UTC
-    reviewers:
-      - 'pgrivachev'
+#   - package-ecosystem: 'npm'
+#     directory: '/server'
+#     schedule:
+#       interval: 'monthly'
+#       day: 'friday'
+#       time: '06:00' #UTC
+#     reviewers:
+#       - 'pgrivachev'
 
-  - package-ecosystem: 'npm'
-    directory: '/client'
-    schedule:
-      interval: 'monthly'
-      day: 'friday'
-      time: '06:00' #UTC
-    reviewers:
-      - 'pgrivachev'
+#   - package-ecosystem: 'npm'
+#     directory: '/client'
+#     schedule:
+#       interval: 'monthly'
+#       day: 'friday'
+#       time: '06:00' #UTC
+#     reviewers:
+#       - 'pgrivachev'
 
-  - package-ecosystem: 'npm'
-    directory: '/e2e'
-    schedule:
-      interval: 'monthly'
-      day: 'friday'
-      time: '06:00' #UTC
-    reviewers:
-      - 'pgrivachev'
+#   - package-ecosystem: 'npm'
+#     directory: '/e2e'
+#     schedule:
+#       interval: 'monthly'
+#       day: 'friday'
+#       time: '06:00' #UTC
+#     reviewers:
+#       - 'pgrivachev'
 
-  - package-ecosystem: 'npm'
-    directory: '/markdown_parser'
-    schedule:
-      interval: 'monthly'
-      day: 'friday'
-      time: '06:00' #UTC
-    reviewers:
-      - 'pgrivachev'
+#   - package-ecosystem: 'npm'
+#     directory: '/markdown_parser'
+#     schedule:
+#       interval: 'monthly'
+#       day: 'friday'
+#       time: '06:00' #UTC
+#     reviewers:
+#       - 'pgrivachev'
