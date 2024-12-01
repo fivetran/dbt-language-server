@@ -1,7 +1,7 @@
 import { ParseLocationRangeProto } from '@fivetrandevelopers/zetasql/lib/types/zetasql/ParseLocationRangeProto';
 import { AnalyzeResponse__Output } from '@fivetrandevelopers/zetasql/lib/types/zetasql/local_service/AnalyzeResponse';
 import { assertThat } from 'hamjest';
-import * as fs from 'node:fs';
+import fs from 'node:fs';
 import { ZetaSqlAst } from '../ZetaSqlAst';
 
 describe('ZetaSqlAst', () => {

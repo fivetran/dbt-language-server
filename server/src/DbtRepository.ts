@@ -1,6 +1,6 @@
 import { deferred } from 'dbt-language-server-common';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { Dag } from './dag/Dag';
 import { ManifestMacro, ManifestModel, ManifestNode, ManifestSource } from './manifest/ManifestJson';
 
